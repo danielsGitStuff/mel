@@ -1,9 +1,9 @@
-include ':app', ':json', ':serialize', ':sql', ':auth', ':drive'//, ':json',  ':serialize', ':sql',  ':auth', ':drive'
-project(':json').projectDir = new File('pcdrive/json')
-//project(':authfx').projectDir = new File('pcdrive/authfx')
-project(':serialize').projectDir = new File('pcdrive/serialize')
-project(':sql').projectDir = new File('pcdrive/sql')
-//project(':drivefx').projectDir = new File('pcdrive/drivefx')
-project(':auth').projectDir = new File('pcdrive/auth')
-project(':drive').projectDir = new File('pcdrive/drive')
+include ':app', ':json', ':serialize', ':sql', ':auth', ':drive',':authfx', ':drivefx'
+//project(':json').projectDir = new File('json')
+////project(':authfx').projectDir = new File('authfx')
+//project(':serialize').projectDir = new File('serialize')
+//project(':sql').projectDir = new File('sql')
+////project(':drivefx').projectDir = new File('drivefx')
+//project(':auth').projectDir = new File('auth')
+//project(':drive').projectDir = new File('drive')
 

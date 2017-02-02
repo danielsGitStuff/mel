@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'me.tatarka.retrolambda'
+
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+dependencies {
+    compile project(path: ':serialize')
+    testCompile project(path: ':serialize')
+    testCompile 'junit:junit:4.12'
+    compile 'org.xerial:sqlite-jdbc:3.8.11.2'
+    testCompile 'org.xerial:sqlite-jdbc:3.8.11.2'
+    compile 'mysql:mysql-connector-java:5.1.6'
+    compile 'org.bouncycastle:bcprov-jdk15on:1.54'
+    testCompile 'org.bouncycastle:bcprov-jdk15on:1.54'
+}

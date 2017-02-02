@@ -1,0 +1,132 @@
+package de.mein.drive.service;
+
+import de.mein.auth.data.db.Certificate;
+import de.mein.auth.jobs.Job;
+import de.mein.auth.jobs.ServiceMessageHandlerJob;
+import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.NoTryRunner;
+import de.mein.drive.data.*;
+import de.mein.drive.jobs.FsSyncJob;
+import de.mein.drive.sql.*;
+import de.mein.drive.sql.dao.FsDao;
+import de.mein.drive.sql.dao.StageDao;
+import de.mein.drive.tasks.SyncTask;
+import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Created by xor on 10/21/16.
+ */
+public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> {
+    private static Logger logger = Logger.getLogger(MeinDriveServerService.class.getName());
+
+    public MeinDriveServerService(MeinAuthService meinAuthService) {
+        super(meinAuthService);
+    }
+
+    @Override
+    protected void handleFsSyncJob(FsSyncJob fsSyncJob) throws IOException, SqlQueriesException {
+        this.doFsSyncJob(fsSyncJob).done(stageSetId -> runner.runTry(() -> {
+            logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
+            // staging is done. stage data is up to date. time to commit to fs
+            syncHandler.commitStage(stageSetId);
+            // tell everyone fs has a new version
+            for (DriveServerSettingsDetails.ClientData clientData : driveSettings.getServerSettings().getClients()) {
+                Certificate client = meinAuthService.getCertificateManager().getCertificateById(clientData.getCertId());
+                Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(client.getId().v(), client.getAddress().v(), client.getPort().v(), client.getCertDeliveryPort().v(), false);
+                promise.done(meinValidationProcess -> runner.runTry(() -> {
+                    logger.log(Level.FINEST, "MeinDriveService.workWork.syncThisClient.msg");
+                    meinValidationProcess.message(clientData.getServiceUuid(), DriveStrings.INTENT_SYNC, null);
+                }));
+            }
+        }));
+    }
+
+    @Override
+    protected void onSyncReceived(Request request) {
+        logger.log(Level.FINEST, "MeinDriveServerService.onSyncReceived");
+        SyncTask task = (SyncTask) request.getPayload();
+        driveDatabaseManager.getFsDao().lockRead();
+        try {
+            List<GenericFSEntry> delta = driveDatabaseManager.getDelta(task.getVersion());
+            request.resolve(task.setResult(delta));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            driveDatabaseManager.getFsDao().unlockRead();
+        }
+    }
+
+
+    @Override
+    protected boolean workWorkWork(Job unknownJob) {
+        logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveServerService.workWorkWork :)");
+        try {
+            if (unknownJob instanceof ServiceMessageHandlerJob) {
+                ServiceMessageHandlerJob job = (ServiceMessageHandlerJob) unknownJob;
+                if (job.isRequest()) {
+                    Request request = job.getRequest();
+                    if (checkIntent(request, DriveStrings.INTENT_REG_AS_CLIENT)) {
+                        DriveDetails driveDetails = (DriveDetails) request.getPayload();
+                        Long certId = request.getPartnerCertificate().getId().v();
+                        driveSettings.getServerSettings().addClient(certId, driveDetails.getServiceUuid());
+                        driveSettings.save();
+                        request.resolve(null);
+                        return true;
+                    } else if (checkIntent(request, DriveStrings.INTENT_COMMIT)) {
+                        syncHandler.handleCommit(request);
+                        return true;
+                    }
+                } else if (job.isMessage()) {
+
+                }
+            } else if (unknownJob instanceof FsSyncJob) {
+                System.out.println("MeinDriveServerService.workWorkWork.SYNC");
+                FsSyncJob syncJob = (FsSyncJob) unknownJob;
+                Promise<Long, Exception, Void> indexedPromise = doFsSyncJob(syncJob);
+                indexedPromise.done(stageSetId -> {
+                    syncHandler.commitStage(stageSetId);
+                    this.propagateNewVersion();
+                });
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    protected ServerSyncHandler initSyncHandler() {
+        return new ServerSyncHandler(meinAuthService,this);
+    }
+
+
+    private void propagateNewVersion() {
+        try {
+            long version = driveDatabaseManager.getLatestVersion();
+            for (DriveServerSettingsDetails.ClientData client : driveDatabaseManager.getDriveSettings().getServerSettings().getClients()) {
+                meinAuthService.connect(client.getCertId()).done(mvp -> NoTryRunner.run(() -> {
+                    mvp.message(client.getServiceUuid(), DriveStrings.INTENT_PROPAGATE_NEW_VERSION, new DriveDetails().setLastSyncVersion(version));
+                }));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private Map<Long, FsEntry> idFsEntryMap = new HashMap<>();
+
+
+
+}

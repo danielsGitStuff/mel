@@ -1,0 +1,19 @@
+#set($t = $StringUtil.trimStart($field.typeQualifiedName,"Pair"))
+#set($t = $t.replace("de.mein.sql.Pair<",""))
+#set($t = $t.replace(">",""))
+#set($paramName = $helper.getParamName($field, $project))
+public ##
+#if($field.modifierStatic)
+static ##
+#end
+$class.certUuid set$StringUtil.capitalizeWithJavaBeanConvention($StringUtil.sanitizeJavaIdentifier($helper.getPropertyName($field, $project)))($t $paramName) {
+#if ($field.certUuid == $paramName)
+    #if (!$field.modifierStatic)
+    this.##
+    #else
+        $classname.##
+    #end
+#end
+$field.certUuid .v($paramName);
+return this;
+}
