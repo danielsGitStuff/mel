@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'me.tatarka.retrolambda'
+
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'org.bouncycastle:bcprov-jdk15on:1.54'
+    compile project(path: ':sql')
+    testCompile 'org.jdeferred:jdeferred-core:1.2.4'
+    testCompile 'junit:junit:4.12'
+    compile group: 'net.sourceforge.streamsupport', name: 'streamsupport', version: '1.5.2'
+    compile group: 'org.jdeferred', name: 'jdeferred-core', version: '1.2.4'
+
+}

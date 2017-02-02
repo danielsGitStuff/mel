@@ -1,0 +1,18 @@
+apply plugin: 'java'
+apply plugin: 'me.tatarka.retrolambda'
+
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    testCompile group: 'org.hamcrest', name:'hamcrest-all', version:'1.3'
+    compile 'org.slf4j:slf4j-api:1.7.12'
+    compile group: 'net.sourceforge.streamsupport', name: 'streamsupport', version: '1.5.2'
+    compile project(path: ':json')
+    testCompile project(path: ':json')
+    compile group: 'org.slf4j', name : 'slf4j-api' ,version : '1.7.12'
+
+}

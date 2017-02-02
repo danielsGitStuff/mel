@@ -1,0 +1,51 @@
+package de.mein.core.sql.classes;
+
+import de.mein.core.serialize.SerializableEntity;
+import de.mein.sql.Pair;
+import de.mein.sql.SQLTableObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by xor on 11/5/15.
+ */
+public class SqlTableTester extends SQLTableObject implements SerializableEntity {
+    private Pair<String> pair = new Pair<String>(String.class,"pair");
+    private String obj = "bla";
+    private List<SqlTableTester> children = new ArrayList<>();
+    private SqlTableTester parent;
+
+    @Override
+    public String getTableName() {
+        return "hurr";
+    }
+
+    @Override
+    protected void init() {
+    }
+
+    public List<SqlTableTester> getChildren() {
+        return children;
+    }
+
+    public void addChild(SqlTableTester obj){
+        children.add(obj);
+    }
+
+    public String getObj() {
+        return obj;
+    }
+
+    public Pair<String> getPair() {
+        return pair;
+    }
+
+    public SqlTableTester getParent() {
+        return parent;
+    }
+
+    public void setParent(SqlTableTester parent) {
+        this.parent = parent;
+    }
+}

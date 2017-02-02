@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane prefHeight="524.0" prefWidth="755.0" xmlns="http://javafx.com/javafx/null" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.RegisterHandlerFX">
+    <left>
+        <HBox prefHeight="472.0" />
+    </left>
+    <bottom>
+        <HBox alignment="CENTER" prefHeight="23.0" prefWidth="755.0" BorderPane.alignment="CENTER">
+            <Button fx:id="btnAccept" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Accept"
+                    HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnReject" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Reject"
+                    HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </bottom>
+    <right>
+        <HBox prefHeight="100.0" BorderPane.alignment="CENTER" />
+    </right>
+   <center>
+       <HBox alignment="TOP_CENTER" prefHeight="100.0" prefWidth="300.0" BorderPane.alignment="CENTER">
+           <TextArea fx:id="txtMyCert" prefHeight="200.0"/>
+           <TextArea fx:id="txtCert" prefHeight="200.0"/>
+       </HBox>
+   </center>
+   <top>
+       <HBox alignment="CENTER" prefWidth="200.0" BorderPane.alignment="CENTER">
+           <Label fx:id="lblMyCert" maxWidth="1.7976931348623157E308" text="My Certificate" HBox.hgrow="ALWAYS"/>
+           <Label fx:id="lblCert" maxWidth="1.7976931348623157E308" text="Cert"/>
+       </HBox>
+   </top>
+</BorderPane>

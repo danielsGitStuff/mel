@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/auth/auth.iml" filepath="$PROJECT_DIR$/auth/auth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/authfx/authfx.iml" filepath="$PROJECT_DIR$/authfx/authfx.iml" />
+      <module fileurl="file://$PROJECT_DIR$/drive/drive.iml" filepath="$PROJECT_DIR$/drive/drive.iml" />
+      <module fileurl="file://$PROJECT_DIR$/drivefx/drivefx.iml" filepath="$PROJECT_DIR$/drivefx/drivefx.iml" />
+      <module fileurl="file://$PROJECT_DIR$/json/json.iml" filepath="$PROJECT_DIR$/json/json.iml" />
+      <module fileurl="file://$PROJECT_DIR$/pcdrive.iml" filepath="$PROJECT_DIR$/pcdrive.iml" />
+      <module fileurl="file://$PROJECT_DIR$/serialize/serialize.iml" filepath="$PROJECT_DIR$/serialize/serialize.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sql/sql.iml" filepath="$PROJECT_DIR$/sql/sql.iml" />
+    </modules>
+  </component>
+</project>
