@@ -2,6 +2,7 @@ package de.mein.sql;
 
 import java.io.File;
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
@@ -40,6 +41,12 @@ public abstract class SQLConnection {
     }
 
     public static Connection createSqliteConnection(File file) throws ClassNotFoundException, SQLException {
+        try {
+            DriverManager.registerDriver((Driver) Class.forName("org.sqldroid.SQLDroidDriver").newInstance());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to register SQLDroidDriver");
+        }
+
         Class.forName("org.sqlite.JDBC");
         return DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
     }

@@ -1,4 +1,4 @@
-include ':app', ':json', ':serialize', ':sql', ':auth', ':drive',':authfx', ':drivefx'
+include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':mylibrary'//,':authfx', ':drivefx'
 //project(':json').projectDir = new File('json')
 ////project(':authfx').projectDir = new File('authfx')
 //project(':serialize').projectDir = new File('serialize')

@@ -18,6 +18,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
 }
 
 dependencies {
@@ -28,9 +32,17 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.1'
     compile 'com.android.support:design:25.1.1'
     testCompile 'junit:junit:4.12'
+    compile 'org.sqldroid:sqldroid:1.0.3'
     compile project(':json')
     compile project(':serialize')
     compile project(':sql')
     compile project(':auth')
     compile project(':drive')
+}
+gradle.projectsEvaluated {
+    preBuild.dependsOn(copyFiles)
+}
+task copyFiles(type: Copy) {
+    from 'auth/src/main/resources/sql.sql'
+    into 'app/src/res/assets/sql.sql'
 }

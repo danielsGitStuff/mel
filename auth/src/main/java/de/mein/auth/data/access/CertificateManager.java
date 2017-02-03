@@ -36,7 +36,7 @@ public class CertificateManager extends FileRelatedManager {
     private final String PK_NAME = "private";
     private final String CERT_FILENAME = "cert.cert";
     private final String PK_FILENAME = "pk.key";
-    private final String KS_FILENAME = "keystore.jks";
+    private final String KS_FILENAME = "keystore.bks";
     private final String PUB_FILENAME = "pub.key";
     private KeyStore keyStore;
     private int keysize = 1024;
@@ -67,7 +67,7 @@ public class CertificateManager extends FileRelatedManager {
         if (keyStoreFile.exists()) {
             jksIn = new FileInputStream(keyStoreFile);
         }
-        keyStore = KeyStore.getInstance("JKS");
+        keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(jksIn, PASS.toCharArray());
         //init DB stuff
         certificateDao = new CertificateDao(sqlQueries, false);
@@ -234,9 +234,9 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     private SSLContext getSSLContext() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509");
         kmf.init(keyStore, PASS.toCharArray());
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
         tmf.init(keyStore);
         SSLContext sslContext = null;
         sslContext = SSLContext.getInstance("TLS");

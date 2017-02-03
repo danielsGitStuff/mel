@@ -38,7 +38,7 @@ public class SQLConnectionTest {
         Connection con = SQLConnection.createSqliteConnection((sqliteFile));
         SqliteExecutor executor = new SqliteExecutor(con);
         if (!executor.checkTableExists("atest")) {
-            executor.executeResource("/test.sql");
+            executor.executeStream("/test.sql");
         }
 
         CrashTestDummy dummy = new CrashTestDummy().setName("test 1");

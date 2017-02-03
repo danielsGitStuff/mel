@@ -28,7 +28,6 @@ import java.util.List;
  */
 public class DriveBootLoader extends BootLoader {
 
-    private NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
 
     public static abstract class DEVinjector {
 
@@ -55,7 +54,7 @@ public class DriveBootLoader extends BootLoader {
     @Override
     public void boot(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         for (Service service : services) {
-            runner.runTry(() -> {
+            NoTryRunner.run(() -> {
                 File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v() + File.separator + "drive.settings.json");
 
                 DriveSettings driveSettings = (DriveSettings) JsonSettings.load(jsonFile);

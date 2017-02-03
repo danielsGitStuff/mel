@@ -9,7 +9,9 @@ import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,16 +28,24 @@ public class DatabaseManager extends FileRelatedManager {
     private ServiceTypeDao serviceTypeDao;
     private ServiceDao serviceDao;
     private final ApprovalDao approvalDao;
+    private static InputStream SQL_INPUTSTREAM;
+
+    public static void setSqlInputstream(InputStream sqlInputstream) {
+        SQL_INPUTSTREAM = sqlInputstream;
+    }
 
     public DatabaseManager(File workingDirectory) throws SQLException, ClassNotFoundException, IOException {
         super(workingDirectory);
+        //android der Hurensohn
+        if (SQL_INPUTSTREAM == null)
+            SQL_INPUTSTREAM = new FileInputStream(new File("/sql.sql"));
         //init DB stuff
         this.dbConnection = SQLConnection.createSqliteConnection(new File(createWorkingPath() + DB_FILENAME));
         //check DB stuff
         SqliteExecutor sqliteExecutor = new SqliteExecutor(dbConnection);
-        if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate","transfer")) {
+        if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate", "transfer")) {
             //find sql file in workingdir
-            sqliteExecutor.executeResource("/sql.sql");
+            sqliteExecutor.executeStream(SQL_INPUTSTREAM);
             hadToInitialize = true;
         }
         this.sqlQueries = new SQLQueries(dbConnection, new RWLock());

@@ -1,6 +1,8 @@
 package de.mein.execute;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -21,12 +23,11 @@ public class SqliteExecutor {
         this.connection = connection;
     }
 
-    public void executeResource(String resource) throws IOException, SQLException {
+    public void executeStream(InputStream in) throws IOException, SQLException {
         // this is all hackery and might break
         // it should get along with the intellij auto formatter
-        URL res = String.class.getResource(resource);
-        System.out.println("SqliteExecutor.executeResource: " + res.toExternalForm());
-        Scanner s = new Scanner(String.class.getResourceAsStream(resource), "UTF-8");
+        System.out.println("SqliteExecutor.executeStream");
+        Scanner s = new Scanner(in);//new Scanner(String.class.getResourceAsStream(resource), "UTF-8");
         //s.useDelimiter("(;(\r)?\n)|(--\n)");
         s.useDelimiter("\n|\r");
         Statement st = null;

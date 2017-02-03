@@ -4,9 +4,7 @@ import de.mein.auth.data.access.FileRelatedManager;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSettings;
-import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.service.WasteBin;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
@@ -17,7 +15,9 @@ import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -38,6 +38,11 @@ public class DriveDatabaseManager extends FileRelatedManager {
     private final DriveSettings driveSettings;
     private TransferDao transferDao;
     private WasteDao wasteDao;
+    private static InputStream SQL_INPUTSTREAM;
+
+    public static void setSqlInputstream(InputStream sqlInputstream) {
+        SQL_INPUTSTREAM = sqlInputstream;
+    }
 
     public static Connection createSqliteConnection() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
@@ -46,6 +51,8 @@ public class DriveDatabaseManager extends FileRelatedManager {
 
     public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
         super(workingDirectory);
+        if (SQL_INPUTSTREAM == null)
+            SQL_INPUTSTREAM = new FileInputStream(new File("/drive.sql"));
         this.meinDriveService = meinDriveService;
         this.dbConnection = SQLConnection.createSqliteConnection(new File(createWorkingPath() + DB_FILENAME));
         //this.dbConnection = createSqliteConnection();
@@ -67,7 +74,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         SqliteExecutor sqliteExecutor = new SqliteExecutor(dbConnection);
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
             //find sql file in workingdir
-            sqliteExecutor.executeResource("/drive.sql");
+            sqliteExecutor.executeStream(SQL_INPUTSTREAM);
             hadToInitialize = true;
         }
 

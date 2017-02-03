@@ -11,7 +11,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'org.xerial:sqlite-jdbc:3.8.11.2'
     testCompile 'org.xerial:sqlite-jdbc:3.8.11.2'
-    compile 'mysql:mysql-connector-java:5.1.6'
-    compile 'org.bouncycastle:bcprov-jdk15on:1.54'
-    testCompile 'org.bouncycastle:bcprov-jdk15on:1.54'
+    //compile 'mysql:mysql-connector-java:5.1.6'
+    //compile 'org.bouncycastle:bcprov-jdk15on:1.54'
+    //testCompile 'org.bouncycastle:bcprov-jdk15on:1.54'
 }
