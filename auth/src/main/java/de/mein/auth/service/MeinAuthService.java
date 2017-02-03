@@ -79,7 +79,7 @@ public class MeinAuthService extends MeinRunnable {
 
     public MeinAuthService(MeinAuthSettings meinAuthSettings, IDBCreatedListener dbCreatedListener) throws Exception {
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
-        this.databaseManager = new DatabaseManager(workingDirectory);
+        this.databaseManager = new DatabaseManager(meinAuthSettings);
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 1024);
         this.name = meinAuthSettings.getName();
         this.settings = meinAuthSettings;

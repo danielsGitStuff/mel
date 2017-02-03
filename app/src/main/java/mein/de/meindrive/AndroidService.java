@@ -6,12 +6,14 @@ import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
 import org.jdeferred.Promise;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -96,12 +98,27 @@ public class AndroidService extends Service {
     }
 
     public void setup(DriveSyncListener clientSyncListener) throws Exception {
-//        MeinBoot.addBootLoaderClass(DriveBootLoader.class);
+        SQLiteStatement s;
+        MeinBoot.addBootLoaderClass(DriveBootLoader.class);
         AssetManager assetManager = getAssets();
         InputStream sqlInput = assetManager.open("sql.sql");
         InputStream driveSqlInput = assetManager.open("drive.sql");
-        DatabaseManager.setSqlInputstream(sqlInput);
-        DriveDatabaseManager.setSqlInputstream(driveSqlInput);
+        DatabaseManager.setSqlInputStreamInjector(() -> {
+            try {
+                return assetManager.open("sql.sql");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+        DriveDatabaseManager.setDriveSqlInputStreamInjector(() -> {
+            try {
+                return assetManager.open("drive.sql");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
 
         //setup working directories & directories with test data
         RWLock lock = new RWLock();

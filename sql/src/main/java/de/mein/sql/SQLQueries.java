@@ -1,6 +1,8 @@
 package de.mein.sql;
 
 
+import org.sqldroid.SQLDroidConnection;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +17,11 @@ public class SQLQueries {
 
     private static Logger logger = Logger.getLogger(SQLQueries.class);
     private RWLock lock;
-    private static final boolean sysout = false;
+    private static final boolean SYSOUT = true;
     private final Connection connection;
 
     private static void out(String msg) {
-        if (sysout) {
+        if (SYSOUT) {
             logger.debug("SqlQueries.out()." + msg);
         }
     }
@@ -234,7 +236,7 @@ public class SQLQueries {
                         } catch (Exception e) {
                             if (!e.getClass().equals(SQLException.class)) {
                                 out("load().exception." + e.getClass().toString() + " " + e.getMessage());
-                                System.err.println("SQLQueries.load.Exception on setting Pair: "+pair.k());
+                                System.err.println("SQLQueries.load.Exception on setting Pair: " + pair.k());
                             }
                         }
                     }
@@ -403,8 +405,11 @@ public class SQLQueries {
             logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         }
-
+        //todo debug
+        if (query.equals(" insert into servicetype (type, description) values ( ? ,  ? )"))
+            System.out.println("SQLQueries.insertWithAttributes");
         try {
+
             PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             for (int i = 1; i <= attributes.size(); i++) {
                 Pair<?> attribute = attributes.get(i - 1);
@@ -425,6 +430,8 @@ public class SQLQueries {
             pstmt.close();
         } catch (Exception e) {
             //e.printStackTrace();
+            out("SQLQueries.insert.failed: ");
+            out(query);
             throw new SqlQueriesException(e);
         } finally {
             unlockWrite();

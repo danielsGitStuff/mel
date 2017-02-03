@@ -15,7 +15,6 @@ import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -38,21 +37,25 @@ public class DriveDatabaseManager extends FileRelatedManager {
     private final DriveSettings driveSettings;
     private TransferDao transferDao;
     private WasteDao wasteDao;
-    private static InputStream SQL_INPUTSTREAM;
-
-    public static void setSqlInputstream(InputStream sqlInputstream) {
-        SQL_INPUTSTREAM = sqlInputstream;
-    }
 
     public static Connection createSqliteConnection() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
         return DriverManager.getConnection("jdbc:sqlite::memory:");
     }
 
+    public interface DriveSqlInputStreamInjector {
+        InputStream createSqlFileInputStream();
+    }
+
+    private static DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> String.class.getResourceAsStream("/drive.sql");
+
+    public static void setDriveSqlInputStreamInjector(DriveSqlInputStreamInjector driveSqlInputStreamInjector) {
+        DriveDatabaseManager.driveSqlInputStreamInjector = driveSqlInputStreamInjector;
+    }
+
     public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
         super(workingDirectory);
-        if (SQL_INPUTSTREAM == null)
-            SQL_INPUTSTREAM = new FileInputStream(new File("/drive.sql"));
+
         this.meinDriveService = meinDriveService;
         this.dbConnection = SQLConnection.createSqliteConnection(new File(createWorkingPath() + DB_FILENAME));
         //this.dbConnection = createSqliteConnection();
@@ -74,7 +77,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         SqliteExecutor sqliteExecutor = new SqliteExecutor(dbConnection);
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
             //find sql file in workingdir
-            sqliteExecutor.executeStream(SQL_INPUTSTREAM);
+            sqliteExecutor.executeStream(driveSqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
 

@@ -20,12 +20,9 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
 
     public List<Certificate> getCertificates() throws SqlQueriesException {
         Certificate dummy = new Certificate();
-        List<SQLTableObject> re = sqlQueries.load(dummy.getAllAttributes(), dummy, null, null);
+        List<Certificate> re = sqlQueries.load(dummy.getAllAttributes(), dummy, null, null);
         List<Certificate> result = new ArrayList<>();
-        for (SQLTableObject cert : re) {
-            result.add((Certificate) cert);
-        }
-        return result;
+        return re;
     }
 
     public Certificate insertCertificate(Certificate certificate) throws SqlQueriesException {

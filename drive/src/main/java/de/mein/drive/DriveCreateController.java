@@ -58,7 +58,6 @@ public class DriveCreateController {
         driveSettings.setTransferDirectoryPath(rootDirectory.getPath()+File.separator+DriveSettings.TRANSFER_DIR);
         boot(service, driveSettings);
         return (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
-
     }
 
     public Promise<MeinDriveClientService, Exception, Void> createDriveClientService(String name, String path, Long certId, String serviceUuid) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {

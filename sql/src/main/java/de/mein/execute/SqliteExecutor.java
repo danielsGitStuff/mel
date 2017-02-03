@@ -27,7 +27,7 @@ public class SqliteExecutor {
         // this is all hackery and might break
         // it should get along with the intellij auto formatter
         System.out.println("SqliteExecutor.executeStream");
-        Scanner s = new Scanner(in);//new Scanner(String.class.getResourceAsStream(resource), "UTF-8");
+        Scanner s = new Scanner(in,"UTF-8");//new Scanner(String.class.getResourceAsStream(resource), "UTF-8");
         //s.useDelimiter("(;(\r)?\n)|(--\n)");
         s.useDelimiter("\n|\r");
         Statement st = null;

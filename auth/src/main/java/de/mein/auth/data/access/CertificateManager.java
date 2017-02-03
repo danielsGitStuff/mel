@@ -5,6 +5,7 @@ import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.tools.Cryptor;
 import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
+
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
@@ -13,6 +14,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.*;
+
 import java.io.*;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -126,7 +128,7 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public void trustCertificate(Long certId, boolean trusted) throws SqlQueriesException {
-        certificateDao.trustCertificate(certId,trusted);
+        certificateDao.trustCertificate(certId, trusted);
     }
 
     private void loadCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
@@ -234,7 +236,19 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     private SSLContext getSSLContext() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance("X509");
+        // todo android der Hurensohn
+        KeyManagerFactory kmf = null;
+        try {
+            kmf = KeyManagerFactory.getInstance("X509");
+        } catch (Exception e) {
+            System.err.println("CertificateManager.getSSLContext(X509).failed");
+        }
+        if (kmf == null)
+            try {
+                kmf = KeyManagerFactory.getInstance("SunX509");
+            } catch (Exception e) {
+                System.err.println("CertificateManager.getSSLContext(SunX509).failed");
+            }
         kmf.init(keyStore, PASS.toCharArray());
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
         tmf.init(keyStore);
@@ -305,12 +319,21 @@ public class CertificateManager extends FileRelatedManager {
 
     public Socket createSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         SSLSocket socket = (SSLSocket) getSSLContext().getSocketFactory().createSocket();
-        socket.setEnabledProtocols(new String[]{"TLSv1.2"});
+        try {
+            socket.setEnabledProtocols(new String[]{"TLSv1.2"});
+        } catch (Exception e) {
+            socket.setEnabledProtocols(new String[]{"TLSv1.1"});
+        }
         return socket;
     }
+
     public ServerSocket createServerSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         SSLServerSocket socket = (SSLServerSocket) getSSLContext().getServerSocketFactory().createServerSocket();
-        socket.setEnabledProtocols(new String[]{"TLSv1.2"});
+        try {
+            socket.setEnabledProtocols(new String[]{"TLSv1.2"});
+        } catch (Exception e) {
+            socket.setEnabledProtocols(new String[]{"TLSv1.1"});
+        }
         return socket;
     }
 }

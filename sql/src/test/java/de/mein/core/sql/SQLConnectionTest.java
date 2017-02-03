@@ -5,10 +5,12 @@ import de.mein.core.sql.classes.CrashTestDummy;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.SQLConnection;
 import de.mein.sql.SQLQueries;
+
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -38,7 +40,7 @@ public class SQLConnectionTest {
         Connection con = SQLConnection.createSqliteConnection((sqliteFile));
         SqliteExecutor executor = new SqliteExecutor(con);
         if (!executor.checkTableExists("atest")) {
-            executor.executeStream("/test.sql");
+            executor.executeStream(new FileInputStream(new File("/test.sql")));
         }
 
         CrashTestDummy dummy = new CrashTestDummy().setName("test 1");

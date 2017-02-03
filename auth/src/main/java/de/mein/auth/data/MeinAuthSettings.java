@@ -3,6 +3,7 @@ package de.mein.auth.data;
 import de.mein.auth.service.MeinAuthService;
 
 import java.io.File;
+import java.io.InputStream;
 
 /**
  * Created by xor on 6/10/16.
@@ -101,6 +102,4 @@ public class MeinAuthSettings extends JsonSettings {
         this.name = name;
         return this;
     }
-
-
 }

@@ -46,8 +46,7 @@ public abstract class SQLConnection {
         } catch (Exception e) {
             throw new RuntimeException("Failed to register SQLDroidDriver");
         }
-
-        Class.forName("org.sqlite.JDBC");
+        Class c = Class.forName("org.sqlite.JDBC");
         return DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
     }
 

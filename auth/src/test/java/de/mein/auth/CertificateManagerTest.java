@@ -1,5 +1,6 @@
 package de.mein.auth;
 
+import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
@@ -52,12 +53,12 @@ public class CertificateManagerTest {
 
     @Before
     public void init() throws Exception, SqlQueriesException {
-        certificateManager = createCertificateManager(new File("z_test"));
+        certificateManager = createCertificateManager(new MeinAuthSettings().setWorkingDirectory(new File("z_test")));
     }
 
-    public static CertificateManager createCertificateManager(File workingDirectory) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException {
-        DatabaseManager databaseManager = new DatabaseManager(workingDirectory);
-        return new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 1024);
+    public static CertificateManager createCertificateManager(MeinAuthSettings meinAuthSettings) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException {
+        DatabaseManager databaseManager = new DatabaseManager(meinAuthSettings);
+        return new CertificateManager(meinAuthSettings.getWorkingDirectory(), databaseManager.getSqlQueries(), 1024);
     }
 
     @After
@@ -86,7 +87,11 @@ public class CertificateManagerTest {
         buildCertificate.setId(dbCertificate.getId().v());
         assertEquals(Arrays.toString(byteCert), Arrays.toString(dbCertificate.getCertificate().v()));
     }
-
+    public static CertificateManager createCertificateManager(File wd) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException {
+        MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setWorkingDirectory(wd);
+        DatabaseManager databaseManager = new DatabaseManager(meinAuthSettings);
+        return new CertificateManager(meinAuthSettings.getWorkingDirectory(), databaseManager.getSqlQueries(), 1024);
+    }
 
     @Test
     public void keySerialization() throws Exception, SqlQueriesException {

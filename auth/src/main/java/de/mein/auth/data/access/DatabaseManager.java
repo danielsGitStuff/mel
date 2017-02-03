@@ -1,6 +1,7 @@
 package de.mein.auth.data.access;
 
 import de.mein.auth.data.ApprovalMatrix;
+import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.db.*;
 import de.mein.auth.data.db.dao.ApprovalDao;
 import de.mein.auth.data.db.dao.ServiceDao;
@@ -9,7 +10,6 @@ import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -28,24 +28,27 @@ public class DatabaseManager extends FileRelatedManager {
     private ServiceTypeDao serviceTypeDao;
     private ServiceDao serviceDao;
     private final ApprovalDao approvalDao;
-    private static InputStream SQL_INPUTSTREAM;
 
-    public static void setSqlInputstream(InputStream sqlInputstream) {
-        SQL_INPUTSTREAM = sqlInputstream;
+    public interface SqlInputStreamInjector {
+        InputStream createSqlFileInputStream();
     }
 
-    public DatabaseManager(File workingDirectory) throws SQLException, ClassNotFoundException, IOException {
-        super(workingDirectory);
+    private static SqlInputStreamInjector sqlInputStreamInjector = () -> String.class.getResourceAsStream("/sql.sql");
+
+    public static void setSqlInputStreamInjector(SqlInputStreamInjector sqlInputStreamInjector) {
+        DatabaseManager.sqlInputStreamInjector = sqlInputStreamInjector;
+    }
+
+    public DatabaseManager(MeinAuthSettings meinAuthSettings) throws SQLException, ClassNotFoundException, IOException {
+        super(meinAuthSettings.getWorkingDirectory());
         //android der Hurensohn
-        if (SQL_INPUTSTREAM == null)
-            SQL_INPUTSTREAM = new FileInputStream(new File("/sql.sql"));
         //init DB stuff
         this.dbConnection = SQLConnection.createSqliteConnection(new File(createWorkingPath() + DB_FILENAME));
         //check DB stuff
         SqliteExecutor sqliteExecutor = new SqliteExecutor(dbConnection);
         if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate", "transfer")) {
             //find sql file in workingdir
-            sqliteExecutor.executeStream(SQL_INPUTSTREAM);
+            sqliteExecutor.executeStream(sqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
         this.sqlQueries = new SQLQueries(dbConnection, new RWLock());
