@@ -241,7 +241,7 @@ public class CertificateManager extends FileRelatedManager {
         try {
             kmf = KeyManagerFactory.getInstance("X509");
         } catch (Exception e) {
-            System.err.println("CertificateManager.getSSLContext(X509).failed");
+            System.err.println("CertificateManager.getSSLContext(X509).failed.trying(SunX509)");
         }
         if (kmf == null)
             try {

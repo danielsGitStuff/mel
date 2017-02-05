@@ -4,15 +4,18 @@ import de.mein.auth.data.access.FileRelatedManager;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.drive.sql.dao.WasteDao;
 import de.mein.execute.SqliteExecutor;
-import de.mein.sql.SQLConnection;
 import de.mein.sql.SQLQueries;
+import de.mein.sql.SQLStatement;
 import de.mein.sql.SqlQueriesException;
+import de.mein.sql.con.SQLConnection;
+import de.mein.sql.con.SQLConnector;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +23,6 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -28,15 +30,26 @@ import java.util.List;
  * Created by xor on 09.07.2016.
  */
 public class DriveDatabaseManager extends FileRelatedManager {
-    public static final String DB_FILENAME = "meindrive.db";
     private final MeinDriveService meinDriveService;
     private SQLQueries driveSqlQueries;
-    private final Connection dbConnection;
+    private final SQLConnection dbConnection;
     private FsDao fsDao;
     private StageDao stageDao;
     private final DriveSettings driveSettings;
     private TransferDao transferDao;
     private WasteDao wasteDao;
+
+    public interface SQLConnectionCreator {
+        SQLConnection createConnection(DriveDatabaseManager driveDatabaseManager) throws SQLException, ClassNotFoundException;
+    }
+
+    private static SQLConnectionCreator sqlConnectionCreator = driveDatabaseManager -> {
+        return SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME));
+    };
+
+    public static void setSqlConnectionCreator(SQLConnectionCreator sqlConnectionCreator) {
+        DriveDatabaseManager.sqlConnectionCreator = sqlConnectionCreator;
+    }
 
     public static Connection createSqliteConnection() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
@@ -53,13 +66,13 @@ public class DriveDatabaseManager extends FileRelatedManager {
         DriveDatabaseManager.driveSqlInputStreamInjector = driveSqlInputStreamInjector;
     }
 
-    public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
+    public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg, SQLConnection sqlConnection) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
         super(workingDirectory);
 
         this.meinDriveService = meinDriveService;
-        this.dbConnection = SQLConnection.createSqliteConnection(new File(createWorkingPath() + DB_FILENAME));
+        this.dbConnection = sqlConnection; //sqlConnectionCreator.createConnection(this);//
+        //SQLConnector.createSqliteConnection(new File(createWorkingPath() + DriveStrings.DB_FILENAME));
         //this.dbConnection = createSqliteConnection();
-        Statement st = dbConnection.createStatement();
         /**
          * todo improve sqlite pragma suff
          *  org.sqlite.SQLiteConfig config = new org.sqlite.SQLiteConfig();
@@ -72,8 +85,10 @@ public class DriveDatabaseManager extends FileRelatedManager {
          java.sql.Driver driver = (java.sql.Driver) Class.forName("org.sqlite.JDBC").newInstance();
          java.sql.Connection conn = driver.connect(url, config.toProperties());
          */
-        st.execute("PRAGMA synchronous=OFF");
-        st.execute("PRAGMA foreign_keys=ON");
+        SQLStatement st = sqlConnection.prepareStatement("PRAGMA synchronous=OFF");
+        st.execute();
+        st = sqlConnection.prepareStatement("PRAGMA foreign_keys=ON");
+        st.execute();
         SqliteExecutor sqliteExecutor = new SqliteExecutor(dbConnection);
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
             //find sql file in workingdir
@@ -81,7 +96,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
             hadToInitialize = true;
         }
 
-        SQLQueries sqlQueries = new DriveSqlQueries(dbConnection);
+        SQLQueries sqlQueries = new SQLQueries(dbConnection);
         fsDao = new FsDao(this, sqlQueries);
         stageDao = new StageDao(this, sqlQueries);
         transferDao = new TransferDao(sqlQueries);
@@ -97,10 +112,6 @@ public class DriveDatabaseManager extends FileRelatedManager {
 
     public MeinDriveService getMeinDriveService() {
         return meinDriveService;
-    }
-
-    public Connection getDbConnection() {
-        return dbConnection;
     }
 
     public FsDao getFsDao() {

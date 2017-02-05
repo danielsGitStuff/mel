@@ -19,4 +19,6 @@ public abstract class DriveStrings {
 
     // file system related stuff
     public static final String WASTEBIN = "wastebin";
+    public static final String DB_FILENAME = "meindrive.db";
+    public static final int DB_VERSION = 1;
 }

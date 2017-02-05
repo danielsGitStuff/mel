@@ -1,5 +1,7 @@
 package de.mein.sql;
 
+import de.mein.sql.con.SQLResultSet;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,10 +15,10 @@ import java.util.List;
  */
 public class SQLResource<T extends SQLTableObject> implements AutoCloseable {
     private final Class<T> clazz;
-    private Statement statement;
-    private ResultSet resultSet;
+    private SQLStatement statement;
+    private SQLResultSet resultSet;
 
-    public SQLResource(PreparedStatement statement, Class<T> clazz) throws SQLException {
+    public SQLResource(SQLStatement statement, Class<T> clazz) throws SQLException {
         this.statement = statement;
         this.resultSet = statement.getResultSet();
         this.clazz = clazz;

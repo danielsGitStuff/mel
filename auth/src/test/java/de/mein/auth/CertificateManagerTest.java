@@ -53,6 +53,7 @@ public class CertificateManagerTest {
 
     @Before
     public void init() throws Exception, SqlQueriesException {
+        CertificateManager.deleteDirectory(new File("z_test"));
         certificateManager = createCertificateManager(new MeinAuthSettings().setWorkingDirectory(new File("z_test")));
     }
 
@@ -87,7 +88,15 @@ public class CertificateManagerTest {
         buildCertificate.setId(dbCertificate.getId().v());
         assertEquals(Arrays.toString(byteCert), Arrays.toString(dbCertificate.getCertificate().v()));
     }
+
     public static CertificateManager createCertificateManager(File wd) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException {
+        return createCertificateManager(wd, true);
+    }
+
+    private static CertificateManager createCertificateManager(File wd, boolean delete) throws SQLException, IOException, ClassNotFoundException, CertificateException, NoSuchAlgorithmException, KeyStoreException, SignatureException, SqlQueriesException, InvalidKeyException {
+        if (delete)
+            CertificateManager.deleteDirectory(wd);
+        wd.mkdirs();
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setWorkingDirectory(wd);
         DatabaseManager databaseManager = new DatabaseManager(meinAuthSettings);
         return new CertificateManager(meinAuthSettings.getWorkingDirectory(), databaseManager.getSqlQueries(), 1024);
@@ -100,7 +109,7 @@ public class CertificateManagerTest {
         PrivateKey pk1 = certificateManager.getPrivateKey();
         PublicKey pubk1 = certificateManager.getPublicKey();
         X509Certificate cert1 = certificateManager.getMyX509Certificate();
-        certificateManager = createCertificateManager(new File("testDir"));
+        certificateManager = createCertificateManager(new File("testDir"), false);
         PrivateKey pk2 = certificateManager.getPrivateKey();
         PublicKey pubk2 = certificateManager.getPublicKey();
         X509Certificate cert2 = certificateManager.getMyX509Certificate();

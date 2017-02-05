@@ -80,7 +80,6 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runn
                 System.out.println("MeinIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
             }
             transferDetail.onReceived(offset, data);
-            boolean debug = c.equals('t') == transferDetail.transferred();
             assert c.equals('t') == transferDetail.transferred();
             if (transferDetail.transferred() || c.equals('t')) {
                 receivingSemaphore.acquire();

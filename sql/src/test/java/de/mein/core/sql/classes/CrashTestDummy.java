@@ -1,6 +1,5 @@
 package de.mein.core.sql.classes;
 
-import de.mein.core.sql.SQLConnectionTest;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 

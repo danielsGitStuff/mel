@@ -10,16 +10,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
+import de.mein.sql.SQLStatement;
+import de.mein.sql.con.SQLConnection;
+
 /**
  * Created by xor on 3/28/16.
  */
 public class SqliteExecutor {
 
-    private Connection connection;
+    private SQLConnection connection;
     private String statement;
     StringBuilder b = new StringBuilder();
 
-    public SqliteExecutor(Connection connection) {
+    public SqliteExecutor(SQLConnection connection) {
         this.connection = connection;
     }
 
@@ -30,9 +33,7 @@ public class SqliteExecutor {
         Scanner s = new Scanner(in,"UTF-8");//new Scanner(String.class.getResourceAsStream(resource), "UTF-8");
         //s.useDelimiter("(;(\r)?\n)|(--\n)");
         s.useDelimiter("\n|\r");
-        Statement st = null;
         try {
-            st = connection.createStatement();
             int begin = 0;
             boolean comment = false;
             while (s.hasNext()) {
@@ -56,7 +57,9 @@ public class SqliteExecutor {
                         if (!ap)
                             append(line);
                         this.statement = b.toString();
-                        st.execute(statement);
+                        SQLStatement st = connection.prepareStatement(statement);
+                        st.execute();
+                        st.close();
                         b = new StringBuilder();
                     } else {
                         if (!ap)
@@ -69,8 +72,6 @@ public class SqliteExecutor {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (st != null) st.close();
         }
     }
 
@@ -106,17 +107,20 @@ public class SqliteExecutor {
 
     public boolean checkTableExists(String dbName) {
         try {
-            ResultSet resultSet = connection.getMetaData().getTables(null, null, "%", null);
-            //connection.getMetaData().getCatalogs();
-            while (resultSet.next()) {
-                String databaseName = resultSet.getString(3);
-                if (databaseName.equals(dbName)) {
-                    return true;
-                }
-            }
-            resultSet.close();
+            String query = "select * from "+dbName;
+            connection.prepareStatement(query).execute();
+            return true;
+//            ResultSet resultSet = connection.getMetaData().getTables(null, null, "%", null);
+//            //connection.getMetaData().getCatalogs();
+//            while (resultSet.next()) {
+//                String databaseName = resultSet.getString(3);
+//                if (databaseName.equals(dbName)) {
+//                    return true;
+//                }
+//            }
+//            resultSet.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("SqliteExecutor.checkTableExists.false");
         }
         return false;
     }

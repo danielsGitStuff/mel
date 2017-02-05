@@ -8,6 +8,8 @@ import de.mein.auth.data.db.dao.ServiceDao;
 import de.mein.auth.data.db.dao.ServiceTypeDao;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
+import de.mein.sql.con.SQLConnection;
+import de.mein.sql.con.SQLConnector;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,36 +19,50 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * Created by xor on 4/26/16.
  */
-public class DatabaseManager extends FileRelatedManager {
+public final class DatabaseManager extends FileRelatedManager {
     public static final String DB_FILENAME = "meinauth.db";
-    private final Connection dbConnection;
-    private final SQLQueries sqlQueries;
-    private ServiceTypeDao serviceTypeDao;
-    private ServiceDao serviceDao;
-    private final ApprovalDao approvalDao;
+    protected final SQLConnection dbConnection;
+    protected final SQLQueries sqlQueries;
+    protected final ServiceTypeDao serviceTypeDao;
+    protected final ServiceDao serviceDao;
+    protected final ApprovalDao approvalDao;
 
     public interface SqlInputStreamInjector {
         InputStream createSqlFileInputStream();
     }
 
+
     private static SqlInputStreamInjector sqlInputStreamInjector = () -> String.class.getResourceAsStream("/sql.sql");
+
 
     public static void setSqlInputStreamInjector(SqlInputStreamInjector sqlInputStreamInjector) {
         DatabaseManager.sqlInputStreamInjector = sqlInputStreamInjector;
     }
+    public interface SQLConnectionCreator {
+        SQLConnection createConnection(DatabaseManager databaseManager) throws SQLException, ClassNotFoundException;
+    }
 
-    public DatabaseManager(MeinAuthSettings meinAuthSettings) throws SQLException, ClassNotFoundException, IOException {
+    private static SQLConnectionCreator sqlConnectionCreator = databaseManager -> {
+        File f = new File(databaseManager.createWorkingPath() + DB_FILENAME);
+        return SQLConnector.createSqliteConnection(f);
+    };
+    public static void setSqlConnectionCreator(SQLConnectionCreator sqlConnectionCreator) {
+        DatabaseManager.sqlConnectionCreator = sqlConnectionCreator;
+    }
+
+    public DatabaseManager(MeinAuthSettings meinAuthSettings ) throws SQLException, ClassNotFoundException, IOException {
         super(meinAuthSettings.getWorkingDirectory());
         //android der Hurensohn
         //init DB stuff
-        this.dbConnection = SQLConnection.createSqliteConnection(new File(createWorkingPath() + DB_FILENAME));
+        this.dbConnection = sqlConnectionCreator.createConnection(this);// createConnection(createWorkingPath() + DB_FILENAME);
         //check DB stuff
         SqliteExecutor sqliteExecutor = new SqliteExecutor(dbConnection);
-        if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate", "transfer")) {
+        if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
             //find sql file in workingdir
             sqliteExecutor.executeStream(sqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
@@ -57,9 +73,6 @@ public class DatabaseManager extends FileRelatedManager {
         serviceDao = new ServiceDao(sqlQueries);
     }
 
-    public Connection getDbConnection() {
-        return dbConnection;
-    }
 
     public ServiceType getServiceTypeByName(String name) throws SqlQueriesException {
         return serviceTypeDao.getTypeByName(name);

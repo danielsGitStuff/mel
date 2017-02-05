@@ -1,9 +1,11 @@
 package de.mein.sql;
 
 
-import org.sqldroid.SQLDroidConnection;
+import de.mein.sql.con.SQLConnection;
+import de.mein.sql.con.SQLResultSet;
 
-import java.sql.*;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,8 +19,8 @@ public class SQLQueries {
 
     private static Logger logger = Logger.getLogger(SQLQueries.class);
     private RWLock lock;
-    private static final boolean SYSOUT = true;
-    private final Connection connection;
+    private static final boolean SYSOUT = false;
+    private final SQLConnection connection;
 
     private static void out(String msg) {
         if (SYSOUT) {
@@ -26,11 +28,11 @@ public class SQLQueries {
         }
     }
 
-    public SQLQueries(Connection connection) {
+    public SQLQueries(SQLConnection connection) {
         this.connection = connection;
     }
 
-    public SQLQueries(Connection connection, RWLock lock) {
+    public SQLQueries(SQLConnection connection, RWLock lock) {
         this.connection = connection;
         this.lock = lock;
     }
@@ -44,7 +46,7 @@ public class SQLQueries {
         query = buildInsertModifyQuery(what, "update", "set", where, fromTable);
         out("update().query= " + query);
         try {
-            PreparedStatement pstmt = connection.prepareStatement(query);
+            SQLStatement pstmt = connection.prepareStatement(query);
             int count = 1;
             for (Pair<?> attribute : what) {
                 pstmt.setObject(count, attribute.v());
@@ -71,11 +73,11 @@ public class SQLQueries {
         String query = "delete from " + sqlTableObject.getTableName() + " where " + where;
         out("delete().query= " + query);
         try {
-            PreparedStatement pstmt = connection.prepareStatement(query);
+            SQLStatement pstmt = connection.prepareStatement(query);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
-            int result = pstmt.executeUpdate();
+            pstmt.executeUpdate();
             pstmt.close();
         } catch (Exception e) {
             logger.error("stacktrace", e);
@@ -110,14 +112,14 @@ public class SQLQueries {
         return query;
     }
 
-    private void insertArguments(PreparedStatement pstmt, List<Object> whereArgs, int count) throws SQLException {
+    private void insertArguments(SQLStatement pstmt, List<Object> whereArgs, int count) throws SQLException {
         for (Object o : whereArgs) {
             pstmt.setObject(count, o);
             count++;
         }
     }
 
-    private void insertArguments(PreparedStatement pstmt, List<Object> whereArgs) throws SQLException {
+    private void insertArguments(SQLStatement pstmt, List<Object> whereArgs) throws SQLException {
         insertArguments(pstmt, whereArgs, 1);
     }
 
@@ -132,7 +134,7 @@ public class SQLQueries {
             return null;
         }
         try {
-            PreparedStatement pstmt = connection.prepareStatement(selectString);
+            SQLStatement pstmt = connection.prepareStatement(selectString);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
@@ -171,12 +173,12 @@ public class SQLQueries {
             return null;
         }
         try {
-            PreparedStatement pstmt = connection.prepareStatement(selectString);
+            SQLStatement pstmt = connection.prepareStatement(selectString);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
             pstmt.execute();
-            ResultSet resultSet = pstmt.getResultSet();
+            SQLResultSet resultSet = pstmt.getResultSet();
             boolean hasResult = resultSet.next();
             if (hasResult && resultSet.getRow() > 0) {
                 while (!resultSet.isAfterLast()) {
@@ -218,12 +220,12 @@ public class SQLQueries {
             return null;
         }
         try {
-            PreparedStatement pstmt = connection.prepareStatement(selectString);
+            SQLStatement pstmt = connection.prepareStatement(selectString);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
             pstmt.execute();
-            ResultSet resultSet = pstmt.getResultSet();
+            SQLResultSet resultSet = pstmt.getResultSet();
             boolean hasResult = resultSet.next();
             if (hasResult && resultSet.getRow() > 0) {
                 while (!resultSet.isAfterLast()) {
@@ -262,7 +264,7 @@ public class SQLQueries {
         out("loadString()");
         out(selectString);
         try {
-            PreparedStatement pstmt = connection.prepareStatement(selectString);
+            SQLStatement pstmt = connection.prepareStatement(selectString);
             if (arguments != null) {
                 int count = 1;
                 for (Object object : arguments) {
@@ -271,7 +273,7 @@ public class SQLQueries {
                 }
             }
             pstmt.execute();
-            ResultSet resultSet = pstmt.getResultSet();
+            SQLResultSet resultSet = pstmt.getResultSet();
             while (resultSet.next() && !resultSet.isAfterLast()) {
                 SQLTableObject sqlObjInstance = sqlTableObject.getClass().newInstance();
                 List<Pair<?>> attributes = sqlObjInstance.getAllAttributes();
@@ -302,14 +304,16 @@ public class SQLQueries {
         lockRead();
         Object result = null;
         try {
-            PreparedStatement pstmt = connection.prepareStatement(query);
+            SQLStatement pstmt = connection.prepareStatement(query);
             result = pstmt.execute();
             if ((boolean) result) {
-                ResultSet resultSet = pstmt.getResultSet();
+                SQLResultSet resultSet = pstmt.getResultSet();
                 resultSet.next();
                 if (resultSet.getRow() > 0) {
-                    String columnName = resultSet.getMetaData().getColumnLabel(1);
-                    result = resultSet.getObject(columnName);
+                    String[] columns = resultSet.getColumns();
+                    result = resultSet.getObject(columns[0]);
+//                    String columnName = resultSet.getMetaData().getColumnLabel(1);
+//                    result = resultSet.getObject(columnName);
                     resultSet.close();
                     pstmt.close();
                 }
@@ -339,17 +343,19 @@ public class SQLQueries {
         lockRead();
         Object result = null;
         try {
-            PreparedStatement pstmt = connection.prepareStatement(query);
+            SQLStatement pstmt = connection.prepareStatement(query);
             if (whereArgs != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs, 1);
             }
             result = pstmt.execute();
             if ((boolean) result) {
-                ResultSet resultSet = pstmt.getResultSet();
+                SQLResultSet resultSet = pstmt.getResultSet();
                 resultSet.next();
                 if (resultSet.getRow() > 0) {
-                    String columnName = resultSet.getMetaData().getColumnLabel(1);
-                    result = resultSet.getObject(columnName);
+                    String[] columns = resultSet.getColumns();
+                    result = resultSet.getObject(columns[0]);
+                    //String columnName = resultSet.getMetaData().getColumnLabel(1);
+                    //result = resultSet.getObject(columnName);
                     resultSet.close();
                     pstmt.close();
                 }
@@ -366,11 +372,11 @@ public class SQLQueries {
         }
         return (List<SQLTableObject>) result;
     }
-
+/*
     public void backup() throws SQLException {
-        Statement stmt = this.connection.createStatement();
+        SQLStatement stmt = this.connection.createStatement();
         stmt.executeUpdate("backup to backup.db");
-    }
+    }*/
 
     public Long insert(SQLTableObject sqlTableObject) throws SqlQueriesException {
         return insertWithAttributes(sqlTableObject, sqlTableObject.getInsertAttributes());
@@ -405,18 +411,15 @@ public class SQLQueries {
             logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         }
-        //todo debug
-        if (query.equals(" insert into servicetype (type, description) values ( ? ,  ? )"))
-            System.out.println("SQLQueries.insertWithAttributes");
         try {
 
-            PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            SQLStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             for (int i = 1; i <= attributes.size(); i++) {
                 Pair<?> attribute = attributes.get(i - 1);
                 pstmt.setObject(i, attribute.v());
             }
             pstmt.executeUpdate();
-            ResultSet resultSet = pstmt.getGeneratedKeys();
+            SQLResultSet resultSet = pstmt.getGeneratedKeys();
             resultSet.next();
             if (resultSet.getRow() > 0) {
                 Object id = resultSet.getObject(1);
@@ -502,7 +505,7 @@ public class SQLQueries {
         lockRead();
         try {
             out("SQLQueries.query");
-            PreparedStatement pstmt = connection.prepareStatement(query);
+            SQLStatement pstmt = connection.prepareStatement(query);
             if (arguments != null) {
                 int count = 1;
                 for (Object object : arguments) {
@@ -511,7 +514,7 @@ public class SQLQueries {
                 }
             }
             pstmt.execute();
-            ResultSet resultSet = pstmt.getResultSet();
+            SQLResultSet resultSet = pstmt.getResultSet();
             resultSet.next();
             if (resultSet.getRow() > 0)
                 while (!resultSet.isAfterLast()) {
@@ -553,12 +556,12 @@ public class SQLQueries {
             return null;
         }
         try {
-            PreparedStatement pstmt = connection.prepareStatement(selectString);
+            SQLStatement pstmt = connection.prepareStatement(selectString);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
             pstmt.execute();
-            ResultSet resultSet = pstmt.getResultSet();
+            SQLResultSet resultSet = pstmt.getResultSet();
             boolean hasResult = resultSet.next();
             if (hasResult && resultSet.getRow() > 0) {
                 while (!resultSet.isAfterLast()) {

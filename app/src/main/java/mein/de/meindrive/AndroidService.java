@@ -20,6 +20,7 @@ import java.sql.DriverManager;
 import java.util.List;
 import java.util.Objects;
 
+import de.mein.MeinInjector;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
@@ -32,12 +33,16 @@ import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveInjector;
 import de.mein.drive.DriveSyncListener;
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.serialization.TestDirCreator;
+import de.mein.drive.service.AndroidDriveBootloader;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.sql.RWLock;
+import de.mein.sql.con.AndroidDBConnection;
 
 /**
  * Created by xor on 2/3/17.
@@ -98,27 +103,7 @@ public class AndroidService extends Service {
     }
 
     public void setup(DriveSyncListener clientSyncListener) throws Exception {
-        SQLiteStatement s;
-        MeinBoot.addBootLoaderClass(DriveBootLoader.class);
-        AssetManager assetManager = getAssets();
-        InputStream sqlInput = assetManager.open("sql.sql");
-        InputStream driveSqlInput = assetManager.open("drive.sql");
-        DatabaseManager.setSqlInputStreamInjector(() -> {
-            try {
-                return assetManager.open("sql.sql");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
-        DriveDatabaseManager.setDriveSqlInputStreamInjector(() -> {
-            try {
-                return assetManager.open("drive.sql");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
+        android();
 
         //setup working directories & directories with test data
         RWLock lock = new RWLock();
@@ -189,5 +174,44 @@ public class AndroidService extends Service {
         });
         lock.lockWrite();
         lock.unlockWrite();
+    }
+
+    private void android() throws IOException {
+        SQLiteStatement s;
+        MeinBoot.addBootLoaderClass(AndroidDriveBootloader.class);
+        AssetManager assetManager = getAssets();
+        InputStream sqlInput = assetManager.open("sql.sql");
+        InputStream driveSqlInput = assetManager.open("drive.sql");
+        MeinInjector.setMeinAuthSqlInputStreamInjector(() -> {
+            try {
+                return assetManager.open("sql.sql");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+        DriveInjector.setDriveSqlInputStreamInjector(() -> {
+            try {
+                return assetManager.open("drive.sql");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+        MeinInjector.setSQLConnectionCreator(databaseManager -> {
+            SQLiteOpenHelper helper = new SQLiteOpenHelper(this, DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
+                @Override
+                public void onCreate(SQLiteDatabase db) {
+                    System.out.println("AndroidDriveBootloader.onCreate");
+                }
+
+                @Override
+                public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+                    System.out.println("AndroidDriveBootloader.onUpgrade");
+                }
+            };
+            AndroidDBConnection dbConnection = new AndroidDBConnection(helper.getWritableDatabase());
+            return dbConnection;
+        });
     }
 }
