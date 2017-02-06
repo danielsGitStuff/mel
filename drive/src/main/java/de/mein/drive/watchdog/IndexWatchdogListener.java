@@ -1,6 +1,7 @@
 package de.mein.drive.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
+
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.BackgroundExecutor;
 import de.mein.drive.index.ICrawlerListener;
@@ -22,34 +23,44 @@ import java.util.concurrent.Semaphore;
 @SuppressWarnings("Duplicates")
 public abstract class IndexWatchdogListener extends BackgroundExecutor implements ICrawlerListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
 
-    private final String name;
-    private WatchDogTimer watchDogTimer = new WatchDogTimer(this, 20, 100, 100);
-    private MeinDriveService meinDriveService;
-    private PathCollection pathCollection = new PathCollection();
-    private Map<String, String> ignoredMap = new ConcurrentHashMap<>();
-    private Semaphore ignoredSemaphore = new Semaphore(1, true);
-    private String workingDirectoryPath;
-
-
-    public static IndexWatchdogListener runInstance(MeinDriveService meinDriveService) {
-        WatchService watchService = null;
+    protected String name;
+    protected WatchDogTimer watchDogTimer = new WatchDogTimer(this, 20, 100, 100);
+    protected MeinDriveService meinDriveService;
+    protected PathCollection pathCollection = new PathCollection();
+    protected Map<String, String> ignoredMap = new ConcurrentHashMap<>();
+    protected Semaphore ignoredSemaphore = new Semaphore(1, true);
+    protected String workingDirectoryPath;
+    private static WatchDogRunner watchDogRunner = meinDriveService1 -> {
+        WatchService watchService1 = null;
         IndexWatchdogListener watchdogListener = null;
         try {
-            watchService = FileSystems.getDefault().newWatchService();
+            watchService1 = FileSystems.getDefault().newWatchService();
         } catch (IOException e) {
             e.printStackTrace();
         }
         if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
             System.out.println("WatchDog.windows");
-            watchdogListener = new IndexWatchDogWindows(watchService);
+            watchdogListener = new IndexWatchDogWindows(watchService1);
         } else {
             System.out.println("WatchDog.unix");
-            watchdogListener = new IndexWatchdogUnix(watchService);
+            watchdogListener = new IndexWatchdogUnix(watchService1);
         }
-        watchdogListener.meinDriveService = meinDriveService;
+        watchdogListener.meinDriveService = meinDriveService1;
         watchdogListener.adjustExecutor();
         watchdogListener.executorService.submit(watchdogListener);
         return watchdogListener;
+    };
+
+    public static void setWatchDogRunner(WatchDogRunner watchDogRunner) {
+        IndexWatchdogListener.watchDogRunner = watchDogRunner;
+    }
+
+    public interface WatchDogRunner {
+        IndexWatchdogListener runInstance(MeinDriveService meinDriveService);
+    }
+
+    public static IndexWatchdogListener runInstance(MeinDriveService meinDriveService) {
+        return IndexWatchdogListener.watchDogRunner.runInstance(meinDriveService);
     }
 
     @Override
@@ -59,13 +70,9 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
         pathCollection = new PathCollection();
     }
 
-    protected WatchService watchService;
-    protected WatchEvent.Kind<?>[] KINDS = new WatchEvent.Kind<?>[]{StandardWatchEventKinds.ENTRY_MODIFY,
-            StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE};
 
-    public IndexWatchdogListener(String name, WatchService watchService) {
-        this.name = name;
-        this.watchService = watchService;
+    public IndexWatchdogListener(){
+
     }
 
     @Override
@@ -82,34 +89,7 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
         meinDriveService.start();
     }
 
-    @Override
-    public void run() {
-        try {
-            Thread.currentThread().setName(name);
-            while (true) {
-                WatchKey watchKey = watchService.take();
-                List<WatchEvent<?>> events = watchKey.pollEvents();
-                for (WatchEvent<?> event : events) {
-                    Path eventPath = (Path) event.context();
-                    Path watchKeyPath = (Path) watchKey.watchable();
-                    String objectPath = watchKeyPath.toString() + File.separator + eventPath.toString();
-                    ignoredSemaphore.acquire();
-                    if (!ignoredMap.containsKey(objectPath)) {
-                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event for: " + objectPath);
-                        File object = new File(objectPath);
-                        analyze(event, object);
-                    } else {
-                        ignoredMap.remove(objectPath);
-                    }
-                    ignoredSemaphore.release();
-                }
-                // reset the key
-                boolean valid = watchKey.reset();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
 
 
     public void analyze(WatchEvent<?> event, File file) {

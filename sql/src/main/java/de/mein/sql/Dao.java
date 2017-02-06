@@ -4,20 +4,20 @@ package de.mein.sql;
  * Created by xor on 25.10.2015.
  */
 public abstract class Dao {
-    protected ISQLQueries ISQLQueries;
+    protected ISQLQueries sqlQueries;
     protected final boolean lock;
 
-    public Dao(ISQLQueries ISQLQueries) {
-        this(ISQLQueries, true);
+    public Dao(ISQLQueries sqlQueries) {
+        this(sqlQueries, true);
     }
 
-    public Dao(ISQLQueries ISQLQueries, boolean lock) {
-        this.ISQLQueries = ISQLQueries;
+    public Dao(ISQLQueries sqlQueries, boolean lock) {
+        this.sqlQueries = sqlQueries;
         this.lock = lock;
     }
 
     public ISQLQueries getSqlQueries() {
-        return ISQLQueries;
+        return sqlQueries;
     }
 
 
@@ -70,19 +70,19 @@ public abstract class Dao {
         }
 
         public void lockWrite() {
-            ISQLQueries.lockWrite();
+            sqlQueries.lockWrite();
         }
 
         public void lockRead() {
-            ISQLQueries.lockRead();
+            sqlQueries.lockRead();
         }
 
         public void unlockWrite() {
-            ISQLQueries.unlockWrite();
+            sqlQueries.unlockWrite();
         }
 
         public void unlockRead() {
-            ISQLQueries.unlockRead();
+            sqlQueries.unlockRead();
         }
     }
 }

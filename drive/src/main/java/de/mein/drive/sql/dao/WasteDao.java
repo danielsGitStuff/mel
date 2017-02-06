@@ -29,19 +29,19 @@ public class WasteDao extends Dao.LockingDao {
         waste.getName().v(file.getName());
         waste.getSize().v(file.getSize());
         waste.getModified().v(file.getModified());
-        ISQLQueries.insert(waste);
+        sqlQueries.insert(waste);
     }
 
     public Waste getWasteByInode(Long inode) throws SqlQueriesException {
         Waste dummy = new Waste();
         String where = dummy.getInode().k() + "=?";
-        List<Waste> wastes = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(inode));
+        List<Waste> wastes = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(inode));
         if (wastes.size() > 0)
             return wastes.get(0);
         return null;
     }
 
     public void update(Waste waste) throws SqlQueriesException {
-        ISQLQueries.update(waste, waste.getHash().k() + "=?", SQLQueries.whereArgs(waste.getHash().v()));
+        sqlQueries.update(waste, waste.getHash().k() + "=?", SQLQueries.whereArgs(waste.getHash().v()));
     }
 }

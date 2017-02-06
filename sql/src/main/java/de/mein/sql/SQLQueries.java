@@ -18,19 +18,14 @@ import java.util.List;
  * @author deck006
  */
 @SuppressWarnings("Duplicates")
-public class SQLQueries implements ISQLQueries {
+public class SQLQueries extends ISQLQueries {
 
-    private static Logger logger = Logger.getLogger(SQLQueries.class);
     private RWLock lock;
-    private static final boolean SYSOUT = false;
+    public static final boolean SYSOUT = false;
     private final JDBCConnection sqlConnection;
     private final Connection connection;
 
-    private static void out(String msg) {
-        if (SYSOUT) {
-            logger.debug("SqlQueries.out()." + msg);
-        }
-    }
+
 
     public SQLQueries(JDBCConnection connection) {
         this.sqlConnection = connection;
@@ -71,9 +66,6 @@ public class SQLQueries implements ISQLQueries {
             pstmt.close();
         } catch (SQLException e) {
             System.err.println(e.getSQLState());
-            logger.error("query failed: " + query);
-            logger.errorWhereArgs(whereArgs);
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         } finally {
             unlockWrite();
@@ -83,7 +75,9 @@ public class SQLQueries implements ISQLQueries {
     @Override
     public void delete(SQLTableObject sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
         lockWrite();
-        String query = "delete from " + sqlTableObject.getTableName() + " where " + where;
+        String query = "delete from " + sqlTableObject.getTableName();
+        if (where!=null)
+            query+= " where " + where;
         out("delete().query= " + query);
         try {
             PreparedStatement pstmt = connection.prepareStatement(query);
@@ -93,37 +87,13 @@ public class SQLQueries implements ISQLQueries {
             pstmt.executeUpdate();
             pstmt.close();
         } catch (Exception e) {
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         } finally {
             unlockWrite();
         }
     }
 
-    private String buildInsertModifyQuery(List<Pair<?>> what, String before, String after, String where,
-                                          String fromTable) throws SqlQueriesException {
-        String query;
-        try {
-            query = before + " " + fromTable + " " + after + " ";
-            for (int i = 0; i < what.size(); i++) {
-                String key = what.get(i).k();
-                if (i < what.size() - 1) {
-                    query += key + "= ? , ";
-                } else {
-                    query += key + " = ?";
-                }
-            }
-            if (where != null) {
-                query += " where " + where;
-            }
 
-        } catch (Exception e) {
-            logger.error("sqlQueries.buildInsertModifyQuery()");
-            logger.error("stacktrace", e);
-            throw new SqlQueriesException(e);
-        }
-        return query;
-    }
 
     private void insertArguments(PreparedStatement pstmt, List<Object> whereArgs, int count) throws SQLException {
         for (Object o : whereArgs) {
@@ -155,9 +125,6 @@ public class SQLQueries implements ISQLQueries {
             pstmt.execute();
             return new SQLResource<T>(pstmt, clazz);
         } catch (Exception e) {
-            logger.error("sqlQueries.load()");
-            logger.error(selectString);
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         }
     }
@@ -213,9 +180,6 @@ public class SQLQueries implements ISQLQueries {
             pstmt.close();
             return result;
         } catch (Exception e) {
-            logger.error("sqlQueries.load()");
-            logger.error(selectString);
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         }
     }
@@ -267,9 +231,6 @@ public class SQLQueries implements ISQLQueries {
             pstmt.close();
             return result;
         } catch (Exception e) {
-            logger.error("sqlQueries.load()");
-            logger.error(selectString);
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         }
     }
@@ -305,8 +266,6 @@ public class SQLQueries implements ISQLQueries {
             pstmt.close();
             return result;
         } catch (Exception e) {
-            logger.error("sqlQueries.loadString()");
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         } finally {
             unlockRead();
@@ -339,8 +298,6 @@ public class SQLQueries implements ISQLQueries {
                 return null;
             }
         } catch (Exception e) {
-            logger.error("sqlQueries.query()");
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         } finally {
             unlockRead();
@@ -357,7 +314,7 @@ public class SQLQueries implements ISQLQueries {
      * @throws SqlQueriesException
      */
     @Override
-    public List<SQLTableObject> query(String query, List<Object> whereArgs) throws SqlQueriesException {
+    public List<SQLTableObject> execute(String query, List<Object> whereArgs) throws SqlQueriesException {
         lockRead();
         Object result = null;
         try {
@@ -380,19 +337,13 @@ public class SQLQueries implements ISQLQueries {
                 return null;
             }
         } catch (Exception e) {
-            logger.error("sqlQueries.query()");
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         } finally {
             unlockRead();
         }
         return (List<SQLTableObject>) result;
     }
-/*
-    public void backup() throws SQLException {
-        SQLStatement stmt = this.connection.createStatement();
-        stmt.executeUpdate("backup to backup.db");
-    }*/
+
 
     @Override
     public Long insert(SQLTableObject sqlTableObject) throws SqlQueriesException {
@@ -425,8 +376,6 @@ public class SQLQueries implements ISQLQueries {
             query += toConcat + ")";
             out("insert.query: " + query);
         } catch (Exception e) {
-            logger.error("sqlQueries.insert()");
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         }
         try {
@@ -461,19 +410,6 @@ public class SQLQueries implements ISQLQueries {
         return null;
     }
 
-    private String buildSelectQuery(List<Pair<?>> what, String fromTable) {
-        String result = "select ";
-        for (int i = 0; i < what.size(); i++) {
-            String entry = what.get(i).k();
-            if (i < what.size() - 1) {
-                result += entry + ", ";
-            } else {
-                result += entry + " ";
-            }
-        }
-        result += " from " + fromTable;
-        return result;
-    }
 
     @Override
     public void lockRead() {
@@ -548,8 +484,6 @@ public class SQLQueries implements ISQLQueries {
             resultSet.close();
             pstmt.close();
         } catch (Exception e) {
-            logger.error("sqlQueries.query()");
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         } finally {
             unlockRead();
@@ -611,9 +545,6 @@ public class SQLQueries implements ISQLQueries {
             pstmt.close();
             return result;
         } catch (Exception e) {
-            logger.error("sqlQueries.load()");
-            logger.error(selectString);
-            logger.error("stacktrace", e);
             throw new SqlQueriesException(e);
         }
     }

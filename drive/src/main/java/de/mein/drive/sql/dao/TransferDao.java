@@ -23,13 +23,13 @@ public class TransferDao extends Dao {
     }
 
     public void insert(TransferDetails transferDetails) throws SqlQueriesException {
-        Long id = ISQLQueries.insert(transferDetails);
+        Long id = sqlQueries.insert(transferDetails);
         transferDetails.getId().v(id);
     }
 
     public TransferDetails getOneTransfer() throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
-        List<TransferDetails> res = ISQLQueries.load(dummy.getAllAttributes(), dummy, null, null, " order by " + dummy.getId().k() + " limit 1");
+        List<TransferDetails> res = sqlQueries.load(dummy.getAllAttributes(), dummy, null, null, " order by " + dummy.getId().k() + " limit 1");
         if (res.size() == 1)
             return res.get(0);
         return null;
@@ -37,7 +37,7 @@ public class TransferDao extends Dao {
 
     public void delete(Long id) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
-        ISQLQueries.delete(dummy, dummy.getId().k() + "=?", SQLQueries.whereArgs(id));
+        sqlQueries.delete(dummy, dummy.getId().k() + "=?", SQLQueries.whereArgs(id));
     }
 
     public List<TransferDetails> getTwoTransferSets() throws SqlQueriesException {
@@ -46,7 +46,7 @@ public class TransferDao extends Dao {
         List<Pair<?>> columns = new ArrayList<>();
         columns.add(dummy.getCertId());
         columns.add(dummy.getServiceUuid());
-        List<TransferDetails> result = ISQLQueries.load(columns, dummy, null, null, whatElse);
+        List<TransferDetails> result = sqlQueries.load(columns, dummy, null, null, whatElse);
         return result;
     }
 
@@ -55,7 +55,7 @@ public class TransferDao extends Dao {
         TransferDetails dummy = new TransferDetails();
         String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=?";
         String whatElse = " limit ?";
-        List<TransferDetails> result = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(certId, serviceUuid, limit), whatElse);
+        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(certId, serviceUuid, limit), whatElse);
         return result;
     }
 }

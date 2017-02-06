@@ -24,7 +24,7 @@ public class ServiceDao extends Dao {
         ServiceType t = new ServiceType();
         ServiceJoinServiceType dummy = new ServiceJoinServiceType();
         String query = "select s." + s.getId().k() + ",s." + s.getName().k() + ",s." + s.getUuid().k() + ", t." + t.getType().k() + ", t." + t.getDescription().k() + " from service s left join servicetype t on s.typeid=t.id";
-        List<SQLTableObject> result = ISQLQueries.loadString(dummy.getAllAttributes(), dummy, query, null);
+        List<SQLTableObject> result = sqlQueries.loadString(dummy.getAllAttributes(), dummy, query, null);
         List<ServiceJoinServiceType> services = new ArrayList<>();
         for (SQLTableObject sqlTableObject : result) {
             services.add((ServiceJoinServiceType) sqlTableObject);
@@ -36,13 +36,13 @@ public class ServiceDao extends Dao {
     public void update(Service service) throws SqlQueriesException {
         List<Object> args = new ArrayList<>();
         args.add(service.getId().v());
-        ISQLQueries.update(service, service.getId().k() + "=?", args);
+        sqlQueries.update(service, service.getId().k() + "=?", args);
     }
 
     public void delete(Long serviceId) throws SqlQueriesException {
         Service service = new Service();
         List<Object> args = new ArrayList<>();
         args.add(serviceId);
-        ISQLQueries.delete(service, service.getId().k() + "=?", args);
+        sqlQueries.delete(service, service.getId().k() + "=?", args);
     }
 }

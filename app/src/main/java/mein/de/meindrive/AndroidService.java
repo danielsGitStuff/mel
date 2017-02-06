@@ -33,6 +33,7 @@ import de.mein.drive.service.AndroidDBConnection;
 import de.mein.drive.service.AndroidDriveBootloader;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.drive.watchdog.AndroidWatchdogListener;
 import de.mein.sql.RWLock;
 import de.mein.sql.con.AndroidSQLQueries;
 
@@ -135,7 +136,10 @@ public class AndroidService extends Service {
             NoTryRunner.run(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
                 // setup the server Service
+                System.out.println("AndroidService.setup!!!1");
                 MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
+                System.out.println("AndroidService.setup11121321");
+                lock.unlockWrite();
                 // connection goes here
 
                 /*
@@ -219,5 +223,8 @@ public class AndroidService extends Service {
             };
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
         });
+        DriveInjector.setWatchDogRunner(meinDriveService -> new AndroidWatchdogListener(meinDriveService));
+        DriveInjector.setBinPath("/system/bin/sh");
+
     }
 }

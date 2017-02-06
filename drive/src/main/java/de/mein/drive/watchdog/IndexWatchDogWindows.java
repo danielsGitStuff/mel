@@ -11,7 +11,7 @@ import java.nio.file.WatchService;
 /**
  * Created by xor on 12.08.2016.
  */
-public class IndexWatchDogWindows extends IndexWatchdogListener {
+public class IndexWatchDogWindows extends IndexWatchdogPC {
 
     private boolean watchesRoot = false;
 

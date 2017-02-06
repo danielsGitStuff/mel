@@ -116,7 +116,7 @@ public class StageDao extends Dao.LockingDao {
         args.add(parentStage.getId());
         args.add(name);
         args.add(parentStage.getStageSet());
-        List<Stage> res = ISQLQueries.load(parentStage.getAllAttributes(), parentStage, where, args);
+        List<Stage> res = sqlQueries.load(parentStage.getAllAttributes(), parentStage, where, args);
         if (res.size() == 1)
             return res.get(0);
         return null;
@@ -129,7 +129,7 @@ public class StageDao extends Dao.LockingDao {
         args.add(parentId);
         args.add(name);
         args.add(stageSetId);
-        List<Stage> res = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        List<Stage> res = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
         if (res.size() == 1)
             return res.get(0);
         return null;
@@ -141,7 +141,7 @@ public class StageDao extends Dao.LockingDao {
         List<Object> args = new ArrayList<>();
         args.add(id);
         args.add(stageSetId);
-        List<Stage> res = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        List<Stage> res = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
         if (res.size() == 1)
             return res.get(0);
         return null;
@@ -150,7 +150,7 @@ public class StageDao extends Dao.LockingDao {
     public Stage insert(Stage stage) throws SqlQueriesException {
         if (stage.getFsParentId() == null && stage.getParentId() == null)
             System.out.println("StageDao.insert");
-        Long id = ISQLQueries.insert(stage);
+        Long id = sqlQueries.insert(stage);
         return stage.setId(id);
     }
 
@@ -159,7 +159,7 @@ public class StageDao extends Dao.LockingDao {
         String where = dummy.getStageSetPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";
         List<Object> args = new ArrayList<>();
         args.add(stageSetId);
-        return ISQLQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
     }
 
     public Stage getStageById(Long id) throws SqlQueriesException {
@@ -167,7 +167,7 @@ public class StageDao extends Dao.LockingDao {
         String where = dummy.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(id);
-        List<Stage> res = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        List<Stage> res = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
         if (res.size() == 1)
             return res.get(0);
         return null;
@@ -175,7 +175,7 @@ public class StageDao extends Dao.LockingDao {
 
     public StageSet createStageSet(String type, Long originCertId, String originServiceUuid) throws SqlQueriesException {
         StageSet stageSet = new StageSet().setType(type).setOriginCertId(originCertId).setOriginServiceUuid(originServiceUuid);
-        Long id = ISQLQueries.insert(stageSet);
+        Long id = sqlQueries.insert(stageSet);
         return stageSet.setId(id);
     }
 
@@ -183,7 +183,7 @@ public class StageDao extends Dao.LockingDao {
         StageSet stageSet = new StageSet();
         List<Object> args = new ArrayList<>();
         args.add(id);
-        ISQLQueries.delete(stageSet, stageSet.getId().k() + "=?", args);
+        sqlQueries.delete(stageSet, stageSet.getId().k() + "=?", args);
     }
 
     public Stage getStageByStageSetParentName(Long stageSetId, Long parentId, String name) throws SqlQueriesException {
@@ -193,7 +193,7 @@ public class StageDao extends Dao.LockingDao {
         args.add(parentId);
         args.add(name);
         args.add(stageSetId);
-        List<Stage> res = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        List<Stage> res = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
         if (res.size() == 1)
             return res.get(0);
         return null;
@@ -203,7 +203,7 @@ public class StageDao extends Dao.LockingDao {
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(stage.getId());
-        ISQLQueries.update(stage, where, args);
+        sqlQueries.update(stage, where, args);
     }
 
 
@@ -240,7 +240,7 @@ public class StageDao extends Dao.LockingDao {
         List<Object> args = new ArrayList<>();
         args.add(stageSetId);
         args.add(true);
-        return ISQLQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
     }
 
     public List<Stage> getSubStagesByFsDirectoryId(Long fsId, Long stageSetId) throws SqlQueriesException {
@@ -249,7 +249,7 @@ public class StageDao extends Dao.LockingDao {
         List<Object> args = new ArrayList<>();
         args.add(stageSetId);
         args.add(fsId);
-        return ISQLQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
     }
 
     public List<Stage> getStageContent(Long stageId, Long stageSetId) throws SqlQueriesException {
@@ -258,7 +258,7 @@ public class StageDao extends Dao.LockingDao {
         List<Object> args = new ArrayList<>();
         args.add(stageSetId);
         args.add(stageId);
-        return ISQLQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
     }
 
     public ISQLResource<de.mein.drive.sql.Stage> getFilesAsResource(Long stageSetId) throws IllegalAccessException, SqlQueriesException, InstantiationException {
@@ -267,6 +267,6 @@ public class StageDao extends Dao.LockingDao {
         args.add(stageSetId);
         args.add(false);
         String where = stage.getStageSetPair().k() + "=? and " + stage.getIsDirectoryPair().k() + "=?";
-        return ISQLQueries.loadResource(stage.getAllAttributes(), Stage.class, where, args);
+        return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, args);
     }
 }

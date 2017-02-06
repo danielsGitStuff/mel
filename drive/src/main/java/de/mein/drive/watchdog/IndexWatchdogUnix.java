@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by xor on 7/11/16.
  */
-class IndexWatchdogUnix extends IndexWatchdogListener {
+class IndexWatchdogUnix extends IndexWatchdogPC {
 
     IndexWatchdogUnix(WatchService watchService) {
         super("IndexWatchdogUnix", watchService);

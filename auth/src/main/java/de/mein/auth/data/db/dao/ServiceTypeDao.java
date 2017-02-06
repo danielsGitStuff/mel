@@ -22,14 +22,14 @@ public class ServiceTypeDao extends Dao {
         String where = dummy.getType().k() + "=?";
         List<Object> whereargs = new ArrayList<>();
         whereargs.add(name);
-        List<SQLTableObject> sqlTableObjects = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, whereargs);
+        List<SQLTableObject> sqlTableObjects = sqlQueries.load(dummy.getAllAttributes(), dummy, where, whereargs);
         if (sqlTableObjects.size()>0)
             return (ServiceType) sqlTableObjects.get(0);
         return null;
     }
 
     public ServiceType insertType(ServiceType serviceType) throws SqlQueriesException {
-        Long id =  ISQLQueries.insert(serviceType);
+        Long id =  sqlQueries.insert(serviceType);
         return serviceType.setId(id);
     }
 

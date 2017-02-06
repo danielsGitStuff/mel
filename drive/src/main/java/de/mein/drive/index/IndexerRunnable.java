@@ -35,7 +35,7 @@ public class IndexerRunnable implements Runnable {
      * @param listeners
      * @throws SqlQueriesException
      */
-    public IndexerRunnable(DriveDatabaseManager databaseManager,IndexWatchdogListener indexWatchdogListener, ICrawlerListener... listeners) throws SqlQueriesException {
+    public IndexerRunnable(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, ICrawlerListener... listeners) throws SqlQueriesException {
         this.listeners.add(indexWatchdogListener);
         for (ICrawlerListener listener : listeners)
             this.listeners.add(listener);
@@ -60,14 +60,17 @@ public class IndexerRunnable implements Runnable {
         try {
             System.out.println("IndexerRunnable.runTry.roaming");
             // if root directory does not exist: create one
-            FsDirectory fsRoot = databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
-            if (fsRoot == null) {
+            FsDirectory fsRoot; //= databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
+            if (rootDirectory.getId() == null) {
                 fsRoot = (FsDirectory) new FsDirectory().setName("[root]").setVersion(0L);
                 fsRoot.setOriginalFile(new File(rootDirectory.getPath()));
                 fsRoot = (FsDirectory) databaseManager.getFsDao().insert(fsRoot);
                 databaseManager.getDriveSettings().getRootDirectory().setId(fsRoot.getId().v());
-            }else if (fsRoot.getOriginal()==null){
-                fsRoot.setOriginalFile(new File(rootDirectory.getPath()));
+            } else {
+                fsRoot = databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
+                if (fsRoot.getOriginal() == null) {
+                    fsRoot.setOriginalFile(new File(rootDirectory.getPath()));
+                }
             }
             // we will stage changes, so we need a StageSet
             StageSet stageSet = databaseManager.getStageDao().createStageSet("startup index", null, null);

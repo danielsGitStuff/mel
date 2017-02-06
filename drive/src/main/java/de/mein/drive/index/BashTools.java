@@ -1,18 +1,28 @@
 package de.mein.drive.index;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
 
+import de.mein.core.serialize.serialize.tools.StringBuilder;
+
 /**
  * Created by xor on 10/28/16.
  */
 public class BashTools {
+
+    private static String BIN_PATH = "/bin/bash";
+
+    public static void setBinPath(String binPath) {
+        BIN_PATH = binPath;
+    }
+
     public static Set<Long> getINodesOfDirectory(File file) throws IOException {
-        String[] args = new String[]{"/bin/bash", "-c", "find share/ -printf \"%p\\n\" | tail -n +2 | xargs -d '\\n' stat -c %i"};
+        String[] args = new String[]{BIN_PATH, "-c", "find share/ -printf \"%p\\n\" | tail -n +2 | xargs -d '\\n' stat -c %i"};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         Set<Long> iNodes = new HashSet<>();
@@ -24,7 +34,7 @@ public class BashTools {
     }
 
     public static Long getINodeOfFile(File file) throws IOException {
-        String[] args = new String[]{"/bin/bash", "-c", "stat -c %i \"" + file.getAbsolutePath() + "\""};
+        String[] args = new String[]{BIN_PATH, "-c", "stat -c %i \"" + file.getAbsolutePath() + "\""};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String node = reader.readLine();
@@ -37,7 +47,7 @@ public class BashTools {
      * @param directory
      */
     public static void rmRf(File directory) throws IOException {
-        String[] args = new String[]{"/bin/bash", "-c", "rm -rf \"" + directory.getAbsolutePath() + "\""};
+        String[] args = new String[]{BIN_PATH, "-c", "rm -rf \"" + directory.getAbsolutePath() + "\""};
         Process proc = new ProcessBuilder(args).start();
     }
 
@@ -60,9 +70,14 @@ public class BashTools {
 
     public static NodeAndTime getNodeAndTime(File f) throws IOException {
         String ba = "echo $(date +%s -r  '" + f.getAbsolutePath() + "') $(ls -i -d '" + f.getAbsolutePath() + "')";
-        String[] args = new String[]{"/bin/bash", "-c", ba};
+        String[] args = new String[]{BIN_PATH, "-c", ba};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        try {
+            proc.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         String res = reader.readLine();
         String[] s = res.split(" ");
         Long modifiedTime = Long.parseLong(s[0]);

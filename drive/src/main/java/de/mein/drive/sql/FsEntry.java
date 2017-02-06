@@ -25,6 +25,8 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     private static IPairSetListener<Boolean> setListener = value -> {
         if (value == null)
             return null;
+        if (value.getClass().equals(Boolean.class))
+            return (Boolean) value;
         if (value.getClass().equals(String.class))
             return Boolean.parseBoolean(value.toString());
         if (value.getClass().equals(Integer.class))
