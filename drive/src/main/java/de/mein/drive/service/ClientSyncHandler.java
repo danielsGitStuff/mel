@@ -8,8 +8,7 @@ import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.sql.*;
 import de.mein.drive.tasks.SyncTask;
-import de.mein.drive.transfer.TransferManager;
-import de.mein.sql.SQLResource;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -192,7 +191,7 @@ public class ClientSyncHandler extends SyncHandler {
      */
     public void setupTransfer(SyncTask syncTask) {
         Long stageSetId = syncTask.getStageSetId();
-        try (SQLResource<Stage> resource = stageDao.getFilesAsResource(stageSetId)) {
+        try (ISQLResource<de.mein.drive.sql.Stage> resource = stageDao.getFilesAsResource(stageSetId)) {
             Stage stage = resource.getNext();
             while (stage != null) {
                 TransferDetails transfer = new TransferDetails();

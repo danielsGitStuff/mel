@@ -1,40 +1,40 @@
 BEGIN TRANSACTION;
-DROP TABLE IF EXISTS `type`;
-DROP TABLE IF EXISTS `service`;
-DROP TABLE IF EXISTS `authentication`;
-DROP TABLE IF EXISTS `certificate`;
+DROP TABLE IF EXISTS  type ;
+DROP TABLE IF EXISTS  service ;
+DROP TABLE IF EXISTS  authentication ;
+DROP TABLE IF EXISTS  certificate ;
 CREATE TABLE "servicetype" (
-  `id`          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  `type`        TEXT    NOT NULL UNIQUE,
-  `description` TEXT    NOT NULL
+   id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+   type         TEXT    NOT NULL UNIQUE,
+   description  TEXT    NOT NULL
 );
 CREATE TABLE "service" (
-  `id`     INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  `uuid`   TEXT    NOT NULL UNIQUE,
-  `name`   TEXT    NOT NULL,
-  `typeid` INTEGER NOT NULL,
-  FOREIGN KEY (`typeid`) REFERENCES type (id)
+   id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+   uuid    TEXT    NOT NULL UNIQUE,
+   name    TEXT    NOT NULL,
+   typeid  INTEGER NOT NULL,
+  FOREIGN KEY ( typeid ) REFERENCES type (id)
 );
-CREATE TABLE `certificate` (
-  `id`          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  `uuid`        TEXT    NOT NULL UNIQUE,
-  `name`        TEXT    NOT NULL,
-  `answeruuid`  TEXT,
-  `certificate` BLOB    NOT NULL,
-  `address`     TEXT,
-  `port`        INTEGER,
-  `certport`    INTEGER,
-  `greeting`    TEXT,
-  `trusted`     INTEGER,
+CREATE TABLE  certificate  (
+   id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+   uuid         TEXT    NOT NULL UNIQUE,
+   name         TEXT    NOT NULL,
+   answeruuid   TEXT,
+   certificate  BLOB    NOT NULL,
+   address      TEXT,
+   port         INTEGER,
+   certport     INTEGER,
+   greeting     TEXT,
+   trusted      INTEGER,
   UNIQUE (uuid),
   UNIQUE (certificate)
 );
-CREATE TABLE `approval` (
-  `id`            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  `certificateid` INTEGER NOT NULL,
-  `serviceId`     INTEGER NOT NULL,
-  FOREIGN KEY (`certificateid`) REFERENCES certificate (id),
-  FOREIGN KEY (`serviceId`) REFERENCES service (id),
+CREATE TABLE  approval  (
+   id             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+   certificateid  INTEGER NOT NULL,
+   serviceId      INTEGER NOT NULL,
+  FOREIGN KEY ( certificateid ) REFERENCES certificate (id),
+  FOREIGN KEY ( serviceId ) REFERENCES service (id),
   UNIQUE (serviceId, certificateid)
 );
 CREATE INDEX uuidindex

@@ -10,39 +10,32 @@ import android.database.sqlite.SQLiteStatement;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-import org.jdeferred.Promise;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Driver;
-import java.sql.DriverManager;
 import java.util.List;
-import java.util.Objects;
 
 import de.mein.MeinInjector;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
-import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.NoTryRunner;
-import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveInjector;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.serialization.TestDirCreator;
+import de.mein.drive.service.AndroidDBConnection;
 import de.mein.drive.service.AndroidDriveBootloader;
-import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.sql.RWLock;
-import de.mein.sql.con.AndroidDBConnection;
+import de.mein.sql.con.AndroidSQLQueries;
+
 
 /**
  * Created by xor on 2/3/17.
@@ -199,7 +192,7 @@ public class AndroidService extends Service {
             return null;
         });
         MeinInjector.setSQLConnectionCreator(databaseManager -> {
-            SQLiteOpenHelper helper = new SQLiteOpenHelper(this, DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
+            SQLiteOpenHelper helper = new SQLiteOpenHelper(this, "meinauth", null, 1) {
                 @Override
                 public void onCreate(SQLiteDatabase db) {
                     System.out.println("AndroidDriveBootloader.onCreate");
@@ -210,8 +203,21 @@ public class AndroidService extends Service {
                     System.out.println("AndroidDriveBootloader.onUpgrade");
                 }
             };
-            AndroidDBConnection dbConnection = new AndroidDBConnection(helper.getWritableDatabase());
-            return dbConnection;
+            return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
+        });
+        DriveInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
+            SQLiteOpenHelper helper = new SQLiteOpenHelper(this, "service." + uuid + "." + DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
+                @Override
+                public void onCreate(SQLiteDatabase db) {
+                    System.out.println("AndroidDriveBootloader.onCreate");
+                }
+
+                @Override
+                public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+                    System.out.println("AndroidDriveBootloader.onUpgrade");
+                }
+            };
+            return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
         });
     }
 }

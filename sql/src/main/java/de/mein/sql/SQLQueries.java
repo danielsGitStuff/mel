@@ -1,9 +1,12 @@
 package de.mein.sql;
 
 
+import de.mein.sql.con.JDBCConnection;
 import de.mein.sql.con.SQLConnection;
-import de.mein.sql.con.SQLResultSet;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -15,12 +18,13 @@ import java.util.List;
  * @author deck006
  */
 @SuppressWarnings("Duplicates")
-public class SQLQueries {
+public class SQLQueries implements ISQLQueries {
 
     private static Logger logger = Logger.getLogger(SQLQueries.class);
     private RWLock lock;
     private static final boolean SYSOUT = false;
-    private final SQLConnection connection;
+    private final JDBCConnection sqlConnection;
+    private final Connection connection;
 
     private static void out(String msg) {
         if (SYSOUT) {
@@ -28,15 +32,23 @@ public class SQLQueries {
         }
     }
 
-    public SQLQueries(SQLConnection connection) {
-        this.connection = connection;
+    public SQLQueries(JDBCConnection connection) {
+        this.sqlConnection = connection;
+        this.connection = sqlConnection.getConnection();
     }
 
-    public SQLQueries(SQLConnection connection, RWLock lock) {
-        this.connection = connection;
+    public SQLQueries(JDBCConnection connection, RWLock lock) {
+        this.sqlConnection = connection;
+        this.connection = sqlConnection.getConnection();
         this.lock = lock;
     }
 
+    @Override
+    public SQLConnection getSQLConnection() {
+        return sqlConnection;
+    }
+
+    @Override
     public void update(SQLTableObject sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
         lockWrite();
         out("update()");
@@ -46,7 +58,7 @@ public class SQLQueries {
         query = buildInsertModifyQuery(what, "update", "set", where, fromTable);
         out("update().query= " + query);
         try {
-            SQLStatement pstmt = connection.prepareStatement(query);
+            PreparedStatement pstmt = connection.prepareStatement(query);
             int count = 1;
             for (Pair<?> attribute : what) {
                 pstmt.setObject(count, attribute.v());
@@ -68,12 +80,13 @@ public class SQLQueries {
         }
     }
 
+    @Override
     public void delete(SQLTableObject sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
         lockWrite();
         String query = "delete from " + sqlTableObject.getTableName() + " where " + where;
         out("delete().query= " + query);
         try {
-            SQLStatement pstmt = connection.prepareStatement(query);
+            PreparedStatement pstmt = connection.prepareStatement(query);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
@@ -112,19 +125,20 @@ public class SQLQueries {
         return query;
     }
 
-    private void insertArguments(SQLStatement pstmt, List<Object> whereArgs, int count) throws SQLException {
+    private void insertArguments(PreparedStatement pstmt, List<Object> whereArgs, int count) throws SQLException {
         for (Object o : whereArgs) {
             pstmt.setObject(count, o);
             count++;
         }
     }
 
-    private void insertArguments(SQLStatement pstmt, List<Object> whereArgs) throws SQLException {
+    private void insertArguments(PreparedStatement pstmt, List<Object> whereArgs) throws SQLException {
         insertArguments(pstmt, whereArgs, 1);
     }
 
-    public <T extends SQLTableObject> SQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where,
-                                                                  List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException {
+    @Override
+    public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where,
+                                                                   List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException {
         String fromTable = clazz.newInstance().getTableName();
         String selectString = buildSelectQuery(columns, fromTable);
         if (where != null) {
@@ -134,12 +148,12 @@ public class SQLQueries {
             return null;
         }
         try {
-            SQLStatement pstmt = connection.prepareStatement(selectString);
+            PreparedStatement pstmt = connection.prepareStatement(selectString);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
             pstmt.execute();
-            return new SQLResource<>(pstmt, clazz);
+            return new SQLResource<T>(pstmt, clazz);
         } catch (Exception e) {
             logger.error("sqlQueries.load()");
             logger.error(selectString);
@@ -149,10 +163,12 @@ public class SQLQueries {
     }
 
 
+    @Override
     public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
         return load(columns, sqlTableObject, where, whereArgs, null);
     }
 
+    @Override
     public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
         List<T> result = new ArrayList<>();
         out("load()");
@@ -173,12 +189,12 @@ public class SQLQueries {
             return null;
         }
         try {
-            SQLStatement pstmt = connection.prepareStatement(selectString);
+            PreparedStatement pstmt = connection.prepareStatement(selectString);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
             pstmt.execute();
-            SQLResultSet resultSet = pstmt.getResultSet();
+            ResultSet resultSet = pstmt.getResultSet();
             boolean hasResult = resultSet.next();
             if (hasResult && resultSet.getRow() > 0) {
                 while (!resultSet.isAfterLast()) {
@@ -204,6 +220,7 @@ public class SQLQueries {
         }
     }
 
+    @Override
     public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
         List<T> result = new ArrayList<>();
         out("load()");
@@ -220,12 +237,12 @@ public class SQLQueries {
             return null;
         }
         try {
-            SQLStatement pstmt = connection.prepareStatement(selectString);
+            PreparedStatement pstmt = connection.prepareStatement(selectString);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
             pstmt.execute();
-            SQLResultSet resultSet = pstmt.getResultSet();
+            ResultSet resultSet = pstmt.getResultSet();
             boolean hasResult = resultSet.next();
             if (hasResult && resultSet.getRow() > 0) {
                 while (!resultSet.isAfterLast()) {
@@ -257,6 +274,7 @@ public class SQLQueries {
         }
     }
 
+    @Override
     public List<SQLTableObject> loadString(List<Pair<?>> columns, SQLTableObject sqlTableObject,
                                            String selectString, List<Object> arguments) throws SqlQueriesException {
         lockRead();
@@ -264,7 +282,7 @@ public class SQLQueries {
         out("loadString()");
         out(selectString);
         try {
-            SQLStatement pstmt = connection.prepareStatement(selectString);
+            PreparedStatement pstmt = connection.prepareStatement(selectString);
             if (arguments != null) {
                 int count = 1;
                 for (Object object : arguments) {
@@ -273,7 +291,7 @@ public class SQLQueries {
                 }
             }
             pstmt.execute();
-            SQLResultSet resultSet = pstmt.getResultSet();
+            ResultSet resultSet = pstmt.getResultSet();
             while (resultSet.next() && !resultSet.isAfterLast()) {
                 SQLTableObject sqlObjInstance = sqlTableObject.getClass().newInstance();
                 List<Pair<?>> attributes = sqlObjInstance.getAllAttributes();
@@ -300,20 +318,19 @@ public class SQLQueries {
      * @return true if the first result is a ResultSet object; false if the
      * first result is an update count or there is no result
      */
+    @Override
     public <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException {
         lockRead();
         Object result = null;
         try {
-            SQLStatement pstmt = connection.prepareStatement(query);
+            PreparedStatement pstmt = connection.prepareStatement(query);
             result = pstmt.execute();
             if ((boolean) result) {
-                SQLResultSet resultSet = pstmt.getResultSet();
+                ResultSet resultSet = pstmt.getResultSet();
                 resultSet.next();
                 if (resultSet.getRow() > 0) {
-                    String[] columns = resultSet.getColumns();
-                    result = resultSet.getObject(columns[0]);
-//                    String columnName = resultSet.getMetaData().getColumnLabel(1);
-//                    result = resultSet.getObject(columnName);
+                    String columnName = resultSet.getMetaData().getColumnLabel(1);
+                    result = resultSet.getObject(columnName);
                     resultSet.close();
                     pstmt.close();
                 }
@@ -339,23 +356,22 @@ public class SQLQueries {
      * @return
      * @throws SqlQueriesException
      */
+    @Override
     public List<SQLTableObject> query(String query, List<Object> whereArgs) throws SqlQueriesException {
         lockRead();
         Object result = null;
         try {
-            SQLStatement pstmt = connection.prepareStatement(query);
+            PreparedStatement pstmt = connection.prepareStatement(query);
             if (whereArgs != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs, 1);
             }
             result = pstmt.execute();
             if ((boolean) result) {
-                SQLResultSet resultSet = pstmt.getResultSet();
+                ResultSet resultSet = pstmt.getResultSet();
                 resultSet.next();
                 if (resultSet.getRow() > 0) {
-                    String[] columns = resultSet.getColumns();
-                    result = resultSet.getObject(columns[0]);
-                    //String columnName = resultSet.getMetaData().getColumnLabel(1);
-                    //result = resultSet.getObject(columnName);
+                    String columnName = resultSet.getMetaData().getColumnLabel(1);
+                    result = resultSet.getObject(columnName);
                     resultSet.close();
                     pstmt.close();
                 }
@@ -378,10 +394,12 @@ public class SQLQueries {
         stmt.executeUpdate("backup to backup.db");
     }*/
 
+    @Override
     public Long insert(SQLTableObject sqlTableObject) throws SqlQueriesException {
         return insertWithAttributes(sqlTableObject, sqlTableObject.getInsertAttributes());
     }
 
+    @Override
     public Long insertWithAttributes(SQLTableObject sqlTableObject, List<Pair<?>> attributes) throws SqlQueriesException {
         lockWrite();
         out("insert()");
@@ -413,13 +431,13 @@ public class SQLQueries {
         }
         try {
 
-            SQLStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             for (int i = 1; i <= attributes.size(); i++) {
                 Pair<?> attribute = attributes.get(i - 1);
                 pstmt.setObject(i, attribute.v());
             }
             pstmt.executeUpdate();
-            SQLResultSet resultSet = pstmt.getGeneratedKeys();
+            ResultSet resultSet = pstmt.getGeneratedKeys();
             resultSet.next();
             if (resultSet.getRow() > 0) {
                 Object id = resultSet.getObject(1);
@@ -457,21 +475,25 @@ public class SQLQueries {
         return result;
     }
 
+    @Override
     public void lockRead() {
 //        if (lock != null)
 //            lock.lockRead();
     }
 
+    @Override
     public void unlockRead() {
 //        if (lock != null)
 //            lock.unlockRead();
     }
 
+    @Override
     public void lockWrite() {
 //        if (lock != null)
 //            lock.lockWrite();
     }
 
+    @Override
     public void unlockWrite() {
 //        if (lock != null)
 //            lock.unlockWrite();
@@ -482,9 +504,11 @@ public class SQLQueries {
         connection.setAutoCommit(false);
     }
 
+
     public void commit() throws SQLException {
         connection.commit();
     }
+
 
     public void rollback() throws SQLException {
         connection.rollback();
@@ -501,11 +525,12 @@ public class SQLQueries {
      * @return
      * @throws SqlQueriesException
      */
+    @Override
     public <C> C querySingle(String query, List<Object> arguments, Class<C> resultClass) throws SqlQueriesException {
         lockRead();
         try {
             out("SQLQueries.query");
-            SQLStatement pstmt = connection.prepareStatement(query);
+            PreparedStatement pstmt = connection.prepareStatement(query);
             if (arguments != null) {
                 int count = 1;
                 for (Object object : arguments) {
@@ -514,7 +539,7 @@ public class SQLQueries {
                 }
             }
             pstmt.execute();
-            SQLResultSet resultSet = pstmt.getResultSet();
+            ResultSet resultSet = pstmt.getResultSet();
             resultSet.next();
             if (resultSet.getRow() > 0)
                 while (!resultSet.isAfterLast()) {
@@ -540,6 +565,7 @@ public class SQLQueries {
         return args;
     }
 
+    @Override
     public <T> List<T> load(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse, Class<T> castClass) throws SqlQueriesException {
         List<T> result = new ArrayList<>();
         out("load()");
@@ -556,12 +582,12 @@ public class SQLQueries {
             return null;
         }
         try {
-            SQLStatement pstmt = connection.prepareStatement(selectString);
+            PreparedStatement pstmt = connection.prepareStatement(selectString);
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs);
             }
             pstmt.execute();
-            SQLResultSet resultSet = pstmt.getResultSet();
+            ResultSet resultSet = pstmt.getResultSet();
             boolean hasResult = resultSet.next();
             if (hasResult && resultSet.getRow() > 0) {
                 while (!resultSet.isAfterLast()) {

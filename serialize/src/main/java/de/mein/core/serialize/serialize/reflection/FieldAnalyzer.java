@@ -164,4 +164,7 @@ public class FieldAnalyzer {
     }
 
 
+    public static boolean isTransinient(Field field) {
+        return Modifier.isTransient(field.getModifiers());
+    }
 }

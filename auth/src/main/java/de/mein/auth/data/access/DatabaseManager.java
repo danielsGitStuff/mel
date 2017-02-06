@@ -14,20 +14,17 @@ import de.mein.sql.con.SQLConnector;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Function;
 
 /**
  * Created by xor on 4/26/16.
  */
 public final class DatabaseManager extends FileRelatedManager {
     public static final String DB_FILENAME = "meinauth.db";
-    protected final SQLConnection dbConnection;
-    protected final SQLQueries sqlQueries;
+    protected final ISQLQueries ISQLQueries;
     protected final ServiceTypeDao serviceTypeDao;
     protected final ServiceDao serviceDao;
     protected final ApprovalDao approvalDao;
@@ -44,12 +41,12 @@ public final class DatabaseManager extends FileRelatedManager {
         DatabaseManager.sqlInputStreamInjector = sqlInputStreamInjector;
     }
     public interface SQLConnectionCreator {
-        SQLConnection createConnection(DatabaseManager databaseManager) throws SQLException, ClassNotFoundException;
+        ISQLQueries createConnection(DatabaseManager databaseManager) throws SQLException, ClassNotFoundException;
     }
 
     private static SQLConnectionCreator sqlConnectionCreator = databaseManager -> {
         File f = new File(databaseManager.createWorkingPath() + DB_FILENAME);
-        return SQLConnector.createSqliteConnection(f);
+        return new SQLQueries(SQLConnector.createSqliteConnection(f), new RWLock());
     };
     public static void setSqlConnectionCreator(SQLConnectionCreator sqlConnectionCreator) {
         DatabaseManager.sqlConnectionCreator = sqlConnectionCreator;
@@ -59,18 +56,17 @@ public final class DatabaseManager extends FileRelatedManager {
         super(meinAuthSettings.getWorkingDirectory());
         //android der Hurensohn
         //init DB stuff
-        this.dbConnection = sqlConnectionCreator.createConnection(this);// createConnection(createWorkingPath() + DB_FILENAME);
+        this.ISQLQueries = sqlConnectionCreator.createConnection(this);
         //check DB stuff
-        SqliteExecutor sqliteExecutor = new SqliteExecutor(dbConnection);
+        SqliteExecutor sqliteExecutor = new SqliteExecutor(ISQLQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
             //find sql file in workingdir
             sqliteExecutor.executeStream(sqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
-        this.sqlQueries = new SQLQueries(dbConnection, new RWLock());
-        serviceTypeDao = new ServiceTypeDao(sqlQueries);
-        approvalDao = new ApprovalDao(sqlQueries);
-        serviceDao = new ServiceDao(sqlQueries);
+        serviceTypeDao = new ServiceTypeDao(ISQLQueries);
+        approvalDao = new ApprovalDao(ISQLQueries);
+        serviceDao = new ServiceDao(ISQLQueries);
     }
 
 
@@ -80,12 +76,12 @@ public final class DatabaseManager extends FileRelatedManager {
 
     public ServiceType createServiceType(String name, String description) throws SqlQueriesException {
         ServiceType serviceType = new ServiceType().setType(name).setDescription(description);
-        long id = sqlQueries.insert(serviceType);
+        long id = ISQLQueries.insert(serviceType);
         return serviceType.setId(id);
     }
 
-    public SQLQueries getSqlQueries() {
-        return sqlQueries;
+    public ISQLQueries getSqlQueries() {
+        return ISQLQueries;
     }
 
     public Service getServiceByUuid(String uuid) throws SqlQueriesException {
@@ -93,7 +89,7 @@ public final class DatabaseManager extends FileRelatedManager {
         String where = dummy.getUuid().k() + "=?";
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(uuid);
-        List<SQLTableObject> sqlTableObjects = sqlQueries.load(dummy.getAllAttributes(), dummy, where, whereArgs);
+        List<SQLTableObject> sqlTableObjects = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, whereArgs);
         if (sqlTableObjects.size() > 0)
             return (Service) sqlTableObjects.get(0);
         return null;
@@ -104,7 +100,7 @@ public final class DatabaseManager extends FileRelatedManager {
                 .setUuid(UUID.randomUUID().toString())
                 .setTypeId(typeId)
                 .setName(name);
-        Long id = sqlQueries.insert(service);
+        Long id = ISQLQueries.insert(service);
         return service.setId(id);
     }
 
@@ -112,7 +108,7 @@ public final class DatabaseManager extends FileRelatedManager {
         Approval approval = new Approval();
         approval.setServiceid(serviceId);
         approval.setCertificateId(certificateId);
-        sqlQueries.insert(approval);
+        ISQLQueries.insert(approval);
     }
 
 
@@ -147,7 +143,7 @@ public final class DatabaseManager extends FileRelatedManager {
         String where = dummy.getTypeId().k() + "=?";
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(typeId);
-        List<SQLTableObject> sqlTableObjects = sqlQueries.load(dummy.getAllAttributes(), dummy, where, whereArgs);
+        List<SQLTableObject> sqlTableObjects = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, whereArgs);
         List<Service> result = new ArrayList<>();
         for (SQLTableObject service : sqlTableObjects) {
             result.add((Service) service);
@@ -169,7 +165,7 @@ public final class DatabaseManager extends FileRelatedManager {
                 + " left join " + c.getTableName() + " c on c." + c.getId().k() + "=a." + a.getCertificateId().k() + " where c." + c.getId().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(certId);
-        List<SQLTableObject> result = sqlQueries.loadString(dummy.getAllAttributes(), dummy, query, args);
+        List<SQLTableObject> result = ISQLQueries.loadString(dummy.getAllAttributes(), dummy, query, args);
         List<ServiceJoinServiceType> services = new ArrayList<>();
         for (SQLTableObject sqlTableObject : result) {
             services.add((ServiceJoinServiceType) sqlTableObject);
@@ -191,6 +187,6 @@ public final class DatabaseManager extends FileRelatedManager {
         List<Object> args = new ArrayList<>();
         args.add(serviceId);
         args.add(certificateId);
-        sqlQueries.delete(approval, where, args);
+        ISQLQueries.delete(approval, where, args);
     }
 }

@@ -11,10 +11,11 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.drive.sql.dao.WasteDao;
 import de.mein.execute.SqliteExecutor;
+import de.mein.sql.ISQLQueries;
+import de.mein.sql.RWLock;
 import de.mein.sql.SQLQueries;
 import de.mein.sql.SQLStatement;
 import de.mein.sql.SqlQueriesException;
-import de.mein.sql.con.SQLConnection;
 import de.mein.sql.con.SQLConnector;
 
 import java.io.File;
@@ -31,8 +32,6 @@ import java.util.List;
  */
 public class DriveDatabaseManager extends FileRelatedManager {
     private final MeinDriveService meinDriveService;
-    private SQLQueries driveSqlQueries;
-    private final SQLConnection dbConnection;
     private FsDao fsDao;
     private StageDao stageDao;
     private final DriveSettings driveSettings;
@@ -40,15 +39,13 @@ public class DriveDatabaseManager extends FileRelatedManager {
     private WasteDao wasteDao;
 
     public interface SQLConnectionCreator {
-        SQLConnection createConnection(DriveDatabaseManager driveDatabaseManager) throws SQLException, ClassNotFoundException;
+        ISQLQueries createConnection(DriveDatabaseManager driveDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
     }
 
-    private static SQLConnectionCreator sqlConnectionCreator = driveDatabaseManager -> {
-        return SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME));
-    };
+    private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME)), new RWLock());
 
-    public static void setSqlConnectionCreator(SQLConnectionCreator sqlConnectionCreator) {
-        DriveDatabaseManager.sqlConnectionCreator = sqlConnectionCreator;
+    public static void setSqlqueriesCreator(SQLConnectionCreator sqlqueriesCreator) {
+        DriveDatabaseManager.sqlqueriesCreator = sqlqueriesCreator;
     }
 
     public static Connection createSqliteConnection() throws ClassNotFoundException, SQLException {
@@ -66,11 +63,11 @@ public class DriveDatabaseManager extends FileRelatedManager {
         DriveDatabaseManager.driveSqlInputStreamInjector = driveSqlInputStreamInjector;
     }
 
-    public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg, SQLConnection sqlConnection) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
+    public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg ) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
         super(workingDirectory);
 
         this.meinDriveService = meinDriveService;
-        this.dbConnection = sqlConnection; //sqlConnectionCreator.createConnection(this);//
+//        this.dbConnection = sqlConnection; //sqlqueriesCreator.createConnection(this);//
         //SQLConnector.createSqliteConnection(new File(createWorkingPath() + DriveStrings.DB_FILENAME));
         //this.dbConnection = createSqliteConnection();
         /**
@@ -85,18 +82,18 @@ public class DriveDatabaseManager extends FileRelatedManager {
          java.sql.Driver driver = (java.sql.Driver) Class.forName("org.sqlite.JDBC").newInstance();
          java.sql.Connection conn = driver.connect(url, config.toProperties());
          */
-        SQLStatement st = sqlConnection.prepareStatement("PRAGMA synchronous=OFF");
+        ISQLQueries sqlQueries = sqlqueriesCreator.createConnection(this,meinDriveService.getUuid());
+        SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
         st.execute();
-        st = sqlConnection.prepareStatement("PRAGMA foreign_keys=ON");
+        st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
         st.execute();
-        SqliteExecutor sqliteExecutor = new SqliteExecutor(dbConnection);
+        SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
             //find sql file in workingdir
             sqliteExecutor.executeStream(driveSqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
 
-        SQLQueries sqlQueries = new SQLQueries(dbConnection);
         fsDao = new FsDao(this, sqlQueries);
         stageDao = new StageDao(this, sqlQueries);
         transferDao = new TransferDao(sqlQueries);

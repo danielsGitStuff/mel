@@ -5,6 +5,7 @@ import de.mein.drive.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.*;
 import de.mein.sql.Dao;
+import de.mein.sql.ISQLQueries;
 import de.mein.sql.SQLQueries;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
@@ -21,8 +22,8 @@ public class FsDao extends Dao.LockingDao {
     private final DriveDatabaseManager driveDatabaseManager;
     private DriveSettings driveSettings;
 
-    public FsDao(DriveDatabaseManager driveDatabaseManager, SQLQueries sqlQueries) {
-        super(sqlQueries);
+    public FsDao(DriveDatabaseManager driveDatabaseManager, ISQLQueries ISQLQueries) {
+        super(ISQLQueries);
         this.driveDatabaseManager = driveDatabaseManager;
     }
 
@@ -30,7 +31,7 @@ public class FsDao extends Dao.LockingDao {
     public void update(FsEntry leFile) throws SqlQueriesException {
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(leFile.getId().v());
-        sqlQueries.update(leFile, leFile.getId().k() + "=?", whereArgs);
+        ISQLQueries.update(leFile, leFile.getId().k() + "=?", whereArgs);
     }
 
     public FsFile getFileByName(FsFile fsFile) throws SqlQueriesException {
@@ -47,7 +48,7 @@ public class FsDao extends Dao.LockingDao {
                 + " and " + fsFile.getName().k() + "=?";
         whereArguments.add(0);
         whereArguments.add(fsFile.getName().v());
-        List<FsFile> tableObjects = sqlQueries.load(fsFile.getAllAttributes(), fsFile, where, whereArguments);
+        List<FsFile> tableObjects = ISQLQueries.load(fsFile.getAllAttributes(), fsFile, where, whereArguments);
         if (tableObjects.size() == 0) {
             return null;
         } else {
@@ -65,7 +66,7 @@ public class FsDao extends Dao.LockingDao {
     public List<FsFile> getFilesByHash(String hash) throws SqlQueriesException {
         FsFile dummy = new FsFile();
         String where = dummy.getContentHash().k() + "=?";
-        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(hash));
+        List<FsFile> fsFiles = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(hash));
         return fsFiles;
     }
 
@@ -82,7 +83,7 @@ public class FsDao extends Dao.LockingDao {
         }
         where += " and " + file.getIsDirectory().k() + "=?";
         whereArguments.add(0);
-        List<FsFile> result = sqlQueries.load(file.getAllAttributes(), file, where, whereArguments);
+        List<FsFile> result = ISQLQueries.load(file.getAllAttributes(), file, where, whereArguments);
         return result;
     }
 
@@ -107,7 +108,7 @@ public class FsDao extends Dao.LockingDao {
         String where = fsFile.getId().k() + "=?";
         List<Object> whereArguments = new ArrayList<>();
         whereArguments.add(id);
-        List<FsFile> tableObjects = sqlQueries.load(fsFile.getAllAttributes(), fsFile, where, whereArguments);
+        List<FsFile> tableObjects = ISQLQueries.load(fsFile.getAllAttributes(), fsFile, where, whereArguments);
         if (tableObjects.size() == 0) {
             return null;
         } else {
@@ -119,15 +120,15 @@ public class FsDao extends Dao.LockingDao {
     public FsEntry insert(FsEntry fsEntry) throws SqlQueriesException {
         Long id;
         if (fsEntry.getId().v() != null)
-            id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
+            id = ISQLQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
         else
-            id = sqlQueries.insert(fsEntry);
+            id = ISQLQueries.insert(fsEntry);
         fsEntry.getId().v(id);
         return fsEntry;
     }
 
     public FsFile insertLeFile(FsFile fsFile) throws SqlQueriesException {
-        Long id = new Long(sqlQueries.insert(fsFile));
+        Long id = new Long(ISQLQueries.insert(fsFile));
         fsFile.getId().v(id);
         return fsFile;
         //new MetaDao(sqlQueries, lock).updateSyncId(fsFile);
@@ -135,7 +136,7 @@ public class FsDao extends Dao.LockingDao {
 
     // directory stuff
     public FsDirectory insertLeDirectory(FsDirectory fsDirectory) throws SqlQueriesException {
-        Long id = sqlQueries.insert(fsDirectory);
+        Long id = ISQLQueries.insert(fsDirectory);
         fsDirectory.getId().v(id);
         return fsDirectory;
     }
@@ -154,7 +155,7 @@ public class FsDao extends Dao.LockingDao {
         where += " and " + dir.getIsDirectory().k() + "=?";
         whereArgs.add(1);
 
-        List<FsDirectory> result = sqlQueries.load(dir.getAllAttributes(), dir, where, whereArgs);
+        List<FsDirectory> result = ISQLQueries.load(dir.getAllAttributes(), dir, where, whereArgs);
         return result;
     }
 
@@ -176,7 +177,7 @@ public class FsDao extends Dao.LockingDao {
         where += " and " + directory.getIsDirectory().k() + "=? and " + directory.getName().k() + "=?";
         whereArgs.add(1);
         whereArgs.add(dir.getName().v());
-        List<FsDirectory> result = sqlQueries.load(directory.getAllAttributes(), directory, where, whereArgs);
+        List<FsDirectory> result = ISQLQueries.load(directory.getAllAttributes(), directory, where, whereArgs);
         if (result.size() > 0) {
             return result.get(0);
         }
@@ -193,7 +194,7 @@ public class FsDao extends Dao.LockingDao {
         where += " and " + directory.getIsDirectory().k() + "=? and " + directory.getName().k() + "=?";
         whereArgs.add(1);
         whereArgs.add(name);
-        List<FsDirectory> result = sqlQueries.load(directory.getAllAttributes(), directory, where, whereArgs);
+        List<FsDirectory> result = ISQLQueries.load(directory.getAllAttributes(), directory, where, whereArgs);
         if (result.size() > 0) {
             return result.get(0);
         }
@@ -204,7 +205,7 @@ public class FsDao extends Dao.LockingDao {
         FsDirectory dir = new FsDirectory();
         String where = dir.getParentId().k() + "=? and " + dir.getVersion().k() + ">?";
         List<Object> whereArgs = SQLQueries.whereArgs(id, version);
-        List<SQLTableObject> result = sqlQueries.load(dir.getAllAttributes(), dir, where, whereArgs);
+        List<SQLTableObject> result = ISQLQueries.load(dir.getAllAttributes(), dir, where, whereArgs);
         List<FsDirectory> dirs = result.stream().map(s -> (FsDirectory) s).collect(Collectors.toList());
         return dirs;
     }
@@ -214,7 +215,7 @@ public class FsDao extends Dao.LockingDao {
         String where = fsEntry.getParentId().k() + "=?";
         ArrayList<Object> whereArgs = new ArrayList<>();
         whereArgs.add(id);
-        List<FsEntry> result = sqlQueries.load(fsEntry.getAllAttributes(), fsEntry, where, whereArgs);
+        List<FsEntry> result = ISQLQueries.load(fsEntry.getAllAttributes(), fsEntry, where, whereArgs);
         return result;
     }
 
@@ -224,7 +225,7 @@ public class FsDao extends Dao.LockingDao {
         String where = directory.getId().k() + "=?";
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(id);
-        List<FsDirectory> result = sqlQueries.load(directory.getAllAttributes(), directory, where, whereArgs);
+        List<FsDirectory> result = ISQLQueries.load(directory.getAllAttributes(), directory, where, whereArgs);
         if (result.size() == 1)
             return result.get(0);
         return null;
@@ -233,7 +234,7 @@ public class FsDao extends Dao.LockingDao {
     public Long getLatestVersion() throws SqlQueriesException {
         FsDirectory directory = new FsDirectory();
         String sql = "select max(" + directory.getVersion().k() + ") from " + directory.getTableName();
-        Integer v = sqlQueries.queryValue(sql, Integer.class);
+        Integer v = ISQLQueries.queryValue(sql, Integer.class);
         if (v == null)
             return 0L;
         else
@@ -249,7 +250,7 @@ public class FsDao extends Dao.LockingDao {
         String where = fsEntry.getVersion().k() + ">?";
         List<Object> args = new ArrayList<>();
         args.add(version);
-        List<GenericFSEntry> result = sqlQueries.load(fsEntry.getAllAttributes(), fsEntry, where, args, null);
+        List<GenericFSEntry> result = ISQLQueries.load(fsEntry.getAllAttributes(), fsEntry, where, args, null);
         return result;
     }
 
@@ -257,7 +258,7 @@ public class FsDao extends Dao.LockingDao {
         GenericFSEntry fsEntry = new GenericFSEntry();
         List<Object> args = new ArrayList<>();
         args.add(inode);
-        List<GenericFSEntry> res = sqlQueries.load(fsEntry.getAllAttributes(), fsEntry, fsEntry.getiNode().k() + "=?", args);
+        List<GenericFSEntry> res = ISQLQueries.load(fsEntry.getAllAttributes(), fsEntry, fsEntry.getiNode().k() + "=?", args);
         if (res.size() == 1)
             return res.get(0);
         else if (res.size() > 1)
@@ -285,7 +286,7 @@ public class FsDao extends Dao.LockingDao {
     public FsDirectory getRootDirectory() throws SqlQueriesException {
         FsDirectory dummy = new FsDirectory();
         String where = dummy.getParentId().k() + " is null";
-        List<FsDirectory> roots = sqlQueries.load(dummy.getAllAttributes(), dummy, where, null, null);
+        List<FsDirectory> roots = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, null, null);
         assert roots.size() == 1;
         return roots.get(0);
     }
@@ -298,7 +299,7 @@ public class FsDao extends Dao.LockingDao {
         String where = genericFSEntry.getParentId().k() + " is null and " + genericFSEntry.getName().k() + "=?";
         if (genericFSEntry.getParentId().v() != null)
             where = genericFSEntry.getParentId().k() + "=? and " + genericFSEntry.getName().k() + "=?";
-        List<GenericFSEntry> res = sqlQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, args);
+        List<GenericFSEntry> res = ISQLQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, args);
         if (res.size() == 1)
             return res.get(0);
         return null;
@@ -309,7 +310,7 @@ public class FsDao extends Dao.LockingDao {
         String where = dummy.getId().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(id);
-        return sqlQueries.load(dummy.getInsertAttributes(), dummy, where, args).size() > 0;
+        return ISQLQueries.load(dummy.getInsertAttributes(), dummy, where, args).size() > 0;
     }
 
     public void deleteById(Long fsId) throws SqlQueriesException {
@@ -320,7 +321,7 @@ public class FsDao extends Dao.LockingDao {
         List<FsEntry> dirContent = this.getDirectoryContent(fsId);
         for (FsEntry content : dirContent)
             this.delete(content);
-        sqlQueries.delete(fsEntry, fsEntry.getId().k() + "=?", whereArgs);
+        ISQLQueries.delete(fsEntry, fsEntry.getId().k() + "=?", whereArgs);
     }
 
     public void delete(FsEntry fsEntry) throws SqlQueriesException {
@@ -348,7 +349,7 @@ public class FsDao extends Dao.LockingDao {
         //where += " and " + genericFSEntry.getIsDirectory().k() + "=?";
         //whereArgs.add(1);
 
-        List<GenericFSEntry> result = sqlQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, whereArgs);
+        List<GenericFSEntry> result = ISQLQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, whereArgs);
         return result;
     }
 
@@ -374,7 +375,7 @@ public class FsDao extends Dao.LockingDao {
     public FsDirectory getFsDirectoryById(Long fsId) throws SqlQueriesException {
         FsDirectory dummy = new FsDirectory();
         String where = dummy.getId().k() + "=?";
-        List<FsDirectory> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(fsId));
+        List<FsDirectory> directories = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(fsId));
         if (directories.size() == 1)
             return directories.get(0);
         return null;
@@ -383,7 +384,7 @@ public class FsDao extends Dao.LockingDao {
     public GenericFSEntry getGenericById(Long fsId) throws SqlQueriesException {
         GenericFSEntry dummy = new GenericFSEntry();
         String where = dummy.getId().k() + "=?";
-        List<GenericFSEntry> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(fsId));
+        List<GenericFSEntry> directories = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(fsId));
         if (directories.size() == 1)
             return directories.get(0);
         return null;

@@ -16,6 +16,8 @@ import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.watchdog.IndexWatchdogListener;
+import de.mein.sql.ISQLQueries;
+import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
 import de.mein.sql.con.SQLConnection;
 import de.mein.sql.con.SQLConnector;
@@ -74,14 +76,14 @@ public class DriveBootLoader extends BootLoader {
     public void startIndexer(MeinDriveService meinDriveService, DriveSettings driveSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         File workingDir = new File(bootLoaderDir.getAbsolutePath() + File.separator + meinDriveService.getUuid());
         workingDir.mkdirs();
-        DriveDatabaseManager databaseManager = new DriveDatabaseManager(meinDriveService, workingDir, driveSettings, createDBConnection(this, meinDriveService.getUuid()));
+        DriveDatabaseManager databaseManager = new DriveDatabaseManager(meinDriveService, workingDir, driveSettings);
         meinDriveService.initDatabase(databaseManager);
     }
 
-
+/*
     protected SQLConnection createDBConnection(DriveBootLoader bootLoader, String serviceUuid) throws SQLException, ClassNotFoundException {
         File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceUuid);
         workingDirectory.mkdirs();
         return SQLConnector.createConnection(workingDirectory.getAbsolutePath() + File.separator + DriveStrings.DB_FILENAME);
-    }
+    }*/
 }

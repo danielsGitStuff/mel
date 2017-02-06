@@ -21,4 +21,5 @@ public abstract class SQLResultSet {
     public abstract Object getObject(int i) throws SQLException;
 
     public abstract String[] getColumns() throws SQLException;
+
 }

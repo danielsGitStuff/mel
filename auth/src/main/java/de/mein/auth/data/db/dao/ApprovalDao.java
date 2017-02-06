@@ -4,7 +4,7 @@ import de.mein.auth.data.db.Approval;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.sql.Dao;
-import de.mein.sql.SQLQueries;
+import de.mein.sql.ISQLQueries;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 
@@ -15,12 +15,12 @@ import java.util.List;
  * Created by xor on 4/25/16.
  */
 public class ApprovalDao extends Dao {
-    public ApprovalDao(SQLQueries sqlQueries) {
-        super(sqlQueries, false);
+    public ApprovalDao(ISQLQueries ISQLQueries) {
+        super(ISQLQueries, false);
     }
 
     public Approval insertApproval(Approval approval) throws SqlQueriesException {
-        sqlQueries.insert(approval);
+        ISQLQueries.insert(approval);
         return approval;
     }
 
@@ -36,7 +36,7 @@ public class ApprovalDao extends Dao {
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(certificateId);
         whereArgs.add(serviceId);
-        List<SQLTableObject> result = sqlQueries.loadString(s.getAllAttributes(), s, query, whereArgs);
+        List<SQLTableObject> result = ISQLQueries.loadString(s.getAllAttributes(), s, query, whereArgs);
         return result.size() == 1;
     }
 
@@ -50,7 +50,7 @@ public class ApprovalDao extends Dao {
                 ") left join " + s.getTableName() + " s on a." + a.getServiceid().k() + "=s." + s.getId().k() + " where c." + c.getId().k() + "=?";
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(certificateId);
-        List<SQLTableObject> result = sqlQueries.loadString(s.getAllAttributes(), s, query, whereArgs);
+        List<SQLTableObject> result = ISQLQueries.loadString(s.getAllAttributes(), s, query, whereArgs);
         List<Service> services = new ArrayList<>();
         for (SQLTableObject sqlTableObject : result) {
             services.add((Service) sqlTableObject);
@@ -60,7 +60,7 @@ public class ApprovalDao extends Dao {
 
     public List<Approval> getAllApprovals() throws SqlQueriesException {
         Approval a = new Approval();
-        List<SQLTableObject> result = sqlQueries.load(a.getAllAttributes(), a, null, null);
+        List<SQLTableObject> result = ISQLQueries.load(a.getAllAttributes(), a, null, null);
         List<Approval> approvals = new ArrayList<>();
         for (SQLTableObject sqlTableObject : result) {
             approvals.add((Approval) sqlTableObject);
@@ -70,6 +70,6 @@ public class ApprovalDao extends Dao {
 
     public void clear() throws SqlQueriesException {
         String sql = "delete from " + (new Approval()).getTableName();
-        sqlQueries.query(sql, null);
+        ISQLQueries.query(sql, null);
     }
 }

@@ -27,10 +27,15 @@ public abstract class SQLConnector {
         return DriverManager.getConnection("jdbc:mysql://localhost/?user=root&allowMultiQueries=true");
     }
 
-    public static SQLConnection createSqliteConnection(File file) throws ClassNotFoundException, SQLException {
+    public static JDBCConnection createSqliteConnection(File file) throws ClassNotFoundException, SQLException {
         Class c = Class.forName("org.sqlite.JDBC");
         Connection connection = DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
         return new JDBCConnection(connection);
+    }
+    public static Connection createJDBCConnection(File file) throws ClassNotFoundException, SQLException {
+        Class c = Class.forName("org.sqlite.JDBC");
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
+        return connection;
     }
 
 }

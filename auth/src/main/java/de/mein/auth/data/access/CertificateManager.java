@@ -3,7 +3,7 @@ package de.mein.auth.data.access;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.tools.Cryptor;
-import de.mein.sql.SQLQueries;
+import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
 
 import org.bouncycastle.jce.X509Principal;
@@ -49,7 +49,7 @@ public class CertificateManager extends FileRelatedManager {
     private CertificateDao certificateDao;
 
 
-    public CertificateManager(File workingDirectory, SQLQueries sqlQueries, int keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException {
+    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, int keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException {
         super(workingDirectory);
         System.out.println("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
         this.keysize = keysize;
@@ -72,7 +72,7 @@ public class CertificateManager extends FileRelatedManager {
         keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(jksIn, PASS.toCharArray());
         //init DB stuff
-        certificateDao = new CertificateDao(sqlQueries, false);
+        certificateDao = new CertificateDao(ISQLQueries, false);
         //the actual loading
         if (!loadKeys())
             generateCertificate();

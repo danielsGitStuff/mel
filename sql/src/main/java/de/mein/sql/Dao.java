@@ -4,20 +4,20 @@ package de.mein.sql;
  * Created by xor on 25.10.2015.
  */
 public abstract class Dao {
-    protected SQLQueries sqlQueries;
+    protected ISQLQueries ISQLQueries;
     protected final boolean lock;
 
-    public Dao(SQLQueries sqlQueries) {
-        this(sqlQueries, true);
+    public Dao(ISQLQueries ISQLQueries) {
+        this(ISQLQueries, true);
     }
 
-    public Dao(SQLQueries sqlQueries, boolean lock) {
-        this.sqlQueries = sqlQueries;
+    public Dao(ISQLQueries ISQLQueries, boolean lock) {
+        this.ISQLQueries = ISQLQueries;
         this.lock = lock;
     }
 
-    public SQLQueries getSqlQueries() {
-        return sqlQueries;
+    public ISQLQueries getSqlQueries() {
+        return ISQLQueries;
     }
 
 
@@ -28,12 +28,12 @@ public abstract class Dao {
 
         protected RWLock lock = new RWLock();
 
-        public LockingDao(SQLQueries sqlQueries) {
-            super(sqlQueries);
+        public LockingDao(ISQLQueries ISQLQueries) {
+            super(ISQLQueries);
         }
 
-        public LockingDao(SQLQueries sqlQueries, boolean lock) {
-            super(sqlQueries, lock);
+        public LockingDao(ISQLQueries ISQLQueries, boolean lock) {
+            super(ISQLQueries, lock);
         }
 
         @Override
@@ -61,28 +61,28 @@ public abstract class Dao {
      * Created by xor on 11/25/16.
      */
     public abstract static class ConnectionLockingDao extends Dao {
-        public ConnectionLockingDao(SQLQueries sqlQueries) {
-            super(sqlQueries);
+        public ConnectionLockingDao(ISQLQueries ISQLQueries) {
+            super(ISQLQueries);
         }
 
-        public ConnectionLockingDao(SQLQueries sqlQueries, boolean lock) {
-            super(sqlQueries, lock);
+        public ConnectionLockingDao(ISQLQueries ISQLQueries, boolean lock) {
+            super(ISQLQueries, lock);
         }
 
         public void lockWrite() {
-            sqlQueries.lockWrite();
+            ISQLQueries.lockWrite();
         }
 
         public void lockRead() {
-            sqlQueries.lockRead();
+            ISQLQueries.lockRead();
         }
 
         public void unlockWrite() {
-            sqlQueries.unlockWrite();
+            ISQLQueries.unlockWrite();
         }
 
         public void unlockRead() {
-            sqlQueries.unlockRead();
+            ISQLQueries.unlockRead();
         }
     }
 }

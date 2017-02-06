@@ -13,17 +13,20 @@ import java.util.List;
 /**
  * Created by xor on 12/16/16.
  */
-public class SQLResource<T extends SQLTableObject> implements AutoCloseable {
+public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
     private final Class<T> clazz;
-    private SQLStatement statement;
-    private SQLResultSet resultSet;
+    private final PreparedStatement preparedStatement;
+    private ResultSet resultSet;
 
-    public SQLResource(SQLStatement statement, Class<T> clazz) throws SQLException {
-        this.statement = statement;
-        this.resultSet = statement.getResultSet();
+
+
+    public SQLResource(PreparedStatement preparedStatement, Class<T> clazz) throws SQLException {
         this.clazz = clazz;
+        this.preparedStatement = preparedStatement;
+        this.resultSet = preparedStatement.getResultSet();
     }
 
+    @Override
     public T getNext() throws IllegalAccessException, InstantiationException, SQLException {
         T sqlTable = null;
         if (resultSet.next()) {
@@ -41,8 +44,9 @@ public class SQLResource<T extends SQLTableObject> implements AutoCloseable {
         return sqlTable;
     }
 
+    @Override
     public void close() throws SQLException {
         resultSet.close();
-        statement.close();
+        preparedStatement.close();
     }
 }

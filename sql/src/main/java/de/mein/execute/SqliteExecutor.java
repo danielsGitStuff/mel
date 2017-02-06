@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
+import de.mein.core.serialize.serialize.tools.StringBuilder;
 import de.mein.sql.SQLStatement;
 import de.mein.sql.con.SQLConnection;
 
@@ -21,6 +22,7 @@ public class SqliteExecutor {
     private SQLConnection connection;
     private String statement;
     StringBuilder b = new StringBuilder();
+    StringBuilder debug = new StringBuilder();
 
     public SqliteExecutor(SQLConnection connection) {
         this.connection = connection;
@@ -30,7 +32,7 @@ public class SqliteExecutor {
         // this is all hackery and might break
         // it should get along with the intellij auto formatter
         System.out.println("SqliteExecutor.executeStream");
-        Scanner s = new Scanner(in,"UTF-8");//new Scanner(String.class.getResourceAsStream(resource), "UTF-8");
+        Scanner s = new Scanner(in, "UTF-8");//new Scanner(String.class.getResourceAsStream(resource), "UTF-8");
         //s.useDelimiter("(;(\r)?\n)|(--\n)");
         s.useDelimiter("\n|\r");
         try {
@@ -57,6 +59,7 @@ public class SqliteExecutor {
                         if (!ap)
                             append(line);
                         this.statement = b.toString();
+                        debug.append(statement).append("\n");
                         SQLStatement st = connection.prepareStatement(statement);
                         st.execute();
                         st.close();
@@ -107,7 +110,7 @@ public class SqliteExecutor {
 
     public boolean checkTableExists(String dbName) {
         try {
-            String query = "select * from "+dbName;
+            String query = "select * from " + dbName;
             connection.prepareStatement(query).execute();
             return true;
 //            ResultSet resultSet = connection.getMetaData().getTables(null, null, "%", null);

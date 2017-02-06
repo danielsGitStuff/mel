@@ -8,6 +8,7 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.core.serialize.serialize.reflection.FieldAnalyzer;
+
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
@@ -86,7 +87,7 @@ public class SerializableEntityDeserializer implements FieldDeserializer {
             }
             List<Field> fields = EntityAnalyzer.getFields(entity.getClass());
             for (Field field : fields) {
-                if (FieldAnalyzer.isJsonIgnored(field))
+                if (FieldAnalyzer.isJsonIgnored(field) || FieldAnalyzer.isTransinient(field))
                     continue;
                 String fieldName = field.getName();
                 field.setAccessible(true);
@@ -96,7 +97,12 @@ public class SerializableEntityDeserializer implements FieldDeserializer {
                 if (des == null) {
                     String message = "SerializableEntityDeserializer.buildEntity.did not find deserializer for type '" + field.getType().getSimpleName() + "'";
                     Type genericType = field.getGenericType();
-                    message += " , generic: " + genericType.getTypeName();
+                    try {
+                        message += " , generic: " + genericType.getTypeName();
+                    } catch (NoSuchMethodError e) {
+                        // todo android der hurensohn
+                        // no java.lang.reflect.getTypeName() available
+                    }
                     Serialize.println(message);
                 } else
                     des.deserialize(this, entity, field, jsonFieldValue);
