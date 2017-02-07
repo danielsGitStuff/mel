@@ -61,7 +61,7 @@ public class DriveFXTest {
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth1;
-        MeinAuthSettings json1 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
+        MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("Test Client").setGreeting("greeting2");
         standAloneAuth1 = new MeinStandAloneAuthFX(json1);
