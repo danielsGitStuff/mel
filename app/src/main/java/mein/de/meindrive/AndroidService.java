@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Base64;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,7 +113,7 @@ public class AndroidService extends Service {
         TestDirCreator.createTestDir(testdir1);
         // configure MeinAuth
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
-                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
+                .setBrotcastListenerPort(9966).setBrotcastPort(9966)
                 .setWorkingDirectory(workingDir).setName("MA1").setGreeting("greeting1");
         meinAuthService = new MeinAuthService(json1);
         // we want accept all registration attempts automatically
@@ -139,7 +140,7 @@ public class AndroidService extends Service {
                 System.out.println("AndroidService.setup!!!1");
                 MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
                 System.out.println("AndroidService.setup11121321");
-                lock.unlockWrite();
+                //lock.unlockWrite();
                 // connection goes here
 
                 /*
@@ -169,7 +170,7 @@ public class AndroidService extends Service {
                 });*/
             });
         });
-        lock.lockWrite();
+        //lock.lockWrite();
         lock.unlockWrite();
     }
 
@@ -182,14 +183,6 @@ public class AndroidService extends Service {
         MeinInjector.setMeinAuthSqlInputStreamInjector(() -> {
             try {
                 return assetManager.open("sql.sql");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
-        DriveInjector.setDriveSqlInputStreamInjector(() -> {
-            try {
-                return assetManager.open("drive.sql");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -209,6 +202,8 @@ public class AndroidService extends Service {
             };
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
         });
+        MeinInjector.setBase64Encoder(bytes -> Base64.encode(bytes, Base64.NO_WRAP));
+        MeinInjector.setBase64Decoder(string -> Base64.decode(string, Base64.NO_WRAP));
         DriveInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(this, "service." + uuid + "." + DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
                 @Override
@@ -222,6 +217,14 @@ public class AndroidService extends Service {
                 }
             };
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
+        });
+        DriveInjector.setDriveSqlInputStreamInjector(() -> {
+            try {
+                return assetManager.open("drive.sql");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         });
         DriveInjector.setWatchDogRunner(meinDriveService -> new AndroidWatchdogListener(meinDriveService));
         DriveInjector.setBinPath("/system/bin/sh");

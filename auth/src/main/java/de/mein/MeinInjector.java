@@ -1,6 +1,8 @@
 package de.mein;
 
 import de.mein.auth.data.access.DatabaseManager;
+import de.mein.core.serialize.deserialize.binary.BinaryDeserializer;
+import de.mein.core.serialize.serialize.fieldserializer.binary.BinaryFieldSerializer;
 
 /**
  * Created by xor on 2/4/17.
@@ -18,4 +20,11 @@ public class MeinInjector {
         DatabaseManager.setSqlConnectionCreator(connectionCreator);
     }
 
+    public static void setBase64Encoder(BinaryFieldSerializer.Base64Encoder encoder) {
+        BinaryFieldSerializer.setBase64Encoder(encoder);
+    }
+
+    public static void setBase64Decoder(BinaryDeserializer.Base64Decoder decoder) {
+        BinaryDeserializer.setBase64Decoder(decoder);
+    }
 }

@@ -11,6 +11,16 @@ import java.util.Base64;
 public class BinaryFieldSerializer extends FieldSerializer {
     private final byte[] bytes;
 
+    public interface Base64Encoder {
+        byte[] encode(byte[] bytes);
+    }
+
+    private static Base64Encoder base64Encoder = bytes -> Base64.getEncoder().encode(bytes);
+
+    public static void setBase64Encoder(Base64Encoder base64Encoder) {
+        BinaryFieldSerializer.base64Encoder = base64Encoder;
+    }
+
     public BinaryFieldSerializer(byte[] bytes) {
         this.bytes = bytes;
     }
@@ -22,8 +32,7 @@ public class BinaryFieldSerializer extends FieldSerializer {
 
     @Override
     public String JSON() throws JsonSerializationException {
-        byte[] encoded = Base64.getEncoder().encode(bytes);
-        String json = "\"" + new String(encoded) + "\"";
+        String json = "\"" + new String(BinaryFieldSerializer.base64Encoder.encode(bytes)) + "\"";
         return json;
     }
 }
