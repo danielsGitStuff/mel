@@ -1,5 +1,6 @@
 package de.mein.drive.watchdog;
 
+import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
 import java.io.File;
@@ -15,8 +16,8 @@ import java.util.List;
  */
 class IndexWatchdogUnix extends IndexWatchdogPC {
 
-    IndexWatchdogUnix(WatchService watchService) {
-        super("IndexWatchdogUnix", watchService);
+    IndexWatchdogUnix(MeinDriveService meinDriveService, WatchService watchService) {
+        super(meinDriveService, "IndexWatchdogUnix", watchService);
     }
 
     @Override

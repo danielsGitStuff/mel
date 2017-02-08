@@ -8,6 +8,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.List;
 
+import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.watchdog.IndexWatchdogListener;
 
 /**
@@ -19,9 +20,11 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
     protected WatchEvent.Kind<?>[] KINDS = new WatchEvent.Kind<?>[]{StandardWatchEventKinds.ENTRY_MODIFY,
             StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE};
 
-    public IndexWatchdogPC(String name, WatchService watchService) {
+    public IndexWatchdogPC(MeinDriveService meinDriveService, String name, WatchService watchService) {
         this.name = name;
         this.watchService = watchService;
+        this.meinDriveService = meinDriveService;
+        this.setStageIndexer(meinDriveService.getStageIndexer());
     }
     @Override
     public void run() {

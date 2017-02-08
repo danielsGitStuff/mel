@@ -1,6 +1,8 @@
 package de.mein.drive.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
+
+import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
 import java.io.File;
@@ -15,8 +17,8 @@ public class IndexWatchDogWindows extends IndexWatchdogPC {
 
     private boolean watchesRoot = false;
 
-    public IndexWatchDogWindows(WatchService watchService) {
-        super("IndexWatchDogWindows", watchService);
+    public IndexWatchDogWindows(MeinDriveService meinDriveService, WatchService watchService) {
+        super(meinDriveService,"IndexWatchDogWindows", watchService);
     }
 
 

@@ -104,9 +104,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                         handleTransfer(job.getPartnerCertificate().getId().v(), (FileTransferDetailSet) job.getMessage());
                     }
                 }
-            } else if (unknownJob instanceof FsSyncJob) {
-                logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.SYNC");
-                this.handleFsSyncJob((FsSyncJob) unknownJob);
             }
         }
     }
@@ -117,8 +114,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             return false;
         return intent.equals(expected);
     }
-
-    protected abstract void handleFsSyncJob(FsSyncJob fsSyncJob) throws IOException, SqlQueriesException;
 
     protected void handleTransfer(Long partnerCertId, FileTransferDetailSet detailSet) {
         handleTransfer(partnerCertId, detailSet, true);
@@ -170,98 +165,98 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         request.resolve(task);
     }
 
-
-    /**
-     * handles syncThisClient jobs coming from changes on the disk
-     *
-     * @param fsSyncJob
-     * @return promise, that triggers when everything is staged and the indexer has finished
-     * @throws IOException
-     */
-    protected Promise<Long, Exception, Void> doFsSyncJob(FsSyncJob fsSyncJob) throws IOException, SqlQueriesException {
-        logger.log(Level.FINEST, "MeinDriveServerService.doFsSyncJob");
-        FsDao fsDao = driveDatabaseManager.getFsDao();
-        StageDao stageDao = driveDatabaseManager.getStageDao();
-        fsDao.lockRead();
-        stageDao.lockWrite();
-        StageSet stageSet;
-        try {
-            stageSet = stageDao.createStageSet("fs", null, null);
-            for (String path : fsSyncJob.getPathCollection().getPaths()) {
-                logger.log(Level.FINEST, "MeinDriveServerService.doFsSyncJob: " + path);
-                try {
-                    File f = new File(path);
-                    File parent = f.getParentFile();
-                    FsDirectory fsParent = null;
-                    FsEntry fsEntry = null;
-                    Stage stage;
-                    Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
-                    if (stageParent == null) {
-                        // find the actual relating FsEntry of the parent directory
-                        fsParent = fsDao.getFsDirectoryByPath(parent);
-                        // find its relating FsEntry
-                        if (fsParent != null) {
-                            GenericFSEntry genDummy = new GenericFSEntry();
-                            genDummy.getParentId().v(fsParent.getId());
-                            genDummy.getName().v(f.getName());
-                            GenericFSEntry gen = fsDao.getGenericFileByName(genDummy);
-                            if (gen != null)
-                                fsEntry = gen.ins();
-                        } else {
-                            logger.log(Level.FINEST, "MeinDriveServerService.doFsSyncJob.n7u");
-                        }
-                    }
-                    //file might been deleted yet :(
-                    if (!f.exists() && fsEntry == null)
-                        continue;
-                    // stage actual File
-                    stage = new Stage().setName(f.getName()).setIsDirectory(f.isDirectory());
-                    if (fsEntry != null) {
-                        stage.setFsId(fsEntry.getId().v()).setFsParentId(fsEntry.getParentId().v());
-                    }
-                    if (fsParent != null) {
-                        stage.setFsParentId(fsParent.getId().v());
-                    }
-                    // we found everything which already exists in das datenbank
-                    if (stageParent == null) {
-                        stageParent = new Stage().setStageSet(stageSet.getId().v());
-                        if (fsParent == null) {
-                            logger.log(Level.FINEST, "MeinDriveServerService.doFsSyncJob.ken43");
-                            stageParent.setIsDirectory(parent.isDirectory());
-                        } else {
-                            stageParent.setName(fsParent.getName().v())
-                                    .setFsId(fsParent.getId().v())
-                                    .setFsParentId(fsParent.getParentId().v())
-                                    .setStageSet(stageSet.getId().v())
-                                    .setVersion(fsParent.getVersion().v())
-                                    .setIsDirectory(fsParent.getIsDirectory().v());
-                            File exists = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsParent);
-                            stageParent.setDeleted(!exists.exists());
-                        }
-                        stageDao.insert(stageParent);
-                    }
-                    stage.setParentId(stageParent.getId());
-                    if (fsParent == null)
-                        stage.setParentId(stageParent.getId());
-                    stage.setStageSet(stageSet.getId().v());
-                    stage.setDeleted(!f.exists());
-                    stageDao.insert(stage);
-                } catch (Exception e) {
-                    System.err.println("MeinDriveServerService.doFsSyncJob: " + path);
-                    e.printStackTrace();
-                }
-            }
-            // done here. set the indexer to work
-            return stageIndexer.indexStage(stageSet.getId().v());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            //stageDao.deleteStageSet(stageSet.getId().v());
-            fsDao.unlockRead();
-            stageDao.unlockWrite();
-        }
-        return null;
-    }
+//
+//    /**
+//     * handles syncThisClient jobs coming from changes on the disk
+//     *
+//     * @param fsSyncJob
+//     * @return promise, that triggers when everything is staged and the indexer has finished
+//     * @throws IOException
+//     */
+//    protected Promise<Long, Exception, Void> doFsSyncJob(FsSyncJob fsSyncJob) throws IOException, SqlQueriesException {
+//        logger.log(Level.FINEST, "MeinDriveServerService.doFsSyncJob");
+//        FsDao fsDao = driveDatabaseManager.getFsDao();
+//        StageDao stageDao = driveDatabaseManager.getStageDao();
+//        fsDao.lockRead();
+//        stageDao.lockWrite();
+//        StageSet stageSet;
+//        try {
+//            stageSet = stageDao.createStageSet("fs", null, null);
+//            for (String path : fsSyncJob.getPathCollection().getPaths()) {
+//                logger.log(Level.FINEST, "MeinDriveServerService.doFsSyncJob: " + path);
+//                try {
+//                    File f = new File(path);
+//                    File parent = f.getParentFile();
+//                    FsDirectory fsParent = null;
+//                    FsEntry fsEntry = null;
+//                    Stage stage;
+//                    Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
+//                    if (stageParent == null) {
+//                        // find the actual relating FsEntry of the parent directory
+//                        fsParent = fsDao.getFsDirectoryByPath(parent);
+//                        // find its relating FsEntry
+//                        if (fsParent != null) {
+//                            GenericFSEntry genDummy = new GenericFSEntry();
+//                            genDummy.getParentId().v(fsParent.getId());
+//                            genDummy.getName().v(f.getName());
+//                            GenericFSEntry gen = fsDao.getGenericFileByName(genDummy);
+//                            if (gen != null)
+//                                fsEntry = gen.ins();
+//                        } else {
+//                            logger.log(Level.FINEST, "MeinDriveServerService.doFsSyncJob.n7u");
+//                        }
+//                    }
+//                    //file might been deleted yet :(
+//                    if (!f.exists() && fsEntry == null)
+//                        continue;
+//                    // stage actual File
+//                    stage = new Stage().setName(f.getName()).setIsDirectory(f.isDirectory());
+//                    if (fsEntry != null) {
+//                        stage.setFsId(fsEntry.getId().v()).setFsParentId(fsEntry.getParentId().v());
+//                    }
+//                    if (fsParent != null) {
+//                        stage.setFsParentId(fsParent.getId().v());
+//                    }
+//                    // we found everything which already exists in das datenbank
+//                    if (stageParent == null) {
+//                        stageParent = new Stage().setStageSet(stageSet.getId().v());
+//                        if (fsParent == null) {
+//                            logger.log(Level.FINEST, "MeinDriveServerService.doFsSyncJob.ken43");
+//                            stageParent.setIsDirectory(parent.isDirectory());
+//                        } else {
+//                            stageParent.setName(fsParent.getName().v())
+//                                    .setFsId(fsParent.getId().v())
+//                                    .setFsParentId(fsParent.getParentId().v())
+//                                    .setStageSet(stageSet.getId().v())
+//                                    .setVersion(fsParent.getVersion().v())
+//                                    .setIsDirectory(fsParent.getIsDirectory().v());
+//                            File exists = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsParent);
+//                            stageParent.setDeleted(!exists.exists());
+//                        }
+//                        stageDao.insert(stageParent);
+//                    }
+//                    stage.setParentId(stageParent.getId());
+//                    if (fsParent == null)
+//                        stage.setParentId(stageParent.getId());
+//                    stage.setStageSet(stageSet.getId().v());
+//                    stage.setDeleted(!f.exists());
+//                    stageDao.insert(stage);
+//                } catch (Exception e) {
+//                    System.err.println("MeinDriveServerService.doFsSyncJob: " + path);
+//                    e.printStackTrace();
+//                }
+//            }
+//            // done here. set the indexer to work
+//            return stageIndexer.indexStage(stageSet.getId().v());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        } finally {
+//            //stageDao.deleteStageSet(stageSet.getId().v());
+//            fsDao.unlockRead();
+//            stageDao.unlockWrite();
+//        }
+//        return null;
+//    }
 
     protected abstract void onSyncReceived(Request request);
 
@@ -306,5 +301,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     public WasteBin getWasteBin() {
         return wasteBin;
+    }
+
+    public StageIndexer getStageIndexer() {
+        return stageIndexer;
     }
 }

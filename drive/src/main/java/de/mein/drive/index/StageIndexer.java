@@ -1,6 +1,9 @@
 package de.mein.drive.index;
 
+import de.mein.drive.data.PathCollection;
 import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Deferred;
 
 import java.util.concurrent.Executors;
@@ -10,19 +13,33 @@ import java.util.concurrent.Executors;
  */
 public class StageIndexer extends BackgroundExecutor {
 
+    public interface StagingDoneListener {
+        void onStagingDone(Long stageSetId) throws InterruptedException, SqlQueriesException;
+    }
+
+    public interface StagingFailedListener {
+
+    }
+
+    private StagingDoneListener stagingDoneListener;
+
+    public void setStagingDoneListener(StagingDoneListener stagingDoneListener) {
+        this.stagingDoneListener = stagingDoneListener;
+    }
+
     private final DriveDatabaseManager databaseManager;
 
     public StageIndexer(DriveDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
     }
 
-    public Deferred<Long, Exception, Void> indexStage(Long stageSetId) {
+
+    public void examinePaths(PathCollection pathCollection) {
         if (executorService == null) {
             executorService = Executors.newSingleThreadExecutor();
         }
-        StageIndexerRunnable indexerRunnable = new StageIndexerRunnable(databaseManager, stageSetId);
+        StageIndexerRunnable indexerRunnable = new StageIndexerRunnable(databaseManager, pathCollection);
+        indexerRunnable.setStagingDoneListener(stagingDoneListener);
         executorService.submit(indexerRunnable);
-        return indexerRunnable.getPromise();
     }
-
 }

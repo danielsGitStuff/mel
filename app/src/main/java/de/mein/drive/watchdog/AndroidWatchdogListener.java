@@ -19,6 +19,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
 
     public AndroidWatchdogListener(MeinDriveService meinDriveService) {
         this.meinDriveService = meinDriveService;
+        this.setStageIndexer(meinDriveService.getStageIndexer());
     }
 
     @Override

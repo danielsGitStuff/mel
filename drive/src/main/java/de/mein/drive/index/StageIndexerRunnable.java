@@ -1,34 +1,53 @@
 package de.mein.drive.index;
 
+import de.mein.drive.data.PathCollection;
+import de.mein.drive.jobs.FsSyncJob;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
+import de.mein.drive.sql.FsEntry;
 import de.mein.drive.sql.FsFile;
+import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.Stage;
+import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Deferred;
+import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
+ * Locks fsDao for reading
  * Created by xor on 11/24/16.
  */
 public class StageIndexerRunnable implements Runnable {
     private final DriveDatabaseManager databaseManager;
-    private final Long stageSetId;
+    private Long stageSetId;
     private final StageDao stageDao;
     private final FsDao fsDao;
-    private Deferred<Long, Exception, Void> promise = new DeferredObject<>();
+    private final PathCollection pathCollection;
+    private StageIndexer.StagingDoneListener stagingDoneListener;
+//    private Deferred<StageIndexerRunnable, Exception, Void> promise = new DeferredObject<>();
 
-    public StageIndexerRunnable(DriveDatabaseManager databaseManager, Long stageSetId) {
+    public StageIndexerRunnable(DriveDatabaseManager databaseManager, PathCollection pathCollection) {
         this.databaseManager = databaseManager;
         this.stageDao = databaseManager.getStageDao();
         this.fsDao = databaseManager.getFsDao();
-        this.stageSetId = stageSetId;
+        this.pathCollection = pathCollection;
+    }
+
+    public Long getStageSetId() {
+        return stageSetId;
+    }
+
+    public FsDao getFsDao() {
+        return fsDao;
     }
 
     private String buildPathFromStage2(Stage stage) throws SqlQueriesException {
@@ -56,9 +75,92 @@ public class StageIndexerRunnable implements Runnable {
 
     }
 
+
+    protected void initStage(PathCollection pathCollection) throws IOException, SqlQueriesException {
+//        stageDao.lockWrite();
+        StageSet stageSet;
+        try {
+            stageSet = stageDao.createStageSet("fs", null, null);
+            this.stageSetId = stageSet.getId().v();
+            for (String path : pathCollection.getPaths()) {
+                try {
+                    File f = new File(path);
+                    File parent = f.getParentFile();
+                    FsDirectory fsParent = null;
+                    FsEntry fsEntry = null;
+                    Stage stage;
+                    Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
+                    if (stageParent == null) {
+                        // find the actual relating FsEntry of the parent directory
+                        fsParent = fsDao.getFsDirectoryByPath(parent);
+                        // find its relating FsEntry
+                        if (fsParent != null) {
+                            GenericFSEntry genDummy = new GenericFSEntry();
+                            genDummy.getParentId().v(fsParent.getId());
+                            genDummy.getName().v(f.getName());
+                            GenericFSEntry gen = fsDao.getGenericFileByName(genDummy);
+                            if (gen != null)
+                                fsEntry = gen.ins();
+                        } else {
+                            System.err.println("klc9004p,");
+                        }
+                    }
+                    //file might been deleted yet :(
+                    if (!f.exists() && fsEntry == null)
+                        continue;
+                    // stage actual File
+                    stage = new Stage().setName(f.getName()).setIsDirectory(f.isDirectory());
+                    if (fsEntry != null) {
+                        stage.setFsId(fsEntry.getId().v()).setFsParentId(fsEntry.getParentId().v());
+                    }
+                    if (fsParent != null) {
+                        stage.setFsParentId(fsParent.getId().v());
+                    }
+                    // we found everything which already exists in das datenbank
+                    if (stageParent == null) {
+                        stageParent = new Stage().setStageSet(stageSet.getId().v());
+                        if (fsParent == null) {
+                            System.err.println("zsrg44gxths");
+                            stageParent.setIsDirectory(parent.isDirectory());
+                        } else {
+                            stageParent.setName(fsParent.getName().v())
+                                    .setFsId(fsParent.getId().v())
+                                    .setFsParentId(fsParent.getParentId().v())
+                                    .setStageSet(stageSet.getId().v())
+                                    .setVersion(fsParent.getVersion().v())
+                                    .setIsDirectory(fsParent.getIsDirectory().v());
+                            File exists = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), fsParent);
+                            stageParent.setDeleted(!exists.exists());
+                        }
+                        stageDao.insert(stageParent);
+                    }
+                    stage.setParentId(stageParent.getId());
+                    if (fsParent == null)
+                        stage.setParentId(stageParent.getId());
+                    stage.setStageSet(stageSet.getId().v());
+                    stage.setDeleted(!f.exists());
+                    stageDao.insert(stage);
+                } catch (Exception e) {
+                    System.err.println("MeinDriveServerService.doFsSyncJob: " + path);
+                    e.printStackTrace();
+                }
+            }
+            // done here. set the indexer to work
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //stageDao.deleteStageSet(stageSet.getId().v());
+//            fsDao.unlockRead();
+//            stageDao.unlockWrite();
+        }
+    }
+
     @Override
     public void run() {
         try {
+            fsDao.lockRead();
+            initStage(pathCollection);
+
             final String rootPath = databaseManager.getDriveSettings().getRootDirectory().getPath();
             List<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
             for (Stage stage : stages) {
@@ -74,7 +176,8 @@ public class StageIndexerRunnable implements Runnable {
                 System.out.println("StageIndexerRunnable.run: " + path);
             }
             System.out.println("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
-            promise.resolve(stageSetId);
+            stagingDoneListener.onStagingDone(stageSetId);
+//            promise.resolve(this);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -144,7 +247,12 @@ public class StageIndexerRunnable implements Runnable {
         }
     }
 
-    public Deferred<Long, Exception, Void> getPromise() {
-        return promise;
+    public void setStagingDoneListener(StageIndexer.StagingDoneListener stagingDoneListener) {
+        assert stagingDoneListener != null;
+        this.stagingDoneListener = stagingDoneListener;
     }
+
+//    public Deferred<StageIndexerRunnable, Exception, Void> getPromise() {
+//        return promise;
+//    }
 }

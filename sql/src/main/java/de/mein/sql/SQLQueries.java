@@ -26,7 +26,6 @@ public class SQLQueries extends ISQLQueries {
     private final Connection connection;
 
 
-
     public SQLQueries(JDBCConnection connection) {
         this.sqlConnection = connection;
         this.connection = sqlConnection.getConnection();
@@ -76,8 +75,8 @@ public class SQLQueries extends ISQLQueries {
     public void delete(SQLTableObject sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
         lockWrite();
         String query = "delete from " + sqlTableObject.getTableName();
-        if (where!=null)
-            query+= " where " + where;
+        if (where != null)
+            query += " where " + where;
         out("delete().query= " + query);
         try {
             PreparedStatement pstmt = connection.prepareStatement(query);
@@ -92,7 +91,6 @@ public class SQLQueries extends ISQLQueries {
             unlockWrite();
         }
     }
-
 
 
     private void insertArguments(PreparedStatement pstmt, List<Object> whereArgs, int count) throws SQLException {
@@ -234,12 +232,11 @@ public class SQLQueries extends ISQLQueries {
             throw new SqlQueriesException(e);
         }
     }
-
     @Override
-    public List<SQLTableObject> loadString(List<Pair<?>> columns, SQLTableObject sqlTableObject,
-                                           String selectString, List<Object> arguments) throws SqlQueriesException {
+    public <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject,
+                                                         String selectString, List<Object> arguments) throws SqlQueriesException {
         lockRead();
-        ArrayList<SQLTableObject> result = new ArrayList<>();
+        ArrayList<T> result = new ArrayList<>();
         out("loadString()");
         out(selectString);
         try {
@@ -254,7 +251,7 @@ public class SQLQueries extends ISQLQueries {
             pstmt.execute();
             ResultSet resultSet = pstmt.getResultSet();
             while (resultSet.next() && !resultSet.isAfterLast()) {
-                SQLTableObject sqlObjInstance = sqlTableObject.getClass().newInstance();
+                T sqlObjInstance = (T) sqlTableObject.getClass().newInstance();
                 List<Pair<?>> attributes = sqlObjInstance.getAllAttributes();
                 for (Pair<?> pair : attributes) {
                     Object res = resultSet.getObject(pair.k());

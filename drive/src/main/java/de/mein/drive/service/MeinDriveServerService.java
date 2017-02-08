@@ -33,23 +33,6 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         super(meinAuthService);
     }
 
-    @Override
-    protected void handleFsSyncJob(FsSyncJob fsSyncJob) throws IOException, SqlQueriesException {
-        this.doFsSyncJob(fsSyncJob).done(stageSetId -> runner.runTry(() -> {
-            logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
-            // staging is done. stage data is up to date. time to commit to fs
-            syncHandler.commitStage(stageSetId);
-            // tell everyone fs has a new version
-            for (DriveServerSettingsDetails.ClientData clientData : driveSettings.getServerSettings().getClients()) {
-                Certificate client = meinAuthService.getCertificateManager().getCertificateById(clientData.getCertId());
-                Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(client.getId().v(), client.getAddress().v(), client.getPort().v(), client.getCertDeliveryPort().v(), false);
-                promise.done(meinValidationProcess -> runner.runTry(() -> {
-                    logger.log(Level.FINEST, "MeinDriveService.workWork.syncThisClient.msg");
-                    meinValidationProcess.message(clientData.getServiceUuid(), DriveStrings.INTENT_SYNC, null);
-                }));
-            }
-        }));
-    }
 
     @Override
     protected void onSyncReceived(Request request) {
@@ -89,16 +72,16 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 } else if (job.isMessage()) {
 
                 }
-            } else if (unknownJob instanceof FsSyncJob) {
-                System.out.println("MeinDriveServerService.workWorkWork.SYNC");
-                FsSyncJob syncJob = (FsSyncJob) unknownJob;
-                Promise<Long, Exception, Void> indexedPromise = doFsSyncJob(syncJob);
-                indexedPromise.done(stageSetId -> {
-                    syncHandler.commitStage(stageSetId);
-                    this.propagateNewVersion();
-                });
-                return true;
             }
+//            else if (unknownJob instanceof FsSyncJob) {
+//                System.out.println("MeinDriveServerService.workWorkWork.SYNC");
+//                FsSyncJob syncJob = (FsSyncJob) unknownJob;
+//                Promise<Long, Exception, Void> indexedPromise = doFsSyncJob(syncJob);
+//                indexedPromise.done(stageSetId -> {
+//                    syncHandler.commitStage(stageSetId);
+//                });
+//                return true;
+//            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -125,8 +108,24 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     }
 
-    private Map<Long, FsEntry> idFsEntryMap = new HashMap<>();
-
-
-
+    @Override
+    public void initDatabase(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
+        super.initDatabase(driveDatabaseManager);
+        stageIndexer.setStagingDoneListener(stageSetId -> {
+            logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
+            // staging is done. stage data is up to date. time to commit to fs
+            syncHandler.commitStage(stageSetId);
+            propagateNewVersion();
+            /*
+            // tell everyone fs has a new version
+            for (DriveServerSettingsDetails.ClientData clientData : driveSettings.getServerSettings().getClients()) {
+                Certificate client = meinAuthService.getCertificateManager().getCertificateById(clientData.getCertId());
+                Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(client.getId().v(), client.getAddress().v(), client.getPort().v(), client.getCertDeliveryPort().v(), false);
+                promise.done(meinValidationProcess -> runner.runTry(() -> {
+                    logger.log(Level.FINEST, "MeinDriveService.workWork.syncThisClient.msg");
+                    meinValidationProcess.message(clientData.getServiceUuid(), DriveStrings.INTENT_SYNC, null);
+                }));
+            }*/
+        });
+    }
 }

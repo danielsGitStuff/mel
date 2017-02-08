@@ -85,7 +85,7 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     @Override
-    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
+    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> args, String whatElse) throws SqlQueriesException {
         String select = buildSelectQuery(columns,sqlTableObject.getTableName());
         if (where != null) {
             select += " where " + where;
@@ -93,7 +93,13 @@ public class AndroidSQLQueries extends ISQLQueries {
         if (whatElse != null) {
             select += " " + whatElse;
         }
-        Cursor cursor = db.rawQuery(select,argsListToArr(whereArgs));
+        return loadString(columns,sqlTableObject,select,args);
+    }
+
+    @Override
+    public <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject, String selectString, List<Object> arguments) throws SqlQueriesException {
+        System.err.println("AndroidSQLQueries.loadString");
+        Cursor cursor = db.rawQuery(selectString,argsListToArr(arguments));
         List<T> result = new ArrayList<>(cursor.getCount());
         try {
             while (cursor.moveToNext()) {
@@ -131,12 +137,6 @@ public class AndroidSQLQueries extends ISQLQueries {
             throw new SqlQueriesException(e);
         }
         return result;
-    }
-
-    @Override
-    public List<SQLTableObject> loadString(List<Pair<?>> columns, SQLTableObject sqlTableObject, String selectString, List<Object> arguments) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.loadString");
-        return null;
     }
 
     @Override

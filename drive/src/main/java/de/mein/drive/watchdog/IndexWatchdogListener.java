@@ -5,6 +5,7 @@ import com.sun.nio.file.ExtendedWatchEventModifier;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.BackgroundExecutor;
 import de.mein.drive.index.ICrawlerListener;
+import de.mein.drive.index.StageIndexer;
 import de.mein.drive.jobs.FsSyncJob;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsFile;
@@ -30,6 +31,7 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
     protected Map<String, String> ignoredMap = new ConcurrentHashMap<>();
     protected Semaphore ignoredSemaphore = new Semaphore(1, true);
     protected String workingDirectoryPath;
+    protected StageIndexer stageIndexer;
     private static WatchDogRunner watchDogRunner = meinDriveService1 -> {
         WatchService watchService1 = null;
         IndexWatchdogListener watchdogListener = null;
@@ -40,10 +42,10 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
         }
         if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
             System.out.println("WatchDog.windows");
-            watchdogListener = new IndexWatchDogWindows(watchService1);
+            watchdogListener = new IndexWatchDogWindows(meinDriveService1, watchService1);
         } else {
             System.out.println("WatchDog.unix");
-            watchdogListener = new IndexWatchdogUnix(watchService1);
+            watchdogListener = new IndexWatchdogUnix(meinDriveService1, watchService1);
         }
         watchdogListener.meinDriveService = meinDriveService1;
         watchdogListener.adjustExecutor();
@@ -66,13 +68,22 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
     @Override
     public void onTimerStopped() {
         System.out.println("IndexWatchdogListener.onTimerStopped");
-        meinDriveService.addJob(new FsSyncJob(pathCollection));
+        //meinDriveService.addJob(new FsSyncJob(pathCollection));
+        stageIndexer.examinePaths(pathCollection);
         pathCollection = new PathCollection();
     }
 
 
-    public IndexWatchdogListener(){
+    public IndexWatchdogListener() {
 
+    }
+
+    public StageIndexer getStageIndexer() {
+        return stageIndexer;
+    }
+
+    public void setStageIndexer(StageIndexer stageIndexer) {
+        this.stageIndexer = stageIndexer;
     }
 
     @Override
@@ -88,8 +99,6 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
         System.out.println("IndexWatchdogListener.done");
         meinDriveService.start();
     }
-
-
 
 
     public void analyze(WatchEvent<?> event, File file) {

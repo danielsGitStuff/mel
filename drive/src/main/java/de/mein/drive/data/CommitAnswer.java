@@ -24,7 +24,7 @@ private Map<Long, Long> stageIdFsIdMao = new HashMap<>();
         return this;
     }
 
-    public Map<Long, Long> getStageIdFsIdMao() {
+    public Map<Long, Long> getStageIdFsIdMap() {
         return stageIdFsIdMao;
     }
 
