@@ -69,19 +69,22 @@ public class BashTools {
     }
 
     public static NodeAndTime getNodeAndTime(File f) throws IOException {
-        String ba = "echo $(date +%s -r  '" + f.getAbsolutePath() + "') $(ls -i -d '" + f.getAbsolutePath() + "')";
+        String ba = "echo $(ls -i -d '" + f.getAbsolutePath() + "')";
         String[] args = new String[]{BIN_PATH, "-c", ba};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String res = null;
+        Long inode = null, modifiedTime = f.lastModified();
         try {
             proc.waitFor();
+            res = reader.readLine();
+            System.out.println("BashTools.getNodeAndTime.parsing: " + res);
+            String[] s = res.split(" ");
+            inode = Long.parseLong(s[0]);
         } catch (InterruptedException e) {
+            System.err.println("string I got from bash: " + res);
             e.printStackTrace();
         }
-        String res = reader.readLine();
-        String[] s = res.split(" ");
-        Long modifiedTime = Long.parseLong(s[0]);
-        Long inode = Long.parseLong(s[1]);
         NodeAndTime nodeAndTime = new NodeAndTime(inode, modifiedTime);
         return nodeAndTime;
     }

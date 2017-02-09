@@ -114,7 +114,12 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         stageIndexer.setStagingDoneListener(stageSetId -> {
             logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
             // staging is done. stage data is up to date. time to commit to fs
+            FsDao fsDao = driveDatabaseManager.getFsDao();
+            fsDao.unlockRead();
+            fsDao.lockWrite();
+            //todo conflict checks
             syncHandler.commitStage(stageSetId);
+            fsDao.unlockWrite();
             propagateNewVersion();
             /*
             // tell everyone fs has a new version

@@ -14,19 +14,29 @@ public class NoTryRunner {
         void run() throws Exception, ShamefulSelfConnectException;
     }
 
-    private static NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
+    public interface NoTryExceptionConsumer {
+        void accept(Exception e);
+    }
+
+
+    private static NoTryRunner runner = new NoTryRunner(new NoTryExceptionConsumer() {
+        @Override
+        public void accept(Exception e) {
+            e.printStackTrace();
+        }
+    });
 
     public static void run(NoTryRunner.INoTryRunnable noTryRunnable) {
         NoTryRunner.runner.runTry(noTryRunnable);
     }
 
-    private Consumer<Exception> consumer;
+    private NoTryExceptionConsumer consumer;
 
-    public NoTryRunner(Consumer<Exception> consumer) {
+    public NoTryRunner(NoTryExceptionConsumer consumer) {
         this.consumer = consumer;
     }
 
-    public Consumer<Exception> getConsumer() {
+    public NoTryExceptionConsumer getConsumer() {
         return consumer;
     }
 
@@ -39,7 +49,7 @@ public class NoTryRunner {
         return this;
     }
 
-    public NoTryRunner runTry(INoTryRunnable noTryRunnable, Consumer<Exception> consumer) {
+    public NoTryRunner runTry(INoTryRunnable noTryRunnable, NoTryExceptionConsumer consumer) {
         try {
             noTryRunnable.run();
         } catch (Exception e) {

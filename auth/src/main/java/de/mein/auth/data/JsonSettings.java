@@ -6,8 +6,10 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,7 +23,10 @@ public abstract class JsonSettings implements SerializableEntity {
 
     public static JsonSettings load(File file) throws IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         if (file.exists()) {
-            String json = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
+            byte[] bytes = new byte[(int) file.length()];
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
+            in.read(bytes);
+            String json = new String(bytes);
             JsonSettings jsonSettings = (JsonSettings) SerializableEntityDeserializer.deserialize(json);
             jsonSettings.setJsonFile(file);
             return jsonSettings;

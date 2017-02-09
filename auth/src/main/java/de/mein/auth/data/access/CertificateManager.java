@@ -322,8 +322,11 @@ public class CertificateManager extends FileRelatedManager {
         try {
             socket.setEnabledProtocols(new String[]{"TLSv1.2"});
         } catch (Exception e) {
-            socket.setEnabledProtocols(new String[]{"TLSv1.1"});
-        }
+            try {
+                socket.setEnabledProtocols(new String[]{"TLSv1.1"});
+            } catch (Exception ee) {
+                socket.setEnabledProtocols(new String[]{"TLSv1"});
+            }        }
         return socket;
     }
 
@@ -332,7 +335,11 @@ public class CertificateManager extends FileRelatedManager {
         try {
             socket.setEnabledProtocols(new String[]{"TLSv1.2"});
         } catch (Exception e) {
-            socket.setEnabledProtocols(new String[]{"TLSv1.1"});
+            try {
+                socket.setEnabledProtocols(new String[]{"TLSv1.1"});
+            } catch (Exception ee) {
+                socket.setEnabledProtocols(new String[]{"TLSv1"});
+            }
         }
         return socket;
     }
