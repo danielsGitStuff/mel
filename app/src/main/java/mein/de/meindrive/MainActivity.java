@@ -1,9 +1,11 @@
 package mein.de.meindrive;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,17 +15,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.LinearLayout;
 
 import de.mein.auth.boot.MeinBoot;
+import de.mein.auth.service.MeinAuthService;
+import mein.de.meindrive.mein.de.meindrive.controller.ApprovalController;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private LinearLayout content;
+    private Toolbar toolbar;
+    private MeinAuthService meinAuthService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        content = (LinearLayout) findViewById(R.id.content);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         System.out.println(MeinBoot.defaultWorkingDir2.getAbsolutePath());
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -45,7 +55,12 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         //service
         Intent serviceIntent = new Intent(this, AndroidService.class);
-        startService(serviceIntent);
+        ComponentName name = startService(serviceIntent);
+
+        //View.inflate(this, R.layout.content_general, content);
+
+        System.out.println("MainActivity.onCreate.started: " + name.getClassName());
+        showGeneral();
     }
 
     @Override
@@ -85,23 +100,33 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        if (id == R.id.nav_general) {
+            showGeneral();
+        } else if (id == R.id.nav_discover) {
+            toolbar.setTitle("Discover");
+        } else if (id == R.id.nav_approvals) {
+            showApprovals();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void showApprovals() {
+        try {
+            content.removeAllViews();
+            toolbar.setTitle("Approvals");
+            View v = View.inflate(this, R.layout.content_approvals, content);
+            ApprovalController approvalController = new ApprovalController(meinAuthService,v);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showGeneral() {
+        content.removeAllViews();
+        toolbar.setTitle("General");
+        View.inflate(this, R.layout.content_general, content);
     }
 }

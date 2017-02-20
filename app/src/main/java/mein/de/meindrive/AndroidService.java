@@ -10,12 +10,10 @@ import android.database.sqlite.SQLiteStatement;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Base64;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
 import de.mein.MeinInjector;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
@@ -33,7 +31,6 @@ import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.AndroidDBConnection;
 import de.mein.drive.service.AndroidDriveBootloader;
 import de.mein.drive.service.MeinDriveServerService;
-import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.watchdog.AndroidWatchdogListener;
 import de.mein.sql.RWLock;
 import de.mein.sql.con.AndroidSQLQueries;
@@ -229,5 +226,9 @@ public class AndroidService extends Service {
         DriveInjector.setWatchDogRunner(meinDriveService -> new AndroidWatchdogListener(meinDriveService));
         DriveInjector.setBinPath("/system/bin/sh");
 
+    }
+
+    public MeinAuthService getMeinAuthService() {
+        return meinAuthService;
     }
 }

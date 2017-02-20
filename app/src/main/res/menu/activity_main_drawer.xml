@@ -1,35 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_camera"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="Import" />
-        <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Gallery" />
-        <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="Slideshow" />
-        <item
-            android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Tools" />
-    </group>
-
-    <item android:title="Communicate">
+    <item android:title="MeinAuth">
         <menu>
+            <group>
+                <item
+                    android:id="@+id/nav_general"
+                    android:icon="@drawable/ic_menu_manage"
+                    android:title="General" />
+                <item
+                    android:id="@+id/nav_discover"
+                    android:icon="@drawable/ic_menu_search"
+                    android:title="Discover" />
+                <item
+                    android:id="@+id/nav_approvals"
+                    android:icon="@drawable/ic_menu_approval"
+                    android:title="Approvals" />
+            </group>
+        </menu>
+    </item>
+    <item android:title="Services">
+        <menu>
+            <group
+                android:id="@+id/group_services"
+                android:checkableBehavior="single">
+            </group>
             <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
+                android:id="@+id/nav_new_service"
+                android:icon="@drawable/ic_menu_add"
+                android:title="create new Service" />
         </menu>
     </item>
 
