@@ -1,11 +1,13 @@
 package mein.de.meindrive;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -18,7 +20,7 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 
 import de.mein.auth.boot.MeinBoot;
-import de.mein.auth.service.MeinAuthService;
+import mein.de.meindrive.mein.de.meindrive.controller.CreateServiceController;
 import mein.de.meindrive.mein.de.meindrive.controller.ApprovalController;
 
 public class MainActivity extends AppCompatActivity
@@ -26,7 +28,34 @@ public class MainActivity extends AppCompatActivity
 
     private LinearLayout content;
     private Toolbar toolbar;
-    private MeinAuthService meinAuthService;
+    private AndroidService androidService;
+    private boolean mBound = false;
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            AndroidService.LocalBinder localBinder = (AndroidService.LocalBinder) service;
+            androidService = localBinder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, AndroidService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +135,8 @@ public class MainActivity extends AppCompatActivity
             toolbar.setTitle("Discover");
         } else if (id == R.id.nav_approvals) {
             showApprovals();
+        } else if (id == R.id.nav_new_service) {
+            showCreateNewService();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -113,12 +144,19 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    private void showCreateNewService() {
+        content.removeAllViews();
+        toolbar.setTitle("Create new Service");
+        View v = View.inflate(this, R.layout.content_create_service, content);
+        new CreateServiceController(androidService.getMeinAuthService(), v);
+    }
+
     private void showApprovals() {
         try {
             content.removeAllViews();
             toolbar.setTitle("Approvals");
             View v = View.inflate(this, R.layout.content_approvals, content);
-            ApprovalController approvalController = new ApprovalController(meinAuthService,v);
+            ApprovalController approvalController = new ApprovalController(androidService.getMeinAuthService(), v);
         } catch (Exception e) {
             e.printStackTrace();
         }

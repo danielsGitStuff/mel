@@ -7,13 +7,15 @@ import android.content.res.Configuration;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
+import android.os.Binder;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.util.Base64;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
 import de.mein.MeinInjector;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
@@ -23,14 +25,12 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.tools.NoTryRunner;
-import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveInjector;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.AndroidDBConnection;
-import de.mein.drive.service.AndroidDriveBootloader;
-import de.mein.drive.service.MeinDriveServerService;
+import de.mein.drive.AndroidDriveBootloader;
 import de.mein.drive.watchdog.AndroidWatchdogListener;
 import de.mein.sql.RWLock;
 import de.mein.sql.con.AndroidSQLQueries;
@@ -43,12 +43,24 @@ import de.mein.sql.con.AndroidSQLQueries;
 public class AndroidService extends Service {
 
     private MeinAuthService meinAuthService;
+    private final IBinder mBinder = new LocalBinder();
 
-    @Nullable
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class LocalBinder extends Binder {
+        AndroidService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return AndroidService.this;
+        }
+    }
+
+
     @Override
     public IBinder onBind(Intent intent) {
         System.out.println("AndroidService.onBind");
-        return null;
+        return mBinder;
     }
 
     @Override
@@ -133,10 +145,15 @@ public class AndroidService extends Service {
         boot1.boot(meinAuthService).done(result -> {
             NoTryRunner.run(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
+
+
                 // setup the server Service
-                System.out.println("AndroidService.setup!!!1");
-                MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
-                System.out.println("AndroidService.setup11121321");
+//                System.out.println("AndroidService.setup!!!1");
+//                MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
+//                System.out.println("AndroidService.setup11121321");
+
+
+
                 //lock.unlockWrite();
                 // connection goes here
 

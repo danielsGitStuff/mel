@@ -33,6 +33,10 @@ public class ApprovalMatrix {
         return this;
     }
 
+    /**
+     *
+     * @return (service.ID,(certificate.ID,Approval))
+     */
     public Map<Long, Map<Long, Approval>> getMatrix() {
         return matrix;
     }
