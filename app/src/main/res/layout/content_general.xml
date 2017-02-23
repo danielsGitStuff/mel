@@ -10,8 +10,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="mein.de.meindrive.MainActivity"
->
+    tools:context="mein.de.meindrive.MainActivity">
     <!--tools:showIn="@layout/app_bar_main"-->
 
     <LinearLayout
@@ -32,7 +31,7 @@
 
         <TableLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <TableRow>
 
@@ -40,6 +39,28 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Name" />
+
+                <EditText
+                    android:id="@+id/txtName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="text" />
+            </TableRow>
+
+            <TableRow android:layout_width="match_parent">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Port" />
+
+                <EditText
+                    android:id="@+id/txtPort"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName|number" />
             </TableRow>
 
             <TableRow>
@@ -47,17 +68,40 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="SSL-Port" />
+                    android:text="Cert-Port" />
+
+                <EditText
+                    android:id="@+id/txtCertPort"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName|number" />
             </TableRow>
 
             <TableRow>
 
+                <TextView android:text="Status" />
+
                 <TextView
+                    android:id="@+id/lblStatus"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Port"/>
+                    android:background="@android:color/holo_red_dark"
+                    android:text="Stopped"
+                    android:textAlignment="center" />
             </TableRow>
         </TableLayout>
+
+        <Button
+            android:id="@+id/btnApply"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Apply" />
+
+        <Button
+            android:id="@+id/btnStart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start/Stop" />
     </LinearLayout>
 
 

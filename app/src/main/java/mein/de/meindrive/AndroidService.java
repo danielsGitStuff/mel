@@ -11,6 +11,8 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Base64;
 
+import org.bouncycastle.asn1.ASN1TaggedObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +20,7 @@ import java.util.List;
 
 import de.mein.MeinInjector;
 import de.mein.auth.boot.MeinBoot;
+import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.ServiceJoinServiceType;
@@ -25,6 +28,8 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.tools.NoTryRunner;
+import de.mein.core.serialize.exceptions.JsonDeserializationException;
+import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveInjector;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveStrings;
@@ -44,6 +49,17 @@ public class AndroidService extends Service {
 
     private MeinAuthService meinAuthService;
     private final IBinder mBinder = new LocalBinder();
+    private MeinAuthSettings meinAuthSettings;
+
+    public interface AndroidServiceObserver {
+        void onMeinAuthStarted(MeinAuthService meinAuthService);
+    }
+
+    private AndroidServiceObserver observer;
+
+    public void setObserver(AndroidServiceObserver observer) {
+        this.observer = observer;
+    }
 
     /**
      * Class used for the client Binder.  Because we know this service always
@@ -70,6 +86,7 @@ public class AndroidService extends Service {
             System.out.println("AndroidService.onStartCommand.booting");
             setup(null);
             lock.lockWrite();
+            observer.onMeinAuthStarted(meinAuthService);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -77,10 +94,40 @@ public class AndroidService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+    public boolean isRunning() {
+        return meinAuthService != null;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        // configure MeinAuth
+        File workingDir = new File(getFilesDir().getAbsolutePath() + File.separator + "meinauth.workingdir");
+        workingDir.mkdirs();
+        File settingsFile = new File(workingDir.getAbsolutePath() + File.separator + "meinauth.settings.json");
+        try {
+            if (settingsFile.exists()) {
+                meinAuthSettings = (MeinAuthSettings) JsonSettings.load(settingsFile);
+            } else {
+                meinAuthSettings = new MeinAuthSettings()
+                        .setPort(8888)
+                        .setDeliveryPort(8889)
+                        .setBrotcastListenerPort(9966)
+                        .setBrotcastPort(9966)
+                        .setWorkingDirectory(workingDir)
+                        .setName("MeinAuthOnAndroid")
+                        .setGreeting("greeting1");
+                meinAuthSettings.setJsonFile(settingsFile).save();
+            }
+        } catch (IOException | JsonDeserializationException | JsonSerializationException | IllegalAccessException e) {
+            System.err.println("loading existing meinauth.settings failed :(");
+            e.printStackTrace();
+        }
         System.out.println("AndroidService.onCreate");
+    }
+
+    public MeinAuthSettings getMeinAuthSettings() {
+        return meinAuthSettings;
     }
 
     @Override
@@ -112,19 +159,14 @@ public class AndroidService extends Service {
         //setup working directories & directories with test data
         RWLock lock = new RWLock();
         File testdir1 = new File(getFilesDir().getAbsolutePath() + File.separator + "testdir1");
-        File workingDir = new File(getFilesDir().getAbsolutePath() + File.separator + "meinauth.workingdir");
-        boolean ba = testdir1.mkdirs();
-        boolean bb = workingDir.mkdirs();
+//        boolean ba = testdir1.mkdirs();
+//        boolean bb = workingDir.mkdirs();
         Object asdasda = getResources();
         openFileOutput("durr", MODE_PRIVATE);
-        CertificateManager.deleteDirectory(workingDir);
-        CertificateManager.deleteDirectory(testdir1);
+//        CertificateManager.deleteDirectory(workingDir);
+//        CertificateManager.deleteDirectory(testdir1);
         TestDirCreator.createTestDir(testdir1);
-        // configure MeinAuth
-        MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
-                .setBrotcastListenerPort(9966).setBrotcastPort(9966)
-                .setWorkingDirectory(workingDir).setName("MA1").setGreeting("greeting1");
-        meinAuthService = new MeinAuthService(json1);
+        meinAuthService = new MeinAuthService(meinAuthSettings);
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
             listener.onCertificateAccepted(request, certificate);
@@ -151,7 +193,6 @@ public class AndroidService extends Service {
 //                System.out.println("AndroidService.setup!!!1");
 //                MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
 //                System.out.println("AndroidService.setup11121321");
-
 
 
                 //lock.unlockWrite();

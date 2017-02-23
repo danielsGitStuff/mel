@@ -65,7 +65,7 @@ public class MeinAuthSettings extends JsonSettings {
         return this;
     }
 
-    public int getDeliveryPort() {
+    public Integer getDeliveryPort() {
         return deliveryPort;
     }
 
@@ -74,7 +74,7 @@ public class MeinAuthSettings extends JsonSettings {
         return this;
     }
 
-    public int getPort() {
+    public Integer getPort() {
         return port;
     }
 

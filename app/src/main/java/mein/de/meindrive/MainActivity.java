@@ -20,16 +20,21 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 
 import de.mein.auth.boot.MeinBoot;
+import de.mein.auth.service.MeinAuthService;
+import mein.de.meindrive.mein.de.meindrive.controller.GeneralController;
 import mein.de.meindrive.mein.de.meindrive.controller.CreateServiceController;
 import mein.de.meindrive.mein.de.meindrive.controller.ApprovalController;
+import mein.de.meindrive.mein.de.meindrive.controller.GuiController;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, AndroidService.AndroidServiceObserver {
 
     private LinearLayout content;
     private Toolbar toolbar;
     private AndroidService androidService;
     private boolean mBound = false;
+    private GuiController guiController;
+
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
@@ -41,6 +46,9 @@ public class MainActivity extends AppCompatActivity
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             AndroidService.LocalBinder localBinder = (AndroidService.LocalBinder) service;
             androidService = localBinder.getService();
+            androidService.setObserver(MainActivity.this);
+            if (guiController!=null)
+                guiController.onAndroidServiceBound(androidService);
             mBound = true;
         }
 
@@ -82,13 +90,7 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        //service
-        Intent serviceIntent = new Intent(this, AndroidService.class);
-        ComponentName name = startService(serviceIntent);
 
-        //View.inflate(this, R.layout.content_general, content);
-
-        System.out.println("MainActivity.onCreate.started: " + name.getClassName());
         showGeneral();
     }
 
@@ -148,7 +150,7 @@ public class MainActivity extends AppCompatActivity
         content.removeAllViews();
         toolbar.setTitle("Create new Service");
         View v = View.inflate(this, R.layout.content_create_service, content);
-        new CreateServiceController(androidService.getMeinAuthService(), v);
+        guiController = new CreateServiceController(androidService.getMeinAuthService(), v);
     }
 
     private void showApprovals() {
@@ -156,7 +158,7 @@ public class MainActivity extends AppCompatActivity
             content.removeAllViews();
             toolbar.setTitle("Approvals");
             View v = View.inflate(this, R.layout.content_approvals, content);
-            ApprovalController approvalController = new ApprovalController(androidService.getMeinAuthService(), v);
+            guiController = new ApprovalController(androidService.getMeinAuthService(), v);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -165,6 +167,13 @@ public class MainActivity extends AppCompatActivity
     private void showGeneral() {
         content.removeAllViews();
         toolbar.setTitle("General");
-        View.inflate(this, R.layout.content_general, content);
+        View v = View.inflate(this, R.layout.content_general, content);
+        guiController = new GeneralController(v, androidService);
+    }
+
+    @Override
+    public void onMeinAuthStarted(MeinAuthService meinAuthService) {
+        if (guiController!=null)
+            guiController.onMeinAuthStarted(androidService.getMeinAuthService());
     }
 }

@@ -1,12 +1,10 @@
 package mein.de.meindrive.mein.de.meindrive.controller;
 
 import android.view.View;
-import android.widget.Button;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import java.util.HashMap;
 import java.util.List;
 
 import de.mein.auth.data.ApprovalMatrix;
@@ -15,13 +13,14 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.SqlQueriesException;
+import mein.de.meindrive.AndroidService;
 import mein.de.meindrive.R;
 
 /**
  * Created by xor on 2/20/17.
  */
 
-public class ApprovalController {
+public class ApprovalController implements GuiController{
     private final View rootView;
     private final TableLayout table;
     private final MeinAuthService meinAuthService;
@@ -79,4 +78,13 @@ public class ApprovalController {
     }
 
 
+    @Override
+    public void onMeinAuthStarted(MeinAuthService androidService) {
+
+    }
+
+    @Override
+    public void onAndroidServiceBound(AndroidService androidService) {
+
+    }
 }
