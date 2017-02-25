@@ -1,7 +1,7 @@
-package mein.de.meindrive.mein.de.meindrive.controller;
+package de.mein.drive.controller;
 
 import de.mein.auth.service.MeinAuthService;
-import mein.de.meindrive.AndroidService;
+import de.mein.drive.AndroidService;
 
 /**
  * Created by xor on 2/23/17.

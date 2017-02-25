@@ -10,10 +10,10 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="mein.de.meindrive.mein.de.meindrive.controller.ApprovalController">
+    tools:context="mein.de.meindrive.de.mein.drive.controller.ApprovalController">
     <!--tools:showIn="@layout/app_bar_main"-->
 
-    <!--tools:context="mein.de.meindrive.MainActivity"-->
+    <!--tools:context="de.mein.drive.MainActivity"-->
 
     <LinearLayout
         android:layout_width="match_parent"

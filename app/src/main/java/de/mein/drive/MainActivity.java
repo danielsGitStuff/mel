@@ -1,4 +1,4 @@
-package mein.de.meindrive;
+package de.mein.drive;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -21,11 +21,12 @@ import android.widget.LinearLayout;
 
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.drive.AndroidDriveBootloader;
-import mein.de.meindrive.mein.de.meindrive.controller.GeneralController;
-import mein.de.meindrive.mein.de.meindrive.controller.CreateServiceController;
-import mein.de.meindrive.mein.de.meindrive.controller.ApprovalController;
-import mein.de.meindrive.mein.de.meindrive.controller.GuiController;
+import mein.de.meindrive.R;
+import de.mein.drive.controller.GeneralController;
+import de.mein.drive.controller.CreateServiceController;
+import de.mein.drive.controller.ApprovalController;
+import de.mein.drive.controller.GuiController;
+import de.mein.drive.boot.AndroidDriveBootLoader;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AndroidService.AndroidServiceObserver {
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MeinBoot.addBootLoaderClass(AndroidDriveBootloader.class);
+        MeinBoot.addBootLoaderClass(de.mein.drive.boot.AndroidDriveBootLoader.class);
         setContentView(R.layout.activity_main);
         content = (LinearLayout) findViewById(R.id.content);
         toolbar = (Toolbar) findViewById(R.id.toolbar);

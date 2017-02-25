@@ -1,4 +1,4 @@
-package mein.de.meindrive;
+package de.mein.drive;
 
 import android.app.Service;
 import android.content.Intent;
@@ -11,8 +11,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Base64;
 
-import org.bouncycastle.asn1.ASN1TaggedObject;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +20,6 @@ import de.mein.MeinInjector;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
@@ -30,12 +27,10 @@ import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.drive.DriveInjector;
-import de.mein.drive.DriveSyncListener;
+import de.mein.drive.boot.AndroidDriveBootLoader;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.AndroidDBConnection;
-import de.mein.drive.AndroidDriveBootloader;
 import de.mein.drive.watchdog.AndroidWatchdogListener;
 import de.mein.sql.RWLock;
 import de.mein.sql.con.AndroidSQLQueries;
@@ -231,7 +226,7 @@ public class AndroidService extends Service {
 
     private void android() throws IOException {
         SQLiteStatement s;
-        MeinBoot.addBootLoaderClass(AndroidDriveBootloader.class);
+        MeinBoot.addBootLoaderClass(AndroidDriveBootLoader.class);
         AssetManager assetManager = getAssets();
         InputStream sqlInput = assetManager.open("sql.sql");
         InputStream driveSqlInput = assetManager.open("drive.sql");

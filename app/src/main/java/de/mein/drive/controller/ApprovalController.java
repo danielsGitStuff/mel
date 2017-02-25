@@ -1,4 +1,4 @@
-package mein.de.meindrive.mein.de.meindrive.controller;
+package de.mein.drive.controller;
 
 import android.view.View;
 import android.widget.TableLayout;
@@ -13,7 +13,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.SqlQueriesException;
-import mein.de.meindrive.AndroidService;
+import de.mein.drive.AndroidService;
 import mein.de.meindrive.R;
 
 /**

@@ -1,4 +1,4 @@
-package mein.de.meindrive.mein.de.meindrive.controller;
+package de.mein.drive.controller;
 
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -12,7 +12,7 @@ import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.drive.DriveCreateController;
-import mein.de.meindrive.AndroidService;
+import de.mein.drive.AndroidService;
 import mein.de.meindrive.R;
 
 /**

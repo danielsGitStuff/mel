@@ -1,4 +1,4 @@
-package mein.de.meindrive.mein.de.meindrive.controller;
+package de.mein.drive.controller;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinAuthService;
-import mein.de.meindrive.AndroidService;
+import de.mein.drive.AndroidService;
 import mein.de.meindrive.R;
 
 /**
