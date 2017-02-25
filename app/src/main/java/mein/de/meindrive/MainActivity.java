@@ -21,6 +21,7 @@ import android.widget.LinearLayout;
 
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.drive.AndroidDriveBootloader;
 import mein.de.meindrive.mein.de.meindrive.controller.GeneralController;
 import mein.de.meindrive.mein.de.meindrive.controller.CreateServiceController;
 import mein.de.meindrive.mein.de.meindrive.controller.ApprovalController;
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        MeinBoot.addBootLoaderClass(AndroidDriveBootloader.class);
         setContentView(R.layout.activity_main);
         content = (LinearLayout) findViewById(R.id.content);
         toolbar = (Toolbar) findViewById(R.id.toolbar);

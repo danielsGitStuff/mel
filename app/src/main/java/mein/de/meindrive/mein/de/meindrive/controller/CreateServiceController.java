@@ -11,6 +11,7 @@ import de.mein.auth.boot.BootLoader;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
+import de.mein.drive.DriveCreateController;
 import mein.de.meindrive.AndroidService;
 import mein.de.meindrive.R;
 
@@ -28,7 +29,7 @@ public class CreateServiceController  implements GuiController{
         this.spinner = (Spinner) rootView.findViewById(R.id.spin_bootloaders);
 
         List<BootLoader> bootLoaders = new ArrayList<>();
-        MeinBoot.getBootloaderMap().forEach((name, bootloaderClass) -> NoTryRunner.run(() -> {
+        MeinBoot.getBootloaderClasses().forEach((bootloaderClass) -> NoTryRunner.run(() -> {
             BootLoader bootLoader = bootloaderClass.newInstance();
             bootLoaders.add(bootLoader);
             //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
@@ -36,11 +37,23 @@ public class CreateServiceController  implements GuiController{
             System.out.println("CreateServiceController.CreateServiceController");
         }));
         // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<BootLoader> adapter = new ArrayAdapter<>(rootView.getContext(), android.R.layout.simple_spinner_item, bootLoaders);
+        ArrayAdapter<BootLoader> adapter = new ArrayAdapter<>(rootView.getContext(), R.layout.support_simple_spinner_dropdown_item, bootLoaders);
         // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //adapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
+        showSelected();
+    }
+
+    private void showSelected() {
+        NoTryRunner.run(() -> {
+            DriveCreateController createController = new DriveCreateController(meinAuthService);
+
+            BootLoader bootLoader = (BootLoader) spinner.getSelectedItem();
+            //bootLoader.boot(meinAuthService,new ArrayList<>());
+            System.out.println("CreateServiceController.showSelected");
+        });
+
     }
 
     @Override

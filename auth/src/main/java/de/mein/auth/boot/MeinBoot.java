@@ -37,6 +37,10 @@ public class MeinBoot implements Runnable {
         return bootloaderMap;
     }
 
+    public static Set<Class<? extends BootLoader>> getBootloaderClasses() {
+        return bootloaderClasses;
+    }
+
     public Promise<MeinAuthService, Exception, Void> boot(MeinAuthSettings meinAuthSettings) throws Exception {
         deferredObject = new DeferredObject<>();
         this.meinAuthSettings = meinAuthSettings;

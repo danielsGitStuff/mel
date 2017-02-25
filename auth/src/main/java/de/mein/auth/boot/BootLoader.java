@@ -41,5 +41,8 @@ public abstract class BootLoader {
         this.bootLoaderDir = bootLoaderDir;
     }
 
-
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

@@ -20,7 +20,7 @@ import mein.de.meindrive.R;
  * Created by xor on 2/20/17.
  */
 
-public class ApprovalController implements GuiController{
+public class ApprovalController implements GuiController {
     private final View rootView;
     private final TableLayout table;
     private final MeinAuthService meinAuthService;
@@ -35,26 +35,26 @@ public class ApprovalController implements GuiController{
     }
 
     private void fillContent() throws SqlQueriesException {
-        List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
-        List<Certificate> certificates = meinAuthService.getCertificateManager().getCertificates();
-        List<Approval> approvals = meinAuthService.getDatabaseManager().getAllApprovals();
-
-        approvalMatrix = new ApprovalMatrix();
-        approvalMatrix.fill(certificates, services, approvals);
-        TextView txtService = new TextView(rootView.getContext());
-        txtService.setText("Service");
-        TableRow firstRow = new TableRow(rootView.getContext());
-        firstRow.addView(txtService);
-        certificates.forEach(certificate -> {
-            TextView t = new TextView(rootView.getContext());
-            t.setText(certificate.getName().v());
-            firstRow.addView(t);
-        });
-        table.addView(firstRow);
-        approvalMatrix.getMatrix().forEach((serviceId, longApprovalMap) -> {
-            System.out.println("ApprovalController.fillContent");
-        });
-
+        if (meinAuthService != null) {
+            List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
+            List<Certificate> certificates = meinAuthService.getCertificateManager().getCertificates();
+            List<Approval> approvals = meinAuthService.getDatabaseManager().getAllApprovals();
+            approvalMatrix = new ApprovalMatrix();
+            approvalMatrix.fill(certificates, services, approvals);
+            TextView txtService = new TextView(rootView.getContext());
+            txtService.setText("Service");
+            TableRow firstRow = new TableRow(rootView.getContext());
+            firstRow.addView(txtService);
+            certificates.forEach(certificate -> {
+                TextView t = new TextView(rootView.getContext());
+                t.setText(certificate.getName().v());
+                firstRow.addView(t);
+            });
+            table.addView(firstRow);
+            approvalMatrix.getMatrix().forEach((serviceId, longApprovalMap) -> {
+                System.out.println("ApprovalController.fillContent");
+            });
+        }
 //        if (table != null) {
 //            new ArrayList<TableColumn>(table.getColumns())
 //                    .forEach(tableColumn -> table.getColumns().remove(tableColumn));
