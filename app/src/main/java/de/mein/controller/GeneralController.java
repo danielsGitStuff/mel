@@ -1,4 +1,4 @@
-package de.mein.drive.controller;
+package de.mein.controller;
 
 import android.content.ComponentName;
 import android.content.Intent;

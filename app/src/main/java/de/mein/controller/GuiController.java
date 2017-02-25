@@ -1,4 +1,4 @@
-package de.mein.drive.controller;
+package de.mein.controller;
 
 import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.AndroidService;

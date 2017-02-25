@@ -8,6 +8,6 @@ import de.mein.auth.service.IMeinService;
 
 public interface AndroidBootLoader<T extends IMeinService> {
 
-    String getCreateResource();
-    String getEditResource(T service);
+    Integer getCreateResource();
+    Integer getEditResource(T service);
 }

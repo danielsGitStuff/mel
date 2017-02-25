@@ -22,11 +22,10 @@ import android.widget.LinearLayout;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
 import mein.de.meindrive.R;
-import de.mein.drive.controller.GeneralController;
-import de.mein.drive.controller.CreateServiceController;
-import de.mein.drive.controller.ApprovalController;
-import de.mein.drive.controller.GuiController;
-import de.mein.drive.boot.AndroidDriveBootLoader;
+import de.mein.controller.GeneralController;
+import de.mein.controller.CreateServiceController;
+import de.mein.controller.ApprovalController;
+import de.mein.controller.GuiController;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AndroidService.AndroidServiceObserver {

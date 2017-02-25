@@ -1,7 +1,9 @@
-package de.mein.drive.controller;
+package de.mein.controller;
 
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
@@ -11,6 +13,7 @@ import de.mein.auth.boot.BootLoader;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
+import de.mein.boot.AndroidBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.AndroidService;
 import mein.de.meindrive.R;
@@ -18,15 +21,17 @@ import mein.de.meindrive.R;
 /**
  * Created by xor on 2/20/17.
  */
-public class CreateServiceController  implements GuiController{
+public class CreateServiceController implements GuiController {
     private final MeinAuthService meinAuthService;
     private final Spinner spinner;
     private View rootView;
+    private LinearLayout embedded;
 
     public CreateServiceController(MeinAuthService meinAuthService, View v) {
         this.rootView = v;
         this.meinAuthService = meinAuthService;
         this.spinner = (Spinner) rootView.findViewById(R.id.spin_bootloaders);
+        this.embedded = (LinearLayout) rootView.findViewById(R.id.embedded);
 
         List<BootLoader> bootLoaders = new ArrayList<>();
         MeinBoot.getBootloaderClasses().forEach((bootloaderClass) -> NoTryRunner.run(() -> {
@@ -48,9 +53,9 @@ public class CreateServiceController  implements GuiController{
     private void showSelected() {
         NoTryRunner.run(() -> {
             DriveCreateController createController = new DriveCreateController(meinAuthService);
-
-            BootLoader bootLoader = (BootLoader) spinner.getSelectedItem();
-            //bootLoader.boot(meinAuthService,new ArrayList<>());
+            AndroidBootLoader bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
+            View v = View.inflate(rootView.getContext(), bootLoader.getCreateResource(), embedded);
+            //bootLoader.setupController(meinAuthService,v);
             System.out.println("CreateServiceController.showSelected");
         });
 
