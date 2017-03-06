@@ -1,8 +1,8 @@
 BEGIN TRANSACTION;
-DROP TABLE IF EXISTS  type ;
-DROP TABLE IF EXISTS  service ;
-DROP TABLE IF EXISTS  authentication ;
 DROP TABLE IF EXISTS  certificate ;
+DROP TABLE IF EXISTS  service ;
+drop table if exists servicetype;
+DROP TABLE IF EXISTS  approval ;
 CREATE TABLE "servicetype" (
    id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    type         TEXT    NOT NULL UNIQUE,

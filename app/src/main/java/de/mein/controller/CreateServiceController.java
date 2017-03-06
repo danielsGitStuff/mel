@@ -3,7 +3,6 @@ package de.mein.controller;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.boot.AndroidBootLoader;
 import de.mein.drive.DriveCreateController;
-import de.mein.drive.AndroidService;
+import de.mein.android.AndroidService;
 import mein.de.meindrive.R;
 
 /**

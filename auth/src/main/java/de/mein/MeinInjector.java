@@ -3,6 +3,8 @@ package de.mein;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.core.serialize.deserialize.binary.BinaryDeserializer;
 import de.mein.core.serialize.serialize.fieldserializer.binary.BinaryFieldSerializer;
+import de.mein.execute.SqliteExecutor;
+import de.mein.execute.SqliteExecutorInjection;
 
 /**
  * Created by xor on 2/4/17.
@@ -26,5 +28,8 @@ public class MeinInjector {
 
     public static void setBase64Decoder(BinaryDeserializer.Base64Decoder decoder) {
         BinaryDeserializer.setBase64Decoder(decoder);
+    }
+    public static void setExecutorImpl(SqliteExecutorInjection injectedImpl){
+        SqliteExecutor.setExecutorImpl(injectedImpl);
     }
 }

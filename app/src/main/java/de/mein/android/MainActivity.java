@@ -1,4 +1,4 @@
-package de.mein.drive;
+package de.mein.android;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity
                 guiController.onAndroidServiceBound(androidService);
             mBound = true;
         }
-
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             mBound = false;
@@ -62,7 +61,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, AndroidService.class);
+        Intent intent = new Intent(getBaseContext(), AndroidService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -92,7 +91,6 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
         showGeneral();
     }
 

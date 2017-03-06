@@ -1,5 +1,7 @@
 package de.mein.auth.data;
 
+import java.io.Serializable;
+
 import de.mein.auth.socket.MeinProcess;
 import de.mein.core.serialize.SerializableEntity;
 

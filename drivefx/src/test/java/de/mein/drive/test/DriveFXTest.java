@@ -62,7 +62,7 @@ public class DriveFXTest {
         NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
-                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
+                .setBrotcastListenerPort(9966).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("Test Client").setGreeting("greeting2");
         standAloneAuth1 = new MeinStandAloneAuthFX(json1);
         IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {

@@ -21,8 +21,15 @@ public class SqliteExecutor {
 
     private SQLConnection connection;
     private String statement;
+    private static SqliteExecutorInjection injectedImpl;
+
+    public static void setExecutorImpl(SqliteExecutorInjection injectedImpl) {
+        SqliteExecutor.injectedImpl = injectedImpl;
+    }
+
     StringBuilder b = new StringBuilder();
     StringBuilder debug = new StringBuilder();
+
 
     public SqliteExecutor(SQLConnection connection) {
         this.connection = connection;
@@ -32,49 +39,53 @@ public class SqliteExecutor {
         // this is all hackery and might break
         // it should get along with the intellij auto formatter
         System.out.println("SqliteExecutor.executeStream");
-        Scanner s = new Scanner(in, "UTF-8");//new Scanner(String.class.getResourceAsStream(resource), "UTF-8");
-        //s.useDelimiter("(;(\r)?\n)|(--\n)");
-        s.useDelimiter("\n|\r");
-        try {
-            int begin = 0;
-            boolean comment = false;
-            while (s.hasNext()) {
-                String line = s.next();
-                String trimmed = line.trim().toLowerCase();
-                boolean ap = false;
-                if (trimmed.startsWith("begin") && !trimmed.startsWith("begin transaction")) {
-                    begin++;
-                    append(line);
-                    ap = true;
-                } else if (trimmed.startsWith("end")) {
-                    begin--;
-                    append(line);
-                    ap = true;
-                } else if (trimmed.startsWith("/*"))
-                    comment = true;
-                else if (trimmed.endsWith("*/"))
-                    comment = false;
-                if (begin == 0) {
-                    if (line.endsWith(";")) {
-                        if (!ap)
-                            append(line);
-                        this.statement = b.toString();
-                        debug.append(statement).append("\n");
-                        SQLStatement st = connection.prepareStatement(statement);
-                        st.execute();
-                        st.close();
-                        b = new StringBuilder();
+        if (injectedImpl != null)
+            injectedImpl.executeStream(connection, in);
+        else {
+            Scanner s = new Scanner(in, "UTF-8");//new Scanner(String.class.getResourceAsStream(resource), "UTF-8");
+            //s.useDelimiter("(;(\r)?\n)|(--\n)");
+            s.useDelimiter("\n|\r");
+            try {
+                int begin = 0;
+                boolean comment = false;
+                while (s.hasNext()) {
+                    String line = s.next();
+                    String trimmed = line.trim().toLowerCase();
+                    boolean ap = false;
+                    if (trimmed.startsWith("begin") && !trimmed.startsWith("begin transaction")) {
+                        begin++;
+                        append(line);
+                        ap = true;
+                    } else if (trimmed.startsWith("end")) {
+                        begin--;
+                        append(line);
+                        ap = true;
+                    } else if (trimmed.startsWith("/*"))
+                        comment = true;
+                    else if (trimmed.endsWith("*/"))
+                        comment = false;
+                    if (begin == 0) {
+                        if (line.endsWith(";")) {
+                            if (!ap)
+                                append(line);
+                            this.statement = b.toString();
+                            debug.append(statement).append("\n");
+                            SQLStatement st = connection.prepareStatement(statement);
+                            st.execute();
+                            st.close();
+                            b = new StringBuilder();
+                        } else {
+                            if (!ap)
+                                append(line);
+                        }
                     } else {
                         if (!ap)
                             append(line);
                     }
-                } else {
-                    if (!ap)
-                        append(line);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

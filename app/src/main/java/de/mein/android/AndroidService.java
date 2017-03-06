@@ -1,4 +1,4 @@
-package de.mein.drive;
+package de.mein.android;
 
 import android.app.Service;
 import android.content.Intent;
@@ -15,11 +15,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Scanner;
 
 import de.mein.MeinInjector;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
@@ -27,12 +29,16 @@ import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.drive.DriveInjector;
+import de.mein.drive.DriveSyncListener;
 import de.mein.drive.boot.AndroidDriveBootLoader;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.AndroidDBConnection;
 import de.mein.drive.watchdog.AndroidWatchdogListener;
+import de.mein.execute.SqliteExecutor;
 import de.mein.sql.RWLock;
+import de.mein.sql.SQLStatement;
 import de.mein.sql.con.AndroidSQLQueries;
 
 
@@ -81,6 +87,7 @@ public class AndroidService extends Service {
             System.out.println("AndroidService.onStartCommand.booting");
             setup(null);
             lock.lockWrite();
+            meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
             observer.onMeinAuthStarted(meinAuthService);
         } catch (Exception e) {
             e.printStackTrace();
@@ -159,7 +166,7 @@ public class AndroidService extends Service {
         Object asdasda = getResources();
         openFileOutput("durr", MODE_PRIVATE);
 //        CertificateManager.deleteDirectory(workingDir);
-//        CertificateManager.deleteDirectory(testdir1);
+        CertificateManager.deleteDirectory(testdir1);
         TestDirCreator.createTestDir(testdir1);
         meinAuthService = new MeinAuthService(meinAuthSettings);
         // we want accept all registration attempts automatically
@@ -230,6 +237,15 @@ public class AndroidService extends Service {
         AssetManager assetManager = getAssets();
         InputStream sqlInput = assetManager.open("sql.sql");
         InputStream driveSqlInput = assetManager.open("drive.sql");
+        MeinInjector.setExecutorImpl((connection, in) -> NoTryRunner.run(() -> {
+            Scanner scanner = new Scanner(in, "UTF-8").useDelimiter(";");
+            while (scanner.hasNext()) {
+                String sql = scanner.next();
+                System.out.println("SqliteExecutor.executeStream: " + sql);
+                SQLStatement stmt = connection.prepareStatement(sql);
+                stmt.execute();
+            }
+        }));
         MeinInjector.setMeinAuthSqlInputStreamInjector(() -> {
             try {
                 return assetManager.open("sql.sql");

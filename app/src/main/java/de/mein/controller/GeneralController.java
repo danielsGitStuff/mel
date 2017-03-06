@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.drive.AndroidService;
+import de.mein.android.AndroidService;
 import mein.de.meindrive.R;
 
 /**
