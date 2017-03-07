@@ -12,6 +12,7 @@ import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.jobs.ConnectJob;
+import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.ShamefulSelfConnectException;
@@ -25,7 +26,6 @@ import de.mein.auth.tools.NoTryRunner;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.sql.SqlQueriesException;
-import de.mein.sql.con.SQLConnection;
 import de.mein.sql.deserialize.factories.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import org.jdeferred.Promise;
@@ -43,7 +43,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -138,6 +137,7 @@ public class MeinAuthService extends MeinRunnable {
 
     @Override
     public void run() {
+        System.out.println("MeinAuthService.run");
         logger.log(Level.FINER,"MeinAuthService.runTry.listening...");
         while (!Thread.currentThread().isInterrupted()) {
             try {
@@ -346,7 +346,10 @@ public class MeinAuthService extends MeinRunnable {
         }
     }
 
-    public MeinAuthService discoverNetworkEnvironment() {
+    /**
+     * this is because Android does not like to do network stuff on GUI threads
+     */
+    void discoverNetworkEnvironmentImpl(){
         NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
         networkEnvironment.clear();
         Map<String, Boolean> checkedAddresses = new ConcurrentHashMap<>();
@@ -370,31 +373,35 @@ public class MeinAuthService extends MeinRunnable {
             meinAuthWorker.getBrotCaster().setBrotCasterListener((inetAddress, port, portCert) -> {
                 runner.runTry(() -> {
                     String address = MeinAuthSocket.getAddressString(inetAddress, port);
-                   // if (!checkedAddresses.containsKey(address)) {
-                        checkedAddresses.put(address, true);
-                        Object ashhh = InetAddress.getByName("localhost").getHostAddress();
-                        Promise<MeinValidationProcess, Exception, Void> promise = this.connect(null, inetAddress.getHostAddress(), port, portCert, false);
-                        promise.done(meinValidationProcess -> {
-                            runner.runTry(() -> {
-                                networkEnvironment.add(meinValidationProcess.getPartnerCertificate().getId().v(), null);
-                                getAllowedServices(meinValidationProcess.getPartnerCertificate().getId().v()).done(meinServicesPayload -> {
-                                    runner.runTry(() -> {
-                                                for (ServiceJoinServiceType service : meinServicesPayload.getServices()) {
-                                                    networkEnvironment.add(meinValidationProcess.getPartnerCertificate().getId().v(), service);
-                                                }
+                    // if (!checkedAddresses.containsKey(address)) {
+                    checkedAddresses.put(address, true);
+                    Object ashhh = InetAddress.getByName("localhost").getHostAddress();
+                    Promise<MeinValidationProcess, Exception, Void> promise = this.connect(null, inetAddress.getHostAddress(), port, portCert, false);
+                    promise.done(meinValidationProcess -> {
+                        runner.runTry(() -> {
+                            networkEnvironment.add(meinValidationProcess.getPartnerCertificate().getId().v(), null);
+                            getAllowedServices(meinValidationProcess.getPartnerCertificate().getId().v()).done(meinServicesPayload -> {
+                                runner.runTry(() -> {
+                                            for (ServiceJoinServiceType service : meinServicesPayload.getServices()) {
+                                                networkEnvironment.add(meinValidationProcess.getPartnerCertificate().getId().v(), service);
                                             }
-                                    );
-                                });
+                                        }
+                                );
                             });
-                        }).fail(result -> {
-                            if (!(result instanceof ShamefulSelfConnectException))
-                                networkEnvironment.addUnkown(inetAddress.getHostAddress(), port, portCert);
                         });
-                  //  }
+                    }).fail(result -> {
+                        if (!(result instanceof ShamefulSelfConnectException))
+                            networkEnvironment.addUnkown(inetAddress.getHostAddress(), port, portCert);
+                    });
+                    //  }
                 });
             });
             meinAuthWorker.getBrotCaster().discover(settings.getBrotcastPort());
         });
+    }
+
+    public MeinAuthService discoverNetworkEnvironment() {
+        meinAuthWorker.addJob(new NetworkEnvDiscoveryJob());
         return this;
     }
 

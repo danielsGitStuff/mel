@@ -8,60 +8,66 @@
     tools:context="de.mein.android.CertActivity">
 
     <TabHost
+        android:id="@+id/tabHost"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-android:layout_weight="1">
+        android:layout_height="wrap_content">
 
-        <LinearLayout
+        <TabWidget
+            android:id="@android:id/tabs"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content" />
 
-            <TabWidget
-                android:id="@android:id/tabs"
+        <FrameLayout
+            android:id="@android:id/tabcontent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/tabRemote"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-            <FrameLayout
-                android:id="@android:id/tabcontent"
+                <TextView
+                    android:id="@+id/txtRemote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="PLACEHOLDERRRRRRRRRRR" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tabOwn"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-                <LinearLayout
-                    android:id="@+id/tabRemoteCert"
+                <TextView
+                    android:id="@+id/txtOwn"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/txtRemote"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/tabOwnCert"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/txtOwn"/>
-                </LinearLayout>
-            </FrameLayout>
-        </LinearLayout>
+                    android:layout_height="wrap_content"
+                    android:text="REDLOHECALPPPPPPPPPPPPPPPPP" />
+            </LinearLayout>
+        </FrameLayout>
     </TabHost>
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:orientation="horizontal"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
         <Button
+            android:id="@+id/btnReject"
             android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_height="wrap_content" android:id="@+id/btnReject" android:text="Reject" />
+            android:text="Reject" />
+
         <Button
+            android:id="@+id/btnAccept"
             android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_height="wrap_content" android:id="@+id/btnAccept" android:text="Accept"/>
+            android:text="Accept" />
     </LinearLayout>
 </LinearLayout>

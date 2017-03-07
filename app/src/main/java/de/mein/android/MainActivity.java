@@ -21,6 +21,7 @@ import android.widget.LinearLayout;
 
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.controller.NetworkDiscoveryController;
 import mein.de.meindrive.R;
 import de.mein.controller.GeneralController;
 import de.mein.controller.CreateServiceController;
@@ -134,7 +135,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_general) {
             showGeneral();
         } else if (id == R.id.nav_discover) {
-            toolbar.setTitle("Discover");
+            showDiscover();
         } else if (id == R.id.nav_approvals) {
             showApprovals();
         } else if (id == R.id.nav_new_service) {
@@ -144,6 +145,13 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void showDiscover() {
+        toolbar.setTitle("Discover");
+        content.removeAllViews();
+        View v = View.inflate(this, R.layout.content_discover,content);
+        guiController = new NetworkDiscoveryController(androidService.getMeinAuthService(),v);
     }
 
     private void showCreateNewService() {

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
+import android.widget.TabHost;
 import android.widget.TextView;
 
 import java.security.cert.X509Certificate;
@@ -19,6 +20,7 @@ public class CertActivity extends AppCompatActivity {
     private Button btnAccept, btnReject;
     private TextView txtRemote, txtOwn;
     private RegBundle regBundle;
+    private TabHost tabHost;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,11 +30,24 @@ public class CertActivity extends AppCompatActivity {
         txtOwn = (TextView) findViewById(R.id.txtOwn);
         btnAccept = (Button) findViewById(R.id.btnAccept);
         btnReject = (Button) findViewById(R.id.btnReject);
-        regBundle = (RegBundle) getIntent().getExtras().getSerializable(AndroidRegHandler.REGBUNDLE_UUID);
+        String regUuid = getIntent().getExtras().getString(AndroidRegHandler.REGBUNDLE_UUID);
+        regBundle = AndroidRegHandler.retrieveRegBundle(regUuid);
         showCert(txtRemote, regBundle.getRemoteCert());
         showCert(txtOwn, regBundle.getMyCert());
         btnReject.setOnClickListener(view -> regBundle.getListener().onCertificateRejected(regBundle.getRequest(), regBundle.getRemoteCert()));
         btnAccept.setOnClickListener(view -> regBundle.getListener().onCertificateAccepted(regBundle.getRequest(), regBundle.getRemoteCert()));
+        tabHost = (TabHost) findViewById(R.id.tabHost);
+        tabHost.setup();
+        //Tab 1
+        TabHost.TabSpec spec = tabHost.newTabSpec("Remote Cert");
+        spec.setContent(R.id.tabRemote);
+        spec.setIndicator("Remote Indi");
+        tabHost.addTab(spec);
+        //Tab 2
+        spec = tabHost.newTabSpec("Own Cert");
+        spec.setContent(R.id.tabOwn);
+        spec.setIndicator("Own Indi");
+        tabHost.addTab(spec);
     }
 
     private void showCert(TextView textView, Certificate cert) {

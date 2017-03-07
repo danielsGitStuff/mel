@@ -223,6 +223,8 @@ public class MeinAuthProcess extends MeinProcess {
                 });
             } else {
                 //error stuff
+                System.out.println("MeinAuthProcess.authenticate.error.decrypted.secret: " + r.getDecryptedSecret());
+                System.out.println("MeinAuthProcess.authenticate.error.should.be: " + mySecret);
                 deferred.reject(new Exception("find aok39ka"));
             }
         });
