@@ -140,7 +140,7 @@ public class IndexerRunnable implements Runnable {
                 if (parent != null)
                     parentId = parent.getId().v();
                 FsFile dbFile = databaseManager.getFsDao().getFileByName(parentId, fs.getName().v());
-                String md5 = Hash.md5(fs.getOriginal());
+                String md5 = de.mein.core.Hash.md5(fs.getOriginal());
                 if (dbFile == null || (dbFile != null && !dbFile.getContentHash().v().equals(md5))) {
                     BashTools.NodeAndTime fNodeTime = BashTools.getNodeAndTime(fs.getOriginal());
                     Stage fStage = new Stage()

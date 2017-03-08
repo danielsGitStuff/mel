@@ -173,7 +173,6 @@ public class AndroidService extends Service {
         IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
             listener.onCertificateAccepted(request, certificate);
         };
-        meinAuthService.addRegisterHandler(allowRegisterHandler);
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -232,69 +231,8 @@ public class AndroidService extends Service {
     }
 
     private void android() throws IOException {
-        SQLiteStatement s;
         MeinBoot.addBootLoaderClass(AndroidDriveBootLoader.class);
-        AssetManager assetManager = getAssets();
-        InputStream sqlInput = assetManager.open("sql.sql");
-        InputStream driveSqlInput = assetManager.open("drive.sql");
-        MeinInjector.setExecutorImpl((connection, in) -> NoTryRunner.run(() -> {
-            Scanner scanner = new Scanner(in, "UTF-8").useDelimiter(";");
-            while (scanner.hasNext()) {
-                String sql = scanner.next();
-                System.out.println("SqliteExecutor.executeStream: " + sql);
-                SQLStatement stmt = connection.prepareStatement(sql);
-                stmt.execute();
-            }
-        }));
-        MeinInjector.setMeinAuthSqlInputStreamInjector(() -> {
-            try {
-                return assetManager.open("sql.sql");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
-        MeinInjector.setSQLConnectionCreator(databaseManager -> {
-            SQLiteOpenHelper helper = new SQLiteOpenHelper(this, "meinauth", null, 1) {
-                @Override
-                public void onCreate(SQLiteDatabase db) {
-                    System.out.println("AndroidDriveBootloader.onCreate");
-                }
-
-                @Override
-                public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-                    System.out.println("AndroidDriveBootloader.onUpgrade");
-                }
-            };
-            return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
-        });
-        MeinInjector.setBase64Encoder(bytes -> Base64.encode(bytes, Base64.NO_WRAP));
-        MeinInjector.setBase64Decoder(string -> Base64.decode(string, Base64.NO_WRAP));
-        DriveInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
-            SQLiteOpenHelper helper = new SQLiteOpenHelper(this, "service." + uuid + "." + DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
-                @Override
-                public void onCreate(SQLiteDatabase db) {
-                    System.out.println("AndroidDriveBootloader.onCreate");
-                }
-
-                @Override
-                public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-                    System.out.println("AndroidDriveBootloader.onUpgrade");
-                }
-            };
-            return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
-        });
-        DriveInjector.setDriveSqlInputStreamInjector(() -> {
-            try {
-                return assetManager.open("drive.sql");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
-        DriveInjector.setWatchDogRunner(meinDriveService -> new AndroidWatchdogListener(meinDriveService));
-        DriveInjector.setBinPath("/system/bin/sh");
-
+        AndroidInjector.inject(this,getAssets());
     }
 
     public MeinAuthService getMeinAuthService() {

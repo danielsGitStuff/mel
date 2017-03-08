@@ -1,6 +1,7 @@
 package de.mein.core.serialize.serialize.reflection;
 
 import de.mein.core.serialize.serialize.reflection.classes.ReflectionTestPojo;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,6 +20,7 @@ public class FieldAnalyzerTest {
     private Field fPrimitiveCollection;
     private Field fEntity;
     private Field fEntityCollection;
+    private Field fTwoDimensionalList;
 
     private ReflectionTestPojo object;
 
@@ -30,6 +32,7 @@ public class FieldAnalyzerTest {
         this.fPrimitiveCollection = fields.stream().filter(field -> field.getName().equals("primitiveCollection")).findFirst().get();
         this.fEntity = fields.stream().filter(field -> field.getName().equals("entity")).findFirst().get();
         this.fEntityCollection = fields.stream().filter(field -> field.getName().equals("entityCollection")).findFirst().get();
+        this.fTwoDimensionalList = fields.stream().filter(field -> field.getName().equals("twoDimensionalList")).findFirst().get();
     }
 
     @Test
@@ -55,11 +58,14 @@ public class FieldAnalyzerTest {
         assertFalse(FieldAnalyzer.isPrimitiveCollection(fEntity));
         assertFalse(FieldAnalyzer.isEntitySerializableCollection(fEntity));
     }
+
     @Test
     public void entitySerializableCollection() {
         assertFalse(FieldAnalyzer.isPrimitive(fEntityCollection));
         assertFalse(FieldAnalyzer.isEntitySerializable(fEntityCollection));
         assertFalse(FieldAnalyzer.isPrimitiveCollection(fEntityCollection));
         assertTrue(FieldAnalyzer.isEntitySerializableCollection(fEntityCollection));
+        assertFalse(FieldAnalyzer.isPrimitiveCollection(fEntityCollection));
+        assertFalse(FieldAnalyzer.isPrimitiveCollection(fTwoDimensionalList));
     }
 }

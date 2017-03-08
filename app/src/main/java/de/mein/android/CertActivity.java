@@ -25,6 +25,7 @@ public class CertActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle("Incoming Certificate");
         setContentView(R.layout.activity_cert_incoming);
         txtRemote = (TextView) findViewById(R.id.txtRemote);
         txtOwn = (TextView) findViewById(R.id.txtOwn);
@@ -34,8 +35,18 @@ public class CertActivity extends AppCompatActivity {
         regBundle = AndroidRegHandler.retrieveRegBundle(regUuid);
         showCert(txtRemote, regBundle.getRemoteCert());
         showCert(txtOwn, regBundle.getMyCert());
-        btnReject.setOnClickListener(view -> regBundle.getListener().onCertificateRejected(regBundle.getRequest(), regBundle.getRemoteCert()));
-        btnAccept.setOnClickListener(view -> regBundle.getListener().onCertificateAccepted(regBundle.getRequest(), regBundle.getRemoteCert()));
+        btnAccept.setOnClickListener(
+                view -> Threadder.runNoTryThread(() -> {
+                    regBundle.getListener().onCertificateAccepted(regBundle.getRequest(), regBundle.getRemoteCert());
+                    finish();
+                })
+        );
+        btnAccept.setOnClickListener(
+                view -> Threadder.runNoTryThread(() -> {
+                    regBundle.getListener().onCertificateRejected(regBundle.getRequest(), regBundle.getRemoteCert());
+                    finish();
+                })
+        );
         tabHost = (TabHost) findViewById(R.id.tabHost);
         tabHost.setup();
         //Tab 1

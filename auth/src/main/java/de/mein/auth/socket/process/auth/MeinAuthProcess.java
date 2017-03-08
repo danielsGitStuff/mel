@@ -22,12 +22,14 @@ import de.mein.auth.tools.NoTryRunner;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
@@ -85,6 +87,8 @@ public class MeinAuthProcess extends MeinProcess {
                         isolationDetails = (IsolationDetails) request.getPayload();
                     }
                     byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
+                    //todo debug
+                    String dec = new String(request.getSecret());
                     MeinRequest answer = request.request().setRequestHandler(this).queue()
                             .setDecryptedSecret(decryptedSecret)
                             .setSecret(secret);
@@ -109,7 +113,7 @@ public class MeinAuthProcess extends MeinProcess {
                                     System.out.println("MeinAuthProcess.onMessageReceived");
                                     IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
                                     Class<? extends MeinIsolatedProcess> isolatedClass = (Class<? extends MeinIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
-                                    MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(),finalIsolationDetails.getIsolationUuid());
+                                    MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());
                                     service.onIsolatedConnectionEstablished(isolatedProcess);
                                     send(response);
                                 }
@@ -207,7 +211,7 @@ public class MeinAuthProcess extends MeinProcess {
                                     System.out.println("MeinAuthProcess.authenticate465");
                                     IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(isolatedConnectJob.getOwnServiceUuid());
                                     Class isolatedProcessClass = isolatedConnectJob.getProcessClass();
-                                    MeinIsolatedProcess meinIsolatedProcess = MeinIsolatedProcess.instance(isolatedProcessClass,meinAuthSocket, service, partnerCertificate.getId().v(), isolatedConnectJob.getRemoteServiceUuid(),isolatedConnectJob.getIsolatedUuid());
+                                    MeinIsolatedProcess meinIsolatedProcess = MeinIsolatedProcess.instance(isolatedProcessClass, meinAuthSocket, service, partnerCertificate.getId().v(), isolatedConnectJob.getRemoteServiceUuid(), isolatedConnectJob.getIsolatedUuid());
                                     Promise<Void, Exception, Void> isolated = meinIsolatedProcess.sendIsolate();
                                     isolated.done(nil -> {
                                         service.onIsolatedConnectionEstablished(meinIsolatedProcess);

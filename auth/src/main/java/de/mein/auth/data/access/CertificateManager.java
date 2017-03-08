@@ -3,6 +3,7 @@ package de.mein.auth.data.access;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.tools.Cryptor;
+import de.mein.core.Hash;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
 
@@ -191,6 +192,7 @@ public class CertificateManager extends FileRelatedManager {
         KeyPair keyPair = keyPairGenerator.generateKeyPair(); // public/private key pair that we are creating certificate for
         this.privateKey = keyPair.getPrivate();
         this.publicKey = keyPair.getPublic();
+
         certGen.setPublicKey(this.publicKey);
         certGen.setSignatureAlgorithm("SHA512WITHRSA");
 
@@ -326,7 +328,8 @@ public class CertificateManager extends FileRelatedManager {
                 socket.setEnabledProtocols(new String[]{"TLSv1.1"});
             } catch (Exception ee) {
                 socket.setEnabledProtocols(new String[]{"TLSv1"});
-            }        }
+            }
+        }
         return socket;
     }
 

@@ -1,6 +1,7 @@
-package de.mein.drive.index;
+package de.mein.core;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,6 +31,28 @@ public class Hash {
             fis.close();
             byte[] bytes = messageDigest.digest();
             return (new HexBinaryAdapter()).marshal(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "exception :(";
+        }
+    }
+
+    public static String md5(byte[] bytes) throws IOException {
+        MessageDigest messageDigest;
+        try {
+            messageDigest = MessageDigest.getInstance("MD5");
+            messageDigest.update(bytes, 0, bytes.length);
+            byte[] hash = messageDigest.digest();
+            StringBuffer hexString = new StringBuffer();
+            for (int i = 0; i < hash.length; i++) {
+                if ((0xff & hash[i]) < 0x10) {
+                    hexString.append("0"
+                            + Integer.toHexString((0xFF & hash[i])));
+                } else {
+                    hexString.append(Integer.toHexString(0xFF & hash[i]));
+                }
+            }
+            return hexString.toString();
         } catch (Exception e) {
             e.printStackTrace();
             return "exception :(";

@@ -21,7 +21,6 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
     public List<Certificate> getCertificates() throws SqlQueriesException {
         Certificate dummy = new Certificate();
         List<Certificate> re = sqlQueries.load(dummy.getAllAttributes(), dummy, null, null);
-        List<Certificate> result = new ArrayList<>();
         return re;
     }
 

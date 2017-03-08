@@ -1,7 +1,6 @@
 package de.mein.drive.index;
 
 import de.mein.drive.data.PathCollection;
-import de.mein.drive.jobs.FsSyncJob;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.FsEntry;
@@ -13,14 +12,9 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.SqlQueriesException;
 
-import org.jdeferred.Deferred;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
 
 /**
  * Locks fsDao for reading
@@ -238,7 +232,7 @@ public class StageIndexerRunnable implements Runnable {
     private void updateFileStage(Stage stage, File stageFile) throws IOException {
         if (stageFile.exists()) {
             BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(stageFile);
-            stage.setContentHash(Hash.md5(stageFile));
+            stage.setContentHash(de.mein.core.Hash.md5(stageFile));
             stage.setiNode(nodeAndTime.getInode());
             stage.setModified(nodeAndTime.getModifiedTime());
             stage.setSize(stageFile.length());

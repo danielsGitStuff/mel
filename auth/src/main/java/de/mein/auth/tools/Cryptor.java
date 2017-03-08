@@ -1,6 +1,7 @@
 package de.mein.auth.tools;
 
 import de.mein.auth.data.db.Certificate;
+import de.mein.core.Hash;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -23,13 +24,14 @@ public class Cryptor {
     }
 
     public static byte[] encrypt(PublicKey publicKey, final String original) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException {
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        return cipher.doFinal(original.getBytes());
+        byte[] bytes = cipher.doFinal(original.getBytes());
+        return bytes;
     }
 
-    public static String decrypt(PrivateKey privateKey,final byte[] encrypted) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException {
-        Cipher decCipher = Cipher.getInstance("RSA");
+    public static String decrypt(PrivateKey privateKey, final byte[] encrypted) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException {
+        Cipher decCipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
         decCipher.init(Cipher.DECRYPT_MODE, privateKey);
         byte[] dec = decCipher.doFinal(encrypted);
         return new String(dec);

@@ -62,12 +62,13 @@ public class FieldAnalyzer {
         return isCollection;
     }
 
+
     public static boolean isPrimitiveCollection(Field field) {
         boolean isCollection = Collection.class.isAssignableFrom(field.getType());
         if (isCollection) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
             Object whatEver = parameterizedType.getActualTypeArguments()[0];
-            if (whatEver instanceof ParameterizedTypeImpl) {
+            if (whatEver instanceof ParameterizedType) {
                 return false;
             }
             Class<?> genericType = (Class<?>) whatEver;
@@ -75,13 +76,12 @@ public class FieldAnalyzer {
         }
         return false;
     }
-
     public static boolean isEntitySerializableCollection(Field field) {
         boolean isCollection = Collection.class.isAssignableFrom(field.getType());
         if (isCollection) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
             Object whatEver = parameterizedType.getActualTypeArguments()[0];
-            if (whatEver instanceof ParameterizedTypeImpl) {
+            if (whatEver instanceof ParameterizedType) {
                 return false;
             }
             Class<?> genericType = (Class<?>) whatEver;
