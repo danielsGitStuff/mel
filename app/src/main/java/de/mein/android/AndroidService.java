@@ -21,10 +21,13 @@ import de.mein.MeinInjector;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
+import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -170,8 +173,16 @@ public class AndroidService extends Service {
         TestDirCreator.createTestDir(testdir1);
         meinAuthService = new MeinAuthService(meinAuthSettings);
         // we want accept all registration attempts automatically
-        IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
-            listener.onCertificateAccepted(request, certificate);
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
         };
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {

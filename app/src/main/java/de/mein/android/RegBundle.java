@@ -2,6 +2,7 @@ package de.mein.android;
 
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 
 /**
@@ -13,6 +14,8 @@ public class RegBundle {
     private MeinRequest request;
     private Certificate myCert;
     private Certificate remoteCert;
+    private AndroidRegHandler androidRegHandler;
+
 
     public RegBundle setListener(IRegisterHandlerListener listener) {
         this.listener = listener;
@@ -48,5 +51,14 @@ public class RegBundle {
 
     public MeinRequest getRequest() {
         return request;
+    }
+
+    public RegBundle setAndroidRegHandler(AndroidRegHandler androidRegHandler) {
+        this.androidRegHandler = androidRegHandler;
+        return this;
+    }
+
+    public AndroidRegHandler getAndroidRegHandler() {
+        return androidRegHandler;
     }
 }

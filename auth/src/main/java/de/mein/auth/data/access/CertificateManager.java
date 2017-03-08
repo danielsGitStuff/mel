@@ -180,6 +180,7 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public void generateCertificate() throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, CertificateException, KeyStoreException {
+        //todo get rid of this deprecated stuff
         X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
         certGen.setSerialNumber(BigInteger.valueOf(generateSecurePositiveRndInt()));
         certGen.setIssuerDN(new X509Principal("CN=" + "mein.auth." + workingDirectory + ", OU=None, O=None L=None, C=None"));

@@ -14,6 +14,7 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
+import de.mein.sql.RWLock;
 import mein.de.meindrive.R;
 
 public class CertActivity extends AppCompatActivity {
@@ -21,6 +22,7 @@ public class CertActivity extends AppCompatActivity {
     private TextView txtRemote, txtOwn;
     private RegBundle regBundle;
     private TabHost tabHost;
+    private RWLock lock = new RWLock();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,18 +35,19 @@ public class CertActivity extends AppCompatActivity {
         btnReject = (Button) findViewById(R.id.btnReject);
         String regUuid = getIntent().getExtras().getString(AndroidRegHandler.REGBUNDLE_UUID);
         regBundle = AndroidRegHandler.retrieveRegBundle(regUuid);
+        regBundle.getAndroidRegHandler().addActivity(regBundle.getRemoteCert(), this);
         showCert(txtRemote, regBundle.getRemoteCert());
         showCert(txtOwn, regBundle.getMyCert());
         btnAccept.setOnClickListener(
-                view -> Threadder.runNoTryThread(() -> {
-                    regBundle.getListener().onCertificateAccepted(regBundle.getRequest(), regBundle.getRemoteCert());
-                    finish();
-                })
+                view -> {
+                    regBundle.getAndroidRegHandler().onUserAccepted(regBundle);
+                    showWaiting();
+                }
         );
-        btnAccept.setOnClickListener(
+        btnReject.setOnClickListener(
                 view -> Threadder.runNoTryThread(() -> {
-                    regBundle.getListener().onCertificateRejected(regBundle.getRequest(), regBundle.getRemoteCert());
-                    finish();
+                    regBundle.getAndroidRegHandler().onUserRejected(regBundle);
+                    showWaiting();
                 })
         );
         tabHost = (TabHost) findViewById(R.id.tabHost);
@@ -61,6 +64,12 @@ public class CertActivity extends AppCompatActivity {
         tabHost.addTab(spec);
     }
 
+    private void showWaiting() {
+        System.out.println("CertActivity.showWaiting.NOT:IMPLEMENTED:YET");
+        lock.lockWrite();
+        lock.lockWrite();
+    }
+
     private void showCert(TextView textView, Certificate cert) {
         try {
             X509Certificate myX509Certificate = CertificateManager.loadX509CertificateFromBytes(cert.getCertificate().v());
@@ -70,4 +79,8 @@ public class CertActivity extends AppCompatActivity {
         }
     }
 
+    public void onRegistrationFinished() {
+        lock.unlockWrite();
+        finish();
+    }
 }

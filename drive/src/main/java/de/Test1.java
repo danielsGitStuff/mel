@@ -1,10 +1,14 @@
 package de;
+
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
+import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.NoTryRunner;
@@ -17,6 +21,7 @@ import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsFile;
 import de.mein.sql.RWLock;
+
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -29,6 +34,7 @@ public class Test1 {
     private static MeinAuthService standAloneAuth1;
     private static MeinAuthService standAloneAuth2;
     private static RWLock lock = new RWLock();
+
     public static void main(String... args) throws Exception {
         setup(new DriveSyncListener() {
 
@@ -87,8 +93,16 @@ public class Test1 {
         standAloneAuth1 = new MeinAuthService(json1);
         standAloneAuth2 = new MeinAuthService(json2);
         // we want accept all registration attempts automatically
-        IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
-            listener.onCertificateAccepted(request, certificate);
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
         };
         standAloneAuth1.addRegisterHandler(allowRegisterHandler);
         standAloneAuth2.addRegisterHandler(allowRegisterHandler);

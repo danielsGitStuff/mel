@@ -11,6 +11,7 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -18,6 +19,7 @@ import org.jdeferred.impl.DeferredObject;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
@@ -45,6 +47,7 @@ public class MeinRegisterProcess extends MeinProcess {
                     certificate.getAnswerUuid().v(confirm.getAnswerUuid());
                     certificateManager.updateCertificate(certificate);
                     certificateManager.trustCertificate(certificate.getId().v(), true);
+                    meinAuthSocket.getMeinAuthService().getRegisterHandlers().forEach(iRegisterHandler -> iRegisterHandler.onRegistrationCompleted(partnerCertificate));
                     for (IRegisteredHandler handler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()) {
                         handler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), certificate);
                     }
@@ -52,6 +55,7 @@ public class MeinRegisterProcess extends MeinProcess {
         ).fail(results -> runner.runTry(() -> {
             System.out.println("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
             certificateManager.deleteCertificate(partnerCertificate);
+            meinAuthSocket.getMeinAuthService().getRegisterHandlers().forEach(iRegisterHandler -> iRegisterHandler.onRegistrationCompleted(partnerCertificate));
             stop();
         }));
     }
@@ -78,6 +82,7 @@ public class MeinRegisterProcess extends MeinProcess {
                     runner.runTry(() -> {
                         // tell your partner that you trust him
                         MeinRegisterProcess.this.sendConfirmation(true);
+                        partnerCertificate = certificate;
                         acceptedPromise.resolve(certificate);
                     });
 
@@ -118,7 +123,7 @@ public class MeinRegisterProcess extends MeinProcess {
             System.out.println("MeinRegisterProcess.onFail!!!!!!!!");
             deferred.reject(result);
         });
-        new DefaultDeferredManager().when(confirmedPromise,acceptedPromise).done(result -> {
+        new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(result -> {
             System.out.println("MeinRegisterProcess.register");
             deferred.resolve(partnerCertificate);
         });
