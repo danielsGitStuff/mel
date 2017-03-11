@@ -38,6 +38,7 @@ dependencies {
     compile 'org.sqldroid:sqldroid:1.0.3'
     compile 'com.android.support.constraint:constraint-layout:+'
     testCompile 'junit:junit:4.12'
+    compile 'com.annimon:stream:1.1.6'
 }
 
 gradle.projectsEvaluated {

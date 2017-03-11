@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.View;
@@ -49,10 +50,11 @@ public class MainActivity extends AppCompatActivity
             AndroidService.LocalBinder localBinder = (AndroidService.LocalBinder) service;
             androidService = localBinder.getService();
             androidService.setObserver(MainActivity.this);
-            if (guiController!=null)
+            if (guiController != null)
                 guiController.onAndroidServiceBound(androidService);
             mBound = true;
         }
+
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             mBound = false;
@@ -150,15 +152,21 @@ public class MainActivity extends AppCompatActivity
     private void showDiscover() {
         toolbar.setTitle("Discover");
         content.removeAllViews();
-        View v = View.inflate(this, R.layout.content_discover,content);
-        guiController = new NetworkDiscoveryController(androidService.getMeinAuthService(),v);
+        View v = View.inflate(this, R.layout.content_discover, content);
+        guiController = new NetworkDiscoveryController(androidService.getMeinAuthService(), v);
     }
 
     private void showCreateNewService() {
         content.removeAllViews();
         toolbar.setTitle("Create new Service");
         View v = View.inflate(this, R.layout.content_create_service, content);
-        guiController = new CreateServiceController(androidService.getMeinAuthService(), v);
+        guiController = new CreateServiceController(androidService.getMeinAuthService(), this, v);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
     }
 
     private void showApprovals() {
@@ -181,7 +189,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onMeinAuthStarted(MeinAuthService meinAuthService) {
-        if (guiController!=null)
+        if (guiController != null)
             guiController.onMeinAuthStarted(androidService.getMeinAuthService());
     }
 }

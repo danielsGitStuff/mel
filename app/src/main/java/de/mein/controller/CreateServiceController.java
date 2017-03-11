@@ -1,9 +1,13 @@
 package de.mein.controller;
 
+import android.app.Activity;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+
+import com.annimon.stream.Stream;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +17,6 @@ import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.boot.AndroidBootLoader;
-import de.mein.drive.DriveCreateController;
 import de.mein.android.AndroidService;
 import mein.de.meindrive.R;
 
@@ -25,15 +28,20 @@ public class CreateServiceController implements GuiController {
     private final Spinner spinner;
     private View rootView;
     private LinearLayout embedded;
+    private Button btnCreate;
+    private AndroidBootLoader bootLoader;
+    private Activity activity;
 
-    public CreateServiceController(MeinAuthService meinAuthService, View v) {
+    public CreateServiceController(MeinAuthService meinAuthService, Activity activity, View v) {
         this.rootView = v;
+        this.activity = activity;
         this.meinAuthService = meinAuthService;
         this.spinner = (Spinner) rootView.findViewById(R.id.spin_bootloaders);
         this.embedded = (LinearLayout) rootView.findViewById(R.id.embedded);
+        this.btnCreate = (Button) rootView.findViewById(R.id.btnCreate);
 
         List<BootLoader> bootLoaders = new ArrayList<>();
-        MeinBoot.getBootloaderClasses().forEach((bootloaderClass) -> NoTryRunner.run(() -> {
+        Stream.of(MeinBoot.getBootloaderClasses()).forEach(bootloaderClass -> NoTryRunner.run(() -> {
             BootLoader bootLoader = bootloaderClass.newInstance();
             bootLoaders.add(bootLoader);
             //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
@@ -47,13 +55,18 @@ public class CreateServiceController implements GuiController {
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
         showSelected();
+        btnCreate.setOnClickListener(view -> {
+            if (bootLoader != null) {
+                bootLoader.createService(activity, meinAuthService);
+            }
+        });
     }
 
     private void showSelected() {
         NoTryRunner.run(() -> {
-            DriveCreateController createController = new DriveCreateController(meinAuthService);
-            AndroidBootLoader bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
+            bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
             View v = View.inflate(rootView.getContext(), bootLoader.getCreateResource(), embedded);
+            bootLoader.createGuiController(meinAuthService, activity, v);
             //bootLoader.setupController(meinAuthService,v);
             System.out.println("CreateServiceController.showSelected");
         });

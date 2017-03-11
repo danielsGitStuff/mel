@@ -95,9 +95,8 @@ public class IndexerRunnable implements Runnable {
             for (ICrawlerListener listener : listeners)
                 listener.foundDirectory(actualDirectory);
             // get files
-            java.io.File[] fileList = actualDirectory.listFiles(File::isFile);
+            File[] fileList = actualDirectory.listFiles(File::isFile);
             File[] subDirectories = actualDirectory.listFiles(f -> !f.isFile());
-
             // add all Files
             for (File f : fileList) {
                 FsFile fs = new FsFile(f);

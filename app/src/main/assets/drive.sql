@@ -85,20 +85,6 @@ CREATE TABLE waste (
   inode    INTEGER NOT NULL UNIQUE,
   inplace  INTEGER NOT NULL
 );
-CREATE TRIGGER IF NOT EXISTS stamp1
-AFTER INSERT ON waste
-BEGIN
-  UPDATE waste
-  SET deleted = current_timestamp
-  WHERE hash = NEW.hash;
-END;
-CREATE TRIGGER IF NOT EXISTS stamp2
-AFTER UPDATE ON waste
-BEGIN
-  UPDATE waste
-  SET deleted = current_timestamp
-  WHERE hash = NEW.hash;
-END;
 CREATE INDEX inodeIndex
   ON waste (inode);
 COMMIT;
