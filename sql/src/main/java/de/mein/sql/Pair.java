@@ -76,7 +76,11 @@ public class Pair<V> {
     }
 
     public Pair<V> v(V value) {
-        this.value = value;
+        if (setListener != null) {
+            this.value = setListener.onSetCalled(value);
+        } else
+            this.value = value;
+
         return this;
     }
 
@@ -95,7 +99,7 @@ public class Pair<V> {
             if (value != null) {
                 // try setListener
                 if (setListener != null) {
-                    this.value = setListener.onSetCalled(value);
+                    this.value = setListener.onSetCalled((V) value);
                 } else if (type.equals(value.getClass())) {
                     this.value = (V) value;
                 } else if (type.isEnum() && value instanceof String) {

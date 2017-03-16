@@ -30,7 +30,8 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
         if (value.getClass().equals(String.class))
             return Boolean.parseBoolean(value.toString());
         if (value.getClass().equals(Integer.class))
-            return (((Integer) value) == 1);
+            System.out.println("FsEntry.zhkvhjk");
+//            return (((Integer) value) == 1);
         System.err.println("FsEntry.setListener.FAILED");
         return null;
     };

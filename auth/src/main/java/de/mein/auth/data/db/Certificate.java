@@ -1,6 +1,9 @@
 package de.mein.auth.data.db;
 
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.tools.NoTryRunner;
+import de.mein.core.Hash;
+import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
@@ -25,6 +28,8 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
     private Pair<String> name = new Pair<>(String.class, "name");
     private Pair<String> greeting = new Pair<>(String.class, "greeting");
     private Pair<Boolean> trusted = new Pair<>(Boolean.class, "trusted");
+    @JsonIgnore
+    private Pair<String> hash = new Pair<>(String.class, "hash");
 
     @Override
     public int hashCode() {
@@ -70,7 +75,15 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(uuid, answerUuid, name, certificate, address, greeting, port, certDeliveryPort, trusted);
+        certificate.setSetListener(value -> {
+            try {
+                hash.v(Hash.sha256(value));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return value;
+        });
+        populateInsert(uuid, answerUuid, name, certificate, address, greeting, port, certDeliveryPort, trusted, hash);
         populateAll(id);
     }
 
@@ -81,6 +94,10 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
     public Certificate setId(Long id) {
         this.id.v(id);
         return this;
+    }
+
+    public Pair<String> getHash() {
+        return hash;
     }
 
     public Pair<Integer> getPort() {

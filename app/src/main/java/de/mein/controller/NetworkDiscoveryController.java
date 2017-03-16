@@ -3,11 +3,10 @@ package de.mein.controller;
 import android.view.View;
 import android.widget.ListView;
 
-import java.util.List;
-
 import de.mein.android.AndroidService;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.view.KnownListAdapter;
 import de.mein.view.UnknownAuthListAdapter;
 import mein.de.meindrive.R;
 
@@ -19,6 +18,7 @@ public class NetworkDiscoveryController implements GuiController {
     private final MeinAuthService meinAuthService;
     private final View rootView;
     private final NetworkEnvironment environment;
+    private final KnownListAdapter knownListAdapter;
     private ListView listKnown, listUnkown;
     private UnknownAuthListAdapter unkownListAdapter;
 
@@ -30,8 +30,15 @@ public class NetworkDiscoveryController implements GuiController {
         environment = meinAuthService.getNetworkEnvironment();
         unkownListAdapter = new UnknownAuthListAdapter(rootView.getContext(), environment);
         listUnkown.setAdapter(unkownListAdapter);
-
-        //discover();
+        listUnkown.setOnItemClickListener((parent, view, position, id) -> {
+            System.out.println("NetworkDiscoveryController.NetworkDiscoveryController");
+        });
+        knownListAdapter = new KnownListAdapter(rootView.getContext(), meinAuthService.getCertificateManager());
+        listKnown.setAdapter(knownListAdapter);
+        listKnown.setOnItemClickListener((parent, view, position, id) -> {
+            System.out.println("NetworkDiscoveryController.NetworkDiscoveryController");
+        });
+        discover();
         //environment.addUnkown("testAddress", 777, 888);
     }
 
@@ -41,8 +48,11 @@ public class NetworkDiscoveryController implements GuiController {
         environment.deleteObservers();
         environment.addObserver((observable, o) -> {
             System.out.println("NetworkDiscoveryController.discover");
-            unkownListAdapter.clear().addAllUnknown(environment.getUnknownAuthInstances());
+            unkownListAdapter.clear().addAll(environment.getUnknownAuthInstances());
+            knownListAdapter.clear().addAll(environment.getCertificateIds());
+            unkownListAdapter.add(new NetworkEnvironment.UnknownAuthInstance("blaba", 666, 777));
             unkownListAdapter.notifyDataSetChanged();
+            knownListAdapter.notifyDataSetChanged();
         });
 //        environment.deleteObservers();
 //        environment.deleteObservers();

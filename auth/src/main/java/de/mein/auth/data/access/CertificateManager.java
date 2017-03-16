@@ -347,4 +347,11 @@ public class CertificateManager extends FileRelatedManager {
         }
         return socket;
     }
+
+    public Certificate getCertificateByHash(String hash) throws SqlQueriesException {
+        certificateDao.lockRead();
+        Certificate certificate = certificateDao.getCertificateByHash(hash);
+        certificateDao.unlockRead();
+        return certificate;
+    }
 }

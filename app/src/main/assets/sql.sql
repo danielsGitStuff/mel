@@ -26,6 +26,7 @@ CREATE TABLE  "certificate"  (
    certport     INTEGER,
    greeting     TEXT,
    trusted      INTEGER,
+   hash text not null,
   UNIQUE (uuid),
   UNIQUE (certificate)
 );

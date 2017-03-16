@@ -10,6 +10,7 @@ import de.mein.auth.socket.process.reg.MeinRegisterProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.NoTryRunner;
+import de.mein.core.Hash;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -247,12 +248,13 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         start();
     }
 
-    public Certificate getPartnerCertificate() throws SSLPeerUnverifiedException, CertificateEncodingException, SqlQueriesException, ShamefulSelfConnectException {
+    public Certificate getPartnerCertificate() throws IOException, CertificateEncodingException, SqlQueriesException, ShamefulSelfConnectException {
         if (partnerCertificate == null) {
             SSLSocket sslSocket = (SSLSocket) socket;
             java.security.cert.Certificate cert = sslSocket.getSession().getPeerCertificates()[0];
             byte[] certBytes = cert.getEncoded();
-            partnerCertificate = meinAuthService.getCertificateManager().getCertificateByBytes(certBytes);
+            String hash = Hash.sha256(certBytes);
+            partnerCertificate = meinAuthService.getCertificateManager().getCertificateByHash(hash);
             if (partnerCertificate == null) {
                 if (Arrays.equals(meinAuthService.getCertificateManager().getPublicKey().getEncoded(), cert.getPublicKey().getEncoded())) {
                     throw new ShamefulSelfConnectException();

@@ -8,8 +8,10 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.core.serialize.serialize.trace.TraceManager;
+
 import org.junit.Test;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -275,11 +277,15 @@ public class SerrTest {
     }
 
     @Test
-    public void binary() {
+    public void binary() throws JsonDeserializationException {
+        final String source = "bla";
         BinarySerializableEntity binarySerializable = new BinarySerializableEntity();
-        binarySerializable.setBinary(Base64.getEncoder().encode("binarybla".getBytes()));
+        binarySerializable.setBinary(source.getBytes());
         String json = serialize(binarySerializable);
-        assertEquals("{\"$id\":1,\"__type\":\"de.mein.core.serialize.classes.BinarySerializableEntity\",\"binary\":\"WW1sdVlYSjVZbXho\"}", json);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mein.core.serialize.classes.BinarySerializableEntity\",\"binary\":\"Ymxh\"}", json);
+        BinarySerializableEntity deserialized = (BinarySerializableEntity) SerializableEntityDeserializer.deserialize(json);
+        assertEquals(Arrays.toString(binarySerializable.getBinary()), Arrays.toString(deserialized.getBinary()));
+        assertEquals(source, new String(deserialized.getBinary()));
     }
 
 }

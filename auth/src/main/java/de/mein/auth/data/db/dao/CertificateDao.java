@@ -1,8 +1,10 @@
 package de.mein.auth.data.db.dao;
 
 import de.mein.auth.data.db.Certificate;
+import de.mein.core.Hash;
 import de.mein.sql.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,6 +90,7 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         String where = dummy.getCertificate().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(certBytes);
+        // todo for some unknown reason this returns nothing on android
         List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
         if (result.size() == 1)
             return (Certificate) result.get(0);
@@ -103,5 +106,16 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         args.add(certId);
         sqlQueries.execute(sql, args);
         System.out.println("CertificateDao.trustCertificate");
+    }
+
+    public Certificate getCertificateByHash(String hash) throws SqlQueriesException {
+        Certificate dummy = new Certificate();
+        String where = dummy.getHash().k() + "=?";
+        List<Object> args = new ArrayList<>();
+        args.add(hash);
+        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        if (result.size() == 1)
+            return (Certificate) result.get(0);
+        return null;
     }
 }
