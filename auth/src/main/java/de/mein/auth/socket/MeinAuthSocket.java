@@ -15,6 +15,7 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -23,6 +24,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSocket;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -138,6 +140,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         final Integer port = job.getPort();
         final Integer portCert = job.getPortCert();
         final boolean regOnUnknown = job.getRegOnUnknown();
+        System.out.println("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
         DeferredObject result = job.getPromise();
         NoTryRunner runner = new NoTryRunner(e -> {
             result.reject(e);

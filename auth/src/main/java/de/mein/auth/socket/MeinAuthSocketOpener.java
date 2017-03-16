@@ -26,8 +26,8 @@ public class MeinAuthSocketOpener extends MeinRunnable {
     public void run() {
         try {
             serverSocket = meinAuthService.getCertificateManager().createServerSocket();
-            startedPromise.resolve(this);
             serverSocket.bind(new InetSocketAddress(port));
+            startedPromise.resolve(this);
             while (!thread.isInterrupted()) {
                 Socket socket = this.serverSocket.accept();
                 MeinSocket meinSocket = new MeinAuthSocket(meinAuthService, socket);

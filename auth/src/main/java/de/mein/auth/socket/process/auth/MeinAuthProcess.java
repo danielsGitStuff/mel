@@ -154,7 +154,8 @@ public class MeinAuthProcess extends MeinProcess {
         DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
         meinAuthSocket.connectSSL(id, address, port);
         mySecret = UUID.randomUUID().toString();
-        this.partnerCertificate = meinAuthSocket.getPartnerCertificate();
+        if (partnerCertificate == null)
+            this.partnerCertificate = meinAuthSocket.getPartnerCertificate();
         NoTryRunner runner = new NoTryRunner(e -> {
             e.printStackTrace();
             deferred.reject(e);

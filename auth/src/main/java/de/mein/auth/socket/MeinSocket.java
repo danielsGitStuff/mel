@@ -7,6 +7,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinWorker;
 
 import javax.net.SocketFactory;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -170,8 +171,9 @@ public class MeinSocket implements Runnable {
             if (socket == null) {
                 socket = socketFactory.createSocket();
                 socket.connect(new InetSocketAddress(address, port));
-                streams();
             }
+            if (in == null || out == null)
+                streams();
             SocketWorker socketWorker = new SocketWorker(this, listener);
             socketWorker.start();
             while (!Thread.currentThread().isInterrupted()) {
