@@ -1,6 +1,7 @@
 package de.mein.auth.data;
 
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.sql.RWLock;
 
 import java.util.*;
 
@@ -16,7 +17,11 @@ public class NetworkEnvironment extends Observable {
     private Map<Long, List<ServiceJoinServiceType>> certificateServicesMap = new HashMap<>();
     private Map<ServiceJoinServiceType, Long> serviceCertificateMap = new HashMap<>();
     private List<UnknownAuthInstance> unknownAuthInstances = new ArrayList<>();
-
+    private RWLock unknownInstancesLock = new RWLock();
+    public interface NetworkEnvironmentListener{
+        void onUnknownFound(UnknownAuthInstance unknownAuthInstance);
+        void onKownFound();
+    }
     public static class UnknownAuthInstance {
         private final int portCert;
         private final int port;
@@ -92,7 +97,9 @@ public class NetworkEnvironment extends Observable {
     }
 
     public NetworkEnvironment addUnkown(String address, int port, int portCert) {
+        unknownInstancesLock.lockWrite();
         unknownAuthInstances.add(new UnknownAuthInstance(address, port, portCert));
+        unknownInstancesLock.unlockWrite();
         setChanged();
         notifyObservers();
         return this;

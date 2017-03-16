@@ -42,6 +42,7 @@
                     android:layout_height="wrap_content"></ListView>
 
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -87,6 +88,12 @@
             android:layout_height="wrap_content"
             android:hint="Cert Delivery Port"
             android:inputType="number" />
+
+        <Button
+            android:id="@+id/btnConnect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Connect"/>
     </LinearLayout>
 
 </RelativeLayout>
