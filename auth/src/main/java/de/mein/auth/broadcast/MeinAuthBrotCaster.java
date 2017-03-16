@@ -123,7 +123,7 @@ public class MeinAuthBrotCaster extends BrotCaster {
     @Override
     protected void handleMessage(DatagramPacket packet, byte[] buf) {
         String brotCast = new String(buf);
-        System.out.println(meinAuthService.getName() + ".MeinAuthBrotCaster.handleMessage.msg: " + brotCast);
+        System.out.println(meinAuthService.getName() + ".MeinAuthBrotCaster.handleMessage.msg: '" + brotCast+"' from address "+packet.getAddress().getHostName());
         try {
             if (!handleDiscover(packet))
                 if (!handleDiscoverAnswer(packet))

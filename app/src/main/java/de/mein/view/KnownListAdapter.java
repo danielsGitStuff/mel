@@ -39,6 +39,10 @@ public class KnownListAdapter extends MeinListAdapter<Long> {
         return this;
     }
 
+    public Certificate getCertificate(long id){
+        return map.get(id);
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Certificate certificate = map.get(items.get(position));
