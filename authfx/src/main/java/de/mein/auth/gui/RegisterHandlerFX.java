@@ -115,6 +115,11 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
 
     }
 
+    @Override
+    public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+    }
+
     public void setStage(Stage stage) {
         this.stage = stage;
     }

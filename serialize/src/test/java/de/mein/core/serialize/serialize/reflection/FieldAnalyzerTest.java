@@ -49,6 +49,7 @@ public class FieldAnalyzerTest {
         assertFalse(FieldAnalyzer.isEntitySerializable(fPrimitiveCollection));
         assertTrue(FieldAnalyzer.isPrimitiveCollection(fPrimitiveCollection));
         assertFalse(FieldAnalyzer.isEntitySerializableCollection(fPrimitiveCollection));
+        assertFalse(FieldAnalyzer.isPrimitiveCollection(fEntityCollection));
     }
 
     @Test

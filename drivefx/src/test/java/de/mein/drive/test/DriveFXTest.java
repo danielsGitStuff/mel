@@ -3,8 +3,10 @@ package de.mein.drive.test;
 
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
+import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.data.db.ServiceType;
@@ -12,6 +14,7 @@ import de.mein.auth.gui.RegisterHandlerFX;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinStandAloneAuthFX;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
+import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.NoTryRunner;
@@ -56,7 +59,7 @@ public class DriveFXTest {
 
     @Test
     public void startEmptyClient() throws Exception {
-        //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
@@ -65,8 +68,16 @@ public class DriveFXTest {
                 .setBrotcastListenerPort(9966).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("Test Client").setGreeting("greeting2");
         standAloneAuth1 = new MeinStandAloneAuthFX(json1);
-        IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
-            listener.onCertificateAccepted(request, certificate);
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
         };
         RWLock lock = new RWLock();
         standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
@@ -94,8 +105,16 @@ public class DriveFXTest {
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("Test Server").setGreeting("greeting1");
         standAloneAuth1 = new MeinStandAloneAuthFX(json1);
-        IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
-            listener.onCertificateAccepted(request, certificate);
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
         };
         RWLock lock = new RWLock();
         standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
@@ -152,8 +171,8 @@ public class DriveFXTest {
     @Test
     public void startBoth() throws Exception, SqlQueriesException {
 //        inject(true);
-        //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
-        //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth2;
@@ -167,8 +186,17 @@ public class DriveFXTest {
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
         standAloneAuth1 = new MeinStandAloneAuthFX(json1);
         standAloneAuth2 = new MeinStandAloneAuthFX(json2);
-        IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
-            listener.onCertificateAccepted(request, certificate);
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
         };
 
 
@@ -233,8 +261,16 @@ public class DriveFXTest {
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
         standAloneAuth1 = new MeinStandAloneAuthFX(json1);
         standAloneAuth2 = new MeinStandAloneAuthFX(json2);
-        IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
-            listener.onCertificateAccepted(request, certificate);
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
         };
 
 
@@ -307,8 +343,17 @@ public class DriveFXTest {
         standAloneAuth1 = new MeinStandAloneAuthFX(json1);
         standAloneAuth2 = new MeinStandAloneAuthFX(json2);
         // we want accept all registration attempts automatically
-        IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
-            listener.onCertificateAccepted(request, certificate);
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
         };
         standAloneAuth1.addRegisterHandler(allowRegisterHandler);
         standAloneAuth2.addRegisterHandler(allowRegisterHandler);

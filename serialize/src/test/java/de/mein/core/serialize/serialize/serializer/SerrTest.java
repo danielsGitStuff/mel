@@ -268,10 +268,10 @@ public class SerrTest {
         System.out.println(json);
         SimpleMapTest des = (SimpleMapTest) SerializableEntityDeserializer.deserialize(json);
         System.out.println("SerrTest.mapTestPrimitive");
-        assertEquals("one",des.map.get(1));
-        assertEquals("two",des.map.get(2));
-        assertEquals((Integer) 3,(Integer) des.inverse.get("three"));
-        assertEquals((Integer) 4,(Integer) des.inverse.get("four"));
+        assertEquals("one", des.map.get(1));
+        assertEquals("two", des.map.get(2));
+        assertEquals((Integer) 3, (Integer) des.inverse.get("three"));
+        assertEquals((Integer) 4, (Integer) des.inverse.get("four"));
     }
 
     @Test

@@ -21,16 +21,16 @@
                 <Label text="Manual Input" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                 <VBox maxWidth="1.7976931348623157E308" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
                     <Label text="Address" />
-                    <TextField fx:id="txtAddress" text="127.0.0.1" />
+                    <TextField fx:id="txtAddress" text="192.168.43.1" />
                 </VBox>
                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="3">
                     <VBox maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
                         <Label text="Port" />
-                        <TextField fx:id="txtPort" text="8890" />
+                        <TextField fx:id="txtPort" text="8888" />
                     </VBox>
                     <VBox maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
                         <Label text="Certificate Delivery Port" />
-                        <TextField fx:id="txtCertDeliveryPort" text="8891"/>
+                        <TextField fx:id="txtCertDeliveryPort" text="8889"/>
                     </VBox>
                 </HBox>
                 <Button fx:id="btnRegister" maxWidth="1.7976931348623157E308" text="Register" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" />

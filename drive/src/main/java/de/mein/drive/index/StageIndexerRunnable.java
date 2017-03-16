@@ -1,5 +1,6 @@
 package de.mein.drive.index;
 
+import de.mein.core.Hash;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;

@@ -1,5 +1,6 @@
 package de.mein.drive.index;
 
+import de.mein.core.Hash;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.SyncHandler;
