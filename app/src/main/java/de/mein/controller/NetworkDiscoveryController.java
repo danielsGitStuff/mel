@@ -4,11 +4,15 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.annimon.stream.Stream;
+
 import de.mein.android.AndroidService;
 import de.mein.auth.data.NetworkEnvironment;
+import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.view.KnownListAdapter;
+import de.mein.auth.tools.NoTryRunner;
+import de.mein.view.KnownCertListAdapter;
 import de.mein.view.UnknownAuthListAdapter;
 import mein.de.meindrive.R;
 
@@ -20,7 +24,7 @@ public class NetworkDiscoveryController implements GuiController {
     private final MeinAuthService meinAuthService;
     private final View rootView;
     private final NetworkEnvironment environment;
-    private final KnownListAdapter knownListAdapter;
+    private final KnownCertListAdapter knownCertListAdapter;
     private ListView listKnown, listUnkown;
     private UnknownAuthListAdapter unkownListAdapter;
     private final EditText txtAddress, txtPort, txtDeliveryPort;
@@ -43,11 +47,11 @@ public class NetworkDiscoveryController implements GuiController {
             txtPort.setText(Integer.toString(unknown.getPort()));
             txtDeliveryPort.setText(Integer.toString(unknown.getPortCert()));
         });
-        knownListAdapter = new KnownListAdapter(rootView.getContext(), meinAuthService.getCertificateManager());
-        listKnown.setAdapter(knownListAdapter);
+        knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
+        listKnown.setAdapter(knownCertListAdapter);
         listKnown.setOnItemClickListener((parent, view, position, id) -> {
             System.out.println("NetworkDiscoveryController.NetworkDiscoveryController");
-            Certificate c = knownListAdapter.getCertificate(knownListAdapter.getItemT(position));
+            Certificate c = knownCertListAdapter.getItemT(position);
             txtAddress.setText(c.getAddress().v());
             txtPort.setText(c.getPort().v());
             txtDeliveryPort.setText(c.getCertDeliveryPort().v());
@@ -58,14 +62,21 @@ public class NetworkDiscoveryController implements GuiController {
 
 
     private void discover() {
+        CertificateManager certificateManager = meinAuthService.getCertificateManager();
         environment.deleteObservers();
         environment.deleteObservers();
         environment.addObserver((observable, o) -> {
             System.out.println("NetworkDiscoveryController.discover");
             unkownListAdapter.clear().addAll(environment.getUnknownAuthInstances());
-            knownListAdapter.clear().addAll(environment.getCertificateIds());
+            knownCertListAdapter.clear();
+            Stream.of(environment.getCertificateIds()).forEach(certId -> {
+                NoTryRunner.run(() -> {
+                    Certificate c = certificateManager.getCertificateById(certId);
+                    knownCertListAdapter.add(c);
+                });
+            });
             unkownListAdapter.notifyDataSetChanged();
-            knownListAdapter.notifyDataSetChanged();
+            knownCertListAdapter.notifyDataSetChanged();
         });
 //        environment.deleteObservers();
 //        environment.deleteObservers();

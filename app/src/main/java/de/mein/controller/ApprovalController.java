@@ -1,22 +1,22 @@
 package de.mein.controller;
 
 import android.view.View;
-import android.widget.CheckBox;
-import android.widget.LinearLayout;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
+import android.widget.ListView;
+
+import com.annimon.stream.Stream;
 
 import java.util.List;
+import java.util.Map;
 
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.db.Approval;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.SqlQueriesException;
 import de.mein.android.AndroidService;
+import de.mein.view.KnownCertListAdapter;
+import de.mein.view.ApprovalCBListAdapter;
 import mein.de.meindrive.R;
 
 /**
@@ -25,86 +25,109 @@ import mein.de.meindrive.R;
 
 public class ApprovalController implements GuiController {
     private final View rootView;
-    private final TableLayout table;
     private final MeinAuthService meinAuthService;
-    private ApprovalMatrix approvalMatrix;
+    private final ListView listCertificates, listServices;
+    private final KnownCertListAdapter knownCertListAdapter;
+    private final ApprovalCBListAdapter serviceAdapter;
+    private ApprovalMatrix matrix;
+    private Long selectedCertId;
 
     public ApprovalController(MeinAuthService meinAuthService, View rootView) throws SqlQueriesException {
         this.rootView = rootView;
-        this.table = (TableLayout) rootView.findViewById(R.id.matrix);
+        this.listCertificates = (ListView) rootView.findViewById(R.id.listCertificates);
+        this.listServices = (ListView) rootView.findViewById(R.id.listServices);
         this.meinAuthService = meinAuthService;
+        this.knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
+        this.serviceAdapter = new ApprovalCBListAdapter(rootView.getContext());
+        listCertificates.setAdapter(knownCertListAdapter);
+        listServices.setAdapter(serviceAdapter);
         System.out.println("ApprovalController.ApprovalController");
         fillContent();
     }
 
     private void fillContent() throws SqlQueriesException {
         if (meinAuthService != null) {
-            table.removeAllViews();
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
             List<Certificate> certificates = meinAuthService.getCertificateManager().getCertificates();
             List<Approval> approvals = meinAuthService.getDatabaseManager().getAllApprovals();
-            approvalMatrix = new ApprovalMatrix();
-            approvalMatrix.fill(certificates, services, approvals);
+            matrix = new ApprovalMatrix();
+            matrix.fill(certificates, services, approvals);
 
-            // header goes here
-            TableRow header = new TableRow(rootView.getContext());
-            TextView lblServices = new TextView(rootView.getContext());
-            lblServices.setText("Service");
-            header.addView(lblServices);
+            //insert some test data here
+            Certificate c = new Certificate()
+                    .setAddress("c address")
+                    .setAnswerUuid("c answer uuid")
+                    .setUuid("c uuid")
+                    .setCertDeliveryPort(8889)
+                    .setPort(8888)
+                    .setTrusted(true)
+                    .setId(1L)
+                    .setName("c name");
+            certificates.add(c);
+
+            ServiceJoinServiceType service = new ServiceJoinServiceType();
+            service.getName().v("s1 name");
+            service.getDescription().v("s1 desc");
+            service.getType().v("s1 type");
+            service.getServiceId().v(1L);
+            service.getUuid().v("s1 uuid");
+
+            services.add(service);
+            matrix.approve(c.getId().v(), service.getServiceId().v());
+
+            service = new ServiceJoinServiceType();
+            service.getName().v("s2 name");
+            service.getDescription().v("s2 desc");
+            service.getType().v("s2 type");
+            service.getServiceId().v(2L);
+            service.getUuid().v("s2 uuid");
+
+            services.add(service);
+            matrix.disapprove(c.getId().v(), service.getServiceId().v());
+            // end test data
+
+            matrix.getMatrix();
+            knownCertListAdapter.clear();
+            serviceAdapter.clear();
             for (Certificate certificate : certificates) {
-                TextView lblCertName = new TextView(rootView.getContext());
-                lblCertName.setText(certificate.getName().v());
-                header.addView(lblCertName);
-            }
-            table.addView(header);
+                knownCertListAdapter.add(certificate);
+                Stream.of(services).forEach(serviceJoinServiceType -> {
+                    long serviceId = serviceJoinServiceType.getServiceId().v();
+                    Map<Long, Approval> certIdApprovalList = matrix.getMatrix().get(serviceId);
 
-            // iterate over rows/services
-            for (ServiceJoinServiceType service : services) {
-                TextView lbl = new TextView(rootView.getContext());
-                lbl.setText(service.getType().v() + "/" + service.getName().v());
-                TableRow row = new TableRow(rootView.getContext());
-                row.addView(lbl);
-                for (Certificate certificate : certificates) {
-                    CheckBox checkBox = new CheckBox(rootView.getContext());
-                    boolean approved = approvalMatrix.isApproved(certificate.getId().v(), service.getServiceId().v());
-                    checkBox.setChecked(approved);
-                    checkBox.setOnClickListener(view -> {
-                        boolean newApproved = checkBox.isChecked();
-                        if (newApproved)
-                            approvalMatrix.approve(certificate.getId().v(), service.getServiceId().v());
-                        else
-                            approvalMatrix.disapprove(certificate.getId().v(), service.getServiceId().v());
-                    });
-                    row.addView(checkBox);
-                }
-                table.addView(row);
+                });
             }
-            approvalMatrix.getMatrix().forEach((serviceId, longApprovalMap) -> {
-                System.out.println("ApprovalController.fillContent");
+            knownCertListAdapter.notifyDataSetChanged();
+            serviceAdapter.notifyDataSetChanged();
+            listCertificates.setOnItemClickListener((parent, view, position, id) -> {
+                Certificate cert = knownCertListAdapter.getItemT(position);
+                selectedCertId = cert.getId().v();
+                System.out.println("ApprovalController.fillContent.CLICKED: " + cert.getName().v());
+                serviceAdapter.clear();
+                for (ServiceJoinServiceType s : services) {
+                    // check if it is approved
+                    boolean approved = false;
+                    long serviceId = s.getServiceId().v();
+                    if (matrix.getMatrix().containsKey(serviceId)) {
+                        approved = matrix.getMatrix().get(serviceId).get(selectedCertId) != null;
+                    }
+                    serviceAdapter.add(s, approved);
+                }
+                serviceAdapter.notifyDataSetChanged();
             });
         }
-//        if (table != null) {
-//            new ArrayList<TableColumn>(table.getColumns())
-//                    .forEach(tableColumn -> table.getColumns().remove(tableColumn));
-//            TableColumn<ServiceJoinServiceType, String> servicesColumn = new TableColumn<>("Services");
-//            servicesColumn.setStyle("-fx-background-color:rgba(0, 0, 0, 0.05)");
-//            servicesColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getType().v()));
-//            table.getColumns().add(servicesColumn);
-//            for (Certificate certificate : certificates) {
-//                TableColumn<ServiceJoinServiceType, ServiceJoinServiceType> certColumn = new TableColumn<>(certificate.getName().v());
-//                certColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
-//                certColumn.setCellFactory(param -> new CheckCell(certificate, approvalMatrix).setApprovalHandler((certificate1, serviceType, approved) -> {
-//                    if (approved)
-//                        approvalMatrix.approve(certificate1.getId().v(), serviceType.getServiceId().v());
-//                    else
-//                        approvalMatrix.disapprove(certificate1.getId().v(), serviceType.getServiceId().v());
-//                }));
-//                table.getColumns().add(certColumn);
-//            }
-//            table.setItems(FXCollections.observableArrayList(services));
-//        }
-    }
+        listServices.setOnItemClickListener((parent, view, position, id) -> {
+            System.out.println("ApprovalController.fillContent.CLICKED:S");
+            ServiceJoinServiceType service = serviceAdapter.getItemT(position);
+            Long serviceId = service.getServiceId().v();
+            if (serviceAdapter.isApproved(serviceId)) {
+                matrix.approve(selectedCertId, serviceId);
+            } else {
+                matrix.disapprove(selectedCertId, serviceId);
+            }
+        });
 
+    }
 
     @Override
     public void onMeinAuthStarted(MeinAuthService androidService) {

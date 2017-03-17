@@ -21,17 +21,44 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="23dp"
         android:orientation="vertical">
 
-
         <TableLayout
-            android:id="@+id/matrix"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Known Certificates" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Available Services \n(on this device)" />
+            </TableRow>
+
+            <TableRow>
+
+                <ListView
+                    android:id="@+id/listCertificates"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:choiceMode="singleChoice" />
+
+                <ListView
+                    android:id="@+id/listServices"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
 
 
+            </TableRow>
         </TableLayout>
+
     </LinearLayout>
 
 

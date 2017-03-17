@@ -3,6 +3,7 @@ package de.mein.auth.data;
 import de.mein.auth.data.db.Approval;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+
 import java.util.*;
 
 /**
@@ -15,10 +16,10 @@ public class ApprovalMatrix {
 //    private ObservableList<ApprovalMatrix.ApprovalMatrixRow> approvals = FXCollections.observableArrayList();
     //ObservableMap<Integer,A>
 
-    public ApprovalMatrix fill(List<Certificate> certificates,List<ServiceJoinServiceType> services, List<Approval> approvals) {
+    public ApprovalMatrix fill(List<Certificate> certificates, List<ServiceJoinServiceType> services, List<Approval> approvals) {
 //        this.approvals = FXCollections.observableArrayList();
-        for (ServiceJoinServiceType service:services){
-            matrix.put(service.getServiceId().v(),new HashMap<>());
+        for (ServiceJoinServiceType service : services) {
+            matrix.put(service.getServiceId().v(), new HashMap<>());
         }
 
         for (Certificate certificate : certificates) {
@@ -34,8 +35,7 @@ public class ApprovalMatrix {
     }
 
     /**
-     *
-     * @return (service.ID,(certificate.ID,Approval))
+     * @return (service.ID,(certificate.ID, Approval))
      */
     public Map<Long, Map<Long, Approval>> getMatrix() {
         return matrix;
@@ -46,6 +46,8 @@ public class ApprovalMatrix {
 //    }
 
     public ApprovalMatrix approve(Long certificateId, Long serviceId) {
+        if (!matrix.containsKey(certificateId))
+            matrix.put(certificateId, new HashMap<>());
         matrix.get(certificateId).put(serviceId, new Approval().setCertificateId(certificateId).setServiceid(serviceId));
         return this;
     }

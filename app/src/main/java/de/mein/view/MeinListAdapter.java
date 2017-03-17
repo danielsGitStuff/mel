@@ -4,9 +4,12 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
 
+import com.annimon.stream.Stream;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import de.mein.auth.data.NetworkEnvironment;
 
@@ -55,4 +58,6 @@ public abstract class MeinListAdapter<T> extends BaseAdapter {
         items.add(t);
         return this;
     }
+
+
 }
