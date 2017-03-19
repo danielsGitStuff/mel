@@ -15,51 +15,58 @@
 
     <!--tools:context="de.mein.android.MainActivity"-->
 
-    <LinearLayout
+    <Button
+        android:id="@+id/btnApply"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Apply" />
+
+    <LinearLayout
+        android:id="@+id/ll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:orientation="vertical">
+        android:layout_above="@id/btnApply"
+        android:orientation="horizontal">
 
-        <TableLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <TableRow>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Known Certificates\n" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Known Certificates" />
+            <ListView
+                android:id="@+id/listCertificates"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:choiceMode="singleChoice" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Available Services \n(on this device)" />
-            </TableRow>
+        </LinearLayout>
 
-            <TableRow>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-                <ListView
-                    android:id="@+id/listCertificates"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:choiceMode="singleChoice" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Available Services \n(on this device)" />
 
-                <ListView
-                    android:id="@+id/listServices"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+            <ListView
+                android:id="@+id/listServices"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
 
-
-            </TableRow>
-        </TableLayout>
 
     </LinearLayout>
-
 
 </RelativeLayout>

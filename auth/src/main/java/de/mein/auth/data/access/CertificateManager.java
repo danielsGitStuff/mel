@@ -3,7 +3,6 @@ package de.mein.auth.data.access;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.tools.Cryptor;
-import de.mein.core.Hash;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
 
@@ -275,12 +274,17 @@ public class CertificateManager extends FileRelatedManager {
         return Cryptor.decrypt(privateKey, encrypted);
     }
 
-    public Certificate getCertificateByUuid(String uuid) throws SqlQueriesException {
-        return certificateDao.getCertificateByUuid(uuid);
+    public Certificate getTrustedCertificateByUuid(String uuid) throws SqlQueriesException {
+        return certificateDao.getTrustedCertificateByUuid(uuid);
+    }
+
+    public Certificate getTrustedCertificateById(Long id) throws SqlQueriesException {
+        return certificateDao.getTrustedCertificateById(id);
     }
 
     public Certificate getCertificateById(Long id) throws SqlQueriesException {
         return certificateDao.getCertificateById(id);
+
     }
 
     public void updateCertificate(Certificate certificate) throws SqlQueriesException {
@@ -293,7 +297,7 @@ public class CertificateManager extends FileRelatedManager {
 
     public Certificate addAnswerUuid(Long certId, String ownUuid) throws SqlQueriesException {
         certificateDao.lockWrite();
-        Certificate partnerCertificate = certificateDao.getCertificateById(certId);
+        Certificate partnerCertificate = certificateDao.getTrustedCertificateById(certId);
         partnerCertificate.setAnswerUuid(ownUuid);
         certificateDao.updateCertificate(partnerCertificate);
         certificateDao.unlockWrite();
@@ -348,10 +352,12 @@ public class CertificateManager extends FileRelatedManager {
         return socket;
     }
 
-    public Certificate getCertificateByHash(String hash) throws SqlQueriesException {
+    public Certificate getTrustedCertificateByHash(String hash) throws SqlQueriesException {
         certificateDao.lockRead();
-        Certificate certificate = certificateDao.getCertificateByHash(hash);
+        Certificate certificate = certificateDao.getTrustedCertificateByHash(hash);
         certificateDao.unlockRead();
         return certificate;
     }
+
+
 }

@@ -2,6 +2,7 @@ package de.mein.auth.service;
 
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

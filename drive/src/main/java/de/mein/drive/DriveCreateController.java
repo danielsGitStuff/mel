@@ -63,7 +63,7 @@ public class DriveCreateController {
     public Promise<MeinDriveClientService, Exception, Void> createDriveClientService(String name, String path, Long certId, String serviceUuid) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
         meinAuthService.getDatabaseManager().lockWrite();
         DeferredObject<MeinDriveClientService, Exception, Void> deferred = new DeferredObject<>();
-        Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
+        Certificate certificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         //create Service
         RootDirectory rootDirectory = buildRootDirectory(path);
         Service service = createService(name);

@@ -1,9 +1,13 @@
 *.iml
 .gradle
 /local.properties
-/.idea/workspace.xml
-/.idea/libraries
 .DS_Store
 /build
-/captures
-.externalNativeBuild
+.idea/
+/drivefx/meinauth.workingdir.1
+/drivefx/target
+/authfx/target
+/auth/target
+/sql/target
+/projectFilesBackup
+settings.gradle

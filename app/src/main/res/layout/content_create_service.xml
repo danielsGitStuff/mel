@@ -13,29 +13,27 @@
     tools:context="de.mein.android.MainActivity">
     <!--tools:showIn="@layout/app_bar_main"-->
 
-    <LinearLayout
+    <Spinner
+        android:id="@+id/spin_bootloaders"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true" />
 
-        <Spinner
-            android:id="@+id/spin_bootloaders"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+    <LinearLayout
+        android:id="@+id/embedded"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/spin_bootloaders"
+        android:orientation="vertical" />
 
-        <LinearLayout
-            android:id="@+id/embedded"
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/btnCreate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Create"
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/btnCreate"
-            android:text="Create" />
-
-    </LinearLayout>
+        />
 
 
 </RelativeLayout>

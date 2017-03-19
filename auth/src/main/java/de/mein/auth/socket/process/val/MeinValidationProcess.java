@@ -25,7 +25,7 @@ public class MeinValidationProcess extends MeinProcess {
         this.meinAuthSocket = meinAuthSocket;
         this.connectedId = partnercertificate.getId().v();
         try {
-            this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getCertificateById(connectedId);
+            this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateById(connectedId);
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         }

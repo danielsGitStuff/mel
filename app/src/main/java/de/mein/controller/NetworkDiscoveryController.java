@@ -71,7 +71,7 @@ public class NetworkDiscoveryController implements GuiController {
             knownCertListAdapter.clear();
             Stream.of(environment.getCertificateIds()).forEach(certId -> {
                 NoTryRunner.run(() -> {
-                    Certificate c = certificateManager.getCertificateById(certId);
+                    Certificate c = certificateManager.getTrustedCertificateById(certId);
                     knownCertListAdapter.add(c);
                 });
             });
@@ -89,7 +89,7 @@ public class NetworkDiscoveryController implements GuiController {
 //            for (Long certId : environment.getCertificateIds()) {
 //                try {
 //                    System.out.println("NetworkDiscoveryController.discover");
-//                    Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
+//                    Certificate certificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
 //                    listKnown.getItems().add(certificate);
 //                } catch (Exception e) {
 //                    e.printStackTrace();

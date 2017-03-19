@@ -45,23 +45,28 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         sqlQueries.update(certificate, certificate.getId().k() + "=?", whereArgs);
     }
 
-    public Certificate getCertificateByUuid(String uuid) throws SqlQueriesException {
+    public Certificate getTrustedCertificateByUuid(String uuid) throws SqlQueriesException {
         Certificate dummy = new Certificate();
-        String where = dummy.getUuid().k() + "=?";
-        List<Object> args = new ArrayList<>();
-        args.add(uuid);
-        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        String where = dummy.getUuid().k() + "=? and " + dummy.getTrusted().k() + "=?";
+        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(uuid, true));
         return (Certificate) result.get(0);
+    }
+
+    public Certificate getTrustedCertificateById(Long id) throws SqlQueriesException {
+        Certificate dummy = new Certificate();
+        String where = dummy.getId().k() + "=? and " + dummy.getTrusted().k() + "=?";
+        List<Certificate> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(id, true));
+        if (result.size() == 1)
+            return result.get(0);
+        return null;
     }
 
     public Certificate getCertificateById(Long id) throws SqlQueriesException {
         Certificate dummy = new Certificate();
         String where = dummy.getId().k() + "=?";
-        List<Object> args = new ArrayList<>();
-        args.add(id);
-        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        List<Certificate> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(id));
         if (result.size() == 1)
-            return (Certificate) result.get(0);
+            return result.get(0);
         return null;
     }
 
@@ -108,14 +113,14 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         System.out.println("CertificateDao.trustCertificate");
     }
 
-    public Certificate getCertificateByHash(String hash) throws SqlQueriesException {
+    public Certificate getTrustedCertificateByHash(String hash) throws SqlQueriesException {
         Certificate dummy = new Certificate();
-        String where = dummy.getHash().k() + "=?";
-        List<Object> args = new ArrayList<>();
-        args.add(hash);
-        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        String where = dummy.getHash().k() + "=? and " + dummy.getTrusted().k() + "=?";
+        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(hash, true));
         if (result.size() == 1)
             return (Certificate) result.get(0);
         return null;
     }
+
+
 }

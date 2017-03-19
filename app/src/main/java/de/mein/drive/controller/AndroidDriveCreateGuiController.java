@@ -1,24 +1,19 @@
 package de.mein.drive.controller;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
-import android.widget.TabHost;
-import android.widget.TableRow;
+import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 
 import java.io.File;
 
 import de.mein.AndroidServiceCreatorGuiController;
+import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.view.KnownCertListAdapter;
 import mein.de.meindrive.R;
 
 /**
@@ -31,7 +26,8 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
     private EditText txtName, txtPath;
     private RadioButton rdServer, rdClient;
     private ListView listMeinAuths, listDrives;
-    private TabHost tabHost;
+    private RelativeLayout lDriveChooser;
+    private KnownCertListAdapter knownCertListAdapter;
 
     public AndroidDriveCreateGuiController(MeinAuthService meinAuthService, Activity activity, View rootView) {
         super(activity, rootView);
@@ -46,15 +42,31 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
         rdClient = (RadioButton) rootView.findViewById(R.id.rdClient);
         listMeinAuths = (ListView) rootView.findViewById(R.id.listMeinAuths);
         listDrives = (ListView) rootView.findViewById(R.id.listDrives);
-        tabHost = (TabHost) rootView.findViewById(R.id.tabHost);
+        lDriveChooser = (RelativeLayout) rootView.findViewById(R.id.lDriveChooser);
+        RadioGroup radioGroup = (RadioGroup) rootView.findViewById(R.id.rdgClient);
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> checkRadioButtons());
         checkRadioButtons();
+        knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
+        listMeinAuths.setOnItemClickListener((parent, view, position, id) -> {
+            System.out.println("AndroidDriveCreateGuiController.init.CLICKED");
+        });
     }
 
     private void checkRadioButtons() {
         if (rdServer.isChecked()) {
-            tabHost.setVisibility(View.INVISIBLE);
+            lDriveChooser.setVisibility(View.INVISIBLE);
         } else {
-            tabHost.setVisibility(View.VISIBLE);
+            lDriveChooser.setVisibility(View.VISIBLE);
+            try {
+                for (Long certId : meinAuthService.getConnectedUserIds()) {
+                    Certificate cert = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
+                    knownCertListAdapter.add(cert);
+                }
+                knownCertListAdapter.notifyDataSetChanged();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
     }
 

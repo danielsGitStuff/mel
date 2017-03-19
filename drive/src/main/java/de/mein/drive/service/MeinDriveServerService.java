@@ -124,7 +124,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             /*
             // tell everyone fs has a new version
             for (DriveServerSettingsDetails.ClientData clientData : driveSettings.getServerSettings().getClients()) {
-                Certificate client = meinAuthService.getCertificateManager().getCertificateById(clientData.getCertId());
+                Certificate client = meinAuthService.getCertificateManager().getTrustedCertificateById(clientData.getCertId());
                 Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(client.getId().v(), client.getAddress().v(), client.getPort().v(), client.getCertDeliveryPort().v(), false);
                 promise.done(meinValidationProcess -> runner.runTry(() -> {
                     logger.log(Level.FINEST, "MeinDriveService.workWork.syncThisClient.msg");

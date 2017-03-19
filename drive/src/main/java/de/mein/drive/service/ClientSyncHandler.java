@@ -32,7 +32,7 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     public void syncThisClient() throws SqlQueriesException, InterruptedException {
-        Certificate serverCert = meinAuthService.getCertificateManager().getCertificateById(driveSettings.getClientSettings().getServerCertId());
+        Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(driveSettings.getClientSettings().getServerCertId());
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v(), serverCert.getAddress().v(), serverCert.getPort().v(), serverCert.getCertDeliveryPort().v(), false);
         connected.done(mvp -> runner.runTry(() -> {
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();

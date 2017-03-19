@@ -1,6 +1,7 @@
 package de.mein.controller;
 
 import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.annimon.stream.Stream;
@@ -41,6 +42,14 @@ public class ApprovalController implements GuiController {
         this.serviceAdapter = new ApprovalCBListAdapter(rootView.getContext());
         listCertificates.setAdapter(knownCertListAdapter);
         listServices.setAdapter(serviceAdapter);
+        Button btnApply = (Button) rootView.findViewById(R.id.btnApply);
+        btnApply.setOnClickListener(v -> {
+            try {
+                meinAuthService.getDatabaseManager().saveApprovals(this.matrix);
+            } catch (SqlQueriesException e) {
+                e.printStackTrace();
+            }
+        });
         System.out.println("ApprovalController.ApprovalController");
         fillContent();
     }

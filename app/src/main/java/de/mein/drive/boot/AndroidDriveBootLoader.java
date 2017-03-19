@@ -29,12 +29,12 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
 
     @Override
     public Integer getCreateResource() {
-        return R.layout.create_drive;
+        return R.layout.embedded_create_drive;
     }
 
     @Override
     public Integer getEditResource(IMeinService service) {
-        return R.layout.create_drive;
+        return R.layout.embedded_create_drive;
     }
 
     @Override

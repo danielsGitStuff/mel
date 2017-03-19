@@ -79,7 +79,7 @@ public class MeinAuthProcess extends MeinProcess {
             if (deserialized instanceof MeinRequest) {
                 MeinRequest request = (MeinRequest) deserialized;
                 try {
-                    this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getCertificateByUuid(request.getUserUuid());
+                    this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateByUuid(request.getUserUuid());
                     this.decryptedSecret = meinAuthSocket.getMeinAuthService().getCertificateManager().decrypt(request.getSecret());
                     this.mySecret = UUID.randomUUID().toString();
                     IsolationDetails isolationDetails = null;
@@ -155,14 +155,14 @@ public class MeinAuthProcess extends MeinProcess {
         meinAuthSocket.connectSSL(id, address, port);
         mySecret = UUID.randomUUID().toString();
         if (partnerCertificate == null)
-            this.partnerCertificate = meinAuthSocket.getPartnerCertificate();
+            this.partnerCertificate = meinAuthSocket.getTrustedPartnerCertificate();
         NoTryRunner runner = new NoTryRunner(e -> {
             e.printStackTrace();
             deferred.reject(e);
         });
-        /*this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getCertificateById(id);*/
+        /*this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateById(id);*/
 //        if (partnerCertificate==null){
-//            partnerCertificate = meinAuthSocket.getPartnerCertificate();
+//            partnerCertificate = meinAuthSocket.getTrustedPartnerCertificate();
 //        }
         this.mySecret = UUID.randomUUID().toString();
         byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);

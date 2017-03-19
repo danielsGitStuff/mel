@@ -239,7 +239,7 @@ public class MeinAuthService extends MeinRunnable {
 
 
     public void updateCertAddresses(Long remoteCertId, String address, Integer port, Integer portCert) throws SqlQueriesException {
-        Certificate c = certificateManager.getCertificateById(remoteCertId);
+        Certificate c = certificateManager.getTrustedCertificateById(remoteCertId);
         c.setAddress(address).setCertDeliveryPort(portCert).setPort(port);
         certificateManager.updateCertificate(c);
     }
@@ -263,7 +263,7 @@ public class MeinAuthService extends MeinRunnable {
     }
 
     public <T extends MeinIsolatedProcess> DeferredObject<T, Exception, Void> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
-        Certificate certificate = certificateManager.getCertificateById(certId);
+        Certificate certificate = certificateManager.getTrustedCertificateById(certId);
         if (address == null)
             address = certificate.getAddress().v();
         if (port == null)
@@ -278,7 +278,7 @@ public class MeinAuthService extends MeinRunnable {
     public Promise<MeinValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
-        Certificate certificate = certificateManager.getCertificateById(certificateId);
+        Certificate certificate = certificateManager.getTrustedCertificateById(certificateId);
         // check if already connected via id and address
         if (certificateId != null && (mvp = connectedEnvironment.getValidationProcess(certificateId)) != null) {
             deferred.resolve(mvp);

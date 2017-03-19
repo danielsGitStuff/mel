@@ -22,7 +22,6 @@ import org.jdeferred.impl.DeferredObject;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSocket;
 
 import java.io.IOException;
@@ -243,7 +242,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
 
     public void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         if (certId != null)
-            partnerCertificate = meinAuthService.getCertificateManager().getCertificateById(certId);
+            partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         Socket socket = meinAuthService.getCertificateManager().createSocket();
         socket.connect(new InetSocketAddress(address, port));
         //stop();
@@ -251,13 +250,13 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         start();
     }
 
-    public Certificate getPartnerCertificate() throws IOException, CertificateEncodingException, SqlQueriesException, ShamefulSelfConnectException {
+    public Certificate getTrustedPartnerCertificate() throws IOException, CertificateEncodingException, SqlQueriesException, ShamefulSelfConnectException {
         if (partnerCertificate == null) {
             SSLSocket sslSocket = (SSLSocket) socket;
             java.security.cert.Certificate cert = sslSocket.getSession().getPeerCertificates()[0];
             byte[] certBytes = cert.getEncoded();
             String hash = Hash.sha256(certBytes);
-            partnerCertificate = meinAuthService.getCertificateManager().getCertificateByHash(hash);
+            partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateByHash(hash);
             if (partnerCertificate == null) {
                 if (Arrays.equals(meinAuthService.getCertificateManager().getPublicKey().getEncoded(), cert.getPublicKey().getEncoded())) {
                     throw new ShamefulSelfConnectException();

@@ -17,10 +17,8 @@ import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.index.StageIndexer;
-import de.mein.drive.jobs.FsSyncJob;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
-import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.DirectoriesContentTask;
 import de.mein.drive.watchdog.IndexWatchdogListener;
 import de.mein.sql.SqlQueriesException;
@@ -29,7 +27,6 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -286,7 +283,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     public Promise<List<FsDirectory>, Exception, Void> requestDirectoriesByIds(Set<Long> fsDirIdsToRetrieve, Long certId, String serviceUuid) throws SqlQueriesException, InterruptedException {
         Deferred<List<FsDirectory>, Exception, Void> deferred = new DeferredObject<>();
-        Certificate cert = meinAuthService.getCertificateManager().getCertificateById(certId);
+        Certificate cert = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId, cert.getAddress().v(), cert.getPort().v(), cert.getCertDeliveryPort().v(), false);
         connected.done(meinValidationProcess -> runner.runTry(() -> {
             logger.log(Level.FINEST, "MeinDriveService.requestDirectoriesByIds:::::::::::::::");
