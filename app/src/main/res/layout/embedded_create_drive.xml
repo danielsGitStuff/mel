@@ -118,7 +118,7 @@
             android:text="Known MeinAuths" />
 
         <ListView
-            android:id="@+id/listMeinAuths"
+            android:id="@+id/knownCertList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/lblKnownMA" />
@@ -136,7 +136,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/lblDrives"
-            android:layout_toRightOf="@+id/listMeinAuths" />
+            android:layout_toRightOf="@+id/knownCertList" />
     </RelativeLayout>
 
 </RelativeLayout>

@@ -2,7 +2,10 @@ package de.mein.view;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.TextView;
 
 import com.annimon.stream.Stream;
 
@@ -12,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import de.mein.auth.data.NetworkEnvironment;
+import mein.de.meindrive.R;
 
 /**
  * Created by xor on 3/16/17.
@@ -59,5 +63,12 @@ public abstract class MeinListAdapter<T> extends BaseAdapter {
         return this;
     }
 
-
+    public static View create2LineView(MeinListAdapter adapter, String line1, String line2) {
+        View v = adapter.layoutInflator.inflate(R.layout.line_2_list_item, null);
+        TextView lbl1 = (TextView) v.findViewById(R.id.lbl1);
+        lbl1.setText(line1);
+        TextView lbl2 = (TextView) v.findViewById(R.id.lbl2);
+        lbl2.setText(line2);
+        return v;
+    }
 }

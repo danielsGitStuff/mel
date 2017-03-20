@@ -373,9 +373,7 @@ public class MeinAuthService extends MeinRunnable {
             meinAuthWorker.getBrotCaster().setBrotCasterListener((inetAddress, port, portCert) -> {
                 runner.runTry(() -> {
                     String address = MeinAuthSocket.getAddressString(inetAddress, port);
-                    // if (!checkedAddresses.containsKey(address)) {
                     checkedAddresses.put(address, true);
-                    Object ashhh = InetAddress.getByName("localhost").getHostAddress();
                     Promise<MeinValidationProcess, Exception, Void> promise = this.connect(null, inetAddress.getHostAddress(), port, portCert, false);
                     promise.done(meinValidationProcess -> {
                         runner.runTry(() -> {
@@ -393,7 +391,6 @@ public class MeinAuthService extends MeinRunnable {
                         if (!(result instanceof ShamefulSelfConnectException))
                             networkEnvironment.addUnkown(inetAddress.getHostAddress(), port, portCert);
                     });
-                    //  }
                 });
             });
             meinAuthWorker.getBrotCaster().discover(settings.getBrotcastPort());

@@ -5,7 +5,7 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/lblAddress"
+        android:id="@+id/lbl1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="4dp"
@@ -15,7 +15,7 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
     <TextView
-        android:id="@+id/lblPorts"
+        android:id="@+id/lbl2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="6dp"
