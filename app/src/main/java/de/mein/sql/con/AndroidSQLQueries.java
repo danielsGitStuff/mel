@@ -1,17 +1,22 @@
 package de.mein.sql.con;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import de.mein.auth.boot.BootLoader;
 import de.mein.drive.service.AndroidDBConnection;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.Pair;
+import de.mein.sql.SQLQueries;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 
@@ -37,17 +42,18 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public void update(SQLTableObject sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.update");
+        System.err.println("AndroidSQLQueries.update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        db.update(sqlTableObject.getTableName(), createContentValues(sqlTableObject.getInsertAttributes()), where, argsToStringArgs(whereArgs));
     }
 
     @Override
     public void delete(SQLTableObject sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
-        db.delete(sqlTableObject.getTableName(),where,argsListToArr(whereArgs));
+        db.delete(sqlTableObject.getTableName(), where, argsToStringArgs(whereArgs));
     }
 
     @Override
     public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where, List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException {
-        System.err.println("AndroidSQLQueries.loadResource");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         return null;
     }
 
@@ -60,46 +66,35 @@ public class AndroidSQLQueries extends ISQLQueries {
         return cols;
     }
 
-    private String[] argsListToArr(List<Object> args) {
-        if (args == null)
-            return new String[0];
-        String[] cols = new String[args.size()];
-        for (int i = 0; i < args.size(); i++) {
-            Object o = args.get(i);
-            if (o != null)
-                cols[i] = o.toString();
-        }
-        return cols;
-    }
 
 
     @Override
     public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
-        return load(columns,sqlTableObject,where,whereArgs,null);
+        return load(columns, sqlTableObject, where, whereArgs, null);
     }
 
     @Override
     public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.loadColumn");
+        System.err.println("AndroidSQLQueries.loadColumn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         return null;
     }
 
     @Override
     public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> args, String whatElse) throws SqlQueriesException {
-        String select = buildSelectQuery(columns,sqlTableObject.getTableName());
+        String select = buildSelectQuery(columns, sqlTableObject.getTableName());
         if (where != null) {
             select += " where " + where;
         }
         if (whatElse != null) {
             select += " " + whatElse;
         }
-        return loadString(columns,sqlTableObject,select,args);
+        return loadString(columns, sqlTableObject, select, args);
     }
 
     @Override
     public <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject, String selectString, List<Object> arguments) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.loadString");
-        Cursor cursor = db.rawQuery(selectString,argsListToArr(arguments));
+        System.out.println("AndroidSQLQueries.loadString");
+        Cursor cursor = db.rawQuery(selectString, argsToStringArgs(arguments));
         List<T> result = new ArrayList<>(cursor.getCount());
         try {
             while (cursor.moveToNext()) {
@@ -175,37 +170,13 @@ public class AndroidSQLQueries extends ISQLQueries {
         return null;
     }
 
+
     @Override
-    public List<SQLTableObject> execute(String query, List<Object> whereArgs) throws SqlQueriesException {
+    public void execute(String query, List<Object> args) throws SqlQueriesException {
+        db.execSQL(query, argsToAndroidValues(args));
         System.err.println("AndroidSQLQueries.execute");
-        return null;
     }
 
-    private ContentValues createContentValues(List<Pair<?>> pairs) {
-        ContentValues contentValues = new ContentValues();
-        for (Pair<?> pair : pairs) {
-            if (pair.getGenericClass().equals(Double.class))
-                contentValues.put(pair.k(), (Double) pair.v());
-            else if (pair.getGenericClass().equals(Float.class))
-                contentValues.put(pair.k(), (Float) pair.v());
-            else if (pair.getGenericClass().equals(Integer.class))
-                contentValues.put(pair.k(), (Integer) pair.v());
-            else if (pair.getGenericClass().equals(Short.class))
-                contentValues.put(pair.k(), (Short) pair.v());
-            else if (pair.getGenericClass().equals(Boolean.class))
-                contentValues.put(pair.k(), (Boolean) pair.v());
-            else if (pair.getGenericClass().equals(Long.class))
-                contentValues.put(pair.k(), (Long) pair.v());
-            else if (pair.getGenericClass().equals(byte[].class))
-                contentValues.put(pair.k(), (byte[]) pair.v());
-            else if (pair.getGenericClass().equals(String.class))
-                contentValues.put(pair.k(), (String) pair.v());
-            else {
-                System.err.println("AndroidSQLQueries.createContentValues.UNKOWN TYPE");
-            }
-        }
-        return contentValues;
-    }
 
     @Override
     public Long insert(SQLTableObject sqlTableObject) throws SqlQueriesException {
@@ -216,7 +187,7 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public Long insertWithAttributes(SQLTableObject sqlTableObject, List<Pair<?>> attributes) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.insertWithAttributes");
+        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         return null;
     }
 
@@ -247,13 +218,100 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public <C> C querySingle(String query, List<Object> arguments, Class<C> resultClass) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.querySingle");
+        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
         return null;
     }
 
     @Override
     public <T> List<T> load(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse, Class<T> castClass) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.loadaaaaa");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
         return null;
     }
+
+    private String[] argsToStringArgs(List<Object> whereArgs) {
+        if (whereArgs == null || whereArgs.size() == 0)
+            return null;
+        int pos = 0;
+        String[] result = new String[whereArgs.size()];
+        for (Object o : whereArgs) {
+            if (o == null) {
+                result[pos] = "null";
+            } else {
+                Class c = o.getClass();
+                if (c.equals(Boolean.class))
+                    result[pos] = ((Boolean) o) ? "1" : "0";
+                else
+                    result[pos] = o.toString();
+            }
+            pos++;
+        }
+        return result;
+    }
+
+    /**
+     * See: <br>
+     * https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#execSQL%28java.lang.String%29<br>
+     * "bindArgs : Object: only byte[], String, Long and Double are supported in bindArgs."
+     *
+     * @param args
+     * @return
+     */
+    private Object[] argsToAndroidValues(List<Object> args) {
+        if (args != null) {
+            int pos = 0;
+            Object[] values = new Object[args.size()];
+            for (Object a : args) {
+                if (a != null) {
+                    //type conversion
+                    Class c = a.getClass();
+                    if (c.equals(Long.class) || c.equals(long.class)
+                            || c.equals(Double.class) || c.equals(double.class)
+                            || c.equals(Byte[].class) || c.equals(byte[].class)
+                            || c.equals(String.class))
+                        values[pos] = a;
+                    else if (a.getClass().equals(Boolean.class))
+                        values[pos] = ((Boolean) a) ? 1L : 0L;
+                    else if (a.getClass().equals(Float.class))
+                        values[pos] = (Double) a;
+                    else if (a.getClass().equals(Integer.class))
+                        values[pos] = (Long) a;
+                    else if (a.getClass().equals(Integer.class))
+                        values[pos] = (Short) a;
+                    else {
+                        System.out.println("AndroidSQLQueries.argsToAndroidValues.TYPE:CONVERSION:FAILED:FOR: " + a.getClass().getSimpleName());
+                    }
+                }
+                pos++;
+            }
+            return values;
+        } else
+            return new Object[0];
+    }
+
+    private ContentValues createContentValues(List<Pair<?>> pairs) {
+        ContentValues contentValues = new ContentValues();
+        for (Pair<?> pair : pairs) {
+            if (pair.getGenericClass().equals(Double.class))
+                contentValues.put(pair.k(), (Double) pair.v());
+            else if (pair.getGenericClass().equals(Float.class))
+                contentValues.put(pair.k(), (Float) pair.v());
+            else if (pair.getGenericClass().equals(Integer.class))
+                contentValues.put(pair.k(), (Integer) pair.v());
+            else if (pair.getGenericClass().equals(Short.class))
+                contentValues.put(pair.k(), (Short) pair.v());
+            else if (pair.getGenericClass().equals(Boolean.class))
+                contentValues.put(pair.k(), (Boolean) pair.v());
+            else if (pair.getGenericClass().equals(Long.class))
+                contentValues.put(pair.k(), (Long) pair.v());
+            else if (pair.getGenericClass().equals(byte[].class))
+                contentValues.put(pair.k(), (byte[]) pair.v());
+            else if (pair.getGenericClass().equals(String.class))
+                contentValues.put(pair.k(), (String) pair.v());
+            else {
+                System.err.println("AndroidSQLQueries.createContentValues.UNKOWN TYPE");
+            }
+        }
+        return contentValues;
+    }
+
 }

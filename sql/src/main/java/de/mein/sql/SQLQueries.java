@@ -100,6 +100,14 @@ public class SQLQueries extends ISQLQueries {
         }
     }
 
+
+    private void insertArguments(PreparedStatement pstmt, Object[] whereArgs, int count) throws SQLException {
+        for (Object o : whereArgs) {
+            pstmt.setObject(count, o);
+            count++;
+        }
+    }
+
     private void insertArguments(PreparedStatement pstmt, List<Object> whereArgs) throws SQLException {
         insertArguments(pstmt, whereArgs, 1);
     }
@@ -232,6 +240,7 @@ public class SQLQueries extends ISQLQueries {
             throw new SqlQueriesException(e);
         }
     }
+
     @Override
     public <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject,
                                                          String selectString, List<Object> arguments) throws SqlQueriesException {
@@ -303,7 +312,7 @@ public class SQLQueries extends ISQLQueries {
     }
 
     /**
-     * see loadString... duplicate?
+     * see loadString... duplicate? nope
      *
      * @param query
      * @param whereArgs
@@ -311,34 +320,20 @@ public class SQLQueries extends ISQLQueries {
      * @throws SqlQueriesException
      */
     @Override
-    public List<SQLTableObject> execute(String query, List<Object> whereArgs) throws SqlQueriesException {
+    public void execute(String query, List<Object> whereArgs) throws SqlQueriesException {
         lockRead();
-        Object result = null;
         try {
             PreparedStatement pstmt = connection.prepareStatement(query);
             if (whereArgs != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs, 1);
             }
-            result = pstmt.execute();
-            if ((boolean) result) {
-                ResultSet resultSet = pstmt.getResultSet();
-                resultSet.next();
-                if (resultSet.getRow() > 0) {
-                    String columnName = resultSet.getMetaData().getColumnLabel(1);
-                    result = resultSet.getObject(columnName);
-                    resultSet.close();
-                    pstmt.close();
-                }
-            } else {
-                pstmt.close();
-                return null;
-            }
+            pstmt.execute();
+            pstmt.close();
         } catch (Exception e) {
             throw new SqlQueriesException(e);
         } finally {
             unlockRead();
         }
-        return (List<SQLTableObject>) result;
     }
 
 
@@ -490,9 +485,10 @@ public class SQLQueries extends ISQLQueries {
 
     public static List<Object> whereArgs(Object... values) {
         List<Object> args = new ArrayList<>();
-        for (Object v : values) {
-            args.add(v);
-        }
+        if (values != null)
+            for (Object v : values) {
+                args.add(v);
+            }
         return args;
     }
 

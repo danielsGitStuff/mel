@@ -76,7 +76,7 @@ public abstract class ISQLQueries {
 
     public abstract <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException;
 
-    public abstract List<SQLTableObject> execute(String query, List<Object> whereArgs) throws SqlQueriesException;
+    public abstract void execute(String query, List<Object> whereArgs) throws SqlQueriesException;
 
     public abstract Long insert(SQLTableObject sqlTableObject) throws SqlQueriesException;
 
