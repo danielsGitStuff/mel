@@ -249,6 +249,7 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     /**
+     *
      * See: <br>
      * https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#execSQL%28java.lang.String%29<br>
      * "bindArgs : Object: only byte[], String, Long and Double are supported in bindArgs."

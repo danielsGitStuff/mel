@@ -492,6 +492,7 @@ public class SQLQueries extends ISQLQueries {
         return args;
     }
 
+
     @Override
     public <T> List<T> load(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse, Class<T> castClass) throws SqlQueriesException {
         List<T> result = new ArrayList<>();

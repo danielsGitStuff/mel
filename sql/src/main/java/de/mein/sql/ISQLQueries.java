@@ -65,6 +65,8 @@ public abstract class ISQLQueries {
     public abstract <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where,
                                                                      List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException;
 
+
+
     public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException ;
 
     public abstract <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException;

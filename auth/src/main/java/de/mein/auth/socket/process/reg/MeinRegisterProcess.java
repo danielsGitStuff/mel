@@ -51,7 +51,7 @@ public class MeinRegisterProcess extends MeinProcess {
                     for (IRegisteredHandler handler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()) {
                         handler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), certificate);
                     }
-                    //todo send done, so the other side can connect
+                    //todo send done, so the other side can connect!
                 })
         ).fail(results -> runner.runTry(() -> {
             System.out.println("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
