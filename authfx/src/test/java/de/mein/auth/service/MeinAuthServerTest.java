@@ -2,10 +2,12 @@ package de.mein.auth.service;
 
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceType;
-import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
+import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.sql.RWLock;
@@ -18,8 +20,16 @@ import org.junit.Test;
 public class MeinAuthServerTest {
     RWLock lock;
     NoTryRunner runner;
-    private IRegisterHandler allowRegisterHandler = (listener, request, myCertificate, certificate) -> {
-        listener.onCertificateAccepted(request, certificate);
+    private IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+        @Override
+        public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+            listener.onCertificateAccepted(request, certificate);
+        }
+
+        @Override
+        public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+        }
     };
 
 
@@ -101,7 +111,7 @@ public class MeinAuthServerTest {
         init();
         IDBCreatedListener admin = databaseManager -> {
             ServiceType serviceType = databaseManager.createServiceType("test type", "test type desc");
-            databaseManager.createService(serviceType.getId().v(),"service name");
+            databaseManager.createService(serviceType.getId().v(), "service name");
         };
 //        standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
 //        standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
@@ -117,7 +127,7 @@ public class MeinAuthServerTest {
                 boot2.boot(standAloneAuth2).done(result1 -> {
                     System.out.println("MeinAuthServerTest.gui.2.booted");
                     runner.run(() -> {
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889,true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
                             runner.run(() -> {
                                 System.out.println("MeinAuthServerTest.gui.booted");
@@ -147,13 +157,22 @@ public class MeinAuthServerTest {
     public void rejectRegistration() throws Exception, SqlQueriesException {
         init();
         lock.lockWrite();
-        standAloneAuth1.addRegisterHandler((listener, request, myCertificate, certificate)
-                -> listener.onCertificateRejected(request, certificate));
+        standAloneAuth1.addRegisterHandler(new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateRejected(request, certificate);
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
+        });
         standAloneAuth2.addRegisterHandler(allowRegisterHandler);
         standAloneAuth1.boot().done(result -> {
             standAloneAuth2.boot().done(result1 -> {
                 runner.run(() -> {
-                    Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889,true);
+                    Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                     connectPromise.done(integer -> {
                         System.out.println("MeinAuthServerTest.rejectRegistration.registered");
                         lock.unlockWrite();
