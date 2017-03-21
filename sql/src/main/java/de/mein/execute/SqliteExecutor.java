@@ -11,6 +11,7 @@ import java.sql.Statement;
 import java.util.Scanner;
 
 import de.mein.core.serialize.serialize.tools.StringBuilder;
+import de.mein.sql.ISQLQueries;
 import de.mein.sql.SQLStatement;
 import de.mein.sql.con.SQLConnection;
 
@@ -22,6 +23,7 @@ public class SqliteExecutor {
     private SQLConnection connection;
     private String statement;
     private static SqliteExecutorInjection injectedImpl;
+
 
     public static void setExecutorImpl(SqliteExecutorInjection injectedImpl) {
         SqliteExecutor.injectedImpl = injectedImpl;
@@ -119,20 +121,18 @@ public class SqliteExecutor {
         return true;
     }
 
-    public boolean checkTableExists(String dbName) {
+    public boolean checkTableExists(String tableName) {
         try {
-            String query = "select * from " + dbName;
-            connection.prepareStatement(query).execute();
-            return true;
-//            ResultSet resultSet = connection.getMetaData().getTables(null, null, "%", null);
-//            //connection.getMetaData().getCatalogs();
-//            while (resultSet.next()) {
-//                String databaseName = resultSet.getString(3);
-//                if (databaseName.equals(dbName)) {
-//                    return true;
-//                }
-//            }
-//            resultSet.close();
+            if (injectedImpl != null) {
+                if (injectedImpl.checkTableExists(connection, tableName))
+                    return true;
+                else
+                    System.err.println("SqliteExecutor.checkTableExists(" + tableName + ")=false :(");
+            } else {
+                String query = "select * from " + tableName;
+                connection.prepareStatement(query).execute();
+                return true;
+            }
         } catch (Exception e) {
             System.out.println("SqliteExecutor.checkTableExists.false");
         }

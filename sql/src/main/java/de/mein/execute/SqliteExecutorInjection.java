@@ -10,4 +10,5 @@ import de.mein.sql.con.SQLConnection;
 
 public interface SqliteExecutorInjection {
     void executeStream(SQLConnection connection, InputStream in);
+    boolean checkTableExists(SQLConnection connection, String tableName);
 }

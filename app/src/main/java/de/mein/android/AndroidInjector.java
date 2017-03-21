@@ -16,8 +16,10 @@ import de.mein.drive.DriveInjector;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.AndroidDBConnection;
 import de.mein.drive.watchdog.AndroidWatchdogListener;
+import de.mein.execute.SqliteExecutorInjection;
 import de.mein.sql.SQLStatement;
 import de.mein.sql.con.AndroidSQLQueries;
+import de.mein.sql.con.SQLConnection;
 
 /**
  * Created by xor on 3/8/17.
@@ -30,15 +32,27 @@ public class AndroidInjector {
     public static void inject(Context context, AssetManager assetManager) throws IOException {
         InputStream sqlInput = assetManager.open("sql.sql");
         InputStream driveSqlInput = assetManager.open("drive.sql");
-        MeinInjector.setExecutorImpl((connection, in) -> NoTryRunner.run(() -> {
-            Scanner scanner = new Scanner(in, "UTF-8").useDelimiter(";");
-            while (scanner.hasNext()) {
-                String sql = scanner.next();
-                System.out.println("SqliteExecutor.executeStream: " + sql);
-                SQLStatement stmt = connection.prepareStatement(sql);
-                stmt.execute();
+        MeinInjector.setExecutorImpl(new SqliteExecutorInjection() {
+            @Override
+            public void executeStream(SQLConnection con, InputStream in) {
+                NoTryRunner.run(() -> {
+                    SQLiteDatabase db = ((AndroidDBConnection) con).getDb();
+                    Scanner scanner = new Scanner(in, "UTF-8").useDelimiter(";");
+                    while (scanner.hasNext()) {
+                        String sql = scanner.next();
+                        System.out.println("SqliteExecutor.executeStream: " + sql);
+                        db.execSQL(sql);
+                    }
+                });
             }
-        }));
+
+            @Override
+            public boolean checkTableExists(SQLConnection connection, String tableName) {
+                SQLiteDatabase db = ((AndroidDBConnection) connection).getDb();
+                db.rawQuery("select * from "+tableName,null);
+                return false;
+            }
+        });
         MeinInjector.setMeinAuthSqlInputStreamInjector(() -> {
             try {
                 return assetManager.open("sql.sql");
