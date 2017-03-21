@@ -63,6 +63,7 @@ public class ApprovalController implements GuiController {
             matrix.fill(certificates, services, approvals);
 
             //insert some test data here
+            /*
             Certificate c = new Certificate()
                     .setAddress("c address")
                     .setAnswerUuid("c answer uuid")
@@ -93,6 +94,7 @@ public class ApprovalController implements GuiController {
 
             services.add(service);
             matrix.disapprove(c.getId().v(), service.getServiceId().v());
+            */
             // end test data
 
             matrix.getMatrix();

@@ -26,7 +26,7 @@ import de.mein.auth.tools.NoTryRunner;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.sql.SqlQueriesException;
-import de.mein.sql.deserialize.factories.PairDeserializerFactory;
+import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;

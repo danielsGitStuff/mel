@@ -1,7 +1,7 @@
 package de.mein.auth;
 
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
-import de.mein.sql.deserialize.factories.PairDeserializerFactory;
+import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 
 /**

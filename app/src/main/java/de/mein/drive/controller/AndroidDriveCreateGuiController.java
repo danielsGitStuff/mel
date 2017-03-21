@@ -15,6 +15,8 @@ import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.view.KnownCertListAdapter;
+import de.mein.view.MeinListAdapter;
+import de.mein.view.ServicesListAdapter;
 import mein.de.meindrive.R;
 
 /**
@@ -30,6 +32,7 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
     private RelativeLayout lDriveChooser;
     private KnownCertListAdapter knownCertListAdapter;
     private Long selectedCertId = null;
+    private ServicesListAdapter drivesListAdapter;
 
     public AndroidDriveCreateGuiController(MeinAuthService meinAuthService, Activity activity, View rootView) {
         super(activity, rootView);
@@ -53,7 +56,7 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
             System.out.println("AndroidDriveCreateGuiController.init.CLICKED");
         });
         drivesList = (ListView) rootView.findViewById(R.id.listDrives);
-        //drivesListAdapter = new
+        drivesListAdapter = new ServicesListAdapter(rootView.getContext());
     }
 
     private void checkRadioButtons() {

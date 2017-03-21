@@ -1,11 +1,10 @@
-package de.mein.sql.deserialize.factories;
+package de.mein.sql.deserialize;
 
 import de.mein.core.serialize.deserialize.FieldDeserializer;
 import de.mein.core.serialize.deserialize.FieldDeserializerFactory;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.sql.Pair;
-import de.mein.sql.deserialize.PairDeserializer;
 import de.mein.sql.serialize.PairSerializerFactory;
 
 import java.lang.reflect.Field;

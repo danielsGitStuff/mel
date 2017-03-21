@@ -42,7 +42,6 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public void update(SQLTableObject sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         db.update(sqlTableObject.getTableName(), createContentValues(sqlTableObject.getInsertAttributes()), where, argsToStringArgs(whereArgs));
     }
 
@@ -54,6 +53,16 @@ public class AndroidSQLQueries extends ISQLQueries {
     @Override
     public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where, List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException {
         System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
         return null;
     }
 
@@ -75,6 +84,13 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
+        System.err.println("AndroidSQLQueries.loadColumn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadColumn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadColumn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadColumn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadColumn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadColumn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.loadColumn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         System.err.println("AndroidSQLQueries.loadColumn!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         return null;
     }
@@ -174,7 +190,6 @@ public class AndroidSQLQueries extends ISQLQueries {
     @Override
     public void execute(String query, List<Object> args) throws SqlQueriesException {
         db.execSQL(query, argsToAndroidValues(args));
-        System.err.println("AndroidSQLQueries.execute");
     }
 
 
@@ -187,6 +202,14 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public Long insertWithAttributes(SQLTableObject sqlTableObject, List<Pair<?>> attributes) throws SqlQueriesException {
+        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         return null;
     }
@@ -219,11 +242,29 @@ public class AndroidSQLQueries extends ISQLQueries {
     @Override
     public <C> C querySingle(String query, List<Object> arguments, Class<C> resultClass) throws SqlQueriesException {
         System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
         return null;
     }
 
     @Override
     public <T> List<T> load(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse, Class<T> castClass) throws SqlQueriesException {
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
         System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
         return null;
     }

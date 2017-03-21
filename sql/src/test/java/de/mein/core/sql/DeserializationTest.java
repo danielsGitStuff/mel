@@ -6,7 +6,7 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.sql.Pair;
-import de.mein.sql.deserialize.factories.PairDeserializerFactory;
+import de.mein.sql.deserialize.PairDeserializerFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

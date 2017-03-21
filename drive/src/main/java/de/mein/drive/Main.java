@@ -8,7 +8,7 @@ import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeseria
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
 import de.mein.sql.RWLock;
-import de.mein.sql.deserialize.factories.PairDeserializerFactory;
+import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import org.jdeferred.Promise;
 
