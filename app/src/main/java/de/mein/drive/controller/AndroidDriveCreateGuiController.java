@@ -55,8 +55,10 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
             selectedCertId = knownCertListAdapter.getItemT(position).getId().v();
             System.out.println("AndroidDriveCreateGuiController.init.CLICKED");
         });
+        knownCertList.setAdapter(knownCertListAdapter);
         drivesList = (ListView) rootView.findViewById(R.id.listDrives);
         drivesListAdapter = new ServicesListAdapter(rootView.getContext());
+        drivesList.setAdapter(drivesListAdapter);
     }
 
     private void checkRadioButtons() {
