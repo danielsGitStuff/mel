@@ -22,31 +22,19 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     private static final String SYNCED = "synced";
     private static final String MODIFIED = "modified";
     private static final String SIZE = "size";
-    private static IPairSetListener<Boolean> setListener = value -> {
-        if (value == null)
-            return null;
-        if (value.getClass().equals(Boolean.class))
-            return (Boolean) value;
-        if (value.getClass().equals(String.class))
-            return Boolean.parseBoolean(value.toString());
-        if (value.getClass().equals(Integer.class))
-            System.out.println("FsEntry.zhkvhjk");
-//            return (((Integer) value) == 1);
-        System.err.println("FsEntry.setListener.FAILED");
-        return null;
-    };
+
     protected Pair<Long> id = new Pair<>(Long.class, ID);
     protected Pair<String> name = new Pair<>(String.class, NAME);
     protected Pair<Long> parentId = new Pair<>(Long.class, PARENT_ID);
     protected Pair<Long> version = new Pair<>(Long.class, VERSION);
     protected Pair<String> contentHash = new Pair<>(String.class, CONTENT_HASH, "0");
-    protected Pair<Boolean> isDirectory = new Pair<>(Boolean.class, DIR, false).setSetListener(setListener);
+    protected Pair<Boolean> isDirectory = new Pair<>(Boolean.class, DIR, false);
     @JsonIgnore
     protected Pair<Long> iNode = new Pair<>(Long.class, INODE);
     @JsonIgnore
     protected Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
     @JsonIgnore
-    protected Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED).setSetListener(setListener);
+    protected Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);
     protected Pair<Long> size = new Pair<>(Long.class, SIZE);
 
     public FsEntry() {

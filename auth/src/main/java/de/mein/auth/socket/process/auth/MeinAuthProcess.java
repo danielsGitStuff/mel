@@ -22,14 +22,12 @@ import de.mein.auth.tools.NoTryRunner;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
@@ -80,6 +78,7 @@ public class MeinAuthProcess extends MeinProcess {
                 MeinRequest request = (MeinRequest) deserialized;
                 try {
                     this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateByUuid(request.getUserUuid());
+                    assert partnerCertificate != null;
                     this.decryptedSecret = meinAuthSocket.getMeinAuthService().getCertificateManager().decrypt(request.getSecret());
                     this.mySecret = UUID.randomUUID().toString();
                     IsolationDetails isolationDetails = null;

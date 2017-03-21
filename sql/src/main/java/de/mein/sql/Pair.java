@@ -18,6 +18,38 @@ public class Pair<V> {
     private IPairGetListener getListener = null;
     private IPairGetListener hiddenGetListener = null;
     private IPairSetListener<V> setListener = null;
+    private static PairTypeConverter typeConverter = new PairTypeConverter() {
+        @Override
+        public <V> V convert(Class<V> type, Object value) {
+            if (value != null) {
+                V v = null;
+                if (type.equals(value.getClass())) {
+                    v = (V) value;
+                } else if (type.isEnum() && value instanceof String) {
+                    @SuppressWarnings("rawtypes")
+                    Class<Enum> eType = (Class<Enum>) type;
+                    v = (V) Enum.valueOf(eType, (String) value);
+                } else if (Number.class.isAssignableFrom(type)) {
+                    NumberTransformer numberTransformer = NumberTransformer.forType((Class<? extends Number>) type);
+                    v = (V) numberTransformer.cast((Number) value);
+                } else if (type.equals(Boolean.class) && value.getClass().equals(String.class)) {
+                    v = (V) new Boolean(Boolean.parseBoolean((String) value));
+                } else if (type.equals(Boolean.class) && value.getClass().equals(Integer.class)) {
+                    v = (V) new Boolean((((Integer) value) == 1) ? true : false);
+                } else {
+                    logger.warn(".setValueUnsecure().class.mismatch: class is " + type);
+                    logger.warn("delivered class is " + value.getClass());
+                    logger.warn("{key,value} is " + toString());
+                }
+                return v;
+            }
+            return null;
+        }
+    };
+
+    public static void setTypeConverter(PairTypeConverter typeConverter) {
+        Pair.typeConverter = typeConverter;
+    }
 
     private Class<V> type;
 
@@ -96,29 +128,11 @@ public class Pair<V> {
     @SuppressWarnings("unchecked")
     public void setValueUnsecure(Object value) {
         try {
-            if (value != null) {
-                // try setListener
-                if (setListener != null) {
-                    this.value = setListener.onSetCalled((V) value);
-                } else if (type.equals(value.getClass())) {
-                    this.value = (V) value;
-                } else if (type.isEnum() && value instanceof String) {
-                    @SuppressWarnings("rawtypes")
-                    Class<Enum> eType = (Class<Enum>) type;
-                    this.value = (V) Enum.valueOf(eType, (String) value);
-                } else if (Number.class.isAssignableFrom(type)) {
-                    NumberTransformer numberTransformer = NumberTransformer.forType((Class<? extends Number>) type);
-                    this.value = (V) numberTransformer.cast((Number) value);
-                } else if (type.equals(Boolean.class) && value.getClass().equals(String.class)) {
-                    this.value = (V) new Boolean(Boolean.parseBoolean((String) value));
-                } else if (type.equals(Boolean.class) && value.getClass().equals(Integer.class)) {
-                    this.value = (V) new Boolean((((Integer) value) == 1) ? true : false);
-                } else {
-                    logger.warn(".setValueUnsecure().class.mismatch: class is " + type);
-                    logger.warn("delivered class is " + value.getClass());
-                    logger.warn("{key,value} is " + toString());
-                }
+            V v = typeConverter.convert(this.type, value);
+            if (setListener != null) {
+                this.value = setListener.onSetCalled(v);
             } else {
+                this.value = v;
             }
         } catch (Exception e) {
             System.err.println("Pair{name:'" + k() + "'}.setValueUnsecure('" + value + "')");

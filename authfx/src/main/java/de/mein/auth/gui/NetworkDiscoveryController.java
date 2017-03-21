@@ -68,9 +68,11 @@ public class NetworkDiscoveryController extends AuthSettingsFX implements Initia
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         listAll.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selected) -> {
-            txtAddress.setText(selected.getAddress());
-            txtCertDeliveryPort.setText(Integer.toString(selected.getPortCert()));
-            txtPort.setText(Integer.toString(selected.getPort()));
+            if (selected != null) {
+                txtAddress.setText(selected.getAddress());
+                txtCertDeliveryPort.setText(Integer.toString(selected.getPortCert()));
+                txtPort.setText(Integer.toString(selected.getPort()));
+            }
         });
         btnRegister.setOnAction(event -> NoTryRunner.run(() -> {
             Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(null, txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);

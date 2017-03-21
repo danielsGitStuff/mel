@@ -5,6 +5,8 @@ import de.mein.core.serialize.deserialize.binary.BinaryDeserializer;
 import de.mein.core.serialize.serialize.fieldserializer.binary.BinaryFieldSerializer;
 import de.mein.execute.SqliteExecutor;
 import de.mein.execute.SqliteExecutorInjection;
+import de.mein.sql.Pair;
+import de.mein.sql.PairTypeConverter;
 
 /**
  * Created by xor on 2/4/17.
@@ -29,7 +31,12 @@ public class MeinInjector {
     public static void setBase64Decoder(BinaryDeserializer.Base64Decoder decoder) {
         BinaryDeserializer.setBase64Decoder(decoder);
     }
-    public static void setExecutorImpl(SqliteExecutorInjection injectedImpl){
+
+    public static void setExecutorImpl(SqliteExecutorInjection injectedImpl) {
         SqliteExecutor.setExecutorImpl(injectedImpl);
+    }
+
+    public static void setPairTypeConverter(PairTypeConverter typeConverter) {
+        Pair.setTypeConverter(typeConverter);
     }
 }
