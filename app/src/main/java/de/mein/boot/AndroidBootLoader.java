@@ -17,7 +17,7 @@ public interface AndroidBootLoader<T extends IMeinService> {
 
     Integer getEditResource(T service);
 
-    void createService(Activity activity, MeinAuthService meinAuthService);
+    void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceCreatorGuiController currentController);
 
     AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, Activity activity, View rootView);
 }

@@ -1,6 +1,7 @@
 package de.mein.drive.controller;
 
 import android.app.Activity;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -40,6 +41,7 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
     private KnownCertListAdapter knownCertListAdapter;
     private Long selectedCertId = null;
     private ServicesListAdapter drivesListAdapter;
+    private ServiceJoinServiceType selectedDrive;
 
     public AndroidDriveCreateGuiController(MeinAuthService meinAuthService, Activity activity, View rootView) {
         super(activity, rootView);
@@ -67,6 +69,11 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
         drivesList = (ListView) rootView.findViewById(R.id.listDrives);
         drivesListAdapter = new ServicesListAdapter(rootView.getContext());
         drivesList.setAdapter(drivesListAdapter);
+        drivesList.setOnItemClickListener((parent, view, position, id) -> {
+            selectedDrive = drivesListAdapter.getItemT(position);
+            int colour = ContextCompat.getColor(rootView.getContext(),R.color.colorListSelected);
+            view.setBackgroundColor(colour);
+        });
     }
 
     private void checkRadioButtons() {
@@ -76,12 +83,14 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
         } else {
             lDriveChooser.setVisibility(View.VISIBLE);
             try {
+                selectedCertId = null;
+                selectedDrive = null;
                 knownCertListAdapter.clear();
                 drivesListAdapter.clear();
                 NetworkEnvironment env = meinAuthService.getNetworkEnvironment().clear();
                 env.addObserver((o, arg) -> {
                     if (selectedCertId != null) {
-                            showDrives(selectedCertId);
+                        showDrives(selectedCertId);
                     }
                 });
                 for (Long certId : meinAuthService.getConnectedUserIds()) {
@@ -99,7 +108,7 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
     }
 
     private void showDrives(Long selectedCertId) {
-        List<ServiceJoinServiceType> services =  meinAuthService.getNetworkEnvironment().getServices(selectedCertId);
+        List<ServiceJoinServiceType> services = meinAuthService.getNetworkEnvironment().getServices(selectedCertId);
         List<ServiceJoinServiceType> filtered = Stream.of(services).filter(service -> service.getType().v().equals(DriveStrings.NAME)).collect(Collectors.toList());
         drivesListAdapter.clear();
         drivesListAdapter.addAll(filtered);
@@ -125,5 +134,13 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
         if (rdClient.isChecked()) {
         }
         return true;
+    }
+
+    public Long getSelectedCertId() {
+        return selectedCertId;
+    }
+
+    public ServiceJoinServiceType getSelectedDrive() {
+        return selectedDrive;
     }
 }

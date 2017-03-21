@@ -9,6 +9,7 @@ import android.support.v4.content.ContextCompat;
 import android.view.View;
 
 import de.mein.AndroidServiceCreatorGuiController;
+import de.mein.android.Threadder;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
@@ -25,8 +26,6 @@ import mein.de.meindrive.R;
 public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBootLoader {
     private static final int PERMISSION_WRITE = 666;
 
-    private AndroidDriveCreateGuiController driveCreateGuiController;
-
     @Override
     public Integer getCreateResource() {
         return R.layout.embedded_create_drive;
@@ -38,7 +37,27 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
     }
 
     @Override
-    public void createService(Activity activity, MeinAuthService meinAuthService) {
+    public void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceCreatorGuiController currentController) {
+        AndroidDriveCreateGuiController driveCreateGuiController = (AndroidDriveCreateGuiController) currentController;
+
+        // create the actual MeinDrive service
+        DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
+        if (driveCreateGuiController.isValid())
+            Threadder.runNoTryThread(() -> {
+                String name = driveCreateGuiController.getName();
+                String path = driveCreateGuiController.getPath();
+                if (driveCreateGuiController.isServer()) {
+                    driveCreateController.createDriveServerService(name, path);
+                } else {
+                    Long certId = driveCreateGuiController.getSelectedCertId();
+                    String serviceUuid = driveCreateGuiController.getSelectedDrive().getUuid().v();
+                    driveCreateController.createDriveClientService(name, path, certId, serviceUuid);
+                }
+            });
+    }
+
+    @Override
+    public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, Activity activity, View rootView) {
         // check for permission if necessary
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             int permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -49,26 +68,6 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
             }
             System.out.println(permission);
         }
-        // create the actual MeinDrive service
-        DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
-        if (driveCreateGuiController.isValid())
-            NoTryRunner.run(() -> {
-                String name = driveCreateGuiController.getName();
-                String path = driveCreateGuiController.getPath();
-                if (driveCreateGuiController.isServer()) {
-                    driveCreateController.createDriveServerService(name, path);
-                } else {
-                    Long certId = 666L;
-                    String serviceUuid = "shit";
-                    driveCreateController.createDriveClientService(name, path, certId, serviceUuid);
-                }
-            });
-
-    }
-
-    @Override
-    public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, Activity activity, View rootView) {
-        this.driveCreateGuiController = new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
-        return driveCreateGuiController;
+         return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
     }
 }

@@ -12,6 +12,7 @@ import com.annimon.stream.Stream;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.AndroidServiceCreatorGuiController;
 import de.mein.auth.boot.BootLoader;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
@@ -31,6 +32,7 @@ public class CreateServiceController implements GuiController {
     private Button btnCreate;
     private AndroidBootLoader bootLoader;
     private Activity activity;
+    private AndroidServiceCreatorGuiController currentController;
 
     public CreateServiceController(MeinAuthService meinAuthService, Activity activity, View v) {
         this.rootView = v;
@@ -57,7 +59,7 @@ public class CreateServiceController implements GuiController {
         showSelected();
         btnCreate.setOnClickListener(view -> {
             if (bootLoader != null) {
-                bootLoader.createService(activity, meinAuthService);
+                bootLoader.createService(activity, meinAuthService, currentController);
             }
         });
     }
@@ -66,7 +68,7 @@ public class CreateServiceController implements GuiController {
         NoTryRunner.run(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
             View v = View.inflate(rootView.getContext(), bootLoader.getCreateResource(), embedded);
-            bootLoader.createGuiController(meinAuthService, activity, v);
+            currentController = bootLoader.createGuiController(meinAuthService, activity, v);
             //bootLoader.setupController(meinAuthService,v);
             System.out.println("CreateServiceController.showSelected");
         });
