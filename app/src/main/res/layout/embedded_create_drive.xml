@@ -103,40 +103,50 @@
 
     </TableLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/lDriveChooser"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tbl"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/lblKnownMA"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:text="Known MeinAuths" />
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-        <ListView
-            android:id="@+id/knownCertList"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/lblKnownMA" />
+            <TextView
+                android:id="@+id/lblKnownMA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Known MeinAuths" />
 
-        <TextView
-            android:id="@+id/lblDrives"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:text="Drive Instances" />
+            <ListView
+                android:id="@+id/knownCertList"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
 
-        <ListView
-            android:id="@+id/listDrives"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/lblDrives"
-            android:layout_toRightOf="@+id/knownCertList" />
-    </RelativeLayout>
+            android:orientation="vertical"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/lblDrives"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Drive Instances" />
+
+            <ListView
+                android:id="@+id/listDrives"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
+
+
 
 </RelativeLayout>

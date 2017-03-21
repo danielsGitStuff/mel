@@ -243,7 +243,7 @@ public class AndroidService extends Service {
 
     private void android() throws IOException {
         MeinBoot.addBootLoaderClass(AndroidDriveBootLoader.class);
-        AndroidInjector.inject(this,getAssets());
+        AndroidInjector.inject(this, getAssets());
     }
 
     public MeinAuthService getMeinAuthService() {

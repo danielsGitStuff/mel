@@ -3,17 +3,24 @@ package de.mein.drive.controller;
 import android.app.Activity;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 
+import com.annimon.stream.Collectors;
+import com.annimon.stream.Stream;
+
 import java.io.File;
+import java.util.List;
 
 import de.mein.AndroidServiceCreatorGuiController;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.drive.data.DriveStrings;
 import de.mein.view.KnownCertListAdapter;
 import de.mein.view.MeinListAdapter;
 import de.mein.view.ServicesListAdapter;
@@ -29,7 +36,7 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
     private EditText txtName, txtPath;
     private RadioButton rdServer, rdClient;
     private ListView knownCertList, drivesList;
-    private RelativeLayout lDriveChooser;
+    private LinearLayout lDriveChooser;
     private KnownCertListAdapter knownCertListAdapter;
     private Long selectedCertId = null;
     private ServicesListAdapter drivesListAdapter;
@@ -45,7 +52,7 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
         txtPath = (EditText) rootView.findViewById(R.id.txtPath);
         rdServer = (RadioButton) rootView.findViewById(R.id.rdServer);
         rdClient = (RadioButton) rootView.findViewById(R.id.rdClient);
-        lDriveChooser = (RelativeLayout) rootView.findViewById(R.id.lDriveChooser);
+        lDriveChooser = (LinearLayout) rootView.findViewById(R.id.lDriveChooser);
         RadioGroup radioGroup = (RadioGroup) rootView.findViewById(R.id.rdgClient);
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> checkRadioButtons());
         checkRadioButtons();
@@ -54,6 +61,7 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
         knownCertList.setOnItemClickListener((parent, view, position, id) -> {
             selectedCertId = knownCertListAdapter.getItemT(position).getId().v();
             System.out.println("AndroidDriveCreateGuiController.init.CLICKED");
+            showDrives(selectedCertId);
         });
         knownCertList.setAdapter(knownCertListAdapter);
         drivesList = (ListView) rootView.findViewById(R.id.listDrives);
@@ -68,10 +76,12 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
         } else {
             lDriveChooser.setVisibility(View.VISIBLE);
             try {
+                knownCertListAdapter.clear();
+                drivesListAdapter.clear();
                 NetworkEnvironment env = meinAuthService.getNetworkEnvironment().clear();
                 env.addObserver((o, arg) -> {
                     if (selectedCertId != null) {
-
+                            showDrives(selectedCertId);
                     }
                 });
                 for (Long certId : meinAuthService.getConnectedUserIds()) {
@@ -79,12 +89,21 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
                     knownCertListAdapter.add(cert);
                 }
                 knownCertListAdapter.notifyDataSetChanged();
-                meinAuthService.getNetworkEnvironment();
+                drivesListAdapter.notifyDataSetChanged();
+                meinAuthService.discoverNetworkEnvironment();
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
         }
+    }
+
+    private void showDrives(Long selectedCertId) {
+        List<ServiceJoinServiceType> services =  meinAuthService.getNetworkEnvironment().getServices(selectedCertId);
+        List<ServiceJoinServiceType> filtered = Stream.of(services).filter(service -> service.getType().v().equals(DriveStrings.NAME)).collect(Collectors.toList());
+        drivesListAdapter.clear();
+        drivesListAdapter.addAll(filtered);
+        drivesListAdapter.notifyDataSetChanged();
     }
 
     public boolean isServer() {

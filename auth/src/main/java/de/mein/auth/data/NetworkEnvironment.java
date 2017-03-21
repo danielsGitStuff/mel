@@ -76,7 +76,7 @@ public class NetworkEnvironment extends Observable {
         return serviceCertificateMap.get(service);
     }
 
-    public List<ServiceJoinServiceType> getServices(Integer certificateId) {
+    public List<ServiceJoinServiceType> getServices(Long certificateId) {
         return certificateServicesMap.get(certificateId);
     }
 

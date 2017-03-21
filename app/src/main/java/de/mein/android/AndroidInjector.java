@@ -50,7 +50,7 @@ public class AndroidInjector {
             public boolean checkTableExists(SQLConnection connection, String tableName) {
                 SQLiteDatabase db = ((AndroidDBConnection) connection).getDb();
                 db.rawQuery("select * from "+tableName,null);
-                return false;
+                return true;
             }
         });
         MeinInjector.setMeinAuthSqlInputStreamInjector(() -> {
