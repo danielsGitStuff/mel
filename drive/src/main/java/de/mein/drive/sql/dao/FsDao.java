@@ -179,7 +179,6 @@ public class FsDao extends Dao.LockingDao {
     }
 
     public FsDirectory getSubDirectoryByName(Long parentId, String name) throws SqlQueriesException {
-        assert parentId != null;
         FsDirectory directory = new FsDirectory();
         String where = "";
         List<Object> whereArgs = new ArrayList<>();

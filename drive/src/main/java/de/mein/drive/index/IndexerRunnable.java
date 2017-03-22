@@ -97,16 +97,23 @@ public class IndexerRunnable implements Runnable {
      */
     private void roamDirectory(FsDirectory parent, Stage parentStage, FsDirectory actualDirectory, long stageSetId) throws IOException {
         try {
-            FsDao fsDao = databaseManager.getFsDao();
-            FsDirectory dbDirectory = null;
-            if (parent == null)
-                dbDirectory = actualDirectory;
-            else
-                dbDirectory = fsDao.getSubDirectoryByName(parent.getId().v(), actualDirectory.getName().v());//databaseManager.getFsDao().getDirectoryById(actualDirectory.getId().v());
-            // in case of actualDirectory being the RootDirectory, both instances will be the same. There is only one floating around
-            Stage stage = null;
             for (ICrawlerListener listener : listeners)
                 listener.foundDirectory(actualDirectory);
+
+            FsDao fsDao = databaseManager.getFsDao();
+            FsDirectory dbDirectory;
+            if (parent == null) // root, but we still need a copy to check whether things have changed or not
+                dbDirectory = fsDao.getDirectoryById(actualDirectory.getId().v());
+            else {
+                dbDirectory = fsDao.getSubDirectoryByName(actualDirectory.getParentId().v(), actualDirectory.getName().v());//databaseManager.getFsDao().getDirectoryById(actualDirectory.getId().v());
+                if (dbDirectory != null) {
+                    actualDirectory.setParentId(dbDirectory.getParentId().v());
+                    actualDirectory.setId(dbDirectory.getId().v());
+                }
+                // in case of actualDirectory being the RootDirectory, both instances will be the same. There is only one floating around
+            }
+
+
             // get files
             File[] fileList = actualDirectory.listFiles(File::isFile);
             File[] subDirectories = actualDirectory.listFiles(f -> !f.isFile());
@@ -124,8 +131,11 @@ public class IndexerRunnable implements Runnable {
             }
             BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(actualDirectory.getOriginal());
 
+
             //check hash
             actualDirectory.calcContentHash();
+            Stage stage = null;
+
             if (dbDirectory == null || (dbDirectory != null && !dbDirectory.getContentHash().v().equals(actualDirectory.getContentHash().v()))) {
                 System.out.println("IndexerRunnable.roamDirectory.gotta stage");
                 stage = new Stage()
@@ -139,51 +149,64 @@ public class IndexerRunnable implements Runnable {
                         .setSynced(true);
                 if (dbDirectory != null) {
                     stage.setFsId(dbDirectory.getId().v())
-                            .setFsParentId(dbDirectory.getParentId().v());
+                            .setFsParentId(dbDirectory.getParentId().v())
+                            .setVersion(dbDirectory.getVersion().v());
                 }
-                if (parentStage != null) {
+                if (parent != null) {
+                    stage.setFsParentId(parent.getId().v());
+                } else if (parentStage != null) {
                     stage.setParentId(parentStage.getId());
                 }
                 databaseManager.getStageDao().insert(stage);
-            } else {
-                actualDirectory.getId().v(dbDirectory.getId());
-                actualDirectory.getParentId().v(dbDirectory.getParentId());
             }
+
             //check files
             for (FsFile fs : actualDirectory.getFiles()) {
-                Long parentId = null;
-                //if (parent != null)
-                parentId = actualDirectory.getId().v();
-                FsFile dbFile = databaseManager.getFsDao().getFileByName(parentId, fs.getName().v());
-                String md5 = de.mein.core.Hash.md5(fs.getOriginal());
-                if (dbFile == null || (dbFile != null && !dbFile.getContentHash().v().equals(md5))) {
-                    BashTools.NodeAndTime fNodeTime = BashTools.getNodeAndTime(fs.getOriginal());
-                    Stage fStage = new Stage()
-                            .setName(fs.getName().v())
-                            .setIsDirectory(false)
-                            .setContentHash(md5)
-                            .setStageSet(stageSetId)
-                            .setSize(fs.getOriginal().length())
-                            .setiNode(fNodeTime.getInode())
-                            .setModified(fNodeTime.getModifiedTime())
-                            .setDeleted(false)
-                            .setSynced(true);
-                    if (dbFile != null)
-                        fStage.setFsParentId(dbFile.getParentId().v())
-                                .setFsId(dbFile.getId().v());
-                    if (stage != null)
-                        fStage.setParentId(stage.getId());
+                final String md5 = de.mein.core.Hash.md5(fs.getOriginal());
+                BashTools.NodeAndTime fNodeTime = BashTools.getNodeAndTime(fs.getOriginal());
+                if (dbDirectory != null) {
+                    FsFile dbFile = databaseManager.getFsDao().getFileByName(dbDirectory.getId().v(), fs.getName().v());
+                    if (dbFile == null || (dbFile != null && !dbFile.getContentHash().v().equals(md5))) {
+                        Stage fStage = fsFile2Stage(fs, fNodeTime, md5, stageSetId);
+                        fStage.setFsParentId(dbDirectory.getId().v());
+                        if (dbFile != null) {
+                            fStage.setFsId(dbFile.getId().v());
+                            fStage.setVersion(dbFile.getVersion().v());
+                        }
+                        databaseManager.getStageDao().insert(fStage);
+                        // todo add stage(parent)id information here??
+                    }
+                } else if (stage != null) {
+                    Stage fStage = fsFile2Stage(fs, fNodeTime, md5, stageSetId);
+                    fStage.setParentId(stage.getId());
+                    fStage.setVersion(stage.getVersion());
                     databaseManager.getStageDao().insert(fStage);
                 }
+
             }
             //roam
+            actualDirectory.getFiles().clear();
             for (FsDirectory subDir : actualDirectory.getSubDirectories()) {
-                subDir.setParentId(actualDirectory.getId().v());
+                //subDir.setParentId(actualDirectory.getId().v());
                 roamDirectory(actualDirectory, stage, subDir, stageSetId);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private Stage fsFile2Stage(FsFile fs, BashTools.NodeAndTime fNodeTime, String md5, long stageSetId) {
+        Stage fStage = new Stage()
+                .setName(fs.getName().v())
+                .setIsDirectory(false)
+                .setContentHash(md5)
+                .setStageSet(stageSetId)
+                .setSize(fs.getOriginal().length())
+                .setiNode(fNodeTime.getInode())
+                .setModified(fNodeTime.getModifiedTime())
+                .setDeleted(false)
+                .setSynced(true);
+        return fStage;
     }
 
     public RootDirectory getRootDirectory() {

@@ -78,12 +78,13 @@ public class BashTools {
             System.out.println("BashTools.getNodeAndTime.parsing: " + res);
             String[] s = res.split(" ");
             inode = Long.parseLong(s[0]);
+            NodeAndTime nodeAndTime = new NodeAndTime(inode, modifiedTime);
+            return nodeAndTime;
         } catch (InterruptedException e) {
             System.err.println("string I got from bash: " + res);
             e.printStackTrace();
         }
-        NodeAndTime nodeAndTime = new NodeAndTime(inode, modifiedTime);
-        return nodeAndTime;
+        return null;
     }
 
     public static void main(String[] args) throws IOException {
