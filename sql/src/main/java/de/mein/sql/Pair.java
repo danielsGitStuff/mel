@@ -169,4 +169,8 @@ public class Pair<V> {
         value = null;
         return this;
     }
+
+    public boolean isNull() {
+        return value == null;
+    }
 }

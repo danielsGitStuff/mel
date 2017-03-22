@@ -159,12 +159,7 @@ public class FsDao extends Dao.LockingDao {
     }
 
 
-    public FsDirectory getSubDirectory(FsDirectory parent, FsDirectory dir) throws SqlQueriesException {
-        if (parent == null || dir.getParentId() == null) {
-            return null;
-            //return dir;
-        }
-        FsDirectory directory = new FsDirectory();
+    public FsDirectory getSubDirectory(FsDirectory parent, FsDirectory directory) throws SqlQueriesException {
         String where = "";
         List<Object> whereArgs = new ArrayList<>();
         if (parent.getParentId().v() == null) {
@@ -175,7 +170,7 @@ public class FsDao extends Dao.LockingDao {
         }
         where += " and " + directory.getIsDirectory().k() + "=? and " + directory.getName().k() + "=?";
         whereArgs.add(1);
-        whereArgs.add(dir.getName().v());
+        whereArgs.add(directory.getName().v());
         List<FsDirectory> result = sqlQueries.load(directory.getAllAttributes(), directory, where, whereArgs);
         if (result.size() > 0) {
             return result.get(0);

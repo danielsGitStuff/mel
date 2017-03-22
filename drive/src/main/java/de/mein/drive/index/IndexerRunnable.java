@@ -1,6 +1,5 @@
 package de.mein.drive.index;
 
-import de.mein.core.Hash;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.SyncHandler;
@@ -88,8 +87,21 @@ public class IndexerRunnable implements Runnable {
         }
     }
 
+    /**
+     * @param parent
+     * @param parentStage
+     * @param actualDirectory
+     * @param stageSetId
+     * @throws IOException
+     */
     private void roamDirectory(FsDirectory parent, Stage parentStage, FsDirectory actualDirectory, long stageSetId) throws IOException {
         try {
+            if (parent != null)
+                actualDirectory.setParentId(parent.getId().v());
+            if (actualDirectory.getId().isNull()){
+                FsDirectory fs = databaseManager.getFsDao().getSubDirectory(parent,actualDirectory);
+                actualDirectory.setId(fs.getId().v());
+            }
             FsDirectory dbDirectory = databaseManager.getFsDao().getDirectoryById(actualDirectory.getId().v()); //indexPersistence.roamDirectory(parent, actualDirectory, stageSetId);
             // in case of actualDirectory being the RootDirectory, both instances will be the same. There is only one floating around
             Stage stage = null;
@@ -133,12 +145,15 @@ public class IndexerRunnable implements Runnable {
                     stage.setParentId(parentStage.getId());
                 }
                 databaseManager.getStageDao().insert(stage);
+            } else {
+                actualDirectory.getId().v(dbDirectory.getId());
+                actualDirectory.getParentId().v(dbDirectory.getParentId());
             }
             //check files
             for (FsFile fs : actualDirectory.getFiles()) {
                 Long parentId = null;
-                if (parent != null)
-                    parentId = parent.getId().v();
+                //if (parent != null)
+                parentId = actualDirectory.getId().v();
                 FsFile dbFile = databaseManager.getFsDao().getFileByName(parentId, fs.getName().v());
                 String md5 = de.mein.core.Hash.md5(fs.getOriginal());
                 if (dbFile == null || (dbFile != null && !dbFile.getContentHash().v().equals(md5))) {
