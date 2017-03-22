@@ -4,6 +4,7 @@ import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.SyncHandler;
 import de.mein.drive.sql.*;
+import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.watchdog.IndexWatchdogListener;
 import de.mein.sql.SqlQueriesException;
 
@@ -96,13 +97,12 @@ public class IndexerRunnable implements Runnable {
      */
     private void roamDirectory(FsDirectory parent, Stage parentStage, FsDirectory actualDirectory, long stageSetId) throws IOException {
         try {
-            if (parent != null)
-                actualDirectory.setParentId(parent.getId().v());
-            if (actualDirectory.getId().isNull()){
-                FsDirectory fs = databaseManager.getFsDao().getSubDirectory(parent,actualDirectory);
-                actualDirectory.setId(fs.getId().v());
-            }
-            FsDirectory dbDirectory = databaseManager.getFsDao().getDirectoryById(actualDirectory.getId().v()); //indexPersistence.roamDirectory(parent, actualDirectory, stageSetId);
+            FsDao fsDao = databaseManager.getFsDao();
+            FsDirectory dbDirectory = null;
+            if (parent == null)
+                dbDirectory = actualDirectory;
+            else
+                dbDirectory = fsDao.getSubDirectoryByName(parent.getId().v(), actualDirectory.getName().v());//databaseManager.getFsDao().getDirectoryById(actualDirectory.getId().v());
             // in case of actualDirectory being the RootDirectory, both instances will be the same. There is only one floating around
             Stage stage = null;
             for (ICrawlerListener listener : listeners)
@@ -178,6 +178,7 @@ public class IndexerRunnable implements Runnable {
             }
             //roam
             for (FsDirectory subDir : actualDirectory.getSubDirectories()) {
+                subDir.setParentId(actualDirectory.getId().v());
                 roamDirectory(actualDirectory, stage, subDir, stageSetId);
             }
         } catch (Exception e) {

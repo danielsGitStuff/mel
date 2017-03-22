@@ -1,14 +1,11 @@
 package de.mein.drive.index;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
-
-import de.mein.core.serialize.serialize.tools.StringBuilder;
 
 /**
  * Created by xor on 10/28/16.

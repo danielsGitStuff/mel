@@ -2,9 +2,9 @@ include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx'
 //include ':app', ':json', ':serialize', ':sql', ':auth', ':drive'//,':authfx', ':drivefx'
 
 project(':json').projectDir = new File('json')
-//project(':authfx').projectDir = new File('authfx')
+project(':authfx').projectDir = new File('authfx')
 project(':serialize').projectDir = new File('serialize')
 project(':sql').projectDir = new File('sql')
-//project(':drivefx').projectDir = new File('drivefx')
+project(':drivefx').projectDir = new File('drivefx')
 project(':auth').projectDir = new File('auth')
 project(':drive').projectDir = new File('drive')

@@ -80,10 +80,20 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public static void deleteDirectory(File dir) {
+        System.out.println("CertificateManager.deleteDirectory: "+dir.getAbsolutePath());
         File[] subs = dir.listFiles();
         if (subs != null)
             for (File f : subs) {
-                deleteDirectory(f);
+                deleteDirectoryP(f);
+            }
+        dir.delete();
+    }
+
+    private static void deleteDirectoryP(File dir) {
+        File[] subs = dir.listFiles();
+        if (subs != null)
+            for (File f : subs) {
+                deleteDirectoryP(f);
             }
         dir.delete();
     }
