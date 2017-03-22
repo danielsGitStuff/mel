@@ -1,10 +1,8 @@
 package de.mein.auth.data.db.dao;
 
 import de.mein.auth.data.db.Certificate;
-import de.mein.core.Hash;
 import de.mein.sql.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,14 +46,14 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
     public Certificate getTrustedCertificateByUuid(String uuid) throws SqlQueriesException {
         Certificate dummy = new Certificate();
         String where = dummy.getUuid().k() + "=? and " + dummy.getTrusted().k() + "=?";
-        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(uuid, true));
+        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(uuid, true));
         return (Certificate) result.get(0);
     }
 
     public Certificate getTrustedCertificateById(Long id) throws SqlQueriesException {
         Certificate dummy = new Certificate();
         String where = dummy.getId().k() + "=? and " + dummy.getTrusted().k() + "=?";
-        List<Certificate> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(id, true));
+        List<Certificate> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(id, true));
         if (result.size() == 1)
             return result.get(0);
         return null;
@@ -64,7 +62,7 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
     public Certificate getCertificateById(Long id) throws SqlQueriesException {
         Certificate dummy = new Certificate();
         String where = dummy.getId().k() + "=?";
-        List<Certificate> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(id));
+        List<Certificate> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(id));
         if (result.size() == 1)
             return result.get(0);
         return null;
@@ -116,7 +114,7 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
     public Certificate getTrustedCertificateByHash(String hash) throws SqlQueriesException {
         Certificate dummy = new Certificate();
         String where = dummy.getHash().k() + "=? and " + dummy.getTrusted().k() + "=?";
-        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(hash, true));
+        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(hash, true));
         if (result.size() == 1)
             return (Certificate) result.get(0);
         return null;

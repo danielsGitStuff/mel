@@ -1,4 +1,4 @@
-package de.mein.drive.watchdog;
+package de.mein.android.drive.watchdog;
 
 import android.os.FileObserver;
 

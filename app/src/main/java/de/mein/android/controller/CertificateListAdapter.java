@@ -1,4 +1,4 @@
-package de.mein.controller;
+package de.mein.android.controller;
 
 import android.view.View;
 import android.view.ViewGroup;

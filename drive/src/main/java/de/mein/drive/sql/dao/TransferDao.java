@@ -4,7 +4,6 @@ import de.mein.drive.sql.TransferDetails;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.Pair;
-import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ public class TransferDao extends Dao {
 
     public void delete(Long id) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
-        sqlQueries.delete(dummy, dummy.getId().k() + "=?", SQLQueries.whereArgs(id));
+        sqlQueries.delete(dummy, dummy.getId().k() + "=?", ISQLQueries.whereArgs(id));
     }
 
     public List<TransferDetails> getTwoTransferSets() throws SqlQueriesException {
@@ -55,7 +54,7 @@ public class TransferDao extends Dao {
         TransferDetails dummy = new TransferDetails();
         String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=?";
         String whatElse = " limit ?";
-        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(certId, serviceUuid, limit), whatElse);
+        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, limit), whatElse);
         return result;
     }
 }

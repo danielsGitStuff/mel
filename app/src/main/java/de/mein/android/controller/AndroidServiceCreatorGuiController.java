@@ -1,4 +1,4 @@
-package de.mein;
+package de.mein.android.controller;
 
 import android.app.Activity;
 import android.view.View;

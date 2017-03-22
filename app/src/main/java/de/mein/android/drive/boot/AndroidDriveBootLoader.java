@@ -1,4 +1,4 @@
-package de.mein.drive.boot;
+package de.mein.android.drive.boot;
 
 import android.Manifest;
 import android.app.Activity;
@@ -8,15 +8,18 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
 
-import de.mein.AndroidServiceCreatorGuiController;
+import org.jdeferred.Promise;
+
+import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.Threadder;
+import de.mein.android.drive.controller.AndroidDriveCreateGuiController;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
-import de.mein.boot.AndroidBootLoader;
+import de.mein.android.boot.AndroidBootLoader;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
-import de.mein.drive.controller.AndroidDriveCreateGuiController;
+import de.mein.drive.service.MeinDriveClientService;
 import mein.de.meindrive.R;
 
 /**
@@ -51,7 +54,8 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
                 } else {
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedDrive().getUuid().v();
-                    driveCreateController.createDriveClientService(name, path, certId, serviceUuid);
+                    Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certId, serviceUuid);
+                    promise.done(meinDriveClientService -> NoTryRunner.run(() -> meinDriveClientService.syncThisClient()));
                 }
             });
     }
@@ -68,6 +72,6 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
             }
             System.out.println(permission);
         }
-         return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
+        return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
     }
 }

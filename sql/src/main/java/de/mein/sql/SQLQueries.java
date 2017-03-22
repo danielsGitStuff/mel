@@ -115,11 +115,7 @@ public class SQLQueries extends ISQLQueries {
     @Override
     public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where,
                                                                    List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException {
-        String fromTable = clazz.newInstance().getTableName();
-        String selectString = buildSelectQuery(columns, fromTable);
-        if (where != null) {
-            selectString += " where " + where;
-        }
+        String selectString = ISQLQueries.buildQueryFrom(columns,clazz,where);
         if (connection == null) {
             return null;
         }
@@ -481,15 +477,6 @@ public class SQLQueries extends ISQLQueries {
             unlockRead();
         }
         return null;
-    }
-
-    public static List<Object> whereArgs(Object... values) {
-        List<Object> args = new ArrayList<>();
-        if (values != null)
-            for (Object v : values) {
-                args.add(v);
-            }
-        return args;
     }
 
 

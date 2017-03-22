@@ -1,12 +1,10 @@
-package de.mein.view;
+package de.mein.android.view;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import de.mein.auth.data.NetworkEnvironment;
-import mein.de.meindrive.R;
 
 /**
  * Created by xor on 3/14/17.

@@ -1,20 +1,15 @@
-package de.mein.view;
+package de.mein.android.view;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
-
-import com.annimon.stream.Stream;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
-import de.mein.auth.data.NetworkEnvironment;
 import mein.de.meindrive.R;
 
 /**

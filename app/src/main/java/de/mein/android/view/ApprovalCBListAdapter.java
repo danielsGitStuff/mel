@@ -1,4 +1,4 @@
-package de.mein.view;
+package de.mein.android.view;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import de.mein.auth.boot.BootLoader;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import mein.de.meindrive.R;
 

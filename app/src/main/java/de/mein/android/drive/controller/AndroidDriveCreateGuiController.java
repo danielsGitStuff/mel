@@ -1,4 +1,4 @@
-package de.mein.drive.controller;
+package de.mein.android.drive.controller;
 
 import android.app.Activity;
 import android.support.v4.content.ContextCompat;
@@ -8,7 +8,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 
 import com.annimon.stream.Collectors;
 import com.annimon.stream.Stream;
@@ -16,15 +15,14 @@ import com.annimon.stream.Stream;
 import java.io.File;
 import java.util.List;
 
-import de.mein.AndroidServiceCreatorGuiController;
+import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.data.DriveStrings;
-import de.mein.view.KnownCertListAdapter;
-import de.mein.view.MeinListAdapter;
-import de.mein.view.ServicesListAdapter;
+import de.mein.android.view.KnownCertListAdapter;
+import de.mein.android.view.ServicesListAdapter;
 import mein.de.meindrive.R;
 
 /**

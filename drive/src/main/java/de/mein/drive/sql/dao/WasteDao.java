@@ -4,7 +4,6 @@ import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.Waste;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
-import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.List;
@@ -35,13 +34,13 @@ public class WasteDao extends Dao.LockingDao {
     public Waste getWasteByInode(Long inode) throws SqlQueriesException {
         Waste dummy = new Waste();
         String where = dummy.getInode().k() + "=?";
-        List<Waste> wastes = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(inode));
+        List<Waste> wastes = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(inode));
         if (wastes.size() > 0)
             return wastes.get(0);
         return null;
     }
 
     public void update(Waste waste) throws SqlQueriesException {
-        sqlQueries.update(waste, waste.getHash().k() + "=?", SQLQueries.whereArgs(waste.getHash().v()));
+        sqlQueries.update(waste, waste.getHash().k() + "=?", ISQLQueries.whereArgs(waste.getHash().v()));
     }
 }

@@ -1,4 +1,4 @@
-package de.mein.controller;
+package de.mein.android.controller;
 
 import android.app.Activity;
 import android.view.View;
@@ -12,12 +12,11 @@ import com.annimon.stream.Stream;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.mein.AndroidServiceCreatorGuiController;
 import de.mein.auth.boot.BootLoader;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
-import de.mein.boot.AndroidBootLoader;
+import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.AndroidService;
 import mein.de.meindrive.R;
 

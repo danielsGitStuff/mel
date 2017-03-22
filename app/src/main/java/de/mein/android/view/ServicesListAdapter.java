@@ -1,4 +1,4 @@
-package de.mein.view;
+package de.mein.android.view;
 
 import android.content.Context;
 import android.view.View;

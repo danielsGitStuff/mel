@@ -1,4 +1,4 @@
-package de.mein.controller;
+package de.mein.android.controller;
 
 import android.view.View;
 import android.widget.Button;
@@ -16,8 +16,8 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.SqlQueriesException;
 import de.mein.android.AndroidService;
-import de.mein.view.KnownCertListAdapter;
-import de.mein.view.ApprovalCBListAdapter;
+import de.mein.android.view.KnownCertListAdapter;
+import de.mein.android.view.ApprovalCBListAdapter;
 import mein.de.meindrive.R;
 
 /**

@@ -14,11 +14,10 @@ import de.mein.MeinInjector;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.drive.DriveInjector;
 import de.mein.drive.data.DriveStrings;
-import de.mein.drive.service.AndroidDBConnection;
-import de.mein.drive.watchdog.AndroidWatchdogListener;
+import de.mein.android.drive.service.AndroidDBConnection;
+import de.mein.android.drive.watchdog.AndroidWatchdogListener;
 import de.mein.execute.SqliteExecutorInjection;
-import de.mein.sql.SQLStatement;
-import de.mein.sql.con.AndroidSQLQueries;
+import de.mein.android.sql.AndroidSQLQueries;
 import de.mein.sql.con.SQLConnection;
 
 /**

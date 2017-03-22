@@ -1,4 +1,4 @@
-package de.mein.controller;
+package de.mein.android.controller;
 
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.AndroidService;

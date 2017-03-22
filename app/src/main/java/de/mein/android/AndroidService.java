@@ -2,22 +2,14 @@ package de.mein.android;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.content.res.Configuration;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Base64;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Scanner;
 
-import de.mein.MeinInjector;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
@@ -32,17 +24,10 @@ import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.drive.DriveInjector;
 import de.mein.drive.DriveSyncListener;
-import de.mein.drive.boot.AndroidDriveBootLoader;
-import de.mein.drive.data.DriveStrings;
+import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.drive.serialization.TestDirCreator;
-import de.mein.drive.service.AndroidDBConnection;
-import de.mein.drive.watchdog.AndroidWatchdogListener;
-import de.mein.execute.SqliteExecutor;
 import de.mein.sql.RWLock;
-import de.mein.sql.SQLStatement;
-import de.mein.sql.con.AndroidSQLQueries;
 
 
 /**

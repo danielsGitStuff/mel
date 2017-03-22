@@ -1,9 +1,9 @@
-package de.mein.boot;
+package de.mein.android.boot;
 
 import android.app.Activity;
 import android.view.View;
 
-import de.mein.AndroidServiceCreatorGuiController;
+import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 

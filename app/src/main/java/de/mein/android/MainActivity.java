@@ -20,14 +20,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 
+import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.controller.NetworkDiscoveryController;
+import de.mein.android.controller.NetworkDiscoveryController;
 import mein.de.meindrive.R;
-import de.mein.controller.GeneralController;
-import de.mein.controller.CreateServiceController;
-import de.mein.controller.ApprovalController;
-import de.mein.controller.GuiController;
+import de.mein.android.controller.GeneralController;
+import de.mein.android.controller.CreateServiceController;
+import de.mein.android.controller.ApprovalController;
+import de.mein.android.controller.GuiController;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AndroidService.AndroidServiceObserver {
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MeinBoot.addBootLoaderClass(de.mein.drive.boot.AndroidDriveBootLoader.class);
+        MeinBoot.addBootLoaderClass(AndroidDriveBootLoader.class);
         setContentView(R.layout.activity_main);
         content = (LinearLayout) findViewById(R.id.content);
         toolbar = (Toolbar) findViewById(R.id.toolbar);

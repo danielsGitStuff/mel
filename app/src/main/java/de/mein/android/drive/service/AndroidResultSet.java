@@ -1,4 +1,4 @@
-package de.mein.drive.service;
+package de.mein.android.drive.service;
 
 import android.database.Cursor;
 

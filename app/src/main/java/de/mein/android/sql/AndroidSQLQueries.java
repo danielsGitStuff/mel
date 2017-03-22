@@ -1,24 +1,20 @@
-package de.mein.sql.con;
+package de.mein.android.sql;
 
 import android.content.ContentValues;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteStatement;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-import de.mein.auth.boot.BootLoader;
-import de.mein.drive.service.AndroidDBConnection;
+import de.mein.android.drive.service.AndroidDBConnection;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.Pair;
-import de.mein.sql.SQLQueries;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
+import de.mein.sql.con.SQLConnection;
 
 /**
  * Created by xor on 2/6/17.
@@ -52,6 +48,9 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where, List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException {
+        String query = ISQLQueries.buildQueryFrom(columns, clazz, where);
+        Cursor cursor = db.rawQuery(query, this.argsToStringArgs(whereArgs));
+        AndroidSQLResource<T> resource = new AndroidSQLResource<>(cursor, clazz);
         System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -62,8 +61,7 @@ public class AndroidSQLQueries extends ISQLQueries {
         System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
-        return null;
+        return resource;
     }
 
     private String[] pairListToArr(List<Pair<?>> pairs) {
@@ -74,7 +72,6 @@ public class AndroidSQLQueries extends ISQLQueries {
         }
         return cols;
     }
-
 
 
     @Override
@@ -116,31 +113,7 @@ public class AndroidSQLQueries extends ISQLQueries {
             while (cursor.moveToNext()) {
                 T ins = (T) sqlTableObject.getClass().newInstance();
                 for (Pair<?> pair : ins.getAllAttributes()) {
-                    int index = cursor.getColumnIndex(pair.k());
-                    if (index > -1) {
-                        if (pair.getGenericClass().equals(Double.class))
-                            pair.setValueUnsecure(cursor.getDouble(index));
-                        else if (pair.getGenericClass().equals(Float.class))
-                            pair.setValueUnsecure(cursor.getFloat(index));
-                        else if (pair.getGenericClass().equals(Integer.class))
-                            pair.setValueUnsecure(cursor.getInt(index));
-                        else if (pair.getGenericClass().equals(Short.class))
-                            pair.setValueUnsecure(cursor.getShort(index));
-                        else if (pair.getGenericClass().equals(Boolean.class)) {
-                            Integer v = cursor.getInt(index);
-                            pair.setValueUnsecure(v == 1);
-                        } else if (pair.getGenericClass().equals(Long.class))
-                            pair.setValueUnsecure(cursor.getLong(index));
-                        else if (pair.getGenericClass().equals(byte[].class))
-                            pair.setValueUnsecure(cursor.getBlob(index));
-                        else if (pair.getGenericClass().equals(Byte[].class))
-                            pair.setValueUnsecure(cursor.getBlob(index));
-                        else if (pair.getGenericClass().equals(String.class))
-                            pair.setValueUnsecure(cursor.getString(index));
-                        else {
-                            System.err.println("AndroidSQLQueries.UNKOWN TYPE");
-                        }
-                    }
+                    AndroidSQLQueries.readCursorToPair(cursor, pair);
                 }
                 result.add(ins);
             }
@@ -148,6 +121,34 @@ public class AndroidSQLQueries extends ISQLQueries {
             throw new SqlQueriesException(e);
         }
         return result;
+    }
+
+    public static void readCursorToPair(Cursor cursor, Pair<?> pair) {
+        int index = cursor.getColumnIndex(pair.k());
+        if (index > -1) {
+            if (pair.getGenericClass().equals(Double.class))
+                pair.setValueUnsecure(cursor.getDouble(index));
+            else if (pair.getGenericClass().equals(Float.class))
+                pair.setValueUnsecure(cursor.getFloat(index));
+            else if (pair.getGenericClass().equals(Integer.class))
+                pair.setValueUnsecure(cursor.getInt(index));
+            else if (pair.getGenericClass().equals(Short.class))
+                pair.setValueUnsecure(cursor.getShort(index));
+            else if (pair.getGenericClass().equals(Boolean.class)) {
+                Integer v = cursor.getInt(index);
+                pair.setValueUnsecure(v == 1);
+            } else if (pair.getGenericClass().equals(Long.class))
+                pair.setValueUnsecure(cursor.getLong(index));
+            else if (pair.getGenericClass().equals(byte[].class))
+                pair.setValueUnsecure(cursor.getBlob(index));
+            else if (pair.getGenericClass().equals(Byte[].class))
+                pair.setValueUnsecure(cursor.getBlob(index));
+            else if (pair.getGenericClass().equals(String.class))
+                pair.setValueUnsecure(cursor.getString(index));
+            else {
+                System.err.println("AndroidSQLQueries.readCursorToPair.UNKOWN TYPE");
+            }
+        }
     }
 
     @Override
@@ -269,7 +270,7 @@ public class AndroidSQLQueries extends ISQLQueries {
         return null;
     }
 
-    private String[] argsToStringArgs(List<Object> whereArgs) {
+    private static String[] argsToStringArgs(List<Object> whereArgs) {
         if (whereArgs == null || whereArgs.size() == 0)
             return null;
         int pos = 0;
@@ -290,7 +291,6 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     /**
-     *
      * See: <br>
      * https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#execSQL%28java.lang.String%29<br>
      * "bindArgs : Object: only byte[], String, Long and Double are supported in bindArgs."

@@ -10,9 +10,11 @@ import de.mein.drive.sql.*;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -191,7 +193,9 @@ public class ClientSyncHandler extends SyncHandler {
      */
     public void setupTransfer(SyncTask syncTask) {
         Long stageSetId = syncTask.getStageSetId();
-        try (ISQLResource<de.mein.drive.sql.Stage> resource = stageDao.getFilesAsResource(stageSetId)) {
+        ISQLResource<de.mein.drive.sql.Stage> resource = null;
+        try {
+            resource = stageDao.getFilesAsResource(stageSetId);
             Stage stage = resource.getNext();
             while (stage != null) {
                 TransferDetails transfer = new TransferDetails();
@@ -211,6 +215,13 @@ public class ClientSyncHandler extends SyncHandler {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            if (resource!=null)
+                try {
+                    resource.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
         }
         System.out.println("ClientSyncHandler.setupTransfer.done: starting...");
         transferManager.research();

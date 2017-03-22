@@ -6,7 +6,6 @@ import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.*;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
-import de.mein.sql.SQLQueries;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 
@@ -66,7 +65,7 @@ public class FsDao extends Dao.LockingDao {
     public List<FsFile> getFilesByHash(String hash) throws SqlQueriesException {
         FsFile dummy = new FsFile();
         String where = dummy.getContentHash().k() + "=?";
-        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(hash));
+        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(hash));
         return fsFiles;
     }
 
@@ -204,7 +203,7 @@ public class FsDao extends Dao.LockingDao {
     public List<FsDirectory> getSubDirectoriesVersion(Long id, Long version) throws SqlQueriesException {
         FsDirectory dir = new FsDirectory();
         String where = dir.getParentId().k() + "=? and " + dir.getVersion().k() + ">?";
-        List<Object> whereArgs = SQLQueries.whereArgs(id, version);
+        List<Object> whereArgs = ISQLQueries.whereArgs(id, version);
         List<SQLTableObject> result = sqlQueries.load(dir.getAllAttributes(), dir, where, whereArgs);
         List<FsDirectory> dirs = result.stream().map(s -> (FsDirectory) s).collect(Collectors.toList());
         return dirs;
@@ -380,7 +379,7 @@ public class FsDao extends Dao.LockingDao {
     public FsDirectory getFsDirectoryById(Long fsId) throws SqlQueriesException {
         FsDirectory dummy = new FsDirectory();
         String where = dummy.getId().k() + "=?";
-        List<FsDirectory> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(fsId));
+        List<FsDirectory> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(fsId));
         if (directories.size() == 1)
             return directories.get(0);
         return null;
@@ -389,7 +388,7 @@ public class FsDao extends Dao.LockingDao {
     public GenericFSEntry getGenericById(Long fsId) throws SqlQueriesException {
         GenericFSEntry dummy = new GenericFSEntry();
         String where = dummy.getId().k() + "=?";
-        List<GenericFSEntry> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, SQLQueries.whereArgs(fsId));
+        List<GenericFSEntry> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(fsId));
         if (directories.size() == 1)
             return directories.get(0);
         return null;

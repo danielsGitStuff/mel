@@ -1,6 +1,7 @@
 package de.mein.sql;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.sql.con.SQLConnection;
@@ -12,6 +13,24 @@ public abstract class ISQLQueries {
     public static final boolean SYSOUT = false;
     protected RWLock lock;
 
+    public static  <T extends SQLTableObject> String buildQueryFrom(List<Pair<?>> columns, Class<T> clazz, String where) throws IllegalAccessException, InstantiationException {
+        String fromTable = clazz.newInstance().getTableName();
+        String selectString = buildSelectQuery(columns, fromTable);
+        if (where != null) {
+            selectString += " where " + where;
+        }
+        return selectString;
+    }
+
+    public static List<Object> whereArgs(Object... values) {
+        List<Object> args = new ArrayList<>();
+        if (values != null)
+            for (Object v : values) {
+                args.add(v);
+            }
+        return args;
+    }
+
     protected void out(String msg) {
         if (SYSOUT) {
             System.out.println("SqlQueries.out()." + msg);
@@ -19,7 +38,7 @@ public abstract class ISQLQueries {
     }
 
 
-    protected String buildSelectQuery(List<Pair<?>> what, String fromTable) {
+    public static String buildSelectQuery(List<Pair<?>> what, String fromTable) {
         String result = "select ";
         for (int i = 0; i < what.size(); i++) {
             String entry = what.get(i).k();

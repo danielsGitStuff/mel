@@ -1,4 +1,4 @@
-package de.mein.controller;
+package de.mein.android.controller;
 
 import android.view.View;
 import android.widget.EditText;
@@ -12,8 +12,8 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
-import de.mein.view.KnownCertListAdapter;
-import de.mein.view.UnknownAuthListAdapter;
+import de.mein.android.view.KnownCertListAdapter;
+import de.mein.android.view.UnknownAuthListAdapter;
 import mein.de.meindrive.R;
 
 /**
