@@ -12,7 +12,7 @@ import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRe
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
 import de.mein.drive.boot.DriveFXBootLoader;
 import de.mein.sql.RWLock;
-import de.mein.sql.deserialize.factories.PairDeserializerFactory;
+import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import org.jdeferred.Promise;
 

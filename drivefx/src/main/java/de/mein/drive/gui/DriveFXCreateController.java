@@ -13,6 +13,7 @@ import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.service.MeinDriveClientService;
 import de.mein.sql.RWLock;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
@@ -48,11 +49,14 @@ public class DriveFXCreateController extends AuthSettingsFX {
             String role = isServer ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
             String path = txtPath.getText();
             if (isServer)
-                driveCreateController.createDriveServerService(name,path);
+                driveCreateController.createDriveServerService(name, path);
             else {
                 Certificate certificate = listCerts.getSelectionModel().getSelectedItem();
                 ServiceJoinServiceType serviceJoinServiceType = listServices.getSelectionModel().getSelectedItem();
-                driveCreateController.createDriveClientService(name,path,certificate.getId().v(),serviceJoinServiceType.getUuid().v());
+                Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certificate.getId().v(), serviceJoinServiceType.getUuid().v());
+                promise.done(meinDriveClientService -> NoTryRunner.run(() -> {
+                    meinDriveClientService.syncThisClient();
+                }));
             }
         });
     }
