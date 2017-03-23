@@ -1,5 +1,6 @@
 package de.mein.drive.index;
 
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.SyncHandler;
@@ -74,7 +75,7 @@ public class IndexerRunnable implements Runnable {
                 }
             }
             // we will stage changes, so we need a StageSet
-            StageSet stageSet = databaseManager.getStageDao().createStageSet("startup index", null, null);
+            StageSet stageSet = databaseManager.getStageDao().createStageSet(DriveStrings.STAGESET_TYPE_STARTUP_INDEX, null, null);
             roamDirectory(null, null, fsRoot, stageSet.getId().v());
             System.out.println("IndexerRunnable.runTry.save in mem db");
             databaseManager.updateVersion();
