@@ -30,11 +30,24 @@ public class Hash {
             } while (numRead != -1);
             fis.close();
             byte[] bytes = messageDigest.digest();
-            return (new HexBinaryAdapter()).marshal(bytes);
+            return bytesToString(bytes);
         } catch (Exception e) {
             e.printStackTrace();
             return "exception :(";
         }
+    }
+
+    public static String bytesToString(byte[] bytes){
+        StringBuffer hexString = new StringBuffer();
+        for (int i = 0; i < bytes.length; i++) {
+            if ((0xff & bytes[i]) < 0x10) {
+                hexString.append("0"
+                        + Integer.toHexString((0xFF & bytes[i])));
+            } else {
+                hexString.append(Integer.toHexString(0xFF & bytes[i]));
+            }
+        }
+        return hexString.toString();
     }
 
     public static String md5(byte[] bytes) throws IOException {
@@ -43,16 +56,7 @@ public class Hash {
             messageDigest = MessageDigest.getInstance("MD5");
             messageDigest.update(bytes, 0, bytes.length);
             byte[] hash = messageDigest.digest();
-            StringBuffer hexString = new StringBuffer();
-            for (int i = 0; i < hash.length; i++) {
-                if ((0xff & hash[i]) < 0x10) {
-                    hexString.append("0"
-                            + Integer.toHexString((0xFF & hash[i])));
-                } else {
-                    hexString.append(Integer.toHexString(0xFF & hash[i]));
-                }
-            }
-            return hexString.toString();
+            return bytesToString(hash);
         } catch (Exception e) {
             e.printStackTrace();
             return "exception :(";
@@ -65,16 +69,7 @@ public class Hash {
             messageDigest = MessageDigest.getInstance("SHA256");
             messageDigest.update(bytes, 0, bytes.length);
             byte[] hash = messageDigest.digest();
-            StringBuffer hexString = new StringBuffer();
-            for (int i = 0; i < hash.length; i++) {
-                if ((0xff & hash[i]) < 0x10) {
-                    hexString.append("0"
-                            + Integer.toHexString((0xFF & hash[i])));
-                } else {
-                    hexString.append(Integer.toHexString(0xFF & hash[i]));
-                }
-            }
-            return hexString.toString();
+            return bytesToString(hash);
         } catch (Exception e) {
             e.printStackTrace();
             return "exception :(";
