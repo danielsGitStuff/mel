@@ -32,9 +32,9 @@ CREATE TABLE stage (
   parentid    INTEGER,
   fsid        INTEGER,
   name        TEXT, -- forget the not null stuff, cause of root directory
-  fsparentId  INTEGER,
+  fsparentid  INTEGER,
   version     INTEGER,
-  contentHash TEXT,
+  contenthash TEXT,
   dir         INTEGER NOT NULL,
   inode       INTEGER,
   modified    INTEGER,

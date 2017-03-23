@@ -51,16 +51,6 @@ public class AndroidSQLQueries extends ISQLQueries {
         String query = ISQLQueries.buildQueryFrom(columns, clazz, where);
         Cursor cursor = db.rawQuery(query, this.argsToStringArgs(whereArgs));
         AndroidSQLResource<T> resource = new AndroidSQLResource<>(cursor, clazz);
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.loadResource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         return resource;
     }
 
