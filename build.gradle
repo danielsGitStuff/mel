@@ -2,7 +2,7 @@
 
 buildscript {
     repositories {
-        jcenter()
+        //jcenter()
         mavenCentral()
         maven { url 'http://guardian.github.com/maven/repo-releases' }
     }

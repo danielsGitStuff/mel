@@ -116,7 +116,9 @@ public class AndroidSQLQueries extends ISQLQueries {
     public static void readCursorToPair(Cursor cursor, Pair<?> pair) {
         int index = cursor.getColumnIndex(pair.k());
         if (index > -1) {
-            if (pair.getGenericClass().equals(Double.class))
+            if (cursor.isNull(index))
+                pair.setValueUnsecure(null);
+            else if (pair.getGenericClass().equals(Double.class))
                 pair.setValueUnsecure(cursor.getDouble(index));
             else if (pair.getGenericClass().equals(Float.class))
                 pair.setValueUnsecure(cursor.getFloat(index));
@@ -186,23 +188,16 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public Long insert(SQLTableObject sqlTableObject) throws SqlQueriesException {
-        ContentValues contentValues = createContentValues(sqlTableObject.getInsertAttributes());
-        Long id = db.insert(sqlTableObject.getTableName(), null, contentValues);
-        return id;
+        return insertWithAttributes(sqlTableObject, sqlTableObject.getInsertAttributes());
     }
 
     @Override
     public Long insertWithAttributes(SQLTableObject sqlTableObject, List<Pair<?>> attributes) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.insertWithAttributes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        return null;
+        lockWrite();
+        ContentValues contentValues = createContentValues(attributes);
+        Long id = db.insert(sqlTableObject.getTableName(), null, contentValues);
+        unlockWrite();
+        return id;
     }
 
     @Override
