@@ -28,12 +28,14 @@ import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRe
 import de.mein.sql.SqlQueriesException;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -67,7 +69,6 @@ public class MeinAuthService extends MeinRunnable {
     private List<MeinAuthAdmin> meinAuthAdmins = new ArrayList<>();
     private final DatabaseManager databaseManager;
     private final File workingDirectory;
-    protected String name;
     protected List<IRegisterHandler> registerHandlers = new ArrayList<>();
     private List<IRegisteredHandler> registeredHandlers = new ArrayList<>();
     private NetworkEnvironment networkEnvironment = new NetworkEnvironment();
@@ -82,7 +83,6 @@ public class MeinAuthService extends MeinRunnable {
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
         this.databaseManager = new DatabaseManager(meinAuthSettings);
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 1024);
-        this.name = meinAuthSettings.getName();
         this.settings = meinAuthSettings;
         this.dbCreatedListener = dbCreatedListener;
         if (this.databaseManager.hadToInitialize() && this.dbCreatedListener != null)
@@ -138,7 +138,7 @@ public class MeinAuthService extends MeinRunnable {
     @Override
     public void run() {
         System.out.println("MeinAuthService.run");
-        logger.log(Level.FINER,"MeinAuthService.runTry.listening...");
+        logger.log(Level.FINER, "MeinAuthService.runTry.listening...");
         while (!Thread.currentThread().isInterrupted()) {
             try {
                /* Socket socket = this.serverSocket.accept();
@@ -148,7 +148,7 @@ public class MeinAuthService extends MeinRunnable {
                 e.printStackTrace();
             }
         }
-        logger.log(Level.FINER,"MeinAuthService.runTry.end");
+        logger.log(Level.FINER, "MeinAuthService.runTry.end");
     }
 
     @Override
@@ -172,20 +172,20 @@ public class MeinAuthService extends MeinRunnable {
     }
 
     public String getName() {
-        return name;
+        return settings.getName();
     }
 
     public Certificate getMyCertificate() throws CertificateEncodingException {
         Certificate certificate = new Certificate();
         certificate.setCertificate(this.certificateManager.getMyX509Certificate().getEncoded());
-        certificate.setName(name);
+        certificate.setName(settings.getName());
         return certificate;
     }
 
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "." + name;
+        return getClass().getSimpleName() + "." + settings.getName();
     }
 
 
@@ -224,7 +224,7 @@ public class MeinAuthService extends MeinRunnable {
 
 
     public MeinAuthService setName(String name) {
-        this.name = name;
+        this.settings.setName(name);
         return this;
     }
 
@@ -248,7 +248,7 @@ public class MeinAuthService extends MeinRunnable {
     public Promise<MeinAuthService, Exception, Void> boot() {
         DeferredObject<MeinAuthService, Exception, Void> bootedPromise = new DeferredObject<>();
         this.start();
-        logger.log(Level.FINE,"MeinAuthService.boot...");
+        logger.log(Level.FINE, "MeinAuthService.boot...");
        /* while (!this.runs()) {
             // we gotta println this or java won't notice 'this.runs()' actually returns true
             System.out.print(this.runs());
@@ -341,7 +341,7 @@ public class MeinAuthService extends MeinRunnable {
                     });
                 });
             }).fail(result -> {
-                logger.log(Level.SEVERE,"MeinAuthService.connectAndCollect.fail");
+                logger.log(Level.SEVERE, "MeinAuthService.connectAndCollect.fail");
             });
         }
     }
@@ -349,7 +349,7 @@ public class MeinAuthService extends MeinRunnable {
     /**
      * this is because Android does not like to do network stuff on GUI threads
      */
-    void discoverNetworkEnvironmentImpl(){
+    void discoverNetworkEnvironmentImpl() {
         NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
         networkEnvironment.clear();
         Map<String, Boolean> checkedAddresses = new ConcurrentHashMap<>();
@@ -361,7 +361,7 @@ public class MeinAuthService extends MeinRunnable {
                 checkedAddresses.put(validationProcess.getAddressString(), true);
                 Request<MeinServicesPayload> gotServicesPromise = this.getAllowedServices(certId);
                 gotServicesPromise.done(meinServicesPayload -> {
-                    logger.log(Level.SEVERE,"MeinAuthService.discoverNetworkEnvironment.NOT.IMPLEMENTED.YET");
+                    logger.log(Level.SEVERE, "MeinAuthService.discoverNetworkEnvironment.NOT.IMPLEMENTED.YET");
                     addToNetworkEnvironment(certId, meinServicesPayload);
                 });
             }

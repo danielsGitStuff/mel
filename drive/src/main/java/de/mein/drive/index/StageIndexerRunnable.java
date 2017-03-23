@@ -11,6 +11,7 @@ import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
@@ -157,8 +158,9 @@ public class StageIndexerRunnable implements Runnable {
             initStage(pathCollection);
 
             final String rootPath = databaseManager.getDriveSettings().getRootDirectory().getPath();
-            List<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
-            for (Stage stage : stages) {
+            ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
+            Stage stage = stages.getNext();
+            while (stage != null) {
                 // build a File
                 String path = buildPathFromStage(stage.getName(), stage.getParentId(), stage.getFsParentId(), stage);
                 File f = new File(path);
@@ -169,6 +171,7 @@ public class StageIndexerRunnable implements Runnable {
                     stageDao.update(stage);
                 }
                 System.out.println("StageIndexerRunnable.run: " + path);
+                stage = stages.getNext();
             }
             System.out.println("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
             stagingDoneListener.onStagingDone(stageSetId);

@@ -14,6 +14,7 @@ import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.logging.Logger;
@@ -123,11 +124,13 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             //todo conflict checking goes here - has to block
 
             meinAuthService.connect(driveSettings.getClientSettings().getServerCertId()).done(mvp -> NoTryRunner.run(() -> {
-                Commit stageSet = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSet(stageSetId)).setServiceUuid(getUuid());
-                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, stageSet).done(result -> NoTryRunner.run(() -> {
+                Commit commit = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSetList(stageSetId)).setServiceUuid(getUuid());
+                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> NoTryRunner.run(() -> {
                     CommitAnswer answer = (CommitAnswer) result;
                     fsDao.lockWrite();
-                    for (Stage stage : stageDao.getStagesByStageSet(stageSetId)) {
+                    ISQLResource<Stage> stageSet = stageDao.getStagesByStageSet(stageSetId);
+                    Stage stage = stageSet.getNext();
+                    while (stage != null) {
                         Long fsId = answer.getStageIdFsIdMap().get(stage.getId());
                         if (fsId != null) {
                             stage.setFsId(fsId);
@@ -138,6 +141,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                             }
                             stageDao.update(stage);
                         }
+                        stage = stageSet.getNext();
                     }
                     syncHandler.commitStage(stageSetId, false);
                     fsDao.unlockWrite();

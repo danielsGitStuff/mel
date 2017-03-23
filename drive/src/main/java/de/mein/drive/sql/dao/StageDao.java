@@ -56,6 +56,8 @@ public class StageDao extends Dao.LockingDao {
     }
 
 
+
+
     public static class BottomDirAndPath {
         private String[] parts;
         private FsDirectory fsDirectory;
@@ -154,20 +156,21 @@ public class StageDao extends Dao.LockingDao {
         return stage.setId(id);
     }
 
-    public List<Stage> getStagesByStageSet(Long stageSetId) throws SqlQueriesException {
+    public ISQLResource<Stage> getStagesByStageSet(Long stageSetId) throws SqlQueriesException {
         Stage dummy = new Stage();
         String where = dummy.getStageSetPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";
-        List<Object> args = new ArrayList<>();
-        args.add(stageSetId);
-        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        return sqlQueries.loadResource(dummy.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId));
+    }
+    public List<Stage> getStagesByStageSetList(Long stageSetId) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        String where = dummy.getStageSetPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(stageSetId));
     }
 
     public Stage getStageById(Long id) throws SqlQueriesException {
         Stage dummy = new Stage();
         String where = dummy.getIdPair().k() + "=?";
-        List<Object> args = new ArrayList<>();
-        args.add(id);
-        List<Stage> res = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        List<Stage> res = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(id));
         if (res.size() == 1)
             return res.get(0);
         return null;

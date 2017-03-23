@@ -13,13 +13,17 @@ public abstract class ISQLQueries {
     public static final boolean SYSOUT = false;
     protected RWLock lock;
 
-    public static  <T extends SQLTableObject> String buildQueryFrom(List<Pair<?>> columns, Class<T> clazz, String where) throws IllegalAccessException, InstantiationException {
-        String fromTable = clazz.newInstance().getTableName();
-        String selectString = buildSelectQuery(columns, fromTable);
-        if (where != null) {
-            selectString += " where " + where;
+    public static <T extends SQLTableObject> String buildQueryFrom(List<Pair<?>> columns, Class<T> clazz, String where) throws SqlQueriesException {
+        try {
+            String fromTable = clazz.newInstance().getTableName();
+            String selectString = buildSelectQuery(columns, fromTable);
+            if (where != null) {
+                selectString += " where " + where;
+            }
+            return selectString;
+        } catch (Exception e) {
+            throw new SqlQueriesException(e);
         }
-        return selectString;
     }
 
     public static List<Object> whereArgs(Object... values) {
@@ -53,7 +57,7 @@ public abstract class ISQLQueries {
     }
 
     protected String buildInsertModifyQuery(List<Pair<?>> what, String before, String after, String where,
-                                          String fromTable) throws SqlQueriesException {
+                                            String fromTable) throws SqlQueriesException {
         String query;
         try {
             query = before + " " + fromTable + " " + after + " ";
@@ -82,18 +86,17 @@ public abstract class ISQLQueries {
     public abstract void delete(SQLTableObject sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException;
 
     public abstract <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where,
-                                                                     List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException;
+                                                                            List<Object> whereArgs) throws SqlQueriesException;
 
 
-
-    public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException ;
+    public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException;
 
     public abstract <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException;
 
     public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException;
 
     public abstract <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject,
-                                             String selectString, List<Object> arguments) throws SqlQueriesException;
+                                                                  String selectString, List<Object> arguments) throws SqlQueriesException;
 
     public abstract <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException;
 

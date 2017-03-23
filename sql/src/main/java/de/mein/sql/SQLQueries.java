@@ -114,7 +114,7 @@ public class SQLQueries extends ISQLQueries {
 
     @Override
     public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where,
-                                                                   List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException {
+                                                                   List<Object> whereArgs) throws SqlQueriesException{
         String selectString = ISQLQueries.buildQueryFrom(columns,clazz,where);
         if (connection == null) {
             return null;

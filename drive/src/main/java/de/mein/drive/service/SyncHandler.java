@@ -12,6 +12,7 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.drive.sql.dao.WasteDao;
 import de.mein.drive.transfer.TransferManager;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.*;
@@ -155,8 +156,9 @@ public abstract class SyncHandler {
             if (lockFsEntry)
                 fsDao.lockWrite();
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
-            List<Stage> stageSet = stageDao.getStagesByStageSet(stageSetId);
-            for (Stage stage : stageSet) {
+            ISQLResource<Stage> stageSet = stageDao.getStagesByStageSet(stageSetId);
+            Stage stage = stageSet.getNext();
+            while (stage != null) {
                 if (stage.getFsId() == null) {
                     if (stage.getIsDirectory()) {
                         if (stage.getFsId() != null) {
@@ -228,6 +230,7 @@ public abstract class SyncHandler {
                     }
                 }
                 stageDao.update(stage);
+                stage = stageSet.getNext();
             }
             driveDatabaseManager.updateVersion();
             stageDao.deleteStageSet(stageSetId);

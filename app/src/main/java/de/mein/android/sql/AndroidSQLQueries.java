@@ -47,7 +47,7 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     @Override
-    public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where, List<Object> whereArgs) throws SqlQueriesException, IllegalAccessException, InstantiationException {
+    public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where, List<Object> whereArgs) throws SqlQueriesException {
         String query = ISQLQueries.buildQueryFrom(columns, clazz, where);
         Cursor cursor = db.rawQuery(query, this.argsToStringArgs(whereArgs));
         AndroidSQLResource<T> resource = new AndroidSQLResource<>(cursor, clazz);
