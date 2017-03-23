@@ -126,6 +126,8 @@ public class IndexerRunnable implements Runnable {
             for (File d : subDirectories) {
                 if (!d.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectoryPath())) {
                     FsDirectory subDir = new FsDirectory(d);
+                    if (actualDirectory.getId().notNull())
+                        subDir.setParentId(actualDirectory.getId().v());
                     actualDirectory.addSubDirectory(subDir);
                 }
             }

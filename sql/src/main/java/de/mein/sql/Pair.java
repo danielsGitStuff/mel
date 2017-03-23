@@ -173,4 +173,8 @@ public class Pair<V> {
     public boolean isNull() {
         return value == null;
     }
+
+    public boolean notNull() {
+        return value != null;
+    }
 }
