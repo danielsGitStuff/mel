@@ -4,6 +4,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.StageSet;
@@ -28,7 +29,7 @@ public class ServerSyncHandler extends SyncHandler {
         Commit commit = (Commit) request.getPayload();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         FsDao fsDao = driveDatabaseManager.getFsDao();
-        StageSet stageSet = stageDao.createStageSet("commit", request.getPartnerCertificate().getId().v(), commit.getServiceUuid());
+        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FROM_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid());
         Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
         for (Stage stage : commit.getStages()) {
             stage.setStageSet(stageSet.getId().v());
@@ -44,7 +45,7 @@ public class ServerSyncHandler extends SyncHandler {
         fsDao.lockWrite();
         Long oldVersion = fsDao.getLatestVersion();
         Map<Long, Long> stageIdFsIdMap = new HashMap<>();
-        this.commitStage(stageSet.getId().v(),false,stageIdFsIdMap);
+        this.commitStage(stageSet.getId().v(), false, stageIdFsIdMap);
         List<GenericFSEntry> delta = fsDao.getDelta(oldVersion);
         CommitAnswer answer = new CommitAnswer().setDelta(delta).setStageIdFsIdMao(stageIdFsIdMap);
         request.resolve(answer);

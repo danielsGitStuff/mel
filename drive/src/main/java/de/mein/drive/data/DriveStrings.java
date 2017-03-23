@@ -21,4 +21,8 @@ public abstract class DriveStrings {
     public static final String WASTEBIN = "wastebin";
     public static final String DB_FILENAME = "meindrive.db";
     public static final int DB_VERSION = 1;
+    public static final String STAGESET_TYPE_STARTUP_INDEX = "startup";
+    public static final String STAGESET_TYPE_FS = "fs";
+    public static final String STAGESET_TYPE_FROM_SERVER = "from server";
+    public static final String STAGESET_TYPE_FROM_CLIENT = "from client";
 }

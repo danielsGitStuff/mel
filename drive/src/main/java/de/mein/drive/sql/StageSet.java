@@ -1,5 +1,6 @@
 package de.mein.drive.sql;
 
+import de.mein.drive.data.DriveStrings;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 
@@ -66,5 +67,9 @@ public class StageSet extends SQLTableObject {
     public StageSet setOriginServiceUuid(String originServiceUuid) {
         this.originServiceUuid.v(originServiceUuid);
         return this;
+    }
+
+    public boolean fromFs() {
+        return type.v().equals(DriveStrings.STAGESET_TYPE_FS);
     }
 }

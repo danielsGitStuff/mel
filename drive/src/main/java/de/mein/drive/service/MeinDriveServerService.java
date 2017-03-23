@@ -118,7 +118,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             fsDao.unlockRead();
             fsDao.lockWrite();
             //todo conflict checks
-            syncHandler.commitStage(stageSetId);
+            syncHandler.commitStage(stageSetId,false);
             fsDao.unlockWrite();
             propagateNewVersion();
             /*

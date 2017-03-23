@@ -55,7 +55,13 @@ public class StageDao extends Dao.LockingDao {
         return bottomStage;
     }
 
-
+    public StageSet getStageSetById(Long stageSetId) throws SqlQueriesException {
+        StageSet dummy = new StageSet();
+        List<StageSet> result = sqlQueries.load(dummy.getAllAttributes(), dummy, dummy.getId().k() + "=?", ISQLQueries.whereArgs(stageSetId));
+        if (result.size() == 1)
+            return result.get(0);
+        return null;
+    }
 
 
     public static class BottomDirAndPath {
@@ -161,6 +167,7 @@ public class StageDao extends Dao.LockingDao {
         String where = dummy.getStageSetPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";
         return sqlQueries.loadResource(dummy.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId));
     }
+
     public List<Stage> getStagesByStageSetList(Long stageSetId) throws SqlQueriesException {
         Stage dummy = new Stage();
         String where = dummy.getStageSetPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";

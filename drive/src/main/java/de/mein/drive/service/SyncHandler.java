@@ -156,8 +156,9 @@ public abstract class SyncHandler {
             if (lockFsEntry)
                 fsDao.lockWrite();
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
-            ISQLResource<Stage> stageSet = stageDao.getStagesByStageSet(stageSetId);
-            Stage stage = stageSet.getNext();
+            StageSet stageSet = stageDao.getStageSetById(stageSetId);
+            ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
+            Stage stage = stages.getNext();
             while (stage != null) {
                 if (stage.getFsId() == null) {
                     if (stage.getIsDirectory()) {
@@ -222,7 +223,7 @@ public abstract class SyncHandler {
                         // TODO inode & co
                         if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
                             FsEntry oldeEntry = fsDao.getFile(fsEntry.getId().v());
-                            if (oldeEntry != null)
+                            if (oldeEntry != null && !stageSet.fromFs())
                                 wasteDao.fsToWaste((FsFile) oldeEntry);
                         }
                         fsDao.insertOrUpdate(fsEntry);
@@ -230,7 +231,7 @@ public abstract class SyncHandler {
                     }
                 }
                 stageDao.update(stage);
-                stage = stageSet.getNext();
+                stage = stages.getNext();
             }
             driveDatabaseManager.updateVersion();
             stageDao.deleteStageSet(stageSetId);

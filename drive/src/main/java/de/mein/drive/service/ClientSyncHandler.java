@@ -85,7 +85,7 @@ public class ClientSyncHandler extends SyncHandler {
             finished.resolve(null);
             return finished;
         }
-        StageSet stageSet = stageDao.createStageSet("cameFromServer", null, null);
+        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FROM_SERVER, null, null);
         syncTask.setStageSetId(stageSet.getId().v());
         // stage first
         for (GenericFSEntry genericFSEntry : entries) {
