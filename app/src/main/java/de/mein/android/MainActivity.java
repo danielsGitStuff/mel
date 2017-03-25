@@ -9,6 +9,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.view.SubMenu;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -20,10 +21,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 
+import java.util.List;
+
 import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.auth.boot.MeinBoot;
+import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.controller.NetworkDiscoveryController;
+import de.mein.sql.SqlQueriesException;
 import mein.de.meindrive.R;
 import de.mein.android.controller.GeneralController;
 import de.mein.android.controller.CreateServiceController;
@@ -38,6 +44,7 @@ public class MainActivity extends AppCompatActivity
     private AndroidService androidService;
     private boolean mBound = false;
     private GuiController guiController;
+    private NavigationView navigationView;
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -59,6 +66,8 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             mBound = false;
+            if (guiController != null)
+                guiController.onAndroidServiceUnbound(androidService);
         }
     };
 
@@ -93,9 +102,10 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         showGeneral();
+        System.out.println();
     }
 
     @Override
@@ -192,5 +202,41 @@ public class MainActivity extends AppCompatActivity
     public void onMeinAuthStarted(MeinAuthService meinAuthService) {
         if (guiController != null)
             guiController.onMeinAuthStarted(androidService.getMeinAuthService());
+        Menu menu = navigationView.getMenu();
+        menu.clear();
+        SubMenu subMeinAuth = menu.addSubMenu("MeinAuth");
+        //general
+        MenuItem mGeneral = subMeinAuth.add(5, R.id.nav_general, 0, "General");
+        mGeneral.setIcon(R.drawable.ic_menu_manage);
+        //discover ic_menu_search
+        MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 1, "Approvals");
+        mDiscover.setIcon(R.drawable.ic_menu_search);
+        //approvals ic_menu_approval
+        MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 1, "Approvals");
+        mApprovals.setIcon(R.drawable.ic_menu_approval);
+
+        SubMenu subServices = menu.addSubMenu("Services");
+        try {
+            List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
+            for (ServiceJoinServiceType service : services) {
+                IMeinService runningInstance = meinAuthService.getMeinService(service.getUuid().v());
+                MenuItem mService = subServices.add(service.getType().v() + "/" + service.getName().v());
+                mService.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        content.removeAllViews();
+                        toolbar.setTitle("Create new Service");
+                        View v = View.inflate(MainActivity.this, R.layout.content_create_service, content);
+                        guiController = new EditServiceController(androidService.getMeinAuthService(), MainActivity.this, v,service,runningInstance);
+                        return true;
+                    }
+                });
+            }
+            MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, "create new Service");
+            mNewService.setIcon(R.drawable.ic_menu_add);
+        } catch (SqlQueriesException e) {
+            e.printStackTrace();
+        }
+        System.out.println();
     }
 }

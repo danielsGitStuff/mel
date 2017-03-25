@@ -29,6 +29,10 @@ public final class DatabaseManager extends FileRelatedManager {
     protected final ServiceDao serviceDao;
     protected final ApprovalDao approvalDao;
 
+    public ServiceType getServiceTypeById(Long id) throws SqlQueriesException {
+        return  serviceTypeDao.getServiceTypeById(id);
+    }
+
     public interface SqlInputStreamInjector {
         InputStream createSqlFileInputStream();
     }

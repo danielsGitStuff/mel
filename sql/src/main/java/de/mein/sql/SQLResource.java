@@ -19,7 +19,6 @@ public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
     private ResultSet resultSet;
 
 
-
     public SQLResource(PreparedStatement preparedStatement, Class<T> clazz) throws SQLException {
         this.clazz = clazz;
         this.preparedStatement = preparedStatement;
@@ -27,19 +26,23 @@ public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
     }
 
     @Override
-    public T getNext() throws IllegalAccessException, InstantiationException, SQLException {
+    public T getNext() throws SqlQueriesException {
         T sqlTable = null;
-        if (resultSet.next()) {
-            sqlTable = clazz.newInstance();
-            List<Pair<?>> attributes = sqlTable.getAllAttributes();
-            for (Pair<?> pair : attributes) {
-                try {
-                    Object res = resultSet.getObject(pair.k());
-                    pair.setValueUnsecure(res);
-                } catch (Exception e) {
-                    e.printStackTrace();
+        try {
+            if (resultSet.next()) {
+                sqlTable = clazz.newInstance();
+                List<Pair<?>> attributes = sqlTable.getAllAttributes();
+                for (Pair<?> pair : attributes) {
+                    try {
+                        Object res = resultSet.getObject(pair.k());
+                        pair.setValueUnsecure(res);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
+        } catch (Exception e) {
+            throw new SqlQueriesException(e);
         }
         return sqlTable;
     }

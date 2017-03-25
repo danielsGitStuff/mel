@@ -18,16 +18,18 @@
             </group>
         </menu>
     </item>
-    <item android:title="Services">
+    <item
+        android:id="@+id/menu_services"
+        android:title="Services">
         <menu>
             <group
                 android:id="@+id/group_services"
                 android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_new_service"
+                    android:icon="@drawable/ic_menu_add"
+                    android:title="create new Service" />
             </group>
-            <item
-                android:id="@+id/nav_new_service"
-                android:icon="@drawable/ic_menu_add"
-                android:title="create new Service" />
         </menu>
     </item>
 

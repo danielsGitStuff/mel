@@ -20,7 +20,7 @@ import mein.de.meindrive.R;
  * Created by xor on 3/7/17.
  */
 
-public class NetworkDiscoveryController implements GuiController {
+public class NetworkDiscoveryController extends GuiController {
     private final MeinAuthService meinAuthService;
     private final View rootView;
     private final NetworkEnvironment environment;
@@ -107,5 +107,10 @@ public class NetworkDiscoveryController implements GuiController {
     @Override
     public void onAndroidServiceBound(AndroidService androidService) {
         System.out.println("NetworkDiscoveryController.onAndroidServiceBound");
+    }
+
+    @Override
+    public void onAndroidServiceUnbound(AndroidService androidService) {
+
     }
 }

@@ -24,7 +24,7 @@ import mein.de.meindrive.R;
  * Created by xor on 2/20/17.
  */
 
-public class ApprovalController implements GuiController {
+public class ApprovalController extends GuiController {
     private final View rootView;
     private final MeinAuthService meinAuthService;
     private final ListView listCertificates, listServices;
@@ -147,6 +147,11 @@ public class ApprovalController implements GuiController {
 
     @Override
     public void onAndroidServiceBound(AndroidService androidService) {
+
+    }
+
+    @Override
+    public void onAndroidServiceUnbound(AndroidService androidService) {
 
     }
 }

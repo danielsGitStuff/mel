@@ -36,7 +36,7 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
 
     @Override
     public Integer getEditResource(IMeinService service) {
-        return R.layout.embedded_create_drive;
+        return R.layout.embedded_edit_drive;
     }
 
     @Override

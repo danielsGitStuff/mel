@@ -23,7 +23,7 @@ import mein.de.meindrive.R;
 /**
  * Created by xor on 2/20/17.
  */
-public class CreateServiceController implements GuiController {
+public class CreateServiceController extends GuiController {
     private final MeinAuthService meinAuthService;
     private final Spinner spinner;
     private View rootView;
@@ -81,6 +81,11 @@ public class CreateServiceController implements GuiController {
 
     @Override
     public void onAndroidServiceBound(AndroidService androidService) {
+
+    }
+
+    @Override
+    public void onAndroidServiceUnbound(AndroidService androidService) {
 
     }
 }
