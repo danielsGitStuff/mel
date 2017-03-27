@@ -143,7 +143,7 @@ public class CertificateManager extends FileRelatedManager {
 
     private void loadCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         certificateDao.lockRead();
-        for (Certificate dbCert : certificateDao.getCertificates()) {
+        for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
             X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
             storeCertInKeyStore(dbCert.getUuid().v(), cert);
         }
@@ -301,8 +301,8 @@ public class CertificateManager extends FileRelatedManager {
         certificateDao.updateCertificate(certificate);
     }
 
-    public List<Certificate> getCertificates() throws SqlQueriesException {
-        return certificateDao.getCertificates();
+    public List<Certificate> getTrustedCertificates() throws SqlQueriesException {
+        return certificateDao.getTrustedCertificates();
     }
 
     public Certificate addAnswerUuid(Long certId, String ownUuid) throws SqlQueriesException {

@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 
 import java.util.List;
 
+import de.mein.android.controller.OthersController;
 import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.db.ServiceJoinServiceType;
@@ -153,11 +154,20 @@ public class MainActivity extends AppCompatActivity
             showApprovals();
         } else if (id == R.id.nav_new_service) {
             showCreateNewService();
+        }else if (id == R.id.nav_others){
+            showOthers();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void showOthers() {
+        toolbar.setTitle("Other Instances");
+        content.removeAllViews();
+        View v = View.inflate(this, R.layout.content_others, content);
+        guiController = new OthersController(androidService.getMeinAuthService(), v);
     }
 
     private void showDiscover() {
@@ -208,11 +218,13 @@ public class MainActivity extends AppCompatActivity
         //general
         MenuItem mGeneral = subMeinAuth.add(5, R.id.nav_general, 0, "General");
         mGeneral.setIcon(R.drawable.ic_menu_manage);
+        MenuItem mOthers = subMeinAuth.add(5, R.id.nav_others,1,"Other Instances");
+        mOthers.setIcon(R.drawable.ic_menu_gallery);
         //discover ic_menu_search
-        MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 1, "Approvals");
+        MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 2, "Discover");
         mDiscover.setIcon(R.drawable.ic_menu_search);
         //approvals ic_menu_approval
-        MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 1, "Approvals");
+        MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 3, "Approvals");
         mApprovals.setIcon(R.drawable.ic_menu_approval);
 
         SubMenu subServices = menu.addSubMenu("Services");
@@ -225,9 +237,9 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         content.removeAllViews();
-                        toolbar.setTitle("Create new Service");
+                        toolbar.setTitle("Edit Service: " + service.getName().v());
                         View v = View.inflate(MainActivity.this, R.layout.content_create_service, content);
-                        guiController = new EditServiceController(androidService.getMeinAuthService(), MainActivity.this, v,service,runningInstance);
+                        guiController = new EditServiceController(androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
                         return true;
                     }
                 });

@@ -161,8 +161,8 @@ public class MeinAuthService extends MeinRunnable {
         return promise;
     }
 
-    public List<Certificate> getImportedCerts() throws SqlQueriesException {
-        List<Certificate> certs = certificateManager.getCertificates();
+    public List<Certificate> getTrustedCertificates() throws SqlQueriesException {
+        List<Certificate> certs = certificateManager.getTrustedCertificates();
         return certs;
     }
 
@@ -366,7 +366,7 @@ public class MeinAuthService extends MeinRunnable {
                 });
             }
             // check DB entries
-            for (Certificate intendedCertificate : certificateManager.getCertificates()) {
+            for (Certificate intendedCertificate : certificateManager.getTrustedCertificates()) {
                 connectAndCollect(checkedAddresses, networkEnvironment, intendedCertificate);
             }
             // discover, connect & collect results

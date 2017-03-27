@@ -81,7 +81,7 @@ public class CertificateManagerTest {
         byte[] byteCert = x509Certificate.getEncoded();
         UUID uuid = UUID.randomUUID();
         Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null, "huiii");
-        Certificate dbCertificate = certificateManager.getCertificates().get(0);
+        Certificate dbCertificate = certificateManager.getTrustedCertificates().get(0);
         X509Certificate dbX509Certificate = CertificateManager.loadX509CertificateFromBytes(dbCertificate.getCertificate().v());
         assertEquals(x509Certificate, dbX509Certificate);
         assertNotNull(buildCertificate.getId().v());

@@ -57,7 +57,7 @@ public class ApprovalController extends GuiController {
     private void fillContent() throws SqlQueriesException {
         if (meinAuthService != null) {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
-            List<Certificate> certificates = meinAuthService.getCertificateManager().getCertificates();
+            List<Certificate> certificates = meinAuthService.getCertificateManager().getTrustedCertificates();
             List<Approval> approvals = meinAuthService.getDatabaseManager().getAllApprovals();
             matrix = new ApprovalMatrix();
             matrix.fill(certificates, services, approvals);
