@@ -61,4 +61,9 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
         txtSslPort.setText(String.valueOf(settings.getPort()));
         txtGreeting.setText(settings.getGreeting());
     }
+
+    @Override
+    public String getTitle() {
+        return "General stuff";
+    }
 }

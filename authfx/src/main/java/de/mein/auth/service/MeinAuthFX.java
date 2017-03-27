@@ -17,7 +17,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Side;
-import javafx.scene.AccessibleAction;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
@@ -42,7 +41,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     @FXML
     private TextField txtServiceFilter, txtCertificateFilter;
     @FXML
-    private Button btnRefresh, btnApply, btnApprovals, btnCreateService, btnRemoveService;
+    private Button btnRefresh, btnApply, btnApprovals, btnCreateService, btnRemoveService, btnOthers;
     @FXML
     private Button btnGeneral, btnDiscover;
     @FXML
@@ -55,6 +54,10 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     private NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
     @FXML
     private TitledPane tpServices;
+    @FXML
+    private Label lblTitle;
+    @FXML
+    private HBox hBoxButtons;
 
 
     public MeinAuthFX setMeinAuthService(MeinAuthService meinAuthService) {
@@ -109,6 +112,9 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
                 paneContainer.getChildren().clear();
             }
         });
+        btnOthers.setOnAction(event -> {
+            loadSettingsFX("de/mein/auth/others.fxml");
+        });
         btnApprovals.setOnAction(event -> loadSettingsFX("de/mein/auth/approvals.fxml"));
         btnCreateService.setOnAction(event -> {
             createServiceMenu.getItems().clear();
@@ -135,7 +141,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
                         runner.run(() -> {
                             if (service != null) {
                                 BootLoaderFX bootloader = (BootLoaderFX) MeinBoot.getBootLoader(meinAuthService, service.getType().v());
-                                IMeinService meinService =  meinAuthService.getMeinService(service.getUuid().v());
+                                IMeinService meinService = meinAuthService.getMeinService(service.getUuid().v());
                                 loadSettingsFX(bootloader.getEditFXML(meinService));
                                 ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
                                 serviceSettingsFX.feed(service);
@@ -159,14 +165,18 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     private void loadSettingsFX(String resource) {
         NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
         runner.run(() -> {
+            showBottomButtons();
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
             Pane pane = lo.load();
             contentController = lo.getController();
+            contentController.configureParentGui(this);
             contentController.setMeinAuthService(meinAuthService);
+            lblTitle.setText(contentController.getTitle());
             setContentPane(pane);
             System.out.println("MeinAuthFX.loadSettingsFX.loaded");
         });
     }
+
 
     private void setContentPane(Pane pane) {
         paneContainer.getChildren().clear();
@@ -207,5 +217,15 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
         );
         lock.lockWrite().unlockWrite();
         return meinAuthFX[0];
+    }
+
+    public void hideBottomButtons() {
+        hBoxButtons.setVisible(false);
+        hBoxButtons.setManaged(false);
+    }
+
+    private void showBottomButtons() {
+        hBoxButtons.setVisible(true);
+        hBoxButtons.setManaged(true);
     }
 }

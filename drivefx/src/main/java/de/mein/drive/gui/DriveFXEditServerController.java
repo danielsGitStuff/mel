@@ -8,4 +8,9 @@ public class DriveFXEditServerController extends DriveFXEditBaseController {
     public void init() {
 
     }
+
+    @Override
+    public String getTitle() {
+        return "Edit Drive server settings";
+    }
 }

@@ -1,5 +1,6 @@
 package de.mein.auth.gui;
 
+import de.mein.auth.service.MeinAuthFX;
 import de.mein.auth.service.MeinAuthService;
 
 /**
@@ -23,4 +24,13 @@ public abstract class AuthSettingsFX {
     public abstract void init();
 
 
+    public abstract String getTitle();
+
+    /**
+     * override to hide buttons or something
+     * @param meinAuthFX
+     */
+    public void configureParentGui(MeinAuthFX meinAuthFX){
+
+    }
 }

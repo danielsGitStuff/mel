@@ -92,11 +92,10 @@ public class DriveFXTest {
         lock.lockWrite();
         lock.unlockWrite();
     }
-
     @Test
     public void startEmptyServer() throws Exception {
 //        inject(true);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
 //        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
