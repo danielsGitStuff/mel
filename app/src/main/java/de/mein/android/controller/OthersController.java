@@ -1,13 +1,16 @@
 package de.mein.android.controller;
 
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import de.mein.android.AndroidService;
 import de.mein.android.view.KnownCertListAdapter;
+import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.tools.NoTryRunner;
 import de.mein.sql.SqlQueriesException;
 import mein.de.meindrive.R;
 
@@ -21,6 +24,7 @@ public class OthersController extends GuiController {
     private Button btnDelete;
     private ListView listCertificates;
     private KnownCertListAdapter listCertAdapter;
+    private Certificate selectedCert;
 
     public OthersController(MeinAuthService meinAuthService, View rootView) {
         this.rootView = rootView;
@@ -31,6 +35,26 @@ public class OthersController extends GuiController {
             listCertAdapter = new KnownCertListAdapter(rootView.getContext());
             listCertAdapter.addAll(meinAuthService.getTrustedCertificates());
             listCertificates.setAdapter(listCertAdapter);
+            btnDelete.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    try {
+                        if (selectedCert != null)
+                            meinAuthService.getCertificateManager().deleteCertificate(selectedCert);
+                        selectedCert = null;
+                    } catch (SqlQueriesException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            listCertificates.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    selectedCert = listCertAdapter.getItemT(position);
+                }
+            });
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         }

@@ -11,11 +11,13 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:text="Delete" />
+
     <ListView
         android:id="@+id/listCertificates"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_above="@id/btnDelete"
-        android:layout_height="wrap_content" />
+        android:layout_alignParentTop="true" />
 
 
 </RelativeLayout>
