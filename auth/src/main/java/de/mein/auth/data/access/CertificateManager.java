@@ -65,20 +65,19 @@ public class CertificateManager extends FileRelatedManager {
             Security.addProvider(new BouncyCastleProvider());
         //load keystore
         keyStoreFile = new File(createWorkingPath() + KS_FILENAME);
+        // we want to start with a clean keystore
         boolean deleted = keyStoreFile.delete();
         if (!deleted)
             System.err.println("CertificateManager().KEYSTORE.NOT.DELETED");
-        FileInputStream jksIn = null;
-        jksIn = new FileInputStream(keyStoreFile);
         keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keyStore.load(jksIn, PASS.toCharArray());
+        keyStore.load(null, PASS.toCharArray());
         //init DB stuff
         certificateDao = new CertificateDao(ISQLQueries, false);
         //the actual loading
         if (!loadKeys())
             generateCertificate();
         saveKeysInKeystore();
-        loadCertificates();
+        loadTrustedCertificates();
     }
 
     public static void deleteDirectory(File dir) {
@@ -143,7 +142,7 @@ public class CertificateManager extends FileRelatedManager {
         certificateDao.trustCertificate(certId, trusted);
     }
 
-    private void loadCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+    private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         certificateDao.lockRead();
         for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
             X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
