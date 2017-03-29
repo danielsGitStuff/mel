@@ -65,22 +65,23 @@ public class CertificateManager extends FileRelatedManager {
             Security.addProvider(new BouncyCastleProvider());
         //load keystore
         keyStoreFile = new File(createWorkingPath() + KS_FILENAME);
-        FileInputStream jksIn = null;
-        if (keyStoreFile.exists()) {
-            jksIn = new FileInputStream(keyStoreFile);
-        }
+        // we want to start with a clean keystore
+        boolean deleted = keyStoreFile.delete();
+        if (!deleted)
+            System.err.println("CertificateManager().KEYSTORE.NOT.DELETED");
         keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keyStore.load(jksIn, PASS.toCharArray());
+        keyStore.load(null, PASS.toCharArray());
         //init DB stuff
         certificateDao = new CertificateDao(ISQLQueries, false);
         //the actual loading
         if (!loadKeys())
             generateCertificate();
-        loadCertificates();
+        saveKeysInKeystore();
+        loadTrustedCertificates();
     }
 
     public static void deleteDirectory(File dir) {
-        System.out.println("CertificateManager.deleteDirectory: "+dir.getAbsolutePath());
+        System.out.println("CertificateManager.deleteDirectory: " + dir.getAbsolutePath());
         File[] subs = dir.listFiles();
         if (subs != null)
             for (File f : subs) {
@@ -141,9 +142,9 @@ public class CertificateManager extends FileRelatedManager {
         certificateDao.trustCertificate(certId, trusted);
     }
 
-    private void loadCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+    private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         certificateDao.lockRead();
-        for (Certificate dbCert : certificateDao.getCertificates()) {
+        for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
             X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
             storeCertInKeyStore(dbCert.getUuid().v(), cert);
         }
@@ -214,13 +215,13 @@ public class CertificateManager extends FileRelatedManager {
         saveFile(this.privateKey.getEncoded(), PK_FILENAME);
         saveFile(this.publicKey.getEncoded(), PUB_FILENAME);
 
-        // save PK & Cert to the keystore
-        char[] pwd = PASS.toCharArray();
-        keyStore.setKeyEntry(PK_NAME, this.privateKey,
-                pwd,
-                new java.security.cert.Certificate[]{certificate});
         // save KeyStore
         storeKeyStore();
+    }
+
+    private void saveKeysInKeystore() throws KeyStoreException {
+        char[] pwd = PASS.toCharArray();
+        keyStore.setKeyEntry(PK_NAME, this.privateKey, pwd, new java.security.cert.Certificate[]{certificate});
     }
 
     private synchronized void storeKeyStore() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
@@ -301,8 +302,8 @@ public class CertificateManager extends FileRelatedManager {
         certificateDao.updateCertificate(certificate);
     }
 
-    public List<Certificate> getCertificates() throws SqlQueriesException {
-        return certificateDao.getCertificates();
+    public List<Certificate> getTrustedCertificates() throws SqlQueriesException {
+        return certificateDao.getTrustedCertificates();
     }
 
     public Certificate addAnswerUuid(Long certId, String ownUuid) throws SqlQueriesException {

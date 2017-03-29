@@ -131,4 +131,9 @@ public class DriveFXCreateController extends AuthSettingsFX {
         });
 
     }
+
+    @Override
+    public String getTitle() {
+        return "Create a new Drive instance";
+    }
 }

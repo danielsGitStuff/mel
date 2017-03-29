@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
 /**
  * Created by xor on 10/25/16.
  */
-public class NetworkDiscoveryController extends AuthSettingsFX implements Initializable {
+public class NetworkDiscoveryFX extends AuthSettingsFX implements Initializable {
     private NetworkEnvironment environment;
     @FXML
     private ListView<NetworkEnvironment.UnknownAuthInstance> listAll;
@@ -43,17 +43,22 @@ public class NetworkDiscoveryController extends AuthSettingsFX implements Initia
         discover();
     }
 
+    @Override
+    public String getTitle() {
+        return "Find other instances";
+    }
+
     private void discover() {
         environment.deleteObservers();
         environment.deleteObservers();
         environment.addObserver((o, arg) -> {
-            System.out.println("NetworkDiscoveryController.init");
+            System.out.println("NetworkDiscoveryFX.init");
             listAll.getItems().clear();
             listAll.getItems().addAll(environment.getUnknownAuthInstances());
             listKnown.getItems().clear();
             for (Long certId : environment.getCertificateIds()) {
                 try {
-                    System.out.println("NetworkDiscoveryController.discover");
+                    System.out.println("NetworkDiscoveryFX.discover");
                     Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
                     listKnown.getItems().add(certificate);
                 } catch (Exception e) {

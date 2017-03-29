@@ -19,7 +19,7 @@ import mein.de.meindrive.R;
 /**
  * Created by xor on 2/22/17.
  */
-public class GeneralController implements GuiController {
+public class GeneralController extends GuiController {
     private final View view;
     private AndroidService androidService;
     private Button btnStartStop, btnApply;
@@ -71,6 +71,11 @@ public class GeneralController implements GuiController {
     public void onAndroidServiceBound(AndroidService androidService) {
         this.androidService = androidService;
         showAll();
+    }
+
+    @Override
+    public void onAndroidServiceUnbound(AndroidService androidService) {
+        this.androidService = null;
     }
 
     private void showAll() {

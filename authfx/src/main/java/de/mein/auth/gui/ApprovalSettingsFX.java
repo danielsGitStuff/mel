@@ -41,7 +41,7 @@ public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable 
         try {
             // organize delicous data
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
-            List<Certificate> certificates = meinAuthService.getCertificateManager().getCertificates();
+            List<Certificate> certificates = meinAuthService.getCertificateManager().getTrustedCertificates();
             List<Approval> approvals = meinAuthService.getDatabaseManager().getAllApprovals();
 
             approvalMatrix = new ApprovalMatrix();
@@ -71,6 +71,11 @@ public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String getTitle() {
+        return "Which services shall speak to whom?";
     }
 
     @Override

@@ -72,66 +72,76 @@ public class MeinAuthProcess extends MeinProcess {
     }
 
     @Override
-    public void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) {
-        if (!handleAnswer(deserialized))
-            if (deserialized instanceof MeinRequest) {
-                MeinRequest request = (MeinRequest) deserialized;
-                try {
-                    this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateByUuid(request.getUserUuid());
-                    assert partnerCertificate != null;
-                    this.decryptedSecret = meinAuthSocket.getMeinAuthService().getCertificateManager().decrypt(request.getSecret());
-                    this.mySecret = UUID.randomUUID().toString();
-                    IsolationDetails isolationDetails = null;
-                    if (request.getPayload() != null && request.getPayload() instanceof IsolationDetails) {
-                        isolationDetails = (IsolationDetails) request.getPayload();
-                    }
-                    byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
-                    //todo debug
-                    String dec = new String(request.getSecret());
-                    MeinRequest answer = request.request().setRequestHandler(this).queue()
-                            .setDecryptedSecret(decryptedSecret)
-                            .setSecret(secret);
-                    IsolationDetails finalIsolationDetails = isolationDetails;
-                    answer.getPromise().done(result -> {
-                        MeinRequest r = (MeinRequest) result;
-                        MeinResponse response = r.reponse();
-                        try {
-                            if (r.getDecryptedSecret().equals(mySecret)) {
-                                if (finalIsolationDetails == null) {
-                                    // propagate that we are connected!
-                                    propagateAuthentication(this.partnerCertificate);
-                                    // get all allowed Services
-                                    MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
-                                    // done here, set up validationprocess
-                                    System.out.println(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
-                                    MeinValidationProcess validationProcess = new MeinValidationProcess(webSocket, partnerCertificate);
-                                    // tell MAS we are connected & authenticated
-                                    meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
-                                    send(response);
+    public void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket socket) {
+        try {
+            if (!handleAnswer(deserialized))
+                if (deserialized instanceof MeinRequest) {
+                    MeinRequest request = (MeinRequest) deserialized;
+                    try {
+                        this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateByUuid(request.getUserUuid());
+                        assert partnerCertificate != null;
+                        this.decryptedSecret = meinAuthSocket.getMeinAuthService().getCertificateManager().decrypt(request.getSecret());
+                        this.mySecret = UUID.randomUUID().toString();
+                        IsolationDetails isolationDetails = null;
+                        if (request.getPayload() != null && request.getPayload() instanceof IsolationDetails) {
+                            isolationDetails = (IsolationDetails) request.getPayload();
+                        }
+                        byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
+                        //todo debug
+                        String dec = new String(request.getSecret());
+                        MeinRequest answer = request.request().setRequestHandler(this).queue()
+                                .setDecryptedSecret(decryptedSecret)
+                                .setSecret(secret);
+                        IsolationDetails finalIsolationDetails = isolationDetails;
+                        answer.getPromise().done(result -> {
+                            MeinRequest r = (MeinRequest) result;
+                            MeinResponse response = r.reponse();
+                            try {
+                                if (r.getDecryptedSecret().equals(mySecret)) {
+                                    if (finalIsolationDetails == null) {
+                                        // propagate that we are connected!
+                                        propagateAuthentication(this.partnerCertificate);
+                                        // get all allowed Services
+                                        MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
+                                        // done here, set up validationprocess
+                                        System.out.println(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
+                                        MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate);
+                                        // tell MAS we are connected & authenticated
+                                        meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
+                                        send(response);
+                                    } else {
+                                        System.out.println("MeinAuthProcess.onMessageReceived");
+                                        IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
+                                        Class<? extends MeinIsolatedProcess> isolatedClass = (Class<? extends MeinIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
+                                        MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());
+                                        service.onIsolatedConnectionEstablished(isolatedProcess);
+                                        send(response);
+                                    }
                                 } else {
-                                    System.out.println("MeinAuthProcess.onMessageReceived");
-                                    IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
-                                    Class<? extends MeinIsolatedProcess> isolatedClass = (Class<? extends MeinIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
-                                    MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());
-                                    service.onIsolatedConnectionEstablished(isolatedProcess);
+                                    response.setState(MeinProcess.STATE_ERR);
                                     send(response);
                                 }
-                            } else {
-                                response.setState(MeinProcess.STATE_ERR);
-                                send(response);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                MeinAuthProcess.this.removeThyself();
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            MeinAuthProcess.this.removeThyself();
-                        }
-                    });
-                    send(answer);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else
-                System.out.println("MeinAuthProcess.onMessageReceived.ELSE1");
+                        });
+                        send(answer);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else
+                    System.out.println("MeinAuthProcess.onMessageReceived.ELSE1");
+        }catch (Exception e){
+            try {
+                socket.disconnect();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
     }
+
+
 
     private void propagateAuthentication(Certificate partnerCertificate) throws JsonSerializationException, IllegalAccessException, SqlQueriesException {
         List<Service> services = meinAuthSocket.getMeinAuthService().getDatabaseManager().getAllowedServices(partnerCertificate.getId().v());

@@ -24,7 +24,7 @@ import mein.de.meindrive.R;
  * Created by xor on 2/20/17.
  */
 
-public class ApprovalController implements GuiController {
+public class ApprovalController extends GuiController {
     private final View rootView;
     private final MeinAuthService meinAuthService;
     private final ListView listCertificates, listServices;
@@ -57,7 +57,7 @@ public class ApprovalController implements GuiController {
     private void fillContent() throws SqlQueriesException {
         if (meinAuthService != null) {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
-            List<Certificate> certificates = meinAuthService.getCertificateManager().getCertificates();
+            List<Certificate> certificates = meinAuthService.getCertificateManager().getTrustedCertificates();
             List<Approval> approvals = meinAuthService.getDatabaseManager().getAllApprovals();
             matrix = new ApprovalMatrix();
             matrix.fill(certificates, services, approvals);
@@ -147,6 +147,11 @@ public class ApprovalController implements GuiController {
 
     @Override
     public void onAndroidServiceBound(AndroidService androidService) {
+
+    }
+
+    @Override
+    public void onAndroidServiceUnbound(AndroidService androidService) {
 
     }
 }

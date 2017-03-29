@@ -8,7 +8,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
@@ -24,9 +23,10 @@
                     <content>
                         <VBox>
                             <children>
-                                <Button fx:id="btnGeneral" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="General" />
-                                <Button fx:id="btnDiscover" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Discover" />
-                                <Button fx:id="btnApprovals" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Approvals" />
+                                <Button fx:id="btnGeneral" maxWidth="Infinity" mnemonicParsing="false" text="General" />
+                                <Button fx:id="btnOthers" maxWidth="Infinity" mnemonicParsing="false" text="Other Instances" />
+                                <Button fx:id="btnDiscover" maxWidth="Infinity" mnemonicParsing="false" text="Discover" />
+                                <Button fx:id="btnApprovals" maxWidth="Infinity" mnemonicParsing="false" text="Approvals" />
                             </children>
                             <rotationAxis>
                                 <Point3D />
@@ -63,7 +63,7 @@
     </VBox>
     <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
         <bottom>
-            <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">
+            <HBox fx:id="hBoxButtons" alignment="CENTER" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">
                 <Button fx:id="btnRefresh" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Refresh" HBox.hgrow="ALWAYS" />
                 <Button fx:id="btnApply" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Apply" HBox.hgrow="ALWAYS" />
             </HBox>

@@ -1,9 +1,11 @@
 package de.mein.android.controller;
 
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.annimon.stream.Exceptional;
 import com.annimon.stream.Stream;
 
 import de.mein.android.AndroidService;
@@ -20,7 +22,7 @@ import mein.de.meindrive.R;
  * Created by xor on 3/7/17.
  */
 
-public class NetworkDiscoveryController implements GuiController {
+public class NetworkDiscoveryController extends GuiController {
     private final MeinAuthService meinAuthService;
     private final View rootView;
     private final NetworkEnvironment environment;
@@ -28,6 +30,7 @@ public class NetworkDiscoveryController implements GuiController {
     private ListView listKnown, listUnkown;
     private UnknownAuthListAdapter unkownListAdapter;
     private final EditText txtAddress, txtPort, txtDeliveryPort;
+    private final Button btnConnect;
 
     public NetworkDiscoveryController(MeinAuthService meinAuthService, View rootView) {
         this.meinAuthService = meinAuthService;
@@ -37,6 +40,7 @@ public class NetworkDiscoveryController implements GuiController {
         this.txtDeliveryPort = (EditText) rootView.findViewById(R.id.txtDeliveryPort);
         this.txtPort = (EditText) rootView.findViewById(R.id.txtPort);
         this.txtAddress = (EditText) rootView.findViewById(R.id.txtAddress);
+        this.btnConnect = (Button) rootView.findViewById(R.id.btnConnect);
         environment = meinAuthService.getNetworkEnvironment();
         unkownListAdapter = new UnknownAuthListAdapter(rootView.getContext(), environment);
         listUnkown.setAdapter(unkownListAdapter);
@@ -56,8 +60,20 @@ public class NetworkDiscoveryController implements GuiController {
             txtPort.setText(c.getPort().v());
             txtDeliveryPort.setText(c.getCertDeliveryPort().v());
         });
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String address = txtAddress.getText().toString();
+                Integer port = Integer.parseInt(txtPort.getText().toString());
+                Integer portCert = Integer.parseInt(txtDeliveryPort.getText().toString());
+                try {
+                    meinAuthService.connect(null, address, port, portCert, true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         discover();
-        //environment.addUnkown("testAddress", 777, 888);
     }
 
 
@@ -107,5 +123,10 @@ public class NetworkDiscoveryController implements GuiController {
     @Override
     public void onAndroidServiceBound(AndroidService androidService) {
         System.out.println("NetworkDiscoveryController.onAndroidServiceBound");
+    }
+
+    @Override
+    public void onAndroidServiceUnbound(AndroidService androidService) {
+
     }
 }

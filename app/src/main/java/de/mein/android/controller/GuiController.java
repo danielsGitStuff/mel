@@ -7,8 +7,10 @@ import de.mein.android.AndroidService;
  * Created by xor on 2/23/17.
  */
 
-public interface GuiController {
-    void onMeinAuthStarted(MeinAuthService androidService);
+public abstract class GuiController {
+    public abstract void onMeinAuthStarted(MeinAuthService androidService);
 
-    void onAndroidServiceBound(AndroidService androidService);
+    public abstract void onAndroidServiceBound(AndroidService androidService);
+
+    public abstract void onAndroidServiceUnbound(AndroidService androidService);
 }

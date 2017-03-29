@@ -18,9 +18,9 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         super(ISQLQueries, lock);
     }
 
-    public List<Certificate> getCertificates() throws SqlQueriesException {
+    public List<Certificate> getTrustedCertificates() throws SqlQueriesException {
         Certificate dummy = new Certificate();
-        List<Certificate> re = sqlQueries.load(dummy.getAllAttributes(), dummy, null, null);
+        List<Certificate> re = sqlQueries.load(dummy.getAllAttributes(), dummy, dummy.getTrusted().k() + "=?", ISQLQueries.whereArgs(true));
         return re;
     }
 

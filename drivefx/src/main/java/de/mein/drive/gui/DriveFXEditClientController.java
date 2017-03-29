@@ -28,6 +28,11 @@ public class DriveFXEditClientController extends DriveFXEditBaseController {
         });
     }
 
+    @Override
+    public String getTitle() {
+        return "Edit Drive instance";
+    }
+
     public DriveFXEditClientController setDriveSettings(DriveSettings driveSettings) {
         this.driveSettings = driveSettings;
         return this;

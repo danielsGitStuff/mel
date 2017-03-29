@@ -272,4 +272,8 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         out.write(block);
         out.flush();
     }
+
+    public void disconnect() throws IOException {
+        socket.close();
+    }
 }
