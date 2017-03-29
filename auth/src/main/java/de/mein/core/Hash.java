@@ -47,7 +47,7 @@ public class Hash {
                 hexString.append(Integer.toHexString(0xFF & bytes[i]));
             }
         }
-        return hexString.toString();
+        return hexString.toString().toLowerCase();
     }
 
     public static String md5(byte[] bytes) throws IOException {
