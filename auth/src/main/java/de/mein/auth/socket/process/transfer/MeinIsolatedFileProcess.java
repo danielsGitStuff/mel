@@ -28,7 +28,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runn
         receivingSemaphore.acquire();
         streamIdFileMapReceiving.put(fileTransferDetail.getStreamId(), fileTransferDetail);
         receivingSemaphore.release();
-        System.out.println("MeinIsolatedFileProcess.addFilesReceiving.stored: " + streamIdFileMapReceiving.get(fileTransferDetail.getStreamId()));
+        System.out.println("MeinIsolatedFileProcess.addFilesReceiving.stored.hash: " + streamIdFileMapReceiving.get(fileTransferDetail.getStreamId()).getHash());
     }
 
     public MeinIsolatedFileProcess(MeinAuthSocket meinAuthSocket, IMeinService meinService, Long partnerCertificateId, String partnerServiceUuid, String isolatedUuid) {

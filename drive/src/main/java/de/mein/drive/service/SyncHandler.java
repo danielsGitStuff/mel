@@ -62,15 +62,15 @@ public abstract class SyncHandler {
             Long inode = BashTools.getINodeOfFile(target);
             GenericFSEntry genericFSEntry = fsDao.getGenericByINode(inode);
             if (genericFSEntry != null) {
-                if (target.isFile()  ) {
-                    if(fsTarget.getContentHash().v().equals(source.getName())){
+                if (target.isFile()) {
+                    if (fsTarget.getContentHash().v().equals(source.getName())) {
                         // you should not even transfer identical files twice
                         System.out.println("SyncHandler.moveFile.should fix?");
                         System.out.println("SyncHandler.moveFile.should fix?");
                         System.out.println("SyncHandler.moveFile.should fix?");
                         System.out.println("SyncHandler.moveFile.should fix?");
-                    }else
-                    wasteBin.delete(genericFSEntry.getId().v());
+                    } else
+                        wasteBin.delete(genericFSEntry.getId().v());
                 } else {
                     System.err.println("SyncHandler.moveFile: TARGET FILE WAS A DIRECTORY, DELETING IT");
                     wasteBin.delete(genericFSEntry.getId().v());
@@ -101,7 +101,7 @@ public abstract class SyncHandler {
      */
     public void onFileTransferred(File file, String hash) throws SqlQueriesException, IOException {
         fsDao.lockRead();
-        List<FsFile> fsFiles = fsDao.getFilesByHash(hash);
+        List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
         fsDao.unlockRead();
         //TODO check if file is in transfer dir, then move, else copy
         if (fsFiles.size() > 0 && file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
@@ -233,6 +233,8 @@ public abstract class SyncHandler {
                             if (oldeEntry != null && !stageSet.fromFs())
                                 wasteDao.fsToWaste((FsFile) oldeEntry);
                         }
+                        if (!fsEntry.getIsDirectory().v())
+                            fsEntry.getSynced().v(false);
                         fsDao.insertOrUpdate(fsEntry);
                         this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
                     }

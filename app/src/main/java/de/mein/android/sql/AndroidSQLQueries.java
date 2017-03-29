@@ -96,7 +96,6 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject, String selectString, List<Object> arguments) throws SqlQueriesException {
-        System.out.println("AndroidSQLQueries.loadString");
         Cursor cursor = db.rawQuery(selectString, argsToStringArgs(arguments));
         List<T> result = new ArrayList<>(cursor.getCount());
         try {

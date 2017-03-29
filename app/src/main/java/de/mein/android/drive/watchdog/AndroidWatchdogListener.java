@@ -31,13 +31,30 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
                 fileObserver = new FileObserver(dir.getAbsolutePath()) {
                     @Override
                     public void onEvent(int event, String path) {
-                        System.out.println("AndroidWatchdogListener.onEvent");
+                        if (path == null)
+                            System.out.println("AndroidWatchdogListener.onEvent");
+                        System.out.println("AndroidWatchdogListener.onEvent: " + path);
+                        if (path != null)
+                            try {
+                                ignoredSemaphore.acquire();
+                                if (!ignoredMap.containsKey(path))
+                                    analyzeFile(new File(path));
+
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } finally {
+                                ignoredSemaphore.release();
+                            }
                     }
                 };
                 fileObserver.startWatching();
             } catch (Exception e) {
                 e.printStackTrace();
             }
+    }
+
+    private void analyzeFile(File file) {
+        System.out.println("AndroidWatchdogListener.analyzeFile: " + file.getAbsolutePath());
     }
 
     @Override

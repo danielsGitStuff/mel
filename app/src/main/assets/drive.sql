@@ -10,7 +10,7 @@ CREATE TABLE fsentry (
   version     INTEGER NOT NULL,
   contentHash TEXT    NOT NULL,
   dir         INTEGER NOT NULL,
-  synced      INTEGER,
+  synced      INTEGER not null,
   inode       INTEGER UNIQUE,
   modified    INTEGER,
   size        INTEGER,

@@ -216,7 +216,7 @@ public class FsDao extends Dao.LockingDao {
     public FsDirectory getDirectoryById(Long id) throws SqlQueriesException {
         FsDirectory directory = new FsDirectory();
         List<Object> whereArgs = new ArrayList<>();
-       String where = directory.getId().k() + "=?";
+        String where = directory.getId().k() + "=?";
         if (id != null) {
             where = directory.getId().k() + "=?";
             whereArgs.add(id);
@@ -386,5 +386,12 @@ public class FsDao extends Dao.LockingDao {
         if (directories.size() == 1)
             return directories.get(0);
         return null;
+    }
+
+    public List<FsFile> getNonSyncedFilesByHash(String hash) throws SqlQueriesException {
+        FsFile dummy = new FsFile();
+        String where = dummy.getContentHash().k() + "=? and " + dummy.getSynced().k() + "=?";
+        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(hash, false));
+        return fsFiles;
     }
 }
