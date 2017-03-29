@@ -4,6 +4,7 @@ import de.mein.drive.sql.TransferDetails;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.Pair;
+import de.mein.sql.SQLResource;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
@@ -47,6 +48,9 @@ public class TransferDao extends Dao {
         columns.add(dummy.getServiceUuid());
         List<TransferDetails> result = sqlQueries.load(columns, dummy, null, null, whatElse);
         return result;
+    }
+    public SQLResource<TransferDetails> getTransferResource(){
+        return null;
     }
 
 

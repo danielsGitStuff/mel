@@ -24,6 +24,10 @@ public abstract class Job<R,F,P> {
         private Base(Certificate partnerCertificate) {
             this.partnerCertificate = partnerCertificate;
         }
+
+        public Certificate getPartnerCertificate() {
+            return partnerCertificate;
+        }
     }
 
     /**

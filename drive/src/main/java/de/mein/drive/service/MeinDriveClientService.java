@@ -90,6 +90,16 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                     }
                 }
             }
+        }else if (unknownJob instanceof Job.CertificateSpottedJob){
+            Job.CertificateSpottedJob spottedJob = (Job.CertificateSpottedJob) unknownJob;
+            //check if connected certificate is the server. if so: sync()
+            if (driveSettings.getClientSettings().getServerCertId().equals(spottedJob.getPartnerCertificate().getId().v())){
+                try {
+                    syncThisClient();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return false;
     }

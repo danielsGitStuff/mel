@@ -62,7 +62,14 @@ public abstract class SyncHandler {
             Long inode = BashTools.getINodeOfFile(target);
             GenericFSEntry genericFSEntry = fsDao.getGenericByINode(inode);
             if (genericFSEntry != null) {
-                if (target.isFile()) {
+                if (target.isFile()  ) {
+                    if(fsTarget.getContentHash().v().equals(source.getName())){
+                        // you should not even transfer identical files twice
+                        System.out.println("SyncHandler.moveFile.should fix?");
+                        System.out.println("SyncHandler.moveFile.should fix?");
+                        System.out.println("SyncHandler.moveFile.should fix?");
+                        System.out.println("SyncHandler.moveFile.should fix?");
+                    }else
                     wasteBin.delete(genericFSEntry.getId().v());
                 } else {
                     System.err.println("SyncHandler.moveFile: TARGET FILE WAS A DIRECTORY, DELETING IT");

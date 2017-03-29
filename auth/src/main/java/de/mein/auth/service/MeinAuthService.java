@@ -10,6 +10,7 @@ import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
@@ -247,12 +248,16 @@ public class MeinAuthService extends MeinRunnable {
 
     public Promise<MeinAuthService, Exception, Void> boot() {
         DeferredObject<MeinAuthService, Exception, Void> bootedPromise = new DeferredObject<>();
-        this.start();
-        logger.log(Level.FINE, "MeinAuthService.boot...");
-       /* while (!this.runs()) {
-            // we gotta println this or java won't notice 'this.runs()' actually returns true
-            System.out.print(this.runs());
-        }*/
+        DeferredObject<MeinRunnable, Exception, Void> startedPromise = this.start();
+        System.out.println("MeinAuthService.boot.trying to connect to everybody");
+        startedPromise.done(result -> NoTryRunner.run(() -> {
+            for (Certificate certificate : certificateManager.getTrustedCertificates()) {
+                Promise<MeinValidationProcess, Exception, Void> connected = connect(certificate.getId().v(), certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
+                connected.done(mvp -> NoTryRunner.run(() -> {
+
+                })).fail(result1 -> System.err.println("MeinAuthServive.boot.could not connect to: '" + certificate.getName().v() + "' address: " + certificate.getAddress().v()));
+            }
+        }));
         bootedPromise.resolve(this);
         return bootedPromise;
     }

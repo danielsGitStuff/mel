@@ -71,11 +71,11 @@ public class TransferManager implements Runnable {
                         logger.log(Level.FINER, "TransferManager.run.2222");
                         MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
                         if (fileProcess != null) {
-                            dings(fileProcess, groupedTransferSet);
+                            retrieveFiles(fileProcess, groupedTransferSet);
                         } else {
                             DeferredObject<MeinIsolatedFileProcess, Exception, Void> deferred = meinAuthService.connectToService(MeinIsolatedFileProcess.class, groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v(), meinDriveService.getUuid(), null, null, null);
                             deferred.done(meinIsolatedProcess -> NoTryRunner.run(() -> {
-                                        dings(meinIsolatedProcess, groupedTransferSet);
+                                        retrieveFiles(meinIsolatedProcess, groupedTransferSet);
                                     })
                             );
                         }
@@ -86,7 +86,7 @@ public class TransferManager implements Runnable {
         }
     }
 
-    private void dings(MeinIsolatedFileProcess fileProcess, TransferDetails strippedTransferDetails) throws SqlQueriesException, InterruptedException {
+    private void retrieveFiles(MeinIsolatedFileProcess fileProcess, TransferDetails strippedTransferDetails) throws SqlQueriesException, InterruptedException {
         final String workingPath = meinDriveService.getDriveSettings().getTransferDirectoryPath() + File.separator;
         List<TransferDetails> transfers = transferDao.getTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), LIMIT_PER_ADDRESS);
         AtomicInteger countDown = new AtomicInteger(transfers.size());
@@ -102,7 +102,7 @@ public class TransferManager implements Runnable {
                             lock.unlockWrite();
                         syncHandler.onFileTransferred(target, transferDetails.getHash().v());
                     }));
-            System.out.println("TransferManager.dings.add.transfer: " + fileTransferDetail.getStreamId());
+            System.out.println("TransferManager.retrieveFiles.add.transfer: " + fileTransferDetail.getStreamId());
             fileProcess.addFilesReceiving(fileTransferDetail);
             payLoad.add(fileTransferDetail);
         }
