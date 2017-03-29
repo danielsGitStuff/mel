@@ -198,6 +198,7 @@ public class MeinSocket implements Runnable {
             listener.onClose(42, "don't know shit", true);
         } catch (Exception e) {
             System.err.println(meinAuthService.getName() + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")");
+            onSocketClosed(e);
             e.printStackTrace();
         } finally {
             try {
@@ -209,6 +210,10 @@ public class MeinSocket implements Runnable {
             }
 
         }
+    }
+
+    protected void onSocketClosed(Exception e) {
+
     }
 
     public MeinSocket setListener(MeinSocketListener listener) {

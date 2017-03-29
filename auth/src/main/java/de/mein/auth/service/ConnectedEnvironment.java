@@ -2,7 +2,6 @@ package de.mein.auth.service;
 
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -29,11 +28,16 @@ public class ConnectedEnvironment {
         return idValidateProcessMap.get(certificateId);
     }
 
-    public MeinValidationProcess getValidationProcess(String address){
+    public MeinValidationProcess getValidationProcess(String address) {
         return addressValidateProcessMap.get(address);
     }
 
     public List<Long> getConnectedIds() {
         return idValidateProcessMap.values().stream().map(MeinValidationProcess::getConnectedId).collect(Collectors.toList());
+    }
+
+    public synchronized void removeValidationProcess(MeinValidationProcess process) {
+        addressValidateProcessMap.remove(process.getAddressString());
+        idValidateProcessMap.remove(process.getConnectedId());
     }
 }

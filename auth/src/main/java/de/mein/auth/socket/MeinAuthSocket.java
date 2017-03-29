@@ -15,7 +15,6 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -23,7 +22,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLSocket;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -47,6 +45,10 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     public MeinAuthSocket(MeinAuthService meinAuthService) {
         super(meinAuthService);
         setListener(this);
+    }
+
+    public Certificate getPartnerCertificate() {
+        return partnerCertificate;
     }
 
     MeinAuthSocket setProcess(MeinProcess process) {
@@ -139,6 +141,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         final Integer port = job.getPort();
         final Integer portCert = job.getPortCert();
         final boolean regOnUnknown = job.getRegOnUnknown();
+
         System.out.println("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
         DeferredObject result = job.getPromise();
         NoTryRunner runner = new NoTryRunner(e -> {
@@ -275,5 +278,18 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
 
     public void disconnect() throws IOException {
         socket.close();
+    }
+
+    public boolean isValidated() {
+        return (process != null && process instanceof MeinValidationProcess);
+    }
+
+    @Override
+    protected void onSocketClosed(Exception e) {
+        meinAuthService.onSocketClosed(this);
+    }
+
+    public MeinProcess getProcess() {
+        return process;
     }
 }

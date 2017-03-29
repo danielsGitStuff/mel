@@ -10,11 +10,10 @@ import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.jobs.ConnectJob;
-import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
+import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.ShamefulSelfConnectException;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
@@ -29,14 +28,12 @@ import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRe
 import de.mein.sql.SqlQueriesException;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -417,4 +414,8 @@ public class MeinAuthService extends MeinRunnable {
     }
 
 
+    public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
+        if (meinAuthSocket.isValidated())
+            connectedEnvironment.removeValidationProcess((MeinValidationProcess)meinAuthSocket.getProcess());
+    }
 }
