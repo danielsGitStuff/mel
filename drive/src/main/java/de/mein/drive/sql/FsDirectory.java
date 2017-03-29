@@ -16,7 +16,7 @@ public class FsDirectory extends FsEntry {
     protected List<FsDirectory> subDirectories = new ArrayList<>();
 
     public FsDirectory() {
-
+        synced.v(true);
     }
 
     public boolean isRoot() {
