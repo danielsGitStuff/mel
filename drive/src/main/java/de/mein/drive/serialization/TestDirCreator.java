@@ -32,6 +32,10 @@ public class TestDirCreator {
 
         File sub22txt = new File(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
+        File sameDir = new File(testDir.getPath() + File.separator + "samedir");
+        sameDir.mkdirs();
+        TestFileCreator.saveFile("same".getBytes(), new File(sameDir.getPath() + File.separator + "same1.txt"));
+        TestFileCreator.saveFile("same".getBytes(), new File(sameDir.getPath() + File.separator + "same2.txt"));
     }
 
     /*

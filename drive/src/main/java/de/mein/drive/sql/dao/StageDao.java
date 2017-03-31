@@ -156,8 +156,6 @@ public class StageDao extends Dao.LockingDao {
     }
 
     public Stage insert(Stage stage) throws SqlQueriesException {
-        if (stage.getFsParentId() == null && stage.getParentId() == null)
-            System.out.println("StageDao.insert");
         Long id = sqlQueries.insert(stage);
         return stage.setId(id);
     }

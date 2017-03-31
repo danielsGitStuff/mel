@@ -155,7 +155,7 @@ public class IndexerRunnable implements Runnable {
                             .setFsParentId(dbDirectory.getParentId().v())
                             .setVersion(dbDirectory.getVersion().v());
                 }
-                if (parent != null) {
+                if (parent != null && parent.getId().notNull()) {
                     stage.setFsParentId(parent.getId().v());
                 } else if (parentStage != null) {
                     stage.setParentId(parentStage.getId());

@@ -11,7 +11,6 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -19,7 +18,6 @@ import org.jdeferred.impl.DeferredObject;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
@@ -165,6 +163,7 @@ public class MeinRegisterProcess extends MeinProcess {
                                     int port = certificate.getPort().v();
                                     int portCert = certificate.getCertDeliveryPort().v();
                                     partnerCertificate = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), certificate.getAnswerUuid().v(), address, port, portCert, certificate.getGreeting().v());
+                                    certificateManager.trustCertificate(partnerCertificate.getId().v(), true);
                                     MeinRegisterProcess.this.sendConfirmation(true);
                                     for (IRegisteredHandler handler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()) {
                                         handler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), partnerCertificate);

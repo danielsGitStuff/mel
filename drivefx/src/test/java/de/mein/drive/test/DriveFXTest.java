@@ -95,7 +95,7 @@ public class DriveFXTest {
     @Test
     public void startEmptyServer() throws Exception {
 //        inject(true);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
 //        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
@@ -226,14 +226,14 @@ public class DriveFXTest {
                 boot2.boot(standAloneAuth2).done(result1 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
                     runner.run(() -> {
-                       /* Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
                             runner.run(() -> {
                                 System.out.println("DriveFXTest.driveGui.booted");
                                 //standAloneAuth2.getBrotCaster().discover(9966);
                                 //lock.unlockWrite();
                             });
-                        });*/
+                        });
                     });
                 });
             });

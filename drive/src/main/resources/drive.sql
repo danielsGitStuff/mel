@@ -31,8 +31,8 @@ CREATE TABLE stage (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   parentid    INTEGER,
   fsid        INTEGER,
-  name        TEXT, -- forget the not null stuff, cause of root directory
   fsparentId  INTEGER,
+  name        TEXT, -- forget the not null stuff, cause of root directory
   version     INTEGER,
   contentHash TEXT,
   dir         INTEGER NOT NULL,
