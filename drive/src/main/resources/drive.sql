@@ -74,7 +74,8 @@ CREATE TABLE transfer (
   hash        TEXT    NOT NULL,
   certid      INTEGER NOT NULL,
   serviceuuid TEXT    NOT NULL,
-  size        INTEGER NOT NULL
+  size        INTEGER NOT NULL,
+  UNIQUE (certid, serviceuuid, hash)
 );
 CREATE TABLE waste (
   name     TEXT    NOT NULL,

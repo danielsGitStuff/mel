@@ -87,8 +87,6 @@ public class MeinAuthProcess extends MeinProcess {
                             isolationDetails = (IsolationDetails) request.getPayload();
                         }
                         byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
-                        //todo debug
-                        String dec = new String(request.getSecret());
                         MeinRequest answer = request.request().setRequestHandler(this).queue()
                                 .setDecryptedSecret(decryptedSecret)
                                 .setSecret(secret);
