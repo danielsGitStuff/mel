@@ -239,6 +239,9 @@ public class StageDao extends Dao.LockingDao {
         fsEntry.getParentId().v(stage.getFsParentId());
         fsEntry.getId().v(stage.getFsId());
         fsEntry.getName().v(stage.getName());
+        //todo rer5
+        fsEntry.getiNode().v(stage.getiNode());
+        fsEntry.getModified().v(stage.getModified());
         return fsEntry;
     }
 

@@ -61,7 +61,7 @@ public class SQLQueries extends ISQLQueries {
             if (where != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs, count);
             }
-            pstmt.executeUpdate();
+            int changed = pstmt.executeUpdate();
             pstmt.close();
         } catch (SQLException e) {
             System.err.println(e.getSQLState());
