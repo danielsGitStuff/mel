@@ -77,10 +77,11 @@ public abstract class SyncHandler {
                 }
             }
         }
-        indexer.ignorePath(target.getAbsolutePath());
+        indexer.ignorePath(target.getAbsolutePath(), 1);
         boolean moved = source.renameTo(target);
         if (!moved || !target.exists())
             return null;
+        //NoTryRunner.run(() -> indexer.stopIgnore(target.getAbsolutePath()));
         try {
             BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(target);
             fsTarget.getiNode().v(nodeAndTime.getInode());
@@ -119,7 +120,7 @@ public abstract class SyncHandler {
         fsDao.lockRead();
         File target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
         fsDao.unlockRead();
-        indexer.ignorePath(target.getAbsolutePath());
+        indexer.ignorePath(target.getAbsolutePath(), 2);
         InputStream in = new FileInputStream(source);
         try {
             OutputStream out = new FileOutputStream(target);
@@ -133,11 +134,14 @@ public abstract class SyncHandler {
             } finally {
                 out.close();
             }
+            //indexer.stopIgnore(target.getAbsolutePath());
             BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(target);
             fsTarget.getiNode().v(nodeAndTime.getInode());
             fsTarget.getModified().v(nodeAndTime.getModifiedTime());
             fsTarget.getSize().v(target.length());
             driveDatabaseManager.getFsDao().update(fsTarget);
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             in.close();
         }
@@ -271,7 +275,8 @@ public abstract class SyncHandler {
                 path += dbParent.getName().v();
                 File d = new File(path);
                 if (!d.exists()) {
-                    indexer.ignorePath(path);
+                    indexer.ignorePath(path, 1);
+                    System.out.println("SyncHandler.createDirs: " + d.getAbsolutePath());
                     d.mkdirs();
                     indexer.watchDirectory(d);
                     updateInodeModified(dbParent, d);
@@ -285,7 +290,8 @@ public abstract class SyncHandler {
             path += fsEntry.getName().v();
             File target = new File(path);
             if (!target.exists()) {
-                indexer.ignorePath(path);
+                indexer.ignorePath(path, 1);
+                System.out.println("SyncHandler.createDirs: " + target.getAbsolutePath());
                 target.mkdirs();
                 indexer.watchDirectory(target);
                 updateInodeModified(fsEntry, target);

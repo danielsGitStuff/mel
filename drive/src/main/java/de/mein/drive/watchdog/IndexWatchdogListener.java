@@ -1,19 +1,19 @@
 package de.mein.drive.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
-
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.BackgroundExecutor;
 import de.mein.drive.index.ICrawlerListener;
 import de.mein.drive.index.StageIndexer;
-import de.mein.drive.jobs.FsSyncJob;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.watchdog.timer.WatchDogTimer;
 
 import java.io.*;
-import java.nio.file.*;
-import java.util.List;
+import java.nio.file.FileSystems;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchService;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -28,7 +28,7 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
     protected WatchDogTimer watchDogTimer = new WatchDogTimer(this, 20, 100, 100);
     protected MeinDriveService meinDriveService;
     protected PathCollection pathCollection = new PathCollection();
-    protected Map<String, String> ignoredMap = new ConcurrentHashMap<>();
+    protected Map<String, Integer> ignoredMap = new ConcurrentHashMap<>();
     protected Semaphore ignoredSemaphore = new Semaphore(1, true);
     protected String workingDirectoryPath;
     protected StageIndexer stageIndexer;
@@ -132,11 +132,13 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
         }
     }
 
-    public void ignore(String path) throws InterruptedException {
+    public void ignore(String path, int amount) throws InterruptedException {
         System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getDriveDetails().getRole()
                 + "].ignore(" + path + ")");
         ignoredSemaphore.acquire();
-        ignoredMap.put(path, path);
+        if (ignoredMap.containsKey(path))
+            amount += ignoredMap.get(path);
+        ignoredMap.put(path, amount);
         ignoredSemaphore.release();
     }
 
@@ -145,8 +147,11 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
         return this;
     }
 
-    public void stopIgnore(String path) {
-        System.out.println("IndexWatchdogListener.stopIgnore");
+    public void stopIgnore(String path) throws InterruptedException {
+        ignoredSemaphore.acquire();
+        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getDriveDetails().getRole()
+                + "].stopignore(" + path + ")");
         ignoredMap.remove(path);
+        ignoredSemaphore.release();
     }
 }

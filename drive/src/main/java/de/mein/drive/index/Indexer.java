@@ -23,16 +23,16 @@ public class Indexer extends BackgroundExecutor {
         crawlerRunnable.setSyncHandler(syncHandler);
     }
 
-    public void ignorePath(String path)  {
+    public void ignorePath(String path, int amount)  {
         //todo escalate?
         try {
-            crawlerRunnable.getIndexWatchdogListener().ignore(path);
+            crawlerRunnable.getIndexWatchdogListener().ignore(path,amount);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    public void stopIgnore(String path) {
+    public void stopIgnore(String path) throws InterruptedException {
         crawlerRunnable.getIndexWatchdogListener().stopIgnore(path);
     }
 

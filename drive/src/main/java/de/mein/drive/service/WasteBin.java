@@ -48,7 +48,7 @@ public class WasteBin {
     private void deleteDirectory(FsDirectory fsDirectory) throws SqlQueriesException, IOException {
         File f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsDirectory);
         if (f.exists()) {
-            indexer.ignorePath(f.getAbsolutePath());
+            indexer.ignorePath(f.getAbsolutePath(), 1);
             if (f.isDirectory()) {
                 FsDirectory fsSubDirectory = fsDao.getFsDirectoryById(fsDirectory.getId().v());
                 recursiveDelete(fsSubDirectory, f);
@@ -65,7 +65,7 @@ public class WasteBin {
     public void deleteFile(FsFile fsFile) throws SqlQueriesException, IOException {
         File f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
         if (f.exists()) {
-            indexer.ignorePath(f.getAbsolutePath());
+            indexer.ignorePath(f.getAbsolutePath(), 1);
             if (f.isFile()) {
                 Long inode = BashTools.getINodeOfFile(f);
                 Waste waste = wasteDao.getWasteByInode(inode);
@@ -89,7 +89,7 @@ public class WasteBin {
             File[] files = dir.listFiles(File::isFile);
             for (File f : files) {
                 FsFile fsFile = fsDao.getFileByName(fsDirectory.getId().v(), f.getName());
-                indexer.ignorePath(f.getAbsolutePath());
+                indexer.ignorePath(f.getAbsolutePath(), 1);
                 if (fsFile != null) {
                     f.renameTo(new File(createWasteBinPath() + fsFile.getContentHash().v()));
                 } else {
@@ -98,7 +98,7 @@ public class WasteBin {
             }
             File[] subDirs = dir.listFiles(File::isDirectory);
             for (File subDir : subDirs) {
-                indexer.ignorePath(subDir.getAbsolutePath());
+                indexer.ignorePath(subDir.getAbsolutePath(), 1);
                 FsDirectory fsSubDir = fsDao.getSubDirectoryByName(fsDirectory.getId().v(), subDir.getName());
                 recursiveDelete(fsSubDir, subDir);
             }

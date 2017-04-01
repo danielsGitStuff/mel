@@ -1,15 +1,10 @@
 package de.mein.drive.watchdog;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.util.List;
-
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.watchdog.IndexWatchdogListener;
+
+import java.io.File;
+import java.nio.file.*;
+import java.util.List;
 
 /**
  * Created by xor on 2/6/17.
@@ -26,6 +21,7 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
         this.meinDriveService = meinDriveService;
         this.setStageIndexer(meinDriveService.getStageIndexer());
     }
+
     @Override
     public void run() {
         try {
@@ -39,11 +35,19 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
                     String objectPath = watchKeyPath.toString() + File.separator + eventPath.toString();
                     ignoredSemaphore.acquire();
                     if (!ignoredMap.containsKey(objectPath)) {
-                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event for: " + objectPath);
+                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + objectPath);
                         File object = new File(objectPath);
                         analyze(event, object);
                     } else {
-                        ignoredMap.remove(objectPath);
+                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].IGN event[" + event.kind() + "] for: " + objectPath);
+                        int amount = ignoredMap.get(objectPath);
+                        amount--;
+                        if (amount == 0) {
+                            System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].STOP IGN for: " + objectPath);
+                            ignoredMap.remove(objectPath);
+                        }
+                        else
+                            ignoredMap.put(objectPath, amount);
                     }
                     ignoredSemaphore.release();
                 }
