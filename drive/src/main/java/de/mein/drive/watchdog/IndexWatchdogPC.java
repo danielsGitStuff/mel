@@ -31,6 +31,8 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
                 List<WatchEvent<?>> events = watchKey.pollEvents();
                 for (WatchEvent<?> event : events) {
                     Path eventPath = (Path) event.context();
+                    File ff = ((Path) event.context()).toFile();
+                    String oo = ff.getAbsolutePath();
                     Path watchKeyPath = (Path) watchKey.watchable();
                     String objectPath = watchKeyPath.toString() + File.separator + eventPath.toString();
                     ignoredSemaphore.acquire();
@@ -50,6 +52,7 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
                             ignoredMap.put(objectPath, amount);
                     }
                     ignoredSemaphore.release();
+                    watchKey.reset();
                 }
                 // reset the key
                 boolean valid = watchKey.reset();

@@ -8,13 +8,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by xor on 7/11/16.
  */
 class IndexWatchdogUnix extends IndexWatchdogPC {
+    // todo debug
+    private Map<String, WatchKey> keyMap = new HashMap<>();
 
     IndexWatchdogUnix(MeinDriveService meinDriveService, WatchService watchService) {
         super(meinDriveService, "IndexWatchdogUnix", watchService);
@@ -24,7 +26,8 @@ class IndexWatchdogUnix extends IndexWatchdogPC {
     public void foundDirectory(FsDirectory fsDirectory) {
         try {
             Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
-            path.register(watchService, KINDS);
+            WatchKey key =path.register(watchService, KINDS);
+            keyMap.put(path.toString(), key);
             System.out.println("IndexWatchdogListener.foundDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -36,7 +39,8 @@ class IndexWatchdogUnix extends IndexWatchdogPC {
     public void watchDirectory(File dir) {
         try {
             Path path = Paths.get(dir.getAbsolutePath());
-            path.register(watchService, KINDS);
+            WatchKey key = path.register(watchService, KINDS);
+            keyMap.put(dir.getAbsolutePath(), key);
             System.out.println("IndexWatchdogListener.watchDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
