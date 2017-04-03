@@ -45,7 +45,7 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
             watchdogListener = new IndexWatchDogWindows(meinDriveService1, watchService1);
         } else {
             System.out.println("WatchDog.unix");
-            watchdogListener = new IndexWatchdogUnix(meinDriveService1, watchService1);
+            watchdogListener = new IndexWatchdogUnix2(meinDriveService1, watchService1);
         }
         watchdogListener.meinDriveService = meinDriveService1;
         watchdogListener.adjustExecutor();
