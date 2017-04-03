@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -46,6 +48,27 @@ public class BashTools {
     public static void rmRf(File directory) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c", "rm -rf \"" + directory.getAbsolutePath() + "\""};
         Process proc = new ProcessBuilder(args).start();
+    }
+
+
+    public static List<String> stuffModifiedAfter(File referenceFile, File directory) throws IOException {
+        String[] args = new String[]{BIN_PATH, "-c", "find \"" + directory.getAbsolutePath() + "\" -mindepth 1 -newer \"" + referenceFile.getAbsolutePath() + "\""};
+        Process proc = new ProcessBuilder(args).start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String res = null;
+        List<String> result = new ArrayList<>();
+        try {
+            proc.waitFor();
+            reader.lines().forEach(result::add);
+            return result;
+            //res = reader.readLine();
+            //System.out.println("BashTools.stuffModifiedAfter.parsing: " + res);
+            //String[] s = res.split(" ");
+        } catch (InterruptedException e) {
+            System.err.println("string I got from bash: " + res);
+            e.printStackTrace();
+        }
+        return result;
     }
 
     public static class NodeAndTime {

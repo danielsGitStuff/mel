@@ -1,11 +1,15 @@
 package de.mein.drive.watchdog;
 
+import de.mein.drive.data.PathCollection;
+import de.mein.drive.index.BashTools;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,6 +19,7 @@ import java.util.Map;
 class IndexWatchdogUnix2 extends IndexWatchdogPC {
     // todo debug
     private Map<String, WatchKey> keyMap = new HashMap<>();
+    private final File timeReferenceFile = new File("time");
 
     IndexWatchdogUnix2(MeinDriveService meinDriveService, WatchService watchService) {
         super(meinDriveService, "IndexWatchdogUnix", watchService);
@@ -24,7 +29,7 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
     public void foundDirectory(FsDirectory fsDirectory) {
         try {
             Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
-            WatchKey key =path.register(watchService, KINDS);
+            WatchKey key = path.register(watchService, KINDS);
             keyMap.put(path.toString(), key);
             System.out.println("IndexWatchdogListener.foundDirectory: " + path.toString());
         } catch (Exception e) {
@@ -36,10 +41,13 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
     public void run() {
         try {
             Thread.currentThread().setName(name);
+            if (timeReferenceFile.exists())
+                timeReferenceFile.delete();
+            timeReferenceFile.mkdirs();
             /**
-             * cause the WatchService sometimes confuses the WatchKeys we have to go around that.
+             * cause the WatchService sometimes confuses the WatchKeys when creating folders we have to go around that.
              * We will only process all "delete" and "modify" (cause they can be ongoing for some time) events directly.
-             * when an Event popped up, we will start the Timer and once it is finished we ask the Bash to show us every new/modified
+             * when an Event pops up, we will start the Timer and once it is finished we ask the Bash to show us every new/modified
              * File or Directory.
              */
             while (true) {
@@ -49,20 +57,16 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
                 for (WatchEvent<?> event : watchKey.pollEvents()) {
                     Path eventPath = (Path) event.context();
                     String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
-                    if (!ignoredMap.containsKey(absolutePath)) {
-                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
-                        File object = new File(absolutePath);
-                        analyze(event, object);
+                    File file = new File(absolutePath);
+//                    if (!ignoredMap.containsKey(absolutePath)) {
+                    System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
+                    if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
+                        // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
+                        watchDogTimer.start();
+                        System.out.println("ignored");
                     } else {
-                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].IGN event[" + event.kind() + "] for: " + absolutePath);
-                        int amount = ignoredMap.get(absolutePath);
-                        amount--;
-                        if (amount == 0) {
-                            System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].STOP IGN for: " + absolutePath);
-                            ignoredMap.remove(absolutePath);
-                        }
-                        else
-                            ignoredMap.put(absolutePath, amount);
+                        analyze(event, file);
+                        System.out.println("analyzed");
                     }
                     watchKey.reset();
                 }
@@ -75,6 +79,7 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
         }
     }
 
+
     @Override
     public void watchDirectory(File dir) {
         try {
@@ -85,5 +90,21 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onTimerStopped() {
+        System.out.println("IndexWatchdogListener.onTimerStopped");
+        try {
+            List<String> paths = BashTools.stuffModifiedAfter(timeReferenceFile, meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile());
+            pathCollection.addAll(paths);
+            timeReferenceFile.delete();
+            timeReferenceFile.mkdirs();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //meinDriveService.addJob(new FsSyncJob(pathCollection));
+        stageIndexer.examinePaths(pathCollection);
+        pathCollection = new PathCollection();
     }
 }

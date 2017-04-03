@@ -57,4 +57,8 @@ public class RootDirectory implements SerializableEntity {
         this.id = id;
         return this;
     }
+
+    public File getOriginalFile() {
+        return originalFile;
+    }
 }

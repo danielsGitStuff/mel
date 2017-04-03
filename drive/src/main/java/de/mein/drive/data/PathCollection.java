@@ -23,4 +23,10 @@ public class PathCollection {
         }
         return this;
     }
+
+    public void addAll(List<String> paths) {
+        for (String p : paths) {
+            addPath(p);
+        }
+    }
 }
