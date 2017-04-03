@@ -28,32 +28,29 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
             Thread.currentThread().setName(name);
             while (true) {
                 WatchKey watchKey = watchService.take();
-                List<WatchEvent<?>> events = watchKey.pollEvents();
-                for (WatchEvent<?> event : events) {
+                ignoredSemaphore.acquire();
+                Path keyPath = (Path) watchKey.watchable();
+                for (WatchEvent<?> event : watchKey.pollEvents()) {
                     Path eventPath = (Path) event.context();
-                    File ff = ((Path) event.context()).toFile();
-                    String oo = ff.getAbsolutePath();
-                    Path watchKeyPath = (Path) watchKey.watchable();
-                    String objectPath = watchKeyPath.toString() + File.separator + eventPath.toString();
-                    ignoredSemaphore.acquire();
-                    if (!ignoredMap.containsKey(objectPath)) {
-                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + objectPath);
-                        File object = new File(objectPath);
+                    String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
+                    if (!ignoredMap.containsKey(absolutePath)) {
+                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
+                        File object = new File(absolutePath);
                         analyze(event, object);
                     } else {
-                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].IGN event[" + event.kind() + "] for: " + objectPath);
-                        int amount = ignoredMap.get(objectPath);
+                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].IGN event[" + event.kind() + "] for: " + absolutePath);
+                        int amount = ignoredMap.get(absolutePath);
                         amount--;
                         if (amount == 0) {
-                            System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].STOP IGN for: " + objectPath);
-                            ignoredMap.remove(objectPath);
+                            System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].STOP IGN for: " + absolutePath);
+                            ignoredMap.remove(absolutePath);
                         }
                         else
-                            ignoredMap.put(objectPath, amount);
+                            ignoredMap.put(absolutePath, amount);
                     }
-                    ignoredSemaphore.release();
                     watchKey.reset();
                 }
+                ignoredSemaphore.release();
                 // reset the key
                 boolean valid = watchKey.reset();
             }
