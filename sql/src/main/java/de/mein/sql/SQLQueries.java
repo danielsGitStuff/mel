@@ -4,11 +4,7 @@ package de.mein.sql;
 import de.mein.sql.con.JDBCConnection;
 import de.mein.sql.con.SQLConnection;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -114,8 +110,8 @@ public class SQLQueries extends ISQLQueries {
 
     @Override
     public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where,
-                                                                   List<Object> whereArgs) throws SqlQueriesException{
-        String selectString = ISQLQueries.buildQueryFrom(columns,clazz,where);
+                                                                   List<Object> whereArgs) throws SqlQueriesException {
+        String selectString = ISQLQueries.buildQueryFrom(columns, clazz, where);
         if (connection == null) {
             return null;
         }
@@ -274,24 +270,35 @@ public class SQLQueries extends ISQLQueries {
         }
     }
 
+    @Override
+    public <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException {
+        return queryValue(query, clazz, null);
+    }
+
     /**
      * @param query
      * @return true if the first result is a ResultSet object; false if the
      * first result is an update count or there is no result
      */
     @Override
-    public <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException {
+    public <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException {
         lockRead();
         Object result = null;
         try {
             PreparedStatement pstmt = connection.prepareStatement(query);
+            if (args != null) {
+                int count = 1;
+                for (Object arg : args) {
+                    pstmt.setObject(count, arg);
+                }
+            }
             result = pstmt.execute();
             if ((boolean) result) {
                 ResultSet resultSet = pstmt.getResultSet();
                 resultSet.next();
                 if (resultSet.getRow() > 0) {
-                    String columnName = resultSet.getMetaData().getColumnLabel(1);
-                    result = resultSet.getObject(columnName);
+                    //String columnName = resultSet.getMetaData().getColumnLabel(1);
+                    result = resultSet.getObject(1);
                     resultSet.close();
                     pstmt.close();
                 }

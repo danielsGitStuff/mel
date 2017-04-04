@@ -17,8 +17,7 @@ import java.util.Map;
  */
 @SuppressWarnings("Duplicates")
 class IndexWatchdogUnix2 extends IndexWatchdogPC {
-    // todo debug
-    private Map<String, WatchKey> keyMap = new HashMap<>();
+    // we
     private final File timeReferenceFile = new File("time");
 
     IndexWatchdogUnix2(MeinDriveService meinDriveService, WatchService watchService) {
@@ -30,7 +29,6 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
         try {
             Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
-            keyMap.put(path.toString(), key);
             System.out.println("IndexWatchdogListener.foundDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -85,7 +83,6 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
         try {
             Path path = Paths.get(dir.getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
-            keyMap.put(dir.getAbsolutePath(), key);
             System.out.println("IndexWatchdogListener.watchDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -96,8 +93,18 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
     public void onTimerStopped() {
         System.out.println("IndexWatchdogListener.onTimerStopped");
         try {
+            /**
+             * we cannot retrieve all newly created things, so we have to do it now.
+             * and watching the directories as well
+              */
             List<String> paths = BashTools.stuffModifiedAfter(timeReferenceFile, meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile());
             pathCollection.addAll(paths);
+            for (String p : paths) {
+                File f = new File(p);
+                if (f.exists() && f.isDirectory()) {
+                    watchDirectory(f);
+                }
+            }
             timeReferenceFile.delete();
             timeReferenceFile.mkdirs();
         } catch (IOException e) {

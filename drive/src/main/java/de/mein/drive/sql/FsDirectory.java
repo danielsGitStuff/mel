@@ -6,13 +6,16 @@ import de.mein.sql.Pair;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class FsDirectory extends FsEntry {
 
     protected FsDirectory parent;
     protected List<FsFile> files = new ArrayList<>();
+    protected Set<String> contentSet = new HashSet<>();
     protected List<FsDirectory> subDirectories = new ArrayList<>();
 
     public FsDirectory() {
@@ -125,12 +128,18 @@ public class FsDirectory extends FsEntry {
     }
 
     public FsDirectory addFile(FsFile f) {
-        files.add(f);
+        if (!contentSet.contains(f.getName().v())) {
+            files.add(f);
+            contentSet.add(f.getName().v());
+        }
         return this;
     }
 
     public FsDirectory addSubDirectory(FsDirectory subDir) {
-        subDirectories.add(subDir);
+        if (!contentSet.contains(subDir.getName().v())) {
+            subDirectories.add(subDir);
+            contentSet.add(subDir.getName().v());
+        }
         return this;
     }
 

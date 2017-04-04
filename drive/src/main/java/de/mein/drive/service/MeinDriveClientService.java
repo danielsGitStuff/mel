@@ -90,10 +90,10 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                     }
                 }
             }
-        }else if (unknownJob instanceof Job.CertificateSpottedJob){
+        } else if (unknownJob instanceof Job.CertificateSpottedJob) {
             Job.CertificateSpottedJob spottedJob = (Job.CertificateSpottedJob) unknownJob;
             //check if connected certificate is the server. if so: sync()
-            if (driveSettings.getClientSettings().getServerCertId().equals(spottedJob.getPartnerCertificate().getId().v())){
+            if (driveSettings.getClientSettings().getServerCertId().equals(spottedJob.getPartnerCertificate().getId().v())) {
                 try {
                     syncThisClient();
                 } catch (Exception e) {
@@ -130,35 +130,44 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             fsDao.lockWrite();
             stageDao.lockRead();
 
-            //all other stages we can find at this point are complete/valid and wait at this point.
-            //todo conflict checking goes here - has to block
+            if (stageDao.stageSetHasContent(stageSetId)) {
 
-            meinAuthService.connect(driveSettings.getClientSettings().getServerCertId()).done(mvp -> NoTryRunner.run(() -> {
-                Commit commit = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSetList(stageSetId)).setServiceUuid(getUuid());
-                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> NoTryRunner.run(() -> {
-                    CommitAnswer answer = (CommitAnswer) result;
-                    fsDao.lockWrite();
-                    ISQLResource<Stage> stageSet = stageDao.getStagesByStageSet(stageSetId);
-                    Stage stage = stageSet.getNext();
-                    while (stage != null) {
-                        Long fsId = answer.getStageIdFsIdMap().get(stage.getId());
-                        if (fsId != null) {
-                            stage.setFsId(fsId);
-                            if (stage.getParentId() != null) {
-                                Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
-                                if (fsParentId != null)
-                                    stage.setFsParentId(fsParentId);
+                //all other stages we can find at this point are complete/valid and wait at this point.
+                //todo conflict checking goes here - has to block
+
+                meinAuthService.connect(driveSettings.getClientSettings().getServerCertId()).done(mvp -> NoTryRunner.run(() -> {
+                    Commit commit = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSetList(stageSetId)).setServiceUuid(getUuid());
+                    mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> NoTryRunner.run(() -> {
+                        CommitAnswer answer = (CommitAnswer) result;
+                        fsDao.lockWrite();
+                        ISQLResource<Stage> stageSet = stageDao.getStagesByStageSet(stageSetId);
+                        Stage stage = stageSet.getNext();
+                        while (stage != null) {
+                            Long fsId = answer.getStageIdFsIdMap().get(stage.getId());
+                            if (fsId != null) {
+                                stage.setFsId(fsId);
+                                if (stage.getParentId() != null) {
+                                    Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
+                                    if (fsParentId != null)
+                                        stage.setFsParentId(fsParentId);
+                                }
+                                stageDao.update(stage);
                             }
-                            stageDao.update(stage);
+                            stage = stageSet.getNext();
                         }
-                        stage = stageSet.getNext();
-                    }
-                    syncHandler.commitStage(stageSetId, false);
-                    fsDao.unlockWrite();
-                })).fail(result -> {
-                    // todo server did not commit. it probably had a local change. have to solve it here
-                });
-            }));
+                        syncHandler.commitStage(stageSetId, false);
+                        fsDao.unlockWrite();
+                    })).fail(result -> {
+                        // todo server did not commit. it probably had a local change. have to solve it here
+                        fsDao.unlockWrite();
+                        stageDao.unlockRead();
+                    });
+                }));
+            }else {
+                stageDao.deleteStageById(stageSetId);
+                fsDao.unlockWrite();
+                stageDao.unlockRead();
+            }
         });
     }
 }

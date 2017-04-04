@@ -63,6 +63,18 @@ public class StageDao extends Dao.LockingDao {
         return null;
     }
 
+    public void deleteStageById(Long id) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        sqlQueries.delete(dummy, dummy.getIdPair().k() + "=?", ISQLQueries.whereArgs(id));
+    }
+
+    public boolean stageSetHasContent(Long stageSetId) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        String query = "select count(*) from " + dummy.getTableName() + " where " + dummy.getStageSetPair().k() + "=?";
+        Integer res = sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(stageSetId));
+        return res > 0;
+    }
+
 
     public static class BottomDirAndPath {
         private String[] parts;

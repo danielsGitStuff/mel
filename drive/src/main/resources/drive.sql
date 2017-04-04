@@ -42,7 +42,7 @@ CREATE TABLE stage (
   stageset    INTEGER NOT NULL,
   size        INTEGER,
   synced      INTEGER,
-  FOREIGN KEY (parentid) REFERENCES stage (id),
+  FOREIGN KEY (parentid) REFERENCES stage (id) ON DELETE SET NULL,
   FOREIGN KEY (stageset) REFERENCES stageset (id) ON DELETE CASCADE
 );
 CREATE TABLE stageset (
