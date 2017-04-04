@@ -226,7 +226,7 @@ public class StageIndexerRunnable implements Runnable {
         }
         // add not yet synced files to newStage
         if (stage.getFsId() != null) {
-            List<FsFile> notSyncedFiles = fsDao.getFilesByFsDirectory(stage.getFsId());
+            List<FsFile> notSyncedFiles = fsDao.getNonSyncedFilesByFsDirectory(stage.getFsId());
             for (FsFile notSyncedFile : notSyncedFiles) {
                 newFsDirectory.addFile(notSyncedFile);
             }

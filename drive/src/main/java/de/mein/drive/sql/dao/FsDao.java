@@ -394,4 +394,11 @@ public class FsDao extends Dao.LockingDao {
         List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(hash, false));
         return fsFiles;
     }
+
+    public List<FsFile> getNonSyncedFilesByFsDirectory(Long fsId) throws SqlQueriesException {
+        FsFile dummy = new FsFile();
+        String where = dummy.getParentId().k() + "=? and " + dummy.getSynced().k() + "=? and " + dummy.getIsDirectory().k() + "=?";
+        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(fsId, false, false));
+        return fsFiles;
+    }
 }
