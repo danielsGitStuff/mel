@@ -30,6 +30,11 @@ public class WatchDogTimer extends Timer {
         this.period = period;
     }
 
+    /**
+     * Starts the Timer if not running. Otherwise it will be reset.
+     * @return
+     * @throws InterruptedException
+     */
     public WatchDogTimer start() throws InterruptedException {
         lock.acquire();
         if (task != null)

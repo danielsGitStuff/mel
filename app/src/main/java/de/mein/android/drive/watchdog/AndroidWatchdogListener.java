@@ -4,9 +4,11 @@ import android.os.FileObserver;
 
 import java.io.File;
 
+import de.mein.drive.data.PathCollection;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.watchdog.IndexWatchdogListener;
+import de.mein.drive.watchdog.timer.WatchDogTimer;
 import de.mein.sql.RWLock;
 
 /**
@@ -16,10 +18,13 @@ import de.mein.sql.RWLock;
 public class AndroidWatchdogListener extends IndexWatchdogListener {
     private boolean watchesRoot = false;
     private FileObserver fileObserver;
+    private WatchDogTimer watchDogTimer;
 
     public AndroidWatchdogListener(MeinDriveService meinDriveService) {
         this.meinDriveService = meinDriveService;
         this.setStageIndexer(meinDriveService.getStageIndexer());
+        watchDogTimer = new WatchDogTimer(this, 20, 100, 100);
+        watchDirectory(meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile());
     }
 
     @Override
@@ -31,15 +36,10 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
                 fileObserver = new FileObserver(dir.getAbsolutePath()) {
                     @Override
                     public void onEvent(int event, String path) {
-                        if (path == null)
-                            System.out.println("AndroidWatchdogListener.onEvent");
-                        System.out.println("AndroidWatchdogListener.onEvent: " + path);
                         if (path != null)
                             try {
-                                ignoredSemaphore.acquire();
-                                if (!ignoredMap.containsKey(path))
-                                    analyzeFile(new File(path));
-
+                                path = meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile().getAbsolutePath() + File.separator + path;
+                                analyzeEvent(event, path);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             } finally {
@@ -53,8 +53,19 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
             }
     }
 
-    private void analyzeFile(File file) {
-        System.out.println("AndroidWatchdogListener.analyzeFile: " + file.getAbsolutePath());
+    private void analyzeEvent(final int event, String path) throws InterruptedException {
+        if (FileObserver.CLOSE_WRITE == event
+                || FileObserver.CREATE == event
+                || FileObserver.DELETE == event
+                || FileObserver.MOVED_TO == event
+                || FileObserver.MOVED_FROM == event) {
+            ignoredSemaphore.acquire();
+            if (!ignoredMap.containsKey(path)) {
+                System.out.println("AndroidWatchdogListener.analyzeEvent: " + path);
+                watchDogTimer.start();
+                pathCollection.addPath(path);
+            }
+        }
     }
 
     @Override
@@ -72,5 +83,10 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
         }
         System.out.println("AndroidWatchdogListener.run.stop");
         fileObserver.stopWatching();
+    }
+
+    @Override
+    public void onTimerStopped() {
+        super.onTimerStopped();
     }
 }
