@@ -18,8 +18,9 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.NoTryRunner;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.AndroidService;
+import de.mein.sql.SqlQueriesException;
 import mein.de.meindrive.R;
-
+import de.mein.android.MainActivity;
 /**
  * Created by xor on 2/20/17.
  */
@@ -30,10 +31,10 @@ public class CreateServiceController extends GuiController {
     private LinearLayout embedded;
     private Button btnCreate;
     private AndroidBootLoader bootLoader;
-    private Activity activity;
+    private MainActivity activity;
     private AndroidServiceCreatorGuiController currentController;
 
-    public CreateServiceController(MeinAuthService meinAuthService, Activity activity, View v) {
+    public CreateServiceController(MeinAuthService meinAuthService, MainActivity activity, View v) {
         this.rootView = v;
         this.activity = activity;
         this.meinAuthService = meinAuthService;
@@ -59,6 +60,11 @@ public class CreateServiceController extends GuiController {
         btnCreate.setOnClickListener(view -> {
             if (bootLoader != null) {
                 bootLoader.createService(activity, meinAuthService, currentController);
+                try {
+                    activity.showMenuServices();
+                } catch (SqlQueriesException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }

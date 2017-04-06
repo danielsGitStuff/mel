@@ -144,8 +144,13 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException {
+        return queryValue(query, clazz, null);
+    }
+
+    @Override
+    public <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException {
         System.err.println("AndroidSQLQueries.queryValue");
-        Cursor cursor = db.rawQuery(query, null);
+        Cursor cursor = db.rawQuery(query, argsToStringArgs(args));
         if (cursor.moveToNext()) {
             Object res = null;
             int index = 0;

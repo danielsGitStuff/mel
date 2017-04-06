@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -154,7 +155,7 @@ public class MainActivity extends AppCompatActivity
             showApprovals();
         } else if (id == R.id.nav_new_service) {
             showCreateNewService();
-        }else if (id == R.id.nav_others){
+        } else if (id == R.id.nav_others) {
             showOthers();
         }
 
@@ -212,13 +213,23 @@ public class MainActivity extends AppCompatActivity
     public void onMeinAuthStarted(MeinAuthService meinAuthService) {
         if (guiController != null)
             guiController.onMeinAuthStarted(androidService.getMeinAuthService());
+        try {
+            showMenuServices();
+        } catch (SqlQueriesException e) {
+            e.printStackTrace();
+        }
+        System.out.println();
+    }
+
+    public void showMenuServices() throws SqlQueriesException {
+        MeinAuthService meinAuthService = androidService.getMeinAuthService();
         Menu menu = navigationView.getMenu();
         menu.clear();
         SubMenu subMeinAuth = menu.addSubMenu("MeinAuth");
         //general
         MenuItem mGeneral = subMeinAuth.add(5, R.id.nav_general, 0, "General");
         mGeneral.setIcon(R.drawable.ic_menu_manage);
-        MenuItem mOthers = subMeinAuth.add(5, R.id.nav_others,1,"Other Instances");
+        MenuItem mOthers = subMeinAuth.add(5, R.id.nav_others, 1, "Other Instances");
         mOthers.setIcon(R.drawable.ic_menu_gallery);
         //discover ic_menu_search
         MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 2, "Discover");
@@ -228,27 +239,24 @@ public class MainActivity extends AppCompatActivity
         mApprovals.setIcon(R.drawable.ic_menu_approval);
 
         SubMenu subServices = menu.addSubMenu("Services");
-        try {
-            List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
-            for (ServiceJoinServiceType service : services) {
-                IMeinService runningInstance = meinAuthService.getMeinService(service.getUuid().v());
-                MenuItem mService = subServices.add(service.getType().v() + "/" + service.getName().v());
-                mService.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        content.removeAllViews();
-                        toolbar.setTitle("Edit Service: " + service.getName().v());
-                        View v = View.inflate(MainActivity.this, R.layout.content_create_service, content);
-                        guiController = new EditServiceController(androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
-                        return true;
-                    }
-                });
-            }
-            MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, "create new Service");
-            mNewService.setIcon(R.drawable.ic_menu_add);
-        } catch (SqlQueriesException e) {
-            e.printStackTrace();
+        List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
+        for (ServiceJoinServiceType service : services) {
+            IMeinService runningInstance = meinAuthService.getMeinService(service.getUuid().v());
+            MenuItem mService = subServices.add(service.getType().v() + "/" + service.getName().v());
+            mService.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    content.removeAllViews();
+                    toolbar.setTitle("Edit Service: " + service.getName().v());
+                    View v = View.inflate(MainActivity.this, R.layout.content_create_service, content);
+                    guiController = new EditServiceController(androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
+                    return true;
+                }
+            });
         }
+        MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, "create new Service");
+        mNewService.setIcon(R.drawable.ic_menu_add);
+
         System.out.println();
     }
 }
