@@ -85,6 +85,8 @@ CREATE TABLE waste (
   inode    INTEGER NOT NULL UNIQUE,
   inplace  INTEGER NOT NULL
 );
+
+
 CREATE INDEX inodeIndex
   ON waste (inode);
 COMMIT;
