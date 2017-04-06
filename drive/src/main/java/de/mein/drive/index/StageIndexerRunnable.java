@@ -133,6 +133,8 @@ public class StageIndexerRunnable implements Runnable {
                     }
                     stage.setStageSet(stageSet.getId().v());
                     stage.setDeleted(!f.exists());
+                    if (!stage.getIsDirectory())
+                        stage.setSynced(true);
                     stageDao.insert(stage);
                 } catch (Exception e) {
                     System.err.println("MeinDriveServerService.doFsSyncJob: " + path);
