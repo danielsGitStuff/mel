@@ -31,6 +31,7 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.controller.NetworkDiscoveryController;
+import de.mein.auth.tools.NoTryRunner;
 import de.mein.sql.SqlQueriesException;
 import mein.de.meindrive.R;
 import de.mein.android.controller.GeneralController;
@@ -100,7 +101,14 @@ public class MainActivity extends AppCompatActivity
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                // refresh currently available service list
+                NoTryRunner.run(() -> showMenuServices());
+            }
+        };
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
