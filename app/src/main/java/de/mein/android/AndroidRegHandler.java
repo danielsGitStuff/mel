@@ -13,7 +13,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mein.core.Hash;
+import de.mein.auth.tools.Hash;
 
 /**
  * Created by xor on 3/6/17.

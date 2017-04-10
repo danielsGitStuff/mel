@@ -39,6 +39,9 @@ public class AndroidInjector {
                     Scanner scanner = new Scanner(in, "UTF-8").useDelimiter(";");
                     while (scanner.hasNext()) {
                         String sql = scanner.next();
+                        // "create trigger" hackery
+                        if (sql.trim().toLowerCase().startsWith("create trigger "))
+                            sql += "; " + scanner.next();
                         System.out.println("SqliteExecutor.executeStream: " + sql);
                         db.execSQL(sql);
                     }
@@ -48,7 +51,7 @@ public class AndroidInjector {
             @Override
             public boolean checkTableExists(SQLConnection connection, String tableName) {
                 SQLiteDatabase db = ((AndroidDBConnection) connection).getDb();
-                db.rawQuery("select * from "+tableName,null);
+                db.rawQuery("select * from " + tableName, null);
                 return true;
             }
         });

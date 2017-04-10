@@ -10,7 +10,7 @@ CREATE TABLE fsentry (
   version     INTEGER NOT NULL,
   contentHash TEXT    NOT NULL,
   dir         INTEGER NOT NULL,
-  synced      INTEGER not null,
+  synced      INTEGER NOT NULL,
   inode       INTEGER UNIQUE,
   modified    INTEGER,
   size        INTEGER,
@@ -31,10 +31,10 @@ CREATE TABLE stage (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   parentid    INTEGER,
   fsid        INTEGER,
-  name        TEXT, -- forget the not null stuff, cause of root directory
-  fsparentid  INTEGER,
+  fsparentId  INTEGER,
+  name        TEXT    NOT NULL, -- forget the not null stuff, cause of root directory
   version     INTEGER,
-  contenthash TEXT,
+  contentHash TEXT,
   dir         INTEGER NOT NULL,
   inode       INTEGER,
   modified    INTEGER,
@@ -42,7 +42,7 @@ CREATE TABLE stage (
   stageset    INTEGER NOT NULL,
   size        INTEGER,
   synced      INTEGER,
-  FOREIGN KEY (parentid) REFERENCES stage (id),
+  FOREIGN KEY (parentid) REFERENCES stage (id) ON DELETE SET NULL,
   FOREIGN KEY (stageset) REFERENCES stageset (id) ON DELETE CASCADE
 );
 CREATE TABLE stageset (
@@ -74,7 +74,8 @@ CREATE TABLE transfer (
   hash        TEXT    NOT NULL,
   certid      INTEGER NOT NULL,
   serviceuuid TEXT    NOT NULL,
-  size        INTEGER NOT NULL
+  size        INTEGER NOT NULL,
+  UNIQUE (certid, serviceuuid, hash)
 );
 CREATE TABLE waste (
   name     TEXT    NOT NULL,
@@ -85,8 +86,20 @@ CREATE TABLE waste (
   inode    INTEGER NOT NULL UNIQUE,
   inplace  INTEGER NOT NULL
 );
-
-
+CREATE TRIGGER IF NOT EXISTS stamp1
+AFTER INSERT ON waste
+BEGIN
+  UPDATE waste
+  SET deleted = current_timestamp
+  WHERE hash = NEW.hash;
+END;
+CREATE TRIGGER IF NOT EXISTS stamp2
+AFTER UPDATE ON waste
+BEGIN
+  UPDATE waste
+  SET deleted = current_timestamp
+  WHERE hash = NEW.hash;
+END;
 CREATE INDEX inodeIndex
   ON waste (inode);
 COMMIT;
