@@ -1,5 +1,6 @@
 package de.mein.drive.index;
 
+import de.mein.auth.tools.Hash;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.sql.*;
@@ -254,7 +255,7 @@ public class StageIndexerRunnable implements Runnable {
     private void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException {
         if (stageFile.exists()) {
             BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(stageFile);
-            stage.setContentHash(de.mein.core.Hash.md5(stageFile));
+            stage.setContentHash(Hash.md5(stageFile));
             stage.setiNode(nodeAndTime.getInode());
             stage.setModified(nodeAndTime.getModifiedTime());
             stage.setSize(stageFile.length());

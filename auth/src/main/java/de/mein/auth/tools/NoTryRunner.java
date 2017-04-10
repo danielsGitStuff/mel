@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Created by xor on 08.05.2016.
+ * Syntactic sugar. Saves you lots of try/catches. calls e.stacktrace() per default.
  */
 public class NoTryRunner {
     public interface INoTryRunnable {

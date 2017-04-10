@@ -4,7 +4,7 @@ import de.mein.auth.data.db.Certificate;
 import org.jdeferred.impl.DeferredObject;
 
 /**
- * When a message/request requires (probably long) work to do you may use JObs so the Socket thread does not block for all that time.
+ * When a message/request requires (probably long) work to do you may use Jobs so the Socket thread does not block for all that time.
  */
 public abstract class Job<R,F,P> {
     private DeferredObject<R, F, Void> promise = new DeferredObject<>();

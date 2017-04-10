@@ -2,7 +2,6 @@ package de.mein.auth.socket;
 
 import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.socket.process.ISocketProcess;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
@@ -13,9 +12,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Created by xor on 4/20/16.
+ * MeinProcesses handle everything that is read on the MeinAuthSocket.
+ * There are several implementations of who care about registering, authentication and validating incoming and outgoing connections.
  */
-public abstract class MeinProcess implements ISocketProcess, IRequestHandler {
+public abstract class MeinProcess implements IRequestHandler {
     private static Logger logger = Logger.getLogger(MeinProcess.class.getName());
     public static final String STATE_OK = "ok";
     public static final String STATE_ERR = "err";
@@ -80,4 +80,6 @@ public abstract class MeinProcess implements ISocketProcess, IRequestHandler {
     public void stop() {
         meinAuthSocket.stop();
     }
+    public abstract void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket);
+
 }

@@ -10,7 +10,7 @@ import de.mein.auth.socket.process.reg.MeinRegisterProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.NoTryRunner;
-import de.mein.core.Hash;
+import de.mein.auth.tools.Hash;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonSerializationException;

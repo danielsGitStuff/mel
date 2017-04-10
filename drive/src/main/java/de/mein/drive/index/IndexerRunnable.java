@@ -1,5 +1,6 @@
 package de.mein.drive.index;
 
+import de.mein.auth.tools.Hash;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveServerService;
@@ -165,7 +166,7 @@ public class IndexerRunnable implements Runnable {
 
             //check files
             for (FsFile fs : actualDirectory.getFiles()) {
-                final String md5 = de.mein.core.Hash.md5(fs.getOriginal());
+                final String md5 = Hash.md5(fs.getOriginal());
                 BashTools.NodeAndTime fNodeTime = BashTools.getNodeAndTime(fs.getOriginal());
                 if (dbDirectory != null) {
                     FsFile dbFile = databaseManager.getFsDao().getFileByName(dbDirectory.getId().v(), fs.getName().v());

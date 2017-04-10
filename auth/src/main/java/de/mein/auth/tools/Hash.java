@@ -1,4 +1,4 @@
-package de.mein.core;
+package de.mein.auth.tools;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 

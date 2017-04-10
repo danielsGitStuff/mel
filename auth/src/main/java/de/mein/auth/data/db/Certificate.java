@@ -1,8 +1,7 @@
 package de.mein.auth.data.db;
 
 import de.mein.auth.data.access.CertificateManager;
-import de.mein.auth.tools.NoTryRunner;
-import de.mein.core.Hash;
+import de.mein.auth.tools.Hash;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.sql.Pair;

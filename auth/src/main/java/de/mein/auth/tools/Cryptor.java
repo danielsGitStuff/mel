@@ -1,7 +1,6 @@
 package de.mein.auth.tools;
 
 import de.mein.auth.data.db.Certificate;
-import de.mein.core.Hash;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
