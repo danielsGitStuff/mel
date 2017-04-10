@@ -14,7 +14,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by xor on 9/23/16.
+ * Sends and retrieves small messages from the broadcast network address. <br>
+ *     Messages are announcements of new MeinAuth instances who say "Hello"
  */
 public class MeinAuthBrotCaster extends BrotCaster {
     private final MeinAuthService meinAuthService;

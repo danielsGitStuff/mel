@@ -9,7 +9,8 @@ import de.mein.sql.Pair;
 import de.mein.sql.PairTypeConverter;
 
 /**
- * Created by xor on 2/4/17.
+ * Collection of all places where some customized implementations might be useful.
+ * e.g. where the standard way of doing things in Java do not work on Android
  */
 
 public class MeinInjector {

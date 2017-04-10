@@ -17,7 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Created by xor on 16.08.2016.
+ * Boots up the MeinAuth instance and all existing services by calling the corresponding bootloaders.
  */
 public class MeinBoot implements Runnable {
     private static Logger logger = Logger.getLogger(MeinBoot.class.getName());

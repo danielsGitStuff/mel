@@ -20,7 +20,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Created by xor on 4/26/16.
+ * Takes care about Services and Approvals (which Certificate is permitted to talk to which Service).<br>
+ *
  */
 public final class DatabaseManager extends FileRelatedManager {
     public static final String DB_FILENAME = "meinauth.db";

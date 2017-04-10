@@ -258,6 +258,7 @@ public class StageIndexerRunnable implements Runnable {
             stage.setiNode(nodeAndTime.getInode());
             stage.setModified(nodeAndTime.getModifiedTime());
             stage.setSize(stageFile.length());
+            // stage can be deleted if nothing changed
             if (stage.getFsId() != null) {
                 FsEntry fsEntry = fsDao.getFile(stage.getFsId());
                 if (fsEntry.getContentHash().v().equals(stage.getContentHash()))

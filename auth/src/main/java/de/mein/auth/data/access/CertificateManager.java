@@ -29,7 +29,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Created by xor on 1/28/16.
+ * Takes care of all Certificates. That means: creating your own, storing foreign ones,
+ * synchronizing between the database and the KeyStore.
+ * Also creates SSLSockets (you must have the keystore to do so, so this is the proper place).
  */
 public class CertificateManager extends FileRelatedManager {
     public static final String PASS = "pass";

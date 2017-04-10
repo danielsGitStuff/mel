@@ -12,7 +12,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Created by xor on 16.08.2016.
+ * Every Service running in MeinAuth has to start somewhere. This is here.
+ * It is responsible for creating new Services or start/boot existing ones.
  */
 public abstract class BootLoader {
 

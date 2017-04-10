@@ -9,7 +9,7 @@ import java.net.MulticastSocket;
 import java.net.SocketException;
 
 /**
- * Created by xor on 9/22/16.
+ * Sends and retrieves small messages from the broadcast network address
  */
 public abstract class BrotCaster extends MeinRunnable {
     protected final Integer listenerPort;
