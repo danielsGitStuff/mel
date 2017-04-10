@@ -8,9 +8,7 @@ import de.mein.drive.sql.FsDirectory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by xor on 7/11/16.
@@ -96,8 +94,8 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
             /**
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
-              */
-            List<String> paths = BashTools.stuffModifiedAfter(timeReferenceFile, meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile());
+             */
+            List<String> paths = BashTools.stuffModifiedAfter(timeReferenceFile, meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(), new File(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
             pathCollection.addAll(paths);
             for (String p : paths) {
                 File f = new File(p);

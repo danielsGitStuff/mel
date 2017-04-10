@@ -32,7 +32,7 @@ CREATE TABLE stage (
   parentid    INTEGER,
   fsid        INTEGER,
   fsparentId  INTEGER,
-  name        TEXT, -- forget the not null stuff, cause of root directory
+  name        TEXT    NOT NULL, -- forget the not null stuff, cause of root directory
   version     INTEGER,
   contentHash TEXT,
   dir         INTEGER NOT NULL,

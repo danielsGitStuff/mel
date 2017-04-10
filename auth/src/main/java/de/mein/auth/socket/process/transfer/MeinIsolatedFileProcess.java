@@ -5,7 +5,6 @@ import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.tools.ByteTools;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.sql.RWLock;
 
 import java.io.IOException;
 import java.util.*;
@@ -17,7 +16,7 @@ import java.util.concurrent.Semaphore;
 public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runnable {
     private Map<Integer, FileTransferDetail> streamIdFileMapReceiving = new TreeMap<>();
     private Queue<FileTransferDetail> sendingDetails = new LinkedList();
-    private Semaphore sendingSemaphore = new Semaphore(1,true);
+    private Semaphore sendingSemaphore = new Semaphore(1, true);
     private Semaphore receivingSemaphore = new Semaphore(1, true);
 
     public void addFilesReceiving(Collection<FileTransferDetail> fileTransferDetails) {
@@ -112,12 +111,10 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runn
     public void run() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                sendingSemaphore.acquire();
-                FileTransferDetail transferDetail = sendingDetails.peek();
-                if (transferDetail != null) {
+                while (sendingDetails.peek() != null && !Thread.currentThread().isInterrupted()) {
                     transfer();
-                } else
-                    sendingSemaphore.acquire();
+                }
+                sendingSemaphore.acquire();
             }
         } catch (Exception e) {
             e.printStackTrace();

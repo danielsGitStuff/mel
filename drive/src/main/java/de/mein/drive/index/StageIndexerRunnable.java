@@ -187,6 +187,9 @@ public class StageIndexerRunnable implements Runnable {
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
         File[] files = stageFile.listFiles(File::isFile);
+        //todo debug
+        if (files == null)
+            System.out.println("StageIndexerRunnable.roamDirectoryStage");
         for (File subFile : files) {
             newFsDirectory.addFile(new FsFile(subFile));
             // check if which subFiles are on stage or fs. if not, index them

@@ -51,8 +51,9 @@ public class BashTools {
     }
 
 
-    public static List<String> stuffModifiedAfter(File referenceFile, File directory) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "find \"" + directory.getAbsolutePath() + "\" -mindepth 1 -newer \"" + referenceFile.getAbsolutePath() + "\""};
+    public static List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException {
+        String[] args = new String[]{BIN_PATH, "-c", "find \"" + directory.getAbsolutePath() + "\" -mindepth 1 -newer \"" + referenceFile.getAbsolutePath() + "\""
+                + " -prune \"" + pruneDir + "\""};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String res = null;

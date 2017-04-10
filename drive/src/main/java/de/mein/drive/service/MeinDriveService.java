@@ -17,7 +17,10 @@ import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.index.StageIndexer;
-import de.mein.drive.sql.*;
+import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.drive.sql.FsDirectory;
+import de.mein.drive.sql.FsFile;
+import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.tasks.DirectoriesContentTask;
 import de.mein.drive.watchdog.IndexWatchdogListener;
@@ -265,6 +268,10 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     public void initDatabase(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
         this.driveSettings = driveDatabaseManager.getDriveSettings();
+        File transferDir = new File(driveSettings.getTransferDirectoryPath());
+        transferDir.mkdirs();
+        File wasteDir = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN);
+        wasteDir.mkdirs();
         this.driveDatabaseManager = driveDatabaseManager;
         this.stageIndexer = new StageIndexer(driveDatabaseManager);
         this.indexer = new Indexer(driveDatabaseManager, IndexWatchdogListener.runInstance(this));
