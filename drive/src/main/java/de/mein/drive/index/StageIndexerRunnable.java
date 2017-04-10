@@ -168,7 +168,6 @@ public class StageIndexerRunnable implements Runnable {
                     roamDirectoryStage(stage, f);
                 } else {
                     this.updateFileStage(stage, f);
-                    stageDao.update(stage);
                 }
                 System.out.println("StageIndexerRunnable.run: " + path);
                 stage = stages.getNext();
@@ -252,15 +251,25 @@ public class StageIndexerRunnable implements Runnable {
             stageDao.update(stage);
     }
 
-    private void updateFileStage(Stage stage, File stageFile) throws IOException {
+    private void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException {
         if (stageFile.exists()) {
             BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(stageFile);
             stage.setContentHash(de.mein.core.Hash.md5(stageFile));
             stage.setiNode(nodeAndTime.getInode());
             stage.setModified(nodeAndTime.getModifiedTime());
             stage.setSize(stageFile.length());
+            if (stage.getFsId() != null) {
+                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
+                if (fsEntry.getContentHash().v().equals(stage.getContentHash()))
+                    stageDao.deleteStageById(stage.getId());
+                else
+                    stageDao.update(stage);
+            } else
+                stageDao.update(stage);
+
         } else {
             stage.setDeleted(true);
+            stageDao.update(stage);
         }
     }
 
