@@ -11,6 +11,7 @@ import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * erases files and directories. moves files to the wastebin folder and keeps track of the wastebin folders content.
@@ -109,5 +110,25 @@ public class WasteBin {
 
     protected String createWasteBinPath() {
         return wasteDir.getAbsolutePath() + File.separator;
+    }
+
+    public String getWastePath() {
+        return wasteDir.getAbsolutePath();
+    }
+
+    public List<String> searchTransfer() throws SqlQueriesException {
+        wasteDao.lockRead();
+        try {
+            return wasteDao.searchTransfer();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            wasteDao.unlockRead();
+        }
+    }
+
+    public File getFileByHash(String hash) {
+        return new File(wasteDir + File.separator + hash);
     }
 }

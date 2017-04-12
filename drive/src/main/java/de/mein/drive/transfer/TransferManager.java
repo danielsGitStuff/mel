@@ -12,7 +12,10 @@ import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.SyncHandler;
+import de.mein.drive.service.WasteBin;
+import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.TransferDetails;
+import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
@@ -38,18 +41,22 @@ public class TransferManager implements Runnable {
     private final MeinDriveService meinDriveService;
     private final Indexer indexer;
     private final SyncHandler syncHandler;
+    private final WasteBin wasteBin;
+    private final FsDao fsDao;
     private Future<?> future;
     private RWLock lock = new RWLock();
     //private TransferDetails currentTransfer;
     private File transferDir;
 
-    public TransferManager(MeinAuthService meinAuthService, MeinDriveService meinDriveService, TransferDao transferDao, SyncHandler syncHandler) {
+    public TransferManager(MeinAuthService meinAuthService, MeinDriveService meinDriveService, TransferDao transferDao, WasteBin wasteBin, SyncHandler syncHandler) {
         this.transferDao = transferDao;
         this.lock.lockWrite();
         this.meinDriveService = meinDriveService;
         this.meinAuthService = meinAuthService;
         this.indexer = meinDriveService.getIndexer();
         this.syncHandler = syncHandler;
+        this.wasteBin = wasteBin;
+        this.fsDao = meinDriveService.getDriveDatabaseManager().getFsDao();
     }
 
     @SuppressWarnings("Duplicates")
@@ -69,6 +76,30 @@ public class TransferManager implements Runnable {
                 } else {
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {
                         logger.log(Level.FINER, "TransferManager.run.2222");
+                        // todo ask WasteBin for files
+                        List<String> foundHashes = wasteBin.searchTransfer();
+                        for (String hash : foundHashes) {
+                            File file = wasteBin.getFileByHash(hash);
+                            syncHandler.onFileTransferred(file, hash);
+                        }
+                        // todo ask FS for files
+                        fsDao.lockRead();
+                        try {
+                            List<String> hashes = fsDao.searchTransfer();
+                            for (String hash : hashes) {
+                                List<FsFile> fsFiles = fsDao.getFilesByHash(hash);
+                                if (fsFiles != null && fsFiles.size() > 0) {
+                                    FsFile fsFile = fsFiles.get(0);
+                                    File file = fsDao.getFileByFsFile(meinDriveService.getDriveSettings().getRootDirectory(), fsFile);
+                                    syncHandler.onFileTransferred(file, hash);
+                                }
+                            }
+                        } catch (Exception e) {
+                            throw e;
+                        } finally {
+                            fsDao.unlockRead();
+                        }
+                        // ask the network for files
                         MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
                         if (fileProcess != null) {
                             retrieveFiles(fileProcess, groupedTransferSet);

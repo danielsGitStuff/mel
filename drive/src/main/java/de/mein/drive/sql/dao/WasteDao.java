@@ -1,9 +1,11 @@
 package de.mein.drive.sql.dao;
 
 import de.mein.drive.sql.FsFile;
+import de.mein.drive.sql.TransferDetails;
 import de.mein.drive.sql.Waste;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
+import de.mein.sql.JoinObject;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.List;
@@ -42,5 +44,24 @@ public class WasteDao extends Dao.LockingDao {
 
     public void update(Waste waste) throws SqlQueriesException {
         sqlQueries.update(waste, waste.getHash().k() + "=?", ISQLQueries.whereArgs(waste.getHash().v()));
+    }
+
+    /**
+     * @return all hashes that are present in waste and transfer
+     */
+    public List<String> searchTransfer() throws SqlQueriesException {
+        TransferDetails transfer = new TransferDetails();
+        Waste waste = new Waste();
+        JoinObject joinObject = new JoinObject() {
+            @Override
+            public String getTableName() {
+                return waste.getTableName();
+//                return waste.getTableName() + " w inner join " + transfer.getTableName()
+//                        + " t on w." + waste.getHash().k() + " = t." + transfer.getHash().k();
+            }
+        };
+        String where = waste.getHash().k() + " exists in (select " + transfer.getHash().k() + " from " + transfer.getTableName()+")";
+        // Pair<String> col = new Pair<String>(waste.getHash().getGenericClass(),waste.getHash().k()+" as")
+        return sqlQueries.loadColumn(waste.getHash(), String.class, joinObject, where, null, null);
     }
 }

@@ -30,7 +30,6 @@ public abstract class SyncHandler {
     protected final MeinDriveService meinDriveService;
     protected final TransferManager transferManager;
     protected final MeinAuthService meinAuthService;
-    protected final TransferDao transferDao;
     private final WasteDao wasteDao;
     protected FsDao fsDao;
     protected StageDao stageDao;
@@ -43,14 +42,14 @@ public abstract class SyncHandler {
         this.meinAuthService = meinAuthService;
         this.fsDao = meinDriveService.getDriveDatabaseManager().getFsDao();
         this.stageDao = meinDriveService.getDriveDatabaseManager().getStageDao();
-        this.transferDao = meinDriveService.getDriveDatabaseManager().getTransferDao();
         this.driveSettings = meinDriveService.getDriveSettings();
         this.meinDriveService = meinDriveService;
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
         this.indexer = meinDriveService.getIndexer();
         this.wasteBin = meinDriveService.getWasteBin();
         this.wasteDao = driveDatabaseManager.getWasteDao();
-        this.transferManager = new TransferManager(meinAuthService, meinDriveService, transferDao, this);
+        this.transferManager = new TransferManager(meinAuthService, meinDriveService, meinDriveService.getDriveDatabaseManager().getTransferDao()
+                , wasteBin, this);
     }
 
     protected File moveFile(File source, FsFile fsTarget) throws SqlQueriesException, IOException {
@@ -104,9 +103,15 @@ public abstract class SyncHandler {
         fsDao.lockRead();
         List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
         fsDao.unlockRead();
-        //TODO check if file is in transfer dir, then move, else copy
-        if (fsFiles.size() > 0 && file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
-            file = moveFile(file, fsFiles.get(0));
+        if (fsFiles.size() > 0) {
+            // todo check if file in wastebin, if so, tell wastebin to move it
+            if (file.getAbsolutePath().startsWith(wasteBin.getWastePath())){
+
+            }
+            //TODO check if file is in transfer dir, then move, else copy
+            else if ( file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
+                file = moveFile(file, fsFiles.get(0));
+            }
         }
         if (fsFiles.size() > 1) {
             for (int i = 1; i < fsFiles.size(); i++) {

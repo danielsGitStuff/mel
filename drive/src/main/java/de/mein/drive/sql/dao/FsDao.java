@@ -4,10 +4,7 @@ package de.mein.drive.sql.dao;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.*;
-import de.mein.sql.Dao;
-import de.mein.sql.ISQLQueries;
-import de.mein.sql.SQLTableObject;
-import de.mein.sql.SqlQueriesException;
+import de.mein.sql.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -400,5 +397,17 @@ public class FsDao extends Dao.LockingDao {
         String where = dummy.getParentId().k() + "=? and " + dummy.getSynced().k() + "=? and " + dummy.getIsDirectory().k() + "=?";
         List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(fsId, false, false));
         return fsFiles;
+    }
+
+    public List<String> searchTransfer() throws SqlQueriesException {
+        FsFile fsFile = new FsFile();
+        TransferDetails transfer = new TransferDetails();
+        JoinObject joinObject = new JoinObject() {
+            @Override
+            public String getTableName() {
+                return fsFile.getTableName() + "inner join " + transfer.getTableName() + " t on " + fsFile.getContentHash().k() + " = t." + transfer.getHash().k();
+            }
+        };
+        return sqlQueries.loadColumn(fsFile.getContentHash(), String.class, joinObject, null, null, "group by f." + fsFile.getContentHash().k());
     }
 }

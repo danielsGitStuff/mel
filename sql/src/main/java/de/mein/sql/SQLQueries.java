@@ -178,6 +178,7 @@ public class SQLQueries extends ISQLQueries {
             pstmt.close();
             return result;
         } catch (Exception e) {
+            System.err.println("SQLQueries.loadColumn.failed.query: "+selectString);
             throw new SqlQueriesException(e);
         }
     }
