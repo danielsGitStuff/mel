@@ -52,16 +52,7 @@ public class WasteDao extends Dao.LockingDao {
     public List<String> searchTransfer() throws SqlQueriesException {
         TransferDetails transfer = new TransferDetails();
         Waste waste = new Waste();
-        JoinObject joinObject = new JoinObject() {
-            @Override
-            public String getTableName() {
-                return waste.getTableName();
-//                return waste.getTableName() + " w inner join " + transfer.getTableName()
-//                        + " t on w." + waste.getHash().k() + " = t." + transfer.getHash().k();
-            }
-        };
-        String where = waste.getHash().k() + " exists in (select " + transfer.getHash().k() + " from " + transfer.getTableName()+")";
-        // Pair<String> col = new Pair<String>(waste.getHash().getGenericClass(),waste.getHash().k()+" as")
-        return sqlQueries.loadColumn(waste.getHash(), String.class, joinObject, where, null, null);
+        String where = " exists (select " + transfer.getHash().k() + " from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=" + waste.getHash().k() + ")";
+        return sqlQueries.loadColumn(waste.getHash(), String.class, waste, where, null, null);
     }
 }

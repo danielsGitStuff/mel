@@ -402,12 +402,7 @@ public class FsDao extends Dao.LockingDao {
     public List<String> searchTransfer() throws SqlQueriesException {
         FsFile fsFile = new FsFile();
         TransferDetails transfer = new TransferDetails();
-        JoinObject joinObject = new JoinObject() {
-            @Override
-            public String getTableName() {
-                return fsFile.getTableName() + "inner join " + transfer.getTableName() + " t on " + fsFile.getContentHash().k() + " = t." + transfer.getHash().k();
-            }
-        };
-        return sqlQueries.loadColumn(fsFile.getContentHash(), String.class, joinObject, null, null, "group by f." + fsFile.getContentHash().k());
+        String where = "exists ( select * from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=" + fsFile.getContentHash().k() + ")";
+        return sqlQueries.loadColumn(fsFile.getContentHash(), String.class, fsFile, where, null, null);
     }
 }
