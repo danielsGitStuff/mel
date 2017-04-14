@@ -35,6 +35,10 @@ public class ServerSyncHandler extends SyncHandler {
             stage.setStageSet(stageSet.getId().v());
             if (!stage.getIsDirectory())
                 stage.setSynced(false);
+            // set "new" parent id
+            if (stage.getParentId()!=null && oldStageIdStageIdMap.containsKey(stage.getParentId())){
+                stage.setParentId(oldStageIdStageIdMap.get(stage.getParentId()));
+            }
             Long oldId = stage.getId();
             stageDao.insert(stage);
             oldStageIdStageIdMap.put(oldId, stage.getId());

@@ -5,6 +5,7 @@ import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.tools.ByteTools;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.sql.RWLock;
 
 import java.io.IOException;
 import java.util.*;
@@ -18,6 +19,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runn
     private Queue<FileTransferDetail> sendingDetails = new LinkedList();
     private Semaphore sendingSemaphore = new Semaphore(1, true);
     private Semaphore receivingSemaphore = new Semaphore(1, true);
+    private RWLock sendWaitLock = new RWLock();
 
     public void addFilesReceiving(Collection<FileTransferDetail> fileTransferDetails) {
         fileTransferDetails.forEach(d -> streamIdFileMapReceiving.put(d.getStreamId(), d));
@@ -103,18 +105,25 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runn
     }
 
     public void sendFile(FileTransferDetail transferDetail) throws IOException, JsonSerializationException, IllegalAccessException, InterruptedException {
+        sendingSemaphore.acquire();
         sendingDetails.add(transferDetail);
         sendingSemaphore.release();
+        sendWaitLock.unlockWrite();
     }
 
     @Override
     public void run() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                while (sendingDetails.peek() != null && !Thread.currentThread().isInterrupted()) {
-                    transfer();
-                }
                 sendingSemaphore.acquire();
+                FileTransferDetail details = sendingDetails.peek();
+                sendingSemaphore.release();
+                if (details != null && !Thread.currentThread().isInterrupted()) {
+                    transfer();
+                } else {
+                    // wait
+                    sendWaitLock.lockWrite();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

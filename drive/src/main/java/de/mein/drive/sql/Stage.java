@@ -36,6 +36,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     @JsonIgnore
     private Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
     private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED);
+    @JsonIgnore
     private Pair<Long> stageSet = new Pair<>(Long.class, STAGESET);
     private Pair<Long> size = new Pair<Long>(Long.class, SIZE);
     private Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);

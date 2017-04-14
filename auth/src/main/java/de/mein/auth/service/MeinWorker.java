@@ -11,26 +11,29 @@ import java.util.LinkedList;
  */
 public abstract class MeinWorker extends MeinRunnable {
     protected LinkedList<Job> jobs = new LinkedList<>();
-    private RWLock listLock = new RWLock().lockWrite();
+    protected RWLock queueLock = new RWLock();
+    protected RWLock waitLock = new RWLock();
 
     @Override
     public void run() {
         try {
             while (true) {
-                while (hasJobs()) {
-                    synchronized (jobs) {
-                        Job job = jobs.poll();
-                        try {
-                            workWork(job);
-                        } catch (Exception e) {
-                            e.printStackTrace();/*
+                queueLock.lockWrite();
+                Job job = jobs.poll();
+                queueLock.unlockWrite();
+                if (job != null) {
+                    try {
+                        workWork(job);
+                    } catch (Exception e) {
+                        e.printStackTrace();/*
                             if (job.getPromise() != null)
                                 job.getPromise().reject(e);*/
-                        }
                     }
+                } else {
+                    // wait here if no jobs are available
+                    waitLock.lockWrite();
+                    System.out.println(thread.getName() + "...unlocked");
                 }
-                // wait until jobs have arrived
-                listLock.lockWrite();
             }
         } catch (Exception e) {
             boolean b = thread.isInterrupted();
@@ -40,18 +43,11 @@ public abstract class MeinWorker extends MeinRunnable {
 
     protected abstract void workWork(Job job) throws Exception;
 
-    private boolean hasJobs() {
-        boolean result;
-        synchronized (jobs) {
-            result = jobs.size() > 0;
-        }
-        return result;
-    }
 
     public void addJob(Job job) {
-        synchronized (jobs) {
-            boolean changed = jobs.offer(job);
-        }
-        listLock.unlockWrite();
+        queueLock.lockWrite();
+        jobs.offer(job);
+        queueLock.unlockWrite();
+        waitLock.unlockWrite();
     }
 }

@@ -15,7 +15,8 @@ import java.util.Map;
 public abstract class MeinServiceWorker extends MeinRunnable implements IMeinService {
     protected final MeinAuthService meinAuthService;
     protected LinkedList<Job> jobs = new LinkedList<>();
-    private RWLock listLock = new RWLock().lockWrite();
+    private RWLock queueLock = new RWLock();
+    protected RWLock waitLock = new RWLock();
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
 
     @Override
@@ -49,41 +50,36 @@ public abstract class MeinServiceWorker extends MeinRunnable implements IMeinSer
     public void run() {
         try {
             while (true) {
-                while (hasJobs()) {
-                    synchronized (jobs) {
-                        Job job = jobs.poll();
-                        try {
-                            workWork(job);
-                        } catch (Exception e) {
+                queueLock.lockWrite();
+                Job job = jobs.poll();
+                queueLock.unlockWrite();
+                if (job != null) {
+                    try {
+                        workWork(job);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                             if (job.getPromise() != null)
                                 job.getPromise().reject(e);
-                        }
                     }
+                } else {
+                    // wait here if no jobs are available
+                    waitLock.lockWrite();
+                    System.out.println(thread.getName() + "...unlocked");
                 }
-                // wait until jobs have arrived
-                listLock.lockWrite();
             }
         } catch (Exception e) {
-            boolean b = thread.isInterrupted();
             e.printStackTrace();
         }
     }
 
     protected abstract void workWork(Job job) throws Exception;
 
-    private boolean hasJobs() {
-        boolean result;
-        synchronized (jobs) {
-            result = jobs.size() > 0;
-        }
-        return result;
-    }
 
     public void addJob(Job job) {
-        synchronized (jobs) {
-            boolean changed = jobs.offer(job);
-        }
-        listLock.unlockWrite();
+        queueLock.lockWrite();
+        jobs.offer(job);
+        queueLock.unlockWrite();
+        waitLock.unlockWrite();
     }
 
 }

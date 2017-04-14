@@ -7,7 +7,7 @@ public class RWLock {
     private SimpleLock lock;
     private boolean read = false, write = false;
     private ReadLockCounter readLockCounter = new ReadLockCounter();
-    private static boolean PRINT_STACK = true;
+    private static boolean PRINT_STACK = false;
 
 
     public RWLock() {

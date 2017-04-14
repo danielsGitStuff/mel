@@ -127,7 +127,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             FsDao fsDao = driveDatabaseManager.getFsDao();
             StageDao stageDao = driveDatabaseManager.getStageDao();
             fsDao.unlockRead();
-            fsDao.lockWrite();
+            //fsDao.lockWrite();
             stageDao.lockRead();
 
             if (stageDao.stageSetHasContent(stageSetId)) {
@@ -138,8 +138,8 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                 meinAuthService.connect(driveSettings.getClientSettings().getServerCertId()).done(mvp -> NoTryRunner.run(() -> {
                     Commit commit = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSetList(stageSetId)).setServiceUuid(getUuid());
                     mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> NoTryRunner.run(() -> {
-                        CommitAnswer answer = (CommitAnswer) result;
                         fsDao.lockWrite();
+                        CommitAnswer answer = (CommitAnswer) result;
                         ISQLResource<Stage> stageSet = stageDao.getStagesByStageSet(stageSetId);
                         Stage stage = stageSet.getNext();
                         while (stage != null) {
@@ -165,7 +165,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                 }));
             }else {
                 stageDao.deleteStageById(stageSetId);
-                fsDao.unlockWrite();
+//                fsDao.unlockWrite();
                 stageDao.unlockRead();
             }
         });

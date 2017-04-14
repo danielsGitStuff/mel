@@ -178,7 +178,7 @@ public class SQLQueries extends ISQLQueries {
             pstmt.close();
             return result;
         } catch (Exception e) {
-            System.err.println("SQLQueries.loadColumn.failed.query: "+selectString);
+            System.err.println("SQLQueries.loadColumn.failed.query: " + selectString);
             throw new SqlQueriesException(e);
         }
     }
@@ -396,8 +396,11 @@ public class SQLQueries extends ISQLQueries {
             pstmt.close();
         } catch (Exception e) {
             //e.printStackTrace();
-            out("SQLQueries.insert.failed: ");
-            out(query);
+            System.err.println("SQLQueries.insert.query: " + query);
+            System.err.println("SQLQueries.insert.attributes: ");
+            for (Pair pair : attributes) {
+                System.err.print(pair.v() + ", ");
+            }
             throw new SqlQueriesException(e);
         } finally {
             unlockWrite();
