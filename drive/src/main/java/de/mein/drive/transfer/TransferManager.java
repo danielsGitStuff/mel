@@ -123,7 +123,7 @@ public class TransferManager implements Runnable {
         AtomicInteger countDown = new AtomicInteger(transfers.size());
         FileTransferDetailSet payLoad = new FileTransferDetailSet().setServiceUuid(meinDriveService.getUuid());
         for (TransferDetails transferDetails : transfers) {
-            File target = new File(workingPath + DriveStrings.WASTEBIN + File.separator + transferDetails.getHash().v());
+            File target = new File(workingPath  + transferDetails.getHash().v());
             FileTransferDetail fileTransferDetail = new FileTransferDetail(target, new Random().nextInt(), 0L, transferDetails.getSize().v())
                     .setHash(transferDetails.getHash().v())
                     .setTransferDoneListener(fileTransferDetail1 -> NoTryRunner.run(() -> {

@@ -1,5 +1,7 @@
 package de.mein.sql;
 
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 /**
  * Created by xor on 25.10.2015.
  */
@@ -26,7 +28,7 @@ public abstract class Dao {
      */
     public static class LockingDao extends ConnectionLockingDao {
 
-        protected RWLock lock = new RWLock();
+        protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
         public LockingDao(ISQLQueries ISQLQueries) {
             super(ISQLQueries);
@@ -38,22 +40,22 @@ public abstract class Dao {
 
         @Override
         public void lockRead() {
-            lock.lockRead();
+            lock.readLock().lock();
         }
 
         @Override
         public void lockWrite() {
-            lock.lockWrite();
+            lock.writeLock().lock();
         }
 
         @Override
         public void unlockRead() {
-            lock.unlockRead();
+            lock.readLock().unlock();
         }
 
         @Override
         public void unlockWrite() {
-            lock.unlockWrite();
+            lock.writeLock().unlock();
         }
     }
 

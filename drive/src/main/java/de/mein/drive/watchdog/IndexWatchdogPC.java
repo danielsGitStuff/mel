@@ -4,7 +4,6 @@ import de.mein.drive.service.MeinDriveService;
 
 import java.io.File;
 import java.nio.file.*;
-import java.util.List;
 
 /**
  * Created by xor on 2/6/17.
@@ -20,6 +19,7 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
         this.watchService = watchService;
         this.meinDriveService = meinDriveService;
         this.setStageIndexer(meinDriveService.getStageIndexer());
+        this.workingDirectoryPath = meinDriveService.getDriveSettings().getTransferDirectoryPath();
     }
 
     @Override
@@ -44,8 +44,7 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
                         if (amount == 0) {
                             System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].STOP IGN for: " + absolutePath);
                             ignoredMap.remove(absolutePath);
-                        }
-                        else
+                        } else
                             ignoredMap.put(absolutePath, amount);
                     }
                     watchKey.reset();
