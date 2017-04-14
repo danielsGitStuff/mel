@@ -53,16 +53,17 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
                 for (WatchEvent<?> event : watchKey.pollEvents()) {
                     Path eventPath = (Path) event.context();
                     String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
-                    File file = new File(absolutePath);
-//                    if (!ignoredMap.containsKey(absolutePath)) {
-                    System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
-                    if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
-                        // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
-                        watchDogTimer.start();
-                        System.out.println("ignored");
-                    } else {
-                        analyze(event, file);
-                        System.out.println("analyzed");
+                    if (!absolutePath.startsWith(workingDirectoryPath)) {
+                        File file = new File(absolutePath);
+                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
+                        if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
+                            // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
+                            watchDogTimer.start();
+                            System.out.println("ignored");
+                        } else {
+                            analyze(event, file);
+                            System.out.println("analyzed");
+                        }
                     }
                     watchKey.reset();
                 }

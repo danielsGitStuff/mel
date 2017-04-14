@@ -4,7 +4,10 @@ package de.mein.drive.sql.dao;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.*;
-import de.mein.sql.*;
+import de.mein.sql.Dao;
+import de.mein.sql.ISQLQueries;
+import de.mein.sql.SQLTableObject;
+import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -402,7 +405,7 @@ public class FsDao extends Dao.LockingDao {
     public List<String> searchTransfer() throws SqlQueriesException {
         FsFile fsFile = new FsFile();
         TransferDetails transfer = new TransferDetails();
-        String where = "exists ( select * from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=" + fsFile.getContentHash().k() + ")";
-        return sqlQueries.loadColumn(fsFile.getContentHash(), String.class, fsFile, where, null, null);
+        String where = fsFile.getSynced().k() + "=? and exists ( select * from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=" + fsFile.getContentHash().k() + ")";
+        return sqlQueries.loadColumn(fsFile.getContentHash(), String.class, fsFile, where, ISQLQueries.whereArgs(true), null);
     }
 }

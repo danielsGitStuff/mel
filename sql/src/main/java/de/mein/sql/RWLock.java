@@ -7,9 +7,10 @@ public class RWLock {
     private SimpleLock lock;
     private boolean read = false, write = false;
     private ReadLockCounter readLockCounter = new ReadLockCounter();
+    private static boolean PRINT_STACK = true;
 
 
-    public RWLock(){
+    public RWLock() {
         lock = new SimpleLock(this);
     }
 
@@ -19,7 +20,21 @@ public class RWLock {
         write = false;
         read = true;
         readLockCounter.inc();
+        printStack("lockRead");
         return this;
+    }
+
+    private void printStack(String methodName) {
+        if (PRINT_STACK) {
+            System.out.println("RWLock.printStack.called: " + methodName);
+            Exception e = new Exception();
+            int max = e.getStackTrace().length;
+            max = (max > 5) ? 5 : max;
+            for (int i = 0; i < max; i++) {
+                StackTraceElement element = e.getStackTrace()[i];
+                System.out.println("RWLock.printStack[" + i + "]: " + element.getClassName() + "(" + element.getLineNumber() + ") ." + element.getMethodName());
+            }
+        }
     }
 
     public synchronized RWLock unlockRead() {
@@ -28,6 +43,7 @@ public class RWLock {
             lock.unlock();
             read = false;
         }
+        printStack("unlockRead");
         return this;
     }
 
@@ -36,6 +52,7 @@ public class RWLock {
             lock.unlock();
             write = false;
         }
+        printStack("unlockWrite");
         return this;
     }
 
@@ -43,6 +60,7 @@ public class RWLock {
         lock.lock();
         write = true;
         read = false;
+        printStack("lockWrite");
         return this;
     }
 
@@ -67,14 +85,14 @@ public class RWLock {
         private final RWLock rwLock;
         private boolean isLocked = false;
 
-        SimpleLock(RWLock rwLock){
+        SimpleLock(RWLock rwLock) {
             this.rwLock = rwLock;
         }
 
         public synchronized void lock() {
             while (isLocked) {
                 try {
-                   rwLock.wait();
+                    rwLock.wait();
                 } catch (InterruptedException e) {
                 }
             }
