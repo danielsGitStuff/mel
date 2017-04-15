@@ -30,7 +30,7 @@ public class FileTransferDetail implements SerializableEntity {
 
     private long start, end;
 
-    public static interface FileTransferDoneListener {
+    public interface FileTransferDoneListener {
         void onFileTransferDone(FileTransferDetail fileTransferDetail);
     }
 

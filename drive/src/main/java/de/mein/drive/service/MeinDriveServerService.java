@@ -1,25 +1,21 @@
 package de.mein.drive.service;
 
-import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceMessageHandlerJob;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.NoTryRunner;
-import de.mein.drive.data.*;
-import de.mein.drive.jobs.FsSyncJob;
-import de.mein.drive.sql.*;
+import de.mein.drive.data.DriveDetails;
+import de.mein.drive.data.DriveServerSettingsDetails;
+import de.mein.drive.data.DriveStrings;
+import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.SqlQueriesException;
-import org.jdeferred.Promise;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -90,7 +86,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     @Override
     protected ServerSyncHandler initSyncHandler() {
-        return new ServerSyncHandler(meinAuthService,this);
+        return new ServerSyncHandler(meinAuthService, this);
     }
 
 
@@ -115,12 +111,17 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
             // staging is done. stage data is up to date. time to commit to fs
             FsDao fsDao = driveDatabaseManager.getFsDao();
+            StageDao stageDao = driveDatabaseManager.getStageDao();
             fsDao.unlockRead();
-            fsDao.lockWrite();
-            //todo conflict checks
-            syncHandler.commitStage(stageSetId,false);
-            fsDao.unlockWrite();
-            propagateNewVersion();
+            if (stageDao.stageSetHasContent(stageSetId)) {
+                fsDao.lockWrite();
+                //todo conflict checks
+                syncHandler.commitStage(stageSetId, false);
+                fsDao.unlockWrite();
+                propagateNewVersion();
+            } else {
+                stageDao.deleteStageSet(stageSetId);
+            }
             /*
             // tell everyone fs has a new version
             for (DriveServerSettingsDetails.ClientData clientData : driveSettings.getServerSettings().getClients()) {

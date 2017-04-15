@@ -63,6 +63,19 @@ public class WasteBin {
         driveDatabaseManager.getFsDao().deleteById(fsDirectory.getId().v());
     }
 
+    /**
+     * moves file to wastebin without any hesitations
+     *
+     * @param file
+     * @param waste
+     */
+    public void del(Waste waste,File file) throws SqlQueriesException {
+        File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
+        file.renameTo(target);
+        waste.getInplace().v(true);
+        wasteDao.update(waste);
+    }
+
     public void deleteFile(FsFile fsFile) throws SqlQueriesException, IOException {
         File f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
         if (f.exists()) {
@@ -70,10 +83,19 @@ public class WasteBin {
             if (f.isFile()) {
                 Long inode = BashTools.getINodeOfFile(f);
                 Waste waste = wasteDao.getWasteByInode(inode);
-                File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v());
-                f.renameTo(target);
-                waste.getInplace().v(true);
-                wasteDao.update(waste);
+                if (waste != null) {
+                    // we once wanted this file to be deleted. check if it did not change in the meantime
+                    if (waste.getInode().v().equals(fsFile.getiNode().v()) && waste.getModified().v().equals(fsFile.getModified().v())) {
+                        del(waste,f);
+                    } else {
+                        // it changed :(
+                        System.err.println("WasteBin.deleteFilr5436t34e");
+                    }
+                } else {
+                    waste = wasteDao.fsToWaste(fsFile);
+                    del(waste,f);
+                }
+
             } else {
                 //todo file might have been replaced by a directory
                 //we do not know about its contents and therefore will delete it
@@ -130,5 +152,9 @@ public class WasteBin {
 
     public File getFileByHash(String hash) {
         return new File(wasteDir + File.separator + hash);
+    }
+
+    public void prepareDelete(FsFile oldeEntry) throws SqlQueriesException {
+        wasteDao.fsToWaste(oldeEntry);
     }
 }

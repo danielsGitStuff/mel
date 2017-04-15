@@ -5,7 +5,6 @@ import de.mein.drive.sql.TransferDetails;
 import de.mein.drive.sql.Waste;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
-import de.mein.sql.JoinObject;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.List;
@@ -22,15 +21,19 @@ public class WasteDao extends Dao.LockingDao {
         super(ISQLQueries, lock);
     }
 
-    public void fsToWaste(FsFile file) throws SqlQueriesException {
-        Waste waste = new Waste();
-        waste.getHash().v(file.getContentHash());
-        waste.getInode().v(file.getiNode());
-        waste.getInplace().v(false);
-        waste.getName().v(file.getName());
-        waste.getSize().v(file.getSize());
-        waste.getModified().v(file.getModified());
-        sqlQueries.insert(waste);
+    /**
+     * @param file
+     * @throws SqlQueriesException
+     */
+    public Waste fsToWaste(FsFile file) throws SqlQueriesException {
+        Waste waste = Waste.fromFsFile(file);
+        try {
+            Long id = sqlQueries.insert(waste);
+            waste.getId().v(id);
+        } catch (Exception e) {
+            System.err.println("WasteDao.fsToWaste: " + e.getMessage());
+        }
+        return waste;
     }
 
     public Waste getWasteByInode(Long inode) throws SqlQueriesException {

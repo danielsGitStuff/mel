@@ -408,4 +408,11 @@ public class FsDao extends Dao.LockingDao {
         String where = fsFile.getSynced().k() + "=? and exists ( select * from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=" + fsFile.getContentHash().k() + ")";
         return sqlQueries.loadColumn(fsFile.getContentHash(), String.class, fsFile, where, ISQLQueries.whereArgs(true), null);
     }
+
+    public void setSynced(Long id, boolean synced) throws SqlQueriesException {
+        assert id != null;
+        FsFile dummy = new FsFile();
+        String statement = "update " + dummy.getTableName() + " set " + dummy.getSynced().k() + "=? where " + dummy.getId().k() + "=?";
+        sqlQueries.execute(statement, ISQLQueries.whereArgs(true, id));
+    }
 }

@@ -9,8 +9,6 @@ import de.mein.drive.index.Indexer;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
-import de.mein.drive.sql.dao.TransferDao;
-import de.mein.drive.sql.dao.WasteDao;
 import de.mein.drive.transfer.TransferManager;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
@@ -30,7 +28,6 @@ public abstract class SyncHandler {
     protected final MeinDriveService meinDriveService;
     protected final TransferManager transferManager;
     protected final MeinAuthService meinAuthService;
-    private final WasteDao wasteDao;
     protected FsDao fsDao;
     protected StageDao stageDao;
     protected NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
@@ -47,7 +44,6 @@ public abstract class SyncHandler {
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
         this.indexer = meinDriveService.getIndexer();
         this.wasteBin = meinDriveService.getWasteBin();
-        this.wasteDao = driveDatabaseManager.getWasteDao();
         this.transferManager = new TransferManager(meinAuthService, meinDriveService, meinDriveService.getDriveDatabaseManager().getTransferDao()
                 , wasteBin, this);
     }
@@ -59,20 +55,15 @@ public abstract class SyncHandler {
         // check if there already is a file & delete
         if (target.exists()) {
             Long inode = BashTools.getINodeOfFile(target);
+            // file had to be marked as deleted before, which means the inode and so on appear in the wastebin
+            Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(inode);
             GenericFSEntry genericFSEntry = fsDao.getGenericByINode(inode);
-            if (genericFSEntry != null) {
-                if (target.isFile()) {
-                    if (fsTarget.getContentHash().v().equals(source.getName())) {
-                        // you should not even transfer identical files twice
-                        System.out.println("SyncHandler.moveFile.should fix?");
-                        System.out.println("SyncHandler.moveFile.should fix?");
-                        System.out.println("SyncHandler.moveFile.should fix?");
-                        System.out.println("SyncHandler.moveFile.should fix?");
+            if (target.isFile()) {
+                if (waste != null) {
+                    if (waste.getModified().v().equals(target.lastModified())) {
+                        wasteBin.del(waste, target);
                     } else
-                        wasteBin.delete(genericFSEntry.getId().v());
-                } else {
-                    System.err.println("SyncHandler.moveFile: TARGET FILE WAS A DIRECTORY, DELETING IT");
-                    wasteBin.delete(genericFSEntry.getId().v());
+                        System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
                 }
             }
         }
@@ -89,7 +80,7 @@ public abstract class SyncHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        fsDao.insertOrUpdate(fsTarget);
+        fsDao.update(fsTarget);
         fsDao.unlockWrite();
         return target;
     }
@@ -105,12 +96,15 @@ public abstract class SyncHandler {
         fsDao.unlockRead();
         if (fsFiles.size() > 0) {
             // todo check if file in wastebin, if so, tell wastebin to move it
-            if (file.getAbsolutePath().startsWith(wasteBin.getWastePath())){
-
+            if (file.getAbsolutePath().startsWith(wasteBin.getWastePath())) {
+                System.err.println("SyncHandler.onFileTransferred.NOT:IMPLEMENTED:YET");
             }
             //TODO check if file is in transfer dir, then move, else copy
-            else if ( file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
-                file = moveFile(file, fsFiles.get(0));
+            else if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
+                FsFile fsFile = fsFiles.get(0);
+                file = moveFile(file, fsFile);
+                fsFile.getSynced().v(true);
+                fsDao.setSynced(fsFile.getId().v(), true);
             }
         }
         if (fsFiles.size() > 1) {
@@ -231,16 +225,21 @@ public abstract class SyncHandler {
                         }
                         stage.setFsId(fsFile.getId().v());
                     }
-                } else {
+                } else { // fs.id is not null
                     if (stage.getDeleted() != null && stage.getDeleted()) {
                         wasteBin.delete(stage.getFsId());
                     } else {
                         FsEntry fsEntry = stageDao.stage2FsEntry(stage, version);
                         // TODO inode & co
+                        FsEntry oldeEntry = fsDao.getGenericById(fsEntry.getId().v());
+                        if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v()) {
+                            fsEntry.getiNode().v(oldeEntry.getiNode());
+                            fsEntry.getModified().v(oldeEntry.getModified());
+                        }
                         if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
-                            FsEntry oldeEntry = fsDao.getFile(fsEntry.getId().v());
-                            if (oldeEntry != null && !stageSet.fromFs())
-                                wasteDao.fsToWaste((FsFile) oldeEntry);
+                            FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
+                            if (oldeFsFile != null && !stageSet.fromFs())
+                                wasteBin.prepareDelete(oldeFsFile);
                         }
                         if (!fsEntry.getIsDirectory().v())
                             fsEntry.getSynced().v(false);

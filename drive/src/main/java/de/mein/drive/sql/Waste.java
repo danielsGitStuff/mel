@@ -9,13 +9,14 @@ import java.sql.Date;
  * Created by xor on 1/27/17.
  */
 public class Waste extends SQLTableObject {
-    private static String HASH = "hash";
-    private static String DELETED = "deleted";
-    private static String SIZE = "size";
-    private static String NAME = "name";
-    private static String INPLACE = "inplace";
-    private static String INODE = "inode";
-    private static String MODIFIED = "modified";
+    private static final String HASH = "hash";
+    private static final String DELETED = "deleted";
+    private static final String SIZE = "size";
+    private static final String NAME = "name";
+    private static final String INPLACE = "inplace";
+    private static final String INODE = "inode";
+    private static final String MODIFIED = "modified";
+    private static final String ID = "id";
     private Pair<String> hash = new Pair<>(String.class, HASH);
     private Pair<String> name = new Pair<>(String.class, NAME);
     private Pair<Date> deleted = new Pair<>(Date.class, DELETED);
@@ -23,6 +24,7 @@ public class Waste extends SQLTableObject {
     private Pair<Long> inode = new Pair<>(Long.class, INODE);
     private Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
     private Pair<Boolean> inplace = new Pair<>(Boolean.class, INPLACE);
+    private Pair<Long> id = new Pair<>(Long.class, ID);
 
     public Waste() {
         init();
@@ -36,7 +38,12 @@ public class Waste extends SQLTableObject {
     @Override
     protected void init() {
         populateInsert(hash, deleted, size, name, inplace, inode, modified);
-        populateAll();
+        populateAll(id);
+    }
+
+
+    public Pair<Long> getId() {
+        return id;
     }
 
     public Pair<Date> getDeleted() {
@@ -65,5 +72,16 @@ public class Waste extends SQLTableObject {
 
     public Pair<Long> getModified() {
         return modified;
+    }
+
+    public static Waste fromFsFile(FsFile file) {
+        Waste waste = new Waste();
+        waste.getHash().v(file.getContentHash());
+        waste.getInode().v(file.getiNode());
+        waste.getInplace().v(false);
+        waste.getName().v(file.getName());
+        waste.getSize().v(file.getSize());
+        waste.getModified().v(file.getModified());
+        return waste;
     }
 }

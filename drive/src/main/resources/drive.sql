@@ -42,8 +42,10 @@ CREATE TABLE stage (
   stageset    INTEGER NOT NULL,
   size        INTEGER,
   synced      INTEGER,
-  FOREIGN KEY (parentid) REFERENCES stage (id) ON DELETE SET NULL,
-  FOREIGN KEY (stageset) REFERENCES stageset (id) ON DELETE CASCADE
+  FOREIGN KEY (parentid) REFERENCES stage (id)
+    ON DELETE SET NULL,
+  FOREIGN KEY (stageset) REFERENCES stageset (id)
+    ON DELETE CASCADE
 );
 CREATE TABLE stageset (
   id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -78,8 +80,9 @@ CREATE TABLE transfer (
   UNIQUE (certid, serviceuuid, hash)
 );
 CREATE TABLE waste (
+  id       INTEGER NOT NULL PRIMARY KEY,
   name     TEXT    NOT NULL,
-  hash     TEXT    NOT NULL UNIQUE PRIMARY KEY,
+  hash     TEXT    NOT NULL,
   deleted  DATETIME,
   modified INTEGER NOT NULL,
   size     INTEGER NOT NULL,
@@ -87,14 +90,18 @@ CREATE TABLE waste (
   inplace  INTEGER NOT NULL
 );
 CREATE TRIGGER IF NOT EXISTS stamp1
-AFTER INSERT ON waste
+  AFTER
+  INSERT
+  ON waste
 BEGIN
   UPDATE waste
   SET deleted = current_timestamp
   WHERE hash = NEW.hash;
 END;
 CREATE TRIGGER IF NOT EXISTS stamp2
-AFTER UPDATE ON waste
+  AFTER
+  UPDATE
+  ON waste
 BEGIN
   UPDATE waste
   SET deleted = current_timestamp

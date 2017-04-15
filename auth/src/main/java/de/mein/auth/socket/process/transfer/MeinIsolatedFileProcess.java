@@ -21,8 +21,10 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runn
     private Semaphore receivingSemaphore = new Semaphore(1, true);
     private RWLock sendWaitLock = new RWLock();
 
-    public void addFilesReceiving(Collection<FileTransferDetail> fileTransferDetails) {
+    public void addFilesReceiving(Collection<FileTransferDetail> fileTransferDetails) throws InterruptedException {
+        receivingSemaphore.acquire();
         fileTransferDetails.forEach(d -> streamIdFileMapReceiving.put(d.getStreamId(), d));
+        receivingSemaphore.release();
     }
 
     public void addFilesReceiving(FileTransferDetail fileTransferDetail) throws InterruptedException {
