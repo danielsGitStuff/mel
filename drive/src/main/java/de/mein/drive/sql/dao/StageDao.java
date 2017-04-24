@@ -1,5 +1,6 @@
 package de.mein.drive.sql.dao;
 
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.*;
 import de.mein.sql.Dao;
@@ -73,6 +74,22 @@ public class StageDao extends Dao.LockingDao {
         String query = "select count(*) from " + dummy.getTableName() + " where " + dummy.getStageSetPair().k() + "=?";
         Integer res = sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(stageSetId));
         return res > 0;
+    }
+
+    public void updateStageSet(StageSet stageSet) throws SqlQueriesException {
+        sqlQueries.update(stageSet, stageSet.getId().k() + "=?", ISQLQueries.whereArgs(stageSet.getId().v()));
+    }
+
+    public List<StageSet> getStagedStageSetsFromFS() throws SqlQueriesException {
+        StageSet stageSet = new StageSet();
+        String where = stageSet.getType().k() + "=? and " + stageSet.getStatus().k() + "=?";
+        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_TYPE_FS, DriveStrings.STAGESET_STATUS_STAGED));
+    }
+
+    public List<StageSet> getStagedStageSetsFromServer() throws SqlQueriesException {
+        StageSet stageSet = new StageSet();
+        String where = stageSet.getType().k() + "=? and " + stageSet.getStatus().k() + "=?";
+        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_TYPE_FROM_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
     }
 
 
@@ -194,7 +211,8 @@ public class StageDao extends Dao.LockingDao {
     }
 
     public StageSet createStageSet(String type, Long originCertId, String originServiceUuid) throws SqlQueriesException {
-        StageSet stageSet = new StageSet().setType(type).setOriginCertId(originCertId).setOriginServiceUuid(originServiceUuid);
+        StageSet stageSet = new StageSet().setType(type).setOriginCertId(originCertId)
+                .setOriginServiceUuid(originServiceUuid).setStatus(DriveStrings.STAGESET_STATUS_STAGING);
         Long id = sqlQueries.insert(stageSet);
         return stageSet.setId(id);
     }

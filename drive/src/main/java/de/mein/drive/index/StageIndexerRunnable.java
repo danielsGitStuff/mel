@@ -20,6 +20,7 @@ import java.util.List;
 public class StageIndexerRunnable implements Runnable {
     private final DriveDatabaseManager databaseManager;
     private Long stageSetId;
+    private StageSet stageSet;
     private final StageDao stageDao;
     private final FsDao fsDao;
     private final PathCollection pathCollection;
@@ -69,7 +70,6 @@ public class StageIndexerRunnable implements Runnable {
 
     protected void initStage(PathCollection pathCollection) throws IOException, SqlQueriesException {
 //        stageDao.lockWrite();
-        StageSet stageSet;
         try {
             stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, null, null);
             this.stageSetId = stageSet.getId().v();
@@ -94,6 +94,10 @@ public class StageIndexerRunnable implements Runnable {
                         }
                     } else {
                         System.err.println("klc9004p,");
+                        System.err.println("parent, could not find a corresponding FSEntry to this Stage:");
+                        System.err.println("id " + stageParent.getId() + " fsid " + stageParent.getFsId()
+                                + " parentid " + stageParent.getParentId() + " parentfsid " + stageParent.getFsParentId()
+                                + " name " + stageParent.getName());
                     }
                     //file might been deleted yet :(
                     if (!f.exists() && fsEntry == null)
@@ -174,6 +178,8 @@ public class StageIndexerRunnable implements Runnable {
                 stage = stages.getNext();
             }
             System.out.println("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
+            stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+            stageDao.updateStageSet(stageSet);
             stagingDoneListener.onStagingDone(stageSetId);
 //            promise.resolve(this);
         } catch (Exception e) {

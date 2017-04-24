@@ -25,4 +25,7 @@ public abstract class DriveStrings {
     public static final String STAGESET_TYPE_FS = "fs";
     public static final String STAGESET_TYPE_FROM_SERVER = "from server";
     public static final String STAGESET_TYPE_FROM_CLIENT = "from client";
+    public static final String STAGESET_STATUS_STAGING = "staging";
+    public static final String STAGESET_STATUS_STAGED = "staged";
+    public static final String STAGESET_STATUS_SERVER_COMMITED = "server.com.done";
 }

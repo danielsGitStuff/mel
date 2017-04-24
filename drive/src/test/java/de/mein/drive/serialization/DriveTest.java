@@ -114,6 +114,17 @@ public class DriveTest {
     }
 
     @Test
+    public void clientMergeStages() throws Exception {
+        // start both instances, shutdown server, change something in client directory
+        setup(new DriveSyncListener() {
+            @Override
+            public void onSyncDoneImpl() {
+
+            }
+        });
+    }
+
+    @Test
     public void firstSyncServer2Client() throws Exception {
         setup(new DriveSyncListener() {
 
@@ -129,6 +140,7 @@ public class DriveTest {
                         // TODO: checks go here
                         //lock.unlockWrite();
                     }
+                    System.out.println("DriveTest.onSyncDoneImpl.EEEEEEEEEEE "+getCount());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

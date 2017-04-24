@@ -51,7 +51,8 @@ CREATE TABLE stageset (
   id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   type          TEXT,
   origincert    INTEGER,
-  originservice TEXT
+  originservice TEXT,
+  status        TEXT    NOT NULL
 );
 CREATE INDEX sid
   ON stage (id);

@@ -4,13 +4,14 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.NoTryRunner;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.sql.*;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -46,7 +47,7 @@ public class ClientSyncHandler extends SyncHandler {
                 Promise<Long, Void, Void> promise = this.sync(syncTask);
                 promise.done(nil -> runner.runTry(() -> {
                     //driveDatabaseManager.unlockWrite();
-                    this.commitStage(syncTask.getStageSetId());
+                    meinDriveService.addJob(new CommitJob());
                     if (syncListener != null)
                         syncListener.onSyncDone();
                 }));
@@ -179,6 +180,8 @@ public class ClientSyncHandler extends SyncHandler {
             communicationDone.resolve(null);
         }
         communicationDone.done(nul -> {
+            stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+            NoTryRunner.run(() -> stageDao.updateStageSet(stageSet));
             finished.resolve(stageSet.getId().v());
         }).fail(nul -> {
             finished.reject(null);
@@ -215,8 +218,8 @@ public class ClientSyncHandler extends SyncHandler {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }finally {
-            if (resource!=null)
+        } finally {
+            if (resource != null)
                 try {
                     resource.close();
                 } catch (SQLException e) {
@@ -225,5 +228,31 @@ public class ClientSyncHandler extends SyncHandler {
         }
         System.out.println("ClientSyncHandler.setupTransfer.done: starting...");
         transferManager.research();
+    }
+
+    /**
+     * Merges all staged StageSets (from file system) and checks the result for conflicts
+     * with the stage from the server (if it exists).
+     * If conflicts are resolved, server StageSet is committed.
+     * if a single staged StageSet from file system remains it is send to the server
+     * and a new CommitJob added to the MeinDriveServices working queue.
+     */
+    public void commitJob() {
+        System.out.println("ClientSyncHandler.commitJob");
+        try {
+            List<StageSet> stagedStageSets = stageDao.getStagedStageSetsFromFS();
+            System.out.println("ClientSyncHandler.commitJob");
+
+            // lets assume that everything went fine!
+            List<StageSet> stagesSetsFromServer = stageDao.getStagedStageSetsFromServer();
+            if (stagesSetsFromServer.size() > 1) {
+                System.err.println("k4i9jfw4f3o0");
+            }
+            for (StageSet stageSet : stagesSetsFromServer) {
+                commitStage(stageSet.getId().v());
+            }
+        } catch (SqlQueriesException e) {
+            e.printStackTrace();
+        }
     }
 }

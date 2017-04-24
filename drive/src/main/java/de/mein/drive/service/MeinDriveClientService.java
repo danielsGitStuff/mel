@@ -10,8 +10,10 @@ import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.Stage;
+import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.ISQLResource;
@@ -100,6 +102,9 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                     e.printStackTrace();
                 }
             }
+        } else if (unknownJob instanceof CommitJob) {
+            CommitJob commitJob = (CommitJob) unknownJob;
+            syncHandler.commitJob();
         }
         return false;
     }
@@ -138,10 +143,10 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                 meinAuthService.connect(driveSettings.getClientSettings().getServerCertId()).done(mvp -> NoTryRunner.run(() -> {
                     Commit commit = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSetList(stageSetId)).setServiceUuid(getUuid());
                     mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> NoTryRunner.run(() -> {
-                        fsDao.lockWrite();
+                        //fsDao.lockWrite();
                         CommitAnswer answer = (CommitAnswer) result;
-                        ISQLResource<Stage> stageSet = stageDao.getStagesByStageSet(stageSetId);
-                        Stage stage = stageSet.getNext();
+                        ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
+                        Stage stage = stages.getNext();
                         while (stage != null) {
                             Long fsId = answer.getStageIdFsIdMap().get(stage.getId());
                             if (fsId != null) {
@@ -153,18 +158,22 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                                 }
                                 stageDao.update(stage);
                             }
-                            stage = stageSet.getNext();
+                            stage = stages.getNext();
                         }
-                        syncHandler.commitStage(stageSetId, false);
-                        fsDao.unlockWrite();
+                        StageSet stageSet = stageDao.getStageSetById(stageSetId);
+                        stageSet.setStatus(DriveStrings.STAGESET_STATUS_SERVER_COMMITED);
+                        stageDao.updateStageSet(stageSet);
+                        addJob(new CommitJob());
+                        //syncHandler.commitStage(stageSetId, false);
+                        //fsDao.unlockWrite();
                     })).fail(result -> {
                         // todo server did not commit. it probably had a local change. have to solve it here
                         fsDao.unlockWrite();
                         stageDao.unlockRead();
                     });
                 }));
-            }else {
-                stageDao.deleteStageById(stageSetId);
+            } else {
+                stageDao.deleteStageSet(stageSetId);
 //                fsDao.unlockWrite();
                 stageDao.unlockRead();
             }
