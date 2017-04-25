@@ -6,21 +6,15 @@ import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.DriveStrings;
-import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.DriveDatabaseManager;
-import de.mein.drive.watchdog.IndexWatchdogListener;
-import de.mein.sql.ISQLQueries;
-import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
-import de.mein.sql.con.SQLConnection;
-import de.mein.sql.con.SQLConnector;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +43,7 @@ public class DriveBootLoader extends BootLoader {
     @Override
     public void boot(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         for (Service service : services) {
-            NoTryRunner.run(() -> {
+            N.r(() -> {
                 File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v() + File.separator + "drive.settings.json");
 
                 DriveSettings driveSettings = (DriveSettings) JsonSettings.load(jsonFile);

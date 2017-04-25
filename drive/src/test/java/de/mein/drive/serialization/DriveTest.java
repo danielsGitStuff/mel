@@ -13,7 +13,7 @@ import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.Lok;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
@@ -44,9 +44,9 @@ public class DriveTest {
     private static MeinAuthService standAloneAuth1;
     private static MeinAuthService standAloneAuth2;
     private static RWLock lock = new RWLock();
-    private static NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
+    private static N runner = new N(Throwable::printStackTrace);
 
-    private static void run(NoTryRunner.INoTryRunnable noTryRunnable) {
+    private static void run(N.INoTryRunnable noTryRunnable) {
         runner.runTry(noTryRunnable);
     }
 
@@ -119,9 +119,14 @@ public class DriveTest {
         setup(new DriveSyncListener() {
             @Override
             public void onSyncDoneImpl() {
-
+                System.out.println("DriveTest.onSyncDoneImpl");
+                N.r(() -> standAloneAuth1.shutDown());
+                System.out.println("DriveTest.onSyncDoneImpl.shot down");
             }
         });
+        lock.lockWrite();
+        lock.unlockWrite();
+        System.out.println("DriveTest.clientMergeStages.END");
     }
 
     @Test
@@ -140,7 +145,7 @@ public class DriveTest {
                         // TODO: checks go here
                         //lock.unlockWrite();
                     }
-                    System.out.println("DriveTest.onSyncDoneImpl.EEEEEEEEEEE "+getCount());
+                    System.out.println("DriveTest.onSyncDoneImpl.EEEEEEEEEEE " + getCount());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -286,7 +291,7 @@ public class DriveTest {
 
         // configure MeinAuth
         MeinBoot.addBootLoaderClass(DriveBootLoader.class);
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
+        N runner = new N(e -> e.printStackTrace());
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)

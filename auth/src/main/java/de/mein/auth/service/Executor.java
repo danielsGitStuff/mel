@@ -1,7 +1,5 @@
 package de.mein.auth.service;
 
-import de.mein.auth.tools.NoTryRunner;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;

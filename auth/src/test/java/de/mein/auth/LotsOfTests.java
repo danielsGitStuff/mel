@@ -15,7 +15,7 @@ import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
@@ -39,11 +39,11 @@ public class LotsOfTests {
     private static final String serviceUuid1 = "test uuid no. 0";
     private static final String serviceUuid2 = "test uuid no. 1";
     private static RWLock lock = new RWLock();
-    private static NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
+    private static N runner = new N(Throwable::printStackTrace);
     private File testdir1;
     private File testdir2;
 
-    private static void run(NoTryRunner.INoTryRunnable noTryRunnable) {
+    private static void run(N.INoTryRunnable noTryRunnable) {
         runner.runTry(noTryRunnable);
     }
 
@@ -132,7 +132,7 @@ public class LotsOfTests {
 
         // configure MeinAuth
         MeinBoot.addBootLoaderClass(MeinTestBootloader.class);
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
+        N runner = new N(e -> e.printStackTrace());
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)

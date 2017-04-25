@@ -8,7 +8,7 @@ import de.mein.auth.gui.controls.CertListCell;
 import de.mein.auth.gui.controls.ServiceListCell;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.data.DriveDetails;
@@ -36,14 +36,14 @@ public class DriveFXCreateController extends AuthSettingsFX {
     private ListView<Certificate> listCerts;
     @FXML
     ListView<ServiceJoinServiceType> listServices;
-    private NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
+    private N runner = new N(Throwable::printStackTrace);
     private ServiceJoinServiceType selectedService;
     private Certificate selectedCertificate;
     private DriveCreateController driveCreateController;
 
     @Override
     public void onApplyClicked() {
-        runner.run(() -> {
+        runner.r(() -> {
             String name = txtName.getText().trim();
             Boolean isServer = rdServer.isSelected();
             String role = isServer ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
@@ -54,7 +54,7 @@ public class DriveFXCreateController extends AuthSettingsFX {
                 Certificate certificate = listCerts.getSelectionModel().getSelectedItem();
                 ServiceJoinServiceType serviceJoinServiceType = listServices.getSelectionModel().getSelectedItem();
                 Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certificate.getId().v(), serviceJoinServiceType.getUuid().v());
-                promise.done(meinDriveClientService -> NoTryRunner.run(() -> {
+                promise.done(meinDriveClientService -> N.r(() -> {
                     meinDriveClientService.syncThisClient();
                 }));
             }
@@ -82,16 +82,16 @@ public class DriveFXCreateController extends AuthSettingsFX {
             env.deleteObservers();
             env.addObserver((environment, arg) -> {
                 System.out.println("DriveFXCreateController.change");
-                runner.run(() -> {
+                runner.r(() -> {
                     Collection<ServiceJoinServiceType> services = env.getServices();
                     for (ServiceJoinServiceType service : services) {
                         if (service.getType().v().equals(new DriveBootLoader().getName())) {
                             Long certId = env.getCertificateId(service);
                             Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
                             Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-                            connected.done(mvp -> runner.run(() -> {
+                            connected.done(mvp -> runner.r(() -> {
                                 Request promise = mvp.request(service.getUuid().v(), DriveStrings.INTENT_DRIVE_DETAILS, null);
-                                promise.done(result -> runner.run(() -> {
+                                promise.done(result -> runner.r(() -> {
                                     DriveDetails driveDetails = (DriveDetails) result;
                                     if (driveDetails.getRole() != null && driveDetails.getRole().equals(DriveStrings.ROLE_SERVER)) {
                                         listCerts.getItems().add(certificate);

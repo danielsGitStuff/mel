@@ -8,7 +8,7 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.AuthSettingsFX;
 import de.mein.auth.gui.ServiceListItem;
 import de.mein.auth.gui.ServiceSettingsFX;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import javafx.application.Platform;
@@ -51,7 +51,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     private ListView<ServiceJoinServiceType> serviceList;
     @FXML
     private ContextMenu createServiceMenu;
-    private NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
+    private N runner = new N(Throwable::printStackTrace);
     @FXML
     private TitledPane tpServices;
     @FXML
@@ -124,13 +124,13 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
                 MenuItem menuItem = new MenuItem(name);
                 menuItem.setOnAction(e1 -> {
                     System.out.println("MeinAuthFX.initialize.createmenu.clicked");
-                    runner.run(() -> onCreateMenuItemClicked(name));
+                    runner.r(() -> onCreateMenuItemClicked(name));
                 });
                 createServiceMenu.getItems().add(menuItem);
             }
             createServiceMenu.show(btnCreateService, Side.TOP, 0, offset);
         });
-        btnRemoveService.setOnAction(event -> runner.run(() -> {
+        btnRemoveService.setOnAction(event -> runner.r(() -> {
             ServiceJoinServiceType service = serviceList.getSelectionModel().getSelectedItem();
             meinAuthService.unregisterMeinService(service.getServiceId().v());
             meinAuthService.getDatabaseManager().deleteService(service.getServiceId().v());
@@ -138,7 +138,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
         serviceList.setCellFactory(param -> new ServiceListItem());
         serviceList.getSelectionModel().selectedItemProperty()
                 .addListener((observable, oldValue, service) ->
-                        runner.run(() -> {
+                        runner.r(() -> {
                             if (service != null) {
                                 BootLoaderFX bootloader = (BootLoaderFX) MeinBoot.getBootLoader(meinAuthService, service.getType().v());
                                 IMeinService meinService = meinAuthService.getMeinService(service.getUuid().v());
@@ -163,8 +163,8 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     }
 
     private void loadSettingsFX(String resource) {
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
-        runner.run(() -> {
+        N runner = new N(e -> e.printStackTrace());
+        runner.r(() -> {
             showBottomButtons();
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
             Pane pane = lo.load();

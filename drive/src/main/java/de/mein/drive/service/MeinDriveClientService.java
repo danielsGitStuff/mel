@@ -4,7 +4,7 @@ import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceMessageHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
@@ -114,6 +114,9 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         this.syncListener = syncListener;
     }
 
+    public DriveSyncListener getSyncListener() {
+        return syncListener;
+    }
 
     @Override
     protected ClientSyncHandler initSyncHandler() {
@@ -140,9 +143,9 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                 //all other stages we can find at this point are complete/valid and wait at this point.
                 //todo conflict checking goes here - has to block
 
-                meinAuthService.connect(driveSettings.getClientSettings().getServerCertId()).done(mvp -> NoTryRunner.run(() -> {
+                meinAuthService.connect(driveSettings.getClientSettings().getServerCertId()).done(mvp -> N.r(() -> {
                     Commit commit = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSetList(stageSetId)).setServiceUuid(getUuid());
-                    mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> NoTryRunner.run(() -> {
+                    mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> N.r(() -> {
                         //fsDao.lockWrite();
                         CommitAnswer answer = (CommitAnswer) result;
                         ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);

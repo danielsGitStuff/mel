@@ -9,7 +9,7 @@ import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
@@ -19,7 +19,7 @@ import org.junit.Test;
 @SuppressWarnings("Duplicates")
 public class MeinAuthServerTest {
     RWLock lock;
-    NoTryRunner runner;
+    N runner;
     private IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
         @Override
         public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -46,7 +46,7 @@ public class MeinAuthServerTest {
 
 
     public void prep() throws Exception {
-        runner = new NoTryRunner(e -> e.printStackTrace());
+        runner = new N(e -> e.printStackTrace());
 
 //        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
 //        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
@@ -76,9 +76,9 @@ public class MeinAuthServerTest {
         MeinBoot boot1 = new MeinBoot();
         MeinBoot boot2 = new MeinBoot();
         boot1.boot(standAloneAuth1).done(result -> {
-            runner.run(() -> {
+            runner.r(() -> {
                 boot2.boot(standAloneAuth2).done(result1 -> {
-                    runner.run(() -> {
+                    runner.r(() -> {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(1l, "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
                             System.out.println("MeinAuthServerTest.acceptRegistration.registered");
@@ -122,14 +122,14 @@ public class MeinAuthServerTest {
         MeinBoot boot1 = new MeinBoot();
         MeinBoot boot2 = new MeinBoot();
         boot1.boot(standAloneAuth1).done(result -> {
-            runner.run(() -> {
+            runner.r(() -> {
                 System.out.println("MeinAuthServerTest.gui.1.booted");
                 boot2.boot(standAloneAuth2).done(result1 -> {
                     System.out.println("MeinAuthServerTest.gui.2.booted");
-                    runner.run(() -> {
+                    runner.r(() -> {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
-                            runner.run(() -> {
+                            runner.r(() -> {
                                 System.out.println("MeinAuthServerTest.gui.booted");
                                 standAloneAuth2.getBrotCaster().discover(9966);
                                 //lock.unlockWrite();
@@ -171,7 +171,7 @@ public class MeinAuthServerTest {
         standAloneAuth2.addRegisterHandler(allowRegisterHandler);
         standAloneAuth1.boot().done(result -> {
             standAloneAuth2.boot().done(result1 -> {
-                runner.run(() -> {
+                runner.r(() -> {
                     Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                     connectPromise.done(integer -> {
                         System.out.println("MeinAuthServerTest.rejectRegistration.registered");

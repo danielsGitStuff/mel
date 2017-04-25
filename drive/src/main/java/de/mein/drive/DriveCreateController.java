@@ -6,7 +6,7 @@ import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.DriveDetails;
@@ -27,7 +27,7 @@ import java.sql.SQLException;
  */
 public class DriveCreateController {
     private final MeinAuthService meinAuthService;
-    private NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
+    private N runner = new N(Throwable::printStackTrace);
 
     public DriveCreateController(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;

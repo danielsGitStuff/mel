@@ -1,7 +1,7 @@
 package de.mein.drive.service;
 
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.BashTools;
@@ -30,7 +30,7 @@ public abstract class SyncHandler {
     protected final MeinAuthService meinAuthService;
     protected FsDao fsDao;
     protected StageDao stageDao;
-    protected NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
+    protected N runner = new N(Throwable::printStackTrace);
     protected DriveDatabaseManager driveDatabaseManager;
     protected Indexer indexer;
     protected WasteBin wasteBin;

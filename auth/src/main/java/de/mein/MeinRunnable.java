@@ -14,11 +14,21 @@ public abstract class MeinRunnable implements Runnable {
         return startedPromise;
     }
 
-    public DeferredObject<MeinRunnable, Exception, Void> start(){
+    public DeferredObject<MeinRunnable, Exception, Void> start() {
         thread = new MeinThread(this);
         thread.setName(getClass().getSimpleName());
         thread.start();
         return startedPromise;
     }
+
+    public void shutDown() throws InterruptedException {
+        if (thread != null) {
+            thread.interrupt();
+            thread.join(1000);
+            shutDownImpl();
+        }
+    }
+
+    protected abstract void shutDownImpl();
 
 }

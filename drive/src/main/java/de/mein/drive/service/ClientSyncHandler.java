@@ -4,7 +4,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.jobs.CommitJob;
@@ -24,14 +24,16 @@ import java.util.*;
 public class ClientSyncHandler extends SyncHandler {
 
     private DriveSyncListener syncListener;
+    private MeinDriveClientService meinDriveService;
 
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
     }
 
 
-    public ClientSyncHandler(MeinAuthService meinAuthService, MeinDriveService meinDriveService) {
+    public ClientSyncHandler(MeinAuthService meinAuthService, MeinDriveClientService meinDriveService) {
         super(meinAuthService, meinDriveService);
+        this.meinDriveService=meinDriveService;
     }
 
     public void syncThisClient() throws SqlQueriesException, InterruptedException {
@@ -181,7 +183,7 @@ public class ClientSyncHandler extends SyncHandler {
         }
         communicationDone.done(nul -> {
             stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
-            NoTryRunner.run(() -> stageDao.updateStageSet(stageSet));
+            N.r(() -> stageDao.updateStageSet(stageSet));
             finished.resolve(stageSet.getId().v());
         }).fail(nul -> {
             finished.reject(null);
@@ -240,19 +242,48 @@ public class ClientSyncHandler extends SyncHandler {
     public void commitJob() {
         System.out.println("ClientSyncHandler.commitJob");
         try {
+            // first wait until every staging stuff is finished.
+            fsDao.lockWrite();
+
             List<StageSet> stagedStageSets = stageDao.getStagedStageSetsFromFS();
             System.out.println("ClientSyncHandler.commitJob");
 
-            // lets assume that everything went fine!
+            // first: merge everything
+            mergeStageSets(stagedStageSets);
+            // now lets look for possible conflicts with stuff from the server
             List<StageSet> stagesSetsFromServer = stageDao.getStagedStageSetsFromServer();
+            if (stagesSetsFromServer.size() == 1) {
+                checkConflicts(stagesSetsFromServer.get(0), stagedStageSets);
+            }
+
             if (stagesSetsFromServer.size() > 1) {
                 System.err.println("k4i9jfw4f3o0");
             }
+            // lets assume that everything went fine!
             for (StageSet stageSet : stagesSetsFromServer) {
-                commitStage(stageSet.getId().v());
+                commitStage(stageSet.getId().v(), false);
             }
+            // we are done here
+            meinDriveService.getSyncListener().onSyncDone();
         } catch (SqlQueriesException e) {
             e.printStackTrace();
+        } finally {
+            fsDao.unlockWrite();
         }
+    }
+
+    /**
+     * check whether or not there are any conflicts between stuff that happend on this computer and stuff
+     * that happened on the server. this will block until all conflicts are resolved.
+     *
+     * @param serverStageSet
+     * @param stagedStageSets
+     */
+    private void checkConflicts(StageSet serverStageSet, List<StageSet> stagedStageSets) {
+        System.out.println("ClientSyncHandler.checkConflicts.NOT:IMPLEMNETED:YET");
+    }
+
+    private void mergeStageSets(List<StageSet> stageSets) {
+        System.out.println("ClientSyncHandler.mergeStageSets");
     }
 }

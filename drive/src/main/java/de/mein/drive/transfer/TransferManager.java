@@ -6,7 +6,7 @@ import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
@@ -66,7 +66,7 @@ public class TransferManager implements Runnable {
         transferDir = new File(transferDirPath);
         transferDir.mkdirs();
         while (!Thread.currentThread().isInterrupted()) {
-            NoTryRunner.run(() -> {
+            N.r(() -> {
                 logger.log(Level.FINER, "TransferManager.RUN");
                 // these only contain certId and serviceUuid
                 List<TransferDetails> groupedTransferSets = transferDao.getTwoTransferSets();
@@ -105,7 +105,7 @@ public class TransferManager implements Runnable {
                             retrieveFiles(fileProcess, groupedTransferSet);
                         } else {
                             DeferredObject<MeinIsolatedFileProcess, Exception, Void> deferred = meinAuthService.connectToService(MeinIsolatedFileProcess.class, groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v(), meinDriveService.getUuid(), null, null, null);
-                            deferred.done(meinIsolatedProcess -> NoTryRunner.run(() -> {
+                            deferred.done(meinIsolatedProcess -> N.r(() -> {
                                         retrieveFiles(meinIsolatedProcess, groupedTransferSet);
                                     })
                             );
@@ -126,7 +126,7 @@ public class TransferManager implements Runnable {
             File target = new File(workingPath  + transferDetails.getHash().v());
             FileTransferDetail fileTransferDetail = new FileTransferDetail(target, new Random().nextInt(), 0L, transferDetails.getSize().v())
                     .setHash(transferDetails.getHash().v())
-                    .setTransferDoneListener(fileTransferDetail1 -> NoTryRunner.run(() -> {
+                    .setTransferDoneListener(fileTransferDetail1 -> N.r(() -> {
                         transferDao.delete(transferDetails.getId().v());
                         int count = countDown.decrementAndGet();
                         if (count == 0)
@@ -138,7 +138,7 @@ public class TransferManager implements Runnable {
             payLoad.add(fileTransferDetail);
         }
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(strippedTransferDetails.getCertId().v());
-        connected.done(validationProcess -> NoTryRunner.run(() -> {
+        connected.done(validationProcess -> N.r(() -> {
             validationProcess.message(strippedTransferDetails.getServiceUuid().v(), DriveStrings.INTENT_PLEASE_TRANSFER, payLoad);
         }));
     }

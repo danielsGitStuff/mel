@@ -1,9 +1,7 @@
 package de.mein.drive.index;
 
-import de.mein.auth.tools.NoTryRunner;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
-import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.FsFile;
@@ -11,11 +9,6 @@ import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.SqlQueriesException;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by xor on 7/11/16.
@@ -37,7 +30,7 @@ public class IndexPersistence {
         this.version = databaseManager.getFsDao().getLatestVersion() + 1;
     }
 
-    private NoTryRunner runner = new NoTryRunner(Exception::printStackTrace);
+    private N runner = new N(Exception::printStackTrace);
 
 
     public void foundFile(FsFile fsFile, Long stageSetId) {

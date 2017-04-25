@@ -11,7 +11,7 @@ import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
@@ -43,7 +43,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     private static Logger logger = Logger.getLogger(MeinDriveService.class.getName());
     protected DriveDatabaseManager driveDatabaseManager;
     protected DriveSettings driveSettings;
-    protected NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
+    protected N runner = new N(Throwable::printStackTrace);
     protected Indexer indexer;
     protected StageIndexer stageIndexer;
     protected S syncHandler;

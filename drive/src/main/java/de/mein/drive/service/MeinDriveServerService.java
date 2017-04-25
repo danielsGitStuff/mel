@@ -4,7 +4,7 @@ import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceMessageHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveServerSettingsDetails;
 import de.mein.drive.data.DriveStrings;
@@ -94,7 +94,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         try {
             long version = driveDatabaseManager.getLatestVersion();
             for (DriveServerSettingsDetails.ClientData client : driveDatabaseManager.getDriveSettings().getServerSettings().getClients()) {
-                meinAuthService.connect(client.getCertId()).done(mvp -> NoTryRunner.run(() -> {
+                meinAuthService.connect(client.getCertId()).done(mvp -> N.r(() -> {
                     mvp.message(client.getServiceUuid(), DriveStrings.INTENT_PROPAGATE_NEW_VERSION, new DriveDetails().setLastSyncVersion(version));
                 }));
             }

@@ -6,7 +6,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
@@ -31,7 +31,7 @@ public class MeinRegisterProcess extends MeinProcess {
     private CertificateManager certificateManager = null;
 
 
-    private NoTryRunner runner = new NoTryRunner(Throwable::printStackTrace);
+    private N runner = new N(Throwable::printStackTrace);
     private DeferredObject<MeinRegisterConfirm, Exception, Void> confirmedPromise = new DeferredObject<>();
     private DeferredObject<Certificate, Exception, Void> acceptedPromise = new DeferredObject<>();
 

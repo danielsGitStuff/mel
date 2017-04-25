@@ -9,7 +9,7 @@ import de.mein.auth.socket.process.imprt.MeinCertRetriever;
 import de.mein.auth.socket.process.reg.MeinRegisterProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.auth.tools.Hash;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -144,7 +144,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
 
         System.out.println("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
         DeferredObject result = job.getPromise();
-        NoTryRunner runner = new NoTryRunner(e -> {
+        N runner = new N(e -> {
             result.reject(e);
         });
         DeferredObject<Void, Exception, Void> firstAuth = this.auth(job);
@@ -220,7 +220,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         final Integer portCert = job.getPortCert();
         DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
 
-        NoTryRunner runner = new NoTryRunner(e -> {
+        N runner = new N(e -> {
             e.printStackTrace();
             deferred.reject(e);
         });

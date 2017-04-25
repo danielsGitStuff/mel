@@ -5,29 +5,20 @@ import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
-import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.gui.RegisterHandlerFX;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinStandAloneAuthFX;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.NoTryRunner;
-import de.mein.core.serialize.exceptions.JsonDeserializationException;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.auth.tools.N;
 import de.mein.drive.*;
 import de.mein.drive.boot.DriveFXBootLoader;
-import de.mein.drive.data.DriveStrings;
-import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
-import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.FsFile;
@@ -39,8 +30,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +51,7 @@ public class DriveFXTest {
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
+        N runner = new N(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(9966)
@@ -85,7 +74,7 @@ public class DriveFXTest {
 
         MeinBoot boot1 = new MeinBoot();
         boot1.boot(standAloneAuth1).done(result -> {
-            runner.run(() -> {
+            runner.r(() -> {
                 System.out.println("DriveFXTest.startEmptyClient.booted");
             });
         });
@@ -98,7 +87,7 @@ public class DriveFXTest {
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
 //        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
+        N runner = new N(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(9966)
@@ -121,7 +110,7 @@ public class DriveFXTest {
 
         MeinBoot boot1 = new MeinBoot();
         boot1.boot(standAloneAuth1).done(result -> {
-            runner.run(() -> {
+            runner.r(() -> {
                 System.out.println("DriveFXTest.startEmptyServer.booted");
             });
         });
@@ -173,7 +162,7 @@ public class DriveFXTest {
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
+        N runner = new N(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth2;
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
@@ -220,15 +209,15 @@ public class DriveFXTest {
         MeinBoot boot1 = new MeinBoot();
         MeinBoot boot2 = new MeinBoot();
         boot1.boot(standAloneAuth1).done(result -> {
-            runner.run(() -> {
+            runner.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
 //                DriveBootLoader.deVinjector = null;
                 boot2.boot(standAloneAuth2).done(result1 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
-                    runner.run(() -> {
+                    runner.r(() -> {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
-                            runner.run(() -> {
+                            runner.r(() -> {
                                 System.out.println("DriveFXTest.driveGui.booted");
                                 //standAloneAuth2.getBrotCaster().discover(9966);
                                 //lock.unlockWrite();
@@ -248,7 +237,7 @@ public class DriveFXTest {
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
+        N runner = new N(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth2;
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
@@ -294,15 +283,15 @@ public class DriveFXTest {
         MeinBoot boot1 = new MeinBoot();
         MeinBoot boot2 = new MeinBoot();
         boot1.boot(standAloneAuth1).done(result -> {
-            runner.run(() -> {
+            runner.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
 //                DriveBootLoader.deVinjector = null;
                 boot2.boot(standAloneAuth2).done(result1 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
-                    runner.run(() -> {
+                    runner.r(() -> {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
-                            runner.run(() -> {
+                            runner.r(() -> {
                                 System.out.println("DriveFXTest.driveGui.booted");
                                 //standAloneAuth2.getBrotCaster().discover(9966);
                                 //lock.unlockWrite();
@@ -330,7 +319,7 @@ public class DriveFXTest {
 
         // configure MeinAuth
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
+        N runner = new N(e -> e.printStackTrace());
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
@@ -369,21 +358,21 @@ public class DriveFXTest {
         MeinBoot boot1 = new MeinBoot();
         MeinBoot boot2 = new MeinBoot();
         boot1.boot(standAloneAuth1).done(result -> {
-            runner.run(() -> {
+            runner.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
                 // setup the server Service
                 MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath());
                 boot2.boot(standAloneAuth2).done(result1 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
-                    runner.run(() -> {
+                    runner.r(() -> {
                         // connect first. this step will register
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                         connectPromise.done(meinValidationProcess -> {
-                            runner.run(() -> {
+                            runner.r(() -> {
                                 System.out.println("DriveFXTest.driveGui.connected");
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
                                 Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid());
-                                promise.done(clientDriveService -> runner.run(() -> {
+                                promise.done(clientDriveService -> runner.r(() -> {
                                             System.out.println("DriveFXTest attempting first syncThisClient");
                                             clientSyncListener.testStructure.setMaClient(standAloneAuth2)
                                                     .setMaServer(standAloneAuth1)

@@ -18,7 +18,7 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.Cryptor;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
@@ -163,7 +163,7 @@ public class MeinAuthProcess extends MeinProcess {
         mySecret = UUID.randomUUID().toString();
         if (partnerCertificate == null)
             this.partnerCertificate = meinAuthSocket.getTrustedPartnerCertificate();
-        NoTryRunner runner = new NoTryRunner(e -> {
+        N runner = new N(e -> {
             e.printStackTrace();
             deferred.reject(e);
         });

@@ -22,7 +22,7 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.sql.SqlQueriesException;
@@ -87,7 +87,6 @@ public class MeinAuthService extends MeinRunnable {
             this.dbCreatedListener.onDBcreated(this.databaseManager);
         addRegisteredHandler((meinAuthService, registered) -> notifyAdmins());
         this.meinAuthWorker = new MeinAuthWorker(this, meinAuthSettings);
-
     }
 
     public MeinAuthSettings getSettings() {
@@ -157,6 +156,11 @@ public class MeinAuthService extends MeinRunnable {
         }
         //super.start();
         return promise;
+    }
+
+    @Override
+    protected void shutDownImpl() {
+
     }
 
     public List<Certificate> getTrustedCertificates() throws SqlQueriesException {
@@ -247,10 +251,10 @@ public class MeinAuthService extends MeinRunnable {
         DeferredObject<MeinAuthService, Exception, Void> bootedPromise = new DeferredObject<>();
         DeferredObject<MeinRunnable, Exception, Void> startedPromise = this.start();
         System.out.println("MeinAuthService.boot.trying to connect to everybody");
-        startedPromise.done(result -> NoTryRunner.run(() -> {
+        startedPromise.done(result -> N.r(() -> {
             for (Certificate certificate : certificateManager.getTrustedCertificates()) {
                 Promise<MeinValidationProcess, Exception, Void> connected = connect(certificate.getId().v(), certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-                connected.done(mvp -> NoTryRunner.run(() -> {
+                connected.done(mvp -> N.r(() -> {
 
                 })).fail(result1 -> System.err.println("MeinAuthServive.boot.could not connect to: '" + certificate.getName().v() + "' address: " + certificate.getAddress().v()));
             }
@@ -331,7 +335,7 @@ public class MeinAuthService extends MeinRunnable {
 
     private void connectAndCollect(Map<String, Boolean> checkedAddresses, NetworkEnvironment networkEnvironment, Certificate intendedCertificate) throws IOException, IllegalAccessException, SqlQueriesException, URISyntaxException, ClassNotFoundException, KeyManagementException, BadPaddingException, KeyStoreException, NoSuchAlgorithmException, InvalidKeyException, UnrecoverableKeyException, CertificateException, NoSuchPaddingException, JsonSerializationException, IllegalBlockSizeException, InterruptedException {
         String address = MeinAuthSocket.getAddressString(intendedCertificate.getInetAddress(), intendedCertificate.getPort().v());
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
+        N runner = new N(e -> e.printStackTrace());
         if (!checkedAddresses.containsKey(address)) {
             checkedAddresses.put(address, true);
             Promise<MeinValidationProcess, Exception, Void> authenticatedPromise = this.connect(intendedCertificate.getId().v(), intendedCertificate.getAddress().v(), intendedCertificate.getPort().v(), intendedCertificate.getCertDeliveryPort().v(), false);
@@ -352,7 +356,7 @@ public class MeinAuthService extends MeinRunnable {
      * this is because Android does not like to do network stuff on GUI threads
      */
     void discoverNetworkEnvironmentImpl() {
-        NoTryRunner runner = new NoTryRunner(e -> e.printStackTrace());
+        N runner = new N(e -> e.printStackTrace());
         networkEnvironment.clear();
         Map<String, Boolean> checkedAddresses = new ConcurrentHashMap<>();
         runner.runTry(() -> {

@@ -5,7 +5,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.gui.controls.CertListCell;
 import de.mein.auth.gui.controls.UnkownListCell;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -79,7 +79,7 @@ public class NetworkDiscoveryFX extends AuthSettingsFX implements Initializable 
                 txtPort.setText(Integer.toString(selected.getPort()));
             }
         });
-        btnRegister.setOnAction(event -> NoTryRunner.run(() -> {
+        btnRegister.setOnAction(event -> N.r(() -> {
             Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(null, txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);
             promise.done(result -> discover());
         }));
