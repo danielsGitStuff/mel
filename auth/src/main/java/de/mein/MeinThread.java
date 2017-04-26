@@ -7,14 +7,32 @@ import java.util.Random;
  */
 public class MeinThread extends Thread {
 
-    public MeinThread(Runnable runnable) {
+    public interface Interruptable {
+
+
+    }
+
+    public MeinThread(){
+
+    }
+
+    public MeinThread(MeinRunnable runnable) {
         super(runnable);
-        setName(runnable.getClass().getSimpleName() + ".id:" + new Random().nextInt(1000));
+        if (runnable instanceof Interruptable) {
+//            Interruptable interruptable = (Interruptable) runnable;
+//            interruptable.setMeinThread(this);
+        }
+        setName(runnable.getRunnableName() + ".id:" + new Random().nextInt(1000));
+    }
+
+    @Override
+    public String toString() {
+        return "Thr." + getName();
     }
 
     @Override
     public void interrupt() {
+        System.out.println("MeinThread.interrupt: " + getName());
         super.interrupt();
     }
-
 }

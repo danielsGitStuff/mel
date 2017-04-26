@@ -1,6 +1,6 @@
 package de.mein.auth.broadcast;
 
-import de.mein.MeinRunnable;
+import de.mein.DeferredRunnable;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -11,7 +11,7 @@ import java.net.SocketException;
 /**
  * Sends and retrieves small messages from the broadcast network address
  */
-public abstract class BrotCaster extends MeinRunnable {
+public abstract class BrotCaster extends DeferredRunnable {
     protected final Integer listenerPort;
     private final Integer brotcastPort;
     protected MulticastSocket socket;
@@ -22,7 +22,7 @@ public abstract class BrotCaster extends MeinRunnable {
     }
 
     @Override
-    public void run() {
+    public void runImpl() {
         if (listenerPort != null) {
             try {
                 socket = new MulticastSocket(listenerPort);

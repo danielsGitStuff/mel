@@ -28,28 +28,4 @@ public class Main {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
         MeinBoot.addBootLoaderClass(DriveBootLoader.class);
     }
-
-    public static void main(String[] args) throws Exception {
-        init();
-        RWLock lock = new RWLock();
-        lock.lockWrite();
-        MeinAuthSettings meinAuthSettings = (MeinAuthSettings) new MeinAuthSettings()
-                .setPort(8888)
-                .setDeliveryPort(8889)
-                .setName("meinauth")
-                .setBrotcastListenerPort(9966)
-                .setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1)
-                .setJsonFile(new File("meinAuth.settings.json"));
-        meinAuthSettings.save();
-        MeinBoot meinBoot = new MeinBoot();
-        Promise<MeinAuthService, Exception, Void> meinAuthBooted = meinBoot.boot(meinAuthSettings);
-        meinAuthBooted.done(result -> {
-            System.out.println("Main.main.booted");
-            lock.unlockWrite();
-        });
-        lock.lockWrite();
-        lock.lockWrite();
-        System.out.println("Main.main.end");
-    }
 }

@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 /**
  * Sends and retrieves small messages from the broadcast network address. <br>
- *     Messages are announcements of new MeinAuth instances who say "Hello"
+ * Messages are announcements of new MeinAuth instances who say "Hello"
  */
 public class MeinAuthBrotCaster extends BrotCaster {
     private final MeinAuthService meinAuthService;
@@ -24,6 +24,11 @@ public class MeinAuthBrotCaster extends BrotCaster {
     public MeinAuthBrotCaster setBrotCasterListener(MeinAuthBrotCasterListener brotCasterListener) {
         this.brotCasterListener = brotCasterListener;
         return this;
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName() + " for " + meinAuthService.getName();
     }
 
     public interface MeinAuthBrotCasterListener {
@@ -124,7 +129,7 @@ public class MeinAuthBrotCaster extends BrotCaster {
     @Override
     protected void handleMessage(DatagramPacket packet, byte[] buf) {
         String brotCast = new String(buf);
-        System.out.println(meinAuthService.getName() + ".MeinAuthBrotCaster.handleMessage.msg: '" + brotCast+"' from address "+packet.getAddress().getHostName());
+        System.out.println(meinAuthService.getName() + ".MeinAuthBrotCaster.handleMessage.msg: '" + brotCast + "' from address " + packet.getAddress().getHostName());
         try {
             if (!handleDiscover(packet))
                 if (!handleDiscoverAnswer(packet))

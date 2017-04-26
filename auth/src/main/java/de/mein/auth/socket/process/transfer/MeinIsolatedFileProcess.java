@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.transfer;
 
+import de.mein.MeinRunnable;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinSocket;
@@ -14,7 +15,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Created by xor on 1/5/17.
  */
-public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runnable {
+public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements MeinRunnable {
     private Map<Integer, FileTransferDetail> streamIdFileMapReceiving = new TreeMap<>();
     private Queue<FileTransferDetail> sendingDetails = new LinkedList();
     private Semaphore sendingSemaphore = new Semaphore(1, true);
@@ -37,7 +38,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runn
 
     public MeinIsolatedFileProcess(MeinAuthSocket meinAuthSocket, IMeinService meinService, Long partnerCertificateId, String partnerServiceUuid, String isolatedUuid) {
         super(meinAuthSocket, meinService, partnerCertificateId, partnerServiceUuid, isolatedUuid);
-        new Thread(this).start();
+        meinAuthSocket.getMeinAuthService().execute(this);
     }
 
 
@@ -189,4 +190,8 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Runn
         }
     }
 
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName();
+    }
 }

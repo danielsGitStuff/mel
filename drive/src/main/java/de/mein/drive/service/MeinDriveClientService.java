@@ -182,4 +182,9 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             }
         });
     }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName();
+    }
 }

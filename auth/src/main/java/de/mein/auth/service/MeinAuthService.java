@@ -1,8 +1,10 @@
 package de.mein.auth.service;
 
 
+import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
 import de.mein.auth.MeinAuthAdmin;
+import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.MeinAuthSettings;
@@ -49,7 +51,7 @@ import java.util.logging.Logger;
 /**
  * Created by xor on 2/14/16.
  */
-public class MeinAuthService extends MeinRunnable {
+public class MeinAuthService extends DeferredRunnable {
     static {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
@@ -75,6 +77,7 @@ public class MeinAuthService extends MeinRunnable {
 
     private Map<String, IMeinService> uuidServiceMap = new ConcurrentHashMap<>();
     private MeinAuthBrotCaster brotCaster;
+    private MeinBoot meinBoot;
 
 
     public MeinAuthService(MeinAuthSettings meinAuthSettings, IDBCreatedListener dbCreatedListener) throws Exception {
@@ -133,7 +136,7 @@ public class MeinAuthService extends MeinRunnable {
     }
 
     @Override
-    public void run() {
+    public void runImpl() {
         System.out.println("MeinAuthService.run");
         logger.log(Level.FINER, "MeinAuthService.runTry.listening...");
         while (!Thread.currentThread().isInterrupted()) {
@@ -148,20 +151,14 @@ public class MeinAuthService extends MeinRunnable {
         logger.log(Level.FINER, "MeinAuthService.runTry.end");
     }
 
-    @Override
-    public DeferredObject<MeinRunnable, Exception, Void> start() {
-        DeferredObject<MeinRunnable, Exception, Void> promise = meinAuthWorker.start();
+    public DeferredObject<DeferredRunnable, Exception, Void> start() {
+        execute(meinAuthWorker);
         for (MeinAuthAdmin admin : meinAuthAdmins) {
             admin.start(this);
         }
-        //super.start();
-        return promise;
+        return meinAuthWorker.getStartedDeferred();
     }
 
-    @Override
-    protected void shutDownImpl() {
-
-    }
 
     public List<Certificate> getTrustedCertificates() throws SqlQueriesException {
         List<Certificate> certs = certificateManager.getTrustedCertificates();
@@ -249,7 +246,7 @@ public class MeinAuthService extends MeinRunnable {
 
     public Promise<MeinAuthService, Exception, Void> boot() {
         DeferredObject<MeinAuthService, Exception, Void> bootedPromise = new DeferredObject<>();
-        DeferredObject<MeinRunnable, Exception, Void> startedPromise = this.start();
+        DeferredObject<DeferredRunnable, Exception, Void> startedPromise = this.start();
         System.out.println("MeinAuthService.boot.trying to connect to everybody");
         startedPromise.done(result -> N.r(() -> {
             for (Certificate certificate : certificateManager.getTrustedCertificates()) {
@@ -421,5 +418,22 @@ public class MeinAuthService extends MeinRunnable {
     public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
         if (meinAuthSocket.isValidated())
             connectedEnvironment.removeValidationProcess((MeinValidationProcess)meinAuthSocket.getProcess());
+    }
+
+    public void execute(MeinRunnable runnable){
+        meinBoot.execute(runnable);
+    }
+
+    public void setMeinBoot(MeinBoot meinBoot) {
+        this.meinBoot = meinBoot;
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName();
+    }
+
+    public void shutDown() {
+        N.r(() -> meinBoot.shutDown());
     }
 }

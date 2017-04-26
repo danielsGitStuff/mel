@@ -7,7 +7,6 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinWorker;
 
 import javax.net.SocketFactory;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -161,6 +160,11 @@ public class MeinSocket implements Runnable {
                 listener.onBlockReceived(((BlockReceivedJob) job).getBlock());
             }
         }
+
+        @Override
+        public String getRunnableName() {
+            return getClass().getSimpleName() + " for " + socket.getMeinAuthService().getName();
+        }
     }
 
 
@@ -175,7 +179,7 @@ public class MeinSocket implements Runnable {
             if (in == null || out == null)
                 streams();
             SocketWorker socketWorker = new SocketWorker(this, listener);
-            socketWorker.start();
+            meinAuthService.execute(socketWorker);
             while (!Thread.currentThread().isInterrupted()) {
                 if (isIsolated && allowIsolation) {
                     byte[] bytes = new byte[BLOCK_SIZE];

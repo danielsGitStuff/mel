@@ -41,4 +41,9 @@ public class MeinTestService extends MeinServiceWorker {
         System.out.println("MeinTestService.workWork");
     }
 
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName();
+    }
+
 }

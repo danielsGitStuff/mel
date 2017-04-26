@@ -1,15 +1,20 @@
 package de.mein.auth.service;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Created by xor on 5/2/16.
  */
-public abstract class MeinService implements IMeinService{
+public abstract class MeinService implements IMeinService {
     protected MeinAuthService meinAuthService;
     protected Integer id;
     protected String uuid;
+    protected ExecutorService executorService;
 
-    public MeinService(MeinAuthService meinAuthService){
+    public MeinService(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
+        this.executorService = Executors.newCachedThreadPool();
     }
 
     public Integer getId() {
@@ -22,7 +27,7 @@ public abstract class MeinService implements IMeinService{
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"."+meinAuthService.getName();
+        return getClass().getSimpleName() + "." + meinAuthService.getName();
     }
 
 

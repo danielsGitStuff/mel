@@ -1,6 +1,6 @@
 package de.mein.auth.service;
 
-import de.mein.MeinRunnable;
+import de.mein.DeferredRunnable;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.jobs.AConnectJob;
@@ -12,7 +12,6 @@ import de.mein.auth.socket.process.imprt.MeinAuthCertDelivery;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -20,7 +19,6 @@ import org.jdeferred.impl.DeferredObject;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
@@ -46,16 +44,19 @@ public class MeinAuthWorker extends MeinWorker {
         meinAuthService.setBrotCaster(brotCaster);
     }
 
-    public Promise<MeinRunnable, Exception, Void> getStartedPromis() {
+    public Promise<DeferredRunnable, Exception, Void> getStartedPromis() {
         return startedPromise;
     }
 
     @Override
     public void run() {
-        DeferredObject<MeinRunnable, Exception, Void> brotcasterPromise = brotCaster.start();
-        DeferredObject<MeinRunnable, Exception, Void> certDeliveryPromise = certDelivery.start();
+        DeferredObject<DeferredRunnable, Exception, Void> brotcasterPromise = brotCaster.getStartedDeferred();
+        DeferredObject<DeferredRunnable, Exception, Void> certDeliveryPromise = certDelivery.getStartedDeferred();
         socketOpener = new MeinAuthSocketOpener(meinAuthService, port);
-        DeferredObject<MeinRunnable, Exception, Void> socketOpenerPromise = socketOpener.start();
+        DeferredObject<DeferredRunnable, Exception, Void> socketOpenerPromise = socketOpener.getStartedDeferred();
+        meinAuthService.execute(brotCaster);
+        meinAuthService.execute(certDelivery);
+        meinAuthService.execute(socketOpener);
         new DefaultDeferredManager().when(certDeliveryPromise, socketOpenerPromise, brotcasterPromise).done(result -> {
             //say hello!
             try {
@@ -98,4 +99,10 @@ public class MeinAuthWorker extends MeinWorker {
     public MeinAuthBrotCaster getBrotCaster() {
         return brotCaster;
     }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName() + " for " + meinAuthService.getName();
+    }
+
 }

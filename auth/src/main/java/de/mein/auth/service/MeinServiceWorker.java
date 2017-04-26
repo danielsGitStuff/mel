@@ -1,6 +1,6 @@
 package de.mein.auth.service;
 
-import de.mein.MeinRunnable;
+import de.mein.DeferredRunnable;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.sql.RWLock;
@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Created by xor on 9/25/16.
  */
-public abstract class MeinServiceWorker extends MeinRunnable implements IMeinService {
+public abstract class MeinServiceWorker extends DeferredRunnable implements IMeinService {
     protected final MeinAuthService meinAuthService;
     protected LinkedList<Job> jobs = new LinkedList<>();
     private RWLock queueLock = new RWLock();
@@ -47,7 +47,7 @@ public abstract class MeinServiceWorker extends MeinRunnable implements IMeinSer
     }
 
     @Override
-    public void run() {
+    public void runImpl() {
         try {
             while (true) {
                 queueLock.lockWrite();
@@ -58,13 +58,13 @@ public abstract class MeinServiceWorker extends MeinRunnable implements IMeinSer
                         workWork(job);
                     } catch (Exception e) {
                         e.printStackTrace();
-                            if (job.getPromise() != null)
-                                job.getPromise().reject(e);
+                        if (job.getPromise() != null)
+                            job.getPromise().reject(e);
                     }
                 } else {
                     // wait here if no jobs are available
                     waitLock.lockWrite();
-                    System.out.println(thread.getName() + "...unlocked");
+                    System.out.println(getRunnableName() + "...unlocked");
                 }
             }
         } catch (Exception e) {
@@ -82,4 +82,7 @@ public abstract class MeinServiceWorker extends MeinRunnable implements IMeinSer
         waitLock.unlockWrite();
     }
 
+    public void start() {
+        meinAuthService.execute(this);
+    }
 }

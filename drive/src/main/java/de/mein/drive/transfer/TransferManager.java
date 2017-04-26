@@ -1,6 +1,6 @@
 package de.mein.drive.transfer;
 
-import de.mein.MeinThread;
+import de.mein.MeinRunnable;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 /**
  * Created by xor on 12/16/16.
  */
-public class TransferManager implements Runnable {
+public class TransferManager implements MeinRunnable {
     private static final int LIMIT_PER_ADDRESS = 2;
     private static Logger logger = Logger.getLogger(TransferManager.class.getName());
     private final TransferDao transferDao;
@@ -123,7 +123,7 @@ public class TransferManager implements Runnable {
         AtomicInteger countDown = new AtomicInteger(transfers.size());
         FileTransferDetailSet payLoad = new FileTransferDetailSet().setServiceUuid(meinDriveService.getUuid());
         for (TransferDetails transferDetails : transfers) {
-            File target = new File(workingPath  + transferDetails.getHash().v());
+            File target = new File(workingPath + transferDetails.getHash().v());
             FileTransferDetail fileTransferDetail = new FileTransferDetail(target, new Random().nextInt(), 0L, transferDetails.getSize().v())
                     .setHash(transferDetails.getHash().v())
                     .setTransferDoneListener(fileTransferDetail1 -> N.r(() -> {
@@ -148,11 +148,15 @@ public class TransferManager implements Runnable {
     }
 
     public void start() {
-        new MeinThread(this).start();
-        //this.future = Executor.startCached(this);
+        meinAuthService.execute(this);
     }
 
     public void createTransfer(TransferDetails transfer) throws SqlQueriesException {
         transferDao.insert(transfer);
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName() + " for " + meinAuthService.getName() + "/" + meinDriveService.getUuid();
     }
 }

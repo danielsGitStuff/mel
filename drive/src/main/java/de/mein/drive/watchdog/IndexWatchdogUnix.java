@@ -11,6 +11,7 @@ import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 /**
  * Created by xor on 7/11/16.
  */
@@ -26,7 +27,7 @@ class IndexWatchdogUnix extends IndexWatchdogPC {
     public void foundDirectory(FsDirectory fsDirectory) {
         try {
             Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
-            WatchKey key =path.register(watchService, KINDS);
+            WatchKey key = path.register(watchService, KINDS);
             keyMap.put(path.toString(), key);
             System.out.println("IndexWatchdogListener.foundDirectory: " + path.toString());
         } catch (Exception e) {

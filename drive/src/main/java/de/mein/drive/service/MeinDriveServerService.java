@@ -134,4 +134,9 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             }*/
         });
     }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName();
+    }
 }

@@ -13,10 +13,6 @@ public class MeinBootLoader implements Runnable {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
     }
 
-    public static void main(String[] args) {
-        new Thread(new MeinBootLoader()).start();
-    }
-
     @Override
     public void run() {
         while (true)

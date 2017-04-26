@@ -1,11 +1,11 @@
 package de.mein.auth.socket.process.imprt;
 
+import de.mein.DeferredRunnable;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.MeinResponse;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.MeinAuthServer;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
@@ -13,6 +13,8 @@ import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntit
 import javax.net.ServerSocketFactory;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.cert.X509Certificate;
 import java.util.logging.Level;
@@ -21,21 +23,26 @@ import java.util.logging.Logger;
 /**
  * Created by xor on 2/14/16.
  */
-public class MeinAuthCertDelivery extends MeinAuthServer {
+public class MeinAuthCertDelivery extends DeferredRunnable {
     private static Logger logger = Logger.getLogger(MeinAuthCertDelivery.class.getName());
+    protected ServerSocket serverSocket;
     public static final String GET_CERT_ANSWER = "getCert.answer";
     public static final String GET_CERT = "getCert";
     private final CertificateManager certificateManager;
     protected DataOutputStream out;
     protected DataInputStream in;
     private MeinAuthService meinAuthService;
+    private ServerSocketFactory serverSocketFactory;
+    protected Integer port;
+    protected MeinSocket.MeinSocketListener listener;
 
 
     public MeinAuthCertDelivery(MeinAuthService meinAuthService, int port) throws Exception {
         this.meinAuthService = meinAuthService;
         this.certificateManager = meinAuthService.getCertificateManager();
         this.port = port;
-        this.setServerSocketFactory(ServerSocketFactory.getDefault());
+        this.serverSocketFactory = ServerSocketFactory.getDefault();
+
         this.listener = new MeinSocket.MeinSocketListener() {
             @Override
             public void onIsolated() {
@@ -102,8 +109,11 @@ public class MeinAuthCertDelivery extends MeinAuthServer {
 
 
     @Override
-    public void run() {
+    public void runImpl() {
         try {
+            serverSocket = serverSocketFactory.createServerSocket();
+            serverSocket.setReuseAddress(true);
+            serverSocket.bind(new InetSocketAddress(port));
             startedPromise.resolve(null);
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = serverSocket.accept();
@@ -130,6 +140,12 @@ public class MeinAuthCertDelivery extends MeinAuthServer {
             }
 
         }
+    }
+
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName();
     }
 
 }

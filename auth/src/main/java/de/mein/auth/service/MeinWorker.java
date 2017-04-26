@@ -1,6 +1,6 @@
 package de.mein.auth.service;
 
-import de.mein.MeinRunnable;
+import de.mein.DeferredRunnable;
 import de.mein.auth.jobs.Job;
 import de.mein.sql.RWLock;
 
@@ -9,13 +9,13 @@ import java.util.LinkedList;
 /**
  * Created by xor on 9/25/16.
  */
-public abstract class MeinWorker extends MeinRunnable {
+public abstract class MeinWorker extends DeferredRunnable {
     protected LinkedList<Job> jobs = new LinkedList<>();
     protected RWLock queueLock = new RWLock();
     protected RWLock waitLock = new RWLock();
 
     @Override
-    public void run() {
+    public void runImpl() {
         try {
             while (true) {
                 queueLock.lockWrite();
@@ -32,11 +32,10 @@ public abstract class MeinWorker extends MeinRunnable {
                 } else {
                     // wait here if no jobs are available
                     waitLock.lockWrite();
-                    System.out.println(thread.getName() + "...unlocked");
+                    System.out.println(getRunnableName() + "...unlocked");
                 }
             }
         } catch (Exception e) {
-            boolean b = thread.isInterrupted();
             e.printStackTrace();
         }
     }
