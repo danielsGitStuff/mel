@@ -1,6 +1,7 @@
 package de.mein.auth.broadcast;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.tools.N;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -19,6 +20,12 @@ public abstract class BrotCaster extends DeferredRunnable {
     public BrotCaster(Integer listenerPort, Integer brotcastPort) {
         this.listenerPort = listenerPort;
         this.brotcastPort = brotcastPort;
+    }
+
+    @Override
+    public void onShutDown() {
+        System.out.println("BrotCaster.onShutDown");
+        socket.close();
     }
 
     @Override

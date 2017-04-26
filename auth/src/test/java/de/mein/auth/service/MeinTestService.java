@@ -46,4 +46,8 @@ public class MeinTestService extends MeinServiceWorker {
         return getClass().getSimpleName();
     }
 
+    @Override
+    public void onShutDown() {
+        System.out.println("MeinTestService.onShutDown");
+    }
 }

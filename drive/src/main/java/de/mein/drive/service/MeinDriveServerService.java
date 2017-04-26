@@ -139,4 +139,9 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     public String getRunnableName() {
         return getClass().getSimpleName();
     }
+
+    @Override
+    public void onShutDown() {
+        System.out.println("MeinDriveServerService.onShutDown");
+    }
 }

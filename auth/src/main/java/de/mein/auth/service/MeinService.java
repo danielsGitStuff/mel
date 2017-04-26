@@ -1,12 +1,14 @@
 package de.mein.auth.service;
 
+import de.mein.DeferredRunnable;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * Created by xor on 5/2/16.
  */
-public abstract class MeinService implements IMeinService {
+public abstract class MeinService extends DeferredRunnable implements IMeinService {
     protected MeinAuthService meinAuthService;
     protected Integer id;
     protected String uuid;

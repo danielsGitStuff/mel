@@ -17,7 +17,7 @@ public abstract class MeinWorker extends DeferredRunnable {
     @Override
     public void runImpl() {
         try {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 queueLock.lockWrite();
                 Job job = jobs.poll();
                 queueLock.unlockWrite();
@@ -35,6 +35,7 @@ public abstract class MeinWorker extends DeferredRunnable {
                     System.out.println(getRunnableName() + "...unlocked");
                 }
             }
+            System.out.println(getClass().getSimpleName() + " has finished");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -46,6 +47,12 @@ public abstract class MeinWorker extends DeferredRunnable {
     public void addJob(Job job) {
         queueLock.lockWrite();
         jobs.offer(job);
+        queueLock.unlockWrite();
+        waitLock.unlockWrite();
+    }
+
+    @Override
+    public void onShutDown() {
         queueLock.unlockWrite();
         waitLock.unlockWrite();
     }

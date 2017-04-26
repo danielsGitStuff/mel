@@ -49,6 +49,14 @@ public class MeinAuthWorker extends MeinWorker {
     }
 
     @Override
+    public void onShutDown() {
+        System.out.println("MeinAuthWorker.onShutDown");
+        certDelivery.shutDown();
+        brotCaster.shutDown();
+        super.onShutDown();
+    }
+
+    @Override
     public void run() {
         DeferredObject<DeferredRunnable, Exception, Void> brotcasterPromise = brotCaster.getStartedDeferred();
         DeferredObject<DeferredRunnable, Exception, Void> certDeliveryPromise = certDelivery.getStartedDeferred();
@@ -72,7 +80,6 @@ public class MeinAuthWorker extends MeinWorker {
             startedPromise.reject(new Exception("keinen plan von nix"));
         });
         super.run();
-
     }
 
 

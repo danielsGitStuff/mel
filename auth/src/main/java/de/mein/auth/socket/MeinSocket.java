@@ -165,6 +165,11 @@ public class MeinSocket implements Runnable {
         public String getRunnableName() {
             return getClass().getSimpleName() + " for " + socket.getMeinAuthService().getName();
         }
+
+        @Override
+        public void onShutDown() {
+            System.out.println("SocketWorker.onShutDown");
+        }
     }
 
 

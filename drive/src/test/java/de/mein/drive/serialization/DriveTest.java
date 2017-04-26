@@ -122,6 +122,17 @@ public class DriveTest {
                 System.out.println("DriveTest.onSyncDoneImpl");
                 N.r(() -> standAloneAuth1.shutDown());
                 System.out.println("DriveTest.onSyncDoneImpl.shot down");
+                new Thread(() -> {
+                    int i = 0;
+                    while (true) {
+                        i++;
+                        try {
+                            Thread.sleep(100);                 //1000 milliseconds is one second.
+                        } catch(InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                }).start();
             }
         });
         lock.lockWrite();

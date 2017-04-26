@@ -32,37 +32,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         super(meinAuthService);
     }
 
-//    @Override
-//    protected void handleFsSyncJob(FsSyncJob fsSyncJob) throws IOException, SqlQueriesException {
-//        this.doFsSyncJob(fsSyncJob).done(stageSetId -> runner.runTry(() -> {
-//            System.out.println(meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
-//            meinAuthService.connect(driveSettings.getClientSettings().getServerCertId()).done(mvp -> NoTryRunner.run(() -> {
-//                Commit stageSet = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSet(stageSetId)).setServiceUuid(getUuid());
-//                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, stageSet).done(result -> NoTryRunner.run(() -> {
-//                    CommitAnswer answer = (CommitAnswer) result;
-//                    FsDao fsDao = driveDatabaseManager.getFsDao();
-//                    StageDao stageDao = driveDatabaseManager.getStageDao();
-//                    fsDao.lockWrite();
-//                    for (Stage stage : stageDao.getStagesByStageSet(stageSetId)) {
-//                        Long fsId = answer.getStageIdFsIdMap().get(stage.getId());
-//                        if (fsId != null) {
-//                            stage.setFsId(fsId);
-//                            if (stage.getParentId() != null) {
-//                                Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
-//                                if (fsParentId != null)
-//                                    stage.setFsParentId(fsParentId);
-//                            }
-//                            stageDao.update(stage);
-//                        }
-//                    }
-//                    //TODO conflict detection goes here
-//                    syncHandler.commitStage(stageSetId,false);
-//                    fsDao.unlockWrite();
-//                }));
-//            }));
-//        }));
-//    }
-
 
     @Override
     protected void onSyncReceived(Request request) {
@@ -186,5 +155,10 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     public String getRunnableName() {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public void onShutDown() {
+        System.out.println("MeinDriveClientService.onShutDown");
     }
 }

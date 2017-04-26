@@ -12,12 +12,15 @@ import java.util.Map;
 /**
  * Created by xor on 9/25/16.
  */
-public abstract class MeinServiceWorker extends DeferredRunnable implements IMeinService {
-    protected final MeinAuthService meinAuthService;
+public abstract class MeinServiceWorker extends MeinService implements IMeinService {
     protected LinkedList<Job> jobs = new LinkedList<>();
     private RWLock queueLock = new RWLock();
     protected RWLock waitLock = new RWLock();
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
+
+    public MeinServiceWorker(MeinAuthService meinAuthService) {
+        super(meinAuthService);
+    }
 
     @Override
     public void onIsolatedConnectionEstablished(MeinIsolatedProcess isolatedProcess) {
@@ -32,9 +35,6 @@ public abstract class MeinServiceWorker extends DeferredRunnable implements IMei
 
     protected String uuid;
 
-    public MeinServiceWorker(MeinAuthService meinAuthService) {
-        this.meinAuthService = meinAuthService;
-    }
 
     @Override
     public void setUuid(String uuid) {
@@ -49,7 +49,7 @@ public abstract class MeinServiceWorker extends DeferredRunnable implements IMei
     @Override
     public void runImpl() {
         try {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 queueLock.lockWrite();
                 Job job = jobs.poll();
                 queueLock.unlockWrite();

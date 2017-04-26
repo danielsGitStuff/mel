@@ -2,6 +2,7 @@ package de.mein.auth.socket;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.tools.N;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -19,6 +20,12 @@ public class MeinAuthSocketOpener extends DeferredRunnable {
     public MeinAuthSocketOpener(MeinAuthService meinAuthService, int port) {
         this.meinAuthService = meinAuthService;
         this.port = port;
+    }
+
+    @Override
+    public void onShutDown() {
+        System.out.println("MeinAuthSocketOpener.onShutDown");
+        N.r(() -> serverSocket.close());
     }
 
     @Override
@@ -49,7 +56,7 @@ public class MeinAuthSocketOpener extends DeferredRunnable {
 
     @Override
     public String getRunnableName() {
-        return getClass().getSimpleName();
+        return getClass().getSimpleName() + " for " + meinAuthService.getName();
     }
 
 }

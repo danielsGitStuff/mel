@@ -51,7 +51,7 @@ import java.util.logging.Logger;
 /**
  * Created by xor on 2/14/16.
  */
-public class MeinAuthService extends DeferredRunnable {
+public class MeinAuthService   {
     static {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
@@ -75,7 +75,7 @@ public class MeinAuthService extends DeferredRunnable {
 
     private ConnectedEnvironment connectedEnvironment = new ConnectedEnvironment();
 
-    private Map<String, IMeinService> uuidServiceMap = new ConcurrentHashMap<>();
+    private Map<String, MeinService> uuidServiceMap = new ConcurrentHashMap<>();
     private MeinAuthBrotCaster brotCaster;
     private MeinBoot meinBoot;
 
@@ -133,22 +133,6 @@ public class MeinAuthService extends DeferredRunnable {
     public MeinAuthService addRegisterHandler(IRegisterHandler registerHandler) {
         this.registerHandlers.add(registerHandler);
         return this;
-    }
-
-    @Override
-    public void runImpl() {
-        System.out.println("MeinAuthService.run");
-        logger.log(Level.FINER, "MeinAuthService.runTry.listening...");
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
-               /* Socket socket = this.serverSocket.accept();
-                MeinSocket meinSocket = new MeinAuthSocket(this, socket);
-                meinSocket.start();*/
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        logger.log(Level.FINER, "MeinAuthService.runTry.end");
     }
 
     public DeferredObject<DeferredRunnable, Exception, Void> start() {
@@ -209,7 +193,7 @@ public class MeinAuthService extends DeferredRunnable {
     }
 
 
-    public MeinAuthService registerMeinService(IMeinService meinService) throws SqlQueriesException {
+    public MeinAuthService registerMeinService(MeinService meinService) throws SqlQueriesException {
         uuidServiceMap.put(meinService.getUuid(), meinService);
         notifyAdmins();
         return this;
@@ -417,10 +401,10 @@ public class MeinAuthService extends DeferredRunnable {
 
     public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
         if (meinAuthSocket.isValidated())
-            connectedEnvironment.removeValidationProcess((MeinValidationProcess)meinAuthSocket.getProcess());
+            connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
     }
 
-    public void execute(MeinRunnable runnable){
+    public void execute(MeinRunnable runnable) {
         meinBoot.execute(runnable);
     }
 
@@ -428,12 +412,13 @@ public class MeinAuthService extends DeferredRunnable {
         this.meinBoot = meinBoot;
     }
 
-    @Override
-    public String getRunnableName() {
-        return getClass().getSimpleName();
-    }
-
     public void shutDown() {
-        N.r(() -> meinBoot.shutDown());
+        N.r(() -> {
+            for (MeinService service : uuidServiceMap.values()){
+                service.shutDown();
+            }
+            meinAuthWorker.shutDown();
+            meinBoot.shutDown();
+        });
     }
 }

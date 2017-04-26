@@ -18,8 +18,5 @@ public class BackgroundExecutor {
             executorService = Executors.newSingleThreadExecutor();
         }
     }
-    public void shutdown(){
-        executorService.shutdown();
-    }
 
 }

@@ -31,6 +31,7 @@ public class MeinAuthBrotCaster extends BrotCaster {
         return getClass().getSimpleName() + " for " + meinAuthService.getName();
     }
 
+
     public interface MeinAuthBrotCasterListener {
         void onHasAddress(InetAddress address, int port, int portCert);
     }

@@ -87,6 +87,11 @@ public class ThreadTest {
             }
 
             @Override
+            public void onShutDown() {
+                System.out.println("ThreadTest.onShutDown1");
+            }
+
+            @Override
             public void runImpl() {
                 System.out.println("ThreadTest.run1.lock");
                 int i = 0;
@@ -101,6 +106,11 @@ public class ThreadTest {
             @Override
             public String getRunnableName() {
                 return "runnable2";
+            }
+
+            @Override
+            public void onShutDown() {
+                System.out.println("ThreadTest.onShutDown2");
             }
 
             @Override
