@@ -148,7 +148,7 @@ public class TransferManager implements MeinRunnable {
     }
 
     public void start() {
-        meinAuthService.execute(this);
+        meinDriveService.execute(this);
     }
 
     public void createTransfer(TransferDetails transfer) throws SqlQueriesException {

@@ -1,7 +1,6 @@
 package de.mein.auth.broadcast;
 
 import de.mein.DeferredRunnable;
-import de.mein.auth.tools.N;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -24,7 +23,6 @@ public abstract class BrotCaster extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-        System.out.println("BrotCaster.onShutDown");
         socket.close();
     }
 
@@ -44,14 +42,18 @@ public abstract class BrotCaster extends DeferredRunnable {
                     this.handleMessage(packet, buf);
                 }
                 socket.leaveGroup(group);
-            }catch (SocketException e){
+            } catch (SocketException e) {
                 // network seems to be down
-                e.printStackTrace();
-                startedPromise.resolve(this);
-            }catch (Exception e) {
-                e.printStackTrace();
-                startedPromise.reject(e);
-            }finally {
+                if (!isInterrupted()) {
+                    e.printStackTrace();
+                    startedPromise.resolve(this);
+                }
+            } catch (Exception e) {
+                if (!isInterrupted()) {
+                    e.printStackTrace();
+                    startedPromise.reject(e);
+                }
+            } finally {
                 try {
                     socket.close();
                 } catch (Exception e) {
@@ -59,7 +61,7 @@ public abstract class BrotCaster extends DeferredRunnable {
                 }
 
             }
-        }else
+        } else
             startedPromise.resolve(this);
     }
 
@@ -79,7 +81,7 @@ public abstract class BrotCaster extends DeferredRunnable {
     }
 
     private MulticastSocket socket() throws IOException {
-        if (socket == null || socket.isClosed()){
+        if (socket == null || socket.isClosed()) {
             socket = new MulticastSocket(listenerPort);
         }
         return socket;

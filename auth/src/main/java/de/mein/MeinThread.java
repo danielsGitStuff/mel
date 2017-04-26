@@ -32,7 +32,6 @@ public class MeinThread extends Thread {
 
     @Override
     public void interrupt() {
-        System.out.println("MeinThread.interrupt: " + getName());
         super.interrupt();
     }
 }

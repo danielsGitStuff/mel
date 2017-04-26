@@ -47,4 +47,11 @@ class IndexWatchdogUnix extends IndexWatchdogPC {
             e.printStackTrace();
         }
     }
+
+
+
+    @Override
+    public void runImpl() {
+
+    }
 }

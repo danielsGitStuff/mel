@@ -1,5 +1,6 @@
 package de.mein.auth.socket;
 
+import de.mein.DeferredRunnable;
 import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ReceivedJob;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
 /**
  * Created by xor on 09.08.2016.
  */
-public class MeinSocket implements Runnable {
+public class MeinSocket extends DeferredRunnable {
     private static Logger logger = Logger.getLogger(MeinSocket.class.getName());
     protected boolean allowIsolation = false;
     protected boolean isIsolated = false;
@@ -52,6 +53,11 @@ public class MeinSocket implements Runnable {
 
     public MeinAuthService getMeinAuthService() {
         return meinAuthService;
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName() + " for " + meinAuthService.getName();
     }
 
     static class MeinThread extends Thread {
@@ -174,7 +180,12 @@ public class MeinSocket implements Runnable {
 
 
     @Override
-    public void run() {
+    public void onShutDown() {
+
+    }
+
+    @Override
+    public void runImpl() {
         Thread thread = Thread.currentThread();
         try {
             if (socket == null) {
@@ -206,9 +217,11 @@ public class MeinSocket implements Runnable {
             logger.log(Level.SEVERE, "MeinSocket.runTry.CLOSING");
             listener.onClose(42, "don't know shit", true);
         } catch (Exception e) {
-            System.err.println(meinAuthService.getName() + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")");
-            onSocketClosed(e);
-            e.printStackTrace();
+            if (!isInterrupted()) {
+                System.err.println(meinAuthService.getName() + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")");
+                onSocketClosed(e);
+                e.printStackTrace();
+            }
         } finally {
             try {
                 in.close();

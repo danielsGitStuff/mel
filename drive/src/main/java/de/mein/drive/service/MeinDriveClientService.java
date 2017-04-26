@@ -153,11 +153,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
     @Override
-    public String getRunnableName() {
-        return getClass().getSimpleName();
-    }
-
-    @Override
     public void onShutDown() {
         System.out.println("MeinDriveClientService.onShutDown");
     }

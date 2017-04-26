@@ -34,9 +34,8 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
     }
 
     @Override
-    public void run() {
+    public void runImpl() {
         try {
-            Thread.currentThread().setName(name);
             if (timeReferenceFile.exists())
                 timeReferenceFile.delete();
             timeReferenceFile.mkdirs();

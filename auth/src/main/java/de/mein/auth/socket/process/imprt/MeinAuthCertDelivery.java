@@ -111,7 +111,6 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-        System.out.println("MeinAuthCertDelivery.onShutDown");
         N.r(() -> serverSocket.close());
     }
 
@@ -136,7 +135,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
             listener.onClose(42, "don't know shit...", true);
 
         } catch (Exception e) {
-            if (isInterrupted())
+            if (!isInterrupted())
                 e.printStackTrace();
         } finally {
             try {

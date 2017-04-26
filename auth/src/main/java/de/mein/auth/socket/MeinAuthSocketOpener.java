@@ -24,7 +24,6 @@ public class MeinAuthSocketOpener extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-        System.out.println("MeinAuthSocketOpener.onShutDown");
         N.r(() -> serverSocket.close());
     }
 

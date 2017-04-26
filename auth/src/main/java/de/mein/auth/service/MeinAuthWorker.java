@@ -44,13 +44,8 @@ public class MeinAuthWorker extends MeinWorker {
         meinAuthService.setBrotCaster(brotCaster);
     }
 
-    public Promise<DeferredRunnable, Exception, Void> getStartedPromis() {
-        return startedPromise;
-    }
-
     @Override
     public void onShutDown() {
-        System.out.println("MeinAuthWorker.onShutDown");
         certDelivery.shutDown();
         brotCaster.shutDown();
         super.onShutDown();

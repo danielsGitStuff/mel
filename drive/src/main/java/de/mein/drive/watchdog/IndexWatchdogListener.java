@@ -1,6 +1,7 @@
 package de.mein.drive.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
+import de.mein.DeferredRunnable;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.BackgroundExecutor;
 import de.mein.drive.index.ICrawlerListener;
@@ -22,7 +23,7 @@ import java.util.concurrent.Semaphore;
  * Created by xor on 7/11/16.
  */
 @SuppressWarnings("Duplicates")
-public abstract class IndexWatchdogListener extends BackgroundExecutor implements ICrawlerListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
+public abstract class IndexWatchdogListener extends DeferredRunnable implements ICrawlerListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
 
     protected String name;
     protected WatchDogTimer watchDogTimer = new WatchDogTimer(this, 20, 100, 100);
@@ -34,7 +35,7 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
     protected StageIndexer stageIndexer;
     private static WatchDogRunner watchDogRunner = meinDriveService1 -> {
         WatchService watchService1 = null;
-        IndexWatchdogListener watchdogListener = null;
+        IndexWatchdogListener watchdogListener;
         try {
             watchService1 = FileSystems.getDefault().newWatchService();
         } catch (IOException e) {
@@ -48,8 +49,7 @@ public abstract class IndexWatchdogListener extends BackgroundExecutor implement
             watchdogListener = new IndexWatchdogUnix2(meinDriveService1, watchService1);
         }
         watchdogListener.meinDriveService = meinDriveService1;
-        watchdogListener.adjustExecutor();
-        watchdogListener.executorService.submit(watchdogListener);
+        watchdogListener.meinDriveService.execute(watchdogListener);
         return watchdogListener;
     };
 

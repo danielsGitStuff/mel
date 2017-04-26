@@ -1,5 +1,6 @@
 package de.mein.drive.watchdog;
 
+import de.mein.auth.tools.N;
 import de.mein.drive.service.MeinDriveService;
 
 import java.io.File;
@@ -25,8 +26,7 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
     @Override
     public void run() {
         try {
-            Thread.currentThread().setName(name);
-            while (true) {
+            while (!isInterrupted()) {
                 WatchKey watchKey = watchService.take();
                 ignoredSemaphore.acquire();
                 Path keyPath = (Path) watchKey.watchable();
@@ -56,5 +56,15 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onShutDown() {
+        N.r(() -> watchService.close());
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName() + " for " + meinDriveService.getRunnableName();
     }
 }

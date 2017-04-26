@@ -40,4 +40,9 @@ public class IndexWatchDogWindows extends IndexWatchdogPC {
     public void watchDirectory(File dir) {
 
     }
+
+    @Override
+    public void runImpl() {
+
+    }
 }

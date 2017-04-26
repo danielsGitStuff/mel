@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.DeferredRunnable;
+import de.mein.MeinRunnable;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,6 +33,14 @@ public abstract class MeinService extends DeferredRunnable implements IMeinServi
         return getClass().getSimpleName() + "." + meinAuthService.getName();
     }
 
+    public void execute(MeinRunnable runnable){
+        executorService.execute(runnable);
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName()+" for "+meinAuthService.getName();
+    }
 
     public void setUuid(String uuid) {
         this.uuid = uuid;
