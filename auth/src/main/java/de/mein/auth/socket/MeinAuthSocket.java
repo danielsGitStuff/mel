@@ -292,4 +292,9 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     public MeinProcess getProcess() {
         return process;
     }
+
+    @Override
+    public void onShutDown() {
+        super.onShutDown();
+    }
 }

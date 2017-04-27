@@ -17,6 +17,7 @@ import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.socket.MeinAuthSocket;
+import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.socket.ShamefulSelfConnectException;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
@@ -72,6 +73,7 @@ public class MeinAuthService   {
     protected List<IRegisterHandler> registerHandlers = new ArrayList<>();
     private List<IRegisteredHandler> registeredHandlers = new ArrayList<>();
     private NetworkEnvironment networkEnvironment = new NetworkEnvironment();
+    private Set<MeinSocket> sockets = new HashSet<>();
 
     private ConnectedEnvironment connectedEnvironment = new ConnectedEnvironment();
 
@@ -402,6 +404,7 @@ public class MeinAuthService   {
     public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
         if (meinAuthSocket.isValidated())
             connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
+        sockets.remove(meinAuthSocket);
     }
 
     public void execute(MeinRunnable runnable) {
@@ -417,8 +420,15 @@ public class MeinAuthService   {
             for (MeinService service : uuidServiceMap.values()){
                 service.shutDown();
             }
+            for (MeinSocket socket : sockets){
+                socket.shutDown();
+            }
             meinAuthWorker.shutDown();
             meinBoot.shutDown();
         });
+    }
+
+    public void addMeinSocket(MeinSocket meinSocket) {
+        sockets.add(meinSocket);
     }
 }

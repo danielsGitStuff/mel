@@ -127,7 +127,9 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
                 out = new DataOutputStream(socket.getOutputStream());
                 String s = in.readUTF();
                 logger.log(Level.FINEST, meinAuthService.getName() + ".MeinAuthCertDelivery.runTry.got: " + s);
-                this.listener.onMessage(new MeinSocket(meinAuthService, socket), s);
+                MeinSocket meinSocket = new MeinSocket(meinAuthService, socket);
+                this.listener.onMessage(meinSocket, s);
+                meinSocket.shutDown();
                 /*for (MeinSocketListener listener : listeners) {
                     listener.onMessage(this, s);
                 }*/

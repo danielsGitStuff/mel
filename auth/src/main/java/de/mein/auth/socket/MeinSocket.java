@@ -131,6 +131,7 @@ public class MeinSocket extends DeferredRunnable {
     public MeinSocket(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
         v = vv.getAndIncrement();
+        meinAuthService.addMeinSocket(this);
     }
 
 
