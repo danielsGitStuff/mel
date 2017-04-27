@@ -40,8 +40,10 @@ public class MeinAuthSocketOpener extends DeferredRunnable {
 
             }
         } catch (Exception e) {
-            System.err.println("MeinAuthSocketOpener.runTry.FAAAAAIL!");
-            e.printStackTrace();
+            if (!isInterrupted()) {
+                System.err.println("MeinAuthSocketOpener.runTry.FAAAAAIL!");
+                e.printStackTrace();
+            }
         } finally {
             try {
                 serverSocket.close();

@@ -152,8 +152,4 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         });
     }
 
-    @Override
-    public void onShutDown() {
-        System.out.println("MeinDriveClientService.onShutDown");
-    }
 }

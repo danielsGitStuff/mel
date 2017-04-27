@@ -125,12 +125,12 @@ public class DriveTest {
                 new Thread(() -> {
                     int i = 0;
                     while (true) {
-                        i++;
                         try {
                             Thread.sleep(100);                 //1000 milliseconds is one second.
                         } catch(InterruptedException ex) {
                             Thread.currentThread().interrupt();
                         }
+                        i++;
                     }
                 }).start();
             }

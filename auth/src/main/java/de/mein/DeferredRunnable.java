@@ -18,12 +18,12 @@ public abstract class DeferredRunnable implements MeinRunnable, MeinThread.Inter
         if (thread != null)
             line += "/" + thread.getName();
         System.out.println(line);
-        onShutDown();
         if (thread != null) {
             thread.interrupt();
         } else {
             System.err.println(getClass().getSimpleName() + ".shutDown: Thread was null :'(  " + getRunnableName());
         }
+        onShutDown();
     }
 
     public abstract void onShutDown();

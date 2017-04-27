@@ -13,11 +13,12 @@ public abstract class MeinWorker extends DeferredRunnable {
     protected LinkedList<Job> jobs = new LinkedList<>();
     protected RWLock queueLock = new RWLock();
     protected RWLock waitLock = new RWLock();
+    private boolean interrupted = false;
 
     @Override
     public void runImpl() {
         try {
-            while (!Thread.currentThread().isInterrupted()) {
+            while (!interrupted) {
                 queueLock.lockWrite();
                 Job job = jobs.poll();
                 queueLock.unlockWrite();
@@ -53,6 +54,7 @@ public abstract class MeinWorker extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
+        interrupted = true;
         queueLock.unlockWrite();
         waitLock.unlockWrite();
     }

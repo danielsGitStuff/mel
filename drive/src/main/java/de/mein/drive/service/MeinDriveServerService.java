@@ -134,8 +134,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             }*/
         });
     }
-
-    @Override
+      @Override
     public void onShutDown() {
     }
 }

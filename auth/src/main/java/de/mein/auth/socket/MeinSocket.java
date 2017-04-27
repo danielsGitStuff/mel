@@ -6,6 +6,7 @@ import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinWorker;
+import de.mein.auth.tools.N;
 
 import javax.net.SocketFactory;
 import java.io.DataInputStream;
@@ -24,6 +25,7 @@ public class MeinSocket extends DeferredRunnable {
     private static Logger logger = Logger.getLogger(MeinSocket.class.getName());
     protected boolean allowIsolation = false;
     protected boolean isIsolated = false;
+    private SocketWorker socketWorker;
 
     public MeinSocket setIsolated(boolean isolated) {
         isIsolated = isolated;
@@ -181,7 +183,8 @@ public class MeinSocket extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-
+        socketWorker.shutDown();
+        N.r(() -> socket.close());
     }
 
     @Override
@@ -194,7 +197,7 @@ public class MeinSocket extends DeferredRunnable {
             }
             if (in == null || out == null)
                 streams();
-            SocketWorker socketWorker = new SocketWorker(this, listener);
+            socketWorker = new SocketWorker(this, listener);
             meinAuthService.execute(socketWorker);
             while (!Thread.currentThread().isInterrupted()) {
                 if (isIsolated && allowIsolation) {

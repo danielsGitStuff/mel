@@ -46,5 +46,8 @@ public abstract class MeinService extends DeferredRunnable implements IMeinServi
         this.uuid = uuid;
     }
 
-
+    @Override
+    public void onShutDown() {
+        executorService.shutdown();
+    }
 }

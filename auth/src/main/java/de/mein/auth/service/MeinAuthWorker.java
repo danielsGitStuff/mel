@@ -48,11 +48,13 @@ public class MeinAuthWorker extends MeinWorker {
     public void onShutDown() {
         certDelivery.shutDown();
         brotCaster.shutDown();
+        socketOpener.shutDown();
         super.onShutDown();
     }
 
     @Override
     public void run() {
+        // initialize everything and then wait for things to happen
         DeferredObject<DeferredRunnable, Exception, Void> brotcasterPromise = brotCaster.getStartedDeferred();
         DeferredObject<DeferredRunnable, Exception, Void> certDeliveryPromise = certDelivery.getStartedDeferred();
         socketOpener = new MeinAuthSocketOpener(meinAuthService, port);
@@ -74,6 +76,7 @@ public class MeinAuthWorker extends MeinWorker {
             System.out.println("MeinAuthWorker.runTry.STRANGE");
             startedPromise.reject(new Exception("keinen plan von nix"));
         });
+        // wait for work
         super.run();
     }
 

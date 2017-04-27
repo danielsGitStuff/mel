@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.imprt;
 
+import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
 import de.mein.auth.data.MeinMessage;
 import de.mein.auth.data.MeinResponse;
@@ -29,7 +30,7 @@ import java.util.logging.Logger;
 /**
  * Created by xor on 4/18/16.
  */
-public class MeinCertRetriever implements MeinRunnable {
+public class MeinCertRetriever extends DeferredRunnable {
     private static Logger logger = Logger.getLogger(MeinCertRetriever.class.getName());
     private final MeinAuthService meinAuthService;
     private final CertificateManager certificateManager;
@@ -67,7 +68,14 @@ public class MeinCertRetriever implements MeinRunnable {
     }
 
     @Override
-    public void run() {
+    public void onShutDown() {
+        for (MeinSocket socket : clientSockets.keySet()){
+            socket.shutDown();
+        }
+    }
+
+    @Override
+    public void runImpl() {
         try {
             // RWLock lock = new RWLock();
             //lock.lockWrite();
