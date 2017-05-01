@@ -3,7 +3,7 @@ package de.mein.core.serialize.serialize.trace.paths;
 /**
  * Delivers delicious {@link IPathPart} instances depending on their description
  * 
- * @author DECK006
+ * @author xor
  *
  */
 public class PathPartFactory {

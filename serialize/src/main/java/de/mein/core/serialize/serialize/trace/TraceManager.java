@@ -19,7 +19,7 @@ import java.util.Set;
  * currently processed path. TraceManager uses {@link PathFinder}s to do so. Use
  * the up() and and down() methods to move in the object tree hierarchy.
  * 
- * @author DECK006
+ * @author xor
  *
  */
 public class TraceManager {

@@ -7,7 +7,7 @@ import org.json.JSONObject;
  * wrong. It also takes care about logging the error when calling the
  * constructor.
  *
- * @author DECK006
+ * @author xor
  *
  */
 public abstract class AbstractException extends Exception {

@@ -221,6 +221,7 @@ public class SerializableEntitySerializer extends FieldSerializer {
             }
             return b.toString();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new JsonSerializationException(e);
         }
     }

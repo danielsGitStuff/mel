@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Used to cast a JavaScript number to the desired Java Number type.
  * 
- * @author DECK006
+ * @author xor
  *
  */
 public enum NumberTransformer {

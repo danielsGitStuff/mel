@@ -12,7 +12,7 @@ import java.util.Map;
  * reference, stuff that goes comes out of the database is stored by using their
  * IDs as a key.
  * 
- * @author DECK006
+ * @author xor
  *
  */
 public class EntitySerializerMap {

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * Creates maps of all existing Entities in Entity graphs. Can distribute the
  * according database entities as well.
  * 
- * @author DECK006
+ * @author xor
  *
  */
 @SuppressWarnings({ "rawtypes" })

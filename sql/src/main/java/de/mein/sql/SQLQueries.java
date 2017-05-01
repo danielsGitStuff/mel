@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * builds and executes mysql queries for several purposes.
  *
- * @author deck006
+ * @author xor
  */
 @SuppressWarnings("Duplicates")
 public class SQLQueries extends ISQLQueries {

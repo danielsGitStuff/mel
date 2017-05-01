@@ -5,7 +5,7 @@ package de.mein.core.serialize.exceptions;
  * wrong. It also takes care about logging the error when calling the
  * constructor.
  *
- * @author DECK006
+ * @author xor
  *
  */
 public class JsonSerializationException extends Exception {

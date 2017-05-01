@@ -15,7 +15,7 @@ import java.util.*;
  * collects Fields of any given Class. It also can examine classes for different
  * traits.
  *
- * @author DECK006
+ * @author xor
  */
 @SuppressWarnings("rawtypes")
 public class FieldAnalyzer {

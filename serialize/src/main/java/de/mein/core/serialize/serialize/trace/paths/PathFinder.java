@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
  * Checks whether your traversal through objects matches this path. It stores
  * the traversed object graph as 'trace'
  *
- * @author DECK006
+ * @author xor
  */
 @SuppressWarnings({"rawtypes"})
 public class PathFinder {

@@ -9,7 +9,7 @@ import java.sql.SQLException;
 /**
  * opens or stores a connection to a mysql service
  *
- * @author deck006
+ * @author xor
  */
 public abstract class SQLConnector {
 

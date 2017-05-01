@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * basically represents a table in a database.
  *
- * @author deck006
+ * @author xor
  */
 public abstract class SQLTableObject {
 

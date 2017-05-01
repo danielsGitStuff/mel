@@ -6,7 +6,7 @@ package de.mein.sql;
  * a row (with column names and types) in a database table.
  *
  * @param <V>
- * @author deck006
+ * @author xor
  */
 public class Pair<V> {
     private static Logger logger = Logger.getLogger(Pair.class);
