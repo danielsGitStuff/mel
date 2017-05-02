@@ -4,6 +4,7 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializer;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
+import de.mein.core.serialize.serialize.reflection.FieldAnalyzer;
 
 /**
  * used to serializes Keys of a Map
@@ -33,11 +34,16 @@ class KeySerializer extends FieldSerializer {
             res = res.replaceAll("\"", "\\\"");
             return res;
         } else if (SerializableEntity.class.isAssignableFrom(value.getClass())) {
-            //new SerializableEntitySerializer(parentSerializer, (SerializableEntity) value);
-            System.err.println("KeySerializer.JSON.not.implemented.1");
+            SerializableEntitySerializer serializer = parentSerializer.getPreparedSerializer((SerializableEntity) value);
+            String json = serializer.JSON();
+            return json;
         } else {
             System.err.println("KeySerializer.JSON.not.implemented.2");
         }
         return null;
+    }
+
+    public boolean isPrimitive() {
+        return value == null || FieldAnalyzer.isPrimitiveClass(value.getClass());
     }
 }

@@ -170,9 +170,9 @@ public class SerializableEntitySerializer extends FieldSerializer {
             // to the existingSerializersMap
             existingSerializersMap.put(this);
             for (Field field : this.fields) {
-                traceManager.down(field);
                 // "this$0" appears if you serialize a nested class
                 if (!field.getName().equals("this$0")) {
+                    traceManager.down(field);
                     // nand
                     if (!((traversalDepth == 0) && (FieldAnalyzer.isEntitySerializable(field) || FieldAnalyzer.isEntitySerializableCollection(field))) || traceManager.isForcedPath()) {
                         FieldSerializer fieldSerializer = FieldSerializerFactoryRepository.buildFieldSerializer(this, field);
@@ -180,8 +180,8 @@ public class SerializableEntitySerializer extends FieldSerializer {
                             this.fieldValueMap.put(field, fieldSerializer);
                         }
                     }
+                    traceManager.up();
                 }
-                traceManager.up();
             }
         } catch (Exception e) {
             System.err.println("SerializableEntitySerializer.prepare()");

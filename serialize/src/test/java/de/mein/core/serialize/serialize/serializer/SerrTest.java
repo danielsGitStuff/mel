@@ -8,10 +8,8 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.core.serialize.serialize.trace.TraceManager;
-
 import org.junit.Test;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -109,7 +107,7 @@ public class SerrTest {
         withEntitySerializableCollection.entityserializables.add(pairSerializable);
         withEntitySerializableCollection.entityserializables.add(new WithPrimitiveCollection());
         String json = serialize(withEntitySerializableCollection);
-        String result = "{\"$id\":1,\"__type\":\"de.mein.core.serialize.classes.WithSerializableEntityCollection\",\"primitive\":\"primitive\",\"entityserializables\":[{\"$id\":2,\"__type\":\"de.mein.core.serialize.classes.ChildSerializableEntity\",\"primitive\":\"some test\"},{\"$id\":3,\"__type\":\"de.mein.core.serialize.classes.WithPrimitiveCollection\",\"primitive\":\"primitive\"}]}";
+        String result = "{\"$id\":1,\"__type\":\"de.mein.core.serialize.classes.WithSerializableEntityCollection\",\"primitive\":\"primitive\",\"entityserializables\":[{\"$id\":2,\"__type\":\"de.mein.core.serialize.classes.ChildSerializableEntity\",\"primitive\":\"some test\"},{\"$id\":3,\"__type\":\"de.mein.core.serialize.classes.WithPrimitiveCollection\",\"strings\":[],\"primitive\":\"primitive\"}]}";
         System.out.println("should");
         System.out.println(result);
         System.out.println("is");
@@ -243,6 +241,44 @@ public class SerrTest {
     public static class EntityMapTest implements SerializableEntity {
         Map<Integer, SerializableEntity> map = new HashMap<>();
         Map<SerializableEntity, Integer> inverse = new HashMap<>();
+    }
+
+    @Test
+    public void mapEntityAsKey() throws JsonSerializationException, IllegalAccessException {
+        class MapTest implements SerializableEntity {
+            private Map<SerializableEntity, Long> map = new HashMap<>();
+        }
+        MapTest mapTest = new MapTest();
+        SimpleSerializableEntity key = new SimpleSerializableEntity();
+        mapTest.map.put(key, 666L);
+        String json = SerializableEntitySerializer.serialize(mapTest);
+        System.out.println(json);
+        String expected = "{\"$id\":1,\"__type\":\"de.mein.core.serialize.serialize.serializer.SerrTest$1MapTest\",\"map\":{\"__type\":\"java.util.HashMap\",\"__k\":\"de.mein.core.serialize.SerializableEntity\",\"__v\":\"java.lang.Long\",\"__m\":[{\"{\"$id\":2,\"__type\":\"de.mein.core.serialize.classes.SimpleSerializableEntity\"}\":666}]}}";
+        assertEquals(expected, json);
+    }
+    public static class MapTestE implements SerializableEntity {
+        Map<SerializableEntity, SerializableEntity> map = new HashMap<>();
+        public MapTestE(){}
+    }
+    @Test
+    public void mapEntityOnItself() throws JsonSerializationException, IllegalAccessException, JsonDeserializationException {
+        MapTestE mapTest = new MapTestE();
+        B key = new B();
+        mapTest.map.put(key, key);
+        String json = SerializableEntitySerializer.serialize(mapTest);
+        System.out.println(json);
+        Object o = SerializableEntityDeserializer.deserialize(json);
+    }
+
+    @Test
+    public void mapInverse() throws JsonSerializationException, IllegalAccessException, JsonDeserializationException {
+        EntityMapTest mapTest = new EntityMapTest();
+        B key = new B();
+        mapTest.inverse.put(key, 3);
+        mapTest.map = null;
+        String json = SerializableEntitySerializer.serialize(mapTest);
+        System.out.println(json);
+        Object o = SerializableEntityDeserializer.deserialize(json);
     }
 
     @Test

@@ -218,4 +218,13 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         return stageIndexer;
     }
 
+    @Override
+    public void onShutDown() {
+        super.onShutDown();
+    }
+
+    @Override
+    public void start() {
+        execute(this);
+    }
 }

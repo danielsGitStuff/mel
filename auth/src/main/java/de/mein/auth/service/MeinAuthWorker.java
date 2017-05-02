@@ -44,13 +44,7 @@ public class MeinAuthWorker extends MeinWorker {
         meinAuthService.setBrotCaster(brotCaster);
     }
 
-    @Override
-    public void onShutDown() {
-        certDelivery.shutDown();
-        brotCaster.shutDown();
-        socketOpener.shutDown();
-        super.onShutDown();
-    }
+
 
     @Override
     public void run() {
@@ -110,4 +104,12 @@ public class MeinAuthWorker extends MeinWorker {
         return getClass().getSimpleName() + " for " + meinAuthService.getName();
     }
 
+
+    @Override
+    public void onShutDown() {
+        certDelivery.shutDown();
+        brotCaster.shutDown();
+        socketOpener.shutDown();
+        super.onShutDown();
+    }
 }
