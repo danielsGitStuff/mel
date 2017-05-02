@@ -206,7 +206,7 @@ public class MeinSocket extends DeferredRunnable {
                 streams();
             socketWorker = new SocketWorker(this, listener);
             meinAuthService.execute(socketWorker);
-            while (!Thread.currentThread().isInterrupted()) {
+            while (!isInterrupted()) {
                 if (isIsolated && allowIsolation) {
                     byte[] bytes = new byte[BLOCK_SIZE];
                     in.readFully(bytes);
@@ -237,6 +237,7 @@ public class MeinSocket extends DeferredRunnable {
                 in.close();
                 out.close();
                 socket.close();
+                socketWorker.shutDown();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -245,7 +246,7 @@ public class MeinSocket extends DeferredRunnable {
     }
 
     protected void onSocketClosed(Exception e) {
-
+        shutDown();
     }
 
     public MeinSocket setListener(MeinSocketListener listener) {

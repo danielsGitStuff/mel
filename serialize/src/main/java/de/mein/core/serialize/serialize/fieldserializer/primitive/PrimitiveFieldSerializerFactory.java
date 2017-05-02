@@ -54,8 +54,4 @@ public class PrimitiveFieldSerializerFactory implements FieldSerializerFactory {
         return new PrimitiveFieldSerializer(value);
     }
 
-    @Override
-    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
-        return null;
-    }
 }

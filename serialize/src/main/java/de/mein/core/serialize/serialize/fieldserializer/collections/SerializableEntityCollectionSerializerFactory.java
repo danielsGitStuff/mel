@@ -45,10 +45,4 @@ public class SerializableEntityCollectionSerializerFactory implements FieldSeria
         return null;
     }
 
-    @Override
-    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
-        return null;
-    }
-
-
 }

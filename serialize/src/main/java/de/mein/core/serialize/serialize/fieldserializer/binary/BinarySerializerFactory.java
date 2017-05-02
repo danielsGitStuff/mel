@@ -33,13 +33,7 @@ public class BinarySerializerFactory implements FieldSerializerFactory {
         return null;
     }
 
-    @Override
-    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
-        return null;
-    }
-
-
-    public static BinarySerializerFactory getInstance() {
+     public static BinarySerializerFactory getInstance() {
         if (ins == null)
             ins = new BinarySerializerFactory();
         return ins;

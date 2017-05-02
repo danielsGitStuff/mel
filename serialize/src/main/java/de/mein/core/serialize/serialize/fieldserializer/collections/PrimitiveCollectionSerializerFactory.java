@@ -34,11 +34,6 @@ public class PrimitiveCollectionSerializerFactory implements FieldSerializerFact
         return null;
     }
 
-    @Override
-    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
-        return null;
-    }
-
     public static PrimitiveCollectionSerializerFactory getInstance() {
         if (ins == null)
             ins = new PrimitiveCollectionSerializerFactory();

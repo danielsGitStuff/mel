@@ -37,10 +37,4 @@ public class MapSerializerFactory implements FieldSerializerFactory {
         return null;
     }
 
-    @Override
-    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
-        return null;
-    }
-
-
 }

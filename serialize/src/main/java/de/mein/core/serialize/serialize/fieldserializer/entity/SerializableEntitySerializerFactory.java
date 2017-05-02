@@ -44,9 +44,4 @@ public class SerializableEntitySerializerFactory implements FieldSerializerFacto
         return serializer;
     }
 
-    @Override
-    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
-        //parentSerializer.getPreparedSerializer(o)
-        return null;
-    }
 }
