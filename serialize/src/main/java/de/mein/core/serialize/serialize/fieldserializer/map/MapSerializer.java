@@ -55,7 +55,7 @@ public class MapSerializer extends FieldSerializer {
         b.objBegin().key("__type").eq().value(insClass.getName())
                 .comma().key("__k").eq().value(clazzK.getName())
                 .comma().key("__v").eq().value(clazzV.getName())
-                .comma().key("__keymap").eq().objBegin();
+                .comma().key("__x").eq().objBegin();
         // we have to add all objects to an array first cause unlike in Java
         // you cannot use Entities as keys in JSON. So we reference every key with another Map.
         Set<?> keySet = new HashSet<>(ins.keySet());
@@ -67,10 +67,10 @@ public class MapSerializer extends FieldSerializer {
         for (Object k : keySet.toArray()) {
             if (appendComma)
                 b.comma();
-            keyIdInc++;
             keyIdKeyMap.put(keyIdInc, k);
             keyKeyIdMap.put(k, keyIdInc);
             b.key(keyIdInc.toString()).eq();
+            keyIdInc++;
             if (k instanceof SerializableEntity) {
                 SerializableEntitySerializer serializer = parentSerializer.getPreparedSerializer((SerializableEntity) k);
                 b.append(serializer.JSON());
@@ -92,7 +92,8 @@ public class MapSerializer extends FieldSerializer {
         for (SerializableEntity key : keyEntities) {
             Integer keyId = keyKeyIdMap.get(key);
             b.key(keyId.toString()).eq();
-            b.append(parentSerializer.getPreparedSerializer((SerializableEntity) ins.get(key)).JSON());
+            FieldSerializer vSer = vFactory.createSerializerOnClass(parentSerializer, ins.get(key));
+            b.append(vSer.JSON());
         }
         System.out.println("MapSerializer.JSON");
 //            for (Object key : ins.keySet()) {

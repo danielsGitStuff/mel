@@ -16,7 +16,7 @@ import java.util.Collection;
  */
 public class PrimitiveCollectionDeserializer implements FieldDeserializer {
     @Override
-    public void deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Object jsonFieldValue) throws IllegalAccessException, JsonDeserializationException {
+    public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object jsonFieldValue) throws IllegalAccessException, JsonDeserializationException {
         System.out.println("PrimitiveCollectionDeserializer.deserialize");
         JSONArray jsonArray = (JSONArray) jsonFieldValue;
         if (jsonFieldValue != null) {
@@ -31,6 +31,8 @@ public class PrimitiveCollectionDeserializer implements FieldDeserializer {
                 collection.add(value);
             }
             field.set(entity, collection);
+            return collection;
         }
+        return null;
     }
 }

@@ -20,16 +20,16 @@ import static org.junit.Assert.assertTrue;
  */
 public class SerrTest {
 
-    static class A implements SerializableEntity {
+    public static class A implements SerializableEntity {
         private String primitive = "AAA";
         private SerializableEntity b = new B();
     }
 
-    static class B implements SerializableEntity {
+    public static class B implements SerializableEntity {
         private String primitive = "BBB";
     }
 
-    static class S implements SerializableEntity {
+    public static class S implements SerializableEntity {
         private Set<SimpleSerializableEntity> set = new HashSet<>();
     }
 

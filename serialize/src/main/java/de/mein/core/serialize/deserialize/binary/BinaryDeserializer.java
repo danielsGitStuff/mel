@@ -4,7 +4,6 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.FieldDeserializer;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
-import de.mein.core.serialize.serialize.fieldserializer.binary.BinaryFieldSerializer;
 
 import java.lang.reflect.Field;
 import java.util.Base64;
@@ -28,12 +27,14 @@ public class BinaryDeserializer implements FieldDeserializer {
         return base64Decoder.decode(base64);
     }
     @Override
-    public void deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Object value) throws IllegalAccessException, JsonDeserializationException {
+    public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object value) throws IllegalAccessException, JsonDeserializationException {
         //value is expected to be Base64 encoded
         Class<?> fieldClass = field.getType();
         if (value != null) {
             byte[] decoded = decode(value.toString());
             field.set(entity, decoded);
+            return decoded;
         }
+        return null;
     }
 }

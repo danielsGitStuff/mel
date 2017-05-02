@@ -18,7 +18,7 @@ public class PairDeserializer implements FieldDeserializer {
     }
 
     @Override
-    public void deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Object jsonFieldValue) throws IllegalAccessException, JsonDeserializationException {
+    public void deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object jsonFieldValue) throws IllegalAccessException, JsonDeserializationException {
         field.setAccessible(true);
         Pair<?> pair = (Pair<?>) field.get(entity);
         Object valueToSet = null;

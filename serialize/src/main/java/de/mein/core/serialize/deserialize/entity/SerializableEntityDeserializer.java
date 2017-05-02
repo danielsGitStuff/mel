@@ -8,7 +8,6 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.core.serialize.serialize.reflection.FieldAnalyzer;
-
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
@@ -105,7 +104,7 @@ public class SerializableEntityDeserializer implements FieldDeserializer {
                     }
                     Serialize.println(message);
                 } else
-                    des.deserialize(this, entity, field, jsonFieldValue);
+                    des.deserialize(this, entity, field, fieldClass, jsonFieldValue);
             }
             return entity;
         } catch (Exception e) {
@@ -116,20 +115,23 @@ public class SerializableEntityDeserializer implements FieldDeserializer {
 
 
     @Override
-    public void deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Object jsonFieldValue) {
+    public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object jsonFieldValue) {
         if (jsonFieldValue instanceof JSONObject) {
             JSONObject jsonObject = (JSONObject) jsonFieldValue;
             try {
                 SerializableEntity ent = buildEntity(jsonObject);
-                field.setAccessible(true);
-                field.set(entity, ent);
+                if (field != null) {
+                    field.setAccessible(true);
+                    field.set(entity, ent);
+                }
+                return ent;
             } catch (JsonDeserializationException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-
         }
+        return null;
     }
 
 

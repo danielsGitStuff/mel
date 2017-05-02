@@ -9,7 +9,6 @@ import de.mein.core.serialize.deserialize.primitive.PrimitiveDeserializer;
 import de.mein.core.serialize.deserialize.primitive.PrimitiveDeserializerFactory;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.serialize.reflection.FieldAnalyzer;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
@@ -38,12 +37,12 @@ public class MapDeserializer implements FieldDeserializer {
      * @param serializableEntityDeserializer
      * @param entity
      * @param field
-     * @param jsonFieldValue
-     * @throws IllegalAccessException
+     * @param typeClass
+     *@param jsonFieldValue  @throws IllegalAccessException
      * @throws JsonDeserializationException
      */
     @Override
-    public void deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Object jsonFieldValue) throws IllegalAccessException, JsonDeserializationException {
+    public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object jsonFieldValue) throws IllegalAccessException, JsonDeserializationException {
         Type type = field.getGenericType();
         ParameterizedType pType = (ParameterizedType) type;
         Class clazzK = (Class) pType.getActualTypeArguments()[0];
@@ -51,19 +50,30 @@ public class MapDeserializer implements FieldDeserializer {
         KeyDeserializerFactory kFactory = new KeyDeserializerFactory();
         FieldDeserializerFactory vFactory = createDeserializerFactory(clazzV);
         Map map = createMap(clazzK, clazzV);
-        JSONObject jsonObject = (JSONObject) jsonFieldValue;
-        JSONArray list = jsonObject.getJSONArray("__m");
-        for (int i = 0; i < list.length(); i++) {
-            JSONObject rowObj = (JSONObject) list.get(i);
-            Object key = rowObj.keySet().iterator().next();
-            Object value = rowObj.get(key.toString());
 
-            key = JSON2val(clazzK, key);
-            // kFactory.createDeserializer(rootDeserializer, field).deserialize(serializableEntityDeserializer, entity, field, key);
-            value = JSON2val(clazzV, value);
-            map.put(key, value);
+        // deserialize keyIdMap first!
+        JSONObject jsonObject = (JSONObject) jsonFieldValue;
+        JSONObject keyIdKeyJSONMap = jsonObject.getJSONObject("__x");
+        Map<Integer, Object> keyIdKeyMap = new HashMap<>();
+        for (Integer i = 0; i < keyIdKeyJSONMap.length(); i++) {
+            Object key = keyIdKeyJSONMap.get(i.toString());
+            KeyDeserializer des = kFactory.createDeserializer(rootDeserializer, null);
+            Object desKey = des.deserialize(rootDeserializer, null, null, key);
+            keyIdKeyMap.put(i, desKey);
+            System.out.println("MapDeserializer.deserialize");
+        }
+        // now lets do the "real" deserialization
+        JSONObject jsonMap = jsonObject.getJSONObject("__m");
+        for (Integer keyId = 0; keyId < jsonMap.length(); keyId++) {
+            Object valObj = jsonMap.get(keyId.toString());
+            Object key = keyIdKeyMap.get(keyId);
+            Object val = null;
+            FieldDeserializer valueDeserializer = vFactory.createDeserializer(rootDeserializer,null);
+            val = valueDeserializer.deserialize(rootDeserializer,null,null,clazzV,valObj);
+            map.put(key, val);
         }
         field.set(entity, map);
+        return map;
     }
 
     private Object JSON2val(Class clazz, Object obj) {

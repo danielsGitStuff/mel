@@ -14,10 +14,13 @@ public class PrimitiveDeserializer implements FieldDeserializer {
 
 
     @Override
-    public void deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Object value) throws IllegalAccessException {
-        Class<?> fieldClass = field.getType();
-        value = JSON2Primtive(fieldClass, value);
-        field.set(entity, value);
+    public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object value) throws IllegalAccessException {
+        if (typeClass == null)
+            typeClass = field.getType();
+        value = JSON2Primtive(typeClass, value);
+        if (field != null)
+            field.set(entity, value);
+        return value;
     }
 
     /**

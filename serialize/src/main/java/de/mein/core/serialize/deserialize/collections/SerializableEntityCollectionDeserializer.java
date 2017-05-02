@@ -30,9 +30,8 @@ public class SerializableEntityCollectionDeserializer implements FieldDeserializ
 
 
     @Override
-    public void deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Object jsonFieldValue) throws JsonDeserializationException, IllegalAccessException {
+    public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object jsonFieldValue) throws JsonDeserializationException, IllegalAccessException {
         if (jsonFieldValue != null) {
-
             // check if entity or just a string
             ParameterizedType genericListType = (ParameterizedType) field.getGenericType();
             Class<?> genericListClass = (Class<?>) genericListType.getActualTypeArguments()[0];
@@ -43,15 +42,17 @@ public class SerializableEntityCollectionDeserializer implements FieldDeserializ
                 for (int i = 0; i < length; i++) {
                     Object something = jsonArray.get(i);
                     JSONObject jsonObject = null;
-                    if (!(something instanceof JSONObject.Null)){
+                    if (!(something instanceof JSONObject.Null)) {
                         jsonObject = jsonArray.getJSONObject(i);
                     }
                     SerializableEntity arrEntity = serializableEntityDeserializer.buildEntity(jsonObject);
                     entities.add(arrEntity);
                 }
                 field.set(entity, entities);
+                return entities;
                 //serializableEntityDeserializer.setField(field, entity, entities);
             }
         }
+        return null;
     }
 }
