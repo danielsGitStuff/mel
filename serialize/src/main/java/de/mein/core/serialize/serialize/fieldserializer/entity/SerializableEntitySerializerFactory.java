@@ -39,8 +39,15 @@ public class SerializableEntitySerializerFactory implements FieldSerializerFacto
     }
 
     @Override
-    public FieldSerializer createSerializerOnClass(FieldSerializer parentSerializer, Object value) {
-        SerializableEntitySerializer serializer = new SerializableEntitySerializer((SerializableEntitySerializer) parentSerializer, (SerializableEntity) value);
+    public FieldSerializer createSerializerOnClass(SerializableEntitySerializer parentSerializer, Object value) {
+        //parentSerializer.getPreparedSerializer()
+        SerializableEntitySerializer serializer = new SerializableEntitySerializer( parentSerializer, (SerializableEntity) value);
         return serializer;
+    }
+
+    @Override
+    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
+        parentSerializer.getPreparedSerializer(o)
+        return null;
     }
 }

@@ -30,7 +30,12 @@ public class PrimitiveCollectionSerializerFactory implements FieldSerializerFact
     }
 
     @Override
-    public FieldSerializer createSerializerOnClass(FieldSerializer parentSerializer, Object value) {
+    public FieldSerializer createSerializerOnClass(SerializableEntitySerializer parentSerializer, Object value) {
+        return null;
+    }
+
+    @Override
+    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
         return null;
     }
 

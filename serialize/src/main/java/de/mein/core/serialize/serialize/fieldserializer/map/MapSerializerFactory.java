@@ -7,7 +7,6 @@ import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntit
 import de.mein.core.serialize.serialize.reflection.FieldAnalyzer;
 
 import java.lang.reflect.Field;
-import java.util.Map;
 
 /**
  * Created by xor on 1/13/17.
@@ -24,8 +23,8 @@ public class MapSerializerFactory implements FieldSerializerFactory {
     @Override
     public FieldSerializer createSerializer(SerializableEntitySerializer parentSerializer, Field field) throws IllegalAccessException, JsonSerializationException {
         field.setAccessible(true);
-        System.out.println("MapSerializerFactory.createSerializerOnClass.field: "+field.getGenericType().getTypeName());
-        return new MapSerializer(parentSerializer,field);
+        System.out.println("MapSerializerFactory.createSerializerOnClass.field: " + field.getGenericType().getTypeName());
+        return new MapSerializer(parentSerializer, field);
     }
 
     @Override
@@ -34,7 +33,14 @@ public class MapSerializerFactory implements FieldSerializerFactory {
     }
 
     @Override
-    public FieldSerializer createSerializerOnClass(FieldSerializer parentSerializer, Object value) {
+    public FieldSerializer createSerializerOnClass(SerializableEntitySerializer parentSerializer, Object value) {
         return null;
     }
+
+    @Override
+    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
+        return null;
+    }
+
+
 }

@@ -29,7 +29,12 @@ class KeySerializerFactory implements FieldSerializerFactory {
     }
 
     @Override
-    public FieldSerializer createSerializerOnClass(FieldSerializer parentSerializer, Object value) {
-        return new KeySerializer(this.parentSerializer, value);
+    public FieldSerializer createSerializerOnClass(SerializableEntitySerializer parentSerializer, Object value) {
+        return null;
+    }
+
+    @Override
+    public FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o) {
+        return null;
     }
 }

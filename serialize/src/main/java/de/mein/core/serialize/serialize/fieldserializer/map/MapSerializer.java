@@ -92,7 +92,8 @@ public class MapSerializer extends FieldSerializer {
         for (SerializableEntity key : keyEntities) {
             Integer keyId = keyKeyIdMap.get(key);
             b.key(keyId.toString()).eq();
-            FieldSerializer vSer = vFactory.createSerializerOnClass(parentSerializer, ins.get(key));
+            FieldSerializer vSer = vFactory.createObjectSerializer(parentSerializer, ins.get(key));
+            //FieldSerializer vSer = vFactory.createSerializerOnClass(parentSerializer, ins.get(key));
             b.append(vSer.JSON());
         }
         System.out.println("MapSerializer.JSON");

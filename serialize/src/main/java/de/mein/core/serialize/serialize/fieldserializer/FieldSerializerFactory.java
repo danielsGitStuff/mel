@@ -11,5 +11,7 @@ import java.lang.reflect.Field;
 public interface FieldSerializerFactory {
       FieldSerializer createSerializer(SerializableEntitySerializer parentSerializer, Field field) throws IllegalAccessException, JsonSerializationException;
       boolean canSerialize(Field field);
-      FieldSerializer createSerializerOnClass(FieldSerializer parentSerializer, Object value);
+      FieldSerializer createSerializerOnClass(SerializableEntitySerializer parentSerializer, Object value);
+
+      FieldSerializer createObjectSerializer(SerializableEntitySerializer parentSerializer, Object o);
 }
