@@ -61,7 +61,7 @@ public class IndexerRunnable extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-
+        indexWatchdogListener.shutDown();
     }
 
     @Override
