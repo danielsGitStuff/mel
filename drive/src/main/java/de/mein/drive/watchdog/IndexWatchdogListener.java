@@ -3,7 +3,6 @@ package de.mein.drive.watchdog;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import de.mein.DeferredRunnable;
 import de.mein.drive.data.PathCollection;
-import de.mein.drive.index.BackgroundExecutor;
 import de.mein.drive.index.ICrawlerListener;
 import de.mein.drive.index.StageIndexer;
 import de.mein.drive.service.MeinDriveService;
@@ -43,10 +42,10 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         }
         if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
             System.out.println("WatchDog.windows");
-            watchdogListener = new IndexWatchDogWindows(meinDriveService1, watchService1);
+            watchdogListener = new IndexWatchDogWindowsListener(meinDriveService1, watchService1);
         } else {
             System.out.println("WatchDog.unix");
-            watchdogListener = new IndexWatchdogUnix2(meinDriveService1, watchService1);
+            watchdogListener = new IndexWatchdogListenerUnix2(meinDriveService1, watchService1);
         }
         watchdogListener.meinDriveService = meinDriveService1;
         watchdogListener.meinDriveService.execute(watchdogListener);
@@ -153,5 +152,10 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
                 + "].stopignore(" + path + ")");
         ignoredMap.remove(path);
         ignoredSemaphore.release();
+    }
+
+    @Override
+    public void onShutDown() {
+        System.out.println("IndexWatchdogListener.onShutDown");
     }
 }

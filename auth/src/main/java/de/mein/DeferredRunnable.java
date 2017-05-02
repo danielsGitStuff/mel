@@ -11,7 +11,7 @@ public abstract class DeferredRunnable implements MeinRunnable, MeinThread.Inter
     private Thread thread;
 
     /**
-     * you do not have to override this
+     * you must not override this
      */
     public void shutDown() {
         String line = "shutting down: " + getClass().getSimpleName();
@@ -26,6 +26,11 @@ public abstract class DeferredRunnable implements MeinRunnable, MeinThread.Inter
         onShutDown();
     }
 
+    /**
+     * Is called after shutDown() was called. The current Thread is already interrupted.
+     * You may want to shut down other components as well. They should be interrupted but might block somewhere.
+     * Unblock them here.
+     */
     public abstract void onShutDown();
 
     @Override
@@ -36,8 +41,15 @@ public abstract class DeferredRunnable implements MeinRunnable, MeinThread.Inter
         runImpl();
     }
 
+    /**
+     * This is where the stuff you would usually do in run() belongs.
+     */
     public abstract void runImpl();
 
+    /**
+     * call this from(!) the running Thread to see whether or not the Thread should stop.
+     * @return
+     */
     protected boolean isInterrupted() {
         return Thread.currentThread().isInterrupted();
     }

@@ -13,12 +13,12 @@ import java.nio.file.WatchService;
 /**
  * Created by xor on 12.08.2016.
  */
-public class IndexWatchDogWindows extends IndexWatchdogPC {
+public class IndexWatchDogWindowsListener extends IndexWatchdogListenerPC {
 
     private boolean watchesRoot = false;
 
-    public IndexWatchDogWindows(MeinDriveService meinDriveService, WatchService watchService) {
-        super(meinDriveService,"IndexWatchDogWindows", watchService);
+    public IndexWatchDogWindowsListener(MeinDriveService meinDriveService, WatchService watchService) {
+        super(meinDriveService,"IndexWatchDogWindowsListener", watchService);
     }
 
 
@@ -29,7 +29,7 @@ public class IndexWatchDogWindows extends IndexWatchdogPC {
                 watchesRoot = true;
                 Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
                 path.register(watchService, KINDS, ExtendedWatchEventModifier.FILE_TREE);
-                System.out.println("IndexWatchDogWindows.registerRoot: " + path.toString());
+                System.out.println("IndexWatchDogWindowsListener.registerRoot: " + path.toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }

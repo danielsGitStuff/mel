@@ -1,5 +1,6 @@
 package de.mein.drive.index;
 
+import de.mein.DeferredRunnable;
 import de.mein.auth.tools.Hash;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
@@ -19,7 +20,7 @@ import java.util.List;
 /**
  * Created by xor on 10.07.2016.
  */
-public class IndexerRunnable implements Runnable {
+public class IndexerRunnable extends DeferredRunnable {
 
     private final DriveDatabaseManager databaseManager;
     private final IndexWatchdogListener indexWatchdogListener;
@@ -59,7 +60,12 @@ public class IndexerRunnable implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void onShutDown() {
+
+    }
+
+    @Override
+    public void runImpl() {
         try {
             System.out.println("IndexerRunnable.runTry.roaming");
             // if root directory does not exist: create one
@@ -215,5 +221,10 @@ public class IndexerRunnable implements Runnable {
 
     public RootDirectory getRootDirectory() {
         return rootDirectory;
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName() + " for " + databaseManager.getDriveSettings().getRootDirectory().getPath();
     }
 }

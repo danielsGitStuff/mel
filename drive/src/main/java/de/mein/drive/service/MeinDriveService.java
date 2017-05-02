@@ -186,7 +186,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         this.syncHandler = initSyncHandler();
         this.syncHandler.start();
         indexer.setSyncHandler(syncHandler);
-        indexer.start();
+        execute(indexer);
     }
 
     protected abstract S initSyncHandler();
@@ -221,6 +221,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     @Override
     public void onShutDown() {
         super.onShutDown();
+        indexer.shutDown();
     }
 
     @Override

@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
+ * A Service comes with its own ExecutorService. You should execute all Runnables of your Service with this class.
+ * It will stop all Threads/Runnables when shutDown() is called. This happens is a Service is shut down by @{@link MeinAuthService}
  * Created by xor on 5/2/16.
  */
 public abstract class MeinService extends DeferredRunnable implements IMeinService {

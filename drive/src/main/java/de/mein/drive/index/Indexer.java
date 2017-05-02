@@ -1,5 +1,6 @@
 package de.mein.drive.index;
 
+import de.mein.DeferredRunnable;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
@@ -12,7 +13,7 @@ import java.io.File;
 /**
  * Created by xor on 10.07.2016.
  */
-public class Indexer extends BackgroundExecutor {
+public class Indexer extends DeferredRunnable {
     private IndexerRunnable crawlerRunnable;
 
     public Indexer(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, ICrawlerListener... listeners) throws SqlQueriesException {
@@ -23,10 +24,10 @@ public class Indexer extends BackgroundExecutor {
         crawlerRunnable.setSyncHandler(syncHandler);
     }
 
-    public void ignorePath(String path, int amount)  {
+    public void ignorePath(String path, int amount) {
         //todo escalate?
         try {
-            crawlerRunnable.getIndexWatchdogListener().ignore(path,amount);
+            crawlerRunnable.getIndexWatchdogListener().ignore(path, amount);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -34,11 +35,6 @@ public class Indexer extends BackgroundExecutor {
 
     public void stopIgnore(String path) throws InterruptedException {
         crawlerRunnable.getIndexWatchdogListener().stopIgnore(path);
-    }
-
-    public void start() {
-        adjustExecutor();
-        executorService.submit(crawlerRunnable);
     }
 
     public void watchFsDirectory(FsDirectory fsDirectory) {
@@ -51,5 +47,21 @@ public class Indexer extends BackgroundExecutor {
 
     public RootDirectory getRootDirectory() {
         return crawlerRunnable.getRootDirectory();
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName() + " for " + crawlerRunnable.getRootDirectory().getPath();
+    }
+
+    @Override
+    public void onShutDown() {
+        System.out.println("Indexer.onShutDown");
+        crawlerRunnable.shutDown();
+    }
+
+    @Override
+    public void runImpl() {
+
     }
 }

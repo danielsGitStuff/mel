@@ -14,12 +14,12 @@ import java.util.List;
  * Created by xor on 7/11/16.
  */
 @SuppressWarnings("Duplicates")
-class IndexWatchdogUnix2 extends IndexWatchdogPC {
+class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
     // we
     private final File timeReferenceFile = new File("time");
 
-    IndexWatchdogUnix2(MeinDriveService meinDriveService, WatchService watchService) {
-        super(meinDriveService, "IndexWatchdogUnix", watchService);
+    IndexWatchdogListenerUnix2(MeinDriveService meinDriveService, WatchService watchService) {
+        super(meinDriveService, "IndexWatchdogListenerUnix", watchService);
     }
 
     @Override
@@ -32,6 +32,8 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
             e.printStackTrace();
         }
     }
+
+
 
     @Override
     public void runImpl() {
@@ -114,5 +116,10 @@ class IndexWatchdogUnix2 extends IndexWatchdogPC {
         //meinDriveService.addJob(new FsSyncJob(pathCollection));
         stageIndexer.examinePaths(pathCollection);
         pathCollection = new PathCollection();
+    }
+
+    @Override
+    public void onShutDown() {
+        super.onShutDown();
     }
 }

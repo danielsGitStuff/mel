@@ -1,26 +1,48 @@
 package de.mein.drive.watchdog;
 
-import de.mein.auth.tools.N;
 import de.mein.drive.service.MeinDriveService;
+import de.mein.drive.sql.FsDirectory;
 
 import java.io.File;
 import java.nio.file.*;
+import java.util.HashMap;
+import java.util.Map;
 
+@Deprecated
 /**
- * Created by xor on 2/6/17.
+ * Created by xor on 7/11/16.
  */
+class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
+    // todo debug
+    private Map<String, WatchKey> keyMap = new HashMap<>();
 
-public abstract class IndexWatchdogPC extends IndexWatchdogListener {
-    protected WatchService watchService;
-    protected WatchEvent.Kind<?>[] KINDS = new WatchEvent.Kind<?>[]{StandardWatchEventKinds.ENTRY_MODIFY,
-            StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE};
+    IndexWatchdogListenerUnix(MeinDriveService meinDriveService, WatchService watchService) {
+        super(meinDriveService, "IndexWatchdogListenerUnix", watchService);
+    }
 
-    public IndexWatchdogPC(MeinDriveService meinDriveService, String name, WatchService watchService) {
-        this.name = name;
-        this.watchService = watchService;
-        this.meinDriveService = meinDriveService;
-        this.setStageIndexer(meinDriveService.getStageIndexer());
-        this.workingDirectoryPath = meinDriveService.getDriveSettings().getTransferDirectoryPath();
+    @Override
+    public void foundDirectory(FsDirectory fsDirectory) {
+        try {
+            Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
+            WatchKey key = path.register(watchService, KINDS);
+            keyMap.put(path.toString(), key);
+            System.out.println("IndexWatchdogListener.foundDirectory: " + path.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Override
+    public void watchDirectory(File dir) {
+        try {
+            Path path = Paths.get(dir.getAbsolutePath());
+            WatchKey key = path.register(watchService, KINDS);
+            keyMap.put(dir.getAbsolutePath(), key);
+            System.out.println("IndexWatchdogListener.watchDirectory: " + path.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -58,13 +80,9 @@ public abstract class IndexWatchdogPC extends IndexWatchdogListener {
         }
     }
 
-    @Override
-    public void onShutDown() {
-        N.r(() -> watchService.close());
-    }
 
     @Override
-    public String getRunnableName() {
-        return getClass().getSimpleName() + " for " + meinDriveService.getRunnableName();
+    public void runImpl() {
+
     }
 }
