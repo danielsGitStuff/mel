@@ -253,13 +253,17 @@ public class SerrTest {
         mapTest.map.put(key, 666L);
         String json = SerializableEntitySerializer.serialize(mapTest);
         System.out.println(json);
-        String expected = "{\"$id\":1,\"__type\":\"de.mein.core.serialize.serialize.serializer.SerrTest$1MapTest\",\"map\":{\"__type\":\"java.util.HashMap\",\"__k\":\"de.mein.core.serialize.SerializableEntity\",\"__v\":\"java.lang.Long\",\"__m\":[{\"{\"$id\":2,\"__type\":\"de.mein.core.serialize.classes.SimpleSerializableEntity\"}\":666}]}}";
+        String expected = "{\"$id\":1,\"__type\":\"de.mein.core.serialize.serialize.serializer.SerrTest$1MapTest\",\"map\":{\"__type\":\"java.util.HashMap\",\"__k\":\"de.mein.core.serialize.SerializableEntity\",\"__v\":\"java.lang.Long\",\"__x\":{\"0\":{\"$id\":2,\"__type\":\"de.mein.core.serialize.classes.SimpleSerializableEntity\"}},\"__m\":{\"0\":666}}}";
         assertEquals(expected, json);
     }
+
     public static class MapTestE implements SerializableEntity {
         Map<SerializableEntity, SerializableEntity> map = new HashMap<>();
-        public MapTestE(){}
+
+        public MapTestE() {
+        }
     }
+
     @Test
     public void mapEntityOnItself() throws JsonSerializationException, IllegalAccessException, JsonDeserializationException {
         MapTestE mapTest = new MapTestE();
@@ -267,7 +271,10 @@ public class SerrTest {
         mapTest.map.put(key, key);
         String json = SerializableEntitySerializer.serialize(mapTest);
         System.out.println(json);
+        String expected = "{\"$id\":1,\"__type\":\"de.mein.core.serialize.serialize.serializer.SerrTest$MapTestE\",\"map\":{\"__type\":\"java.util.HashMap\",\"__k\":\"de.mein.core.serialize.SerializableEntity\",\"__v\":\"de.mein.core.serialize.SerializableEntity\",\"__x\":{\"0\":{\"$id\":2,\"__type\":\"de.mein.core.serialize.serialize.serializer.SerrTest$B\",\"primitive\":\"BBB\"}},\"__m\":{\"0\":{\"$ref\":2}}}}";
+        assertEquals(expected, json);
         Object o = SerializableEntityDeserializer.deserialize(json);
+        System.out.println(o);
     }
 
     @Test
@@ -279,6 +286,7 @@ public class SerrTest {
         String json = SerializableEntitySerializer.serialize(mapTest);
         System.out.println(json);
         Object o = SerializableEntityDeserializer.deserialize(json);
+        System.out.println(o);
     }
 
     @Test
@@ -293,6 +301,7 @@ public class SerrTest {
         String json = SerializableEntitySerializer.serialize(mapTest);
         System.out.println(json);
         Object o = SerializableEntityDeserializer.deserialize(json);
+        System.out.println(o);
     }
 
     @Test

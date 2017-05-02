@@ -2,7 +2,9 @@ package de.mein.core.serialize.deserialize.map;
 
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
+import de.mein.core.serialize.deserialize.primitive.PrimitiveDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
+import de.mein.core.serialize.serialize.reflection.FieldAnalyzer;
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
@@ -12,21 +14,22 @@ import java.lang.reflect.Field;
  */
 public class KeyDeserializer {
     private final SerializableEntityDeserializer rootDeserializer;
-    private final Field field;
+    private boolean keyIsEntity = false;
+    private Class<?> type;
 
-    public KeyDeserializer(SerializableEntityDeserializer rootDeserializer, Field field) {
+    public KeyDeserializer(SerializableEntityDeserializer rootDeserializer, Class<?> type) {
         this.rootDeserializer = rootDeserializer;
-        this.field = field;
+        this.type = type;
+        this.keyIsEntity = FieldAnalyzer.isEntitySerializableClass(type);
     }
 
 
     public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Object jsonFieldValue) throws IllegalAccessException, JsonDeserializationException {
-        System.out.println("KeyDeserializer.deserialize");
         if (jsonFieldValue != null) {
-            if (jsonFieldValue instanceof JSONObject) {
-                return rootDeserializer.buildEntity((JSONObject) jsonFieldValue);
+            if (keyIsEntity) {
+                return rootDeserializer.deserialize((JSONObject) jsonFieldValue);
             } else {
-                System.out.println("KeyDeserializer.deserialize.m8959t4e0g");
+                return new PrimitiveDeserializer().deserialize(null, null, null, type, jsonFieldValue);
             }
         }
         return null;

@@ -59,7 +59,6 @@ public class MapSerializer extends FieldSerializer {
         // we have to add all objects to an array first cause unlike in Java
         // you cannot use Entities as keys in JSON. So we reference every key with another Map.
         Set<?> keySet = new HashSet<>(ins.keySet());
-        Set<SerializableEntity> keyEntities = new HashSet<>();
         Map<Integer, Object> keyIdKeyMap = new HashMap<>();
         Map<Object, Integer> keyKeyIdMap = new HashMap<>();
         boolean appendComma = false;
@@ -74,8 +73,6 @@ public class MapSerializer extends FieldSerializer {
             if (k instanceof SerializableEntity) {
                 SerializableEntitySerializer serializer = parentSerializer.getPreparedSerializer((SerializableEntity) k);
                 b.append(serializer.JSON());
-                keySet.remove(k);
-                keyEntities.add((SerializableEntity) k);
             } else {
                 b.value(k);
             }
@@ -83,33 +80,16 @@ public class MapSerializer extends FieldSerializer {
         }
         b.objEnd().comma().key("__m").eq().objBegin();
         // here comes the reference part. primitives go here
+        appendComma = false;
         for (Object key : keySet) {
+            if (appendComma)
+                b.comma();
+            appendComma = true;
             Integer keyId = keyKeyIdMap.get(key);
             b.key(keyId.toString()).eq();
-            b.append(vFactory.createSerializerOnClass(parentSerializer, ins.get(key)).JSON());
-        }
-        // add SerializableEntities
-        for (SerializableEntity key : keyEntities) {
-            Integer keyId = keyKeyIdMap.get(key);
-            b.key(keyId.toString()).eq();
-            FieldSerializer vSer = vFactory.createObjectSerializer(parentSerializer, ins.get(key));
-            //FieldSerializer vSer = vFactory.createSerializerOnClass(parentSerializer, ins.get(key));
+            FieldSerializer vSer = vFactory.createSerializerOnClass(parentSerializer, ins.get(key));
             b.append(vSer.JSON());
         }
-        System.out.println("MapSerializer.JSON");
-//            for (Object key : ins.keySet()) {
-//                if (!isFirst)
-//                    b.comma();
-//                isFirst = false;
-//                KeySerializer keySerializer = (KeySerializer) kFactory.createSerializerOnClass(parentSerializer, key);
-//                if (!keySerializer.isPrimitive()) {
-//                    b.append(keySerializer.JSON());
-//                } else {
-//                    b.objBegin().key(keySerializer.JSON());
-//                }
-//                b.eq().append(vFactory.createSerializerOnClass(parentSerializer, ins.get(key)).JSON())
-//                        .objEnd();
-//            }
         b.objEnd().objEnd();
         return b.toString();
     }

@@ -199,6 +199,9 @@ public class SerializableEntitySerializer extends FieldSerializer {
     public String JSON() throws JsonSerializationException {
         try {
             StringBuilder b = new StringBuilder();
+            SerializableEntitySerializer existingSerializer = existingSerializersMap.get(entity);
+            if (existingSerializer != null && existingSerializer != this)
+                return existingSerializer.JSON();
             if (!this.prepared)
                 this.prepare();
             if (!jsonized) {
