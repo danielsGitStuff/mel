@@ -222,7 +222,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     public void onShutDown() {
         super.onShutDown();
         indexer.shutDown();
-        //queueLock.unlockWrite();
     }
 
     @Override

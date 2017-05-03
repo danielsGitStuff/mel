@@ -155,7 +155,10 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     }
 
     @Override
-    public void onShutDown() {
-        System.out.println("IndexWatchdogListener.onShutDown");
+    public void shutDown() {
+        super.shutDown();
+        watchDogTimer.cancel();
+        // dereference cause JavaDoc says so
+        watchDogTimer = null;
     }
 }
