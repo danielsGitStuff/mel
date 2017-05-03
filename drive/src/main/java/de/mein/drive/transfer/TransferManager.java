@@ -140,6 +140,8 @@ public class TransferManager implements MeinRunnable {
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(strippedTransferDetails.getCertId().v());
         connected.done(validationProcess -> N.r(() -> {
             validationProcess.message(strippedTransferDetails.getServiceUuid().v(), DriveStrings.INTENT_PLEASE_TRANSFER, payLoad);
+        })).fail(result -> N.r(() -> {
+            System.out.println("TransferManager.retrieveFiles.48nf49");
         }));
     }
 

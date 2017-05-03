@@ -45,7 +45,6 @@ public class MeinAuthWorker extends MeinWorker {
     }
 
 
-
     @Override
     public void run() {
         // initialize everything and then wait for things to happen
@@ -92,7 +91,7 @@ public class MeinAuthWorker extends MeinWorker {
 //        promise.done(meinValidationProcess -> {
 //            job.getPromise().resolve(meinValidationProcess);
 //        });
-        // promise.fail(ex -> job.getPromise().reject(ex));
+//        promise.fail(ex -> job.getPromise().reject(ex));
     }
 
     public MeinAuthBrotCaster getBrotCaster() {

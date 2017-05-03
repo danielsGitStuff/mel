@@ -420,7 +420,8 @@ public class MeinAuthService   {
             for (MeinService service : uuidServiceMap.values()){
                 service.shutDown();
             }
-            for (MeinSocket socket : sockets){
+            Set<MeinSocket> socks = new HashSet<>(sockets);
+            for (MeinSocket socket : socks){
                 socket.shutDown();
             }
             meinAuthWorker.shutDown();

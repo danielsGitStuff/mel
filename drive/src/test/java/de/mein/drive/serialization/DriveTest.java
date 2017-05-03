@@ -1,5 +1,6 @@
 package de.mein.drive.serialization;
 
+import de.mein.auth.TestFileCreator;
 import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
@@ -122,7 +123,7 @@ public class DriveTest {
             @Override
             public void onSyncDoneImpl() {
                 System.out.println("DriveTest.onSyncDoneImpl");
-                //N.r(() -> standAloneAuth1.shutDown());
+                N.r(() -> standAloneAuth1.shutDown());
                 System.out.println("DriveTest.onSyncDoneImpl.shot down");
                 new Thread(() -> {
                     int i = 0;
@@ -139,7 +140,8 @@ public class DriveTest {
                             MeinDriveClientService meinDriveClientService = (MeinDriveClientService) standAloneAuth2.getMeinServices().iterator().next();
                             String rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
                             File file = new File(rootPath + File.separator + "sub1" + File.separator + "newfile");
-                            //TestFileCreator.saveFile("newfile".getBytes(),file);
+                            if (!file.exists())
+                                TestFileCreator.saveFile("newfile".getBytes(), file);
                         });
                     }
                 }).start();
