@@ -142,12 +142,13 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                         //syncHandler.commitStage(stageSetId, false);
                         //fsDao.unlockWrite();
                     }));
-                    connectedPromise.fail(result -> {
-                        // todo server did not commit. it probably had a local change. have to solve it here
-                        fsDao.unlockWrite();
-                        stageDao.unlockRead();
-                    });
+
                 }));
+                connectedPromise.fail(result -> {
+                    // todo server did not commit. it probably had a local change. have to solve it here
+                    fsDao.unlockWrite();
+                    stageDao.unlockRead();
+                });
             } else {
                 stageDao.deleteStageSet(stageSetId);
 //                fsDao.unlockWrite();

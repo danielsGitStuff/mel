@@ -84,6 +84,11 @@ public class MeinAuthWorker extends MeinWorker {
         }
     }
 
+    @Override
+    public void addJob(Job job) {
+        super.addJob(job);
+    }
+
     private void connect(AConnectJob job) throws ClassNotFoundException, IllegalAccessException, NoSuchPaddingException, URISyntaxException, SqlQueriesException, KeyManagementException, BadPaddingException, CertificateException, KeyStoreException, NoSuchAlgorithmException, InvalidKeyException, UnrecoverableKeyException, JsonSerializationException, IOException, IllegalBlockSizeException, InterruptedException {
         MeinAuthSocket meinAuthSocket = new MeinAuthSocket(meinAuthService);
         System.out.println("MeinAuthWorker.connect: " + job.getAddress() + ":" + job.getPort() + ":" + job.getPortCert() + "?reg=" + job.getRegOnUnknown());
