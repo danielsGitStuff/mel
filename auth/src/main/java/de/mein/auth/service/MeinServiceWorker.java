@@ -1,9 +1,7 @@
 package de.mein.auth.service;
 
-import de.mein.DeferredRunnable;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
-import de.mein.sql.RWLock;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,8 +12,6 @@ import java.util.Map;
  */
 public abstract class MeinServiceWorker extends MeinService implements IMeinService {
     protected LinkedList<Job> jobs = new LinkedList<>();
-    private RWLock queueLock = new RWLock();
-    protected RWLock waitLock = new RWLock();
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
 
     public MeinServiceWorker(MeinAuthService meinAuthService) {
@@ -75,7 +71,7 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     protected abstract void workWork(Job job) throws Exception;
 
 
-    public void addJob(Job job) {
+    public synchronized void addJob(Job job) {
         queueLock.lockWrite();
         jobs.offer(job);
         queueLock.unlockWrite();
@@ -92,4 +88,5 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     public void start() {
         meinAuthService.execute(this);
     }
+
 }

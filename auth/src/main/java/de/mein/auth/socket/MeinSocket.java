@@ -177,7 +177,7 @@ public class MeinSocket extends DeferredRunnable {
 
         @Override
         public void onShutDown() {
-            System.out.println("SocketWorker.onShutDown");
+            System.out.println("SocketWorker.onShutDown, Runnable: "+getRunnableName());
             super.onShutDown();
         }
 

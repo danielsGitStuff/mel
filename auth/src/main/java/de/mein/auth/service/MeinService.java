@@ -2,6 +2,7 @@ package de.mein.auth.service;
 
 import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
+import de.mein.auth.boot.MeinBoot;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -11,7 +12,7 @@ import java.util.concurrent.Executors;
  * It will stop all Threads/Runnables when shutDown() is called. This happens is a Service is shut down by @{@link MeinAuthService}
  * Created by xor on 5/2/16.
  */
-public abstract class MeinService extends DeferredRunnable implements IMeinService {
+public abstract class MeinService extends MeinWorker implements IMeinService {
     protected MeinAuthService meinAuthService;
     protected Integer id;
     protected String uuid;
