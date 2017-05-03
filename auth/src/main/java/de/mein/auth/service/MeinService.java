@@ -51,5 +51,6 @@ public abstract class MeinService extends DeferredRunnable implements IMeinServi
     @Override
     public void onShutDown() {
         executorService.shutdown();
+
     }
 }

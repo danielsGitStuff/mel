@@ -49,7 +49,7 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     @Override
     public void runImpl() {
         try {
-            while (!Thread.currentThread().isInterrupted()) {
+            while (!isInterrupted()) {
                 queueLock.lockWrite();
                 Job job = jobs.poll();
                 queueLock.unlockWrite();
@@ -78,6 +78,13 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     public void addJob(Job job) {
         queueLock.lockWrite();
         jobs.offer(job);
+        queueLock.unlockWrite();
+        waitLock.unlockWrite();
+    }
+
+    @Override
+    public void onShutDown() {
+        super.onShutDown();
         queueLock.unlockWrite();
         waitLock.unlockWrite();
     }

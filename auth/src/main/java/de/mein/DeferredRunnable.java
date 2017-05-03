@@ -9,6 +9,7 @@ import org.jdeferred.impl.DeferredObject;
 public abstract class DeferredRunnable implements MeinRunnable, MeinThread.Interruptable {
     protected DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
     private Thread thread;
+    private boolean interrupted = false;
 
     /**
      * you must not override this
@@ -20,6 +21,7 @@ public abstract class DeferredRunnable implements MeinRunnable, MeinThread.Inter
         System.out.println(line);
         if (thread != null) {
             thread.interrupt();
+            interrupted = true;
         } else {
             System.err.println(getClass().getSimpleName() + ".shutDown: Thread was null :'(  " + getRunnableName());
         }
@@ -36,8 +38,6 @@ public abstract class DeferredRunnable implements MeinRunnable, MeinThread.Inter
     @Override
     public void run() {
         thread = Thread.currentThread();
-        if (getClass().getSimpleName().equals("MeinAuthService"))
-            System.out.println("DeferredRunnable.run");
         runImpl();
     }
 
@@ -51,7 +51,7 @@ public abstract class DeferredRunnable implements MeinRunnable, MeinThread.Inter
      * @return
      */
     protected boolean isInterrupted() {
-        return Thread.currentThread().isInterrupted();
+        return interrupted;
     }
 
     public DeferredObject<DeferredRunnable, Exception, Void> getStartedDeferred() {
