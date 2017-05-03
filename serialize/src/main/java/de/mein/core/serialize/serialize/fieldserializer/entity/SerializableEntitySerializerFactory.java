@@ -40,8 +40,7 @@ public class SerializableEntitySerializerFactory implements FieldSerializerFacto
 
     @Override
     public FieldSerializer createSerializerOnClass(SerializableEntitySerializer parentSerializer, Object value) {
-        SerializableEntitySerializer serializer = new SerializableEntitySerializer( parentSerializer, (SerializableEntity) value);
-        return serializer;
+        return new SerializableEntitySerializer( parentSerializer, (SerializableEntity) value);
     }
 
 }

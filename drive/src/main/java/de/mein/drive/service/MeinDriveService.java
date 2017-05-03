@@ -186,7 +186,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         this.syncHandler = initSyncHandler();
         this.syncHandler.start();
         indexer.setSyncHandler(syncHandler);
-        execute(indexer);
+        indexer.start();
     }
 
     protected abstract S initSyncHandler();

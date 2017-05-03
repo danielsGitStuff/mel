@@ -117,20 +117,30 @@ public class DriveTest {
     public void clientMergeStages() throws Exception {
         // start both instances, shutdown server, change something in client directory
         setup(new DriveSyncListener() {
+            private DriveSyncListener ins = this;
+
             @Override
             public void onSyncDoneImpl() {
                 System.out.println("DriveTest.onSyncDoneImpl");
-                N.r(() -> standAloneAuth1.shutDown());
+                //N.r(() -> standAloneAuth1.shutDown());
                 System.out.println("DriveTest.onSyncDoneImpl.shot down");
                 new Thread(() -> {
                     int i = 0;
                     while (true) {
                         try {
                             Thread.sleep(100);                 //1000 milliseconds is one second.
-                        } catch(InterruptedException ex) {
+                        } catch (InterruptedException ex) {
                             Thread.currentThread().interrupt();
                         }
                         i++;
+                        N.r(() -> {
+                            System.out.print("\033[H\033[2J");
+                            System.out.flush();
+                            MeinDriveClientService meinDriveClientService = (MeinDriveClientService) standAloneAuth2.getMeinServices().iterator().next();
+                            String rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
+                            File file = new File(rootPath + File.separator + "sub1" + File.separator + "newfile");
+                            //TestFileCreator.saveFile("newfile".getBytes(),file);
+                        });
                     }
                 }).start();
             }
@@ -138,6 +148,16 @@ public class DriveTest {
         lock.lockWrite();
         lock.unlockWrite();
         System.out.println("DriveTest.clientMergeStages.END");
+    }
+
+    @Test
+    public void startSingleServer() throws Exception {
+        // start both instances, shutdown server, change something in client directory
+        startServer();
+        RWLock lock = new RWLock();
+        lock.lockWrite();
+        lock.lockWrite();
+        System.out.println("DriveTest.startSingleServer.END");
     }
 
     @Test
@@ -283,6 +303,61 @@ public class DriveTest {
 
     public void setup(DriveSyncListener clientSyncListener) throws Exception {
         setup(false, clientSyncListener);
+    }
+
+
+    public void startServer() throws Exception {
+        //setup working directories & directories with test data
+        File testdir1 = new File("testdir1");
+        File testdir2 = new File("testdir2");
+        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        CertificateManager.deleteDirectory(testdir1);
+        CertificateManager.deleteDirectory(testdir2);
+        TestDirCreator.createTestDir(testdir1);
+
+
+        // configure MeinAuth
+        MeinBoot.addBootLoaderClass(DriveBootLoader.class);
+        N runner = new N(e -> e.printStackTrace());
+
+        MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
+                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
+                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
+        standAloneAuth1 = new MeinAuthService(json1);
+        // we want accept all registration attempts automatically
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
+        };
+        standAloneAuth1.addRegisterHandler(allowRegisterHandler);
+        // we want to allow every registered Certificate to talk to all available Services
+        IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
+            List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
+            for (ServiceJoinServiceType serviceJoinServiceType : services) {
+                meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
+            }
+        };
+        standAloneAuth1.addRegisteredHandler(registeredHandler);
+        lock.lockWrite();
+
+        MeinBoot boot1 = new MeinBoot();
+        boot1.boot(standAloneAuth1).done(result -> {
+            runner.runTry(() -> {
+                System.out.println("DriveTest.driveGui.booted");
+                // setup the server Service
+                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath());
+                System.out.println("DriveTest.startServer.booted");
+            });
+        });
+
     }
 
     public void setup(boolean identicalTestDirs, DriveSyncListener clientSyncListener) throws Exception {

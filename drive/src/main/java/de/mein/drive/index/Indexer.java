@@ -2,6 +2,7 @@ package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
 import de.mein.drive.data.fs.RootDirectory;
+import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
@@ -13,10 +14,12 @@ import java.io.File;
 /**
  * Created by xor on 10.07.2016.
  */
-public class Indexer extends DeferredRunnable {
+public class Indexer  {
+    private final MeinDriveService meinDriveService;
     private IndexerRunnable crawlerRunnable;
 
     public Indexer(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, ICrawlerListener... listeners) throws SqlQueriesException {
+        meinDriveService = databaseManager.getMeinDriveService();
         crawlerRunnable = new IndexerRunnable(databaseManager, indexWatchdogListener, listeners);
     }
 
@@ -49,19 +52,14 @@ public class Indexer extends DeferredRunnable {
         return crawlerRunnable.getRootDirectory();
     }
 
-    @Override
-    public String getRunnableName() {
-        return getClass().getSimpleName() + " for " + crawlerRunnable.getRootDirectory().getPath();
-    }
 
-    @Override
-    public void onShutDown() {
-        System.out.println("Indexer.onShutDown");
+    public void shutDown(){
         crawlerRunnable.shutDown();
     }
 
-    @Override
-    public void runImpl() {
-
+    public void start(){
+        meinDriveService.execute(crawlerRunnable);
     }
+
+
 }
