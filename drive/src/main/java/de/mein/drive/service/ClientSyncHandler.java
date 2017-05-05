@@ -6,15 +6,20 @@ import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveSyncListener;
+import de.mein.drive.data.Commit;
+import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.sql.*;
+import de.mein.drive.sql.dao.FsDao;
+import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -33,7 +38,7 @@ public class ClientSyncHandler extends SyncHandler {
 
     public ClientSyncHandler(MeinAuthService meinAuthService, MeinDriveClientService meinDriveService) {
         super(meinAuthService, meinDriveService);
-        this.meinDriveService=meinDriveService;
+        this.meinDriveService = meinDriveService;
     }
 
     public void syncThisClient() throws SqlQueriesException, InterruptedException {
@@ -232,6 +237,63 @@ public class ClientSyncHandler extends SyncHandler {
         transferManager.research();
     }
 
+    public void syncWithServer(Long stageSetId) throws SqlQueriesException, InterruptedException {
+        // stage is complete. first lock on FS
+        FsDao fsDao = driveDatabaseManager.getFsDao();
+        StageDao stageDao = driveDatabaseManager.getStageDao();
+        fsDao.unlockRead();
+        //fsDao.lockWrite();
+        stageDao.lockRead();
+
+        if (stageDao.stageSetHasContent(stageSetId)) {
+
+            //all other stages we can find at this point are complete/valid and wait at this point.
+            //todo conflict checking goes here - has to block
+
+            Promise<MeinValidationProcess, Exception, Void> connectedPromise = meinAuthService.connect(driveSettings.getClientSettings().getServerCertId());
+            connectedPromise.done(mvp -> N.r(() -> {
+                Commit commit = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSetAsList(stageSetId)).setServiceUuid(meinDriveService.getUuid());
+                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> N.r(() -> {
+                    //fsDao.lockWrite();
+                    CommitAnswer answer = (CommitAnswer) result;
+                    ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
+                    Stage stage = stages.getNext();
+                    while (stage != null) {
+                        Long fsId = answer.getStageIdFsIdMap().get(stage.getId());
+                        if (fsId != null) {
+                            stage.setFsId(fsId);
+                            if (stage.getParentId() != null) {
+                                Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
+                                if (fsParentId != null)
+                                    stage.setFsParentId(fsParentId);
+                            }
+                            stageDao.update(stage);
+                        }
+                        stage = stages.getNext();
+                    }
+                    StageSet stageSet = stageDao.getStageSetById(stageSetId);
+                    stageSet.setStatus(DriveStrings.STAGESET_STATUS_SERVER_COMMITED);
+                    stageDao.updateStageSet(stageSet);
+//                    addJob(new CommitJob());
+                    //syncHandler.commitStage(stageSetId, false);
+                    //fsDao.unlockWrite();
+                }));
+
+            }));
+            System.err.println("MeinDriveClientService.initDatabase");
+            connectedPromise.fail(ex -> {
+                // todo server did not commit. it probably had a local change. have to solve it here
+                System.err.println("MeinDriveClientService.initDatabase.could not connect :( due to: " + ex.getMessage());
+                fsDao.unlockWrite();
+                stageDao.unlockRead();
+            });
+        } else {
+            stageDao.deleteStageSet(stageSetId);
+//                fsDao.unlockWrite();
+            stageDao.unlockRead();
+        }
+    }
+
     /**
      * Merges all staged StageSets (from file system) and checks the result for conflicts
      * with the stage from the server (if it exists).
@@ -272,6 +334,7 @@ public class ClientSyncHandler extends SyncHandler {
         }
     }
 
+
     /**
      * check whether or not there are any conflicts between stuff that happend on this computer and stuff
      * that happened on the server. this will block until all conflicts are resolved.
@@ -283,7 +346,19 @@ public class ClientSyncHandler extends SyncHandler {
         System.out.println("ClientSyncHandler.checkConflicts.NOT:IMPLEMNETED:YET");
     }
 
-    private void mergeStageSets(List<StageSet> stageSets) {
+    private void mergeStageSets(List<StageSet> stageSets) throws SqlQueriesException {
         System.out.println("ClientSyncHandler.mergeStageSets");
+        if (stageSets.size() > 2)
+            System.err.println("ClientSyncHandler.mergeStageSets.TOO MANY!!!1");
+        if (stageSets.size() <= 1)
+            return;
+        StageSet lStageSet = stageSets.get(0);
+        StageSet rStageSet = stageSets.get(1);
+        ISQLResource<Stage> lStages = stageDao.getStagesResource(lStageSet.getId().v());
+        Stage lStage = lStages.getNext();
+        while (lStage != null) {
+            File lFile = stageDao.getFileByStage(driveSettings.getRootDirectory().getPath(),lStage);
+            lStage = lStages.getNext();
+        }
     }
 }

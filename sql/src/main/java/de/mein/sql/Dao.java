@@ -1,5 +1,7 @@
 package de.mein.sql;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -28,7 +30,7 @@ public abstract class Dao {
      */
     public static class LockingDao extends ConnectionLockingDao {
 
-        protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+        protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
         public LockingDao(ISQLQueries ISQLQueries) {
             super(ISQLQueries);
@@ -43,8 +45,12 @@ public abstract class Dao {
             lock.readLock().lock();
         }
 
+        // todo debug
+        private Set<Thread> threads = new HashSet<>();
+
         @Override
         public void lockWrite() {
+            threads.add(Thread.currentThread());
             lock.writeLock().lock();
         }
 
@@ -55,6 +61,7 @@ public abstract class Dao {
 
         @Override
         public void unlockWrite() {
+            threads.remove(Thread.currentThread());
             lock.writeLock().unlock();
         }
     }

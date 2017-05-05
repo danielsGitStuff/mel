@@ -92,6 +92,18 @@ public class StageDao extends Dao.LockingDao {
         return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_TYPE_FROM_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
     }
 
+    public ISQLResource<Stage> getStagesResource(Long stageSetId) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String where = stage.getStageSetPair().k() + "=?";
+        return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId));
+    }
+
+    public File getFileByStage(String rootPath, Stage lStage) {
+        Stage dummy = new Stage();
+
+        return null;
+    }
+
 
     public static class BottomDirAndPath {
         private String[] parts;
@@ -195,7 +207,7 @@ public class StageDao extends Dao.LockingDao {
         return sqlQueries.loadResource(dummy.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId));
     }
 
-    public List<Stage> getStagesByStageSetList(Long stageSetId) throws SqlQueriesException {
+    public List<Stage> getStagesByStageSetAsList(Long stageSetId) throws SqlQueriesException {
         Stage dummy = new Stage();
         String where = dummy.getStageSetPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";
         return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(stageSetId));

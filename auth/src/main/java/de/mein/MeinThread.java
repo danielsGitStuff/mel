@@ -1,6 +1,8 @@
 package de.mein;
 
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Created by xor on 05.09.2016.
@@ -18,6 +20,7 @@ public class MeinThread extends Thread {
 
     public MeinThread(MeinRunnable runnable) {
         super(runnable);
+
         if (runnable instanceof Interruptable) {
 //            Interruptable interruptable = (Interruptable) runnable;
 //            interruptable.setMeinThread(this);

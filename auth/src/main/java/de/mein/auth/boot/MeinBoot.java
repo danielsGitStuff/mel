@@ -25,6 +25,8 @@ import java.util.logging.Logger;
  * Boots up the MeinAuth instance and all existing services by calling the corresponding bootloaders.
  */
 public class MeinBoot implements MeinRunnable {
+    //todo debug
+    public static Set<Runnable> RUNNABLES = new HashSet<>();
     private static Logger logger = Logger.getLogger(MeinBoot.class.getName());
     private static Set<Class<? extends BootLoader>> bootloaderClasses = new HashSet<>();
     private static Map<String, Class<? extends BootLoader>> bootloaderMap = new HashMap<>();
@@ -70,6 +72,12 @@ public class MeinBoot implements MeinRunnable {
     public void execute(MeinRunnable runnable) {
         try {
             threadSemaphore.acquire();
+            // todo debug
+            if (RUNNABLES.contains(runnable))
+                System.err.println("MeinBoot.execute.f2h9h09");
+            if (runnable.getRunnableName().toLowerCase().startsWith("meindriveclientservice"))
+                System.err.println("MeinBoot.execute.09rg9");
+            RUNNABLES.add(runnable);
             threadQueue.add(new MeinThread(runnable));
             threadSemaphore.release();
             executorService.execute(runnable);

@@ -96,7 +96,6 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     @Override
     public void done() {
         System.out.println("IndexWatchdogListener.done");
-        meinDriveService.start();
     }
 
 

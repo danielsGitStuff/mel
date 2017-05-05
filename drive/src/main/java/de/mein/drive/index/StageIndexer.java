@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 public class StageIndexer extends BackgroundExecutor {
 
     public interface StagingDoneListener {
-        void onStagingDone(Long stageSetId) throws InterruptedException, SqlQueriesException;
+        void onStagingFsEventsDone(Long stageSetId) throws InterruptedException, SqlQueriesException;
     }
 
     public interface StagingFailedListener {

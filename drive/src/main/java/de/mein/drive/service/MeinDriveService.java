@@ -226,6 +226,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void start() {
-        execute(this);
+
     }
 }

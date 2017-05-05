@@ -180,7 +180,7 @@ public class StageIndexerRunnable implements Runnable {
             System.out.println("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
             stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
             stageDao.updateStageSet(stageSet);
-            stagingDoneListener.onStagingDone(stageSetId);
+            stagingDoneListener.onStagingFsEventsDone(stageSetId);
 //            promise.resolve(this);
         } catch (Exception e) {
             e.printStackTrace();
