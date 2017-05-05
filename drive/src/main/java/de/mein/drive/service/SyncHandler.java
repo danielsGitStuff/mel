@@ -49,39 +49,45 @@ public abstract class SyncHandler {
     }
 
     protected File moveFile(File source, FsFile fsTarget) throws SqlQueriesException, IOException {
-        fsDao.lockWrite();
-        File target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
-        System.out.println("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
-        // check if there already is a file & delete
-        if (target.exists()) {
-            Long inode = BashTools.getINodeOfFile(target);
-            // file had to be marked as deleted before, which means the inode and so on appear in the wastebin
-            Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(inode);
-            GenericFSEntry genericFSEntry = fsDao.getGenericByINode(inode);
-            if (target.isFile()) {
-                if (waste != null) {
-                    if (waste.getModified().v().equals(target.lastModified())) {
-                        wasteBin.del(waste, target);
-                    } else
-                        System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
+        File target = null;
+        try {
+            fsDao.lockWrite();
+            target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
+            System.out.println("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
+            // check if there already is a file & delete
+            if (target.exists()) {
+                Long inode = BashTools.getINodeOfFile(target);
+                // file had to be marked as deleted before, which means the inode and so on appear in the wastebin
+                Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(inode);
+                GenericFSEntry genericFSEntry = fsDao.getGenericByINode(inode);
+                if (target.isFile()) {
+                    if (waste != null) {
+                        if (waste.getModified().v().equals(target.lastModified())) {
+                            wasteBin.del(waste, target);
+                        } else
+                            System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
+                    }
                 }
             }
-        }
-        indexer.ignorePath(target.getAbsolutePath(), 1);
-        boolean moved = source.renameTo(target);
-        if (!moved || !target.exists())
-            return null;
-        //NoTryRunner.run(() -> indexer.stopIgnore(target.getAbsolutePath()));
-        try {
-            BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(target);
-            fsTarget.getiNode().v(nodeAndTime.getInode());
-            fsTarget.getModified().v(nodeAndTime.getModifiedTime());
-            fsTarget.getSize().v(target.length());
+            indexer.ignorePath(target.getAbsolutePath(), 1);
+            boolean moved = source.renameTo(target);
+            if (!moved || !target.exists())
+                return null;
+            //NoTryRunner.run(() -> indexer.stopIgnore(target.getAbsolutePath()));
+            try {
+                BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(target);
+                fsTarget.getiNode().v(nodeAndTime.getInode());
+                fsTarget.getModified().v(nodeAndTime.getModifiedTime());
+                fsTarget.getSize().v(target.length());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            fsDao.update(fsTarget);
         } catch (Exception e) {
-            e.printStackTrace();
+
+        } finally {
+            fsDao.unlockWrite();
         }
-        fsDao.update(fsTarget);
-        fsDao.unlockWrite();
         return target;
     }
 
@@ -91,28 +97,34 @@ public abstract class SyncHandler {
      * @throws SqlQueriesException
      */
     public void onFileTransferred(File file, String hash) throws SqlQueriesException, IOException {
-        fsDao.lockRead();
-        List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
-        fsDao.unlockRead();
-        if (fsFiles.size() > 0) {
-            // todo check if file in wastebin, if so, tell wastebin to move it
-            if (file.getAbsolutePath().startsWith(wasteBin.getWastePath())) {
-                System.err.println("SyncHandler.onFileTransferred.NOT:IMPLEMENTED:YET");
+        try {
+            fsDao.lockRead();
+            List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
+            if (fsFiles.size() > 0) {
+                // todo check if file in wastebin, if so, tell wastebin to move it
+                if (file.getAbsolutePath().startsWith(wasteBin.getWastePath())) {
+                    System.err.println("SyncHandler.onFileTransferred.NOT:IMPLEMENTED:YET");
+                }
+                //TODO check if file is in transfer dir, then move, else copy
+                else if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
+                    FsFile fsFile = fsFiles.get(0);
+                    file = moveFile(file, fsFile);
+                    fsFile.getSynced().v(true);
+                    fsDao.setSynced(fsFile.getId().v(), true);
+                }
             }
-            //TODO check if file is in transfer dir, then move, else copy
-            else if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
-                FsFile fsFile = fsFiles.get(0);
-                file = moveFile(file, fsFile);
-                fsFile.getSynced().v(true);
-                fsDao.setSynced(fsFile.getId().v(), true);
+            if (fsFiles.size() > 1) {
+                for (int i = 1; i < fsFiles.size(); i++) {
+                    //TODO debug stopped here last night
+                    copyFile(file, fsFiles.get(i));
+                }
             }
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            fsDao.unlockRead();
         }
-        if (fsFiles.size() > 1) {
-            for (int i = 1; i < fsFiles.size(); i++) {
-                //TODO debug stopped here last night
-                copyFile(file, fsFiles.get(i));
-            }
-        }
+
     }
 
     private void copyFile(File source, FsFile fsTarget) throws SqlQueriesException, IOException {

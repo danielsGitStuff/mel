@@ -184,8 +184,8 @@ public class StageIndexerRunnable implements Runnable {
 //            promise.resolve(this);
         } catch (Exception e) {
             e.printStackTrace();
-            fsDao.unlockRead();
         } finally {
+            fsDao.unlockRead();
         }
     }
 

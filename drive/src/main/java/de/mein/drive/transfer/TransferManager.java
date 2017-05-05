@@ -83,8 +83,8 @@ public class TransferManager implements MeinRunnable {
                             syncHandler.onFileTransferred(file, hash);
                         }
                         // todo ask FS for files
-                        fsDao.lockRead();
                         try {
+                            fsDao.lockRead();
                             List<String> hashes = fsDao.searchTransfer();
                             for (String hash : hashes) {
                                 List<FsFile> fsFiles = fsDao.getFilesByHash(hash);
