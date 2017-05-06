@@ -360,9 +360,10 @@ public class ClientSyncHandler extends SyncHandler {
             public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
                 if (right != null && left != null) {
                     // move right to left, delete left
+                    stageDao.deleteStageById(right.getId());
                     right.getParentIdPair().v(left.getParentId());
                     right.getStageSetPair().v(left.getStageSet());
-                    stageDao.deleteStageById(left.getId());
+                    right.getIdPair().v(left.getId());
                     stageDao.update(right);
                 } else if (right != null) {
                     right.getStageSetPair().v(lStageSetId);

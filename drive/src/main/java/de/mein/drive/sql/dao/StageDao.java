@@ -110,7 +110,10 @@ public class StageDao extends Dao.LockingDao {
             if (stage != null)
                 stageStack.push(stage);
         }
-        FsEntry fsEntry = fsDao.getGenericById(stageStack.pop().getFsId());
+        FsEntry fsEntry = fsDao.getGenericById(stageStack.peek().getFsId());
+        if (fsEntry == null)
+            System.err.println("StageDao.getFileByStage");
+        stageStack.pop();
         File file = fsDao.getFileByFsFile(rootDirectory, fsEntry);
         StringBuilder path = new StringBuilder(file.getAbsolutePath());
         while (!stageStack.empty()) {
