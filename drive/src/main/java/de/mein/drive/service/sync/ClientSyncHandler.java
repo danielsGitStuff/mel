@@ -353,12 +353,25 @@ public class ClientSyncHandler extends SyncHandler {
             System.err.println("ClientSyncHandler.mergeStageSets.TOO MANY!!!1");
         if (stageSets.size() <= 1)
             return;
-        SyncStagesComparator comparator = (left, right) -> {
-            if (right!=null){
-                //todo continue
+        StageSet lStageSet = stageSets.get(0);
+        StageSet rStageSet = stageSets.get(1);
+        SyncStagesComparator comparator = new SyncStagesComparator(lStageSet.getId().v(), rStageSet.getId().v()) {
+            @Override
+            public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
+                if (right != null && left != null) {
+                    // move right to left, delete left
+                    right.getParentIdPair().v(left.getParentId());
+                    right.getStageSetPair().v(left.getStageSet());
+                    stageDao.deleteStageById(left.getId());
+                    stageDao.update(right);
+                } else if (right != null) {
+                    right.getStageSetPair().v(lStageSetId);
+                    stageDao.update(right);
+                }
             }
         };
-        iterateStageSets(stageSets.get(0),stageSets.get(1),comparator);
+        iterateStageSets(lStageSet, rStageSet, comparator);
+        stageDao.deleteStageSet(rStageSet.getId().v());
     }
 
     private void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStagesComparator comparator) throws SqlQueriesException {
@@ -369,6 +382,12 @@ public class ClientSyncHandler extends SyncHandler {
             Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), file);
             comparator.stuffFound(lStage, rStage);
             lStage = lStages.getNext();
+        }
+        ISQLResource<Stage> rStages = stageDao.getStagesResource(rStageSet.getId().v());
+        Stage rStage = rStages.getNext();
+        while (rStage != null) {
+            comparator.stuffFound(null, rStage);
+            rStage = rStages.getNext();
         }
     }
 

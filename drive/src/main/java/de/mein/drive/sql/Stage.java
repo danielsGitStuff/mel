@@ -22,7 +22,6 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private static final String DELETED = "deleted";
     private static final String STAGESET = "stageset";
     private static final String SIZE = "size";
-    private static final String FOUND = "found";
     private static final java.lang.String SYNCED = "synced";
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> parentId = new Pair<>(Long.class, PARENTID);
@@ -41,8 +40,6 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private Pair<Long> stageSet = new Pair<>(Long.class, STAGESET);
     private Pair<Long> size = new Pair<Long>(Long.class, SIZE);
     private Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);
-    @JsonIgnore
-    private Pair<Boolean> found = new Pair<>(Boolean.class, FOUND, false);
 
     public Stage() {
         init();
@@ -55,7 +52,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, iNode, modified, deleted, stageSet, size, synced, found);
+        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, iNode, modified, deleted, stageSet, size, synced);
         populateAll(id);
     }
 
@@ -68,9 +65,6 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         return this;
     }
 
-    public Boolean isFound() {
-        return found.v();
-    }
 
     public Long getParentId() {
         return parentId.v();
@@ -105,11 +99,6 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public Stage setName(String name) {
         this.name.v(name);
-        return this;
-    }
-
-    public Stage setFound(Boolean found) {
-        this.found.v(found);
         return this;
     }
 
