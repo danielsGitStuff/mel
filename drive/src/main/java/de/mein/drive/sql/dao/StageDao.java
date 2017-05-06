@@ -11,16 +11,19 @@ import de.mein.sql.SqlQueriesException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Created by xor on 11/20/16.
  */
 @SuppressWarnings("Duplicates")
 public class StageDao extends Dao.LockingDao {
+    private final FsDao fsDao;
     private DriveDatabaseManager driveDatabaseManager;
 
-    public StageDao(DriveDatabaseManager driveDatabaseManager, ISQLQueries ISQLQueries) {
-        super(ISQLQueries);
+    public StageDao(DriveDatabaseManager driveDatabaseManager, ISQLQueries isqlQueries, FsDao fsDao) {
+        super(isqlQueries);
+        this.fsDao = fsDao;
         this.driveDatabaseManager = driveDatabaseManager;
 
     }
@@ -98,10 +101,21 @@ public class StageDao extends Dao.LockingDao {
         return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId));
     }
 
-    public File getFileByStage(String rootPath, Stage lStage) {
-        Stage dummy = new Stage();
-
-        return null;
+    public File getFileByStage(RootDirectory rootDirectory, Stage stage) throws SqlQueriesException {
+        final Long stageSetId = stage.getId();
+        Stack<Stage> stageStack = new Stack<>();
+        stageStack.push(stage);
+        while (stage.getFsId() != null) {
+            stage = getStageById(stage.getParentId());
+            stageStack.push(stage);
+        }
+        FsEntry fsEntry = fsDao.getGenericById(stageStack.pop().getFsId());
+        File file = fsDao.getFileByFsFile(rootDirectory, fsEntry);
+        StringBuilder path = new StringBuilder(file.getAbsolutePath());
+        while (!stageStack.empty()) {
+            path.append(File.separator).append(stageStack.pop().getName());
+        }
+        return new File(path.toString());
     }
 
 

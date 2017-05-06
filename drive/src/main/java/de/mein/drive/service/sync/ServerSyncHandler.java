@@ -1,10 +1,11 @@
-package de.mein.drive.service;
+package de.mein.drive.service.sync;
 
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.StageSet;

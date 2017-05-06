@@ -5,7 +5,7 @@ import de.mein.auth.tools.Hash;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveServerService;
-import de.mein.drive.service.SyncHandler;
+import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.watchdog.IndexWatchdogListener;

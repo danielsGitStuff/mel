@@ -1,4 +1,4 @@
-package de.mein.drive.service;
+package de.mein.drive.service.sync;
 
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
@@ -6,6 +6,8 @@ import de.mein.drive.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.BashTools;
 import de.mein.drive.index.Indexer;
+import de.mein.drive.service.MeinDriveService;
+import de.mein.drive.service.WasteBin;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;

@@ -1,9 +1,8 @@
 package de.mein.drive.index;
 
-import de.mein.DeferredRunnable;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.service.SyncHandler;
+import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.watchdog.IndexWatchdogListener;

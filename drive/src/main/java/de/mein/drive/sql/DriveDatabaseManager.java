@@ -95,7 +95,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         }
 
         fsDao = new FsDao(this, sqlQueries);
-        stageDao = new StageDao(this, sqlQueries);
+        stageDao = new StageDao(this, sqlQueries, fsDao);
         transferDao = new TransferDao(sqlQueries);
         wasteDao = new WasteDao(sqlQueries);
         File driveSettingsFile = new File(workingDirectory.getAbsolutePath() + File.separator + "drive.settings.json");

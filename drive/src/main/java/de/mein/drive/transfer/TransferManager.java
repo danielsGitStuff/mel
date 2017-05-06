@@ -11,7 +11,7 @@ import de.mein.drive.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.service.SyncHandler;
+import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.service.WasteBin;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.TransferDetails;

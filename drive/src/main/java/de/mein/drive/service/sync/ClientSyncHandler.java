@@ -1,4 +1,4 @@
-package de.mein.drive.service;
+package de.mein.drive.service.sync;
 
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
@@ -10,6 +10,7 @@ import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.jobs.CommitJob;
+import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -352,13 +353,23 @@ public class ClientSyncHandler extends SyncHandler {
             System.err.println("ClientSyncHandler.mergeStageSets.TOO MANY!!!1");
         if (stageSets.size() <= 1)
             return;
-        StageSet lStageSet = stageSets.get(0);
-        StageSet rStageSet = stageSets.get(1);
+        SyncStagesComparator comparator = (left, right) -> {
+            if (right!=null){
+                //todo continue
+            }
+        };
+        iterateStageSets(stageSets.get(0),stageSets.get(1),comparator);
+    }
+
+    private void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStagesComparator comparator) throws SqlQueriesException {
         ISQLResource<Stage> lStages = stageDao.getStagesResource(lStageSet.getId().v());
         Stage lStage = lStages.getNext();
         while (lStage != null) {
-            File lFile = stageDao.getFileByStage(driveSettings.getRootDirectory().getPath(),lStage);
+            File file = stageDao.getFileByStage(driveSettings.getRootDirectory(), lStage);
+            Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), file);
+            comparator.stuffFound(lStage, rStage);
             lStage = lStages.getNext();
         }
     }
+
 }
