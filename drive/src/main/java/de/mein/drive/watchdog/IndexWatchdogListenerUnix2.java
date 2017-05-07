@@ -16,10 +16,11 @@ import java.util.List;
 @SuppressWarnings("Duplicates")
 class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
     // we
-    private final File timeReferenceFile = new File("time");
+    private UnixReferenceFileHandler unixReferenceFileHandler;
 
     IndexWatchdogListenerUnix2(MeinDriveService meinDriveService, WatchService watchService) {
         super(meinDriveService, "IndexWatchdogListenerUnix", watchService);
+        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(), new File(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
     }
 
     @Override
@@ -34,13 +35,10 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
     }
 
 
-
     @Override
     public void runImpl() {
         try {
-            if (timeReferenceFile.exists())
-                timeReferenceFile.delete();
-            timeReferenceFile.mkdirs();
+            unixReferenceFileHandler.onStart();
             /**
              * cause the WatchService sometimes confuses the WatchKeys when creating folders we have to go around that.
              * We will only process all "delete" and "modify" (cause they can be ongoing for some time) events directly.
@@ -69,7 +67,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
                         }
                         watchKey.reset();
                     }
-                }finally {
+                } finally {
                     ignoredSemaphore.release();
                 }
                 // reset the key
@@ -100,7 +98,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
              */
-            List<String> paths = BashTools.stuffModifiedAfter(timeReferenceFile, meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(), new File(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
+            List<String> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
             for (String p : paths) {
                 File f = new File(p);
@@ -108,8 +106,6 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
                     watchDirectory(f);
                 }
             }
-            timeReferenceFile.delete();
-            timeReferenceFile.mkdirs();
         } catch (IOException e) {
             e.printStackTrace();
         }
