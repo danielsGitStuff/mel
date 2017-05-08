@@ -17,7 +17,8 @@ import java.util.Stack;
  * Created by xor on 11/20/16.
  */
 @SuppressWarnings("Duplicates")
-public class StageDao extends Dao.LockingDao {
+public class
+StageDao extends Dao.LockingDao {
     private final FsDao fsDao;
     private DriveDatabaseManager driveDatabaseManager;
 

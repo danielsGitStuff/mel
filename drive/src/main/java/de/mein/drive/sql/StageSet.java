@@ -13,11 +13,13 @@ public class StageSet extends SQLTableObject {
     private static final String ORIGIN_CERT = "origincert";
     private static final String ORIGIN_SERVICE = "originservice";
     private static final String STATUS = "status";
+    private static final String CREATED = "created";
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<String> type = new Pair<>(String.class, TYPE);
     private Pair<Long> originCertId = new Pair<>(Long.class, ORIGIN_CERT);
     private Pair<String> originServiceUuid = new Pair<>(String.class, ORIGIN_SERVICE);
     private Pair<String> status = new Pair<>(String.class, STATUS);
+    private Pair<Long> created = new Pair<>(Long.class, CREATED);
 
     public StageSet() {
         init();
@@ -32,7 +34,7 @@ public class StageSet extends SQLTableObject {
     @Override
     protected void init() {
         populateInsert(type, originCertId, originServiceUuid, status);
-        populateAll(id);
+        populateAll(id, created);
     }
 
     public Pair<Long> getId() {
@@ -74,6 +76,10 @@ public class StageSet extends SQLTableObject {
     public StageSet setStatus(String status) {
         this.status.v(status);
         return this;
+    }
+
+    public Long getCreated() {
+        return created.v();
     }
 
     public Pair<String> getStatus() {

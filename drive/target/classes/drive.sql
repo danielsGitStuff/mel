@@ -43,13 +43,8 @@ CREATE TABLE stage (
   size        INTEGER,
   synced      INTEGER,
   FOREIGN KEY (parentid) REFERENCES stage (id),
-  FOREIGN KEY (stageset) REFERENCES stageset (id) ON DELETE CASCADE
-);
-CREATE TABLE stageset (
-  id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  type          TEXT,
-  origincert    INTEGER,
-  originservice TEXT
+  FOREIGN KEY (stageset) REFERENCES stageset (id)
+    ON DELETE CASCADE
 );
 CREATE INDEX sid
   ON stage (id);
@@ -69,6 +64,23 @@ CREATE INDEX sstageparent
   ON stage (fsid);
 CREATE INDEX sssssesion
   ON stage (stageSet);
+CREATE TABLE stageset (
+  id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  type          TEXT,
+  origincert    INTEGER,
+  originservice TEXT,
+  created       INTEGER
+);
+CREATE TRIGGER IF NOT EXISTS stageset1
+  AFTER
+  INSERT
+  ON stageset
+BEGIN
+  UPDATE stageset
+  SET created = current_timestamp
+  WHERE id = NEW.id;
+END;
+END;
 CREATE TABLE transfer (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   hash        TEXT    NOT NULL,
@@ -86,14 +98,18 @@ CREATE TABLE waste (
   inplace  INTEGER NOT NULL
 );
 CREATE TRIGGER IF NOT EXISTS stamp1
-AFTER INSERT ON waste
+  AFTER
+  INSERT
+  ON waste
 BEGIN
   UPDATE waste
   SET deleted = current_timestamp
   WHERE hash = NEW.hash;
 END;
 CREATE TRIGGER IF NOT EXISTS stamp2
-AFTER UPDATE ON waste
+  AFTER
+  UPDATE
+  ON waste
 BEGIN
   UPDATE waste
   SET deleted = current_timestamp
