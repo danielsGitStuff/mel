@@ -31,8 +31,8 @@ CREATE TABLE stage (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   parentid    INTEGER,
   fsid        INTEGER,
+  name        TEXT,
   fsparentId  INTEGER,
-  name        TEXT    NOT NULL,
   version     INTEGER,
   contentHash TEXT,
   dir         INTEGER NOT NULL,
@@ -42,8 +42,10 @@ CREATE TABLE stage (
   stageset    INTEGER NOT NULL,
   size        INTEGER,
   synced      INTEGER,
-  FOREIGN KEY (parentid) REFERENCES stage (id)
-    ON DELETE SET NULL,
+  merged      INTEGER,
+  ord         INTEGER NOT NULL,
+  UNIQUE (stageset, ord),
+  FOREIGN KEY (parentid) REFERENCES stage (id),
   FOREIGN KEY (stageset) REFERENCES stageset (id)
     ON DELETE CASCADE
 );
@@ -52,7 +54,8 @@ CREATE TABLE stageset (
   type          TEXT,
   origincert    INTEGER,
   originservice TEXT,
-  status        TEXT    NOT NULL
+  status        TEXT,
+  created       DATETIME                     DEFAULT (strftime('%s', 'now'))
 );
 CREATE INDEX sid
   ON stage (id);

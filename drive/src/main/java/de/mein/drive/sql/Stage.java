@@ -22,7 +22,9 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private static final String DELETED = "deleted";
     private static final String STAGESET = "stageset";
     private static final String SIZE = "size";
-    private static final java.lang.String SYNCED = "synced";
+    private static final String SYNCED = "synced";
+    private static final String MERGED = "merged";
+    private static final String ORDER = "ord";
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> parentId = new Pair<>(Long.class, PARENTID);
     private Pair<Long> fsId = new Pair<>(Long.class, FSID);
@@ -40,6 +42,9 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private Pair<Long> stageSet = new Pair<>(Long.class, STAGESET);
     private Pair<Long> size = new Pair<Long>(Long.class, SIZE);
     private Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);
+    @JsonIgnore
+    private Pair<Boolean> merged = new Pair<>(Boolean.class, MERGED, false);
+    private Pair<Long> order = new Pair<>(Long.class, ORDER);
 
     public Stage() {
         init();
@@ -52,7 +57,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, iNode, modified, deleted, stageSet, size, synced);
+        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, iNode, modified, deleted, stageSet, size, synced, merged, order);
         populateAll(id);
     }
 
@@ -65,6 +70,18 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         return this;
     }
 
+    public Boolean isMerged() {
+        return merged.v();
+    }
+
+    public Stage setMerged(boolean merged) {
+        this.merged.v(merged);
+        return this;
+    }
+
+    public Pair<Boolean> getMergedPair() {
+        return merged;
+    }
 
     public Long getParentId() {
         return parentId.v();
@@ -72,6 +89,19 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public Stage setParentId(Long parentId) {
         this.parentId.v(parentId);
+        return this;
+    }
+
+    public Pair<Long> getOrderPair() {
+        return order;
+    }
+
+    public Long getOrder() {
+        return order.v();
+    }
+
+    public Stage setOrder(Long order) {
+        this.order.v(order);
         return this;
     }
 
@@ -221,6 +251,21 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public Stage setSynced(Boolean synced) {
         this.synced.v(synced);
+        return this;
+    }
+
+    public Stage mergeValuesFrom(Stage source) {
+        version.v(source.getVersion());
+        name.v(source.getName());
+        modified.v(source.getModified());
+        iNode.v(source.getiNode());
+        contentHash.v(source.getContentHash());
+        isDirectory.v(source.getIsDirectory());
+        size.v(source.getSize());
+        deleted.v(source.getDeleted());
+        synced.v(source.getSynced());
+        fsId.v(source.getFsId());
+        fsParentId.v(source.getFsParentId());
         return this;
     }
 }

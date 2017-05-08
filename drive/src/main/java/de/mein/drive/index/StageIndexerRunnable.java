@@ -1,6 +1,7 @@
 package de.mein.drive.index;
 
 import de.mein.auth.tools.Hash;
+import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.sql.*;
@@ -25,6 +26,7 @@ public class StageIndexerRunnable implements Runnable {
     private final FsDao fsDao;
     private final PathCollection pathCollection;
     private StageIndexer.StagingDoneListener stagingDoneListener;
+    private Order order = new Order();
 //    private Deferred<StageIndexerRunnable, Exception, Void> promise = new DeferredObject<>();
 
     public StageIndexerRunnable(DriveDatabaseManager databaseManager, PathCollection pathCollection) {
@@ -126,6 +128,7 @@ public class StageIndexerRunnable implements Runnable {
                             File exists = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), fsParent);
                             stageParent.setDeleted(!exists.exists());
                         }
+                        stageParent.setOrder(order.ord());
                         stageDao.insert(stageParent);
                     }
                     stage.setParentId(stageParent.getId());
@@ -140,6 +143,7 @@ public class StageIndexerRunnable implements Runnable {
                     stage.setDeleted(!f.exists());
                     if (!stage.getIsDirectory())
                         stage.setSynced(true);
+                    stage.setOrder(order.ord());
                     stageDao.insert(stage);
                 } catch (Exception e) {
                     System.err.println("MeinDriveServerService.doFsSyncJob: " + path);
@@ -209,6 +213,7 @@ public class StageIndexerRunnable implements Runnable {
                         .setStageSet(stageSetId)
                         .setDeleted(false);
                 this.updateFileStage(subStage, subFile);
+                subStage.setOrder(order.ord());
                 stageDao.insert(subStage);
             }
         }
@@ -228,6 +233,7 @@ public class StageIndexerRunnable implements Runnable {
                         .setName(subDir.getName())
                         .setIsDirectory(true);
                 System.out.println("StageIndexerRunnable.roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
+                subStage.setOrder(order.ord());
                 stageDao.insert(subStage);
                 roamDirectoryStage(subStage, subDir);
             }

@@ -2,6 +2,7 @@ package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.tools.Hash;
+import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveServerService;
@@ -30,6 +31,7 @@ public class IndexerRunnable extends DeferredRunnable {
     private IndexPersistence indexPersistence;
     private RootDirectory rootDirectory;
     private String transferDirectoryPath;
+    private Order ord = new Order();
 
     /**
      * the @IndexWatchdogListener is somewhat special. we need it elsewhere
@@ -156,7 +158,8 @@ public class IndexerRunnable extends DeferredRunnable {
                         .setiNode(nodeAndTime.getInode())
                         .setModified(nodeAndTime.getModifiedTime())
                         .setDeleted(false)
-                        .setSynced(true);
+                        .setSynced(true)
+                        .setOrder(ord.ord());
                 if (dbDirectory != null) {
                     stage.setFsId(dbDirectory.getId().v())
                             .setFsParentId(dbDirectory.getParentId().v())
@@ -167,6 +170,7 @@ public class IndexerRunnable extends DeferredRunnable {
                 } else if (parentStage != null) {
                     stage.setParentId(parentStage.getId());
                 }
+
                 databaseManager.getStageDao().insert(stage);
             }
 
@@ -179,6 +183,7 @@ public class IndexerRunnable extends DeferredRunnable {
                     if (dbFile == null || (dbFile != null && !dbFile.getContentHash().v().equals(md5))) {
                         Stage fStage = fsFile2Stage(fs, fNodeTime, md5, stageSetId);
                         fStage.setFsParentId(dbDirectory.getId().v());
+                        fStage.setOrder(ord.ord());
                         if (dbFile != null) {
                             fStage.setFsId(dbFile.getId().v());
                             fStage.setVersion(dbFile.getVersion().v());
@@ -190,6 +195,7 @@ public class IndexerRunnable extends DeferredRunnable {
                     Stage fStage = fsFile2Stage(fs, fNodeTime, md5, stageSetId);
                     fStage.setParentId(stage.getId());
                     fStage.setVersion(stage.getVersion());
+                    fStage.setOrder(ord.ord());
                     databaseManager.getStageDao().insert(fStage);
                 }
 

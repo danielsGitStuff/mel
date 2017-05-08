@@ -5,6 +5,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.Order;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
@@ -89,6 +90,7 @@ public class ClientSyncHandler extends SyncHandler {
     public Promise<Long, Void, Void> sync(SyncTask syncTask) throws SqlQueriesException, InterruptedException {
         DeferredObject<Void, Void, Void> communicationDone = new DeferredObject<>();
         DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
+        Order order = new Order();
         List<GenericFSEntry> entries = syncTask.getResult();
         if (entries == null) {
             finished.resolve(null);
@@ -99,6 +101,7 @@ public class ClientSyncHandler extends SyncHandler {
         // stage first
         for (GenericFSEntry genericFSEntry : entries) {
             Stage stage = generic2Stage(genericFSEntry, stageSet.getId().v());
+            stage.setOrder(order.ord());
             stageDao.insert(stage);
         }
         // check if something was deleted
@@ -174,6 +177,7 @@ public class ClientSyncHandler extends SyncHandler {
                             // genSub shall be deleted
                             Stage stage = generic2Stage(genSub, stageSet.getId().v());
                             stage.setDeleted(true);
+                            stage.setOrder(order.ord());
                             stageDao.insert(stage);
                         }
                     }
@@ -347,6 +351,12 @@ public class ClientSyncHandler extends SyncHandler {
         System.out.println("ClientSyncHandler.checkConflicts.NOT:IMPLEMNETED:YET");
     }
 
+    /**
+     * merges two {@link StageSet}s to a new one
+     *
+     * @param stageSets
+     * @throws SqlQueriesException
+     */
     private void mergeStageSets(List<StageSet> stageSets) throws SqlQueriesException {
         System.out.println("ClientSyncHandler.mergeStageSets");
         if (stageSets.size() > 2)
@@ -355,19 +365,57 @@ public class ClientSyncHandler extends SyncHandler {
             return;
         StageSet lStageSet = stageSets.get(0);
         StageSet rStageSet = stageSets.get(1);
+        StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_MERGED, null, null);
+        final Long mStageSetId = mStageSet.getId().v();
         SyncStagesComparator comparator = new SyncStagesComparator(lStageSet.getId().v(), rStageSet.getId().v()) {
+            private Order order = new Order();
+
             @Override
             public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
-                if (right != null && left != null) {
-                    // move right to left, delete left
-                    stageDao.deleteStageById(right.getId());
-                    right.getParentIdPair().v(left.getParentId());
-                    right.getStageSetPair().v(left.getStageSet());
-                    right.getIdPair().v(left.getId());
-                    stageDao.update(right);
-                } else if (right != null) {
-                    right.getStageSetPair().v(lStageSetId);
-                    stageDao.update(right);
+                if (left != null) {
+                    if (right != null) {
+                        Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                        stage.mergeValuesFrom(right);
+                        stageDao.insert(stage);
+                        stageDao.flagMerged(right.getId(), true);
+                    } else {
+                        Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                        stage.mergeValuesFrom(left);
+                        stageDao.insert(stage);
+                    }
+                } else {
+                    if (right != null) {
+                        if (right.getParentId() == null) {
+                            // stage is completely unconnected to whatever is on the left side
+                            Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                            stage.mergeValuesFrom(right);
+                            stageDao.insert(stage);
+                            stageDao.flagMerged(right.getId(), true);
+                        } else {
+                            /**
+                             * We're iterating top down through the StageSet.
+                             * We probably will find the parent on the left side and therefore have
+                             * to "attach" our new left Stage to it.
+                             */
+                            Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                            stage.mergeValuesFrom(right);
+                            if (right.getParentId() == null) {
+                                stageDao.insert(stage);
+                            } else {
+                                Stage rParent = stageDao.getStageById(right.getParentId());
+                                File rParentFile = stageDao.getFileByStage(rParent);
+                                Stage lParent = stageDao.getStageByPath(mStageSetId, rParentFile);
+                                if (lParent != null) {
+                                    stage.setParentId(lParent.getId());
+                                } else {
+                                    System.err.println("ClientSyncHandler.stuffFound.8c8h38h9");
+                                }
+                                stageDao.insert(stage);
+                            }
+                        }
+                    } else {
+
+                    }
                 }
             }
         };
@@ -375,16 +423,27 @@ public class ClientSyncHandler extends SyncHandler {
         stageDao.deleteStageSet(rStageSet.getId().v());
     }
 
+    /**
+     * iterates over the left {@link StageSet} first and finds
+     * relating entries in the right {@link StageSet} and flags everything it finds (in the right StageSet).
+     * Afterwards it iterates over all non flagged {@link Stage}s of the right {@link StageSet}.
+     * Iteration is in order of the Stages insertion.
+     *
+     * @param lStageSet
+     * @param rStageSet
+     * @param comparator
+     * @throws SqlQueriesException
+     */
     private void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStagesComparator comparator) throws SqlQueriesException {
         ISQLResource<Stage> lStages = stageDao.getStagesResource(lStageSet.getId().v());
         Stage lStage = lStages.getNext();
         while (lStage != null) {
-            File file = stageDao.getFileByStage(driveSettings.getRootDirectory(), lStage);
+            File file = stageDao.getFileByStage(lStage);
             Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), file);
             comparator.stuffFound(lStage, rStage);
             lStage = lStages.getNext();
         }
-        ISQLResource<Stage> rStages = stageDao.getStagesResource(rStageSet.getId().v());
+        ISQLResource<Stage> rStages = stageDao.getNotFoundStagesResource(rStageSet.getId().v());
         Stage rStage = rStages.getNext();
         while (rStage != null) {
             comparator.stuffFound(null, rStage);

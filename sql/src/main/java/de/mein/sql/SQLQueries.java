@@ -318,16 +318,16 @@ public class SQLQueries extends ISQLQueries {
     /**
      * see loadString... duplicate? nope
      *
-     * @param query
+     * @param statement
      * @param whereArgs
      * @return
      * @throws SqlQueriesException
      */
     @Override
-    public void execute(String query, List<Object> whereArgs) throws SqlQueriesException {
+    public void execute(String statement, List<Object> whereArgs) throws SqlQueriesException {
         lockRead();
         try {
-            PreparedStatement pstmt = connection.prepareStatement(query);
+            PreparedStatement pstmt = connection.prepareStatement(statement);
             if (whereArgs != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs, 1);
             }

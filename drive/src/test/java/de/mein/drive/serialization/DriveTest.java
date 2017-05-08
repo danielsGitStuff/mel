@@ -143,7 +143,7 @@ public class DriveTest {
                     System.out.println("DriveTest.onSyncDoneImpl");
                     N.r(() -> {
                         if (!file2.exists())
-                            TestFileCreator.saveFile("newfile.2".getBytes(), file2);
+                            TestFileCreator.saveFile("newfile.2".getBytes(), file1);
                     });
                 }
                 System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);

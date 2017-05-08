@@ -96,13 +96,30 @@ StageDao extends Dao.LockingDao {
         return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_TYPE_FROM_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
     }
 
+    /**
+     * @param stageSetId
+     * @return SQLResource ordered by "created" timestamp
+     * @throws SqlQueriesException
+     */
     public ISQLResource<Stage> getStagesResource(Long stageSetId) throws SqlQueriesException {
         Stage stage = new Stage();
-        String where = stage.getStageSetPair().k() + "=?";
+        String where = stage.getStageSetPair().k() + "=? order by " + stage.getOrderPair().k();
         return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId));
     }
 
-    public File getFileByStage(RootDirectory rootDirectory, Stage stage) throws SqlQueriesException {
+    /**
+     * @param stageSetId
+     * @return SQLResource ordered by "created" timestamp
+     * @throws SqlQueriesException
+     */
+    public ISQLResource<Stage> getNotFoundStagesResource(Long stageSetId) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String where = stage.getStageSetPair().k() + "=? and " + stage.getMergedPair().k() + "=? order by " + stage.getOrderPair().k();
+        return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId, false));
+    }
+
+    public File getFileByStage(Stage stage) throws SqlQueriesException {
+        RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
         final Long stageSetId = stage.getId();
         Stack<Stage> stageStack = new Stack<>();
         stageStack.push(stage);
@@ -340,5 +357,12 @@ StageDao extends Dao.LockingDao {
         args.add(false);
         String where = stage.getStageSetPair().k() + "=? and " + stage.getIsDirectoryPair().k() + "=?";
         return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, args);
+    }
+
+    public void flagMerged(Long stageId, Boolean found) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String statement = "update " + stage.getTableName() + " set " + stage.getMergedPair().k() + "=? " +
+                "where " + stage.getIdPair().k() + "=?";
+        sqlQueries.execute(statement, ISQLQueries.whereArgs(found, stageId));
     }
 }

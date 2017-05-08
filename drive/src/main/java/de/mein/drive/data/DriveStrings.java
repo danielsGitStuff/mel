@@ -23,6 +23,7 @@ public abstract class DriveStrings {
     public static final int DB_VERSION = 1;
     public static final String STAGESET_TYPE_STARTUP_INDEX = "startup";
     public static final String STAGESET_TYPE_FS = "fs";
+    public static final String STAGESET_TYPE_MERGED = "merged";
     public static final String STAGESET_TYPE_FROM_SERVER = "from server";
     public static final String STAGESET_TYPE_FROM_CLIENT = "from client";
     public static final String STAGESET_STATUS_STAGING = "staging";

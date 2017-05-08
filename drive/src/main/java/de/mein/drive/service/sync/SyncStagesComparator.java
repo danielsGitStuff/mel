@@ -10,9 +10,17 @@ public abstract class SyncStagesComparator {
     protected final Long lStageSetId;
     protected final Long rStageSetId;
 
+    /**
+     * is called with two Stages which reference the same logical File or Directory
+     *
+     * @param left
+     * @param right
+     * @throws SqlQueriesException
+     */
     public abstract void stuffFound(Stage left, Stage right) throws SqlQueriesException;
-    public SyncStagesComparator(Long lStageSetId, Long rStageSetId){
-        this.lStageSetId=lStageSetId;
-        this.rStageSetId=rStageSetId;
+
+    public SyncStagesComparator(Long lStageSetId, Long rStageSetId) {
+        this.lStageSetId = lStageSetId;
+        this.rStageSetId = rStageSetId;
     }
 }

@@ -1,19 +1,13 @@
 package de.mein.execute;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Scanner;
-
 import de.mein.core.serialize.serialize.tools.StringBuilder;
-import de.mein.sql.ISQLQueries;
 import de.mein.sql.SQLStatement;
 import de.mein.sql.con.SQLConnection;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.Scanner;
 
 /**
  * Created by xor on 3/28/16.
@@ -72,9 +66,13 @@ public class SqliteExecutor {
                                 append(line);
                             this.statement = b.toString();
                             debug.append(statement).append("\n");
-                            SQLStatement st = connection.prepareStatement(statement);
-                            st.execute();
-                            st.close();
+                            try {
+                                SQLStatement st = connection.prepareStatement(statement);
+                                st.execute();
+                                st.close();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                             b = new StringBuilder();
                         } else {
                             if (!ap)

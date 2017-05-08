@@ -42,6 +42,8 @@ CREATE TABLE stage (
   stageset    INTEGER NOT NULL,
   size        INTEGER,
   synced      INTEGER,
+  created     DATETIME                     DEFAULT current_timestamp,
+  merged       INTEGER,
   FOREIGN KEY (parentid) REFERENCES stage (id),
   FOREIGN KEY (stageset) REFERENCES stageset (id)
     ON DELETE CASCADE
