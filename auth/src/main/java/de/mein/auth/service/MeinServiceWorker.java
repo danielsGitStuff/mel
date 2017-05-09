@@ -3,6 +3,7 @@ package de.mein.auth.service;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -14,8 +15,8 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     protected LinkedList<Job> jobs = new LinkedList<>();
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
 
-    public MeinServiceWorker(MeinAuthService meinAuthService) {
-        super(meinAuthService);
+    public MeinServiceWorker(MeinAuthService meinAuthService, File workingDirectory) {
+        super(meinAuthService, workingDirectory);
     }
 
     @Override

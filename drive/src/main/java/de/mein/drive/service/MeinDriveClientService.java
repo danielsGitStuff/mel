@@ -12,6 +12,7 @@ import de.mein.drive.service.sync.ClientSyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.sql.SqlQueriesException;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -24,8 +25,8 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     private static Logger logger = Logger.getLogger(MeinDriveClientService.class.getName());
     private DriveSyncListener syncListener;
 
-    public MeinDriveClientService(MeinAuthService meinAuthService) {
-        super(meinAuthService);
+    public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory) {
+        super(meinAuthService, workingDirectory);
     }
 
     private Set<Thread> threads = new HashSet<>();

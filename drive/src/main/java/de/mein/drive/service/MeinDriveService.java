@@ -50,8 +50,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected S syncHandler;
     private WasteBin wasteBin;
 
-    public MeinDriveService(MeinAuthService meinAuthService) {
-        super(meinAuthService);
+    public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory) {
+        super(meinAuthService, workingDirectory);
     }
 
     @Override

@@ -413,14 +413,13 @@ public class ClientSyncHandler extends SyncHandler {
                                 stageDao.insert(stage);
                             }
                         }
-                    } else {
-
                     }
                 }
             }
         };
         iterateStageSets(lStageSet, rStageSet, comparator);
         stageDao.deleteStageSet(rStageSet.getId().v());
+        stageDao.deleteStageSet(lStageSet.getId().v());
     }
 
     /**

@@ -10,15 +10,19 @@ import java.util.List;
  * Created by xor on 5/7/17.
  */
 public class UnixReferenceFileHandler {
-    private final File directory;
+    private final File directoryToQuery;
     private final File pruneDir;
+    private final File workingDirectory;
     private boolean refOnFile1 = true;
-    private File timeReferenceFile1 = new File("time1");
-    private File timeReferenceFile2 = new File("time2");
+    private final File timeReferenceFile1;
+    private final File timeReferenceFile2;
 
-    public UnixReferenceFileHandler(File directory, File pruneDir) {
-        this.directory = directory;
+    public UnixReferenceFileHandler(File workingDirectory, File directoryToQuery, File pruneDir) {
+        this.directoryToQuery = directoryToQuery;
         this.pruneDir = pruneDir;
+        this.workingDirectory = workingDirectory;
+        timeReferenceFile1 = new File(workingDirectory.getAbsolutePath() + File.separator + "time1");
+        timeReferenceFile2 = new File(workingDirectory.getAbsolutePath() + File.separator + "time2");
     }
 
     public void onStart() {
@@ -40,6 +44,6 @@ public class UnixReferenceFileHandler {
         refOnFile1 = !refOnFile1;
         otherFile.delete();
         otherFile.mkdirs();
-        return BashTools.stuffModifiedAfter(refFile, directory, pruneDir);
+        return BashTools.stuffModifiedAfter(refFile, directoryToQuery, pruneDir);
     }
 }

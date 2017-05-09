@@ -5,13 +5,15 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.val.Request;
 
+import java.io.File;
+
 /**
  * Created by xor on 12/15/16.
  */
 public class MeinTestService extends MeinServiceWorker {
 
-    public MeinTestService(MeinAuthService meinAuthService) {
-        super(meinAuthService);
+    public MeinTestService(MeinAuthService meinAuthService, File workingDirectory) {
+        super(meinAuthService, workingDirectory);
     }
 
     @Override
@@ -33,7 +35,6 @@ public class MeinTestService extends MeinServiceWorker {
     public void handleCertificateSpotted(Certificate partnerCertificate) {
         System.out.println("MeinTestService.handleCertificateSpotted");
     }
-
 
 
     @Override

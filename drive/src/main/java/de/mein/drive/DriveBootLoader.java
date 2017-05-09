@@ -41,13 +41,11 @@ public class DriveBootLoader extends BootLoader {
     }
 
     @Override
-    public void boot(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public void boot(MeinAuthService meinAuthService,List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         for (Service service : services) {
             N.r(() -> {
                 File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v() + File.separator + "drive.settings.json");
-
                 DriveSettings driveSettings = (DriveSettings) JsonSettings.load(jsonFile);
-                //driveSettings.getRootDirectory().setOriginalFile(new File(driveSettings.getRootDirectory().getPath()));*/
                 boot(meinAuthService, service, driveSettings);
             });
 
@@ -57,8 +55,9 @@ public class DriveBootLoader extends BootLoader {
     public void boot(MeinAuthService meinAuthService, Service service, DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
         ServiceType type = databaseManager.getServiceTypeByName(getName());
+        File workingDirectoy = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
         MeinDriveService meinDriveService = (driveSettings.isServer()) ?
-                new MeinDriveServerService(meinAuthService) : new MeinDriveClientService(meinAuthService);
+                new MeinDriveServerService(meinAuthService, workingDirectoy) : new MeinDriveClientService(meinAuthService, workingDirectoy);
         meinDriveService.setUuid(service.getUuid().v());
         meinAuthService.registerMeinService(meinDriveService);
         meinAuthService.execute(meinDriveService);

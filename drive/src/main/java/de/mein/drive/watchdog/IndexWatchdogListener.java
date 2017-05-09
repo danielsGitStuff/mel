@@ -30,7 +30,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     protected PathCollection pathCollection = new PathCollection();
     protected Map<String, Integer> ignoredMap = new ConcurrentHashMap<>();
     protected Semaphore ignoredSemaphore = new Semaphore(1, true);
-    protected String workingDirectoryPath;
+    protected String transferDirectoryPath;
     protected StageIndexer stageIndexer;
     private static WatchDogRunner watchDogRunner = meinDriveService1 -> {
         WatchService watchService1 = null;
@@ -140,8 +140,8 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         ignoredSemaphore.release();
     }
 
-    public IndexWatchdogListener setWorkingDirectoryPath(String workingDirectoryPath) {
-        this.workingDirectoryPath = workingDirectoryPath;
+    public IndexWatchdogListener setTransferDirectoryPath(String transferDirectoryPath) {
+        this.transferDirectoryPath = transferDirectoryPath;
         return this;
     }
 

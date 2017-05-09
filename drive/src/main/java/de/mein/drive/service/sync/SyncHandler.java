@@ -53,7 +53,7 @@ public abstract class SyncHandler {
     protected File moveFile(File source, FsFile fsTarget) throws SqlQueriesException, IOException {
         File target = null;
         try {
-            fsDao.lockWrite();
+            //fsDao.lockWrite();
             target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
             System.out.println("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
             // check if there already is a file & delete
@@ -88,7 +88,7 @@ public abstract class SyncHandler {
         } catch (Exception e) {
 
         } finally {
-            fsDao.unlockWrite();
+            //fsDao.unlockWrite();
         }
         return target;
     }
@@ -100,7 +100,7 @@ public abstract class SyncHandler {
      */
     public void onFileTransferred(File file, String hash) throws SqlQueriesException, IOException {
         try {
-            fsDao.lockRead();
+            fsDao.lockWrite();
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             if (fsFiles.size() > 0) {
                 // todo check if file in wastebin, if so, tell wastebin to move it
@@ -124,7 +124,7 @@ public abstract class SyncHandler {
         }catch (Exception e){
             e.printStackTrace();
         }finally {
-            fsDao.unlockRead();
+            fsDao.unlockWrite();
         }
 
     }

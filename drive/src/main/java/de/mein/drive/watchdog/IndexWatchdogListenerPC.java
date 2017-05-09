@@ -3,7 +3,6 @@ package de.mein.drive.watchdog;
 import de.mein.auth.tools.N;
 import de.mein.drive.service.MeinDriveService;
 
-import java.io.File;
 import java.nio.file.*;
 
 /**
@@ -20,7 +19,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
         this.watchService = watchService;
         this.meinDriveService = meinDriveService;
         this.setStageIndexer(meinDriveService.getStageIndexer());
-        this.workingDirectoryPath = meinDriveService.getDriveSettings().getTransferDirectoryPath();
+        this.transferDirectoryPath = meinDriveService.getDriveSettings().getTransferDirectoryPath();
     }
 
 

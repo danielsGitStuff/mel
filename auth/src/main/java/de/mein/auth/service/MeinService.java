@@ -1,9 +1,8 @@
 package de.mein.auth.service;
 
-import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
-import de.mein.auth.boot.MeinBoot;
 
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -13,14 +12,20 @@ import java.util.concurrent.Executors;
  * Created by xor on 5/2/16.
  */
 public abstract class MeinService extends MeinWorker implements IMeinService {
+    protected final File serviceInstanceWorkingDirectory;
     protected MeinAuthService meinAuthService;
     protected Integer id;
     protected String uuid;
     protected ExecutorService executorService;
 
-    public MeinService(MeinAuthService meinAuthService) {
+    public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory) {
         this.meinAuthService = meinAuthService;
         this.executorService = Executors.newCachedThreadPool();
+        this.serviceInstanceWorkingDirectory = serviceInstanceWorkingDirectory;
+    }
+
+    public File getServiceInstanceWorkingDirectory() {
+        return serviceInstanceWorkingDirectory;
     }
 
     public Integer getId() {
@@ -36,7 +41,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         return getClass().getSimpleName() + "." + meinAuthService.getName();
     }
 
-    public void execute(MeinRunnable runnable){
+    public void execute(MeinRunnable runnable) {
         // todo debug
         meinAuthService.execute(runnable);
         //executorService.execute(runnable);
@@ -44,7 +49,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
 
     @Override
     public String getRunnableName() {
-        return getClass().getSimpleName()+" for "+meinAuthService.getName();
+        return getClass().getSimpleName() + " for " + meinAuthService.getName();
     }
 
     public void setUuid(String uuid) {

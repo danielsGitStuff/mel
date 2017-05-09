@@ -6,6 +6,7 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -27,8 +28,8 @@ public class MeinTestBootloader extends BootLoader {
     }
 
     @Override
-    public void boot(MeinAuthService meinAuthService, List<Service> serviceIdWorkingDirMap) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
-        MeinTestService testService = new MeinTestService(meinAuthService);
+    public void boot(MeinAuthService meinAuthService , List<Service> serviceIdWorkingDirMap) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+        MeinTestService testService = new MeinTestService(meinAuthService, new File("testworkingdir"));
         testService.setUuid("test uuid no. " + count++);
         meinAuthService.registerMeinService(testService);
     }

@@ -52,8 +52,13 @@ public class BashTools {
 
 
     public static List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "find \"" + directory.getAbsolutePath() + "\" -mindepth 1 -newer \"" + referenceFile.getAbsolutePath() + "\""
-                + " -prune \"" + pruneDir + "\""};
+        // this somehow stopped working :/
+        //        String[] args = new String[]{BIN_PATH, "-c", "find \"" + directory.getAbsolutePath() + "\" -mindepth 1 -newer \"" + referenceFile.getAbsolutePath() + "\""
+        //                + " -prune \"" + pruneDir + "\""};
+        String[] args = new String[]{BIN_PATH, "-c",
+                "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
+                        + " -path \"" + pruneDir + "\" -prune"
+                        + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print"};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String res = null;

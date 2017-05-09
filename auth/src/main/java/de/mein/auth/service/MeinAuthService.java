@@ -432,4 +432,8 @@ public class MeinAuthService   {
     public void addMeinSocket(MeinSocket meinSocket) {
         sockets.add(meinSocket);
     }
+
+    public MeinBoot getMeinBoot() {
+        return meinBoot;
+    }
 }

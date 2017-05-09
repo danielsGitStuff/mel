@@ -16,6 +16,7 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.SqlQueriesException;
 
+import java.io.File;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,8 +27,8 @@ import java.util.logging.Logger;
 public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> {
     private static Logger logger = Logger.getLogger(MeinDriveServerService.class.getName());
 
-    public MeinDriveServerService(MeinAuthService meinAuthService) {
-        super(meinAuthService);
+    public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory) {
+        super(meinAuthService, workingDirectory);
     }
 
 

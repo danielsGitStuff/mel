@@ -1,7 +1,6 @@
 package de.mein.drive.watchdog;
 
 import de.mein.drive.data.PathCollection;
-import de.mein.drive.index.BashTools;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
@@ -20,7 +19,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
 
     IndexWatchdogListenerUnix2(MeinDriveService meinDriveService, WatchService watchService) {
         super(meinDriveService, "IndexWatchdogListenerUnix", watchService);
-        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(), new File(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
+        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(), new File(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
     }
 
     @Override
@@ -53,7 +52,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
                     for (WatchEvent<?> event : watchKey.pollEvents()) {
                         Path eventPath = (Path) event.context();
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
-                        if (!absolutePath.startsWith(workingDirectoryPath)) {
+                        if (!absolutePath.startsWith(transferDirectoryPath)) {
                             File file = new File(absolutePath);
                             System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
