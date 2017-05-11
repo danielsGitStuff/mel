@@ -385,12 +385,16 @@ public class ClientSyncHandler extends SyncHandler {
                         idMapRight.put(right.getId(), stage.getId());
                         stageDao.flagMerged(right.getId(), true);
                     } else {
-                        Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
-                        stage.mergeValuesFrom(left);
-                        if (idMapLeft.containsKey(left.getParentId()))
-                            stage.setParentId(idMapLeft.get(left.getParentId()));
-                        stageDao.insert(stage);
-                        idMapLeft.put(left.getId(), stage.getId());
+                        // only merge if file exists
+                        File fLeft = stageDao.getFileByStage(left);
+                        if (fLeft.exists()) {
+                            Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                            stage.mergeValuesFrom(left);
+                            if (idMapLeft.containsKey(left.getParentId()))
+                                stage.setParentId(idMapLeft.get(left.getParentId()));
+                            stageDao.insert(stage);
+                            idMapLeft.put(left.getId(), stage.getId());
+                        }
                     }
                 } else {
                     if (right != null) {
