@@ -1,10 +1,9 @@
-package de.mein.drive.index;
+package de.mein.drive.watchdog;
 
 import de.mein.drive.data.PathCollection;
+import de.mein.drive.index.BackgroundExecutor;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.sql.SqlQueriesException;
-
-import org.jdeferred.Deferred;
 
 import java.util.concurrent.Executors;
 

@@ -92,6 +92,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
     @Override
     public void onTimerStopped() {
         System.out.println("IndexWatchdogListener.onTimerStopped");
+        PathCollection pathCollection = new PathCollection();
         try {
             /**
              * we cannot retrieve all newly created things, so we have to do it now.

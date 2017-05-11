@@ -4,7 +4,6 @@ import com.sun.nio.file.ExtendedWatchEventModifier;
 import de.mein.DeferredRunnable;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.ICrawlerListener;
-import de.mein.drive.index.StageIndexer;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.watchdog.timer.WatchDogTimer;

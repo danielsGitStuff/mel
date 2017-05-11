@@ -67,9 +67,6 @@ public class BashTools {
             proc.waitFor();
             reader.lines().forEach(result::add);
             return result;
-            //res = reader.readLine();
-            //System.out.println("BashTools.stuffModifiedAfter.parsing: " + res);
-            //String[] s = res.split(" ");
         } catch (InterruptedException e) {
             System.err.println("string I got from bash: " + res);
             e.printStackTrace();
