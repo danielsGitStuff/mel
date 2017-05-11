@@ -397,7 +397,26 @@ public class ClientSyncHandler extends SyncHandler {
                             stageDao.insert(stage);
                             stageDao.flagMerged(right.getId(), true);
                         } else {
-                            System.err.println("ClientSyncHandler.stuffFound.fe0546hr");
+                            /**
+                             * We're iterating top down through the StageSet.
+                             * We probably will find the parent on the left side and therefore have
+                             * to "attach" our new left Stage to it.
+                             */
+                            Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                            stage.mergeValuesFrom(right);
+                            if (right.getParentId() == null) {
+                                stageDao.insert(stage);
+                            } else {
+                                Stage rParent = stageDao.getStageById(right.getParentId());
+                                File rParentFile = stageDao.getFileByStage(rParent);
+                                Stage lParent = stageDao.getStageByPath(mStageSetId, rParentFile);
+                                if (lParent != null) {
+                                    stage.setParentId(lParent.getId());
+                                } else {
+                                    System.err.println("ClientSyncHandler.stuffFound.8c8h38h9");
+                                }
+                                stageDao.insert(stage);
+                            }
                         }
                     }
                 }
@@ -406,8 +425,7 @@ public class ClientSyncHandler extends SyncHandler {
         iterateStageSets(lStageSet, rStageSet, comparator);
         stageDao.deleteStageSet(rStageSet.getId().v());
         stageDao.deleteStageSet(lStageSet.getId().v());
-        // change it back to fs
-        stageDao.updateStageSet(mStageSet.setType(DriveStrings.STAGESET_TYPE_FS).setStatus(DriveStrings.STAGESET_STATUS_STAGED));
+        stageDao.updateStageSet(mStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED).setType(DriveStrings.STAGESET_TYPE_FS));
     }
 
     /**
