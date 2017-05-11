@@ -369,7 +369,8 @@ public class ClientSyncHandler extends SyncHandler {
         final Long mStageSetId = mStageSet.getId().v();
         SyncStagesComparator comparator = new SyncStagesComparator(lStageSet.getId().v(), rStageSet.getId().v()) {
             private Order order = new Order();
-            private Map<Long, Long> idMap = new HashMap<>();
+            private Map<Long, Long> idMapRight = new HashMap<>();
+            private Map<Long, Long> idMapLeft = new HashMap<>();
 
             @Override
             public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
@@ -378,15 +379,18 @@ public class ClientSyncHandler extends SyncHandler {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
                         stage.mergeValuesFrom(right);
                         // do not forget to relate to the parent!
-                        if (idMap.containsKey(right.getParentId()))
-                            stage.setParentId(idMap.get(right.getParentId()));
+                        if (idMapRight.containsKey(right.getParentId()))
+                            stage.setParentId(idMapRight.get(right.getParentId()));
                         stageDao.insert(stage);
-                        idMap.put(right.getId(), stage.getId());
+                        idMapRight.put(right.getId(), stage.getId());
                         stageDao.flagMerged(right.getId(), true);
                     } else {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
                         stage.mergeValuesFrom(left);
+                        if (idMapLeft.containsKey(left.getParentId()))
+                            stage.setParentId(idMapLeft.get(left.getParentId()));
                         stageDao.insert(stage);
+                        idMapLeft.put(left.getId(), stage.getId());
                     }
                 } else {
                     if (right != null) {
