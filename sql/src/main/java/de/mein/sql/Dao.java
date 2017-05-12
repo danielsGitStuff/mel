@@ -25,12 +25,53 @@ public abstract class Dao {
     }
 
 
+//    /**
+//     * Created by xor on 11/25/16.
+//     */
+//    public static class LockingDao extends ConnectionLockingDao {
+//
+//        protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
+//
+//        public LockingDao(ISQLQueries ISQLQueries) {
+//            super(ISQLQueries);
+//        }
+//
+//        public LockingDao(ISQLQueries ISQLQueries, boolean lock) {
+//            super(ISQLQueries, lock);
+//        }
+//
+//        @Override
+//        public void lockRead() {
+//            lock.readLock().lock();
+//        }
+//
+//        // todo debug
+//        private Set<Thread> threads = new HashSet<>();
+//
+//        @Override
+//        public void lockWrite() {
+//            threads.add(Thread.currentThread());
+//            lock.writeLock().lock();
+//        }
+//
+//        @Override
+//        public void unlockRead() {
+//            lock.readLock().unlock();
+//        }
+//
+//        @Override
+//        public void unlockWrite() {
+//            threads.remove(Thread.currentThread());
+//            lock.writeLock().unlock();
+//        }
+//    }
+
     /**
      * Created by xor on 11/25/16.
      */
     public static class LockingDao extends ConnectionLockingDao {
 
-        protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
+        protected RWLock lock = new RWLock();
 
         public LockingDao(ISQLQueries ISQLQueries) {
             super(ISQLQueries);
@@ -42,27 +83,22 @@ public abstract class Dao {
 
         @Override
         public void lockRead() {
-            lock.readLock().lock();
+            lock.lockRead();
         }
-
-        // todo debug
-        private Set<Thread> threads = new HashSet<>();
 
         @Override
         public void lockWrite() {
-            threads.add(Thread.currentThread());
-            lock.writeLock().lock();
+            lock.lockWrite();
         }
 
         @Override
         public void unlockRead() {
-            lock.readLock().unlock();
+            lock.unlockRead();
         }
 
         @Override
         public void unlockWrite() {
-            threads.remove(Thread.currentThread());
-            lock.writeLock().unlock();
+            lock.unlockWrite();
         }
     }
 

@@ -24,7 +24,7 @@ public class RWLock {
         return this;
     }
 
-    private void printStack(String methodName) {
+    public static void printStack(String methodName) {
         if (PRINT_STACK) {
             System.out.println("RWLock.printStack.called: " + methodName);
             Exception e = new Exception();
@@ -57,11 +57,11 @@ public class RWLock {
     }
 
     public synchronized RWLock lockWrite() {
-        lock.lock();
-        write = true;
-        read = false;
-        printStack("lockWrite");
-        return this;
+            lock.lock();
+            write = true;
+            read = false;
+            printStack("lockWrite");
+            return this;
     }
 
     class ReadLockCounter {

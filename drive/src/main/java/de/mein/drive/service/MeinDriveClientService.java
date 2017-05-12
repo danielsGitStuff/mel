@@ -70,13 +70,12 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             //check if connected certificate is the server. if so: sync()
             if (driveSettings.getClientSettings().getServerCertId().equals(spottedJob.getPartnerCertificate().getId().v())) {
                 try {
-                    syncThisClient();
+                    syncHandler.syncThisClient();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         } else if (unknownJob instanceof CommitJob) {
-            CommitJob commitJob = (CommitJob) unknownJob;
             syncHandler.commitJob();
         }
         return false;

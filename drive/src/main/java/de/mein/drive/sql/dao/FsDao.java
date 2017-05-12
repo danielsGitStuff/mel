@@ -1,13 +1,11 @@
 
 package de.mein.drive.sql.dao;
 
+import de.mein.auth.tools.RWSemaphore;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.*;
-import de.mein.sql.Dao;
-import de.mein.sql.ISQLQueries;
-import de.mein.sql.SQLTableObject;
-import de.mein.sql.SqlQueriesException;
+import de.mein.sql.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,8 +13,28 @@ import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-public class FsDao extends Dao.LockingDao {
+public class FsDao extends Dao {
 
+    private RWSemaphore rwSemaphore = new RWSemaphore();
+
+    public void lockRead() {
+        rwSemaphore.lockRead();
+    }
+
+
+    public void lockWrite() {
+        rwSemaphore.lockWrite();
+    }
+
+
+    public void unlockRead() {
+        rwSemaphore.unlockRead();
+    }
+
+
+    public void unlockWrite() {
+        rwSemaphore.unlockWrite();
+    }
 
     private final DriveDatabaseManager driveDatabaseManager;
     private DriveSettings driveSettings;
@@ -414,5 +432,11 @@ public class FsDao extends Dao.LockingDao {
         FsFile dummy = new FsFile();
         String statement = "update " + dummy.getTableName() + " set " + dummy.getSynced().k() + "=? where " + dummy.getId().k() + "=?";
         sqlQueries.execute(statement, ISQLQueries.whereArgs(true, id));
+    }
+
+    public ISQLResource<FsFile> getNonSyncedFilesResource() throws SqlQueriesException {
+        FsFile fsFile = new FsFile();
+        String where = fsFile.getSynced().k() + "=?";
+        return sqlQueries.loadResource(fsFile.getAllAttributes(), FsFile.class, where, ISQLQueries.whereArgs(false));
     }
 }

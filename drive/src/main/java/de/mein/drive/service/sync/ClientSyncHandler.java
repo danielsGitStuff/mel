@@ -6,6 +6,7 @@ import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
+import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
@@ -43,31 +44,9 @@ public class ClientSyncHandler extends SyncHandler {
         this.meinDriveService = meinDriveService;
     }
 
-    public void syncThisClient() throws SqlQueriesException, InterruptedException {
-        Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(driveSettings.getClientSettings().getServerCertId());
-        Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v(), serverCert.getAddress().v(), serverCert.getPort().v(), serverCert.getCertDeliveryPort().v(), false);
-        connected.done(mvp -> runner.runTry(() -> {
-            long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
-            Request<SyncTask> request = mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, new SyncTask().setVersion(version));
-            request.done(syncTask -> runner.runTry(() -> {
-                syncTask.setSourceCertId(driveSettings.getClientSettings().getServerCertId());
-                syncTask.setSourceServiceUuid(driveSettings.getClientSettings().getServerServiceUuid());
-                //driveDatabaseManager.lockWrite();
-                Promise<Long, Void, Void> promise = this.sync(syncTask);
-                promise.done(nil -> runner.runTry(() -> {
-                    //driveDatabaseManager.unlockWrite();
-                    meinDriveService.addJob(new CommitJob());
-                    if (syncListener != null)
-                        syncListener.onSyncDone();
-                }));
-
-            }));
-        }));
-    }
-
 
     private Stage generic2Stage(GenericFSEntry genericFSEntry, Long stageSetId) {
-        Stage stage = new Stage()
+        return new Stage()
                 .setFsId(genericFSEntry.getId().v())
                 .setFsParentId(genericFSEntry.getParentId().v())
                 .setName(genericFSEntry.getName().v())
@@ -76,148 +55,23 @@ public class ClientSyncHandler extends SyncHandler {
                 .setStageSet(stageSetId)
                 .setSize(genericFSEntry.getSize().v())
                 .setDeleted(false);
-        return stage;
     }
 
-    /**
-     * delta goes in here
-     *
-     * @param syncTask contains delta
-     * @return stageSetId in Promise
-     * @throws SqlQueriesException
-     * @throws InterruptedException
-     */
-    public Promise<Long, Void, Void> sync(SyncTask syncTask) throws SqlQueriesException, InterruptedException {
-        DeferredObject<Void, Void, Void> communicationDone = new DeferredObject<>();
-        DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
-        Order order = new Order();
-        List<GenericFSEntry> entries = syncTask.getResult();
-        if (entries == null) {
-            finished.resolve(null);
-            return finished;
-        }
-        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FROM_SERVER, null, null);
-        syncTask.setStageSetId(stageSet.getId().v());
-        // stage first
-        for (GenericFSEntry genericFSEntry : entries) {
-            Stage stage = generic2Stage(genericFSEntry, stageSet.getId().v());
-            stage.setOrder(order.ord());
-            stageDao.insert(stage);
-        }
-        // check if something was deleted
-        List<Stage> stages = stageDao.getDirectoriesByStageSet(stageSet.getId().v());
-        Map<Long, FsDirectory> fsDirIdsToRetrieve = new HashMap<>();
-        for (Stage stage : stages) {
-            FsDirectory fsDirectory = fsDao.getDirectoryById(stage.getFsId());
-            // if dir is not new check if something has been deleted
-            if (fsDirectory != null) {
-                String oldeHash = fsDirectory.getContentHash().v();
-                List<Stage> subStages = stageDao.getSubStagesByFsDirectoryId(fsDirectory.getId().v(), stageSet.getId().v());
-                List<GenericFSEntry> subFsEntries = fsDao.getContentByFsDirectory(fsDirectory.getId().v());
-                Map<String, GenericFSEntry> fsNameMap = new HashMap<>();
-                for (GenericFSEntry gen : subFsEntries) {
-                    fsNameMap.put(gen.getName().v(), gen);
-                }
-                Map<String, Stage> stageNameMap = new HashMap<>();
-                for (Stage s : subStages) {
-                    stageNameMap.put(s.getName(), s);
-                }
-                for (GenericFSEntry genSub : subFsEntries) {
-                    Stage subStage = stageNameMap.get(genSub.getName().v());
-                    if (subStage != null) {
-                        stageNameMap.remove(genSub.getName().v());
-                        if (!subStage.getDeleted()) {
-                            if (subStage.getIsDirectory() && genSub.getIsDirectory().v()) {
-                                fsDirectory.addSubDirectory((FsDirectory) genSub.ins());
-                            } else if (!subStage.getIsDirectory() && !genSub.getIsDirectory().v()) {
-                                fsDirectory.addFile((FsFile) genSub.ins());
-                            }
-                        }
-                    } else {
-                        if (genSub.getIsDirectory().v()) {
-                            fsDirectory.addSubDirectory((FsDirectory) genSub.ins());
-                        } else {
-
-                            fsDirectory.addFile((FsFile) genSub.ins());
-                        }
-                    }
-                }
-                for (String key : stageNameMap.keySet()) {
-                    Stage newStage = stageNameMap.get(key);
-                    if (newStage.getIsDirectory() && !newStage.getDeleted()) {
-                        FsDirectory newDir = new FsDirectory();
-                        newDir.getName().v(newStage.getName());
-                        fsDirectory.addSubDirectory(newDir);
-                    } else if (!newStage.getDeleted()) {
-                        FsFile newFile = new FsFile();
-                        newFile.getName().v(newStage.getName());
-                        fsDirectory.addFile(newFile);
-                    }
-                }
-                fsDirectory.calcContentHash();
-                String hash = fsDirectory.getContentHash().v();
-                if (!hash.equals(stage.getContentHash())) {
-                    System.out.println("ClientSyncHandler.syncThisClient.SOMETHING.DELETED?");
-                    fsDirIdsToRetrieve.put(fsDirectory.getId().v(), fsDirectory);
-                }
-            }
-        }
-        if (fsDirIdsToRetrieve.size() > 0) {
-            Promise<List<FsDirectory>, Exception, Void> promise = meinDriveService.requestDirectoriesByIds(fsDirIdsToRetrieve.keySet(), driveSettings.getClientSettings().getServerCertId(), driveSettings.getClientSettings().getServerServiceUuid());
-            promise.done(directories -> runner.runTry(() -> {
-                // stage everything not in the directories as deleted
-                for (FsDirectory directory : directories) {
-                    Set<Long> stillExistingIds = new HashSet<Long>();
-                    directory.getFiles().forEach(fsFile -> stillExistingIds.add(fsFile.getId().v()));
-                    directory.getSubDirectories().forEach(fsDirectory -> stillExistingIds.add(fsDirectory.getId().v()));
-
-                    List<GenericFSEntry> fsDirs = fsDao.getContentByFsDirectory(directory.getId().v());
-                    for (GenericFSEntry genSub : fsDirs) {
-                        if (!stillExistingIds.contains(genSub.getId().v())) {
-                            // genSub shall be deleted
-                            Stage stage = generic2Stage(genSub, stageSet.getId().v());
-                            stage.setDeleted(true);
-                            stage.setOrder(order.ord());
-                            stageDao.insert(stage);
-                        }
-                    }
-                }
-                setupTransfer(syncTask);
-                //stageDao.commitStage(stageSet.getId().v());
-                communicationDone.resolve(null);
-            }));
-        } else {
-            setupTransfer(syncTask);
-            //stageDao.commitStage(stageSet.getId().v());
-            communicationDone.resolve(null);
-        }
-        communicationDone.done(nul -> {
-            stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
-            N.r(() -> stageDao.updateStageSet(stageSet));
-            finished.resolve(stageSet.getId().v());
-        }).fail(nul -> {
-            finished.reject(null);
-        });
-        return finished;
-    }
 
     /**
      * call this if you are the receiver
-     *
-     * @param syncTask
      */
-    public void setupTransfer(SyncTask syncTask) {
-        Long stageSetId = syncTask.getStageSetId();
-        ISQLResource<de.mein.drive.sql.Stage> resource = null;
+    private void setupTransfer() {
+        ISQLResource<FsFile> resource = null;
         try {
-            resource = stageDao.getFilesAsResource(stageSetId);
-            Stage stage = resource.getNext();
-            while (stage != null) {
+            resource = fsDao.getNonSyncedFilesResource();
+            FsFile fsFile = resource.getNext();
+            while (fsFile != null) {
                 TransferDetails transfer = new TransferDetails();
-                transfer.getServiceUuid().v(syncTask.getSourceServiceUuid());
-                transfer.getCertId().v(syncTask.getSourceCertId());
-                transfer.getHash().v(stage.getContentHash());
-                transfer.getSize().v(stage.getSize());
+                transfer.getServiceUuid().v(driveSettings.getClientSettings().getServerServiceUuid());
+                transfer.getCertId().v(driveSettings.getClientSettings().getServerCertId());
+                transfer.getHash().v(fsFile.getContentHash());
+                transfer.getSize().v(fsFile.getSize());
                 // this might fail due to unique constraint violation.
                 // happens if you created two identical files at once.
                 // no problem here
@@ -226,7 +80,7 @@ public class ClientSyncHandler extends SyncHandler {
                 } catch (SqlQueriesException e) {
                     System.err.println("ClientSyncHandler.setupTransfer.exception: " + e.getMessage());
                 }
-                stage = resource.getNext();
+                fsFile = resource.getNext();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -242,16 +96,25 @@ public class ClientSyncHandler extends SyncHandler {
         transferManager.research();
     }
 
+    /**
+     * Sends the StageSet to the server and updates it with the FsIds provided by the server.
+     * blocks until server has answered or the attempt failed.
+     *
+     * @param stageSetId
+     * @throws SqlQueriesException
+     * @throws InterruptedException
+     */
     public void syncWithServer(Long stageSetId) throws SqlQueriesException, InterruptedException {
         // stage is complete. first lock on FS
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
+        WaitLock waitLock = new WaitLock();
         fsDao.unlockRead();
         //fsDao.lockWrite();
         stageDao.lockRead();
 
         if (stageDao.stageSetHasContent(stageSetId)) {
-
+            waitLock.lockWrite();
             //all other stages we can find at this point are complete/valid and wait at this point.
             //todo conflict checking goes here - has to block
 
@@ -280,9 +143,10 @@ public class ClientSyncHandler extends SyncHandler {
                     stageSet.setStatus(DriveStrings.STAGESET_STATUS_SERVER_COMMITED);
                     stageDao.updateStageSet(stageSet);
 //                    addJob(new CommitJob());
-                    //syncHandler.commitStage(stageSetId, false);
+//                    commitStage(stageSetId, false);
+                    waitLock.unlockWrite();
                     //fsDao.unlockWrite();
-                }));
+                })).fail(result -> waitLock.unlockWrite());
 
             }));
             System.err.println("MeinDriveClientService.initDatabase");
@@ -291,12 +155,13 @@ public class ClientSyncHandler extends SyncHandler {
                 System.err.println("MeinDriveClientService.initDatabase.could not connect :( due to: " + ex.getMessage());
                 fsDao.unlockWrite();
                 stageDao.unlockRead();
+                waitLock.unlockWrite();
             });
         } else {
             stageDao.deleteStageSet(stageSetId);
-//                fsDao.unlockWrite();
             stageDao.unlockRead();
         }
+        waitLock.lockWrite();
     }
 
     /**
@@ -312,31 +177,61 @@ public class ClientSyncHandler extends SyncHandler {
             // first wait until every staging stuff is finished.
             fsDao.lockWrite();
 
-            List<StageSet> stagedStageSets = stageDao.getStagedStageSetsFromFS();
+            List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
             System.out.println("ClientSyncHandler.commitJob");
 
-            // first: merge everything
-            mergeStageSets(stagedStageSets);
-            // now lets look for possible conflicts with stuff from the server
-            List<StageSet> stagesSetsFromServer = stageDao.getStagedStageSetsFromServer();
-            if (stagesSetsFromServer.size() == 1) {
-                checkConflicts(stagesSetsFromServer.get(0), stagedStageSets);
+            // first: merge everything which has been analysed by the indexer
+            mergeStageSets(stagedFromFs);
+
+            stagedFromFs = stageDao.getStagedStageSetsFromFS();
+            if (stagedFromFs.size() > 1)
+                return;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            fsDao.unlockRead();
+        }
+        try {
+            // ReadLock bis hier
+            // update from server
+            fsDao.unlockRead();
+            fsDao.lockWrite();
+            // conflict check
+
+            // if no conflict occurred, commit if we all staged StageSets have been merged
+            List<StageSet> updateSets = stageDao.getUpdateStageSetsFromServer();
+            List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
+            // List<StageSet> committedStageSets = stageDao.getCommittedStageSets();
+            if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
+                // method should create a new CommitJob with conflict solving details
+                checkConflicts(updateSets.get(0), stagedFromFs);
+                return;
+            } else if (stagedFromFs.size() == 1) {
+                //method should create a new CommitJob ? method blocks
+                syncWithServer(stagedFromFs.get(0).getId().v());
+                return;
+            } else if (stagedFromFs.size() > 1) {
+                // merge again
+                meinDriveService.addJob(new CommitJob());
+                return;
             }
 
-            if (stagesSetsFromServer.size() > 1) {
-                System.err.println("k4i9jfw4f3o0");
-            }
+            if (updateSets.size()>1)
+                System.err.println("ClientSyncHandler.commitJob.something went seriously wrong");
+
             // lets assume that everything went fine!
-            for (StageSet stageSet : stagesSetsFromServer) {
+            for (StageSet stageSet : updateSets) {
                 commitStage(stageSet.getId().v(), false);
+                setupTransfer();
             }
             // we are done here
             meinDriveService.getSyncListener().onSyncDone();
-        } catch (SqlQueriesException e) {
+        }catch (Exception e){
             e.printStackTrace();
-        } finally {
-            fsDao.unlockWrite();
+        }finally {
+            fsDao.lockWrite();
         }
+
     }
 
 
@@ -462,6 +357,155 @@ public class ClientSyncHandler extends SyncHandler {
             comparator.stuffFound(null, rStage);
             rStage = rStages.getNext();
         }
+    }
+
+    /**
+     * pulls StageSet from the Server
+     *
+     * @throws SqlQueriesException
+     * @throws InterruptedException
+     */
+    public void syncThisClient() throws SqlQueriesException, InterruptedException {
+        Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(driveSettings.getClientSettings().getServerCertId());
+        Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v(), serverCert.getAddress().v(), serverCert.getPort().v(), serverCert.getCertDeliveryPort().v(), false);
+        connected.done(mvp -> runner.runTry(() -> {
+            long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
+            Request<SyncTask> request = mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, new SyncTask().setVersion(version));
+            request.done(syncTask -> runner.runTry(() -> {
+                syncTask.setSourceCertId(driveSettings.getClientSettings().getServerCertId());
+                syncTask.setSourceServiceUuid(driveSettings.getClientSettings().getServerServiceUuid());
+                fsDao.lockRead();
+                Promise<Long, Void, Void> promise = this.sync2Stage(syncTask);
+                promise.done(nil -> runner.runTry(() -> {
+                    meinDriveService.addJob(new CommitJob());
+                    if (syncListener != null)
+                        syncListener.onSyncDone();
+                    fsDao.unlockRead();
+                })).fail(result -> fsDao.unlockRead());
+            }));
+        }));
+    }
+
+    /**
+     * delta goes in here
+     *
+     * @param syncTask contains delta
+     * @return stageSetId in Promise
+     * @throws SqlQueriesException
+     * @throws InterruptedException
+     */
+    private Promise<Long, Void, Void> sync2Stage(SyncTask syncTask) throws SqlQueriesException, InterruptedException {
+        DeferredObject<Void, Void, Void> communicationDone = new DeferredObject<>();
+        DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
+        Order order = new Order();
+        List<GenericFSEntry> entries = syncTask.getResult();
+        if (entries == null) {
+            finished.resolve(null);
+            return finished;
+        }
+        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FROM_SERVER, null, null);
+        syncTask.setStageSetId(stageSet.getId().v());
+        // stage first
+        for (GenericFSEntry genericFSEntry : entries) {
+            Stage stage = generic2Stage(genericFSEntry, stageSet.getId().v());
+            stage.setOrder(order.ord());
+            stageDao.insert(stage);
+        }
+        // check if something was deleted
+        List<Stage> stages = stageDao.getDirectoriesByStageSet(stageSet.getId().v());
+        Map<Long, FsDirectory> fsDirIdsToRetrieve = new HashMap<>();
+        for (Stage stage : stages) {
+            FsDirectory fsDirectory = fsDao.getDirectoryById(stage.getFsId());
+            // if dir is not new check if something has been deleted
+            if (fsDirectory != null) {
+                String oldeHash = fsDirectory.getContentHash().v();
+                List<Stage> subStages = stageDao.getSubStagesByFsDirectoryId(fsDirectory.getId().v(), stageSet.getId().v());
+                List<GenericFSEntry> subFsEntries = fsDao.getContentByFsDirectory(fsDirectory.getId().v());
+                Map<String, GenericFSEntry> fsNameMap = new HashMap<>();
+                for (GenericFSEntry gen : subFsEntries) {
+                    fsNameMap.put(gen.getName().v(), gen);
+                }
+                Map<String, Stage> stageNameMap = new HashMap<>();
+                for (Stage s : subStages) {
+                    stageNameMap.put(s.getName(), s);
+                }
+                for (GenericFSEntry genSub : subFsEntries) {
+                    Stage subStage = stageNameMap.get(genSub.getName().v());
+                    if (subStage != null) {
+                        stageNameMap.remove(genSub.getName().v());
+                        if (!subStage.getDeleted()) {
+                            if (subStage.getIsDirectory() && genSub.getIsDirectory().v()) {
+                                fsDirectory.addSubDirectory((FsDirectory) genSub.ins());
+                            } else if (!subStage.getIsDirectory() && !genSub.getIsDirectory().v()) {
+                                fsDirectory.addFile((FsFile) genSub.ins());
+                            }
+                        }
+                    } else {
+                        if (genSub.getIsDirectory().v()) {
+                            fsDirectory.addSubDirectory((FsDirectory) genSub.ins());
+                        } else {
+
+                            fsDirectory.addFile((FsFile) genSub.ins());
+                        }
+                    }
+                }
+                for (String key : stageNameMap.keySet()) {
+                    Stage newStage = stageNameMap.get(key);
+                    if (newStage.getIsDirectory() && !newStage.getDeleted()) {
+                        FsDirectory newDir = new FsDirectory();
+                        newDir.getName().v(newStage.getName());
+                        fsDirectory.addSubDirectory(newDir);
+                    } else if (!newStage.getDeleted()) {
+                        FsFile newFile = new FsFile();
+                        newFile.getName().v(newStage.getName());
+                        fsDirectory.addFile(newFile);
+                    }
+                }
+                fsDirectory.calcContentHash();
+                String hash = fsDirectory.getContentHash().v();
+                if (!hash.equals(stage.getContentHash())) {
+                    System.out.println("ClientSyncHandler.syncThisClient.SOMETHING.DELETED?");
+                    fsDirIdsToRetrieve.put(fsDirectory.getId().v(), fsDirectory);
+                }
+            }
+        }
+        if (fsDirIdsToRetrieve.size() > 0) {
+            Promise<List<FsDirectory>, Exception, Void> promise = meinDriveService.requestDirectoriesByIds(fsDirIdsToRetrieve.keySet(), driveSettings.getClientSettings().getServerCertId(), driveSettings.getClientSettings().getServerServiceUuid());
+            promise.done(directories -> runner.runTry(() -> {
+                // stage everything not in the directories as deleted
+                for (FsDirectory directory : directories) {
+                    Set<Long> stillExistingIds = new HashSet<Long>();
+                    directory.getFiles().forEach(fsFile -> stillExistingIds.add(fsFile.getId().v()));
+                    directory.getSubDirectories().forEach(fsDirectory -> stillExistingIds.add(fsDirectory.getId().v()));
+
+                    List<GenericFSEntry> fsDirs = fsDao.getContentByFsDirectory(directory.getId().v());
+                    for (GenericFSEntry genSub : fsDirs) {
+                        if (!stillExistingIds.contains(genSub.getId().v())) {
+                            // genSub shall be deleted
+                            Stage stage = generic2Stage(genSub, stageSet.getId().v());
+                            stage.setDeleted(true);
+                            stage.setOrder(order.ord());
+                            stageDao.insert(stage);
+                        }
+                    }
+                }
+//                setupTransfer();
+                //stageDao.commitStage(stageSet.getId().v());
+                communicationDone.resolve(null);
+            }));
+        } else {
+//            setupTransfer();
+            //stageDao.commitStage(stageSet.getId().v());
+            communicationDone.resolve(null);
+        }
+        communicationDone.done(nul -> {
+            stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+            N.r(() -> stageDao.updateStageSet(stageSet));
+            finished.resolve(stageSet.getId().v());
+        }).fail(nul -> {
+            finished.reject(null);
+        });
+        return finished;
     }
 
 }
