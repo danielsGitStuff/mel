@@ -28,7 +28,7 @@ public class MeinTestBootloader extends BootLoader {
     }
 
     @Override
-    public void boot(MeinAuthService meinAuthService , List<Service> serviceIdWorkingDirMap) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public void boot(MeinAuthService meinAuthService , List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         MeinTestService testService = new MeinTestService(meinAuthService, new File("testworkingdir"));
         testService.setUuid("test uuid no. " + count++);
         meinAuthService.registerMeinService(testService);

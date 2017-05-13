@@ -56,7 +56,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
             } else if (job.isMessage()) {
                 if (job.getIntent().equals(DriveStrings.INTENT_PROPAGATE_NEW_VERSION)) {
-                    DriveDetails driveDetails = (DriveDetails) job.getMessage();
+                    DriveDetails driveDetails = (DriveDetails) job.getPayLoad();
                     driveDetails.getLastSyncVersion();
                     try {
                         syncHandler.syncThisClient();

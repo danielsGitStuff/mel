@@ -9,7 +9,7 @@ import de.mein.auth.socket.process.val.Request;
  */
 public class ServiceMessageHandlerJob extends Job {
     private Request request;
-    private IPayload message;
+    private IPayload payload;
     private Certificate partnerCertificate;
     private String intent;
 
@@ -18,7 +18,7 @@ public class ServiceMessageHandlerJob extends Job {
     }
 
     public ServiceMessageHandlerJob setMessage(IPayload message) {
-        this.message = message;
+        this.payload = message;
         return this;
     }
 
@@ -41,8 +41,8 @@ public class ServiceMessageHandlerJob extends Job {
         return request;
     }
 
-    public IPayload getMessage() {
-        return message;
+    public IPayload getPayLoad() {
+        return payload;
     }
 
     public boolean isMessage() {
@@ -50,7 +50,7 @@ public class ServiceMessageHandlerJob extends Job {
     }
 
     public boolean isRequest() {
-        return message == null && request != null;
+        return payload == null && request != null;
     }
 
     public ServiceMessageHandlerJob setIntent(String intent) {

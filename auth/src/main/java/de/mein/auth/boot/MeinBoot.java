@@ -126,6 +126,7 @@ public class MeinBoot implements MeinRunnable {
 
     public static BootLoader createBootLoader(MeinAuthService meinAuthService, Class<? extends BootLoader> bootClass) throws SqlQueriesException, IllegalAccessException, InstantiationException {
         BootLoader bootLoader = bootClass.newInstance();
+        bootLoader.setMeinAuthService(meinAuthService);
         DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
         MeinAuthSettings meinAuthSettings = meinAuthService.getSettings();
         ServiceType serviceType = databaseManager.getServiceTypeByName(bootLoader.getName());

@@ -102,7 +102,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                     logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.msg");
                     if (job.getIntent() != null && job.getIntent().equals(DriveStrings.INTENT_PLEASE_TRANSFER)) {
                         logger.log(Level.FINEST, "MeinDriveService.workWorkWork: transfer please");
-                        handleTransfer(job.getPartnerCertificate().getId().v(), (FileTransferDetailSet) job.getMessage());
+                        handleTransfer(job.getPartnerCertificate().getId().v(), (FileTransferDetailSet) job.getPayLoad());
                     }
                 }
             }

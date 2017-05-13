@@ -43,8 +43,8 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
 
     public void execute(MeinRunnable runnable) {
         // todo debug
-        meinAuthService.execute(runnable);
-        //executorService.execute(runnable);
+//        meinAuthService.execute(runnable);
+        executorService.execute(runnable);
     }
 
     @Override

@@ -19,6 +19,7 @@ public abstract class BootLoader {
 
     protected Long typeId;
     protected File bootLoaderDir;
+    protected MeinAuthService meinAuthService;
 
     public BootLoader(){
 
@@ -36,7 +37,7 @@ public abstract class BootLoader {
     public abstract String getName();
     public abstract String getDescription();
 
-    public abstract void boot(MeinAuthService meinAuthService, List<Service> serviceIdWorkingDirMap) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException;
+    public abstract void boot(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException;
 
     public void setBootLoaderDir(File bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;
@@ -45,5 +46,9 @@ public abstract class BootLoader {
     @Override
     public String toString() {
         return getName();
+    }
+
+    public void setMeinAuthService(MeinAuthService meinAuthService) {
+        this.meinAuthService = meinAuthService;
     }
 }

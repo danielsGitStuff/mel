@@ -25,14 +25,26 @@ public interface IMeinService {
      */
     void handleMessage(IPayload payload, Certificate partnerCertificate, String intent);
 
+    /**
+     * there is a new connection to someone you know
+     * @param partnerCertificate
+     */
     void connectionAuthenticated(Certificate partnerCertificate);
 
+    /**
+     *
+     * @param partnerCertificate
+     */
     void handleCertificateSpotted(Certificate partnerCertificate);
 
     void setUuid(String uuid);
 
     String getUuid();
 
+    /**
+     * Isolated connections are used to transfer files
+     * @param isolatedProcess
+     */
     void onIsolatedConnectionEstablished(MeinIsolatedProcess isolatedProcess);
 
 }

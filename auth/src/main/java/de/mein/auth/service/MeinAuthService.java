@@ -196,6 +196,8 @@ public class MeinAuthService   {
 
 
     public MeinAuthService registerMeinService(MeinService meinService) throws SqlQueriesException {
+        if (meinService.getUuid()==null)
+            System.err.println("MeinAuthService.registerMeinService: MeinService.UUID was NULL");
         uuidServiceMap.put(meinService.getUuid(), meinService);
         notifyAdmins();
         return this;
@@ -435,5 +437,17 @@ public class MeinAuthService   {
 
     public MeinBoot getMeinBoot() {
         return meinBoot;
+    }
+
+    public MeinServicesPayload getAllowedServicesFor(Long certId) throws SqlQueriesException {
+        MeinServicesPayload payload = new MeinServicesPayload();
+        List<ServiceJoinServiceType> services = databaseManager.getAllowedServicesJoinTypes(certId);
+        //set flag for running Services, then add to result
+        for (ServiceJoinServiceType service : services) {
+            boolean running = getMeinService(service.getUuid().v()) != null;
+            service.setRunning(running);
+            payload.addService(service);
+        }
+        return payload;
     }
 }

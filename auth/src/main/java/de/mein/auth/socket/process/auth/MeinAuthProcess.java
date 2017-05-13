@@ -59,15 +59,7 @@ public class MeinAuthProcess extends MeinProcess {
      * @throws SqlQueriesException
      */
     public static void addAllowedServices(MeinAuthService meinAuthService, Certificate partnerCertificate, MeinResponse response) throws SqlQueriesException {
-        MeinServicesPayload payload = new MeinServicesPayload();
-        response.setPayLoad(payload);
-        List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllowedServicesJoinTypes(partnerCertificate.getId().v());
-        //set flag for running Services, then add to result
-        for (ServiceJoinServiceType service : services) {
-            boolean running = meinAuthService.getMeinService(service.getUuid().v()) != null;
-            service.setRunning(running);
-            payload.addService(service);
-        }
+        MeinServicesPayload payload = meinAuthService.getAllowedServicesFor(partnerCertificate.getId().v());
         response.setPayLoad(payload);
     }
 
