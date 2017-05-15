@@ -9,22 +9,9 @@ import java.util.Set;
  */
 public class MeinThread extends Thread {
 
-    public interface Interruptable {
-
-
-    }
-
-    public MeinThread(){
-
-    }
 
     public MeinThread(MeinRunnable runnable) {
         super(runnable);
-
-        if (runnable instanceof Interruptable) {
-//            Interruptable interruptable = (Interruptable) runnable;
-//            interruptable.setMeinThread(this);
-        }
         setName(runnable.getRunnableName() + ".id:" + new Random().nextInt(1000));
     }
 
