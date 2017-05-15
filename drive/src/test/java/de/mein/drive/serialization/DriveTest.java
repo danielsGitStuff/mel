@@ -63,6 +63,47 @@ public class DriveTest {
     }
 
     @Test
+    public void clientConflict() throws Exception {
+        // start both instances, shutdown server, change something in client directory
+        setup(new DriveSyncListener() {
+            public File file2;
+            public File file1;
+            public String rootPath;
+            public MeinDriveClientService meinDriveClientService;
+            private DriveSyncListener ins = this;
+            int count = 0;
+
+            @Override
+            public void onSyncDoneImpl() {
+                System.out.println("DriveTest.onSyncDoneImpl");
+                if (count == 0) {
+                    N.r(() -> {
+                        standAloneAuth1.shutDown();
+                        meinDriveClientService = (MeinDriveClientService) standAloneAuth2.getMeinServices().iterator().next();
+                        rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
+                        file1 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.1");
+                        file2 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
+                        if (!file1.exists())
+                            TestFileCreator.saveFile("newfile".getBytes(), file1);
+                    });
+
+                } else if (count == 1) {
+                    System.out.println("DriveTest.onSyncDoneImpl");
+                    N.r(() -> {
+                        if (!file2.exists())
+                            TestFileCreator.saveFile("newfile.2".getBytes(), file1);
+                    });
+                }
+                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                count++;
+            }
+        });
+        lock.lockWrite();
+        lock.unlockWrite();
+        System.out.println("DriveTest.clientMergeStages.END");
+    }
+
+    @Test
     public void firstTransfer() throws Exception {
         System.setOut(new Lok(System.out).setPrint(false));
         setup(new DriveSyncListener() {
@@ -113,6 +154,7 @@ public class DriveTest {
         lock.unlockWrite();
         System.out.println("DriveTest.isolation.END");
     }
+
 
     @Test
     public void clientMergeStages() throws Exception {
