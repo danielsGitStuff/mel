@@ -11,29 +11,31 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class FsDao extends Dao {
 
     private RWSemaphore rwSemaphore = new RWSemaphore();
+    private ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
 
     public void lockRead() {
-        rwSemaphore.lockRead();
+        rwLock.readLock().lock();
     }
 
 
     public void lockWrite() {
-        rwSemaphore.lockWrite();
+        rwLock.writeLock().lock();
     }
 
 
     public void unlockRead() {
-        rwSemaphore.unlockRead();
+        rwLock.readLock().unlock();
     }
 
 
     public void unlockWrite() {
-        rwSemaphore.unlockWrite();
+        rwLock.writeLock().unlock();
     }
 
     private final DriveDatabaseManager driveDatabaseManager;

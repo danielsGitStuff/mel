@@ -30,7 +30,6 @@ public class RWSemaphore {
     }
 
     public synchronized RWSemaphore lockRead() {
-        synchronized (this) {
             if (write)
                 try {
                     semaphore.acquire();
@@ -38,36 +37,30 @@ public class RWSemaphore {
                     e.printStackTrace();
                 }
             printStack("lockRead");
-        }
         readLockCounter.inc();
         return this;
     }
 
 
     public RWSemaphore unlockRead() {
-        synchronized (this) {
             readLockCounter.dec();
             if (readLockCounter.getReadLockCount() == 0 && !write) {
                 semaphore.release();
-            }
             printStack("unlockRead");
         }
         return this;
     }
 
     public synchronized RWSemaphore unlockWrite() {
-        synchronized (this) {
             if (write) {
                 semaphore.release();
                 write = false;
             }
             printStack("unlockWrite");
-        }
         return this;
     }
 
     public synchronized RWSemaphore lockWrite() {
-        synchronized (this) {
             try {
                 semaphore.acquire();
                 write = true;
@@ -75,7 +68,6 @@ public class RWSemaphore {
                 e.printStackTrace();
             }
             printStack("lockWrite");
-        }
         return this;
     }
 }

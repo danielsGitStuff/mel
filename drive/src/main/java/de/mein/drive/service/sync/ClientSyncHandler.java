@@ -109,7 +109,7 @@ public class ClientSyncHandler extends SyncHandler {
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         WaitLock waitLock = new WaitLock();
-        fsDao.unlockRead();
+//        fsDao.unlockRead();
         //fsDao.lockWrite();
         stageDao.lockRead();
 
@@ -153,7 +153,7 @@ public class ClientSyncHandler extends SyncHandler {
             connectedPromise.fail(ex -> {
                 // todo server did not commit. it probably had a local change. have to solve it here
                 System.err.println("MeinDriveClientService.initDatabase.could not connect :( due to: " + ex.getMessage());
-                fsDao.unlockWrite();
+               // fsDao.unlockWrite();
                 stageDao.unlockRead();
                 waitLock.unlockWrite();
             });
@@ -175,7 +175,7 @@ public class ClientSyncHandler extends SyncHandler {
         System.out.println("ClientSyncHandler.commitJob");
         try {
             // first wait until every staging stuff is finished.
-            fsDao.lockWrite();
+            fsDao.lockRead();
 
             List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
             System.out.println("ClientSyncHandler.commitJob");
@@ -194,7 +194,7 @@ public class ClientSyncHandler extends SyncHandler {
         try {
             // ReadLock bis hier
             // update from server
-            fsDao.unlockRead();
+            //fsDao.unlockRead();
             fsDao.lockWrite();
             // conflict check
 
@@ -229,7 +229,7 @@ public class ClientSyncHandler extends SyncHandler {
         }catch (Exception e){
             e.printStackTrace();
         }finally {
-            fsDao.lockWrite();
+            fsDao.unlockWrite();
         }
 
     }

@@ -93,6 +93,8 @@ public class DriveTest {
                         if (!file2.exists())
                             TestFileCreator.saveFile("newfile.2".getBytes(), file1);
                     });
+                } else if (count == 2) {
+                    System.out.println("DriveTest.onSyncDoneImpl");
                 }
                 System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
                 count++;
