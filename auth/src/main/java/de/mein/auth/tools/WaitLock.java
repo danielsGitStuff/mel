@@ -8,7 +8,7 @@ import java.util.concurrent.Semaphore;
 public class WaitLock {
     private Semaphore semaphore = new Semaphore(1, true);
 
-     public WaitLock lockWrite() {
+     public WaitLock lock() {
         try {
             semaphore.acquire();
         } catch (InterruptedException e) {
@@ -17,7 +17,7 @@ public class WaitLock {
         return this;
     }
 
-    public WaitLock unlockWrite() {
+    public WaitLock unlock() {
         semaphore.release();
         return this;
     }

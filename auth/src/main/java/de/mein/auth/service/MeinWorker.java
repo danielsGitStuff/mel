@@ -32,7 +32,7 @@ public abstract class MeinWorker extends DeferredRunnable {
                     }
                 } else {
                     // wait here if no jobs are available
-                    waitLock.lockWrite();
+                    waitLock.lock();
                     System.out.println(getRunnableName() + "...unlocked");
                 }
             }
@@ -54,12 +54,12 @@ public abstract class MeinWorker extends DeferredRunnable {
         queueLock.lockWrite();
         jobs.offer(job);
         queueLock.unlockWrite();
-        waitLock.unlockWrite();
+        waitLock.unlock();
     }
 
     @Override
     public void onShutDown() {
         queueLock.unlockWrite();
-        waitLock.unlockWrite();
+        waitLock.unlock();
     }
 }

@@ -60,7 +60,7 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
                     }
                 } else {
                     // wait here if no jobs are available
-                    waitLock.lockWrite();
+                    waitLock.lock();
                     System.out.println(getRunnableName() + "...unlocked");
                 }
             }
@@ -76,14 +76,14 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
         queueLock.lockWrite();
         jobs.offer(job);
         queueLock.unlockWrite();
-        waitLock.unlockWrite();
+        waitLock.unlock();
     }
 
     @Override
     public void onShutDown() {
         super.onShutDown();
         queueLock.unlockWrite();
-        waitLock.unlockWrite();
+        waitLock.unlock();
     }
 
     public void start() {

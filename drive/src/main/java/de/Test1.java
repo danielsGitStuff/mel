@@ -39,6 +39,11 @@ public class Test1 {
         setup(new DriveSyncListener() {
 
             @Override
+            public void onSyncFailed() {
+                System.out.println("Test1.onSyncFailed");
+            }
+
+            @Override
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {

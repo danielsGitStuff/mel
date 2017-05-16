@@ -72,6 +72,20 @@ public class DriveTest {
             public MeinDriveClientService meinDriveClientService;
             private DriveSyncListener ins = this;
             int count = 0;
+            int failCount = 0;
+
+            @Override
+            public void onSyncFailed() {
+                System.out.println("DriveTest.onSyncFailed");
+                if (failCount == 0){
+                    System.out.println("DriveTest.onSyncDoneImpl");
+                    N.r(() -> {
+                        if (!file2.exists())
+                            TestFileCreator.saveFile("newfile.2".getBytes(), file1);
+                    });
+                }
+                failCount++;
+            }
 
             @Override
             public void onSyncDoneImpl() {
@@ -89,12 +103,6 @@ public class DriveTest {
 
                 } else if (count == 1) {
                     System.out.println("DriveTest.onSyncDoneImpl");
-                    N.r(() -> {
-                        if (!file2.exists())
-                            TestFileCreator.saveFile("newfile.2".getBytes(), file1);
-                    });
-                } else if (count == 2) {
-                    System.out.println("DriveTest.onSyncDoneImpl");
                 }
                 System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
                 count++;
@@ -109,6 +117,11 @@ public class DriveTest {
     public void firstTransfer() throws Exception {
         System.setOut(new Lok(System.out).setPrint(false));
         setup(new DriveSyncListener() {
+
+            @Override
+            public void onSyncFailed() {
+
+            }
 
             @Override
             public void onSyncDoneImpl() {
@@ -135,6 +148,11 @@ public class DriveTest {
     @Test
     public void isolation() throws Exception {
         setup(new DriveSyncListener() {
+            @Override
+            public void onSyncFailed() {
+
+            }
+
             @Override
             public void onSyncDoneImpl() {
                 run(() -> {
@@ -168,6 +186,11 @@ public class DriveTest {
             public MeinDriveClientService meinDriveClientService;
             private DriveSyncListener ins = this;
             int count = 0;
+
+            @Override
+            public void onSyncFailed() {
+
+            }
 
             @Override
             public void onSyncDoneImpl() {
@@ -214,6 +237,11 @@ public class DriveTest {
         setup(new DriveSyncListener() {
 
             @Override
+            public void onSyncFailed() {
+
+            }
+
+            @Override
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {
@@ -241,6 +269,11 @@ public class DriveTest {
         setup(true, new DriveSyncListener() {
 
             @Override
+            public void onSyncFailed() {
+
+            }
+
+            @Override
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {
@@ -265,6 +298,11 @@ public class DriveTest {
     @Test
     public void addFile() throws Exception {
         setup(new DriveSyncListener() {
+
+            @Override
+            public void onSyncFailed() {
+
+            }
 
             @Override
             public void onSyncDoneImpl() {
@@ -305,6 +343,11 @@ public class DriveTest {
     @Test
     public void deleteFile() throws Exception {
         setup(true, new DriveSyncListener() {
+
+            @Override
+            public void onSyncFailed() {
+
+            }
 
             @Override
             public void onSyncDoneImpl() {

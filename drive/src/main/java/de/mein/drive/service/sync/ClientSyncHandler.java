@@ -114,7 +114,7 @@ public class ClientSyncHandler extends SyncHandler {
         stageDao.lockRead();
 
         if (stageDao.stageSetHasContent(stageSetId)) {
-            waitLock.lockWrite();
+            waitLock.lock();
             //all other stages we can find at this point are complete/valid and wait at this point.
             //todo conflict checking goes here - has to block
 
@@ -144,9 +144,9 @@ public class ClientSyncHandler extends SyncHandler {
                     stageDao.updateStageSet(stageSet);
 //                    addJob(new CommitJob());
 //                    commitStage(stageSetId, false);
-                    waitLock.unlockWrite();
+                    waitLock.unlock();
                     //fsDao.unlockWrite();
-                })).fail(result -> waitLock.unlockWrite());
+                })).fail(result -> waitLock.unlock());
 
             }));
             System.err.println("MeinDriveClientService.initDatabase");
@@ -155,13 +155,14 @@ public class ClientSyncHandler extends SyncHandler {
                 System.err.println("MeinDriveClientService.initDatabase.could not connect :( due to: " + ex.getMessage());
                // fsDao.unlockWrite();
                 stageDao.unlockRead();
-                waitLock.unlockWrite();
+                waitLock.unlock();
+                meinDriveService.getSyncListener().onSyncFailed();
             });
         } else {
             stageDao.deleteStageSet(stageSetId);
             stageDao.unlockRead();
         }
-        waitLock.lockWrite();
+        waitLock.lock();
     }
 
     /**
@@ -228,6 +229,7 @@ public class ClientSyncHandler extends SyncHandler {
             meinDriveService.getSyncListener().onSyncDone();
         }catch (Exception e){
             e.printStackTrace();
+            meinDriveService.getSyncListener().onSyncFailed();
         }finally {
             fsDao.unlockWrite();
         }

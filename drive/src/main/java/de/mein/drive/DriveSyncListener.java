@@ -17,6 +17,8 @@ public abstract class DriveSyncListener {
         return count;
     }
 
+    public abstract void onSyncFailed();
+
     public static class DTestStructure {
         public MeinAuthService maServer, maClient;
         public MeinDriveClientService clientDriveService;
