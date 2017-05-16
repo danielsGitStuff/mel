@@ -211,6 +211,7 @@ public class StageIndexerRunnable implements Runnable {
                 subStage = new Stage().setName(subFile.getName())
                         .setIsDirectory(false)
                         .setParentId(stage.getId())
+                        .setFsParentId(stage.getFsId())
                         .setStageSet(stageSetId)
                         .setDeleted(false);
                 this.updateFileStage(subStage, subFile);

@@ -9,8 +9,8 @@ import de.mein.auth.socket.process.imprt.MeinCertRetriever;
 import de.mein.auth.socket.process.reg.MeinRegisterProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.N;
 import de.mein.auth.tools.Hash;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -23,10 +23,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLSocket;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -151,37 +148,38 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         firstAuth.done(result1 -> {
             result.resolve(result1);
         }).fail(except -> runner.runTry(() -> {
-            if (regOnUnknown) {
-                if (except instanceof ShamefulSelfConnectException) {
-                    result.reject(except);
-                } else if (remoteCertId == null) {
-                    // try to register
-                    DeferredObject<Certificate, Exception, Object> importPromise = new DeferredObject<>();
-                    DeferredObject<Certificate, Exception, Void> registered = new DeferredObject<>();
-                    this.importCertificate(importPromise, address, port, portCert);
-                    importPromise.done(importedCert -> {
-                        runner.runTry(() -> {
-                            job.setCertificateId(importedCert.getId().v());
-                            this.register(registered, importedCert, address, port);
-                            registered.done(registeredCert -> {
-                                runner.runTry(() -> {
-                                    //connection is no more -> need new socket
-                                    this.auth(job);
-                                });
+            if (except instanceof ShamefulSelfConnectException) {
+                result.reject(except);
+            } else if (except instanceof ConnectException) {
+                System.err.println("MeinAuthSocket.connect.HOST:NOT:REACHABLE");
+                result.reject(except);
+            } else if (regOnUnknown && remoteCertId == null) {
+                // try to register
+                DeferredObject<Certificate, Exception, Object> importPromise = new DeferredObject<>();
+                DeferredObject<Certificate, Exception, Void> registered = new DeferredObject<>();
+                this.importCertificate(importPromise, address, port, portCert);
+                importPromise.done(importedCert -> {
+                    runner.runTry(() -> {
+                        job.setCertificateId(importedCert.getId().v());
+                        this.register(registered, importedCert, address, port);
+                        registered.done(registeredCert -> {
+                            runner.runTry(() -> {
+                                //connection is no more -> need new socket
+                                this.auth(job);
+                            });
 
-                            }).fail(exception -> {
-                                        // it won't compile otherwise. don't know why.
-                                        // compiler thinks exception is an Object instead of Exception
-                                        ((Exception) exception).printStackTrace();
-                                        result.reject(exception);
-                                    }
-                            );
-                        });
-                    }).fail(ee -> {
-                        ee.printStackTrace();
-                        result.reject(ee);
+                        }).fail(exception -> {
+                                    // it won't compile otherwise. don't know why.
+                                    // compiler thinks exception is an Object instead of Exception
+                                    ((Exception) exception).printStackTrace();
+                                    result.reject(exception);
+                                }
+                        );
                     });
-                }
+                }).fail(ee -> {
+                    ee.printStackTrace();
+                    result.reject(ee);
+                });
             } else {
                 if (!(except instanceof ShamefulSelfConnectException)) {
                     result.reject(new CannotConnectException(except, address, port));

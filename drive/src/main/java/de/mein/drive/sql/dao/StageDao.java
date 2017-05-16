@@ -233,6 +233,7 @@ StageDao extends Dao.LockingDao {
     }
 
     public Stage insert(Stage stage) throws SqlQueriesException {
+        //todo debug
         Long id = sqlQueries.insert(stage);
         return stage.setId(id);
     }
