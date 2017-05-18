@@ -1,10 +1,13 @@
 package de.mein.auth.service;
 
 import de.mein.MeinRunnable;
+import de.mein.MeinThread;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * A Service comes with its own ExecutorService. You should execute all Runnables of your Service with this class.
@@ -16,12 +19,29 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     protected MeinAuthService meinAuthService;
     protected Integer id;
     protected String uuid;
-    protected ExecutorService executorService;
+    private ExecutorService executorService;
+    private final Semaphore threadSemaphore = new Semaphore(1, true);
+    private final LinkedList<MeinThread> threadQueue = new LinkedList<>();
+    private final ThreadFactory threadFactory = new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            MeinThread meinThread = null;
+            //noinspection Duplicates
+            try {
+                threadSemaphore.acquire();
+                meinThread = threadQueue.poll();
+                threadSemaphore.release();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return meinThread;
+        }
+    };
 
     public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory) {
         this.meinAuthService = meinAuthService;
-        this.executorService = Executors.newCachedThreadPool();
         this.serviceInstanceWorkingDirectory = serviceInstanceWorkingDirectory;
+        executorService = createExecutorService(threadFactory);
     }
 
     public File getServiceInstanceWorkingDirectory() {
@@ -42,9 +62,17 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     }
 
     public void execute(MeinRunnable runnable) {
-        // todo debug
-//        meinAuthService.execute(runnable);
-        executorService.execute(runnable);
+        //noinspection Duplicates
+        try {
+            if (executorService == null || (executorService != null && (executorService.isShutdown() || executorService.isTerminated())))
+                executorService = createExecutorService(threadFactory);
+            threadSemaphore.acquire();
+            threadQueue.add(new MeinThread(runnable));
+            threadSemaphore.release();
+            executorService.execute(runnable);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -61,4 +89,13 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         executorService.shutdown();
 
     }
+
+    /**
+     * you should use threadFactory in "Executors.newCachedThreadPool()".
+     * so naming works properly
+     *
+     * @param threadFactory
+     * @return
+     */
+    protected abstract ExecutorService createExecutorService(ThreadFactory threadFactory);
 }

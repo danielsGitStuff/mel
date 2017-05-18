@@ -18,6 +18,9 @@ import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -140,5 +143,10 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     @Override
     public void onShutDown() {
         super.onShutDown();
+    }
+
+    @Override
+    protected ExecutorService createExecutorService(ThreadFactory threadFactory) {
+        return Executors.newCachedThreadPool(threadFactory);
     }
 }

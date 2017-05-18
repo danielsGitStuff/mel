@@ -6,6 +6,9 @@ import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.val.Request;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by xor on 12/15/16.
@@ -50,5 +53,10 @@ public class MeinTestService extends MeinServiceWorker {
     @Override
     public void onShutDown() {
         System.out.println("MeinTestService.onShutDown");
+    }
+
+    @Override
+    protected ExecutorService createExecutorService(ThreadFactory threadFactory) {
+        return Executors.newCachedThreadPool(threadFactory);
     }
 }

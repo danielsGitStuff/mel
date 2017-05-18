@@ -15,6 +15,9 @@ import de.mein.sql.SqlQueriesException;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
 /**
@@ -27,6 +30,11 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory) {
         super(meinAuthService, workingDirectory);
+    }
+
+    @Override
+    protected ExecutorService createExecutorService(ThreadFactory threadFactory) {
+        return Executors.newCachedThreadPool(threadFactory);
     }
 
     private Set<Thread> threads = new HashSet<>();

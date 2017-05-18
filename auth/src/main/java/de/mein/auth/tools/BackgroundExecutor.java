@@ -20,6 +20,7 @@ public abstract class BackgroundExecutor {
         @Override
         public Thread newThread(Runnable r) {
             MeinThread meinThread = null;
+            //noinspection Duplicates
             try {
                 threadSemaphore.acquire();
                 meinThread = threadQueue.poll();
@@ -32,6 +33,7 @@ public abstract class BackgroundExecutor {
     };
 
     public void execute(MeinRunnable runnable) {
+        // noinspection Duplicates
         try {
             if (executorService == null || (executorService != null && (executorService.isShutdown() || executorService.isTerminated())))
                 executorService = createExecutorService(threadFactory);
