@@ -1,16 +1,24 @@
 package de.mein.drive.watchdog;
 
+import de.mein.auth.tools.BackgroundExecutor;
 import de.mein.drive.data.PathCollection;
-import de.mein.drive.index.BackgroundExecutor;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.sql.SqlQueriesException;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by xor on 11/24/16.
  */
 public class StageIndexer extends BackgroundExecutor {
+
+
+    @Override
+    protected ExecutorService createExecutorService(ThreadFactory threadFactory) {
+        return Executors.newSingleThreadExecutor(threadFactory);
+    }
 
     public interface StagingDoneListener {
         void onStagingFsEventsDone(Long stageSetId) throws InterruptedException, SqlQueriesException;
@@ -34,11 +42,8 @@ public class StageIndexer extends BackgroundExecutor {
 
 
     public void examinePaths(PathCollection pathCollection) {
-        if (executorService == null) {
-            executorService = Executors.newSingleThreadExecutor();
-        }
         StageIndexerRunnable indexerRunnable = new StageIndexerRunnable(databaseManager, pathCollection);
         indexerRunnable.setStagingDoneListener(stagingDoneListener);
-        executorService.submit(indexerRunnable);
+        execute(indexerRunnable);
     }
 }

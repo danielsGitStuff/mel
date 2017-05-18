@@ -42,8 +42,8 @@ import static org.junit.Assert.assertEquals;
  */
 @SuppressWarnings("Duplicates")
 public class DriveTest {
-    private static MeinAuthService standAloneAuth1;
-    private static MeinAuthService standAloneAuth2;
+    private static MeinAuthService meinAuthService1;
+    private static MeinAuthService meinAuthService2;
     private static RWLock lock = new RWLock();
     private static N runner = new N(Throwable::printStackTrace);
 
@@ -53,7 +53,7 @@ public class DriveTest {
 
     @After
     public void clean() {
-        standAloneAuth1 = standAloneAuth2 = null;
+        meinAuthService1 = meinAuthService2 = null;
         lock = null;
     }
 
@@ -77,11 +77,17 @@ public class DriveTest {
             @Override
             public void onSyncFailed() {
                 System.out.println("DriveTest.onSyncFailed");
-                if (failCount == 0){
-                    System.out.println("DriveTest.onSyncDoneImpl");
+                if (failCount == 0) {
                     N.r(() -> {
-                        if (!file2.exists())
-                            TestFileCreator.saveFile("newfile.2".getBytes(), file1);
+                        //if (!file2.exists())
+                        System.out.println("DriveTest.onSyncFailed.creating new file...");
+                        rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
+                        File newFile = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
+                        TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
+                        Promise<MeinAuthService, Exception, Void> rebooted = meinAuthService1.getMeinBoot().boot(meinAuthService1);
+                        rebooted.done(res -> N.r(() -> {
+                            System.out.println("DriveTest.alles ok");
+                        }));
                     });
                 }
                 failCount++;
@@ -92,8 +98,8 @@ public class DriveTest {
                 System.out.println("DriveTest.onSyncDoneImpl");
                 if (count == 0) {
                     N.r(() -> {
-                        standAloneAuth1.shutDown();
-                        meinDriveClientService = (MeinDriveClientService) standAloneAuth2.getMeinServices().iterator().next();
+                        meinAuthService1.shutDown();
+                        meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
                         rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
                         file1 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.1");
                         file2 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
@@ -197,8 +203,8 @@ public class DriveTest {
                 System.out.println("DriveTest.onSyncDoneImpl");
                 if (count == 0) {
                     N.r(() -> {
-                        standAloneAuth1.shutDown();
-                        meinDriveClientService = (MeinDriveClientService) standAloneAuth2.getMeinServices().iterator().next();
+                        meinAuthService1.shutDown();
+                        meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
                         rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
                         file1 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.1");
                         file2 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
@@ -416,7 +422,7 @@ public class DriveTest {
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
-        standAloneAuth1 = new MeinAuthService(json1);
+        meinAuthService1 = new MeinAuthService(json1);
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -429,7 +435,7 @@ public class DriveTest {
 
             }
         };
-        standAloneAuth1.addRegisterHandler(allowRegisterHandler);
+        meinAuthService1.addRegisterHandler(allowRegisterHandler);
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -437,15 +443,15 @@ public class DriveTest {
                 meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
             }
         };
-        standAloneAuth1.addRegisteredHandler(registeredHandler);
+        meinAuthService1.addRegisteredHandler(registeredHandler);
         lock.lockWrite();
 
         MeinBoot boot1 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
+        boot1.boot(meinAuthService1).done(result -> {
             runner.runTry(() -> {
                 System.out.println("DriveTest.driveGui.booted");
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath());
+                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath());
                 System.out.println("DriveTest.startServer.booted");
             });
         });
@@ -478,8 +484,8 @@ public class DriveTest {
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
-        standAloneAuth1 = new MeinAuthService(json1);
-        standAloneAuth2 = new MeinAuthService(json2);
+        meinAuthService1 = new MeinAuthService(json1);
+        meinAuthService2 = new MeinAuthService(json2);
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -492,8 +498,8 @@ public class DriveTest {
 
             }
         };
-        standAloneAuth1.addRegisterHandler(allowRegisterHandler);
-        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
+        meinAuthService1.addRegisterHandler(allowRegisterHandler);
+        meinAuthService2.addRegisterHandler(allowRegisterHandler);
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -501,30 +507,30 @@ public class DriveTest {
                 meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
             }
         };
-        standAloneAuth1.addRegisteredHandler(registeredHandler);
+        meinAuthService1.addRegisteredHandler(registeredHandler);
         lock.lockWrite();
 
         MeinBoot boot1 = new MeinBoot();
         MeinBoot boot2 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
+        boot1.boot(meinAuthService1).done(result -> {
             runner.runTry(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath());
-                boot2.boot(standAloneAuth2).done(result1 -> {
+                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath());
+                boot2.boot(meinAuthService2).done(result1 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
                     runner.runTry(() -> {
                         // connect first. this step will register
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = meinAuthService2.connect(null, "localhost", 8888, 8889, true);
                         connectPromise.done(meinValidationProcess -> {
                             runner.runTry(() -> {
                                 System.out.println("DriveFXTest.driveGui.connected");
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid());
+                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid());
                                 promise.done(clientDriveService -> runner.runTry(() -> {
                                             System.out.println("DriveFXTest attempting first syncThisClient");
-                                            clientSyncListener.testStructure.setMaClient(standAloneAuth2)
-                                                    .setMaServer(standAloneAuth1)
+                                            clientSyncListener.testStructure.setMaClient(meinAuthService2)
+                                                    .setMaServer(meinAuthService1)
                                                     .setClientDriveService(clientDriveService)
                                                     .setServerDriveService(serverService)
                                                     .setTestdir1(testdir1)

@@ -1,5 +1,6 @@
 package de.mein.drive.watchdog;
 
+import de.mein.DeferredRunnable;
 import de.mein.auth.tools.Hash;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
@@ -19,8 +20,9 @@ import java.util.List;
  * Locks fsDao for reading
  * Created by xor on 11/24/16.
  */
-public class StageIndexerRunnable implements Runnable {
+public class StageIndexerRunnable extends DeferredRunnable {
     private final DriveDatabaseManager databaseManager;
+    private final String serviceName;
     private Long stageSetId;
     private StageSet stageSet;
     private final StageDao stageDao;
@@ -35,6 +37,7 @@ public class StageIndexerRunnable implements Runnable {
         this.stageDao = databaseManager.getStageDao();
         this.fsDao = databaseManager.getFsDao();
         this.pathCollection = pathCollection;
+        this.serviceName = databaseManager.getMeinDriveService().getRunnableName();
     }
 
     public Long getStageSetId() {
@@ -162,7 +165,13 @@ public class StageIndexerRunnable implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void onShutDown() {
+        System.out.println(getClass().getSimpleName() + " for " + serviceName + ".onShutDown");
+    }
+
+
+    @Override
+    public void runImpl() {
         try {
             fsDao.lockRead();
             initStage(pathCollection);
@@ -292,6 +301,11 @@ public class StageIndexerRunnable implements Runnable {
     public void setStagingDoneListener(StageIndexer.StagingDoneListener stagingDoneListener) {
         assert stagingDoneListener != null;
         this.stagingDoneListener = stagingDoneListener;
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName() + " for " + serviceName;
     }
 
 //    public Deferred<StageIndexerRunnable, Exception, Void> getPromise() {

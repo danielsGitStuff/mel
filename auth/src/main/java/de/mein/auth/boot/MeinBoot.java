@@ -2,12 +2,12 @@ package de.mein.auth.boot;
 
 import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
-import de.mein.MeinThread;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.tools.BackgroundExecutor;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -16,17 +16,14 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Boots up the MeinAuth instance and all existing services by calling the corresponding bootloaders.
  */
-public class MeinBoot implements MeinRunnable {
-    //todo debug
-    public static Set<Runnable> RUNNABLES = new HashSet<>();
+public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
     private static Logger logger = Logger.getLogger(MeinBoot.class.getName());
     private static Set<Class<? extends BootLoader>> bootloaderClasses = new HashSet<>();
     private static Map<String, Class<? extends BootLoader>> bootloaderMap = new HashMap<>();
@@ -35,9 +32,7 @@ public class MeinBoot implements MeinRunnable {
     private DeferredObject<MeinAuthService, Exception, Void> deferredObject;
     private MeinAuthSettings meinAuthSettings;
     private MeinAuthService meinAuthService;
-    private ExecutorService executorService;
-    private Semaphore threadSemaphore = new Semaphore(1, true);
-    private LinkedList<MeinThread> threadQueue = new LinkedList<>();
+
 
     public static void addBootLoaderClass(Class<? extends BootLoader> clazz) {
         bootloaderClasses.add(clazz);
@@ -54,37 +49,9 @@ public class MeinBoot implements MeinRunnable {
     private void prepareBoot(MeinAuthSettings meinAuthSettings) {
         this.deferredObject = new DeferredObject<>();
         this.meinAuthSettings = meinAuthSettings;
-        this.executorService = Executors.newCachedThreadPool(r -> {
-            MeinThread meinThread = null;
-            try {
-                threadSemaphore.acquire();
-                meinThread = threadQueue.poll();
-                threadSemaphore.release();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return meinThread;
-        });
         execute(this);
     }
 
-
-    public void execute(MeinRunnable runnable) {
-        try {
-            threadSemaphore.acquire();
-            // todo debug
-            if (RUNNABLES.contains(runnable))
-                System.err.println("MeinBoot.execute.f2h9h09");
-            if (runnable.getRunnableName().toLowerCase().startsWith("meindriveclientservice"))
-                System.err.println("MeinBoot.execute.09rg9");
-            RUNNABLES.add(runnable);
-            threadQueue.add(new MeinThread(runnable));
-            threadSemaphore.release();
-            executorService.execute(runnable);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
     public Promise<MeinAuthService, Exception, Void> boot(MeinAuthService meinAuthService) throws Exception {
         meinAuthService.setMeinBoot(this);
@@ -155,8 +122,9 @@ public class MeinBoot implements MeinRunnable {
         return getClass().getSimpleName();
     }
 
-    public void shutDown() throws InterruptedException {
-        executorService.shutdown();
-        executorService.awaitTermination(2000, TimeUnit.MILLISECONDS);
+
+    @Override
+    protected ExecutorService createExecutorService(ThreadFactory threadFactory) {
+        return Executors.newCachedThreadPool(threadFactory);
     }
 }

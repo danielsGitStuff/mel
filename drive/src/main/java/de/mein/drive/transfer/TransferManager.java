@@ -1,5 +1,6 @@
 package de.mein.drive.transfer;
 
+import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
@@ -33,7 +34,7 @@ import java.util.logging.Logger;
 /**
  * Created by xor on 12/16/16.
  */
-public class TransferManager implements MeinRunnable {
+public class TransferManager extends DeferredRunnable {
     private static final int LIMIT_PER_ADDRESS = 2;
     private static Logger logger = Logger.getLogger(TransferManager.class.getName());
     private final TransferDao transferDao;
@@ -59,9 +60,14 @@ public class TransferManager implements MeinRunnable {
         this.fsDao = meinDriveService.getDriveDatabaseManager().getFsDao();
     }
 
-    @SuppressWarnings("Duplicates")
     @Override
-    public void run() {
+    public void onShutDown() {
+
+    }
+
+
+    @Override
+    public void runImpl() {
         String transferDirPath = meinDriveService.getDriveSettings().getRootDirectory().getPath() + File.separator + DriveSettings.TRANSFER_DIR;
         transferDir = new File(transferDirPath);
         transferDir.mkdirs();

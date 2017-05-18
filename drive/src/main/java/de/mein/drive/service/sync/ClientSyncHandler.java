@@ -149,7 +149,6 @@ public class ClientSyncHandler extends SyncHandler {
                 })).fail(result -> waitLock.unlock());
 
             }));
-            System.err.println("MeinDriveClientService.initDatabase");
             connectedPromise.fail(ex -> {
                 // todo server did not commit. it probably had a local change. have to solve it here
                 System.err.println("MeinDriveClientService.initDatabase.could not connect :( due to: " + ex.getMessage());
