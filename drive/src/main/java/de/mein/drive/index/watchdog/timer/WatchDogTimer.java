@@ -1,6 +1,4 @@
-package de.mein.drive.watchdog.timer;
-
-import de.mein.sql.RWLock;
+package de.mein.drive.index.watchdog.timer;
 
 import java.util.Timer;
 import java.util.TimerTask;

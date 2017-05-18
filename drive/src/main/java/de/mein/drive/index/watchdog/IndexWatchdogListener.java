@@ -1,4 +1,4 @@
-package de.mein.drive.watchdog;
+package de.mein.drive.index.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import de.mein.DeferredRunnable;
@@ -6,7 +6,7 @@ import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.ICrawlerListener;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsFile;
-import de.mein.drive.watchdog.timer.WatchDogTimer;
+import de.mein.drive.index.watchdog.timer.WatchDogTimer;
 
 import java.io.*;
 import java.nio.file.FileSystems;

@@ -7,8 +7,8 @@ import java.io.File;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.watchdog.IndexWatchdogListener;
-import de.mein.drive.watchdog.timer.WatchDogTimer;
+import de.mein.drive.index.watchdog.IndexWatchdogListener;
+import de.mein.drive.index.watchdog.timer.WatchDogTimer;
 import de.mein.sql.RWLock;
 
 /**

@@ -1,4 +1,4 @@
-package de.mein.drive.watchdog;
+package de.mein.drive.index.watchdog;
 
 import de.mein.auth.tools.BackgroundExecutor;
 import de.mein.drive.data.PathCollection;

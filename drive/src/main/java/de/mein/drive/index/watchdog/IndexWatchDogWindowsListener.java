@@ -1,4 +1,4 @@
-package de.mein.drive.watchdog;
+package de.mein.drive.index.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
 

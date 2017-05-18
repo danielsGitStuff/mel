@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Created by xor on 10/28/16.
@@ -73,6 +74,25 @@ public class BashTools {
         }
         return result;
     }
+
+    public static Stream<String> find(File directory, File pruneDir) throws IOException {
+        String[] args = new String[]{BIN_PATH, "-c",
+                "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
+                        + " -path \"" + pruneDir + "\" -prune -o -print"};
+        Process proc = new ProcessBuilder(args).start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String res = null;
+        try {
+            proc.waitFor();
+            return reader.lines();
+        } catch (InterruptedException e) {
+            System.err.println("string I got from bash: " + res);
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
 
     public static class NodeAndTime {
         public NodeAndTime(Long inode, Long modifiedTime) {

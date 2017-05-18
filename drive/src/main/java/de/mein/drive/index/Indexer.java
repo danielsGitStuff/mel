@@ -5,7 +5,7 @@ import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.watchdog.IndexWatchdogListener;
+import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.File;

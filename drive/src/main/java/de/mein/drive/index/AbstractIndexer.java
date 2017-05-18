@@ -1,11 +1,9 @@
-package de.mein.drive.watchdog;
+package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.tools.Hash;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
-import de.mein.drive.data.PathCollection;
-import de.mein.drive.index.BashTools;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -14,41 +12,37 @@ import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
- * Locks fsDao for reading
- * Created by xor on 11/24/16.
+ * Created by xor on 5/18/17.
  */
-public class StageIndexerRunnable extends DeferredRunnable {
-    private final DriveDatabaseManager databaseManager;
+@SuppressWarnings("Duplicates")
+public abstract class AbstractIndexer extends DeferredRunnable {
+    protected final DriveDatabaseManager databaseManager;
+    protected final StageDao stageDao;
+    protected final FsDao fsDao;
     private final String serviceName;
-    private Long stageSetId;
-    private StageSet stageSet;
-    private final StageDao stageDao;
-    private final FsDao fsDao;
-    private final PathCollection pathCollection;
-    private StageIndexer.StagingDoneListener stagingDoneListener;
+    protected StageSet stageSet;
+    protected Long stageSetId;
     private Order order = new Order();
-//    private Deferred<StageIndexerRunnable, Exception, Void> promise = new DeferredObject<>();
 
-    public StageIndexerRunnable(DriveDatabaseManager databaseManager, PathCollection pathCollection) {
+
+    protected AbstractIndexer(DriveDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
         this.stageDao = databaseManager.getStageDao();
         this.fsDao = databaseManager.getFsDao();
-        this.pathCollection = pathCollection;
         this.serviceName = databaseManager.getMeinDriveService().getRunnableName();
     }
 
-    public Long getStageSetId() {
-        return stageSetId;
+    @Override
+    public void onShutDown() {
+        System.out.println(getClass().getSimpleName() + " for " + serviceName + ".onShutDown");
     }
 
-    public FsDao getFsDao() {
-        return fsDao;
-    }
-
-    private String buildPathFromStage2(Stage stage) throws SqlQueriesException {
+    protected String buildPathFromStage(Stage stage) throws SqlQueriesException {
         String res = "";
         if (stage.getFsParentId() != null) {
             FsDirectory fsParent = fsDao.getDirectoryById(stage.getFsParentId());
@@ -58,7 +52,7 @@ public class StageIndexerRunnable extends DeferredRunnable {
             res += File.separator + stage.getName();
         } else if (stage.getParentId() != null) {
             Stage parentStage = stageDao.getStageById(stage.getParentId());
-            return buildPathFromStage2(parentStage) + File.separator + stage.getName();
+            return buildPathFromStage(parentStage) + File.separator + stage.getName();
         } else if (stage.getFsId() != null) {
             FsDirectory fs = fsDao.getDirectoryById(stage.getFsId());
             if (fs.isRoot())
@@ -68,19 +62,37 @@ public class StageIndexerRunnable extends DeferredRunnable {
         return res;
     }
 
-    private String buildPathFromStage(String name, Long parentId, Long parentFsId, Stage stage) throws SqlQueriesException {
-        return buildPathFromStage2(stage);
-
+    protected  void examineStage() throws SqlQueriesException, IOException {
+        ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
+        Stage stage = stages.getNext();
+        while (stage != null) {
+            // build a File
+            String path = buildPathFromStage(stage);
+            File f = new File(path);
+            if (stage.getIsDirectory()) {
+                roamDirectoryStage(stage, f);
+            } else {
+                this.updateFileStage(stage, f);
+            }
+            System.out.println("StageIndexerRunnable.run: " + path);
+            stage = stages.getNext();
+        }
+        System.out.println("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
+        stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+        stageDao.updateStageSet(stageSet);
     }
 
 
-    protected void initStage(PathCollection pathCollection) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType,Stream<String> paths) throws IOException, SqlQueriesException {
 //        stageDao.lockWrite();
         try {
-            stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, null, null);
+            stageSet = stageDao.createStageSet(stageSetType, null, null);
+            String path = "none yet";
             this.stageSetId = stageSet.getId().v();
-            for (String path : pathCollection.getPaths()) {
+            Iterator<String> iterator = paths.iterator();
+            while (iterator.hasNext()) {
                 try {
+                    path = iterator.next();
                     File f = new File(path);
                     File parent = f.getParentFile();
                     FsDirectory fsParent = null;
@@ -165,45 +177,11 @@ public class StageIndexerRunnable extends DeferredRunnable {
     }
 
     @Override
-    public void onShutDown() {
-        System.out.println(getClass().getSimpleName() + " for " + serviceName + ".onShutDown");
+    public String getRunnableName() {
+        return getClass().getSimpleName() + " for " + serviceName;
     }
 
-
-    @Override
-    public void runImpl() {
-        try {
-            fsDao.lockRead();
-            initStage(pathCollection);
-
-            final String rootPath = databaseManager.getDriveSettings().getRootDirectory().getPath();
-            ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
-            Stage stage = stages.getNext();
-            while (stage != null) {
-                // build a File
-                String path = buildPathFromStage(stage.getName(), stage.getParentId(), stage.getFsParentId(), stage);
-                File f = new File(path);
-                if (stage.getIsDirectory()) {
-                    roamDirectoryStage(stage, f);
-                } else {
-                    this.updateFileStage(stage, f);
-                }
-                System.out.println("StageIndexerRunnable.run: " + path);
-                stage = stages.getNext();
-            }
-            System.out.println("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
-            stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
-            stageDao.updateStageSet(stageSet);
-            stagingDoneListener.onStagingFsEventsDone(stageSetId);
-//            promise.resolve(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            fsDao.unlockRead();
-        }
-    }
-
-    private void roamDirectoryStage(Stage stage, File stageFile) throws SqlQueriesException, IOException {
+    protected void roamDirectoryStage(Stage stage, File stageFile) throws SqlQueriesException, IOException {
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
         File[] files = stageFile.listFiles(File::isFile);
@@ -275,7 +253,7 @@ public class StageIndexerRunnable extends DeferredRunnable {
             stageDao.update(stage);
     }
 
-    private void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException {
+    protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException {
         if (stageFile.exists()) {
             BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(stageFile);
             stage.setContentHash(Hash.md5(stageFile));
@@ -297,18 +275,4 @@ public class StageIndexerRunnable extends DeferredRunnable {
             stageDao.update(stage);
         }
     }
-
-    public void setStagingDoneListener(StageIndexer.StagingDoneListener stagingDoneListener) {
-        assert stagingDoneListener != null;
-        this.stagingDoneListener = stagingDoneListener;
-    }
-
-    @Override
-    public String getRunnableName() {
-        return getClass().getSimpleName() + " for " + serviceName;
-    }
-
-//    public Deferred<StageIndexerRunnable, Exception, Void> getPromise() {
-//        return promise;
-//    }
 }

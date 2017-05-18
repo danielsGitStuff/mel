@@ -2,7 +2,7 @@ package de.mein.drive;
 
 import de.mein.drive.index.BashTools;
 import de.mein.drive.sql.DriveDatabaseManager;
-import de.mein.drive.watchdog.IndexWatchdogListener;
+import de.mein.drive.index.watchdog.IndexWatchdogListener;
 
 /**
  * Created by xor on 2/4/17.

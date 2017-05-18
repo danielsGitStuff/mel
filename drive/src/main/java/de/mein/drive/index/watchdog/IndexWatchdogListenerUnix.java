@@ -1,4 +1,4 @@
-package de.mein.drive.watchdog;
+package de.mein.drive.index.watchdog;
 
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
