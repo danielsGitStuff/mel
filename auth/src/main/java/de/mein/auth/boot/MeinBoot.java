@@ -69,7 +69,7 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
         try {
             if (meinAuthService == null)
                 meinAuthService = new MeinAuthService(meinAuthSettings);
-            DeferredObject<DeferredRunnable, Exception, Void> promiseAuthBooted = meinAuthService.start();
+            DeferredObject<DeferredRunnable, Exception, Void> promiseAuthBooted = meinAuthService.prepareStart();
             DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
             List<BootLoader> bootLoaders = new ArrayList<>();
             for (Class<? extends BootLoader> bootClass : bootloaderClasses) {
@@ -85,6 +85,7 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
             promiseAuthBooted.done(result -> {
                 deferredObject.resolve(meinAuthService);
             });
+            meinAuthService.start();
         } catch (Exception e) {
             e.printStackTrace();
             deferredObject.reject(e);

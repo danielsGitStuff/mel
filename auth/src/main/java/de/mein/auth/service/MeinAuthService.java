@@ -52,7 +52,7 @@ import java.util.logging.Logger;
 /**
  * Created by xor on 2/14/16.
  */
-public class MeinAuthService   {
+public class MeinAuthService {
     static {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
@@ -74,12 +74,11 @@ public class MeinAuthService   {
     private List<IRegisteredHandler> registeredHandlers = new ArrayList<>();
     private NetworkEnvironment networkEnvironment = new NetworkEnvironment();
     private Set<MeinSocket> sockets = new HashSet<>();
-
     private ConnectedEnvironment connectedEnvironment = new ConnectedEnvironment();
-
     private Map<String, MeinService> uuidServiceMap = new ConcurrentHashMap<>();
     private MeinAuthBrotCaster brotCaster;
     private MeinBoot meinBoot;
+    private DeferredObject<DeferredRunnable, Exception, Void> startedPromise;
 
 
     public MeinAuthService(MeinAuthSettings meinAuthSettings, IDBCreatedListener dbCreatedListener) throws Exception {
@@ -91,7 +90,6 @@ public class MeinAuthService   {
         if (this.databaseManager.hadToInitialize() && this.dbCreatedListener != null)
             this.dbCreatedListener.onDBcreated(this.databaseManager);
         addRegisteredHandler((meinAuthService, registered) -> notifyAdmins());
-        this.meinAuthWorker = new MeinAuthWorker(this, meinAuthSettings);
     }
 
     public MeinAuthSettings getSettings() {
@@ -137,12 +135,18 @@ public class MeinAuthService   {
         return this;
     }
 
-    public DeferredObject<DeferredRunnable, Exception, Void> start() {
+    public DeferredObject<DeferredRunnable, Exception, Void> prepareStart() {
+        N.r(() -> this.meinAuthWorker = new MeinAuthWorker(this, settings));
+        startedPromise = meinAuthWorker.getStartedDeferred();
+        return startedPromise;
+    }
+
+
+    public void start() {
         execute(meinAuthWorker);
         for (MeinAuthAdmin admin : meinAuthAdmins) {
             admin.start(this);
         }
-        return meinAuthWorker.getStartedDeferred();
     }
 
 
@@ -196,7 +200,7 @@ public class MeinAuthService   {
 
 
     public MeinAuthService registerMeinService(MeinService meinService) throws SqlQueriesException {
-        if (meinService.getUuid()==null)
+        if (meinService.getUuid() == null)
             System.err.println("MeinAuthService.registerMeinService: MeinService.UUID was NULL");
         uuidServiceMap.put(meinService.getUuid(), meinService);
         notifyAdmins();
@@ -234,7 +238,8 @@ public class MeinAuthService   {
 
     public Promise<MeinAuthService, Exception, Void> boot() {
         DeferredObject<MeinAuthService, Exception, Void> bootedPromise = new DeferredObject<>();
-        DeferredObject<DeferredRunnable, Exception, Void> startedPromise = this.start();
+        DeferredObject<DeferredRunnable, Exception, Void> startedPromise = this.prepareStart();
+        start();
         System.out.println("MeinAuthService.boot.trying to connect to everybody");
         startedPromise.done(result -> N.r(() -> {
             for (Certificate certificate : certificateManager.getTrustedCertificates()) {
@@ -419,11 +424,11 @@ public class MeinAuthService   {
 
     public void shutDown() {
         N.r(() -> {
-            for (MeinService service : uuidServiceMap.values()){
+            for (MeinService service : uuidServiceMap.values()) {
                 service.shutDown();
             }
             Set<MeinSocket> socks = new HashSet<>(sockets);
-            for (MeinSocket socket : socks){
+            for (MeinSocket socket : socks) {
                 socket.shutDown();
             }
             meinAuthWorker.shutDown();

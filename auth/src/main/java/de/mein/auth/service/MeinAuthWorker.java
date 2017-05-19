@@ -44,7 +44,6 @@ public class MeinAuthWorker extends MeinWorker {
         meinAuthService.setBrotCaster(brotCaster);
     }
 
-
     @Override
     public void run() {
         // initialize everything and then wait for things to happen
