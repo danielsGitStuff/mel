@@ -10,6 +10,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.BackgroundExecutor;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
+import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
@@ -33,6 +34,11 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
     private MeinAuthSettings meinAuthSettings;
     private MeinAuthService meinAuthService;
 
+    public MeinBoot(MeinAuthSettings settings){
+        this.meinAuthSettings = settings;
+        this.deferredObject = new DeferredObject<>();
+    }
+
 
     public static void addBootLoaderClass(Class<? extends BootLoader> clazz) {
         bootloaderClasses.add(clazz);
@@ -49,14 +55,19 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
     private void prepareBoot(MeinAuthSettings meinAuthSettings) {
         this.deferredObject = new DeferredObject<>();
         this.meinAuthSettings = meinAuthSettings;
+        try {
+            meinAuthService = new MeinAuthService(meinAuthSettings);
+        } catch (Exception e) {
+            System.err.println("ekve0mmd");
+            e.printStackTrace();
+        }
         execute(this);
     }
 
 
-    public Promise<MeinAuthService, Exception, Void> boot(MeinAuthService meinAuthService) throws Exception {
+    public Promise<MeinAuthService, Exception, Void> boot() throws Exception {
         meinAuthService.setMeinBoot(this);
         prepareBoot(meinAuthService.getSettings());
-        this.meinAuthService = meinAuthService;
         return deferredObject;
     }
 
@@ -78,14 +89,24 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
                 bootloaderMap.put(bootLoader.getName(), bootClass);
                 bootLoaders.add(bootLoader);
             }
+            List<Promise> bootedPromises = new ArrayList<>();
             for (BootLoader bootLoader : bootLoaders) {
                 List<Service> services = meinAuthService.getDatabaseManager().getServicesByType(bootLoader.getTypeId());
-                bootLoader.boot(meinAuthService, services);
+                Promise<Void, Void, Void> booted = bootLoader.boot(meinAuthService, services);
+                if (booted != null)
+                    bootedPromises.add(booted);
             }
             promiseAuthBooted.done(result -> {
                 deferredObject.resolve(meinAuthService);
             });
-            meinAuthService.start();
+            if (bootedPromises.size() > 0) {
+                new DefaultDeferredManager().when(bootedPromises.toArray(new Promise[0]))
+                        .done(nil -> meinAuthService.start()).fail(result -> {
+                    System.err.println("MeinBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT");
+                });
+            } else {
+                meinAuthService.start();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             deferredObject.reject(e);

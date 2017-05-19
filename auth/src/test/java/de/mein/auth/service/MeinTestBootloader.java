@@ -5,6 +5,7 @@ import de.mein.auth.data.db.Service;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +29,10 @@ public class MeinTestBootloader extends BootLoader {
     }
 
     @Override
-    public void boot(MeinAuthService meinAuthService , List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public Promise<Void, Void, Void> boot(MeinAuthService meinAuthService , List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         MeinTestService testService = new MeinTestService(meinAuthService, new File("testworkingdir"));
         testService.setUuid("test uuid no. " + count++);
         meinAuthService.registerMeinService(testService);
+        return null;
     }
 }

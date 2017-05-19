@@ -167,8 +167,8 @@ public class LotsOfTests {
         standAloneAuth1.addRegisteredHandler(registeredHandler);
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        MeinBoot boot2 = new MeinBoot();
+        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot2 = new MeinBoot(json2);
         boot1.boot(standAloneAuth1).done(result -> {
             runner.runTry(() -> {
                 System.out.println("LotsOfTests.setup.1.booted");

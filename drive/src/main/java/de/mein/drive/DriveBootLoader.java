@@ -15,6 +15,8 @@ import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +43,8 @@ public class DriveBootLoader extends BootLoader {
     }
 
     @Override
-    public void boot(MeinAuthService meinAuthService,List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public Promise<Void, Void, Void> boot(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+        DeferredObject<Void,Void,Void> booted = new DeferredObject<>();
         for (Service service : services) {
             N.r(() -> {
                 File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v() + File.separator + "drive.settings.json");
@@ -50,6 +53,7 @@ public class DriveBootLoader extends BootLoader {
             });
 
         }
+        return booted;
     }
 
     public void boot(MeinAuthService meinAuthService, Service service, DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {

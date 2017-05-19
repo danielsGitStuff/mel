@@ -1,6 +1,5 @@
 package de.mein.drive.index;
 
-import de.mein.auth.tools.Hash;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
@@ -9,16 +8,12 @@ import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.sql.FsFile;
-import de.mein.drive.sql.Stage;
-import de.mein.drive.sql.dao.FsDao;
-import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -82,7 +77,10 @@ public class IndexerRunnable extends AbstractIndexer {
             }
             try {
                 fsDao.lockRead();
+                //todo debug
                 Stream<String> found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
+                List<String> strings = found.collect(Collectors.toList());
+                found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
                 initStage(DriveStrings.STAGESET_TYPE_STARTUP_INDEX, found);
                 examineStage();
             } catch (Exception e) {

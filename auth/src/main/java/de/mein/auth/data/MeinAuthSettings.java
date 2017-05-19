@@ -1,5 +1,6 @@
 package de.mein.auth.data;
 
+import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 
 import java.io.File;
@@ -17,15 +18,26 @@ public class MeinAuthSettings extends JsonSettings {
     private Integer brotcastListenerPort;
     private Integer brotcastPort;
     private Class<? extends MeinAuthService> meinAuthServiceClass;
+    private IDBCreatedListener idbCreatedListener;
 
     public MeinAuthSettings setBrotcastListenerPort(Integer brotcastListenerPort) {
         this.brotcastListenerPort = brotcastListenerPort;
         return this;
     }
 
+
     public MeinAuthSettings setMeinAuthServiceClass(Class<? extends MeinAuthService> meinAuthServiceClass) {
         this.meinAuthServiceClass = meinAuthServiceClass;
         return this;
+    }
+
+    public MeinAuthSettings setIdbCreatedListener(IDBCreatedListener idbCreatedListener) {
+        this.idbCreatedListener = idbCreatedListener;
+        return this;
+    }
+
+    public IDBCreatedListener getIdbCreatedListener() {
+        return idbCreatedListener;
     }
 
     public Class<? extends MeinAuthService> getMeinAuthServiceClass() {
