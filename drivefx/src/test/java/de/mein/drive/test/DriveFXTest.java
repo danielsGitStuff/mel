@@ -1,7 +1,7 @@
 package de.mein.drive.test;
 
 
-import de.mein.auth.boot.MeinBoot;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;

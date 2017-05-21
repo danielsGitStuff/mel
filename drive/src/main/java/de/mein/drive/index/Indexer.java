@@ -8,6 +8,7 @@ import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
@@ -19,7 +20,7 @@ public class Indexer  {
     private final MeinDriveService meinDriveService;
     private IndexerRunnable indexerRunnable;
 
-    public Indexer(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, ICrawlerListener... listeners) throws SqlQueriesException {
+    public Indexer(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, IndexListener... listeners) throws SqlQueriesException {
         meinDriveService = databaseManager.getMeinDriveService();
         indexerRunnable = new IndexerRunnable(databaseManager, indexWatchdogListener, listeners);
     }

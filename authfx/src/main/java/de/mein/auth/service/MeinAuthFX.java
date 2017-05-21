@@ -1,9 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.auth.MeinAuthAdmin;
-import de.mein.auth.boot.BootLoader;
 import de.mein.auth.boot.BootLoaderFX;
-import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.AuthSettingsFX;
 import de.mein.auth.gui.ServiceListItem;

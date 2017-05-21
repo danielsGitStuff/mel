@@ -6,11 +6,11 @@ import de.mein.drive.sql.FsFile;
 /**
  * Created by xor on 10.07.2016.
  */
-public interface ICrawlerListener {
+public interface IndexListener {
 
     void foundFile(FsFile fsFile);
 
     void foundDirectory(FsDirectory fsDirectory);
 
-    void done();
+    void done(Long stageSetId);
 }

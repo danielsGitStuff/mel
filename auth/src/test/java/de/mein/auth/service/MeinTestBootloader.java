@@ -1,6 +1,5 @@
 package de.mein.auth.service;
 
-import de.mein.auth.boot.BootLoader;
 import de.mein.auth.data.db.Service;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -29,7 +28,7 @@ public class MeinTestBootloader extends BootLoader {
     }
 
     @Override
-    public Promise<Void, Void, Void> boot(MeinAuthService meinAuthService , List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public Promise<Void, Exception, Void> boot(MeinAuthService meinAuthService , List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         MeinTestService testService = new MeinTestService(meinAuthService, new File("testworkingdir"));
         testService.setUuid("test uuid no. " + count++);
         meinAuthService.registerMeinService(testService);

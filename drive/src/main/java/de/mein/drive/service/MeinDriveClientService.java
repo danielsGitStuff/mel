@@ -1,5 +1,6 @@
 package de.mein.drive.service;
 
+import de.mein.DeferredRunnable;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceMessageHandlerJob;
 import de.mein.auth.service.MeinAuthService;
@@ -7,10 +8,14 @@ import de.mein.auth.socket.process.val.Request;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.index.IndexListener;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.sync.ClientSyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.drive.sql.FsDirectory;
+import de.mein.drive.sql.FsFile;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.util.HashSet;
@@ -108,11 +113,31 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
     @Override
-    public void initDatabase(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
-        super.initDatabase(driveDatabaseManager);
-        this.stageIndexer.setStagingDoneListener(stageSetId -> {
-            addJob(new CommitJob());
-        });
+    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
+        super.startIndexer(driveDatabaseManager);
+        DeferredObject<DeferredRunnable, Exception, Void> promise = super.startIndexer(driveDatabaseManager);
+        stageIndexer.setStagingDoneListener(stageSetId -> addJob(new CommitJob()));
+        return promise;
+    }
+
+    @Override
+    protected IndexListener createIndexListener() {
+        return new IndexListener() {
+            @Override
+            public void foundFile(FsFile fsFile) {
+
+            }
+
+            @Override
+            public void foundDirectory(FsDirectory fsDirectory) {
+
+            }
+
+            @Override
+            public void done(Long stageSetId) {
+                addJob(new CommitJob());
+            }
+        };
     }
 
 }

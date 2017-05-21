@@ -3,7 +3,7 @@ package de.mein.drive.index.watchdog;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import de.mein.DeferredRunnable;
 import de.mein.drive.data.PathCollection;
-import de.mein.drive.index.ICrawlerListener;
+import de.mein.drive.index.IndexListener;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.index.watchdog.timer.WatchDogTimer;
@@ -21,7 +21,7 @@ import java.util.concurrent.Semaphore;
  * Created by xor on 7/11/16.
  */
 @SuppressWarnings("Duplicates")
-public abstract class IndexWatchdogListener extends DeferredRunnable implements ICrawlerListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
+public abstract class IndexWatchdogListener extends DeferredRunnable implements IndexListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
 
     protected String name;
     protected WatchDogTimer watchDogTimer = new WatchDogTimer(this, 20, 100, 100);
@@ -93,7 +93,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
 
     @Override
-    public void done() {
+    public void done(Long stageSetId) {
         System.out.println("IndexWatchdogListener.done");
     }
 

@@ -1,12 +1,12 @@
 package de.mein.auth;
 
-import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinTestBootloader;
 import de.mein.auth.service.MeinTestService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
@@ -141,8 +141,7 @@ public class LotsOfTests {
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
-        standAloneAuth1 = new MeinAuthService(json1);
-        standAloneAuth2 = new MeinAuthService(json2);
+
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -155,8 +154,6 @@ public class LotsOfTests {
 
             }
         };
-        standAloneAuth1.addRegisterHandler(allowRegisterHandler);
-        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -164,16 +161,19 @@ public class LotsOfTests {
                 meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
             }
         };
-        standAloneAuth1.addRegisteredHandler(registeredHandler);
         lock.lockWrite();
-
         MeinBoot boot1 = new MeinBoot(json1);
         MeinBoot boot2 = new MeinBoot(json2);
-        boot1.boot(standAloneAuth1).done(result -> {
+        boot1.boot().done(ma1 -> {
+            standAloneAuth1 = ma1;
+            standAloneAuth1.addRegisterHandler(allowRegisterHandler);
+            standAloneAuth1.addRegisteredHandler(registeredHandler);
             runner.runTry(() -> {
                 System.out.println("LotsOfTests.setup.1.booted");
                 // setup the server Service
-                boot2.boot(standAloneAuth2).done(result1 -> {
+                boot2.boot().done(ma2 -> {
+                    standAloneAuth2 = ma2;
+                    standAloneAuth2.addRegisterHandler(allowRegisterHandler);
                     System.out.println("LotsOfTests.setup.2.booted");
                     meinTestService1 = (MeinTestService) standAloneAuth1.getMeinService("test uuid no. 0");
                     meinTestService2 = (MeinTestService) standAloneAuth2.getMeinService("test uuid no. 1");

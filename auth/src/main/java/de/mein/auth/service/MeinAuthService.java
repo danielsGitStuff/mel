@@ -4,7 +4,6 @@ package de.mein.auth.service;
 import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
 import de.mein.auth.MeinAuthAdmin;
-import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.MeinAuthSettings;
@@ -81,7 +80,7 @@ public class MeinAuthService {
     private DeferredObject<DeferredRunnable, Exception, Void> startedPromise;
 
 
-    public MeinAuthService(MeinAuthSettings meinAuthSettings, IDBCreatedListener dbCreatedListener) throws Exception {
+    MeinAuthService(MeinAuthSettings meinAuthSettings, IDBCreatedListener dbCreatedListener) throws Exception {
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
         this.databaseManager = new DatabaseManager(meinAuthSettings);
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 1024);
@@ -112,7 +111,7 @@ public class MeinAuthService {
         }
     }
 
-    public MeinAuthService(MeinAuthSettings meinAuthSettings) throws Exception {
+    MeinAuthService(MeinAuthSettings meinAuthSettings) throws Exception {
         this(meinAuthSettings, null);
     }
 
