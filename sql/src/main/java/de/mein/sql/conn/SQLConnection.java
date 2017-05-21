@@ -1,9 +1,7 @@
-package de.mein.sql.con;
+package de.mein.sql.conn;
 
 import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import de.mein.sql.SQLStatement;
 

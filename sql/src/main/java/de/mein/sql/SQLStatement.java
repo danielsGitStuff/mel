@@ -1,6 +1,6 @@
 package de.mein.sql;
 
-import de.mein.sql.con.SQLResultSet;
+import de.mein.sql.conn.SQLResultSet;
 
 import java.sql.SQLException;
 

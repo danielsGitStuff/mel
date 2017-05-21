@@ -1,8 +1,8 @@
 package de.mein.sql;
 
 
-import de.mein.sql.con.JDBCConnection;
-import de.mein.sql.con.SQLConnection;
+import de.mein.sql.conn.JDBCConnection;
+import de.mein.sql.conn.SQLConnection;
 
 import java.sql.*;
 import java.util.ArrayList;

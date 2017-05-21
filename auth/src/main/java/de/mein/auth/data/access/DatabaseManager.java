@@ -8,8 +8,7 @@ import de.mein.auth.data.db.dao.ServiceDao;
 import de.mein.auth.data.db.dao.ServiceTypeDao;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
-import de.mein.sql.con.SQLConnection;
-import de.mein.sql.con.SQLConnector;
+import de.mein.sql.conn.SQLConnector;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,8 +1,7 @@
-package de.mein.sql.con;
+package de.mein.sql.conn;
 
 import java.io.File;
 import java.sql.Connection;
-import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
