@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.mein.sql.con.SQLConnection;
+import de.mein.sql.conn.SQLConnection;
 
 /**
  * Created by xor on 2/6/17.

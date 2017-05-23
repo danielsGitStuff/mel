@@ -1,6 +1,5 @@
-package de.mein.sql.con;
+package de.mein.sql.conn;
 
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 /**

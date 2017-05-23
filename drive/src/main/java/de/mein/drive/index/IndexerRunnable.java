@@ -4,7 +4,6 @@ import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
-import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
@@ -13,7 +12,6 @@ import de.mein.sql.SqlQueriesException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -23,7 +21,7 @@ public class IndexerRunnable extends AbstractIndexer {
 
     private final IndexWatchdogListener indexWatchdogListener;
     private SyncHandler syncHandler;
-    private List<ICrawlerListener> listeners = new ArrayList<>();
+    private List<IndexListener> listeners = new ArrayList<>();
     private RootDirectory rootDirectory;
     private Order ord = new Order();
 
@@ -35,10 +33,10 @@ public class IndexerRunnable extends AbstractIndexer {
      * @param listeners
      * @throws SqlQueriesException
      */
-    public IndexerRunnable(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, ICrawlerListener... listeners) throws SqlQueriesException {
+    public IndexerRunnable(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, IndexListener... listeners) throws SqlQueriesException {
         super(databaseManager);
         this.listeners.add(indexWatchdogListener);
-        for (ICrawlerListener listener : listeners)
+        for (IndexListener listener : listeners)
             this.listeners.add(listener);
         this.indexWatchdogListener = indexWatchdogListener;
         this.rootDirectory = databaseManager.getDriveSettings().getRootDirectory();
@@ -77,28 +75,25 @@ public class IndexerRunnable extends AbstractIndexer {
             }
             try {
                 fsDao.lockRead();
-                //todo debug
                 Stream<String> found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
-                List<String> strings = found.collect(Collectors.toList());
-                found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
                 initStage(DriveStrings.STAGESET_TYPE_STARTUP_INDEX, found);
                 examineStage();
             } catch (Exception e) {
                 e.printStackTrace();
+                startedPromise.reject(e);
             } finally {
                 fsDao.unlockRead();
             }
 
 
             System.out.println("IndexerRunnable.runTry.save in mem db");
-            databaseManager.updateVersion();
-            for (ICrawlerListener listener : listeners)
-                listener.done();
-            if (databaseManager.getMeinDriveService() instanceof MeinDriveServerService)
-                syncHandler.commitStage(stageSet.getId().v());
+            for (IndexListener listener : listeners)
+                listener.done(stageSetId);
             System.out.println("IndexerRunnable.runTry.done");
+            startedPromise.resolve(this);
         } catch (Exception e) {
             e.printStackTrace();
+            startedPromise.reject(e);
         }
     }
 

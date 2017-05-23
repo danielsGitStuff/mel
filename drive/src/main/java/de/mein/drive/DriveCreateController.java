@@ -1,12 +1,13 @@
 package de.mein.drive;
 
-import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.WaitLock;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.DriveDetails;
@@ -14,6 +15,7 @@ import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
+import de.mein.drive.service.MeinDriveService;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -49,14 +51,22 @@ public class DriveCreateController {
     private void boot(Service service, DriveSettings driveSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException, InstantiationException {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
         DriveBootLoader driveBootLoader = (DriveBootLoader) MeinBoot.getBootLoader(meinAuthService, new DriveBootLoader().getName());
-        driveBootLoader.boot(meinAuthService, service, driveSettings);
+        MeinDriveService meinDriveService = driveBootLoader.boot(meinAuthService, service, driveSettings);
+        WaitLock waitLock = new WaitLock().lock();
+        meinDriveService.getStartedDeferred().done(result -> {
+            waitLock.unlock();
+        }).fail(result -> {
+            System.err.println("DriveCreateController.boot");
+            waitLock.unlock();
+        });
+        waitLock.lock();
     }
 
     public MeinDriveServerService createDriveServerService(String name, String path) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         RootDirectory rootDirectory = buildRootDirectory(path);
         Service service = createService(name);
         DriveSettings driveSettings = new DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
-        driveSettings.setTransferDirectoryPath(rootDirectory.getPath()+File.separator+DriveSettings.TRANSFER_DIR);
+        driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + DriveSettings.TRANSFER_DIR);
         boot(service, driveSettings);
         return (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
     }

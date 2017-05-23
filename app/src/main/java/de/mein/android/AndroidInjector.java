@@ -18,7 +18,7 @@ import de.mein.android.drive.service.AndroidDBConnection;
 import de.mein.android.drive.watchdog.AndroidWatchdogListener;
 import de.mein.execute.SqliteExecutorInjection;
 import de.mein.android.sql.AndroidSQLQueries;
-import de.mein.sql.con.SQLConnection;
+import de.mein.sql.conn.SQLConnection;
 
 /**
  * Created by xor on 3/8/17.

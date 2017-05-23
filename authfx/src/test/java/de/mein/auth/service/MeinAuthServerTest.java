@@ -1,6 +1,5 @@
 package de.mein.auth.service;
 
-import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;

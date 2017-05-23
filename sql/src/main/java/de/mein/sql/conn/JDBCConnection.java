@@ -1,4 +1,4 @@
-package de.mein.sql.con;
+package de.mein.sql.conn;
 
 import java.sql.Connection;
 import java.sql.SQLException;

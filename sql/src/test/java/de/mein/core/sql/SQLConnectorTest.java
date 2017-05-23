@@ -1,21 +1,14 @@
 package de.mein.core.sql;
 
 
-import de.mein.core.sql.classes.CrashTestDummy;
-import de.mein.execute.SqliteExecutor;
-import de.mein.sql.con.SQLConnection;
-import de.mein.sql.con.SQLConnector;
-import de.mein.sql.SQLQueries;
+import de.mein.sql.conn.SQLConnection;
+import de.mein.sql.conn.SQLConnector;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 

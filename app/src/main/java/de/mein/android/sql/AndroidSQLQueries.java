@@ -14,7 +14,7 @@ import de.mein.sql.ISQLResource;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
-import de.mein.sql.con.SQLConnection;
+import de.mein.sql.conn.SQLConnection;
 
 /**
  * Created by xor on 2/6/17.

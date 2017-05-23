@@ -16,7 +16,7 @@ import de.mein.sql.RWLock;
 import de.mein.sql.SQLQueries;
 import de.mein.sql.SQLStatement;
 import de.mein.sql.SqlQueriesException;
-import de.mein.sql.con.SQLConnector;
+import de.mein.sql.conn.SQLConnector;
 
 import java.io.File;
 import java.io.IOException;

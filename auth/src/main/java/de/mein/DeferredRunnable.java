@@ -57,4 +57,9 @@ public abstract class DeferredRunnable implements MeinRunnable {
     public DeferredObject<DeferredRunnable, Exception, Void> getStartedDeferred() {
         return startedPromise;
     }
+
+    public DeferredRunnable setStartedPromise(DeferredObject<DeferredRunnable, Exception, Void> startedPromise) {
+        this.startedPromise = startedPromise;
+        return this;
+    }
 }

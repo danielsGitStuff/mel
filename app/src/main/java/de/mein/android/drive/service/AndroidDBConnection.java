@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import java.sql.SQLException;
 
 import de.mein.sql.SQLStatement;
-import de.mein.sql.con.SQLConnection;
+import de.mein.sql.conn.SQLConnection;
 
 /**
  * Created by xor on 2/6/17.

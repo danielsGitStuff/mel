@@ -1,5 +1,6 @@
 package de.mein.drive.service;
 
+import de.mein.DeferredRunnable;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceMessageHandlerJob;
 import de.mein.auth.service.MeinAuthService;
@@ -8,13 +9,18 @@ import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveServerSettingsDetails;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.index.IndexListener;
 import de.mein.drive.service.sync.ServerSyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.drive.sql.FsDirectory;
+import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.util.List;
@@ -110,8 +116,8 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     }
 
     @Override
-    public void initDatabase(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
-        super.initDatabase(driveDatabaseManager);
+    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
+        DeferredObject<DeferredRunnable, Exception, Void> indexingDone = super.startIndexer(driveDatabaseManager);
         stageIndexer.setStagingDoneListener(stageSetId -> {
             logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
             // staging is done. stage data is up to date. time to commit to fs
@@ -138,12 +144,39 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 }));
             }*/
         });
+        return indexingDone;
+    }
+
+    @Override
+    protected IndexListener createIndexListener() {
+        IndexListener indexListener = new IndexListener() {
+            @Override
+            public void foundFile(FsFile fsFile) {
+
+            }
+
+            @Override
+            public void foundDirectory(FsDirectory fsDirectory) {
+
+            }
+
+            @Override
+            public void done(Long stageSetId) {
+                N.r(() -> {
+                    driveDatabaseManager.updateVersion();
+                    if (driveDatabaseManager.getMeinDriveService() instanceof MeinDriveServerService)
+                        syncHandler.commitStage(stageSetId);
+                });
+            }
+        };
+        return indexListener;
     }
 
     @Override
     public void onShutDown() {
         super.onShutDown();
     }
+
 
     @Override
     protected ExecutorService createExecutorService(ThreadFactory threadFactory) {

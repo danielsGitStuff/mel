@@ -2,7 +2,7 @@ package de.mein.execute;
 
 import java.io.InputStream;
 
-import de.mein.sql.con.SQLConnection;
+import de.mein.sql.conn.SQLConnection;
 
 /**
  * Created by xor on 3/6/17.

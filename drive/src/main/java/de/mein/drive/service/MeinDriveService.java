@@ -1,5 +1,6 @@
 package de.mein.drive.service;
 
+import de.mein.DeferredRunnable;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
@@ -15,7 +16,9 @@ import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.index.IndexListener;
 import de.mein.drive.index.Indexer;
+import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.index.watchdog.StageIndexer;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
@@ -24,7 +27,6 @@ import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.tasks.DirectoriesContentTask;
-import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -174,7 +176,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
      */
     protected abstract boolean workWorkWork(Job unknownJob);
 
-    public void initDatabase(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
+    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
         this.driveSettings = driveDatabaseManager.getDriveSettings();
         File transferDir = new File(driveSettings.getTransferDirectoryPath());
         transferDir.mkdirs();
@@ -182,13 +184,15 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         wasteDir.mkdirs();
         this.driveDatabaseManager = driveDatabaseManager;
         this.stageIndexer = new StageIndexer(driveDatabaseManager);
-        this.indexer = new Indexer(driveDatabaseManager, IndexWatchdogListener.runInstance(this));
+        this.indexer = new Indexer(driveDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());
         this.wasteBin = new WasteBin(this);
         this.syncHandler = initSyncHandler();
         this.syncHandler.start();
         indexer.setSyncHandler(syncHandler);
-        indexer.start();
+        return indexer.start();
     }
+
+    protected abstract IndexListener createIndexListener();
 
     protected abstract S initSyncHandler();
 

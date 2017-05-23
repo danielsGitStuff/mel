@@ -1,6 +1,6 @@
 package de;
 
-import de.mein.auth.boot.MeinBoot;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
@@ -95,8 +95,7 @@ public class Test1 {
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
-        standAloneAuth1 = new MeinAuthService(json1);
-        standAloneAuth2 = new MeinAuthService(json2);
+
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -109,8 +108,6 @@ public class Test1 {
 
             }
         };
-        standAloneAuth1.addRegisterHandler(allowRegisterHandler);
-        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -118,18 +115,22 @@ public class Test1 {
                 meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
             }
         };
-        standAloneAuth1.addRegisteredHandler(registeredHandler);
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        MeinBoot boot2 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
+        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot2 = new MeinBoot(json2);
+        boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
+                standAloneAuth1 = ma1;
+                standAloneAuth1.addRegisteredHandler(registeredHandler);
+                standAloneAuth1.addRegisterHandler(allowRegisterHandler);
                 // setup the server Service
                 MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath());
-                boot2.boot(standAloneAuth2).done(result1 -> {
+                boot2.boot().done(ma2 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
+                    standAloneAuth2 = ma2;
+                    standAloneAuth2.addRegisterHandler(allowRegisterHandler);
                     runner.runTry(() -> {
                         // connect first. this step will register
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);

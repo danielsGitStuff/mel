@@ -2,7 +2,7 @@ package de.mein.execute;
 
 import de.mein.core.serialize.serialize.tools.StringBuilder;
 import de.mein.sql.SQLStatement;
-import de.mein.sql.con.SQLConnection;
+import de.mein.sql.conn.SQLConnection;
 
 import java.io.IOException;
 import java.io.InputStream;

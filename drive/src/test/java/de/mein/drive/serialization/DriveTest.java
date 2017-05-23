@@ -1,13 +1,13 @@
 package de.mein.drive.serialization;
 
 import de.mein.auth.TestFileCreator;
-import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
@@ -84,7 +84,7 @@ public class DriveTest {
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
                         File newFile = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
                         TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
-                        Promise<MeinAuthService, Exception, Void> rebooted = meinAuthService1.getMeinBoot().boot(meinAuthService1);
+                        Promise<MeinAuthService, Exception, Void> rebooted = meinAuthService1.getMeinBoot().boot();
                         rebooted.done(res -> N.r(() -> {
                             System.out.println("DriveTest.alles ok");
                         }));
@@ -422,7 +422,6 @@ public class DriveTest {
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
-        meinAuthService1 = new MeinAuthService(json1);
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -435,7 +434,6 @@ public class DriveTest {
 
             }
         };
-        meinAuthService1.addRegisterHandler(allowRegisterHandler);
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -443,13 +441,15 @@ public class DriveTest {
                 meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
             }
         };
-        meinAuthService1.addRegisteredHandler(registeredHandler);
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        boot1.boot(meinAuthService1).done(result -> {
+        MeinBoot boot1 = new MeinBoot(json1);
+        boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 System.out.println("DriveTest.driveGui.booted");
+                meinAuthService1 = ma1;
+                meinAuthService1.addRegisterHandler(allowRegisterHandler);
+                meinAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
                 MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath());
                 System.out.println("DriveTest.startServer.booted");
@@ -484,8 +484,6 @@ public class DriveTest {
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
-        meinAuthService1 = new MeinAuthService(json1);
-        meinAuthService2 = new MeinAuthService(json2);
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -498,8 +496,6 @@ public class DriveTest {
 
             }
         };
-        meinAuthService1.addRegisterHandler(allowRegisterHandler);
-        meinAuthService2.addRegisterHandler(allowRegisterHandler);
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -507,18 +503,22 @@ public class DriveTest {
                 meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
             }
         };
-        meinAuthService1.addRegisteredHandler(registeredHandler);
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        MeinBoot boot2 = new MeinBoot();
-        boot1.boot(meinAuthService1).done(result -> {
+        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot2 = new MeinBoot(json2);
+        boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
+                meinAuthService1 = ma1;
+                meinAuthService1.addRegisterHandler(allowRegisterHandler);
+                meinAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
                 MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath());
-                boot2.boot(meinAuthService2).done(result1 -> {
+                boot2.boot().done(ma2 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
+                    meinAuthService2 = ma2;
+                    meinAuthService2.addRegisterHandler(allowRegisterHandler);
                     runner.runTry(() -> {
                         // connect first. this step will register
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = meinAuthService2.connect(null, "localhost", 8888, 8889, true);

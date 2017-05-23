@@ -1,7 +1,7 @@
 package de.mein.drive;
 
 import de.mein.KonsoleHandler;
-import de.mein.auth.boot.MeinBoot;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.gui.RegisterHandlerFX;
