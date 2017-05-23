@@ -62,7 +62,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return res;
     }
 
-    protected  void examineStage() throws SqlQueriesException, IOException {
+    protected void examineStage() throws SqlQueriesException, IOException {
         ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
         Stage stage = stages.getNext();
         while (stage != null) {
@@ -83,7 +83,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType,Stream<String> paths) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Stream<String> paths) throws IOException, SqlQueriesException {
 //        stageDao.lockWrite();
         try {
             stageSet = stageDao.createStageSet(stageSetType, null, null);
@@ -110,12 +110,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                         if (gen != null) {
                             fsEntry = gen.ins();
                         }
-                    } else {
-                        System.err.println("klc9004p,");
-                        System.err.println("parent, could not find a corresponding FSEntry to this Stage:");
-                        System.err.println("id " + stageParent.getId() + " fsid " + stageParent.getFsId()
-                                + " parentid " + stageParent.getParentId() + " parentfsid " + stageParent.getFsParentId()
-                                + " name " + stageParent.getName());
                     }
                     //file might been deleted yet :(
                     if (!f.exists() && fsEntry == null)

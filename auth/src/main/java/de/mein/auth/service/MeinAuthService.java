@@ -25,6 +25,7 @@ import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.WaitLock;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.sql.SqlQueriesException;
@@ -74,6 +75,7 @@ public class MeinAuthService {
     private NetworkEnvironment networkEnvironment = new NetworkEnvironment();
     private Set<MeinSocket> sockets = new HashSet<>();
     private ConnectedEnvironment connectedEnvironment = new ConnectedEnvironment();
+    private WaitLock uuidServiceMapSemaphore = new WaitLock();
     private Map<String, MeinService> uuidServiceMap = new ConcurrentHashMap<>();
     private MeinAuthBrotCaster brotCaster;
     private MeinBoot meinBoot;
@@ -201,13 +203,20 @@ public class MeinAuthService {
     public MeinAuthService registerMeinService(MeinService meinService) throws SqlQueriesException {
         if (meinService.getUuid() == null)
             System.err.println("MeinAuthService.registerMeinService: MeinService.UUID was NULL");
+        uuidServiceMapSemaphore.lock();
         uuidServiceMap.put(meinService.getUuid(), meinService);
+        if (meinAuthWorker.getStartedDeferred().isResolved()) {
+            meinService.onMeinAuthIsUp();
+        }
+        uuidServiceMapSemaphore.unlock();
         notifyAdmins();
         return this;
     }
 
     public MeinAuthService unregisterMeinService(Long serviceUuid) {
+        uuidServiceMapSemaphore.lock();
         uuidServiceMap.remove(serviceUuid);
+        uuidServiceMapSemaphore.unlock();
         notifyAdmins();
         return this;
     }
@@ -270,20 +279,22 @@ public class MeinAuthService {
         return job.getPromise();
     }
 
-    public Promise<MeinValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
+    public synchronized Promise<MeinValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
         Certificate certificate = certificateManager.getTrustedCertificateById(certificateId);
         // check if already connected via id and address
+        connectedEnvironment.lock();
         if (certificateId != null && (mvp = connectedEnvironment.getValidationProcess(certificateId)) != null) {
             deferred.resolve(mvp);
         } else if ((mvp = connectedEnvironment.getValidationProcess(certificate.getAddress().v())) != null) {
             deferred.resolve(mvp);
         } else {
             ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-            job.getPromise().done(result -> deferred.resolve((MeinValidationProcess) result)).fail(result -> deferred.reject(result));
+            job.getPromise().done(result -> deferred.resolve(result)).fail(result -> deferred.reject(result));
             meinAuthWorker.addJob(job);
         }
+        connectedEnvironment.unlock();
         return deferred;
     }
 
@@ -304,7 +315,10 @@ public class MeinAuthService {
     }
 
     public Set<IMeinService> getMeinServices() {
-        return new HashSet<>(uuidServiceMap.values());
+        uuidServiceMapSemaphore.lock();
+        Set<IMeinService> result = new HashSet<>(uuidServiceMap.values());
+        uuidServiceMapSemaphore.unlock();
+        return result;
     }
 
     public void setBrotCaster(MeinAuthBrotCaster brotCaster) {
@@ -408,9 +422,12 @@ public class MeinAuthService {
 
 
     public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
-        if (meinAuthSocket.isValidated())
+        if (meinAuthSocket.isValidated()) {
+            connectedEnvironment.lock();
             connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
-        sockets.remove(meinAuthSocket);
+            sockets.remove(meinAuthSocket);
+            connectedEnvironment.unlock();
+        }
     }
 
     public void execute(MeinRunnable runnable) {
@@ -423,9 +440,11 @@ public class MeinAuthService {
 
     public void shutDown() {
         N.r(() -> {
+            uuidServiceMapSemaphore.lock();
             for (MeinService service : uuidServiceMap.values()) {
                 service.shutDown();
             }
+            uuidServiceMapSemaphore.unlock();
             Set<MeinSocket> socks = new HashSet<>(sockets);
             for (MeinSocket socket : socks) {
                 socket.shutDown();
@@ -453,5 +472,11 @@ public class MeinAuthService {
             payload.addService(service);
         }
         return payload;
+    }
+
+    public void onMeinAuthIsUp() {
+        for (IMeinService meinService : getMeinServices()) {
+            meinService.onMeinAuthIsUp();
+        }
     }
 }

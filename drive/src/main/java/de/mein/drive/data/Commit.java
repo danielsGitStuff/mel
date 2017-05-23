@@ -12,6 +12,16 @@ import java.util.List;
 public class Commit implements IPayload {
     private List<Stage> stages = new ArrayList<>();
     private String serviceUuid;
+    private Long basedOnVersion;
+
+    public Commit setBasedOnVersion(Long basedOnVersion) {
+        this.basedOnVersion = basedOnVersion;
+        return this;
+    }
+
+    public Long getBasedOnVersion() {
+        return basedOnVersion;
+    }
 
     public List<Stage> getStages() {
         return stages;

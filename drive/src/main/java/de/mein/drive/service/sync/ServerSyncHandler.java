@@ -29,6 +29,10 @@ public class ServerSyncHandler extends SyncHandler {
     public void handleCommit(Request request) throws SqlQueriesException {
         // todo threading issues? check for unlocking DAOs after the connection/socket died.
         Commit commit = (Commit) request.getPayload();
+        if (commit.getBasedOnVersion() != driveDatabaseManager.getLatestVersion()) {
+            request.reject(new TooOldVersionException(commit.getBasedOnVersion() + "!=" + driveDatabaseManager.getLatestVersion()));
+            return;
+        }
         StageDao stageDao = driveDatabaseManager.getStageDao();
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FROM_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid());
@@ -38,7 +42,7 @@ public class ServerSyncHandler extends SyncHandler {
             if (!stage.getIsDirectory())
                 stage.setSynced(false);
             // set "new" parent id
-            if (stage.getParentId()!=null && oldStageIdStageIdMap.containsKey(stage.getParentId())){
+            if (stage.getParentId() != null && oldStageIdStageIdMap.containsKey(stage.getParentId())) {
                 stage.setParentId(oldStageIdStageIdMap.get(stage.getParentId()));
             }
             Long oldId = stage.getId();

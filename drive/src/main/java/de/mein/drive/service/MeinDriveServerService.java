@@ -19,7 +19,6 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.SqlQueriesException;
-import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
@@ -181,5 +180,16 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     @Override
     protected ExecutorService createExecutorService(ThreadFactory threadFactory) {
         return Executors.newCachedThreadPool(threadFactory);
+    }
+
+    @Override
+    public void onMeinAuthIsUp() {
+        startIndexerDonePromise.done(result -> {
+            System.out.println("MeinDriveServerService.onMeinAuthIsUp");
+            // connect to every client that we know
+            for (DriveServerSettingsDetails.ClientData client : this.driveSettings.getServerSettings().getClients()) {
+                N.r(() -> meinAuthService.connect(client.getCertId()));
+            }
+        });
     }
 }

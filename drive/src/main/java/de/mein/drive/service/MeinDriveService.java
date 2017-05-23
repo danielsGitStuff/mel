@@ -51,6 +51,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected StageIndexer stageIndexer;
     protected S syncHandler;
     private WasteBin wasteBin;
+    protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
 
     public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory) {
         super(meinAuthService, workingDirectory);
@@ -189,7 +190,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         this.syncHandler = initSyncHandler();
         this.syncHandler.start();
         indexer.setSyncHandler(syncHandler);
-        return indexer.start();
+        startIndexerDonePromise = indexer.start();
+        return startIndexerDonePromise;
     }
 
     protected abstract IndexListener createIndexListener();
@@ -231,6 +233,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void start() {
-
+        System.out.println("MeinDriveService.start");
     }
 }

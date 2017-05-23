@@ -67,7 +67,7 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
         try {
             meinAuthService = new MeinAuthService(meinAuthSettings);
             meinAuthService.setMeinBoot(this);
-            DeferredObject<DeferredRunnable, Exception, Void> promiseAuthBooted = meinAuthService.prepareStart();
+            DeferredObject<DeferredRunnable, Exception, Void> promiseAuthIsUp = meinAuthService.prepareStart();
             List<BootLoader> bootLoaders = new ArrayList<>();
             for (Class<? extends BootLoader> bootClass : bootloaderClasses) {
                 logger.log(Level.FINE, "MeinBoot.boot.booting: " + bootClass.getCanonicalName());
@@ -82,7 +82,7 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
                 if (booted != null)
                     bootedPromises.add(booted);
             }
-            promiseAuthBooted.done(result -> {
+            promiseAuthIsUp.done(result -> {
                 deferredObject.resolve(meinAuthService);
             });
             new MeinDeferredManager().when(bootedPromises)

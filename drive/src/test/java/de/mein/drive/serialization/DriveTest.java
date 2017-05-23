@@ -46,6 +46,8 @@ public class DriveTest {
     private static MeinAuthService meinAuthService2;
     private static RWLock lock = new RWLock();
     private static N runner = new N(Throwable::printStackTrace);
+    private static MeinAuthSettings json2;
+    private static MeinAuthSettings json1;
 
     private static void run(N.INoTryRunnable noTryRunnable) {
         runner.runTry(noTryRunnable);
@@ -84,7 +86,8 @@ public class DriveTest {
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
                         File newFile = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
                         TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
-                        Promise<MeinAuthService, Exception, Void> rebooted = meinAuthService1.getMeinBoot().boot();
+                        MeinBoot meinBoot = new MeinBoot(json1);
+                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             System.out.println("DriveTest.alles ok");
                         }));
@@ -477,10 +480,10 @@ public class DriveTest {
         MeinBoot.addBootLoaderClass(DriveBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
 
-        MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
+        json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
-        MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
+        json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");

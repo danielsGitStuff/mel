@@ -39,6 +39,11 @@ public class MeinTestService extends MeinServiceWorker {
         System.out.println("MeinTestService.handleCertificateSpotted");
     }
 
+    @Override
+    public void onMeinAuthIsUp() {
+        System.out.println("MeinTestService.onMeinAuthIsUp");
+    }
+
 
     @Override
     protected void workWork(Job job) throws Exception {

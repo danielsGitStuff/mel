@@ -120,7 +120,10 @@ public class ClientSyncHandler extends SyncHandler {
 
             Promise<MeinValidationProcess, Exception, Void> connectedPromise = meinAuthService.connect(driveSettings.getClientSettings().getServerCertId());
             connectedPromise.done(mvp -> N.r(() -> {
-                Commit commit = new Commit().setStages(driveDatabaseManager.getStageDao().getStagesByStageSetAsList(stageSetId)).setServiceUuid(meinDriveService.getUuid());
+                Commit commit = new Commit()
+                        .setStages(driveDatabaseManager.getStageDao().getStagesByStageSetAsList(stageSetId))
+                        .setServiceUuid(meinDriveService.getUuid())
+                        .setBasedOnVersion(driveDatabaseManager.getLatestVersion());
                 mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> N.r(() -> {
                     //fsDao.lockWrite();
                     CommitAnswer answer = (CommitAnswer) result;
@@ -152,7 +155,7 @@ public class ClientSyncHandler extends SyncHandler {
             connectedPromise.fail(ex -> {
                 // todo server did not commit. it probably had a local change. have to solve it here
                 System.err.println("MeinDriveClientService.startIndexer.could not connect :( due to: " + ex.getMessage());
-               // fsDao.unlockWrite();
+                // fsDao.unlockWrite();
                 stageDao.unlockRead();
                 waitLock.unlock();
                 meinDriveService.getSyncListener().onSyncFailed();
@@ -216,7 +219,7 @@ public class ClientSyncHandler extends SyncHandler {
                 return;
             }
 
-            if (updateSets.size()>1)
+            if (updateSets.size() > 1)
                 System.err.println("ClientSyncHandler.commitJob.something went seriously wrong");
 
             // lets assume that everything went fine!
@@ -226,10 +229,10 @@ public class ClientSyncHandler extends SyncHandler {
             }
             // we are done here
             meinDriveService.getSyncListener().onSyncDone();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             meinDriveService.getSyncListener().onSyncFailed();
-        }finally {
+        } finally {
             fsDao.unlockWrite();
         }
 

@@ -8,7 +8,7 @@ import java.util.concurrent.Semaphore;
 public class WaitLock {
     private Semaphore semaphore = new Semaphore(1, true);
 
-     public WaitLock lock() {
+     public synchronized WaitLock lock() {
         try {
             semaphore.acquire();
         } catch (InterruptedException e) {

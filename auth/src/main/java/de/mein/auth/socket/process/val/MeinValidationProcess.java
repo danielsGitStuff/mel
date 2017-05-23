@@ -102,10 +102,10 @@ public class MeinValidationProcess extends MeinProcess {
     private void handleError(MeinRequest request, Exception e) {
         MeinResponse response = request.respondError(e);
         try {
-            System.err.println("MeinValidationProcess.handleError");
+            System.err.println("MeinValidationProcess for " + meinAuthSocket.getMeinAuthService().getName() + ".handleError");
             e.printStackTrace();
             send(response);
-            System.err.println("MeinValidationProcess.handleError.done");
+            System.err.println("MeinValidationProcess for " + meinAuthSocket.getMeinAuthService().getName() + ".handleError.done");
         } catch (JsonSerializationException e1) {
             e1.printStackTrace();
         } catch (IllegalAccessException e1) {

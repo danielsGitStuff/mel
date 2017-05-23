@@ -58,6 +58,7 @@ public class MeinAuthWorker extends MeinWorker {
             //say hello!
             try {
                 brotCaster.brotcast(MeinAuthSettings.BROTCAST_PORT, meinAuthService.getSettings().getDiscoverMessage());
+                meinAuthService.onMeinAuthIsUp();
             } catch (IOException e) {
                 System.err.println("brotcast went wrong :(");
                 e.printStackTrace();

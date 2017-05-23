@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.tools.WaitLock;
 
 import java.util.Collection;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * Created by xor on 13.10.2016.
  */
-public class ConnectedEnvironment {
+public class ConnectedEnvironment extends WaitLock{
     private Map<Long, MeinValidationProcess> idValidateProcessMap = new ConcurrentHashMap<>();
     private Map<String, MeinValidationProcess> addressValidateProcessMap = new ConcurrentHashMap<>();
 

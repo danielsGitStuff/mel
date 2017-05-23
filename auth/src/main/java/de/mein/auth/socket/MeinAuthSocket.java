@@ -151,7 +151,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             if (except instanceof ShamefulSelfConnectException) {
                 result.reject(except);
             } else if (except instanceof ConnectException) {
-                System.err.println("MeinAuthSocket.connect.HOST:NOT:REACHABLE");
+                System.err.println(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
                 result.reject(except);
             } else if (regOnUnknown && remoteCertId == null) {
                 // try to register

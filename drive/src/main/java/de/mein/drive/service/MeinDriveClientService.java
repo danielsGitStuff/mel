@@ -5,6 +5,7 @@ import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceMessageHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
@@ -90,6 +91,11 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             }
         } else if (unknownJob instanceof CommitJob) {
             syncHandler.commitJob();
+        } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
+            Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
+            if (authenticatedJob.getPartnerCertificate().getId().v().equals(driveSettings.getClientSettings().getServerCertId())) {
+                N.r(() -> syncHandler.syncThisClient());
+            }
         }
         return false;
     }
@@ -115,9 +121,8 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
         super.startIndexer(driveDatabaseManager);
-        DeferredObject<DeferredRunnable, Exception, Void> promise = super.startIndexer(driveDatabaseManager);
         stageIndexer.setStagingDoneListener(stageSetId -> addJob(new CommitJob()));
-        return promise;
+        return startIndexerDonePromise;
     }
 
     @Override
@@ -140,4 +145,16 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         };
     }
 
+    @Override
+    public void onMeinAuthIsUp() {
+        startIndexerDonePromise.done(result -> {
+            System.out.println("MeinDriveClientService.onMeinAuthIsUp");
+            N.r(() -> {
+                Long serverId = driveSettings.getClientSettings().getServerCertId();
+                if (serverId != null) {
+                    meinAuthService.connect(serverId).done(result1 -> addJob(new CommitJob()));
+                }
+            });
+        });
+    }
 }
