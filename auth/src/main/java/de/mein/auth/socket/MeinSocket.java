@@ -228,7 +228,11 @@ public class MeinSocket extends DeferredRunnable {
             listener.onClose(42, "don't know shit", true);
         } catch (Exception e) {
             if (!isInterrupted()) {
-                System.err.println(meinAuthService.getName() + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")");
+                String line = meinAuthService.getName() + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
+                //todo debug
+                if (line.startsWith("MA2.MeinAuthSocket.SSLSocketImpl.run") || line.startsWith("MA1.MeinAuthSocket.SSLSocketImpl.run"))
+                    System.out.println("MeinSocket.runImpl.943f938fw0io34");
+                System.err.println(line);
                 onSocketClosed(e);
                 e.printStackTrace();
             }

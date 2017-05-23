@@ -100,12 +100,11 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         return false;
     }
 
-
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
     }
 
-    public DriveSyncListener getSyncListener() {
+    private DriveSyncListener getSyncListener() {
         return syncListener;
     }
 
@@ -156,5 +155,15 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                 }
             });
         });
+    }
+
+    public void onSyncFailed() {
+        if (syncListener != null)
+            syncListener.onSyncFailed();
+    }
+
+    public void onSyncDone() {
+        if (syncListener != null)
+            syncListener.onSyncDone();
     }
 }

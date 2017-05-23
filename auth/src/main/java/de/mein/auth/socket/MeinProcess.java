@@ -53,14 +53,12 @@ public abstract class MeinProcess implements IRequestHandler {
             StateMsg msg = (StateMsg) deserialized;
             Dobject deferred = requestMap.get(answerId);
             this.requestMap.remove(answerId);
-            IPayload payload = msg.getPayload();
-            if (msg.getState().equals(STATE_OK)) {
-                deferred.resolve(msg);
-            } else if (msg.getState().equals(STATE_ERR)) {
-                deferred.reject((Exception) payload);
-            } else {
-                System.err.println("i093g39h008");
-                deferred.reject(new Exception("unkown STATE"));
+            if (!msg.getState().equals(STATE_OK)) {
+                if (msg.getPayload() != null)
+                    deferred.reject((Exception) msg.getPayload());
+                else
+                    deferred.reject(new Exception("state was: " + msg.getState()));
+                return true;
             }
             deferred.check(deserialized);
             return true;

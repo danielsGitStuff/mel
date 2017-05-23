@@ -67,7 +67,7 @@ public class DriveTest {
     @Test
     public void clientConflict() throws Exception {
         // start both instances, shutdown server, change something in client directory
-        setup(new DriveSyncListener() {
+        final DriveSyncListener syncListener = new DriveSyncListener() {
             public File file2;
             public File file1;
             public String rootPath;
@@ -90,6 +90,13 @@ public class DriveTest {
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             System.out.println("DriveTest.alles ok");
+//                            testStructure.setMaClient(meinAuthService2)
+//                                    .setMaServer(meinAuthService1)
+//                                    .setClientDriveService(clientDriveService)
+//                                    .setServerDriveService(serverService)
+//                                    .setTestdir1(testdir1)
+//                                    .setTestdir2(testdir2);
+//                            clientDriveService.setSyncListener(clientSyncListener);
                         }));
                     });
                 }
@@ -116,7 +123,8 @@ public class DriveTest {
                 System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
                 count++;
             }
-        });
+        };
+        setup(syncListener);
         lock.lockWrite();
         lock.unlockWrite();
         System.out.println("DriveTest.clientMergeStages.END");

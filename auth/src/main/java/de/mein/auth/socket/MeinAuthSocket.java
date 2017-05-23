@@ -86,6 +86,14 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             System.out.println(meinAuthService.getName() + ".got: " + msg);
             SerializableEntityDeserializer deserializer = new SerializableEntityDeserializer();
             SerializableEntity deserialized = SerializableEntityDeserializer.deserialize(msg);
+            //todo debug
+            if (deserialized instanceof MeinRequest) {
+                MeinRequest request = (MeinRequest) deserialized;
+                if (request.getAuthenticated() != null && request.getAuthenticated()) {
+                    System.out.println("MeinAuthSocket.onMessage.9djg90areh0g");
+                    System.out.println("MeinAuthSocket.onMessage.ij3g89wh9543w");
+                }
+            }
             if (process != null) {
                 process.onMessageReceived(deserialized, this);
             } else if (deserialized instanceof MeinRequest) {

@@ -158,7 +158,7 @@ public class ClientSyncHandler extends SyncHandler {
                 // fsDao.unlockWrite();
                 stageDao.unlockRead();
                 waitLock.unlock();
-                meinDriveService.getSyncListener().onSyncFailed();
+                meinDriveService.onSyncFailed();
             });
         } else {
             stageDao.deleteStageSet(stageSetId);
@@ -228,10 +228,10 @@ public class ClientSyncHandler extends SyncHandler {
                 setupTransfer();
             }
             // we are done here
-            meinDriveService.getSyncListener().onSyncDone();
+            meinDriveService.onSyncDone();
         } catch (Exception e) {
             e.printStackTrace();
-            meinDriveService.getSyncListener().onSyncFailed();
+            meinDriveService.onSyncFailed();
         } finally {
             fsDao.unlockWrite();
         }
