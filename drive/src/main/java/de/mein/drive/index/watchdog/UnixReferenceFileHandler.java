@@ -38,7 +38,7 @@ public class UnixReferenceFileHandler {
         timeReferenceFile.mkdirs();
     }
 
-    public synchronized Stream<String> stuffModifiedAfter() throws IOException, BashToolsException {
+    public synchronized List<String> stuffModifiedAfter() throws IOException, BashToolsException {
         // take the older one as reference. but to avoid data loss, we recreate the other file before.
         // so no stuff which happened while the BashTools work gets lost.
         File refFile = (refOnFile1) ? timeReferenceFile1 : timeReferenceFile2;

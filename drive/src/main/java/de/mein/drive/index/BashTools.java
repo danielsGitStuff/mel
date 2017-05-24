@@ -5,7 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -50,21 +53,39 @@ public class BashTools {
     }
 
 
-    public static Stream<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+    public static List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
         String[] args = new String[]{BIN_PATH, "-c",
                 "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
                         + " -path \"" + pruneDir + "\" -prune"
                         + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print"};
-        Process proc = new ProcessBuilder(args).start();
-        int exitValue = proc.exitValue();
-        if (exitValue == 0) {
-            System.out.println("BashTools.stuffModifiedAfter");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            return reader.lines();
-        } else {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            throw new BashToolsException(reader.lines());
+        ProcessBuilder processBuilder = new ProcessBuilder(args);
+        processBuilder.redirectErrorStream(true);
+        Process proc = processBuilder.start();
+        boolean hasFinished = false;
+        while (!hasFinished) {
+            try {
+                hasFinished = proc.waitFor(10, TimeUnit.SECONDS);
+                if (!hasFinished){
+                    BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                    List<String> errors = errorReader.lines().collect(Collectors.toList());
+                    System.out.println("BashTools.stuffModifiedAfter");
+                }
+                int exitValue = proc.exitValue();
+                if (exitValue == 0) {
+                    System.out.println("BashTools.stuffModifiedAfter");
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+                    return reader.lines().collect(Collectors.toList());
+                } else {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                    throw new BashToolsException(reader.lines());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                proc.destroyForcibly();
+                continue;
+            }
         }
+        return null;
     }
 
     public static Stream<String> find(File directory, File pruneDir) throws IOException {

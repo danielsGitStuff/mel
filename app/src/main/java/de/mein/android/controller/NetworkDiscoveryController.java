@@ -100,7 +100,7 @@ public class NetworkDiscoveryController extends GuiController {
 //            System.out.println("NetworkDiscoveryController.observed something!!!!!!!!");
 //            listUnkown.removeAllViews();
 //            listAll.getItems().clear();
-//            listAll.getItems().addAll(environment.getUnknownAuthInstances());
+//            listAll.getItems().setPaths(environment.getUnknownAuthInstances());
 //            listKnown.getItems().clear();
 //            for (Long certId : environment.getCertificateIds()) {
 //                try {

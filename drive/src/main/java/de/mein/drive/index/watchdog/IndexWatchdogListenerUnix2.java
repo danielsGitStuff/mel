@@ -94,12 +94,13 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
     public void onTimerStopped() {
         System.out.println("IndexWatchdogListener.onTimerStopped");
         PathCollection pathCollection = new PathCollection();
+
         try {
             /**
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
              */
-            Stream<String> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            List<String> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
             for (String p : paths) {
                 File f = new File(p);

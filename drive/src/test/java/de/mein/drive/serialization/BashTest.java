@@ -30,7 +30,7 @@ public class BashTest {
             //        String[] args = new String[]{BIN_PATH, "-c", "find \"" + directory.getAbsolutePath() + "\" -mindepth 1 -newer \"" + referenceFile.getAbsolutePath() + "\""
             //                + " -prune \"" + pruneDir + "\""};
             String[] args = new String[]{BIN_PATH, "-c",
-                    "find \"/home/xor/\""};
+                    "find \"/home/xor/Downloads/Rishloo\""};
             List<String> result = new ArrayList<>();
             boolean hasResult = false;
             while (!hasResult) {
@@ -38,7 +38,7 @@ public class BashTest {
                 try {
                     Process proc = new ProcessBuilder(args).start();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                    reader.lines().forEach(result::add);
+                    reader.lines().forEach(System.out::println);
                     System.out.println("BashTest.finish");
                 } catch (Exception e) {
                     System.err.println("string I got from bash: " + res);
