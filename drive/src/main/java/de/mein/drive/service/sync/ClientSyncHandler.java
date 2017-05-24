@@ -151,8 +151,11 @@ public class ClientSyncHandler extends SyncHandler {
                     //fsDao.unlockWrite();
                 }))
                         .fail(result -> {
-                            if (result instanceof TooOldVersionException){
+                            if (result instanceof TooOldVersionException) {
                                 System.out.println("ClientSyncHandler.syncWithServer");
+                                N.r(() -> {
+                                    syncThisClient();
+                                });
                             }
                             waitLock.unlock();
                         });
