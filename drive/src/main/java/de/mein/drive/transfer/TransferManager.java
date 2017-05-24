@@ -1,7 +1,6 @@
 package de.mein.drive.transfer;
 
 import de.mein.DeferredRunnable;
-import de.mein.MeinRunnable;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
@@ -78,6 +77,7 @@ public class TransferManager extends DeferredRunnable {
                 List<TransferDetails> groupedTransferSets = transferDao.getTwoTransferSets();
                 if (groupedTransferSets.size() == 0) {
                     logger.log(Level.FINER, "TransferManager.WAIT");
+                    meinDriveService.onTransfersDone();
                     lock.lockWrite();
                 } else {
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {

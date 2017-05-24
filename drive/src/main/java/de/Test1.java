@@ -44,6 +44,11 @@ public class Test1 {
             }
 
             @Override
+            public void onTransfersDone() {
+
+            }
+
+            @Override
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {

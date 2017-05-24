@@ -68,13 +68,16 @@ public class BashTools {
                 if (!hasFinished){
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
                     List<String> errors = errorReader.lines().collect(Collectors.toList());
-                    System.out.println("BashTools.stuffModifiedAfter");
+                    System.out.println("BashTools.stuffModifiedAfter.did not finish");
                 }
                 int exitValue = proc.exitValue();
                 if (exitValue == 0) {
                     System.out.println("BashTools.stuffModifiedAfter");
                     BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                    return reader.lines().collect(Collectors.toList());
+                    System.out.println("BashTools.stuffModifiedAfter.collecting.result");
+                    List<String> result = reader.lines().collect(Collectors.toList());
+                    System.out.println("BashTools.stuffModifiedAfter.collecting.done");
+                    return result;
                 } else {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
                     throw new BashToolsException(reader.lines());

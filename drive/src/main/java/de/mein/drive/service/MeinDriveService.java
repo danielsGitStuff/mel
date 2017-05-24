@@ -235,4 +235,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     public void start() {
         System.out.println("MeinDriveService.start");
     }
+
+    public void onTransfersDone() {
+
+    }
 }

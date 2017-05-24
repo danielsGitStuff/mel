@@ -382,18 +382,18 @@ public class ClientSyncHandler extends SyncHandler {
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v(), serverCert.getAddress().v(), serverCert.getPort().v(), serverCert.getCertDeliveryPort().v(), false);
         connected.done(mvp -> runner.runTry(() -> {
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
+            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER, null, null);
             Request<SyncTask> request = mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, new SyncTask().setVersion(version));
             request.done(syncTask -> runner.runTry(() -> {
+                syncTask.setStageSet(stageSet);
                 syncTask.setSourceCertId(driveSettings.getClientSettings().getServerCertId());
                 syncTask.setSourceServiceUuid(driveSettings.getClientSettings().getServerServiceUuid());
-                fsDao.lockRead();
                 Promise<Long, Void, Void> promise = this.sync2Stage(syncTask);
                 promise.done(nil -> runner.runTry(() -> {
                     meinDriveService.addJob(new CommitJob());
                     if (syncListener != null)
                         syncListener.onSyncDone();
-                    fsDao.unlockRead();
-                })).fail(result -> fsDao.unlockRead());
+                })).fail(result -> System.err.println("j99f49459f54"));
             }));
         }));
     }
@@ -415,7 +415,7 @@ public class ClientSyncHandler extends SyncHandler {
             finished.resolve(null);
             return finished;
         }
-        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FROM_SERVER, null, null);
+        StageSet stageSet = syncTask.getStageSet();
         syncTask.setStageSetId(stageSet.getId().v());
         // stage first
         for (GenericFSEntry genericFSEntry : entries) {

@@ -4,6 +4,7 @@ package de.mein.drive.data;
  * Created by xor on 10/26/16.
  */
 public abstract class DriveStrings {
+    public static final int DB_VERSION = 1;
 
     // communication related stuff
     public static final String NAME = "MeinDrive";
@@ -20,11 +21,10 @@ public abstract class DriveStrings {
     // file system related stuff
     public static final String WASTEBIN = "wastebin";
     public static final String DB_FILENAME = "meindrive.db";
-    public static final int DB_VERSION = 1;
     public static final String STAGESET_TYPE_STARTUP_INDEX = "startup";
     public static final String STAGESET_TYPE_FS = "fs";
     public static final String STAGESET_TYPE_MERGED = "merged";
-    public static final String STAGESET_TYPE_FROM_SERVER = "from server";
+    public static final String STAGESET_TYPE_STAGING_FROM_SERVER = "staging from server";
     public static final String STAGESET_TYPE_FROM_CLIENT = "from client";
     public static final String STAGESET_STATUS_STAGING = "staging";
     public static final String STAGESET_STATUS_STAGED = "staged";

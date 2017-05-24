@@ -4,6 +4,7 @@ package de.mein.drive.tasks;
 import de.mein.auth.data.IPayload;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.drive.sql.GenericFSEntry;
+import de.mein.drive.sql.StageSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ public class SyncTask implements IPayload {
     private Long stageSetId;
     @JsonIgnore
     private boolean retrieveMissingInformation = true;
+    private StageSet stageSet;
 
     public Long getStageSetId() {
         return stageSetId;
@@ -73,5 +75,13 @@ public class SyncTask implements IPayload {
 
     public String getSourceServiceUuid() {
         return sourceServiceUuid;
+    }
+
+    public void setStageSet(StageSet stageSet) {
+        this.stageSet = stageSet;
+    }
+
+    public StageSet getStageSet() {
+        return stageSet;
     }
 }

@@ -11,6 +11,7 @@ import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.jobs.CommitJob;
+import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.service.sync.ClientSyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
@@ -54,10 +55,16 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     protected void onSyncReceived(Request request) {
         try {
-            syncHandler.syncThisClient();
+            addJob(new SyncClientJob());
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onTransfersDone() {
+        if (syncListener != null)
+            syncListener.onTransfersDone();
     }
 
     @Override
@@ -73,7 +80,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                     DriveDetails driveDetails = (DriveDetails) job.getPayLoad();
                     driveDetails.getLastSyncVersion();
                     try {
-                        syncHandler.syncThisClient();
+                        addJob(new SyncClientJob());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -84,7 +91,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             //check if connected certificate is the server. if so: sync()
             if (driveSettings.getClientSettings().getServerCertId().equals(spottedJob.getPartnerCertificate().getId().v())) {
                 try {
-                    syncHandler.syncThisClient();
+                    addJob(new SyncClientJob());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -94,8 +101,10 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
             Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
             if (authenticatedJob.getPartnerCertificate().getId().v().equals(driveSettings.getClientSettings().getServerCertId())) {
-                N.r(() -> syncHandler.syncThisClient());
+                N.r(() -> addJob(new SyncClientJob()));
             }
+        } else if (unknownJob instanceof SyncClientJob) {
+            N.r(() -> syncHandler.syncThisClient());
         }
         return false;
     }
@@ -114,7 +123,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
     public void syncThisClient() throws InterruptedException, SqlQueriesException {
-        syncHandler.syncThisClient();
+        addJob(new SyncClientJob());
     }
 
     @Override

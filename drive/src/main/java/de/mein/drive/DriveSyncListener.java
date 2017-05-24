@@ -19,6 +19,8 @@ public abstract class DriveSyncListener {
 
     public abstract void onSyncFailed();
 
+    public abstract void onTransfersDone();
+
     public static class DTestStructure {
         public MeinAuthService maServer, maClient;
         public MeinDriveClientService clientDriveService;

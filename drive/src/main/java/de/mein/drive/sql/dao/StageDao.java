@@ -93,7 +93,7 @@ StageDao extends Dao.LockingDao {
     public List<StageSet> getUpdateStageSetsFromServer() throws SqlQueriesException {
         StageSet stageSet = new StageSet();
         String where = stageSet.getType().k() + "=? and " + stageSet.getStatus().k() + "=?";
-        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_TYPE_FROM_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
+        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
     }
 
     /**

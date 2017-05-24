@@ -18,24 +18,32 @@ public class FsDao extends Dao {
 
     private RWSemaphore rwSemaphore = new RWSemaphore();
     private ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
+    private int rcount = 0;
+    private int urcount = 0;
+    private int wcount = 0;
+    private int uwcount = 0;
 
     public void lockRead() {
         rwLock.readLock().lock();
+        rcount++;
     }
 
 
     public void lockWrite() {
         rwLock.writeLock().lock();
+        wcount++;
     }
 
 
     public void unlockRead() {
         rwLock.readLock().unlock();
+        urcount++;
     }
 
 
     public void unlockWrite() {
         rwLock.writeLock().unlock();
+        uwcount++;
     }
 
     private final DriveDatabaseManager driveDatabaseManager;

@@ -84,7 +84,9 @@ public class DriveTest {
                         //if (!file2.exists())
                         System.out.println("DriveTest.onSyncFailed.creating new file...");
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
-                        File newFile = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
+                        File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
+                        File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        delFile.delete();
                         TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
                         MeinBoot meinBoot = new MeinBoot(json1);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
@@ -103,10 +105,11 @@ public class DriveTest {
                 failCount++;
             }
 
+            private int transferCount = 0;
+
             @Override
-            public void onSyncDoneImpl() {
-                System.out.println("DriveTest.onSyncDoneImpl");
-                if (count == 0) {
+            public void onTransfersDone() {
+                if (transferCount == 0) {
                     N.r(() -> {
                         meinAuthService1.shutDown();
                         meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
@@ -117,7 +120,14 @@ public class DriveTest {
                             TestFileCreator.saveFile("newfile".getBytes(), file1);
                     });
 
-                } else if (count == 1) {
+                }
+                transferCount++;
+            }
+
+            @Override
+            public void onSyncDoneImpl() {
+                System.out.println("DriveTest.onSyncDoneImpl");
+                if (count == 1) {
                     System.out.println("DriveTest.onSyncDoneImpl");
                 }
                 System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
@@ -137,6 +147,11 @@ public class DriveTest {
 
             @Override
             public void onSyncFailed() {
+
+            }
+
+            @Override
+            public void onTransfersDone() {
 
             }
 
@@ -167,6 +182,11 @@ public class DriveTest {
         setup(new DriveSyncListener() {
             @Override
             public void onSyncFailed() {
+
+            }
+
+            @Override
+            public void onTransfersDone() {
 
             }
 
@@ -206,6 +226,11 @@ public class DriveTest {
 
             @Override
             public void onSyncFailed() {
+
+            }
+
+            @Override
+            public void onTransfersDone() {
 
             }
 
@@ -259,6 +284,11 @@ public class DriveTest {
             }
 
             @Override
+            public void onTransfersDone() {
+
+            }
+
+            @Override
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {
@@ -291,6 +321,11 @@ public class DriveTest {
             }
 
             @Override
+            public void onTransfersDone() {
+
+            }
+
+            @Override
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {
@@ -318,6 +353,11 @@ public class DriveTest {
 
             @Override
             public void onSyncFailed() {
+
+            }
+
+            @Override
+            public void onTransfersDone() {
 
             }
 
@@ -363,6 +403,11 @@ public class DriveTest {
 
             @Override
             public void onSyncFailed() {
+
+            }
+
+            @Override
+            public void onTransfersDone() {
 
             }
 
