@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by xor on 7/11/16.
@@ -98,7 +99,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
              */
-            List<String> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            Stream<String> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
             for (String p : paths) {
                 File f = new File(p);

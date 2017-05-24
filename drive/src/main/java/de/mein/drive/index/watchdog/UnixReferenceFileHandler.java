@@ -1,10 +1,12 @@
 package de.mein.drive.index.watchdog;
 
 import de.mein.drive.index.BashTools;
+import de.mein.drive.index.BashToolsException;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by xor on 5/7/17.
@@ -36,7 +38,7 @@ public class UnixReferenceFileHandler {
         timeReferenceFile.mkdirs();
     }
 
-    public synchronized List<String> stuffModifiedAfter() throws IOException {
+    public synchronized Stream<String> stuffModifiedAfter() throws IOException, BashToolsException {
         // take the older one as reference. but to avoid data loss, we recreate the other file before.
         // so no stuff which happened while the BashTools work gets lost.
         File refFile = (refOnFile1) ? timeReferenceFile1 : timeReferenceFile2;

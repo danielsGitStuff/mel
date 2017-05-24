@@ -149,8 +149,13 @@ public class ClientSyncHandler extends SyncHandler {
 //                    commitStage(stageSetId, false);
                     waitLock.unlock();
                     //fsDao.unlockWrite();
-                })).fail(result -> waitLock.unlock());
-
+                }))
+                        .fail(result -> {
+                            if (result instanceof TooOldVersionException){
+                                System.out.println("ClientSyncHandler.syncWithServer");
+                            }
+                            waitLock.unlock();
+                        });
             }));
             connectedPromise.fail(ex -> {
                 // todo server did not commit. it probably had a local change. have to solve it here

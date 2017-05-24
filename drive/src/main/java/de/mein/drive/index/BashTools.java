@@ -4,9 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -52,27 +50,21 @@ public class BashTools {
     }
 
 
-    public static List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException {
-        // this somehow stopped working :/
-        //        String[] args = new String[]{BIN_PATH, "-c", "find \"" + directory.getAbsolutePath() + "\" -mindepth 1 -newer \"" + referenceFile.getAbsolutePath() + "\""
-        //                + " -prune \"" + pruneDir + "\""};
+    public static Stream<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
         String[] args = new String[]{BIN_PATH, "-c",
                 "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
                         + " -path \"" + pruneDir + "\" -prune"
                         + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print"};
         Process proc = new ProcessBuilder(args).start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        String res = null;
-        List<String> result = new ArrayList<>();
-        try {
-            proc.waitFor();
-            reader.lines().forEach(result::add);
-            return result;
-        } catch (InterruptedException e) {
-            System.err.println("string I got from bash: " + res);
-            e.printStackTrace();
+        int exitValue = proc.exitValue();
+        if (exitValue == 0) {
+            System.out.println("BashTools.stuffModifiedAfter");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            return reader.lines();
+        } else {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+            throw new BashToolsException(reader.lines());
         }
-        return result;
     }
 
     public static Stream<String> find(File directory, File pruneDir) throws IOException {
@@ -91,7 +83,6 @@ public class BashTools {
         }
         return null;
     }
-
 
 
     public static class NodeAndTime {

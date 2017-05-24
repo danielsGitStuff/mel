@@ -50,7 +50,6 @@ public class MeinRequest extends MeinMessage {
     }
 
 
-
     public MeinResponse reponse() {
         return new MeinResponse().setResponseId(this.requestId);
     }
@@ -141,7 +140,12 @@ public class MeinRequest extends MeinMessage {
     }
 
     public MeinResponse respondError(Exception e) {
-        MeinResponse response = reponse().setState(MeinProcess.STATE_ERR).setPayLoad(new ResponseException(e));
+        MeinResponse response = reponse().setState(MeinProcess.STATE_ERR);
+        if (e instanceof ResponseException) {
+            response.setPayLoad((IPayload) e);
+        } else {
+            response.setPayLoad(new ResponseException(e));
+        }
         return response;
     }
 

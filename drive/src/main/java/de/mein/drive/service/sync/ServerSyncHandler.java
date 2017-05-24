@@ -30,7 +30,7 @@ public class ServerSyncHandler extends SyncHandler {
         // todo threading issues? check for unlocking DAOs after the connection/socket died.
         Commit commit = (Commit) request.getPayload();
         if (commit.getBasedOnVersion() != driveDatabaseManager.getLatestVersion()) {
-            request.reject(new TooOldVersionException(commit.getBasedOnVersion() + "!=" + driveDatabaseManager.getLatestVersion()));
+            request.reject(new TooOldVersionException("server :" + driveDatabaseManager.getLatestVersion() + " vs " + commit.getBasedOnVersion()));
             return;
         }
         StageDao stageDao = driveDatabaseManager.getStageDao();

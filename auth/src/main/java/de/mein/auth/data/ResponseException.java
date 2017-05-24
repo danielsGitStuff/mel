@@ -14,6 +14,10 @@ public class ResponseException extends Exception implements IPayload {
         this.setStackTrace(new StackTraceElement[0]);
     }
 
+    public ResponseException(String msg){
+        message = msg;
+    }
+
     public ResponseException(Exception e) {
         this.message = e.toString() + "\n" + e.getMessage();
     }
