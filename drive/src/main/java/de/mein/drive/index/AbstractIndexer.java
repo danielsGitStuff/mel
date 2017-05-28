@@ -12,8 +12,10 @@ import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -178,9 +180,40 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
         File[] files = stageFile.listFiles(File::isFile);
+        File[] subDirs = stageFile.listFiles(File::isDirectory);
         //todo debug, find deleted files & subs
         if (stage.getName().equals("samedir"))
             System.out.println("StageIndexerRunnable.roamDirectoryStage");
+        // map will contain all FsEntry that must be deleted
+        Map<String, GenericFSEntry> fsContent = new HashMap<>();
+        if (stage.getFsId() != null) {
+            List<GenericFSEntry> generics = fsDao.getContentByFsDirectory(stage.getFsId());
+            for (GenericFSEntry gen : generics)
+                fsContent.put(gen.getName().v(), gen);
+        }
+        // remove deleted stuff first (because of the order)
+        if (files!=null) {
+            for (File subFile : files){
+                fsContent.remove(subFile.getName());
+            }
+        }
+        if (subDirs!=null) {
+            for (File subDir : subDirs){
+                fsContent.remove(subDir.getName());
+            }
+        }
+        for (String name : fsContent.keySet()) {
+            GenericFSEntry gen = fsContent.get(name);
+            Stage delStage = GenericFSEntry.generic2Stage(gen, stageSetId)
+                    .setDeleted(true)
+                    .setOrder(order.ord())
+                    .setVersion(gen.getVersion().v())
+                    .setiNode(gen.getiNode().v())
+                    .setModified(gen.getModified().v())
+                    .setSynced(gen.getSynced().v());
+
+            stageDao.insert(delStage);
+        }
         if (files != null) {
             for (File subFile : files) {
                 newFsDirectory.addFile(new FsFile(subFile));
@@ -201,10 +234,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 }
             }
         }
-        File[] subDirs = stageFile.listFiles(File::isDirectory);
         for (File subDir : subDirs) {
             if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectoryPath()))
                 continue;
+            fsContent.remove(subDir.getName());
             // if subDir is on stage or fs we don't have to roam it
             Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subDir.getName());
             FsDirectory leSubDirectory = null;
@@ -232,6 +265,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 newFsDirectory.addFile(notSyncedFile);
             }
         }
+
+
         // save to stage
         newFsDirectory.calcContentHash();
         stage.setContentHash(newFsDirectory.getContentHash().v());

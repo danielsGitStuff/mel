@@ -11,7 +11,7 @@ CREATE TABLE fsentry (
   contentHash TEXT    NOT NULL,
   dir         INTEGER NOT NULL,
   synced      INTEGER NOT NULL,
-  inode       INTEGER UNIQUE,
+  inode       INTEGER,
   modified    INTEGER,
   size        INTEGER,
   FOREIGN KEY (parentId) REFERENCES fsentry (id)

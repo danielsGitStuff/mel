@@ -45,19 +45,6 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
 
-    private Stage generic2Stage(GenericFSEntry genericFSEntry, Long stageSetId) {
-        return new Stage()
-                .setFsId(genericFSEntry.getId().v())
-                .setFsParentId(genericFSEntry.getParentId().v())
-                .setName(genericFSEntry.getName().v())
-                .setIsDirectory(genericFSEntry.getIsDirectory().v())
-                .setContentHash(genericFSEntry.getContentHash().v())
-                .setStageSet(stageSetId)
-                .setSize(genericFSEntry.getSize().v())
-                .setDeleted(false);
-    }
-
-
     /**
      * call this if you are the receiver
      */
@@ -419,7 +406,7 @@ public class ClientSyncHandler extends SyncHandler {
         syncTask.setStageSetId(stageSet.getId().v());
         // stage first
         for (GenericFSEntry genericFSEntry : entries) {
-            Stage stage = generic2Stage(genericFSEntry, stageSet.getId().v());
+            Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
             stageDao.insert(stage);
         }
@@ -494,7 +481,7 @@ public class ClientSyncHandler extends SyncHandler {
                     for (GenericFSEntry genSub : fsDirs) {
                         if (!stillExistingIds.contains(genSub.getId().v())) {
                             // genSub shall be deleted
-                            Stage stage = generic2Stage(genSub, stageSet.getId().v());
+                            Stage stage = GenericFSEntry.generic2Stage(genSub, stageSet.getId().v());
                             stage.setDeleted(true);
                             stage.setOrder(order.ord());
                             stageDao.insert(stage);
