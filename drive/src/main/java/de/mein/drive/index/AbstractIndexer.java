@@ -126,7 +126,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     if (stageParent == null) {
                         stageParent = new Stage().setStageSet(stageSet.getId().v());
                         if (fsParent == null) {
-                            System.err.println("zsrg44gxths");
                             stageParent.setIsDirectory(parent.isDirectory());
                         } else {
                             stageParent.setName(fsParent.getName().v())
@@ -179,25 +178,27 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
         File[] files = stageFile.listFiles(File::isFile);
-        //todo debug
-        if (files == null)
+        //todo debug, find deleted files & subs
+        if (stage.getName().equals("samedir"))
             System.out.println("StageIndexerRunnable.roamDirectoryStage");
-        for (File subFile : files) {
-            newFsDirectory.addFile(new FsFile(subFile));
-            // check if which subFiles are on stage or fs. if not, index them
-            Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subFile.getName());
-            FsFile subFsFile = fsDao.getFileByName(stage.getFsId(), subFile.getName());
-            if (subStage == null && subFsFile == null) {
-                // stage
-                subStage = new Stage().setName(subFile.getName())
-                        .setIsDirectory(false)
-                        .setParentId(stage.getId())
-                        .setFsParentId(stage.getFsId())
-                        .setStageSet(stageSetId)
-                        .setDeleted(false);
-                this.updateFileStage(subStage, subFile);
-                subStage.setOrder(order.ord());
-                stageDao.insert(subStage);
+        if (files != null) {
+            for (File subFile : files) {
+                newFsDirectory.addFile(new FsFile(subFile));
+                // check if which subFiles are on stage or fs. if not, index them
+                Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subFile.getName());
+                FsFile subFsFile = fsDao.getFileByName(stage.getFsId(), subFile.getName());
+                if (subStage == null && subFsFile == null) {
+                    // stage
+                    subStage = new Stage().setName(subFile.getName())
+                            .setIsDirectory(false)
+                            .setParentId(stage.getId())
+                            .setFsParentId(stage.getFsId())
+                            .setStageSet(stageSetId)
+                            .setDeleted(false);
+                    this.updateFileStage(subStage, subFile);
+                    subStage.setOrder(order.ord());
+                    stageDao.insert(subStage);
+                }
             }
         }
         File[] subDirs = stageFile.listFiles(File::isDirectory);

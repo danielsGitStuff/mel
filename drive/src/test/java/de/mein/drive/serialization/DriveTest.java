@@ -15,6 +15,7 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.Lok;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
@@ -61,6 +62,7 @@ public class DriveTest {
 
     @Before
     public void before() {
+        MeinBoot.addBootLoaderClass(DriveBootLoader.class);
         lock = new RWLock();
     }
 
@@ -262,6 +264,46 @@ public class DriveTest {
         lock.lockWrite();
         lock.unlockWrite();
         System.out.println("DriveTest.clientMergeStages.END");
+    }
+
+    @Test
+    public void restartServerAfterChangingFiles() throws Exception {
+        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        File testdir1 = new File("testdir1");
+        CertificateManager.deleteDirectory(testdir1);
+        TestDirCreator.createTestDir(testdir1);
+        MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
+                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
+                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
+        MeinBoot boot = new MeinBoot(json1);
+        WaitLock waitLock = new WaitLock().lock();
+        Promise<MeinAuthService, Exception, Void> promise = boot.boot();
+        final MeinAuthService[] mas = new MeinAuthService[1];
+        promise.done(result -> N.r(() -> {
+            mas[0] = result;
+            Promise<MeinDriveServerService, Exception, Void> driveBootedPromise = new DriveCreateController(result)
+                    .createDriveServerServiceDeferred("server test", testdir1.getAbsolutePath());
+            driveBootedPromise.done(result1 -> N.r(() -> {
+                result1.getIndexer().getIndexerStartedDeferred().done(result2 -> N.r(() -> {
+                    result.shutDown();
+                    waitLock.unlock();
+                }));
+
+            }));
+        }));
+        waitLock.lock();
+        MeinDriveServerService driveServerService = (MeinDriveServerService) mas[0].getMeinServices().iterator().next();
+        String rootPath = driveServerService.getDriveSettings().getRootDirectory().getPath();
+        File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
+        File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+        delFile.delete();
+        TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
+        boot = new MeinBoot(json1);
+        promise = boot.boot();
+        promise.done(result -> N.r(() -> {
+            mas[0] = result;
+        }));
+        waitLock.lock().lock();
     }
 
     @Test

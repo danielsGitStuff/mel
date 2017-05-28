@@ -71,6 +71,18 @@ public class DriveCreateController {
         return (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
     }
 
+    public Promise<MeinDriveServerService, Exception, Void> createDriveServerServiceDeferred(String name, String path) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+        DeferredObject<MeinDriveServerService, Exception, Void> deferred = new DeferredObject<>();
+        RootDirectory rootDirectory = buildRootDirectory(path);
+        Service service = createService(name);
+        DriveSettings driveSettings = new DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
+        driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + DriveSettings.TRANSFER_DIR);
+        boot(service, driveSettings);
+        MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
+        deferred.resolve(mdss);
+        return deferred;
+    }
+
     public Promise<MeinDriveClientService, Exception, Void> createDriveClientService(String name, String path, Long certId, String serviceUuid) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
         meinAuthService.getDatabaseManager().lockWrite();
         DeferredObject<MeinDriveClientService, Exception, Void> deferred = new DeferredObject<>();
