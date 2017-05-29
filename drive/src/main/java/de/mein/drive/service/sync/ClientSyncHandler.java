@@ -202,7 +202,7 @@ public class ClientSyncHandler extends SyncHandler {
             // List<StageSet> committedStageSets = stageDao.getCommittedStageSets();
             if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
                 // method should create a new CommitJob with conflict solving details
-                checkConflicts(updateSets.get(0), stagedFromFs);
+                checkConflicts(updateSets.get(0), stagedFromFs.get(0));
                 return;
             } else if (stagedFromFs.size() == 1) {
                 //method should create a new CommitJob ? method blocks
@@ -239,10 +239,21 @@ public class ClientSyncHandler extends SyncHandler {
      * that happened on the server. this will block until all conflicts are resolved.
      *
      * @param serverStageSet
-     * @param stagedStageSets
+     * @param stagedFromFs
      */
-    private void checkConflicts(StageSet serverStageSet, List<StageSet> stagedStageSets) {
+    private void checkConflicts(StageSet serverStageSet, StageSet stagedFromFs) throws SqlQueriesException {
         System.out.println("ClientSyncHandler.checkConflicts.NOT:IMPLEMNETED:YET");
+        Map<Stage, Stage> conflicts = new LinkedHashMap<>();
+        SyncStagesComparator comparator = new SyncStagesComparator(serverStageSet.getId().v(), stagedFromFs.getId().v()) {
+            @Override
+            public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
+                if (left != null && right != null)
+                    conflicts.put(left, right);
+            }
+        };
+        iterateStageSets(serverStageSet, stagedFromFs, comparator);
+        if (conflicts.size()>0)
+            System.err.println("conflicts!!!!1!");
     }
 
     /**

@@ -181,9 +181,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // roam directory if necessary
         File[] files = stageFile.listFiles(File::isFile);
         File[] subDirs = stageFile.listFiles(File::isDirectory);
-        //todo debug, find deleted files & subs
-        if (stage.getName().equals("samedir"))
-            System.out.println("StageIndexerRunnable.roamDirectoryStage");
         // map will contain all FsEntry that must be deleted
         Map<String, GenericFSEntry> fsContent = new HashMap<>();
         if (stage.getFsId() != null) {

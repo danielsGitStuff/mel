@@ -449,4 +449,13 @@ public class FsDao extends Dao {
         String where = fsFile.getSynced().k() + "=?";
         return sqlQueries.loadResource(fsFile.getAllAttributes(), FsFile.class, where, ISQLQueries.whereArgs(false));
     }
+
+    public FsEntry getGenericSubByName(Long parentId, String name) throws SqlQueriesException {
+        GenericFSEntry genericFSEntry = new GenericFSEntry();
+        String where = genericFSEntry.getParentId().k() + " =? and " + genericFSEntry.getName().k() + "=?";
+        List<GenericFSEntry> gens = sqlQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, ISQLQueries.whereArgs(parentId, name));
+        if (gens.size() == 1)
+            return gens.get(0);
+        return null;
+    }
 }

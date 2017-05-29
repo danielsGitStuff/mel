@@ -88,8 +88,10 @@ public class DriveTest {
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
                         File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
                         File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        File f1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
                         delFile.delete();
-                        TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
+                        TestFileCreator.saveFile("same3.server".getBytes(), newFile);
+                        TestFileCreator.saveFile("same1.server".getBytes(), f1);
                         MeinBoot meinBoot = new MeinBoot(json1);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
@@ -116,10 +118,10 @@ public class DriveTest {
                         meinAuthService1.shutDown();
                         meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
                         rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
-                        file1 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.1");
-                        file2 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
-                        if (!file1.exists())
-                            TestFileCreator.saveFile("newfile".getBytes(), file1);
+                        file1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+                        file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        TestFileCreator.saveFile("same1.client".getBytes(), file1);
+                        TestFileCreator.saveFile("same2.client".getBytes(), file2);
                     });
 
                 }
