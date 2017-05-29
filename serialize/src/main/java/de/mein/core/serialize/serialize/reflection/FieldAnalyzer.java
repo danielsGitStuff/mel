@@ -2,13 +2,13 @@ package de.mein.core.serialize.serialize.reflection;
 
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
-import sun.reflect.generics.reflectiveObjects.TypeVariableImpl;
+
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.TypeVariable;
 import java.util.*;
 
 /**
@@ -94,10 +94,10 @@ public class FieldAnalyzer {
         if (Collection.class.isAssignableFrom(field.getType())) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
             Object whatEver = parameterizedType.getActualTypeArguments()[0];
-            if (whatEver instanceof ParameterizedTypeImpl) {
+            if (whatEver instanceof ParameterizedType) {
                 return false;
             }
-            if (whatEver instanceof TypeVariableImpl) {
+            if (whatEver instanceof TypeVariable) {
                 return false;
             }
             Class<?> genericType = (Class<?>) whatEver;
@@ -149,7 +149,7 @@ public class FieldAnalyzer {
         if (isMap) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
             Object whatEver = parameterizedType.getActualTypeArguments()[0];
-            if (whatEver instanceof ParameterizedTypeImpl) {
+            if (whatEver instanceof ParameterizedType) {
                 return false;
             }
             Class<?> genericType = (Class<?>) whatEver;
