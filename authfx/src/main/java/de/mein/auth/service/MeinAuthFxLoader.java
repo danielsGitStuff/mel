@@ -17,4 +17,9 @@ public class MeinAuthFxLoader implements MeinAuthAdmin {
     public void onChanged() {
         meinAuthFX.onChanged();
     }
+
+    @Override
+    public void shutDown() {
+        meinAuthFX.shutDown();
+    }
 }

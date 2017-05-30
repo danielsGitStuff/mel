@@ -67,10 +67,10 @@ public class DriveTest {
 
     @Test
     public void clientConflict() throws Exception {
-        clientConflictImpl(null);
+        clientConflictImpl(null, null);
     }
 
-    public void clientConflictImpl(MeinBoot clientMeinBoot) throws Exception {
+    public void clientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final DriveSyncListener syncListener = new DriveSyncListener() {
             public File file2;
@@ -95,7 +95,7 @@ public class DriveTest {
                         delFile.delete();
                         TestFileCreator.saveFile("same3.server".getBytes(), newFile);
                         TestFileCreator.saveFile("same1.server".getBytes(), f1);
-                        MeinBoot meinBoot = new MeinBoot(json1);
+                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             System.out.println("DriveTest.alles ok");

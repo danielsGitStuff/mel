@@ -78,6 +78,11 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
         showContent();
     }
 
+    @Override
+    public void shutDown() {
+        stage.close();
+    }
+
     private void showContent() {
         try {
             List<ServiceJoinServiceType> serviceJoinServiceTypes = meinAuthService.getDatabaseManager().getAllServices();

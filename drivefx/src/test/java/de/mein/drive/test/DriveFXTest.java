@@ -55,7 +55,9 @@ public class DriveFXTest {
     public void conflict() throws Exception {
         DriveTest driveTest = new DriveTest();
         MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
-        driveTest.clientConflictImpl(meinBoot);
+
+        MeinBoot restartMeinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        driveTest.clientConflictImpl(meinBoot,null );
         new WaitLock().lock().lock();
     }
 

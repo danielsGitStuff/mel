@@ -449,6 +449,9 @@ public class MeinAuthService {
             for (MeinSocket socket : socks) {
                 socket.shutDown();
             }
+            for (MeinAuthAdmin admin : meinAuthAdmins) {
+                admin.shutDown();
+            }
             meinAuthWorker.shutDown();
             meinBoot.shutDown();
         });

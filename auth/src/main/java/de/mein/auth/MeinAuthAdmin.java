@@ -10,4 +10,6 @@ public interface MeinAuthAdmin {
     void start(MeinAuthService meinAuthService);
 
     void onChanged();
+
+    void shutDown();
 }
