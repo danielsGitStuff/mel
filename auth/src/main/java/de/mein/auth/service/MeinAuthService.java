@@ -479,4 +479,9 @@ public class MeinAuthService {
             meinService.onMeinAuthIsUp();
         }
     }
+
+    public void addAllMeinAuthAdmin(List<MeinAuthAdmin> meinAuthAdmins) {
+        for (MeinAuthAdmin admin : meinAuthAdmins)
+            this.addMeinAuthAdmin(admin);
+    }
 }

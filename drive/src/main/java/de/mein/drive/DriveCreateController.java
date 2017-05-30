@@ -50,7 +50,7 @@ public class DriveCreateController {
 
     private void boot(Service service, DriveSettings driveSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException, InstantiationException {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
-        DriveBootLoader driveBootLoader = (DriveBootLoader) MeinBoot.getBootLoader(meinAuthService, new DriveBootLoader().getName());
+        DriveBootLoader driveBootLoader = (DriveBootLoader) meinBoot.getBootLoader( new DriveBootLoader().getName());
         MeinDriveService meinDriveService = driveBootLoader.boot(meinAuthService, service, driveSettings);
         WaitLock waitLock = new WaitLock().lock();
         meinDriveService.getStartedDeferred().done(result -> {

@@ -29,7 +29,6 @@ public class Main {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
-        MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
     }
 
     public static void main(String[] args) throws Exception {
@@ -38,11 +37,9 @@ public class Main {
         lock.lockWrite();
         MeinAuthSettings meinAuthSettings = new KonsoleHandler().start(args);
         meinAuthSettings.save();
-        MeinStandAloneAuthFX meinAuthService = new MeinStandAloneAuthFX(meinAuthSettings);
-        meinAuthService.addRegisterHandler(new RegisterHandlerFX());
-        MeinBoot meinBoot = new MeinBoot();
-        Promise<MeinAuthService, Exception, Void> meinAuthBooted = meinBoot.boot(meinAuthService);
-        meinAuthBooted.done(result -> {
+        MeinBoot meinBoot = new MeinBoot(meinAuthSettings,DriveFXBootLoader.class);
+        meinBoot.boot().done(meinAuthService -> {
+            meinAuthService.addRegisterHandler(new RegisterHandlerFX());
             System.out.println("Main.main.booted");
             lock.unlockWrite();
         });

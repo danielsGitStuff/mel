@@ -7,6 +7,8 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.RegisterHandlerFX;
+import de.mein.auth.service.MeinAuthFX;
+import de.mein.auth.service.MeinAuthFxLoader;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinStandAloneAuthFX;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
@@ -14,9 +16,11 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.boot.DriveFXBootLoader;
+import de.mein.drive.serialization.DriveTest;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
@@ -48,10 +52,17 @@ public class DriveFXTest {
     private static RWLock lock = new RWLock();
 
     @Test
+    public void conflict() throws Exception {
+        DriveTest driveTest = new DriveTest();
+        MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        driveTest.clientConflictImpl(meinBoot);
+        new WaitLock().lock().lock();
+    }
+
+    @Test
     public void startEmptyClient() throws Exception {
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
-        MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(9966)
@@ -69,8 +80,9 @@ public class DriveFXTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-
-        MeinBoot boot1 = new MeinBoot(json1);
+        //todo continue gui
+        MeinBoot boot1 = new MeinBoot(json1, DriveFXBootLoader.class)
+                .addMeinAuthAdmin(new MeinAuthFxLoader());
         boot1.boot().done(result -> {
             result.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
@@ -86,7 +98,6 @@ public class DriveFXTest {
 //        inject(true);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
 //        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
-        MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
@@ -105,7 +116,7 @@ public class DriveFXTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot1 = new MeinBoot(json1, DriveFXBootLoader.class);
         boot1.boot().done(result -> {
             result.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
@@ -159,7 +170,6 @@ public class DriveFXTest {
 //        inject(true);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
-        MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
@@ -199,8 +209,8 @@ public class DriveFXTest {
         });*/
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1);
-        MeinBoot boot2 = new MeinBoot(json2);
+        MeinBoot boot1 = new MeinBoot(json1, DriveFXBootLoader.class);
+        MeinBoot boot2 = new MeinBoot(json2, DriveFXBootLoader.class);
         boot1.boot().done(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
@@ -231,7 +241,6 @@ public class DriveFXTest {
 //        inject(true);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
-        MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
@@ -269,8 +278,8 @@ public class DriveFXTest {
         });*/
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1);
-        MeinBoot boot2 = new MeinBoot(json2);
+        MeinBoot boot1 = new MeinBoot(json1, DriveFXBootLoader.class);
+        MeinBoot boot2 = new MeinBoot(json2, DriveFXBootLoader.class);
         boot1.boot().done(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
@@ -309,7 +318,6 @@ public class DriveFXTest {
         testdir2.mkdirs();
 
         // configure MeinAuth
-        MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
@@ -341,8 +349,8 @@ public class DriveFXTest {
         };
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1);
-        MeinBoot boot2 = new MeinBoot(json2);
+        MeinBoot boot1 = new MeinBoot(json1, DriveFXBootLoader.class);
+        MeinBoot boot2 = new MeinBoot(json2, DriveFXBootLoader.class);
         boot1.boot().done(standAloneAuth1 -> {
             runner.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");

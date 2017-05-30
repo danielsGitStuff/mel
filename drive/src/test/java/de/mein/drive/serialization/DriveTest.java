@@ -62,12 +62,15 @@ public class DriveTest {
 
     @Before
     public void before() {
-        MeinBoot.addBootLoaderClass(DriveBootLoader.class);
         lock = new RWLock();
     }
 
     @Test
     public void clientConflict() throws Exception {
+        clientConflictImpl(null);
+    }
+
+    public void clientConflictImpl(MeinBoot clientMeinBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final DriveSyncListener syncListener = new DriveSyncListener() {
             public File file2;
@@ -138,7 +141,7 @@ public class DriveTest {
                 count++;
             }
         };
-        setup(syncListener);
+        setup(false, syncListener, clientMeinBoot);
         lock.lockWrite();
         lock.unlockWrite();
         System.out.println("DriveTest.clientMergeStages.END");
@@ -310,7 +313,6 @@ public class DriveTest {
 
     @Test
     public void startSingleServer() throws Exception {
-        // start both instances, shutdown server, change something in client directory
         startServer();
         RWLock lock = new RWLock();
         lock.lockWrite();
@@ -385,7 +387,7 @@ public class DriveTest {
                     e.printStackTrace();
                 }
             }
-        });
+        }, null);
         lock.lockWrite();
         lock.unlockWrite();
         System.out.println("DriveTest.firstSync.END");
@@ -485,7 +487,7 @@ public class DriveTest {
                     e.printStackTrace();
                 }
             }
-        });
+        }, null);
         lock.lockWrite();
         lock.unlockWrite();
         System.out.println("DriveTest.deleteFsEntry.END");
@@ -500,7 +502,7 @@ public class DriveTest {
     }
 
     public void setup(DriveSyncListener clientSyncListener) throws Exception {
-        setup(false, clientSyncListener);
+        setup(false, clientSyncListener, null);
     }
 
 
@@ -509,14 +511,13 @@ public class DriveTest {
         File testdir1 = new File("testdir1");
         File testdir2 = new File("testdir2");
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         CertificateManager.deleteDirectory(testdir1);
         CertificateManager.deleteDirectory(testdir2);
         TestDirCreator.createTestDir(testdir1);
 
 
         // configure MeinAuth
-        MeinBoot.addBootLoaderClass(DriveBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
@@ -543,7 +544,7 @@ public class DriveTest {
         };
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot1 = new MeinBoot(json1, DriveBootLoader.class);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 System.out.println("DriveTest.driveGui.booted");
@@ -558,7 +559,7 @@ public class DriveTest {
 
     }
 
-    public void setup(boolean identicalTestDirs, DriveSyncListener clientSyncListener) throws Exception {
+    public void setup(boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot) throws Exception {
         //setup working directories & directories with test data
         File testdir1 = new File("testdir1");
         File testdir2 = new File("testdir2");
@@ -574,16 +575,10 @@ public class DriveTest {
 
 
         // configure MeinAuth
-        MeinBoot.addBootLoaderClass(DriveBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
 
-        json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
-                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
-        json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
-                .setBrotcastPort(9966) // does not listen! only one listener seems possible
-                .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
+        json1 = createJson1();
+        json2 = createJson2();
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -605,8 +600,12 @@ public class DriveTest {
         };
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1);
-        MeinBoot boot2 = new MeinBoot(json2);
+        MeinBoot boot1 = new MeinBoot(json1, DriveBootLoader.class);
+        MeinBoot boot2;
+        if (clientMeinBoot != null)
+            boot2 = clientMeinBoot;
+        else
+            boot2 = new MeinBoot(json2);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
@@ -647,5 +646,18 @@ public class DriveTest {
         });
         //lock.lockWrite();
         //lock.unlockWrite();
+    }
+
+    public MeinAuthSettings createJson2() {
+        return new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
+                .setBrotcastPort(9966) // does not listen! only one listener seems possible
+                .setBrotcastListenerPort(6699).setBrotcastPort(9966)
+                .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
+    }
+
+    public MeinAuthSettings createJson1() {
+        return new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
+                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
+                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
     }
 }

@@ -58,8 +58,7 @@ public class MeinAuthServerTest {
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(9998)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("wd2").setGreeting("greeting2");
-        standAloneAuth1 = new MeinStandAloneAuthFX(json1);
-        standAloneAuth2 = new MeinStandAloneAuthFX(json2);
+
     }
 
     @Test
@@ -69,14 +68,15 @@ public class MeinAuthServerTest {
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         init();
         lock.lockWrite();
-        standAloneAuth1.addRegisterHandler(allowRegisterHandler);
-        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
+        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot2 = new MeinBoot(json2);
+        boot1.boot().done(standAloneAuth1 -> {
+            standAloneAuth1.addRegisterHandler(allowRegisterHandler);
 
-        MeinBoot boot1 = new MeinBoot();
-        MeinBoot boot2 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
             runner.r(() -> {
-                boot2.boot(standAloneAuth2).done(result1 -> {
+                boot2.boot().done(standAloneAuth2 -> {
+                    standAloneAuth2.addRegisterHandler(allowRegisterHandler);
+
                     runner.r(() -> {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(1l, "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
@@ -114,16 +114,17 @@ public class MeinAuthServerTest {
         };
 //        standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
 //        standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
-        standAloneAuth1.addRegisterHandler(allowRegisterHandler);
-        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
+
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        MeinBoot boot2 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
+        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot2 = new MeinBoot(json2);
+        boot1.boot().done(standAloneAuth1 -> {
+            standAloneAuth1.addRegisterHandler(allowRegisterHandler);
             runner.r(() -> {
                 System.out.println("MeinAuthServerTest.gui.1.booted");
-                boot2.boot(standAloneAuth2).done(result1 -> {
+                boot2.boot().done(standAloneAuth2 -> {
+                    standAloneAuth2.addRegisterHandler(allowRegisterHandler);
                     System.out.println("MeinAuthServerTest.gui.2.booted");
                     runner.r(() -> {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
@@ -143,42 +144,34 @@ public class MeinAuthServerTest {
     }
 
     @Test
-    public void gui2() throws Exception, SqlQueriesException {
-        lock.lockWrite();
-        standAloneAuth1.boot().done(result -> {
-
-        });
-        lock.lockWrite();
-        lock.unlockWrite();
-    }
-
-    @Test
     public void rejectRegistration() throws Exception, SqlQueriesException {
         init();
         lock.lockWrite();
-        standAloneAuth1.addRegisterHandler(new IRegisterHandler() {
-            @Override
-            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
-                listener.onCertificateRejected(request, certificate);
-            }
+        MeinBoot meinBoot1 = new MeinBoot(json1);
+        MeinBoot meinBoot2 = new MeinBoot(json2);
+        meinBoot1.boot().done(standAloneAuth1 -> {
+            standAloneAuth1.addRegisterHandler(new IRegisterHandler() {
+                @Override
+                public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                    listener.onCertificateRejected(request, certificate);
+                }
 
-            @Override
-            public void onRegistrationCompleted(Certificate partnerCertificate) {
+                @Override
+                public void onRegistrationCompleted(Certificate partnerCertificate) {
 
-            }
+                }
+            });
         });
-        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
-        standAloneAuth1.boot().done(result -> {
-            standAloneAuth2.boot().done(result1 -> {
-                runner.r(() -> {
-                    Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
-                    connectPromise.done(integer -> {
-                        System.out.println("MeinAuthServerTest.rejectRegistration.registered");
-                        lock.unlockWrite();
-                    }).fail(result2 -> {
-                        System.out.println("MeinAuthServerTest.rejectRegistration.fail");
-                        lock.unlockWrite();
-                    });
+        meinBoot2.boot().done(standAloneAuth2 -> {
+            standAloneAuth2.addRegisterHandler(allowRegisterHandler);
+            runner.r(() -> {
+                Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+                connectPromise.done(integer -> {
+                    System.out.println("MeinAuthServerTest.rejectRegistration.registered");
+                    lock.unlockWrite();
+                }).fail(result2 -> {
+                    System.out.println("MeinAuthServerTest.rejectRegistration.fail");
+                    lock.unlockWrite();
                 });
             });
         });

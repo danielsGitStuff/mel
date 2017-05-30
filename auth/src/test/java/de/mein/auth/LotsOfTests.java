@@ -131,7 +131,6 @@ public class LotsOfTests {
         testdir2.mkdirs();
 
         // configure MeinAuth
-        MeinBoot.addBootLoaderClass(MeinTestBootloader.class);
         N runner = new N(e -> e.printStackTrace());
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
@@ -162,8 +161,8 @@ public class LotsOfTests {
             }
         };
         lock.lockWrite();
-        MeinBoot boot1 = new MeinBoot(json1);
-        MeinBoot boot2 = new MeinBoot(json2);
+        MeinBoot boot1 = new MeinBoot(json1).addBootLoaderClass(MeinTestBootloader.class);
+        MeinBoot boot2 = new MeinBoot(json2).addBootLoaderClass(MeinTestBootloader.class);
         boot1.boot().done(ma1 -> {
             standAloneAuth1 = ma1;
             standAloneAuth1.addRegisterHandler(allowRegisterHandler);

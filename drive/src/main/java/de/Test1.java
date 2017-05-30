@@ -90,7 +90,6 @@ public class Test1 {
 
 
         // configure MeinAuth
-        MeinBoot.addBootLoaderClass(DriveBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
@@ -122,8 +121,8 @@ public class Test1 {
         };
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1);
-        MeinBoot boot2 = new MeinBoot(json2);
+        MeinBoot boot1 = new MeinBoot(json1,DriveBootLoader.class);
+        MeinBoot boot2 = new MeinBoot(json2,DriveBootLoader.class);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");

@@ -7,6 +7,7 @@ import de.mein.auth.gui.AuthSettingsFX;
 import de.mein.auth.gui.ServiceListItem;
 import de.mein.auth.gui.ServiceSettingsFX;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.WaitLock;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import javafx.application.Platform;
@@ -58,15 +59,12 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     private HBox hBoxButtons;
 
 
-    public MeinAuthFX setMeinAuthService(MeinAuthService meinAuthService) {
-        this.meinAuthService = meinAuthService;
-        showContent();
-        return this;
-    }
-
     @Override
     public void start(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
+
+        showContent();
+
     }
 
 
@@ -117,7 +115,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
         btnCreateService.setOnAction(event -> {
             createServiceMenu.getItems().clear();
             int offset = -btnCreateService.heightProperty().intValue();
-            Set<String> names = MeinBoot.getBootloaderMap().keySet();
+            Set<String> names = meinAuthService.getMeinBoot().getBootloaderMap().keySet();
             for (String name : names) {
                 MenuItem menuItem = new MenuItem(name);
                 menuItem.setOnAction(e1 -> {
@@ -138,7 +136,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
                 .addListener((observable, oldValue, service) ->
                         runner.r(() -> {
                             if (service != null) {
-                                BootLoaderFX bootloader = (BootLoaderFX) MeinBoot.getBootLoader(meinAuthService, service.getType().v());
+                                BootLoaderFX bootloader = (BootLoaderFX) meinAuthService.getMeinBoot().getBootLoader(service.getType().v());
                                 IMeinService meinService = meinAuthService.getMeinService(service.getUuid().v());
                                 loadSettingsFX(bootloader.getEditFXML(meinService));
                                 ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
@@ -150,7 +148,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     }
 
     private void onCreateMenuItemClicked(String bootLoaderName) throws IllegalAccessException, SqlQueriesException, InstantiationException {
-        Class<? extends BootLoader> bootLoaderClass = MeinBoot.getBootloaderMap().get(bootLoaderName);
+        Class<? extends BootLoader> bootLoaderClass = meinAuthService.getMeinBoot().getBootloaderMap().get(bootLoaderName);
         BootLoader bootLoader = MeinBoot.createBootLoader(meinAuthService, bootLoaderClass);
         if (bootLoader instanceof BootLoaderFX) {
             loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML());
@@ -185,7 +183,6 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
         AnchorPane.setTopAnchor(pane, 0.0);
     }
 
-
     @SuppressWarnings("Duplicates")
     public static MeinAuthFX load(MeinAuthService meinAuthService) {
         new JFXPanel();
@@ -199,7 +196,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
                         HBox root = null;
                         root = loader.load();
                         meinAuthFX[0] = loader.getController();
-                        meinAuthFX[0].setMeinAuthService(meinAuthService);
+                        meinAuthFX[0].start(meinAuthService);
                         Scene scene = new Scene(root);
                         Stage stage = new Stage();
                         stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");
