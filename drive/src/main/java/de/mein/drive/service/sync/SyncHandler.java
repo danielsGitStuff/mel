@@ -72,18 +72,18 @@ public abstract class SyncHandler {
                 }
             }
             indexer.ignorePath(target.getAbsolutePath(), 1);
-            boolean moved = source.renameTo(target);
-            if (!moved || !target.exists())
-                return null;
-            //NoTryRunner.run(() -> indexer.stopIgnore(target.getAbsolutePath()));
+            BashTools.NodeAndTime nodeAndTime ;
             try {
-                BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(target);
+                nodeAndTime = BashTools.getNodeAndTime(source);
                 fsTarget.getiNode().v(nodeAndTime.getInode());
                 fsTarget.getModified().v(nodeAndTime.getModifiedTime());
-                fsTarget.getSize().v(target.length());
+                fsTarget.getSize().v(source.length());
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            boolean moved = source.renameTo(target);
+            if (!moved || !target.exists())
+                return null;
             fsDao.update(fsTarget);
         } catch (Exception e) {
 

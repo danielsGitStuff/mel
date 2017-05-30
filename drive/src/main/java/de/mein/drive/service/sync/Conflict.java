@@ -44,4 +44,12 @@ public class Conflict {
     public String getKey() {
         return key;
     }
+
+    public Stage getLeft() {
+        return lStage;
+    }
+
+    public Stage getRight() {
+        return rStage;
+    }
 }

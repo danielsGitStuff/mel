@@ -2,12 +2,11 @@ package de.mein.auth.service;
 
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.boot.BootLoaderFX;
+import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.gui.AuthSettingsFX;
-import de.mein.auth.gui.ServiceListItem;
-import de.mein.auth.gui.ServiceSettingsFX;
+import de.mein.auth.data.db.ServiceType;
+import de.mein.auth.gui.*;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.WaitLock;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import javafx.application.Platform;
@@ -16,12 +15,16 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Side;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import org.jdeferred.Deferred;
+import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
 
 import java.io.IOException;
 import java.net.URL;
@@ -62,9 +65,66 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     @Override
     public void start(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
-
         showContent();
+    }
 
+    @Override
+    public void onMessageFromService(MeinService meinService, Object msgObject) {
+        N.r(() -> {
+            Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
+            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());
+            BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
+            if (bootloader instanceof BootLoaderFX) {
+                BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
+                String containingPath = bootLoaderFX.getPopupFXML(meinService, msgObject);
+                loadPopup(containingPath).done(popupContentFX -> popupContentFX.init(meinService, msgObject));
+            }
+        });
+    }
+
+    private Promise<PopupContentFX, Void, Void> loadPopup(String containingPath) {
+        Deferred<PopupContentFX, Void, Void> deferred = new DeferredObject<>();
+        Platform.runLater(() -> {
+            N.r(() -> {
+                FXMLLoader loader = new FXMLLoader(MeinAuthFX.class.getClassLoader().getResource("de/mein/auth/popup.fxml"));
+                Parent root = null;
+                root = loader.load();
+                Scene scene = new Scene(root);
+                Stage stage = new Stage();
+                stage.setTitle("MeinAuthAdmin.Popup '" + meinAuthService.getName() + "'");
+                stage.setScene(scene);
+                stage.show();
+                PopupContainerFX popupController = loader.getController();
+                popupController.load(containingPath).done(deferred::resolve);
+            });
+        });
+        return deferred;
+        /*new JFXPanel();
+        Platform.setImplicitExit(false);
+        final MeinAuthFX[] meinAuthFX = new MeinAuthFX[1];
+        MeinAuthFX m;
+        RWLock lock = new RWLock().lockWrite();
+        Platform.runLater(() -> {
+                    try {
+                        FXMLLoader loader = new FXMLLoader(MeinAuthFX.class.getClassLoader().getResource("de/mein/auth/popup.fxml"));
+                        HBox root = null;
+                        root = loader.load();
+                        meinAuthFX[0] = loader.getController();
+                        meinAuthFX[0].start(meinAuthService);
+                        Scene scene = new Scene(root);
+                        Stage stage = new Stage();
+                        stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");
+                        stage.setScene(scene);
+                        stage.show();
+                        meinAuthFX[0].setStage(stage);
+                        meinAuthFX[0].showContent();
+                        lock.unlockWrite();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+        );
+        lock.lockWrite().unlockWrite();*/
     }
 
 

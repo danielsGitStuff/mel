@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.*?>
-
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="de.mein.drive.gui.DriveFXConflictSolverController"
-            prefHeight="400.0" prefWidth="600.0">
-
-</AnchorPane>
+<GridPane xmlns="http://javafx.com/javafx"
+          xmlns:fx="http://javafx.com/fxml"
+          fx:controller="de.mein.drive.gui.DriveFXConflictSolverController"
+          prefHeight="400.0" prefWidth="600.0">
+    <children>
+        <ListView GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS"
+                  fx:id="listLeft"/>
+        <ListView GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS"
+                  fx:id="listMerge"/>
+        <ListView GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS"
+                  fx:id="listRight"/>
+    </children>
+</GridPane>

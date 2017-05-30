@@ -70,10 +70,14 @@ public class WasteBin {
      * @param waste
      */
     public void del(Waste waste,File file) throws SqlQueriesException {
-        File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
-        file.renameTo(target);
-        waste.getInplace().v(true);
-        wasteDao.update(waste);
+        try {
+            File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
+            file.renameTo(target);
+            waste.getInplace().v(true);
+            wasteDao.update(waste);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void deleteFile(FsFile fsFile) throws SqlQueriesException, IOException {

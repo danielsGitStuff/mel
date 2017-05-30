@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 /**
  * Created by xor on 10/28/16.
  */
+@SuppressWarnings("Duplicates")
 public class BashTools {
 
     private static String BIN_PATH = "/bin/bash";
@@ -65,7 +66,7 @@ public class BashTools {
         while (!hasFinished) {
             try {
                 hasFinished = proc.waitFor(10, TimeUnit.SECONDS);
-                if (!hasFinished){
+                if (!hasFinished) {
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
                     List<String> errors = errorReader.lines().collect(Collectors.toList());
                     System.out.println("BashTools.stuffModifiedAfter.did not finish");
@@ -130,20 +131,38 @@ public class BashTools {
         String ba = "echo $(ls -i -d '" + f.getAbsolutePath() + "')";
         String[] args = new String[]{BIN_PATH, "-c", ba};
         Process proc = new ProcessBuilder(args).start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String res = null;
         Long inode = null, modifiedTime = f.lastModified();
-        try {
-            proc.waitFor();
-            res = reader.readLine();
-            System.out.println("BashTools.getNodeAndTime.parsing: " + res);
-            String[] s = res.split(" ");
-            inode = Long.parseLong(s[0]);
-            NodeAndTime nodeAndTime = new NodeAndTime(inode, modifiedTime);
-            return nodeAndTime;
-        } catch (InterruptedException e) {
-            System.err.println("string I got from bash: " + res);
-            e.printStackTrace();
+
+        boolean hasFinished = false;
+        while (!hasFinished) {
+            try {
+                hasFinished = proc.waitFor(10, TimeUnit.SECONDS);
+                if (!hasFinished) {
+                    BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                    List<String> errors = errorReader.lines().collect(Collectors.toList());
+                    System.out.println("BashTools.stuffModifiedAfter.did not finish");
+                }
+                int exitValue = proc.exitValue();
+                if (exitValue == 0) {
+                    System.out.println("BashTools.stuffModifiedAfter");
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+                    System.out.println("BashTools.stuffModifiedAfter.collecting.result");
+                    List<String> lines = reader.lines().collect(Collectors.toList());
+                    lines.forEach(s -> System.out.println("BashTools.getNodeAndTime.LLLL " + s));
+                    String[] s = lines.get(0).split(" ");
+                    inode = Long.parseLong(s[0]);
+                    NodeAndTime nodeAndTime = new NodeAndTime(inode, modifiedTime);
+                    return nodeAndTime;
+                } else {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                    throw new BashToolsException(reader.lines());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                proc.destroyForcibly();
+                continue;
+            }
         }
         return null;
     }

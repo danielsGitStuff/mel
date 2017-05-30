@@ -487,4 +487,9 @@ public class MeinAuthService {
         for (MeinAuthAdmin admin : meinAuthAdmins)
             this.addMeinAuthAdmin(admin);
     }
+
+    public void onMessageFromService(MeinService meinService, Object msgObject) {
+        for (MeinAuthAdmin admin : meinAuthAdmins)
+            admin.onMessageFromService(meinService, msgObject);
+    }
 }

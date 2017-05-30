@@ -46,7 +46,7 @@ public class ClientSyncHandler extends SyncHandler {
         this.meinDriveService = meinDriveService;
     }
 
-    public void addConflictSolver(ConflictSolver conflictSolver){
+    public void addConflictSolver(ConflictSolver conflictSolver) {
         conflictSolvers.add(conflictSolver);
     }
 
@@ -266,6 +266,7 @@ public class ClientSyncHandler extends SyncHandler {
         if (conflictCollection.hasConflicts()) {
             System.err.println("conflicts!!!!1!");
             conflictSolverMap.put(conflictCollection.getIdentifier(), conflictCollection);
+            meinDriveService.onConflicts(conflictCollection);
         }
     }
 
@@ -389,6 +390,9 @@ public class ClientSyncHandler extends SyncHandler {
      * @throws InterruptedException
      */
     public void syncThisClient() throws SqlQueriesException, InterruptedException {
+        runner.runTry(() -> {
+            stageDao.deleteServerStageSets();
+        });
         Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(driveSettings.getClientSettings().getServerCertId());
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v(), serverCert.getAddress().v(), serverCert.getPort().v(), serverCert.getCertDeliveryPort().v(), false);
         connected.done(mvp -> runner.runTry(() -> {

@@ -13,6 +13,8 @@ import de.mein.drive.index.IndexListener;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.service.sync.ClientSyncHandler;
+import de.mein.drive.service.sync.ConflictCollection;
+import de.mein.drive.service.sync.ConflictSolver;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.FsFile;
@@ -109,6 +111,11 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         return false;
     }
 
+    public void addConflictSolver(ConflictSolver conflictSolver) {
+        syncHandler.addConflictSolver(conflictSolver);
+    }
+
+
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
     }
@@ -174,5 +181,10 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     public void onSyncDone() {
         if (syncListener != null)
             syncListener.onSyncDone();
+    }
+
+    public void onConflicts(ConflictCollection conflictCollection) {
+        System.out.println("MeinDriveClientService.onConflicts.oj9h034800");
+        meinAuthService.onMessageFromService(this, conflictCollection);
     }
 }

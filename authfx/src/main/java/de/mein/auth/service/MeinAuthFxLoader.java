@@ -14,6 +14,11 @@ public class MeinAuthFxLoader implements MeinAuthAdmin {
     }
 
     @Override
+    public void onMessageFromService(MeinService meinService, Object msgObject) {
+        meinAuthFX.onMessageFromService(meinService,msgObject);
+    }
+
+    @Override
     public void onChanged() {
         meinAuthFX.onChanged();
     }

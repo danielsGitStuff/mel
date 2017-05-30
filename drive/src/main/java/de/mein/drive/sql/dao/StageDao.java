@@ -72,7 +72,7 @@ StageDao extends Dao.LockingDao {
         int offset = 0;
         do {
             Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : driveDatabaseManager.getDriveSettings().getRootDirectory().getId();
-            lastFsEntry = driveDatabaseManager.getFsDao().getGenericSubByName(parentId,parts[offset]);
+            lastFsEntry = driveDatabaseManager.getFsDao().getGenericSubByName(parentId, parts[offset]);
             if (lastFsEntry != null) {
                 bottomFsDir = lastFsEntry;
                 offset++;
@@ -179,6 +179,12 @@ StageDao extends Dao.LockingDao {
             path.append(File.separator).append(stageStack.pop().getName());
         }
         return new File(path.toString());
+    }
+
+    public void deleteServerStageSets() throws SqlQueriesException {
+        StageSet stageSet = new StageSet();
+        String where = stageSet.getType().k() + "=? and " + stageSet.getStatus() + "=?";
+        sqlQueries.delete(stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
     }
 
 

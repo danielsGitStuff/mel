@@ -2,8 +2,10 @@ package de.mein.auth.service;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.jobs.Job;
+import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.sql.RWLock;
+import org.jdeferred.impl.DeferredObject;
 
 import java.util.LinkedList;
 
@@ -14,6 +16,7 @@ public abstract class MeinWorker extends DeferredRunnable {
     protected LinkedList<Job> jobs = new LinkedList<>();
     protected RWLock queueLock = new RWLock();
     protected WaitLock waitLock = new WaitLock();
+    private DeferredObject workDonePromise;
 
     @Override
     public void runImpl() {
@@ -24,7 +27,9 @@ public abstract class MeinWorker extends DeferredRunnable {
                 queueLock.unlockWrite();
                 if (job != null) {
                     try {
+                        workDonePromise = new DeferredObject();
                         workWork(job);
+                        workDonePromise.resolve(null);
                     } catch (Exception e) {
                         e.printStackTrace();/*
                             if (job.getPromise() != null)
@@ -32,9 +37,17 @@ public abstract class MeinWorker extends DeferredRunnable {
                     }
                 } else {
                     // wait here if no jobs are available
+                    if (workDonePromise != null)
+                        N.r(() -> workDonePromise.resolve(null));
                     waitLock.lock();
                     System.out.println(getRunnableName() + "...unlocked");
                 }
+            }
+            if (workDonePromise != null) {
+                RWLock shutDownLock = new RWLock().lockWrite();
+                workDonePromise.done(result -> shutDownLock.unlockWrite());
+                shutDownLock.lockWrite();
+                System.out.println("MeinWorker.runImpl.work done. shutting down");
             }
             System.out.println(getClass().getSimpleName() + " has finished");
         } catch (Exception e) {
@@ -44,6 +57,7 @@ public abstract class MeinWorker extends DeferredRunnable {
 
     /**
      * Do your work here. The worker will wait until new jobs have arrived.
+     *
      * @param job
      * @throws Exception
      */
@@ -51,10 +65,12 @@ public abstract class MeinWorker extends DeferredRunnable {
 
 
     public void addJob(Job job) {
-        queueLock.lockWrite();
-        jobs.offer(job);
-        queueLock.unlockWrite();
-        waitLock.unlock();
+        if (!isInterrupted()) {
+            queueLock.lockWrite();
+            jobs.offer(job);
+            queueLock.unlockWrite();
+            waitLock.unlock();
+        }
     }
 
     @Override
