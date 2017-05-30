@@ -33,6 +33,8 @@ public class ClientSyncHandler extends SyncHandler {
 
     private DriveSyncListener syncListener;
     private MeinDriveClientService meinDriveService;
+    private Map<String, ConflictCollection> conflictSolverMap = new HashMap<>();
+    private List<ConflictSolver> conflictSolvers = new ArrayList<>();
 
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
@@ -42,6 +44,10 @@ public class ClientSyncHandler extends SyncHandler {
     public ClientSyncHandler(MeinAuthService meinAuthService, MeinDriveClientService meinDriveService) {
         super(meinAuthService, meinDriveService);
         this.meinDriveService = meinDriveService;
+    }
+
+    public void addConflictSolver(ConflictSolver conflictSolver){
+        conflictSolvers.add(conflictSolver);
     }
 
 
@@ -243,17 +249,24 @@ public class ClientSyncHandler extends SyncHandler {
      */
     private void checkConflicts(StageSet serverStageSet, StageSet stagedFromFs) throws SqlQueriesException {
         System.out.println("ClientSyncHandler.checkConflicts.NOT:IMPLEMNETED:YET");
-        Map<Stage, Stage> conflicts = new LinkedHashMap<>();
-        SyncStagesComparator comparator = new SyncStagesComparator(serverStageSet.getId().v(), stagedFromFs.getId().v()) {
-            @Override
-            public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
-                if (left != null && right != null)
-                    conflicts.put(left, right);
+        ConflictCollection conflictCollection;
+        String identifier = ConflictCollection.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
+        // check if there is a solved ConflictCollection available. if so, use it. if not, make a new one.
+        if (conflictSolverMap.containsKey(identifier)) {
+            conflictCollection = conflictSolverMap.get(identifier);
+            if (!conflictCollection.isSolved()) {
+                conflictSolverMap.remove(identifier);
+                conflictCollection = new ConflictCollection(serverStageSet, stagedFromFs);
             }
-        };
-        iterateStageSets(serverStageSet, stagedFromFs, comparator);
-        if (conflicts.size()>0)
+        } else {
+            conflictCollection = new ConflictCollection(serverStageSet, stagedFromFs);
+        }
+        iterateStageSets(serverStageSet, stagedFromFs, conflictCollection);
+        // only remember the conflict solver if it actually has conflicts
+        if (conflictCollection.hasConflicts()) {
             System.err.println("conflicts!!!!1!");
+            conflictSolverMap.put(conflictCollection.getIdentifier(), conflictCollection);
+        }
     }
 
     /**
