@@ -6,6 +6,7 @@ import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.sync.Conflict;
 import de.mein.drive.service.sync.ConflictCollection;
 import de.mein.drive.service.sync.ConflictSolver;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -47,22 +48,7 @@ public class DriveFXConflictSolverController implements ConflictSolver, PopupCon
         listMerge.getItems().addAll(conflictCollection.getConflicts());
     }
 
-    private Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = param -> new MergeCellList() {
-        @Override
-        protected void updateItem(Conflict conflict, boolean empty) {
-            super.updateItem(conflict, empty);
-            if (conflict != null && !empty) {
-                if (!conflict.hasDecision()) {
-                    name.setText("huiii");
-                } else {
-                    name.setText("duiii");
-                }
-            } else {
-                name.setText("empti");
-                setText("ji");
-            }
-        }
-    };
+    private Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = MergeListCell.createMergeCellFactory();
 
     private static abstract class GenCallback implements Callback<ListView<Conflict>, ListCell<Conflict>> {
 

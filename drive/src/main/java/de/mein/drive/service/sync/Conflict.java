@@ -21,16 +21,18 @@ public class Conflict {
         return lStage.getId() + "/" + rStage.getId();
     }
 
-    public void chooseRight() {
+    public Conflict chooseRight() {
         isRight = true;
+        return this;
     }
 
-    public void chooseLeft() {
+    public Conflict chooseLeft() {
         isRight = false;
+        return this;
     }
 
     public boolean isRight() {
-        return isRight;
+        return isRight != null && isRight;
     }
 
     public Stage getChoice() {
@@ -51,5 +53,13 @@ public class Conflict {
 
     public Stage getRight() {
         return rStage;
+    }
+
+    public void chooseNothing() {
+        isRight = null;
+    }
+
+    public boolean isLeft() {
+        return isRight == null || !isRight;
     }
 }
