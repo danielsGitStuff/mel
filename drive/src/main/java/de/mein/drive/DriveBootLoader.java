@@ -57,7 +57,6 @@ public class DriveBootLoader extends BootLoader {
                 bootedPromises.add(meinDriveService.getStartedDeferred());
             });
         }
-
         deferredManager.when(bootedPromises.toArray(new Promise[0])).done(result -> booted.resolve(null)).fail(result -> booted.reject((Exception) result.getReject()));
         return booted;
     }

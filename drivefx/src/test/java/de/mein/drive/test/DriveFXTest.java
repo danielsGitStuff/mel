@@ -1,27 +1,28 @@
 package de.mein.drive.test;
 
 
-import de.mein.auth.service.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.RegisterHandlerFX;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinStandAloneAuthFX;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
-import de.mein.drive.*;
+import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveSyncListener;
 import de.mein.drive.boot.DriveFXBootLoader;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;
-import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.FsFile;
+import de.mein.drive.sql.GenericFSEntry;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
@@ -52,11 +53,9 @@ public class DriveFXTest {
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
-        MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("Test Client").setGreeting("greeting2");
-        standAloneAuth1 = new MeinStandAloneAuthFX(json1);
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -69,11 +68,11 @@ public class DriveFXTest {
             }
         };
         RWLock lock = new RWLock();
-        standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
+        MeinBoot boot1 = new MeinBoot(json1);
+        boot1.boot().done(result -> {
+            result.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 System.out.println("DriveFXTest.startEmptyClient.booted");
             });
@@ -81,6 +80,7 @@ public class DriveFXTest {
         lock.lockWrite();
         lock.unlockWrite();
     }
+
     @Test
     public void startEmptyServer() throws Exception {
 //        inject(true);
@@ -92,7 +92,6 @@ public class DriveFXTest {
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("Test Server").setGreeting("greeting1");
-        standAloneAuth1 = new MeinStandAloneAuthFX(json1);
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -105,11 +104,10 @@ public class DriveFXTest {
             }
         };
         RWLock lock = new RWLock();
-        standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
         lock.lockWrite();
-
-        MeinBoot boot1 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
+        MeinBoot boot1 = new MeinBoot(json1);
+        boot1.boot().done(result -> {
+            result.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 System.out.println("DriveFXTest.startEmptyServer.booted");
             });
@@ -163,8 +161,6 @@ public class DriveFXTest {
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
-        MeinStandAloneAuthFX standAloneAuth2;
-        MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
@@ -172,8 +168,7 @@ public class DriveFXTest {
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
-        standAloneAuth1 = new MeinStandAloneAuthFX(json1);
-        standAloneAuth2 = new MeinStandAloneAuthFX(json2);
+
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -196,8 +191,6 @@ public class DriveFXTest {
         };*/
         //standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
         //standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
-        standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
-        standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
         /*standAloneAuth1.addRegisteredHandler((meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
             for (ServiceJoinServiceType serviceJoinServiceType : services) {
@@ -206,14 +199,16 @@ public class DriveFXTest {
         });*/
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        MeinBoot boot2 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
+        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot2 = new MeinBoot(json2);
+        boot1.boot().done(standAloneAuth1 -> {
+            standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
 //                DriveBootLoader.deVinjector = null;
-                boot2.boot(standAloneAuth2).done(result1 -> {
+                boot2.boot().done(standAloneAuth2 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
+                    standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
                     runner.r(() -> {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
@@ -238,8 +233,6 @@ public class DriveFXTest {
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         MeinBoot.addBootLoaderClass(DriveFXBootLoader.class);
         N runner = new N(e -> e.printStackTrace());
-        MeinStandAloneAuthFX standAloneAuth2;
-        MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
@@ -247,8 +240,6 @@ public class DriveFXTest {
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
-        standAloneAuth1 = new MeinStandAloneAuthFX(json1);
-        standAloneAuth2 = new MeinStandAloneAuthFX(json2);
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -270,8 +261,6 @@ public class DriveFXTest {
         };*/
         //standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
         //standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
-        standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
-        standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
         /*standAloneAuth1.addRegisteredHandler((meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
             for (ServiceJoinServiceType serviceJoinServiceType : services) {
@@ -280,14 +269,16 @@ public class DriveFXTest {
         });*/
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        MeinBoot boot2 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
+        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot2 = new MeinBoot(json2);
+        boot1.boot().done(standAloneAuth1 -> {
+            standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
 //                DriveBootLoader.deVinjector = null;
-                boot2.boot(standAloneAuth2).done(result1 -> {
+                boot2.boot().done(standAloneAuth2 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
+                    standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
                     runner.r(() -> {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
@@ -328,8 +319,6 @@ public class DriveFXTest {
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
-        standAloneAuth1 = new MeinStandAloneAuthFX(json1);
-        standAloneAuth2 = new MeinStandAloneAuthFX(json2);
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -343,8 +332,6 @@ public class DriveFXTest {
 
             }
         };
-        standAloneAuth1.addRegisterHandler(allowRegisterHandler);
-        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -352,18 +339,20 @@ public class DriveFXTest {
                 meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
             }
         };
-        standAloneAuth1.addRegisteredHandler(registeredHandler);
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        MeinBoot boot2 = new MeinBoot();
-        boot1.boot(standAloneAuth1).done(result -> {
+        MeinBoot boot1 = new MeinBoot(json1);
+        MeinBoot boot2 = new MeinBoot(json2);
+        boot1.boot().done(standAloneAuth1 -> {
             runner.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
+                standAloneAuth1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
                 MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath());
-                boot2.boot(standAloneAuth2).done(result1 -> {
+                boot2.boot().done(standAloneAuth2 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
+                    standAloneAuth2.addRegisterHandler(allowRegisterHandler);
+
                     runner.r(() -> {
                         // connect first. this step will register
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
@@ -400,6 +389,16 @@ public class DriveFXTest {
         setup(new DriveSyncListener() {
 
             @Override
+            public void onSyncFailed() {
+
+            }
+
+            @Override
+            public void onTransfersDone() {
+
+            }
+
+            @Override
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {
@@ -421,6 +420,16 @@ public class DriveFXTest {
     public void addFile() throws Exception {
         setup(new DriveSyncListener() {
             private int count = 0;
+
+            @Override
+            public void onSyncFailed() {
+
+            }
+
+            @Override
+            public void onTransfersDone() {
+
+            }
 
             @Override
             public void onSyncDoneImpl() {
