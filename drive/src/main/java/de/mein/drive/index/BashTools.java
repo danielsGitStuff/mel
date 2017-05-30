@@ -1,5 +1,9 @@
 package de.mein.drive.index;
 
+import de.mein.auth.tools.N;
+import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +11,8 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -127,50 +133,52 @@ public class BashTools {
         }
     }
 
-    public static NodeAndTime getNodeAndTime(File f) throws IOException {
-        String ba = "echo $(ls -i -d '" + f.getAbsolutePath() + "')";
-        String[] args = new String[]{BIN_PATH, "-c", ba};
-        Process proc = new ProcessBuilder(args).start();
-        String res = null;
-        Long inode = null, modifiedTime = f.lastModified();
+    private static ExecutorService executorService = Executors.newCachedThreadPool();
 
-        boolean hasFinished = false;
-        while (!hasFinished) {
-            try {
-                hasFinished = proc.waitFor(10, TimeUnit.SECONDS);
-                if (!hasFinished) {
-                    BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-                    List<String> errors = errorReader.lines().collect(Collectors.toList());
-                    System.out.println("BashTools.stuffModifiedAfter.did not finish");
+    public static Promise<NodeAndTime, Exception, Void> getNodeAndTime(File f) {
+        DeferredObject<NodeAndTime, Exception, Void> deferred = new DeferredObject<>();
+        executorService.execute(() -> N.r(() -> {
+            String ba = "echo $(ls -i -d '" + f.getAbsolutePath() + "')";
+            String[] args = new String[]{BIN_PATH, "-c", ba};
+            Process proc = new ProcessBuilder(args).start();
+            String res = null;
+            Long inode = null, modifiedTime = f.lastModified();
+            List<String> lines;
+            boolean hasFinished = false;
+            while (!hasFinished) {
+                try {
+                    hasFinished = proc.waitFor(10, TimeUnit.SECONDS);
+                    if (!hasFinished) {
+                        BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                        List<String> errors = errorReader.lines().collect(Collectors.toList());
+                        System.out.println("BashTools.stuffModifiedAfter.did not finish");
+                    }
+                    int exitValue = proc.exitValue();
+                    if (exitValue == 0) {
+                        System.out.println("BashTools.stuffModifiedAfter");
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+                        System.out.println("BashTools.stuffModifiedAfter.collecting.result");
+                        lines = reader.lines().collect(Collectors.toList());
+                        lines.forEach(s -> System.out.println("BashTools.getNodeAndTime.LLLL " + s));
+                        String[] s = lines.get(0).split(" ");
+                        if (s[0].isEmpty())
+                            System.out.println("BashTools.getNodeAndTime");
+                        inode = Long.parseLong(s[0]);
+                        NodeAndTime nodeAndTime = new NodeAndTime(inode, modifiedTime);
+                        deferred.resolve(nodeAndTime);
+                    } else {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                        throw new BashToolsException(reader.lines());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    proc.destroyForcibly();
+                    continue;
                 }
-                int exitValue = proc.exitValue();
-                if (exitValue == 0) {
-                    System.out.println("BashTools.stuffModifiedAfter");
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                    System.out.println("BashTools.stuffModifiedAfter.collecting.result");
-                    List<String> lines = reader.lines().collect(Collectors.toList());
-                    lines.forEach(s -> System.out.println("BashTools.getNodeAndTime.LLLL " + s));
-                    String[] s = lines.get(0).split(" ");
-                    inode = Long.parseLong(s[0]);
-                    NodeAndTime nodeAndTime = new NodeAndTime(inode, modifiedTime);
-                    return nodeAndTime;
-                } else {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-                    throw new BashToolsException(reader.lines());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                proc.destroyForcibly();
-                continue;
             }
-        }
-        return null;
+        }));
+        return deferred;
     }
 
-    public static void main(String[] args) throws IOException {
-        File f = new File("/home/xor/Downloads/cm-13.0-20160925-NIGHTLY-klte-recovery.img");
-        NodeAndTime nodeAndTime = getNodeAndTime(f);
-        System.out.println(nodeAndTime.getInode());
-        System.out.println(nodeAndTime.getModifiedTime());
-    }
+
 }

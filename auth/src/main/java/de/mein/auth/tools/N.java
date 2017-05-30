@@ -9,6 +9,16 @@ import java.util.List;
  * Syntactic sugar. Saves you lots of try/catches. calls e.stacktrace() per default.
  */
 public class N {
+    /**
+     * fails silently
+     */
+    public static void s(N.INoTryRunnable noTryRunnable) {
+        N.silentRunner.runTry(noTryRunnable);
+    }
+
+    private static N silentRunner = new N(e -> {
+    });
+
     public interface INoTryRunnable {
         void run() throws Exception, ShamefulSelfConnectException;
     }

@@ -2,13 +2,16 @@ package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.tools.Hash;
+import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.ISQLResource;
+import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.IOException;
@@ -189,13 +192,13 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 fsContent.put(gen.getName().v(), gen);
         }
         // remove deleted stuff first (because of the order)
-        if (files!=null) {
-            for (File subFile : files){
+        if (files != null) {
+            for (File subFile : files) {
                 fsContent.remove(subFile.getName());
             }
         }
-        if (subDirs!=null) {
-            for (File subDir : subDirs){
+        if (subDirs != null) {
+            for (File subDir : subDirs) {
                 fsContent.remove(subDir.getName());
             }
         }
@@ -267,36 +270,45 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // save to stage
         newFsDirectory.calcContentHash();
         stage.setContentHash(newFsDirectory.getContentHash().v());
-        BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(stageFile);
-        stage.setModified(nodeAndTime.getModifiedTime())
-                .setiNode(nodeAndTime.getInode());
-        if (stage.getFsId() != null) {
-            FsDirectory oldFsDirectory = fsDao.getFsDirectoryById(stage.getFsId());
-            if (oldFsDirectory.getContentHash().v().equals(newFsDirectory.getContentHash().v()))
-                stageDao.deleteStageById(stage.getId());
-            else
-                stageDao.update(stage);
-        } else
-            stageDao.update(stage);
-    }
-
-    protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException {
-        if (stageFile.exists()) {
-            BashTools.NodeAndTime nodeAndTime = BashTools.getNodeAndTime(stageFile);
-            stage.setContentHash(Hash.md5(stageFile));
-            stage.setiNode(nodeAndTime.getInode());
-            stage.setModified(nodeAndTime.getModifiedTime());
-            stage.setSize(stageFile.length());
-            // stage can be deleted if nothing changed
+        RWLock waitLock = new RWLock().lockWrite();
+        Promise<BashTools.NodeAndTime, Exception, Void> promise = BashTools.getNodeAndTime(stageFile);
+        promise.done(nodeAndTime -> N.r(() -> {
+            stage.setModified(nodeAndTime.getModifiedTime())
+                    .setiNode(nodeAndTime.getInode());
             if (stage.getFsId() != null) {
-                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
-                if (fsEntry.getContentHash().v().equals(stage.getContentHash()))
+                FsDirectory oldFsDirectory = fsDao.getFsDirectoryById(stage.getFsId());
+                if (oldFsDirectory.getContentHash().v().equals(newFsDirectory.getContentHash().v()))
                     stageDao.deleteStageById(stage.getId());
                 else
                     stageDao.update(stage);
             } else
                 stageDao.update(stage);
+            waitLock.unlockWrite();
+        }));
+        waitLock.lockWrite();
+    }
 
+    protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException {
+        if (stageFile.exists()) {
+            RWLock waitLock = new RWLock().lockWrite();
+            Promise<BashTools.NodeAndTime, Exception, Void> promise = BashTools.getNodeAndTime(stageFile);
+            promise.done(nodeAndTime -> N.r(() -> {
+                stage.setContentHash(Hash.md5(stageFile));
+                stage.setiNode(nodeAndTime.getInode());
+                stage.setModified(nodeAndTime.getModifiedTime());
+                stage.setSize(stageFile.length());
+                // stage can be deleted if nothing changed
+                if (stage.getFsId() != null) {
+                    FsEntry fsEntry = fsDao.getFile(stage.getFsId());
+                    if (fsEntry.getContentHash().v().equals(stage.getContentHash()))
+                        stageDao.deleteStageById(stage.getId());
+                    else
+                        stageDao.update(stage);
+                } else
+                    stageDao.update(stage);
+                waitLock.unlockWrite();
+            }));
+            waitLock.lockWrite();
         } else {
             stage.setDeleted(true);
             stageDao.update(stage);

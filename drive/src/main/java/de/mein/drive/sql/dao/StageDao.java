@@ -183,7 +183,7 @@ StageDao extends Dao.LockingDao {
 
     public void deleteServerStageSets() throws SqlQueriesException {
         StageSet stageSet = new StageSet();
-        String where = stageSet.getType().k() + "=? and " + stageSet.getStatus() + "=?";
+        String where = stageSet.getType().k() + "=? and " + stageSet.getStatus().k() + "=?";
         sqlQueries.delete(stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
     }
 

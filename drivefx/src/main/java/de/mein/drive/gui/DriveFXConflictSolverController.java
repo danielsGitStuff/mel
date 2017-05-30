@@ -59,6 +59,7 @@ public class DriveFXConflictSolverController implements ConflictSolver, PopupCon
                 }
             } else {
                 name.setText("empti");
+                setText("ji");
             }
         }
     };

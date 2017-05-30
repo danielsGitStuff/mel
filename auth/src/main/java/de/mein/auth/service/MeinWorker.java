@@ -38,8 +38,8 @@ public abstract class MeinWorker extends DeferredRunnable {
                 } else {
                     // wait here if no jobs are available
                     if (workDonePromise != null)
-                        N.r(() -> workDonePromise.resolve(null));
-                    waitLock.lock();
+                        N.s(() -> workDonePromise.resolve(null));
+                    N.r(() -> waitLock.lock());
                     System.out.println(getRunnableName() + "...unlocked");
                 }
             }
