@@ -26,8 +26,6 @@ import javafx.util.Callback;
 @SuppressWarnings("Duplicates")
 public abstract class MergeListCell extends ListCell<Conflict> {
     HBox hbox = new HBox();
-    Label label = new Label("(empty)");
-    Pane pane = new Pane();
     Button button = new Button("x");
     Conflict lastSelected;
     // left to right
@@ -35,9 +33,7 @@ public abstract class MergeListCell extends ListCell<Conflict> {
 
     public MergeListCell() {
         super();
-        hbox.getChildren().addAll(label, pane, button);
-        HBox.setHgrow(pane, Priority.ALWAYS);
-        label.paddingProperty().setValue(new Insets(0, 1, 0, 1));
+        hbox.getChildren().add( button);
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -45,6 +41,9 @@ public abstract class MergeListCell extends ListCell<Conflict> {
             }
         });
         init();
+        setGraphic(hbox);
+        button.prefWidthProperty().bind(hbox.widthProperty());
+
     }
 
     abstract void handleAction(ActionEvent event);
@@ -63,7 +62,7 @@ public abstract class MergeListCell extends ListCell<Conflict> {
                     leftList.refresh();
                     rightList.refresh();
                     getListView().refresh();
-                    selectSame(getListView(),leftList,rightList);
+                    selectSame(getListView(), leftList, rightList);
                 }
             }
 
@@ -75,34 +74,22 @@ public abstract class MergeListCell extends ListCell<Conflict> {
             @Override
             protected void updateItem(Conflict conflict, boolean empty) {
                 super.updateItem(conflict, empty);
-                setText(null);  // No text in label of super class
                 if (empty || conflict == null) {
                     setGraphic(null);
                     lastSelected = null;
                 } else {
                     lastSelected = conflict;
                     if (!conflict.hasDecision()) {
-                        hbox.getChildren().clear();
                         button.setText("");
-                        button.prefWidthProperty().bind(hbox.widthProperty());
-                        hbox.getChildren().addAll(button);
                         setTextAlignment(TextAlignment.RIGHT);
                     } else {
-                        button.prefWidthProperty().unbind();
                         button.setText("x");
-                        button.prefWidthProperty().setValue(0.1);
                         if (conflict.isRight()) {
-                            hbox.getChildren().clear();
-                            button.prefWidthProperty().bind(hbox.widthProperty());
-                            button.setText(conflict.getLeft().getName());
-                            hbox.getChildren().add(button);
+                            button.setText(conflict.getLeft().getName() + " <<");
                         } else if (conflict.isLeft()) {
-                            hbox.getChildren().clear();
-                            label.setText(conflict.getLeft().getName());
-                            hbox.getChildren().addAll(button, label, pane);
+                            button.setText(">> " + conflict.getLeft().getName());
                             buttonOnRight = false;
                         }
-                        label.setText(conflict != null ? conflict.getKey() : "<null>");
                     }
                     setGraphic(hbox);
                 }
@@ -112,7 +99,7 @@ public abstract class MergeListCell extends ListCell<Conflict> {
     }
 
     public static Callback<ListView<Conflict>, ListCell<Conflict>> createLeftCellFactory(ListView<Conflict> mergeList, ListView<Conflict> rightList) {
-        Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = param -> new MergeListCell() {
+        Callback<ListView<Conflict>, ListCell<Conflict>> leftCellFactory = param -> new MergeListCell() {
             @Override
             void handleAction(ActionEvent event) {
                 if (lastSelected != null) {
@@ -121,18 +108,52 @@ public abstract class MergeListCell extends ListCell<Conflict> {
                     getListView().refresh();
                     mergeList.refresh();
                     rightList.refresh();
-                    selectSame(getListView(),mergeList,rightList);
+                    selectSame(getListView(), mergeList, rightList);
                 }
             }
 
             @Override
             void init() {
-                //getChildren().clear();
-                //getChildren().add(button);
+            }
+
+            @Override
+            protected void updateItem(Conflict conflict, boolean empty) {
+                super.updateItem(conflict, empty);
+                if (empty || conflict == null) {
+                    setGraphic(null);
+                    lastSelected = null;
+                } else {
+                    lastSelected = conflict;
+                    if (conflict.hasDecision() && conflict.isLeft()) {
+                        button.setText("");
+                    } else {
+                        button.setText(conflict.getLeft().getName() + " >>");
+                    }
+                    setGraphic(hbox);
+                }
+
+            }
+        };
+        return leftCellFactory;
+    }
+
+    public static Callback<ListView<Conflict>, ListCell<Conflict>> createRightCellFactory(ListView<Conflict> leftList, ListView<Conflict> mergeList) {
+        Callback<ListView<Conflict>, ListCell<Conflict>> rightCellFactory = param -> new MergeListCell() {
+            @Override
+            void handleAction(ActionEvent event) {
+                if (lastSelected != null) {
+                    System.out.println("MergeListCell.left " + lastSelected);
+                    lastSelected.chooseRight();
+                    getListView().refresh();
+                    mergeList.refresh();
+                    leftList.refresh();
+                    selectSame(getListView(), leftList, mergeList);
+                }
+            }
+
+            @Override
+            void init() {
                 setText("");
-                button.prefWidthProperty().bind(hbox.widthProperty());
-                hbox.getChildren().clear();
-                hbox.getChildren().add(button);
             }
 
             @Override
@@ -144,16 +165,16 @@ public abstract class MergeListCell extends ListCell<Conflict> {
                     lastSelected = null;
                 } else {
                     lastSelected = conflict;
-                    if (conflict.hasDecision() && conflict.isLeft()) {
-                        button.setText("");
+                    if (!conflict.hasDecision() || conflict.isLeft()) {
+                        button.setText("<< " + conflict.getLeft().getName());
                     } else {
-                        button.setText(conflict.getLeft().getName() + ">>");
+                        button.setText("");
                     }
                     setGraphic(hbox);
                 }
             }
         };
-        return mergeCellFactory;
+        return rightCellFactory;
     }
 
     public static class AAAAA {
@@ -179,7 +200,7 @@ public abstract class MergeListCell extends ListCell<Conflict> {
                 mergeList.getItems().addAll(c1, c2, c3);
 
                 leftList.setCellFactory(createLeftCellFactory(mergeList, rightList));
-
+                rightList.setCellFactory(createRightCellFactory(leftList, mergeList));
                 root.getChildren().addAll(leftList, mergeList, rightList);
 
 
