@@ -6,7 +6,6 @@ import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.sync.Conflict;
 import de.mein.drive.service.sync.ConflictCollection;
 import de.mein.drive.service.sync.ConflictSolver;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -42,13 +41,12 @@ public class DriveFXConflictSolverController implements ConflictSolver, PopupCon
         listLeft.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
             listRight.getSelectionModel().select((Integer) newValue);
         });
-        listMerge.setCellFactory(mergeCellFactory);
+        listMerge.setCellFactory(MergeListCell.createMergeCellFactory(listLeft, listRight));
         listLeft.getItems().addAll(conflictCollection.getConflicts());
         listRight.getItems().addAll(conflictCollection.getConflicts());
         listMerge.getItems().addAll(conflictCollection.getConflicts());
     }
 
-    private Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = MergeListCell.createMergeCellFactory();
 
     private static abstract class GenCallback implements Callback<ListView<Conflict>, ListCell<Conflict>> {
 
