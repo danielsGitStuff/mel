@@ -2,9 +2,9 @@ package de.mein.drive.gui;
 
 import de.mein.auth.gui.PopupContentFX;
 import de.mein.auth.service.MeinService;
+import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.sync.Conflict;
-import de.mein.drive.service.sync.ConflictCollection;
 import de.mein.drive.service.sync.ConflictSolver;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
@@ -15,36 +15,31 @@ import javafx.util.Callback;
 /**
  * Created by xor on 5/30/17.
  */
-public class DriveFXConflictSolverController implements ConflictSolver, PopupContentFX {
+public class DriveFXConflictSolverController implements PopupContentFX {
     @FXML
     private ListView<Conflict> listLeft, listRight, listMerge;
     private MeinDriveClientService meinDriveClientService;
-    private ConflictCollection conflictCollection;
+    private ConflictSolver conflictSolver;
+
 
     @Override
-    public boolean onOkCLicked() {
+    public String onOkCLicked() {
         System.out.println("DriveFXConflictSolverController.onOkCLicked");
-        return false;
+        if (conflictSolver.isSolved()) {
+            meinDriveClientService.addJob(new CommitJob());
+            return null;
+        }
+        return "you bloody idiot!";
     }
 
     @Override
     public void init(MeinService meinService, Object msgObject) {
         this.meinDriveClientService = (MeinDriveClientService) meinService;
-        conflictCollection = (ConflictCollection) msgObject;
-        meinDriveClientService.addConflictSolver(this);
+        conflictSolver = (ConflictSolver) msgObject;
+        meinDriveClientService.addConflictSolver(conflictSolver);
         System.out.println("DriveFXConflictSolverController.init");
-        listLeft.setCellFactory(leftCellFactory);
-        listRight.setCellFactory(rightCellFactory);
-        listRight.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
-            listLeft.getSelectionModel().select((Integer) newValue);
-        });
-        listLeft.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
-            listRight.getSelectionModel().select((Integer) newValue);
-        });
-        listMerge.setCellFactory(MergeListCell.createMergeCellFactory(listLeft, listRight));
-        listLeft.getItems().addAll(conflictCollection.getConflicts());
-        listRight.getItems().addAll(conflictCollection.getConflicts());
-        listMerge.getItems().addAll(conflictCollection.getConflicts());
+        MergeListCell.setup(listLeft, listMerge, listRight);
+        listLeft.getItems().addAll(conflictSolver.getConflicts());
     }
 
 

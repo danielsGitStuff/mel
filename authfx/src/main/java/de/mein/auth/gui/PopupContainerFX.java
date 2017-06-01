@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import org.jdeferred.Promise;
@@ -27,7 +28,17 @@ public class PopupContainerFX {
             PopupContentFX contentController = contentLoader.getController();
             container.add(root, 0, 0);
             btnOk.setOnAction(event -> {
-                boolean isDone = contentController.onOkCLicked();
+                String resultMessage = contentController.onOkCLicked();
+                if (resultMessage == null) {
+                    container.getChildren().clear();
+                    //dereference
+                    btnOk.setOnAction(event1 -> {
+                    });
+                    container.getScene().getWindow().hide();
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, resultMessage);
+                    alert.showAndWait();
+                }
             });
             deferred.resolve(contentController);
         }));

@@ -33,7 +33,7 @@ public class ClientSyncHandler extends SyncHandler {
 
     private DriveSyncListener syncListener;
     private MeinDriveClientService meinDriveService;
-    private Map<String, ConflictCollection> conflictSolverMap = new HashMap<>();
+    private Map<String, ConflictSolver> conflictSolverMap = new HashMap<>();
     private List<ConflictSolver> conflictSolvers = new ArrayList<>();
 
     public void setSyncListener(DriveSyncListener syncListener) {
@@ -249,24 +249,25 @@ public class ClientSyncHandler extends SyncHandler {
      */
     private void checkConflicts(StageSet serverStageSet, StageSet stagedFromFs) throws SqlQueriesException {
         System.out.println("ClientSyncHandler.checkConflicts.NOT:IMPLEMNETED:YET");
-        ConflictCollection conflictCollection;
-        String identifier = ConflictCollection.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
-        // check if there is a solved ConflictCollection available. if so, use it. if not, make a new one.
+        ConflictSolver conflictSolver;
+        String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
+        // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
         if (conflictSolverMap.containsKey(identifier)) {
-            conflictCollection = conflictSolverMap.get(identifier);
-            if (!conflictCollection.isSolved()) {
+            conflictSolver = conflictSolverMap.get(identifier);
+            if (!conflictSolver.isSolved()) {
                 conflictSolverMap.remove(identifier);
-                conflictCollection = new ConflictCollection(serverStageSet, stagedFromFs);
+                conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
             }
         } else {
-            conflictCollection = new ConflictCollection(serverStageSet, stagedFromFs);
+            conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
         }
-        iterateStageSets(serverStageSet, stagedFromFs, conflictCollection);
+        conflictSolver.beforeStart();
+        iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
         // only remember the conflict solver if it actually has conflicts
-        if (conflictCollection.hasConflicts()) {
+        if (conflictSolver.hasConflicts()) {
             System.err.println("conflicts!!!!1!");
-            conflictSolverMap.put(conflictCollection.getIdentifier(), conflictCollection);
-            meinDriveService.onConflicts(conflictCollection);
+            conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
+            meinDriveService.onConflicts(conflictSolver);
         }
     }
 
@@ -286,7 +287,7 @@ public class ClientSyncHandler extends SyncHandler {
         StageSet rStageSet = stageSets.get(1);
         StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_MERGED, null, null);
         final Long mStageSetId = mStageSet.getId().v();
-        SyncStagesComparator comparator = new SyncStagesComparator(lStageSet.getId().v(), rStageSet.getId().v()) {
+        SyncStageMerger merger = new SyncStageMerger(lStageSet.getId().v(), rStageSet.getId().v()) {
             private Order order = new Order();
             private Map<Long, Long> idMapRight = new HashMap<>();
             private Map<Long, Long> idMapLeft = new HashMap<>();
@@ -349,7 +350,7 @@ public class ClientSyncHandler extends SyncHandler {
                 }
             }
         };
-        iterateStageSets(lStageSet, rStageSet, comparator);
+        iterateStageSets(lStageSet, rStageSet, merger, null);
         stageDao.deleteStageSet(rStageSet.getId().v());
         stageDao.deleteStageSet(lStageSet.getId().v());
         stageDao.updateStageSet(mStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED).setType(DriveStrings.STAGESET_TYPE_FS));
@@ -363,22 +364,28 @@ public class ClientSyncHandler extends SyncHandler {
      *
      * @param lStageSet
      * @param rStageSet
-     * @param comparator
+     * @param merger
      * @throws SqlQueriesException
      */
-    private void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStagesComparator comparator) throws SqlQueriesException {
+    private void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStageMerger merger, ConflictSolver conflictSolver) throws SqlQueriesException {
         ISQLResource<Stage> lStages = stageDao.getStagesResource(lStageSet.getId().v());
         Stage lStage = lStages.getNext();
         while (lStage != null) {
             File file = stageDao.getFileByStage(lStage);
             Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), file);
-            comparator.stuffFound(lStage, rStage);
+            if (conflictSolver != null)
+                conflictSolver.solve(stageDao, lStage, rStage);
+            else
+                merger.stuffFound(lStage, rStage);
             lStage = lStages.getNext();
         }
         ISQLResource<Stage> rStages = stageDao.getNotFoundStagesResource(rStageSet.getId().v());
         Stage rStage = rStages.getNext();
         while (rStage != null) {
-            comparator.stuffFound(null, rStage);
+            if (conflictSolver != null)
+                conflictSolver.solve(stageDao, null, rStage);
+            else
+                merger.stuffFound(null, rStage);
             rStage = rStages.getNext();
         }
     }

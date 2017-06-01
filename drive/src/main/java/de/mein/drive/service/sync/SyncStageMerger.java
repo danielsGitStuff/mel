@@ -6,7 +6,7 @@ import de.mein.sql.SqlQueriesException;
 /**
  * Created by xor on 5/6/17.
  */
-public abstract class SyncStagesComparator {
+public abstract class SyncStageMerger {
     protected final Long lStageSetId;
     protected final Long rStageSetId;
 
@@ -19,7 +19,7 @@ public abstract class SyncStagesComparator {
      */
     public abstract void stuffFound(Stage left, Stage right) throws SqlQueriesException;
 
-    public SyncStagesComparator(Long lStageSetId, Long rStageSetId) {
+    public SyncStageMerger(Long lStageSetId, Long rStageSetId) {
         this.lStageSetId = lStageSetId;
         this.rStageSetId = rStageSetId;
     }

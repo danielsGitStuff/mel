@@ -8,15 +8,11 @@ import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Callback;
 
@@ -33,7 +29,7 @@ public abstract class MergeListCell extends ListCell<Conflict> {
 
     public MergeListCell() {
         super();
-        hbox.getChildren().add( button);
+        hbox.getChildren().add(button);
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -175,6 +171,15 @@ public abstract class MergeListCell extends ListCell<Conflict> {
             }
         };
         return rightCellFactory;
+    }
+
+    public static void setup(ListView<Conflict> listLeft, ListView<Conflict> listMerge, ListView<Conflict> listRight) {
+        listLeft.setCellFactory(createLeftCellFactory(listMerge, listRight));
+        listMerge.setCellFactory(createMergeCellFactory(listLeft, listRight));
+        listRight.setCellFactory(createRightCellFactory(listLeft, listMerge));
+        bindSelections(listLeft, listMerge, listRight);
+        listRight.setItems(listLeft.getItems());
+        listMerge.setItems(listLeft.getItems());
     }
 
     public static class AAAAA {
