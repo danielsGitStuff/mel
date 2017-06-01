@@ -1,5 +1,6 @@
 package de.mein.drive.service.sync;
 
+import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.StageSet;
@@ -20,6 +21,9 @@ public class ConflictSolver extends SyncStageMerger {
     private final StageSet lStageSet, rStageSet;
     private Map<String, Conflict> conflicts = new HashMap<>();
     private Order order;
+    private Map<Long, Long> oldeNewIdMap;
+    private StageDao stageDao;
+    private StageSet mergeStageSet;
 
     /**
      * will try to merge first. if it fails the merged {@link StageSet} is removed,
@@ -41,28 +45,57 @@ public class ConflictSolver extends SyncStageMerger {
         }
     }
 
-    public void beforeStart() {
+    public void beforeStart(StageDao stageDao, StageSet remoteStageSet) {
         order = new Order();
+        oldeNewIdMap = new HashMap<>();
+        this.stageDao = stageDao;
+        N.r(() -> {
+            mergeStageSet = stageDao.createStageSet("hurr I am a durr"
+                    , remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v());
+        });
     }
 
-    public void solve(StageDao stageDao, Stage parent, Stage left, Stage right) {
+    public void solve(Stage left, Stage right) {
         Stage solvedStage = null;
         if (left != null && right != null) {
             String key = Conflict.createKey(left, right);
             if (conflicts.containsKey(key)) {
                 Conflict conflict = conflicts.get(key);
-                solvedStage = conflict.getChoice();
                 if (conflict.isRight()) {
-                    solvedStage.
+                    try {
+                        solvedStage = conflict.getRight();
+                        if (left.getParentId() != null) {
+                            Stage leftParent = stageDao.getStageById(left.getParentId());
+                            solvedStage.setParentId(leftParent.getParentId());
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         } else if (left != null) {
-
+            //solvedStage = left;
         } else {
-
+            solvedStage = right;
         }
         if (solvedStage != null) {
-            solvedStage.setOrder(order.ord());
+            try {
+                solvedStage.setOrder(order.ord());
+                solvedStage.setStageSet(mergeStageSet.getId().v());
+                // adjust ids
+                Long oldeId = solvedStage.getId();
+                solvedStage.setId(null);
+                if (oldeNewIdMap.containsKey(solvedStage.getParentId())) {
+                    solvedStage.setParentId(oldeNewIdMap.get(solvedStage.getParentId()));
+                } else {
+                    System.err.println(getClass().getSimpleName() + ".j9h43f34f0");
+                }
+                stageDao.insert(solvedStage);
+                oldeNewIdMap.put(solvedStage.getId(), oldeId);
+                // map new id
+            } catch (SqlQueriesException e) {
+                e.printStackTrace();
+            }
         } else {
             System.err.println(getClass().getSimpleName() + ".j9f4n30043t30");
         }

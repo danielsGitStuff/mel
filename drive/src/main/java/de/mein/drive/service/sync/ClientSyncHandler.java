@@ -249,20 +249,22 @@ public class ClientSyncHandler extends SyncHandler {
      */
     private void checkConflicts(StageSet serverStageSet, StageSet stagedFromFs) throws SqlQueriesException {
         System.out.println("ClientSyncHandler.checkConflicts.NOT:IMPLEMNETED:YET");
-        ConflictSolver conflictSolver;
         String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
+        ConflictSolver conflictSolver;
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
         if (conflictSolverMap.containsKey(identifier)) {
             conflictSolver = conflictSolverMap.get(identifier);
             if (!conflictSolver.isSolved()) {
                 conflictSolverMap.remove(identifier);
                 conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
+            } else {
+                conflictSolver.beforeStart(stageDao, serverStageSet);
+                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
             }
         } else {
             conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
+            iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
-        conflictSolver.beforeStart();
-        iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
         // only remember the conflict solver if it actually has conflicts
         if (conflictSolver.hasConflicts()) {
             System.err.println("conflicts!!!!1!");
@@ -374,7 +376,7 @@ public class ClientSyncHandler extends SyncHandler {
             File file = stageDao.getFileByStage(lStage);
             Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), file);
             if (conflictSolver != null)
-                conflictSolver.solve(stageDao, lStage, rStage);
+                conflictSolver.solve(lStage, rStage);
             else
                 merger.stuffFound(lStage, rStage);
             lStage = lStages.getNext();
@@ -383,7 +385,7 @@ public class ClientSyncHandler extends SyncHandler {
         Stage rStage = rStages.getNext();
         while (rStage != null) {
             if (conflictSolver != null)
-                conflictSolver.solve(stageDao, null, rStage);
+                conflictSolver.solve(null, rStage);
             else
                 merger.stuffFound(null, rStage);
             rStage = rStages.getNext();

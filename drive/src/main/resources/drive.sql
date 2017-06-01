@@ -28,6 +28,7 @@ CREATE INDEX enode
   ON fsentry (inode);
 /*staging*/
 CREATE TABLE stage (
+  stageset    INTEGER NOT NULL,
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   parentid    INTEGER,
   fsid        INTEGER,
@@ -39,7 +40,6 @@ CREATE TABLE stage (
   inode       INTEGER,
   modified    INTEGER,
   deleted     INTEGER,
-  stageset    INTEGER NOT NULL,
   size        INTEGER,
   synced      INTEGER,
   merged      INTEGER,
