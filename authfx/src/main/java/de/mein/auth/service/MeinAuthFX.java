@@ -275,7 +275,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
                     }
                 }
         );
-        lock.lockWrite().unlockWrite();
+        lock.lockWrite();
         return meinAuthFX[0];
     }
 

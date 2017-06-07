@@ -109,7 +109,11 @@ public class MeinAuthService {
 
     public void notifyAdmins() {
         for (MeinAuthAdmin admin : meinAuthAdmins) {
-            admin.onChanged();
+            try {
+                admin.onChanged();
+            } catch (Exception e) {
+                System.err.println(getName() + ".notifyAdmins.fail: " + e.getMessage());
+            }
         }
     }
 

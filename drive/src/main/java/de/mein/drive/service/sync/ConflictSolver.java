@@ -2,6 +2,7 @@ package de.mein.drive.service.sync;
 
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.dao.StageDao;
@@ -50,7 +51,7 @@ public class ConflictSolver extends SyncStageMerger {
         oldeNewIdMap = new HashMap<>();
         this.stageDao = stageDao;
         N.r(() -> {
-            mergeStageSet = stageDao.createStageSet("hurr I am a durr"
+            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER
                     , remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v());
         });
     }
@@ -64,10 +65,8 @@ public class ConflictSolver extends SyncStageMerger {
                 if (conflict.isRight()) {
                     try {
                         solvedStage = conflict.getRight();
-                        if (left.getParentId() != null) {
-                            Stage leftParent = stageDao.getStageById(left.getParentId());
-                            solvedStage.setParentId(leftParent.getParentId());
-                        }
+                        solvedStage.setFsParentId(left.getFsParentId());
+                        solvedStage.setFsId(left.getFsId());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
