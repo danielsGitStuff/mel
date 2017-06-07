@@ -107,7 +107,7 @@ public class TransferManager extends DeferredRunnable {
                         }
                         // ask the network for files
                         MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
-                        if (fileProcess != null) {
+                        if (fileProcess != null && fileProcess.isOpen()) {
                             retrieveFiles(fileProcess, groupedTransferSet);
                         } else {
                             DeferredObject<MeinIsolatedFileProcess, Exception, Void> deferred = meinAuthService.connectToService(MeinIsolatedFileProcess.class, groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v(), meinDriveService.getUuid(), null, null, null);

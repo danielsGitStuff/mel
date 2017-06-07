@@ -248,7 +248,6 @@ public class ClientSyncHandler extends SyncHandler {
      * @param stagedFromFs
      */
     private void checkConflicts(StageSet serverStageSet, StageSet stagedFromFs) throws SqlQueriesException {
-        System.out.println("ClientSyncHandler.checkConflicts.NOT:IMPLEMNETED:YET");
         String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
         ConflictSolver conflictSolver;
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.

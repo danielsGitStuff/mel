@@ -62,6 +62,10 @@ public class MeinSocket extends DeferredRunnable {
         return getClass().getSimpleName() + " for " + meinAuthService.getName();
     }
 
+    public boolean isOpen() {
+        return socket != null && !socket.isClosed();
+    }
+
     static class MeinThread extends Thread {
 
         public MeinThread(MeinSocket meinSocket) {
@@ -177,7 +181,7 @@ public class MeinSocket extends DeferredRunnable {
 
         @Override
         public void onShutDown() {
-            System.out.println("SocketWorker.onShutDown, Runnable: "+getRunnableName());
+            System.out.println("SocketWorker.onShutDown, Runnable: " + getRunnableName());
             super.onShutDown();
         }
 

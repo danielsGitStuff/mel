@@ -68,8 +68,10 @@ public abstract class SyncHandler {
                     if (waste != null) {
                         if (waste.getModified().v().equals(target.lastModified())) {
                             wasteBin.del(waste, target);
-                        } else
+                        } else {
                             System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
+                            System.err.println("SyncHandler.moveFile: " + target.getAbsolutePath());
+                        }
                     }
                 }
             }

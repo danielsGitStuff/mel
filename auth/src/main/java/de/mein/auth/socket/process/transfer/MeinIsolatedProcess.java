@@ -6,19 +6,11 @@ import de.mein.auth.socket.MeinProcess;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.tools.ByteTools;
 import de.mein.core.serialize.SerializableEntity;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by xor on 12/12/16.
@@ -92,5 +84,9 @@ public abstract class MeinIsolatedProcess extends MeinProcess{
 
     private long readTransferLength(byte[] block) {
         return ByteTools.bytesToLong(Arrays.copyOfRange(block, 15, 23));
+    }
+
+    public boolean isOpen() {
+        return meinAuthSocket.isOpen();
     }
 }
