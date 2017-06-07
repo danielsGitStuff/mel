@@ -56,12 +56,16 @@ public class ConflictSolver extends SyncStageMerger {
         });
     }
 
+    public StageSet getMergeStageSet() {
+        return mergeStageSet;
+    }
+
     public void solve(Stage left, Stage right) {
         Stage solvedStage = null;
         if (left != null && right != null) {
             String key = Conflict.createKey(left, right);
             if (conflicts.containsKey(key)) {
-                Conflict conflict = conflicts.get(key);
+                Conflict conflict = conflicts.remove(key);
                 if (conflict.isRight()) {
                     try {
                         solvedStage = conflict.getRight();

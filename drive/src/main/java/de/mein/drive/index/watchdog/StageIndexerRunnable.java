@@ -31,14 +31,20 @@ public class StageIndexerRunnable extends AbstractIndexer {
     @Override
     public void runImpl() {
         try {
+            //todo debug
+            System.out.println("StageIndexerRunnable.runImpl.locking read");
             fsDao.lockRead();
+            System.out.println("StageIndexerRunnable.runImpl.locked");
             initStage(DriveStrings.STAGESET_TYPE_FS, pathCollection.getPaths().stream());
             examineStage();
             stagingDoneListener.onStagingFsEventsDone(stageSetId);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            System.out.println("StageIndexerRunnable.runImpl.unlocking");
             fsDao.unlockRead();
+            System.out.println("StageIndexerRunnable.runImpl.unlocked");
+
         }
     }
 

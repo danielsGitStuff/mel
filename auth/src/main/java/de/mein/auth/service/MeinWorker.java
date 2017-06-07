@@ -2,6 +2,7 @@ package de.mein.auth.service;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.jobs.Job;
+import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.sql.RWLock;
@@ -15,7 +16,7 @@ import java.util.LinkedList;
 public abstract class MeinWorker extends DeferredRunnable {
     protected LinkedList<Job> jobs = new LinkedList<>();
     protected RWLock queueLock = new RWLock();
-    protected WaitLock waitLock = new WaitLock();
+    protected CountLock waitLock = new CountLock();
     private DeferredObject workDonePromise;
 
     @Override

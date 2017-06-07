@@ -7,15 +7,17 @@ import de.mein.auth.MeinAuthAdmin;
  */
 public class MeinAuthFxLoader implements MeinAuthAdmin {
     private MeinAuthFX meinAuthFX;
+    private MeinAuthService meinAuthService;
 
     @Override
     public void start(MeinAuthService meinAuthService) {
         meinAuthFX = MeinAuthFX.load(meinAuthService);
+        this.meinAuthService = meinAuthService;
     }
 
     @Override
     public void onMessageFromService(MeinService meinService, Object msgObject) {
-        meinAuthFX.onMessageFromService(meinService,msgObject);
+        meinAuthFX.onMessageFromService(meinService, msgObject);
     }
 
     @Override

@@ -143,7 +143,7 @@ StageDao extends Dao.LockingDao {
      * @return SQLResource ordered by "created" timestamp
      * @throws SqlQueriesException
      */
-    public ISQLResource<Stage> getNotFoundStagesResource(Long stageSetId) throws SqlQueriesException {
+    public ISQLResource<Stage> getNotMergedStagesResource(Long stageSetId) throws SqlQueriesException {
         Stage stage = new Stage();
         String where = stage.getStageSetPair().k() + "=? and " + stage.getMergedPair().k() + "=? order by " + stage.getOrderPair().k();
         return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId, false));

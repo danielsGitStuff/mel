@@ -260,6 +260,11 @@ public class ClientSyncHandler extends SyncHandler {
             } else {
                 conflictSolver.beforeStart(stageDao, serverStageSet);
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
+                //cleanup
+                stageDao.deleteStageSet(stagedFromFs.getId().v());
+                StageSet mergeStageSet = conflictSolver.getMergeStageSet();
+                if (!stageDao.stageSetHasContent(mergeStageSet.getId().v()))
+                    stageDao.deleteStageSet(mergeStageSet.getId().v());
             }
         } else {
             conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
@@ -270,6 +275,8 @@ public class ClientSyncHandler extends SyncHandler {
             System.err.println("conflicts!!!!1!");
             conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
             meinDriveService.onConflicts(conflictSolver);
+        }else {
+            meinDriveService.addJob(new CommitJob());
         }
     }
 
@@ -379,9 +386,11 @@ public class ClientSyncHandler extends SyncHandler {
                 conflictSolver.solve(lStage, rStage);
             else
                 merger.stuffFound(lStage, rStage);
+            if (rStage != null)
+                stageDao.flagMerged(rStage.getId(), true);
             lStage = lStages.getNext();
         }
-        ISQLResource<Stage> rStages = stageDao.getNotFoundStagesResource(rStageSet.getId().v());
+        ISQLResource<Stage> rStages = stageDao.getNotMergedStagesResource(rStageSet.getId().v());
         Stage rStage = rStages.getNext();
         while (rStage != null) {
             if (conflictSolver != null)

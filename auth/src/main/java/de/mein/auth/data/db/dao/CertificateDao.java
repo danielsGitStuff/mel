@@ -1,7 +1,10 @@
 package de.mein.auth.data.db.dao;
 
 import de.mein.auth.data.db.Certificate;
-import de.mein.sql.*;
+import de.mein.sql.Dao;
+import de.mein.sql.ISQLQueries;
+import de.mein.sql.SQLTableObject;
+import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +50,10 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         Certificate dummy = new Certificate();
         String where = dummy.getUuid().k() + "=? and " + dummy.getTrusted().k() + "=?";
         List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(uuid, true));
+        //todo debug
+        if (result.size() == 0) {
+            System.err.println("CertificateDao.getTrustedCertificateByUuid for uuid " + uuid);
+        }
         return (Certificate) result.get(0);
     }
 
