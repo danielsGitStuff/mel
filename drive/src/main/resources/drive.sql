@@ -52,7 +52,7 @@ CREATE TABLE stage (
 );
 CREATE TABLE stageset (
   id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  type          TEXT,
+  source          TEXT,
   origincert    INTEGER,
   originservice TEXT,
   status        TEXT,

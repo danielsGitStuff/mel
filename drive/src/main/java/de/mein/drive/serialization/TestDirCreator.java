@@ -59,7 +59,7 @@ public class TestDirCreator {
 
             while(ze!=null){
 
-                String fileName = ze.getType();
+                String fileName = ze.getSource();
                 File newFile = new File(outputFolder + File.separator + fileName);
 
                 System.out.println("file unzip : "+ newFile.getAbsoluteFile());

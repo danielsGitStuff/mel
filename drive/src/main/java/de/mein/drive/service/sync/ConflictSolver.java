@@ -51,9 +51,18 @@ public class ConflictSolver extends SyncStageMerger {
         oldeNewIdMap = new HashMap<>();
         this.stageDao = stageDao;
         N.r(() -> {
-            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER
+            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS
                     , remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v());
         });
+    }
+
+    public void cleanup() throws SqlQueriesException {
+        //cleanup
+        stageDao.deleteStageSet(rStageSetId);
+        if (!stageDao.stageSetHasContent(mergeStageSet.getId().v()))
+            stageDao.deleteStageSet(mergeStageSet.getId().v());
+        mergeStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+        stageDao.updateStageSet(mergeStageSet);
     }
 
     public StageSet getMergeStageSet() {
@@ -68,9 +77,10 @@ public class ConflictSolver extends SyncStageMerger {
                 Conflict conflict = conflicts.remove(key);
                 if (conflict.isRight()) {
                     try {
-                        solvedStage = conflict.getRight();
+                        solvedStage = right;
                         solvedStage.setFsParentId(left.getFsParentId());
                         solvedStage.setFsId(left.getFsId());
+                        solvedStage.setVersion(left.getVersion());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -90,8 +100,6 @@ public class ConflictSolver extends SyncStageMerger {
                 solvedStage.setId(null);
                 if (oldeNewIdMap.containsKey(solvedStage.getParentId())) {
                     solvedStage.setParentId(oldeNewIdMap.get(solvedStage.getParentId()));
-                } else {
-                    System.err.println(getClass().getSimpleName() + ".j9h43f34f0");
                 }
                 stageDao.insert(solvedStage);
                 oldeNewIdMap.put(solvedStage.getId(), oldeId);
@@ -99,8 +107,6 @@ public class ConflictSolver extends SyncStageMerger {
             } catch (SqlQueriesException e) {
                 e.printStackTrace();
             }
-        } else {
-            System.err.println(getClass().getSimpleName() + ".j9f4n30043t30");
         }
     }
 
@@ -143,4 +149,6 @@ public class ConflictSolver extends SyncStageMerger {
     public Collection<Conflict> getConflicts() {
         return conflicts.values();
     }
+
+
 }

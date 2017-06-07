@@ -208,7 +208,8 @@ public class ClientSyncHandler extends SyncHandler {
             // List<StageSet> committedStageSets = stageDao.getCommittedStageSets();
             if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
                 // method should create a new CommitJob with conflict solving details
-                checkConflicts(updateSets.get(0), stagedFromFs.get(0));
+                handleConflict(updateSets.get(0), stagedFromFs.get(0));
+                System.out.println("ClientSyncHandler.commitJob.fwq3j0");
                 return;
             } else if (stagedFromFs.size() == 1) {
                 //method should create a new CommitJob ? method blocks
@@ -224,10 +225,16 @@ public class ClientSyncHandler extends SyncHandler {
                 System.err.println("ClientSyncHandler.commitJob.something went seriously wrong");
 
             // lets assume that everything went fine!
+            boolean hasCommitted = false;
             for (StageSet stageSet : updateSets) {
                 commitStage(stageSet.getId().v(), false);
                 setupTransfer();
+                hasCommitted = true;
             }
+            // new job in case we have solved conflicts in this run.
+            // they must be committed to the server
+            if (hasCommitted)
+                meinDriveService.addJob(new CommitJob());
             // we are done here
             meinDriveService.onSyncDone();
         } catch (Exception e) {
@@ -243,11 +250,10 @@ public class ClientSyncHandler extends SyncHandler {
     /**
      * check whether or not there are any conflicts between stuff that happend on this computer and stuff
      * that happened on the server. this will block until all conflicts are resolved.
-     *
-     * @param serverStageSet
+     *  @param serverStageSet
      * @param stagedFromFs
      */
-    private void checkConflicts(StageSet serverStageSet, StageSet stagedFromFs) throws SqlQueriesException {
+    private void handleConflict(StageSet serverStageSet, StageSet stagedFromFs) throws SqlQueriesException {
         String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
         ConflictSolver conflictSolver;
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
@@ -259,11 +265,7 @@ public class ClientSyncHandler extends SyncHandler {
             } else {
                 conflictSolver.beforeStart(stageDao, serverStageSet);
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
-                //cleanup
-                stageDao.deleteStageSet(stagedFromFs.getId().v());
-                StageSet mergeStageSet = conflictSolver.getMergeStageSet();
-                if (!stageDao.stageSetHasContent(mergeStageSet.getId().v()))
-                    stageDao.deleteStageSet(mergeStageSet.getId().v());
+                conflictSolver.cleanup();
             }
         } else {
             conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
@@ -274,7 +276,8 @@ public class ClientSyncHandler extends SyncHandler {
             System.err.println("conflicts!!!!1!");
             conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
             meinDriveService.onConflicts(conflictSolver);
-        }else {
+        } else {
+            this.commitStage(serverStageSet.getId().v());
             meinDriveService.addJob(new CommitJob());
         }
     }
@@ -361,7 +364,7 @@ public class ClientSyncHandler extends SyncHandler {
         iterateStageSets(lStageSet, rStageSet, merger, null);
         stageDao.deleteStageSet(rStageSet.getId().v());
         stageDao.deleteStageSet(lStageSet.getId().v());
-        stageDao.updateStageSet(mStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED).setType(DriveStrings.STAGESET_TYPE_FS));
+        stageDao.updateStageSet(mStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED).setSource(DriveStrings.STAGESET_TYPE_FS));
     }
 
     /**

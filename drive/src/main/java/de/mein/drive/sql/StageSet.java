@@ -9,13 +9,13 @@ import de.mein.sql.SQLTableObject;
  */
 public class StageSet extends SQLTableObject {
     private static final String ID = "id";
-    private static final String TYPE = "type";
+    private static final String SOURCE = "source";
     private static final String ORIGIN_CERT = "origincert";
     private static final String ORIGIN_SERVICE = "originservice";
     private static final String STATUS = "status";
     private static final String CREATED = "created";
     private Pair<Long> id = new Pair<>(Long.class, ID);
-    private Pair<String> type = new Pair<>(String.class, TYPE);
+    private Pair<String> source = new Pair<>(String.class, SOURCE);
     private Pair<Long> originCertId = new Pair<>(Long.class, ORIGIN_CERT);
     private Pair<String> originServiceUuid = new Pair<>(String.class, ORIGIN_SERVICE);
     private Pair<String> status = new Pair<>(String.class, STATUS);
@@ -33,7 +33,7 @@ public class StageSet extends SQLTableObject {
 
     @Override
     protected void init() {
-        populateInsert(type, originCertId, originServiceUuid, status);
+        populateInsert(source, originCertId, originServiceUuid, status);
         populateAll(id, created);
     }
 
@@ -49,8 +49,8 @@ public class StageSet extends SQLTableObject {
         return originServiceUuid;
     }
 
-    public Pair<String> getType() {
-        return type;
+    public Pair<String> getSource() {
+        return source;
     }
 
     public StageSet setId(Long id) {
@@ -58,8 +58,8 @@ public class StageSet extends SQLTableObject {
         return this;
     }
 
-    public StageSet setType(String type) {
-        this.type.v(type);
+    public StageSet setSource(String source) {
+        this.source.v(source);
         return this;
     }
 
@@ -87,6 +87,6 @@ public class StageSet extends SQLTableObject {
     }
 
     public boolean fromFs() {
-        return type.v().equals(DriveStrings.STAGESET_TYPE_FS);
+        return source.v().equals(DriveStrings.STAGESET_TYPE_FS);
     }
 }
