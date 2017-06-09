@@ -94,9 +94,10 @@ public class ConflictSolver extends SyncStageMerger {
                                 .setFsParentId(rightParentStage.getFsParentId())
                                 .setFsId(rightParentStage.getFsId());
                     }
-                    stageDao.insert(rightStage);
                 }
             }
+            rightStage.setOrder(order.ord());
+            stageDao.insert(rightStage);
             rightStage = stageSet.getNext();
         }
         stageDao.deleteStageSet(oldeMergedSetId);
