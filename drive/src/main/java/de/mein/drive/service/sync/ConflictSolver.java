@@ -3,11 +3,15 @@ package de.mein.drive.service.sync;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.StageSet;
+import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +29,7 @@ public class ConflictSolver extends SyncStageMerger {
     private Map<Long, Long> oldeNewIdMap;
     private StageDao stageDao;
     private StageSet mergeStageSet;
+    private FsDao fsDao;
 
     /**
      * will try to merge first. if it fails the merged {@link StageSet} is removed,
@@ -46,14 +51,55 @@ public class ConflictSolver extends SyncStageMerger {
         }
     }
 
-    public void beforeStart(StageDao stageDao, StageSet remoteStageSet) {
+    public void beforeStart(FsDao fsDao, StageDao stageDao, StageSet remoteStageSet) {
         order = new Order();
         oldeNewIdMap = new HashMap<>();
         this.stageDao = stageDao;
+        this.fsDao = fsDao;
         N.r(() -> {
-            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS
-                    , remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v());
+            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v());
         });
+    }
+
+    public void directoryStuff() throws SqlQueriesException {
+        long oldeMergedSetId = mergeStageSet.getId().v();
+        order = new Order();
+        mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v());
+        ISQLResource<Stage> stageSet = stageDao.getStagesResource(oldeMergedSetId);
+        Stage rightStage = stageSet.getNext();
+        while (rightStage != null) {
+            rightStage.setStageSet(mergeStageSet.getId().v());
+            File parentFile = stageDao.getFileByStage(rightStage).getParentFile();
+            Stage leftParent = stageDao.getStageByPath(oldeMergedSetId, parentFile);
+            // check if right parent already exists. else...
+            Stage rightParentStage = stageDao.getStageByPath(lStageSet.getId().v(), parentFile);
+            if (rightParentStage == null) {
+                if (leftParent != null) {
+                    // calc new ContentHash of parent
+                    FsDirectory rightFsDirectory = new FsDirectory().setName(parentFile.getName());
+                    // add everything from FS
+                    FsDirectory fsParent = fsDao.getFsDirectoryByPath(parentFile);
+                    if (fsParent != null) {
+
+                    }
+                    rightFsDirectory.calcContentHash();
+                    rightParentStage = new Stage().mergeValuesFrom(leftParent);
+
+                    rightParentStage.setMerged(false)
+                            .setContentHash(rightFsDirectory.getContentHash().v());
+                    if (true) { // if delta
+                        rightParentStage.setOrder(order.ord());
+                        stageDao.insert(rightParentStage);
+                        rightStage.setParentId(rightParentStage.getId())
+                                .setFsParentId(rightParentStage.getFsParentId())
+                                .setFsId(rightParentStage.getFsId());
+                    }
+                    stageDao.insert(rightStage);
+                }
+            }
+            rightStage = stageSet.getNext();
+        }
+        stageDao.deleteStageSet(oldeMergedSetId);
     }
 
     public void cleanup() throws SqlQueriesException {
@@ -97,6 +143,7 @@ public class ConflictSolver extends SyncStageMerger {
                 solvedStage.setStageSet(mergeStageSet.getId().v());
                 // adjust ids
                 Long oldeId = solvedStage.getId();
+                solvedStage.setMerged(false);
                 solvedStage.setId(null);
                 if (oldeNewIdMap.containsKey(solvedStage.getParentId())) {
                     solvedStage.setParentId(oldeNewIdMap.get(solvedStage.getParentId()));

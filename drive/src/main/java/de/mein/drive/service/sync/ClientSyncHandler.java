@@ -250,7 +250,8 @@ public class ClientSyncHandler extends SyncHandler {
     /**
      * check whether or not there are any conflicts between stuff that happend on this computer and stuff
      * that happened on the server. this will block until all conflicts are resolved.
-     *  @param serverStageSet
+     *
+     * @param serverStageSet
      * @param stagedFromFs
      */
     private void handleConflict(StageSet serverStageSet, StageSet stagedFromFs) throws SqlQueriesException {
@@ -263,9 +264,8 @@ public class ClientSyncHandler extends SyncHandler {
                 conflictSolverMap.remove(identifier);
                 conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
             } else {
-                conflictSolver.beforeStart(stageDao, serverStageSet);
+                conflictSolver.beforeStart(fsDao, stageDao, serverStageSet);
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
-                conflictSolver.cleanup();
             }
         } else {
             conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
@@ -277,6 +277,9 @@ public class ClientSyncHandler extends SyncHandler {
             conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
             meinDriveService.onConflicts(conflictSolver);
         } else {
+            // todo FsDir hash conflicts
+            conflictSolver.directoryStuff();
+            conflictSolver.cleanup();
             this.commitStage(serverStageSet.getId().v());
             meinDriveService.addJob(new CommitJob());
         }
