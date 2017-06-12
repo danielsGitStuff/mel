@@ -107,6 +107,7 @@ public class ConflictSolver extends SyncStageMerger {
             } else {
                 rightParentStage.setStageSet(mergeStageSet.getId().v());
             }
+
             // add fs content
             if (leftParentStage != null) {
                 List<GenericFSEntry> content = fsDao.getContentByFsDirectory(leftFsDirectory.getId().v());
