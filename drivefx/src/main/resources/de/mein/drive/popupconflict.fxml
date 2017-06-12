@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.ListView?>
+
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.layout.*?>
-<GridPane xmlns="http://javafx.com/javafx"
-          xmlns:fx="http://javafx.com/fxml"
-          fx:controller="de.mein.drive.gui.DriveFXConflictSolverController"
-          prefHeight="400.0" prefWidth="600.0"
-          GridPane.hgrow="ALWAYS"
-          GridPane.vgrow="ALWAYS">
+<GridPane prefHeight="400.0" prefWidth="600.0" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS"
+          xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="de.mein.drive.gui.DriveFXConflictSolverController">
+    <columnConstraints>
+        <ColumnConstraints/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints/>
+    </rowConstraints>
     <children>
-        <ListView GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS"
-                  fx:id="listLeft"/>
-        <ListView GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS"
-                  fx:id="listMerge"/>
-        <ListView GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS"
-                  fx:id="listRight"/>
+        <TreeTableView fx:id="treeTableView" prefHeight="200.0" prefWidth="200.0" GridPane.hgrow="ALWAYS"
+                       GridPane.vgrow="ALWAYS">
+            <columns>
+                <TreeTableColumn fx:id="colLeft" editable="false" prefWidth="-1.0" sortable="false" text="Left"/>
+                <TreeTableColumn fx:id="colMerged" prefWidth="-1.0" text="Result" sortable="false" editable="false"/>
+                <TreeTableColumn fx:id="colRight" prefWidth="-1.0" text="Right" sortable="false" editable="false"/>
+            </columns>
+        </TreeTableView>
     </children>
 </GridPane>

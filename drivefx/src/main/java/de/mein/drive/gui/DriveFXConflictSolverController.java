@@ -6,18 +6,28 @@ import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.sync.Conflict;
 import de.mein.drive.service.sync.ConflictSolver;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
+import javafx.fxml.Initializable;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableView;
 import javafx.util.Callback;
+
+import java.net.URL;
+import java.util.ResourceBundle;
 
 
 /**
  * Created by xor on 5/30/17.
  */
-public class DriveFXConflictSolverController implements PopupContentFX {
+@SuppressWarnings("Duplicates")
+public class DriveFXConflictSolverController implements PopupContentFX, Initializable {
     @FXML
-    private ListView<Conflict> listLeft, listRight, listMerge;
+    private TreeTableView<Conflict> treeTableView;
+    @FXML
+    private TreeTableColumn<Conflict, String> colLeft, colMerged, colRight;
     private MeinDriveClientService meinDriveClientService;
     private ConflictSolver conflictSolver;
 
@@ -34,59 +44,35 @@ public class DriveFXConflictSolverController implements PopupContentFX {
 
     @Override
     public void init(MeinService meinService, Object msgObject) {
+        System.out.println("DriveFXConflictSolverController.init");
         this.meinDriveClientService = (MeinDriveClientService) meinService;
         conflictSolver = (ConflictSolver) msgObject;
         meinDriveClientService.addConflictSolver(conflictSolver);
-        System.out.println("DriveFXConflictSolverController.init");
-        MergeListCell.setup(listLeft, listMerge, listRight);
-        listLeft.getItems().addAll(conflictSolver.getConflicts());
+        TreeItem<Conflict> root = new TreeItem<>(new Conflict());
+        treeTableView.setRoot(root);
+
+        colLeft.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().getValue().getKey()));
+        colRight.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().getValue().getKey()));
+        colLeft.setCellFactory(new Callback<TreeTableColumn<Conflict, String>, TreeTableCell<Conflict, String>>() {
+            @Override
+            public TreeTableCell<Conflict, String> call(TreeTableColumn<Conflict, String> param) {
+                TreeConflictCell cell = new TreeConflictCell();
+                return cell;
+            }
+        });
+
+        for (Conflict conflict : conflictSolver.getConflicts()) {
+            root.getChildren().add(new TreeItem<>(conflict));
+        }
+        System.out.println("DriveFXConflictSolverController.init.done");
     }
 
 
-    private static abstract class GenCallback implements Callback<ListView<Conflict>, ListCell<Conflict>> {
-
-        @Override
-        public ListCell<Conflict> call(ListView<Conflict> param) {
-            return new ListCell<Conflict>() {
-                @Override
-                protected void updateItem(Conflict conflict, boolean empty) {
-                    super.updateItem(conflict, empty);
-                    GenCallback.this.updateItem(this, conflict, empty);
-                }
-            };
-        }
-
-        abstract void updateItem(ListCell<Conflict> listCell, Conflict item, boolean empty);
-
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        colLeft.prefWidthProperty().bind(treeTableView.widthProperty().divide(3));
+        colMerged.prefWidthProperty().bind(treeTableView.widthProperty().divide(3));
+        colRight.prefWidthProperty().bind(treeTableView.widthProperty().divide(3));
+        treeTableView.setShowRoot(false);
     }
-
-    private GenCallback leftCellFactory = new GenCallback() {
-        @Override
-        void updateItem(ListCell<Conflict> listCell, Conflict conflict, boolean empty) {
-            if (empty || conflict == null) {
-                listCell.setText(null);
-            } else {
-                String text = conflict.getLeft().getName();
-                if (conflict.getLeft().getIsDirectory()) ;
-                text += " [D]";
-                listCell.setText(text);
-            }
-        }
-    };
-
-    private GenCallback rightCellFactory = new GenCallback() {
-        @Override
-        void updateItem(ListCell<Conflict> listCell, Conflict conflict, boolean empty) {
-            if (empty || conflict == null) {
-                listCell.setText(null);
-            } else {
-                String text = conflict.getRight().getName();
-                if (conflict.getRight().getIsDirectory()) ;
-                text += " [D]";
-                listCell.setText(text);
-            }
-        }
-    };
-
-
 }

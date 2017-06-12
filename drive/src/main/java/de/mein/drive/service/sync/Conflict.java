@@ -1,20 +1,28 @@
 package de.mein.drive.service.sync;
 
 import de.mein.drive.sql.Stage;
+import de.mein.drive.sql.dao.StageDao;
+import de.mein.sql.SqlQueriesException;
 
 /**
  * Created by xor on 5/30/17.
  */
 public class Conflict {
 
-    private final Stage lStage, rStage;
+    private Long lStageId, rStageId;
+    private StageDao stageDao;
     private Boolean isRight;
-    private final String key;
+    private String key;
 
-    public Conflict(Stage lStage, Stage rStage) {
-        this.lStage = lStage;
-        this.rStage = rStage;
+    public Conflict(StageDao stageDao, Stage lStage, Stage rStage) {
+        this.lStageId = lStage.getId();
+        this.rStageId = rStage.getId();
+        this.stageDao = stageDao;
         key = createKey(lStage, rStage);
+    }
+
+    public Conflict() {
+
     }
 
     public static String createKey(Stage lStage, Stage rStage) {
@@ -35,8 +43,8 @@ public class Conflict {
         return isRight != null && isRight;
     }
 
-    public Stage getChoice() {
-        return isRight ? rStage : lStage;
+    public Stage getChoice() throws SqlQueriesException {
+        return isRight ? getRight() : getLeft();
     }
 
     public boolean hasDecision() {
@@ -47,12 +55,12 @@ public class Conflict {
         return key;
     }
 
-    public Stage getLeft() {
-        return lStage;
+    public Stage getLeft() throws SqlQueriesException {
+        return stageDao.getStageById(lStageId);
     }
 
-    public Stage getRight() {
-        return rStage;
+    public Stage getRight() throws SqlQueriesException {
+        return stageDao.getStageById(rStageId);
     }
 
     public void chooseNothing() {

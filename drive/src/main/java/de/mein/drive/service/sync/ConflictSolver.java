@@ -47,7 +47,7 @@ public class ConflictSolver extends SyncStageMerger {
             if (conflicts.containsKey(key)) {
 
             } else {
-                addConflict(new Conflict(left, right));
+                addConflict(new Conflict(stageDao,left, right));
             }
         }
     }
@@ -137,8 +137,6 @@ public class ConflictSolver extends SyncStageMerger {
                     stageDao.insert(targetParentStage);
                     rightStage.setParentId(targetParentStage.getId());
                 }
-                // flag the right stage as merged
-                //stageDao.flagMerged(rightStage.getId(), true);
             } else {
                 // we already staged it!
                 rightStage.setParentId(alreadyStagedParent.getId());
@@ -147,31 +145,6 @@ public class ConflictSolver extends SyncStageMerger {
             rightStage.setStageSet(targetStageSet.getId().v());
             rightStage.setOrder(order.ord());
             stageDao.insert(rightStage);
-//
-//            if (rightParentStage == null) {
-//                if (leftParentStage != null) {
-//                    // calc new ContentHash of parent
-//
-//                    // add everything from FS
-//                    FsDirectory fsParent = fsDao.getFsDirectoryByPath(parentFile);
-//                    if (fsParent != null) {
-//
-//                    }
-//                    rightFsDirectory.calcContentHash();
-//                    rightParentStage = new Stage().mergeValuesFrom(leftParentStage);
-//
-//                    rightParentStage.setMerged(false)
-//                            .setContentHash(rightFsDirectory.getContentHash().v());
-//                    if (true) { // if delta
-//                        rightParentStage.setOrder(order.ord());
-//                        stageDao.insert(rightParentStage);
-//                        rightStage.setParentId(rightParentStage.getId())
-//                                .setFsParentId(rightParentStage.getFsParentId())
-//                                .setFsId(rightParentStage.getFsId());
-//                    }
-//                }
-//            }
-
             rightStage = stageSet.getNext();
         }
         stageDao.deleteStageSet(oldeMergedSetId);
@@ -259,14 +232,6 @@ public class ConflictSolver extends SyncStageMerger {
 
     public boolean hasConflicts() {
         return conflicts.size() > 0;
-    }
-
-    public List<Stage> getAllLeft() {
-        return conflicts.values().stream().map(Conflict::getLeft).collect(Collectors.toList());
-    }
-
-    public List<Stage> getAllRight() {
-        return conflicts.values().stream().map(Conflict::getRight).collect(Collectors.toList());
     }
 
     public Collection<Conflict> getConflicts() {
