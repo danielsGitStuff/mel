@@ -87,76 +87,84 @@ public class ConflictSolver extends SyncStageMerger {
      * which were not in the right StageSet but in the left. When a directory has changed its content
      * on the left side but not/or otherwise changed on the right
      * it is missed there and has a wrong content hash.
+     *
      * @throws SqlQueriesException
      */
     public void directoryStuff() throws SqlQueriesException {
         final long oldeMergedSetId = mergeStageSet.getId().v();
         order = new Order();
-        mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v());
+        mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS+" debug", mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v());
         ISQLResource<Stage> stageSet = stageDao.getStagesResource(oldeMergedSetId);
         Stage rightStage = stageSet.getNext();
         while (rightStage != null) {
+            rightStage.setId(null);
             File parentFile = stageDao.getFileByStage(rightStage).getParentFile();
-            Stage leftParentStage = stageDao.getStageByPath(lStageSet.getId().v(), parentFile);
-            FsDirectory leftFsDirectory = fsDao.getFsDirectoryByPath(parentFile);
-            FsDirectory rightFsDirectory = new FsDirectory().setName(parentFile.getName());
-            // check if right parent already exists. else...
-            Stage rightParentStage = stageDao.getStageByPath(oldeMergedSetId,  parentFile);
-            if (rightParentStage == null) {
-                rightParentStage = new Stage().setName(parentFile.getName());
+            // first, lets see if we have already created a parent!
+            Stage alreadyStagedParent = stageDao.getStageByPath(mergeStageSet.getId().v(), parentFile);
+            if (alreadyStagedParent == null) {
+                Stage leftParentStage = stageDao.getStageByPath(lStageSet.getId().v(), parentFile);
+                FsDirectory leftFsDirectory = fsDao.getFsDirectoryByPath(parentFile);
+                FsDirectory rightFsDirectory = new FsDirectory().setName(parentFile.getName());
+                // check if right parent already exists. else...
+                Stage rightParentStage = stageDao.getStageByPath(oldeMergedSetId, parentFile);
+                if (rightParentStage == null) {
+                    rightParentStage = new Stage().setName(parentFile.getName());
+                } else {
+                    rightParentStage.setStageSet(mergeStageSet.getId().v());
+                }
+
+                // add fs content
+                if (leftParentStage != null) {
+                    List<GenericFSEntry> content = fsDao.getContentByFsDirectory(leftFsDirectory.getId().v());
+                    rightFsDirectory.addContent(content);
+                }
+                // merge with left content
+                if (leftParentStage != null) {
+                    mergeFsDirectoryWithSubStages(rightFsDirectory, leftParentStage);
+                }
+                // merge with right content
+                if (rightParentStage != null) {
+                    mergeFsDirectoryWithSubStages(rightFsDirectory, rightParentStage);
+                }
+                rightFsDirectory.calcContentHash();
+                // stage if content hash has changed
+                if (!rightFsDirectory.getContentHash().v().equals(leftParentStage.getContentHash())) {
+
+                }
+                // flag the right stage as merged
+                stageDao.flagMerged(rightStage.getId(), true);
             } else {
-                rightParentStage.setStageSet(mergeStageSet.getId().v());
+                // we already staged it!
+                rightStage.setParentId(alreadyStagedParent.getId());
             }
-
-            // add fs content
-            if (leftParentStage != null) {
-                List<GenericFSEntry> content = fsDao.getContentByFsDirectory(leftFsDirectory.getId().v());
-                rightFsDirectory.addContent(content);
-            }
-            // merge with left content
-            if (leftParentStage != null) {
-                mergeFsDirectoryWithSubStages(rightFsDirectory, leftParentStage);
-            }
-            // merge with right content
-            if (rightParentStage != null) {
-                mergeFsDirectoryWithSubStages(rightFsDirectory, rightParentStage);
-            }
-            rightFsDirectory.calcContentHash();
-            // stage if content hash has changed
-            if (!rightFsDirectory.getContentHash().v().equals(leftParentStage.getContentHash())) {
-
-            }
-            // flag the right stage as merged
-            stageDao.flagMerged(rightStage.getId(), true);
-
             // copy the stage
             rightStage.setStageSet(mergeStageSet.getId().v());
             rightStage.setOrder(order.ord());
             stageDao.insert(rightStage);
-
-            if (rightParentStage == null) {
-                if (leftParentStage != null) {
-                    // calc new ContentHash of parent
-
-                    // add everything from FS
-                    FsDirectory fsParent = fsDao.getFsDirectoryByPath(parentFile);
-                    if (fsParent != null) {
-
-                    }
-                    rightFsDirectory.calcContentHash();
-                    rightParentStage = new Stage().mergeValuesFrom(leftParentStage);
-
-                    rightParentStage.setMerged(false)
-                            .setContentHash(rightFsDirectory.getContentHash().v());
-                    if (true) { // if delta
-                        rightParentStage.setOrder(order.ord());
-                        stageDao.insert(rightParentStage);
-                        rightStage.setParentId(rightParentStage.getId())
-                                .setFsParentId(rightParentStage.getFsParentId())
-                                .setFsId(rightParentStage.getFsId());
-                    }
-                }
-            }
+//
+//            if (rightParentStage == null) {
+//                if (leftParentStage != null) {
+//                    // calc new ContentHash of parent
+//
+//                    // add everything from FS
+//                    FsDirectory fsParent = fsDao.getFsDirectoryByPath(parentFile);
+//                    if (fsParent != null) {
+//
+//                    }
+//                    rightFsDirectory.calcContentHash();
+//                    rightParentStage = new Stage().mergeValuesFrom(leftParentStage);
+//
+//                    rightParentStage.setMerged(false)
+//                            .setContentHash(rightFsDirectory.getContentHash().v());
+//                    if (true) { // if delta
+//                        rightParentStage.setOrder(order.ord());
+//                        stageDao.insert(rightParentStage);
+//                        rightStage.setParentId(rightParentStage.getId())
+//                                .setFsParentId(rightParentStage.getFsParentId())
+//                                .setFsId(rightParentStage.getFsId());
+//                    }
+//                }
+//            }
 
             rightStage = stageSet.getNext();
         }
