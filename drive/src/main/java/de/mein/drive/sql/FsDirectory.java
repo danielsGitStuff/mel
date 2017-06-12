@@ -29,10 +29,14 @@ public class FsDirectory extends FsEntry {
 
     @Override
     protected void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files) {
-        contentHash.v(calcCHash(subDirectories, files));
+        Integer hash = 0;
+        for (String name : contentSet) {
+            hash += name.hashCode();
+        }
+        contentHash.v(hash.toString());
     }
 
-    public static String calcCHash(List<FsDirectory> subDirectories, List<FsFile> files) {
+    private static String calcCHash(List<FsDirectory> subDirectories, List<FsFile> files) {
         Integer hash = 0;
         for (FsFile file : files) {
             hash += file.getName().calcHash();
@@ -181,6 +185,46 @@ public class FsDirectory extends FsEntry {
     public FsEntry setVersion(long version) {
         this.version.v(version);
         return this;
+    }
+
+    public void addContent(List<GenericFSEntry> content) {
+        for (GenericFSEntry genericFSEntry : content) {
+            if (genericFSEntry.isDirectory.v()) {
+                addSubDirectory((FsDirectory) genericFSEntry.ins());
+            } else {
+                addFile((FsFile) genericFSEntry.ins());
+            }
+        }
+    }
+
+    public void addDummySubFsDirectory(String name) {
+        addSubDirectory(new FsDirectory().setName(name));
+    }
+
+    public void addDummyFsFile(String name) {
+        addFile(new FsFile().setName(name));
+    }
+
+    public void removeSubFsDirecoryByName(String name) {
+        if (contentSet.remove(name)) {
+            List<FsDirectory> oldeSubs = subDirectories;
+            subDirectories = new ArrayList<>();
+            for (FsDirectory oldeSub : oldeSubs) {
+                if (!oldeSub.getName().v().equals(name))
+                    subDirectories.add(oldeSub);
+            }
+        }
+    }
+
+    public void removeFsFileByName(String name) {
+        if (contentSet.remove(name)) {
+            List<FsFile> oldeSubs = files;
+            files = new ArrayList<>();
+            for (FsFile oldeFile : oldeSubs) {
+                if (!oldeFile.getName().v().equals(name))
+                    files.add(oldeFile);
+            }
+        }
     }
 }
 

@@ -5,8 +5,7 @@ import de.mein.core.serialize.JsonIgnore;
 import java.io.File;
 import java.util.List;
 
-public class FsFile extends FsEntry  {
-
+public class FsFile extends FsEntry {
 
 
     @JsonIgnore
@@ -57,4 +56,8 @@ public class FsFile extends FsEntry  {
     }
 
 
+    public FsFile setName(String name) {
+        this.name.v(name);
+        return this;
+    }
 }

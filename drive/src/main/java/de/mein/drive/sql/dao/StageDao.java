@@ -187,6 +187,15 @@ StageDao extends Dao.LockingDao {
         sqlQueries.delete(stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
     }
 
+    public Stage getNotFlaggedStage(long stageSetId) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String where = stage.getStageSetPair().k() + "=? and " + stage.getMergedPair().k() + "=? order by " + stage.getOrderPair().k() + " limit 1";
+        List<Stage> stages = sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(stageSetId, false));
+        if (stages.size() > 0)
+            return stages.get(0);
+        return null;
+    }
+
 
     public static class BottomDirAndPath {
         private String[] parts;
@@ -364,7 +373,7 @@ StageDao extends Dao.LockingDao {
 
     public List<Stage> getStageContent(Long stageId, Long stageSetId) throws SqlQueriesException {
         Stage dummy = new Stage();
-        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getIdPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";
+        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getParentIdPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";
         List<Object> args = new ArrayList<>();
         args.add(stageSetId);
         args.add(stageId);
