@@ -389,8 +389,9 @@ public class ClientSyncHandler extends SyncHandler {
             Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), file);
             if (conflictSolver != null)
                 conflictSolver.solve(lStage, rStage);
-            else
-                merger.stuffFound(lStage, rStage);
+            else {
+                addToMerger(merger, lStage, rStage);
+            }
             if (rStage != null)
                 stageDao.flagMerged(rStage.getId(), true);
             lStage = lStages.getNext();
@@ -403,6 +404,15 @@ public class ClientSyncHandler extends SyncHandler {
             else
                 merger.stuffFound(null, rStage);
             rStage = rStages.getNext();
+        }
+    }
+
+    private static void addToMerger(SyncStageMerger merger, Stage lStage, Stage rStage) {
+        if (lStage != null && lStage.getDeleted()) {
+            merger.onLeftDeleted(lStage);
+        }
+        if (rStage != null && rStage.getDeleted()) {
+            merger.onRightDeleted(rStage);
         }
     }
 

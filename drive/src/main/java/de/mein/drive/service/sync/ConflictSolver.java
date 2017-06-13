@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by xor on 5/30/17.
@@ -32,6 +31,7 @@ public class ConflictSolver extends SyncStageMerger {
     private StageSet mergeStageSet;
     private FsDao fsDao;
 
+
     /**
      * will try to merge first. if it fails the merged {@link StageSet} is removed,
      * conflicts are collected and must be resolved elsewhere (eg. ask the user for help)
@@ -41,15 +41,50 @@ public class ConflictSolver extends SyncStageMerger {
      * @throws SqlQueriesException
      */
     @Override
-    public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
+    public void stuffFound(Stage left, Stage right, File lFile, File rFile) throws SqlQueriesException {
+        assert (left == null && lFile == null || left != null && lFile != null);
+        assert (right == null && rFile == null || right != null && rFile != null);
+
         if (left != null && right != null) {
             String key = Conflict.createKey(left, right);
-            if (conflicts.containsKey(key)) {
-
-            } else {
-                addConflict(new Conflict(stageDao,left, right));
+            if (!conflicts.containsKey(key)) {
+                //todo oof for deletion
+                createConflict(left, right);
             }
+            return;
         }
+        if (left != null) {
+            for (final String path : deletedParentRight.keySet()) {
+                if (path.startsWith(lFile.getAbsolutePath())) {
+                    Conflict conflictRight = deletedParentRight.get(path);
+                    Conflict conflict = createConflict(left, conflictRight.getRight());
+                    conflict.setDependsOn(conflictRight);
+                    conflictRight.getDependents().add(conflict);
+                    break;
+                }
+            }
+            return;
+        }
+        if (right != null) {
+            for (final String path : deletedParentLeft.keySet()) {
+                if (path.startsWith(lFile.getAbsolutePath())) {
+                    Conflict conflictLeft = deletedParentLeft.get(path);
+                    Conflict conflict = createConflict(conflictLeft.getLeft(), right);
+                    conflict.setDependsOn(conflictLeft);
+                    conflictLeft.getDependents().add(conflict);
+                    break;
+                }
+            }
+            return;
+        }
+
+    }
+
+    private Conflict createConflict(Stage left, Stage right) {
+        String key = Conflict.createKey(left, right);
+        Conflict conflict = new Conflict(stageDao, left, right);
+        conflicts.put(key, conflict);
+        return conflict;
     }
 
     public void beforeStart(FsDao fsDao, StageDao stageDao, StageSet remoteStageSet) {
@@ -222,9 +257,6 @@ public class ConflictSolver extends SyncStageMerger {
         return identifier;
     }
 
-    public void addConflict(Conflict conflict) {
-        conflicts.put(conflict.getKey(), conflict);
-    }
 
     public boolean isSolved() {
         return conflicts.values().stream().allMatch(Conflict::hasDecision);

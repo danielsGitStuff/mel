@@ -4,6 +4,9 @@ import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.SqlQueriesException;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Created by xor on 5/30/17.
  */
@@ -13,6 +16,8 @@ public class Conflict {
     private StageDao stageDao;
     private Boolean isRight;
     private String key;
+    private Set<Conflict> dependents = new HashSet<>();
+    private Conflict dependsOn;
 
     public Conflict(StageDao stageDao, Stage lStage, Stage rStage) {
         this.lStageId = lStage.getId();
@@ -20,6 +25,7 @@ public class Conflict {
         this.stageDao = stageDao;
         key = createKey(lStage, rStage);
     }
+
 
     public Conflict() {
 
@@ -69,5 +75,18 @@ public class Conflict {
 
     public boolean isLeft() {
         return isRight == null || !isRight;
+    }
+
+    public Conflict setDependsOn(Conflict dependsOn) {
+        this.dependsOn = dependsOn;
+        return this;
+    }
+
+    public Conflict getDependsOn() {
+        return dependsOn;
+    }
+
+    public Set<Conflict> getDependents() {
+        return dependents;
     }
 }
