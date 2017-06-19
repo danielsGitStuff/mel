@@ -13,6 +13,7 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.tools.Hash;
 import de.mein.auth.tools.Lok;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
@@ -95,6 +96,10 @@ public class DriveTest {
                         delFile.delete();
                         TestFileCreator.saveFile("same3.server".getBytes(), newFile);
                         TestFileCreator.saveFile("same1.server".getBytes(), f1);
+                        String hash = Hash.md5(f1);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
+                        hash = Hash.md5(newFile);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
                         MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
@@ -125,6 +130,10 @@ public class DriveTest {
                         file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
                         TestFileCreator.saveFile("same1.client".getBytes(), file1);
                         TestFileCreator.saveFile("same2.client".getBytes(), file2);
+                        String hash = Hash.md5(file1);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
+                        hash = Hash.md5(file2);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
                     });
 
                 }

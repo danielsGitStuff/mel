@@ -20,8 +20,8 @@ public class Conflict {
     private Conflict dependsOn;
 
     public Conflict(StageDao stageDao, Stage lStage, Stage rStage) {
-        this.lStageId = lStage.getId();
-        this.rStageId = rStage.getId();
+        this.lStageId = lStage != null ? lStage.getId() : null;
+        this.rStageId = rStage!= null ? rStage.getId() : null;
         this.stageDao = stageDao;
         key = createKey(lStage, rStage);
     }
@@ -32,7 +32,7 @@ public class Conflict {
     }
 
     public static String createKey(Stage lStage, Stage rStage) {
-        return lStage.getId() + "/" + rStage.getId();
+        return (lStage != null ? lStage.getId() : "n") + "/" + (rStage != null ? rStage.getId() : "n");
     }
 
     public Conflict chooseRight() {
@@ -61,12 +61,26 @@ public class Conflict {
         return key;
     }
 
-    public Stage getLeft() throws SqlQueriesException {
-        return stageDao.getStageById(lStageId);
+    public Stage getLeft() {
+        if (lStageId == null)
+            return null;
+        try {
+            return stageDao.getStageById(lStageId);
+        } catch (SqlQueriesException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public Stage getRight() throws SqlQueriesException {
-        return stageDao.getStageById(rStageId);
+    public Stage getRight() {
+        if (rStageId == null)
+            return null;
+        try {
+            return stageDao.getStageById(rStageId);
+        } catch (SqlQueriesException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void chooseNothing() {
@@ -77,8 +91,10 @@ public class Conflict {
         return isRight == null || !isRight;
     }
 
-    public Conflict setDependsOn(Conflict dependsOn) {
+    public Conflict dependOn(Conflict dependsOn) {
         this.dependsOn = dependsOn;
+        if (dependsOn != null)
+            dependsOn.dependents.add(this);
         return this;
     }
 
@@ -86,7 +102,7 @@ public class Conflict {
         return dependsOn;
     }
 
-    public Set<Conflict> getDependents() {
-        return dependents;
-    }
+//    public Set<Conflict> getDependents() {
+//        return dependents;
+//    }
 }

@@ -262,13 +262,13 @@ public class ClientSyncHandler extends SyncHandler {
             conflictSolver = conflictSolverMap.get(identifier);
             if (!conflictSolver.isSolved()) {
                 conflictSolverMap.remove(identifier);
-                conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
+                conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
             } else {
-                conflictSolver.beforeStart(fsDao, stageDao, serverStageSet);
+                conflictSolver.beforeStart(  serverStageSet);
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
             }
         } else {
-            conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
+            conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
             iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
         // only remember the conflict solver if it actually has conflicts
@@ -281,6 +281,7 @@ public class ClientSyncHandler extends SyncHandler {
             conflictSolver.directoryStuff();
             conflictSolver.cleanup();
             this.commitStage(serverStageSet.getId().v());
+            setupTransfer();
             meinDriveService.addJob(new CommitJob());
         }
     }
@@ -307,7 +308,7 @@ public class ClientSyncHandler extends SyncHandler {
             private Map<Long, Long> idMapLeft = new HashMap<>();
 
             @Override
-            public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
+            public void stuffFound(Stage left, Stage right, File lFile, File rFile) throws SqlQueriesException {
                 if (left != null) {
                     if (right != null) {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
@@ -385,12 +386,13 @@ public class ClientSyncHandler extends SyncHandler {
         ISQLResource<Stage> lStages = stageDao.getStagesResource(lStageSet.getId().v());
         Stage lStage = lStages.getNext();
         while (lStage != null) {
-            File file = stageDao.getFileByStage(lStage);
-            Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), file);
+            File lFile = stageDao.getFileByStage(lStage);
+            Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
             if (conflictSolver != null)
                 conflictSolver.solve(lStage, rStage);
             else {
-                addToMerger(merger, lStage, rStage);
+                File rFile = (rStage != null) ? new File(lFile.getAbsolutePath()) : null;
+                merger.stuffFound(lStage, rStage, lFile, rFile);
             }
             if (rStage != null)
                 stageDao.flagMerged(rStage.getId(), true);
@@ -401,20 +403,14 @@ public class ClientSyncHandler extends SyncHandler {
         while (rStage != null) {
             if (conflictSolver != null)
                 conflictSolver.solve(null, rStage);
-            else
-                merger.stuffFound(null, rStage);
+            else {
+                File rFile = stageDao.getFileByStage(rStage);
+                merger.stuffFound(null, rStage, null, rFile);
+            }
             rStage = rStages.getNext();
         }
     }
 
-    private static void addToMerger(SyncStageMerger merger, Stage lStage, Stage rStage) {
-        if (lStage != null && lStage.getDeleted()) {
-            merger.onLeftDeleted(lStage);
-        }
-        if (rStage != null && rStage.getDeleted()) {
-            merger.onRightDeleted(rStage);
-        }
-    }
 
     /**
      * pulls StageSet from the Server

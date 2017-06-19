@@ -3,20 +3,15 @@ package de.mein.drive.service.sync;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
-import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.sql.GenericFSEntry;
-import de.mein.drive.sql.Stage;
-import de.mein.drive.sql.StageSet;
+import de.mein.drive.data.fs.RootDirectory;
+import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by xor on 5/30/17.
@@ -24,13 +19,14 @@ import java.util.Map;
 public class ConflictSolver extends SyncStageMerger {
     private final String identifier;
     private final StageSet lStageSet, rStageSet;
+    private final RootDirectory rootDirectory;
     private Map<String, Conflict> conflicts = new HashMap<>();
     private Order order;
     private Map<Long, Long> oldeNewIdMap;
     private StageDao stageDao;
     private StageSet mergeStageSet;
     private FsDao fsDao;
-
+    protected Map<String, Conflict> deletedParents = new HashMap<>();
 
     /**
      * will try to merge first. if it fails the merged {@link StageSet} is removed,
@@ -42,43 +38,65 @@ public class ConflictSolver extends SyncStageMerger {
      */
     @Override
     public void stuffFound(Stage left, Stage right, File lFile, File rFile) throws SqlQueriesException {
-        assert (left == null && lFile == null || left != null && lFile != null);
-        assert (right == null && rFile == null || right != null && rFile != null);
+        if (!(left == null && lFile == null || left != null && lFile != null)) {
+            System.err.println("ConflictSolver.stuffFound.e1");
+        }
+        if (!(right == null && rFile == null || right != null && rFile != null)) {
+            System.err.println("ConflictSolver.stuffFound.e2");
+        }
 
         if (left != null && right != null) {
             String key = Conflict.createKey(left, right);
             if (!conflicts.containsKey(key)) {
                 //todo oof for deletion
-                createConflict(left, right);
+                Conflict conflict = createConflict(left, right);
+                if ((left.getIsDirectory() && left.getDeleted()) || (right.getIsDirectory() && right.getDeleted())) {
+                    // there might already exist a Conflict. in this case we have more detailed information now (on stage should be null)
+                    // and therefor must replace ist but retain the dependencies
+                    if (deletedParents.get(lFile.getAbsolutePath()) != null) {
+                        Conflict oldeConflict = deletedParents.get(lFile.getAbsolutePath());
+                        conflict.dependOn(oldeConflict.getDependsOn());
+                    }
+                    deletedParents.put(lFile.getAbsolutePath(), conflict);
+                }
             }
             return;
         }
         if (left != null) {
-            for (final String path : deletedParentRight.keySet()) {
-                if (path.startsWith(lFile.getAbsolutePath())) {
-                    Conflict conflictRight = deletedParentRight.get(path);
-                    Conflict conflict = createConflict(left, conflictRight.getRight());
-                    conflict.setDependsOn(conflictRight);
-                    conflictRight.getDependents().add(conflict);
-                    break;
-                }
-            }
-            return;
+            conflictSearch(left, lFile, false);
         }
         if (right != null) {
-            for (final String path : deletedParentLeft.keySet()) {
-                if (path.startsWith(lFile.getAbsolutePath())) {
-                    Conflict conflictLeft = deletedParentLeft.get(path);
-                    Conflict conflict = createConflict(conflictLeft.getLeft(), right);
-                    conflict.setDependsOn(conflictLeft);
-                    conflictLeft.getDependents().add(conflict);
-                    break;
-                }
-            }
-            return;
+            conflictSearch(right, rFile, true);
         }
-
     }
+
+    private void conflictSearch(Stage stage, File stageFile, final boolean stageIsFromRight) {
+        File directory;
+        if (stage.getIsDirectory())
+            directory = stageFile;
+        else
+            directory = stageFile.getParentFile();
+
+        Set<String> conflictFreePaths = new HashSet<>();
+        while (!directory.getAbsolutePath().equals(rootDirectory.getPath())) {
+            if (deletedParents.containsKey(directory.getAbsolutePath())) {
+                Conflict conflict = deletedParents.get(directory.getAbsolutePath());
+                // it is proven that this file is not in conflict
+                if (conflict == null) {
+                    deletedParents.put(directory.getAbsolutePath(), null);
+                    for (String path : conflictFreePaths)
+                        deletedParents.put(path, null);
+                } else {
+                    Conflict dependentConflict = (stageIsFromRight ? createConflict(null, stage) : createConflict(stage, null));
+                    dependentConflict.dependOn(conflict);
+                }
+            } else {
+                conflictFreePaths.add(directory.getAbsolutePath());
+            }
+            directory = directory.getParentFile();
+        }
+    }
+
 
     private Conflict createConflict(Stage left, Stage right) {
         String key = Conflict.createKey(left, right);
@@ -87,14 +105,27 @@ public class ConflictSolver extends SyncStageMerger {
         return conflict;
     }
 
-    public void beforeStart(FsDao fsDao, StageDao stageDao, StageSet remoteStageSet) {
+    public void beforeStart(StageSet remoteStageSet) throws SqlQueriesException {
         order = new Order();
+        deletedParents = new HashMap<>();
         oldeNewIdMap = new HashMap<>();
-        this.stageDao = stageDao;
         this.fsDao = fsDao;
         N.r(() -> {
             mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v());
         });
+        // now lets find directories that have been deleted. so we can build nice dependencies between conflicts
+        List<Stage> leftDirs = stageDao.getDeletedDirectories(lStageSetId);
+        List<Stage> rightDirs = stageDao.getDeletedDirectories(rStageSetId);
+        for (Stage stage : leftDirs) {
+            Conflict conflict = new Conflict(stageDao, stage, null);
+            File f = stageDao.getFileByStage(stage);
+            deletedParents.put(f.getAbsolutePath(), conflict);
+        }
+        for (Stage stage : rightDirs) {
+            Conflict conflict = new Conflict(stageDao, null, stage);
+            File f = stageDao.getFileByStage(stage);
+            deletedParents.put(f.getAbsolutePath(), conflict);
+        }
     }
 
     private void mergeFsDirectoryWithSubStages(FsDirectory fsDirToMergeInto, Stage stageToMergeWith) throws SqlQueriesException {
@@ -242,10 +273,13 @@ public class ConflictSolver extends SyncStageMerger {
     }
 
 
-    public ConflictSolver(StageSet lStageSet, StageSet rStageSet) {
+    public ConflictSolver(DriveDatabaseManager driveDatabaseManager, StageSet lStageSet, StageSet rStageSet) {
         super(lStageSet.getId().v(), rStageSet.getId().v());
+        this.rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
         this.lStageSet = lStageSet;
         this.rStageSet = rStageSet;
+        stageDao = driveDatabaseManager.getStageDao();
+        fsDao = driveDatabaseManager.getFsDao();
         identifier = createIdentifier(lStageSet.getId().v(), rStageSet.getId().v());
     }
 

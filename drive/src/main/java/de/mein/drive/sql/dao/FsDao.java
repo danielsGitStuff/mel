@@ -146,6 +146,9 @@ public class FsDao extends Dao {
 
     public FsEntry insert(FsEntry fsEntry) throws SqlQueriesException {
         Long id;
+        // todo debug
+        if (fsEntry.getContentHash().notNull() && fsEntry.getContentHash().equals("c72eb02c586d74bc41ad680ba5f184f3"))
+            System.err.println("FsDao.insert.debug");
         if (fsEntry.getId().v() != null)
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
         else

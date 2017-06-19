@@ -194,9 +194,9 @@ public abstract class MergeListCell extends ListCell<Conflict> {
                 stage.show();
 
                 ListView<Conflict> mergeList = new ListView<>();
-                Conflict c1 = new Conflict(new Stage().setName("a1").setId(1L), new Stage().setName("b1").setId(1L));
-                Conflict c2 = new Conflict(new Stage().setName("a2").setId(2L), new Stage().setName("b2").setId(2L)).chooseRight();
-                Conflict c3 = new Conflict(new Stage().setName("a3").setId(3L), new Stage().setName("b3").setId(3L)).chooseLeft();
+                Conflict c1 = new Conflict(null, new Stage().setName("a1").setId(1L), new Stage().setName("b1").setId(1L));
+                Conflict c2 = new Conflict(null, new Stage().setName("a2").setId(2L), new Stage().setName("b2").setId(2L)).chooseRight();
+                Conflict c3 = new Conflict(null, new Stage().setName("a3").setId(3L), new Stage().setName("b3").setId(3L)).chooseLeft();
                 ListView<Conflict> rightList = new ListView<>(mergeList.getItems());
                 ListView<Conflict> leftList = new ListView<>(mergeList.getItems());
 

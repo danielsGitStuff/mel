@@ -13,8 +13,7 @@ import java.util.Map;
 public abstract class SyncStageMerger {
     protected final Long lStageSetId;
     protected final Long rStageSetId;
-    protected Map<String, Conflict> deletedParentLeft = new HashMap<>();
-    protected Map<String, Conflict> deletedParentRight = new HashMap<>();
+
 
     /**
      * is called with two Stages which reference the same logical File or Directory

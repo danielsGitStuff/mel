@@ -196,6 +196,21 @@ StageDao extends Dao.LockingDao {
         return null;
     }
 
+    public List<Stage> getDeletedDirectories(Long stageSetId) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String where = stage.getIsDirectoryPair().k() + "=? and " + stage.getStageSetPair().k() + "=?";
+        return sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(true, stageSetId));
+    }
+
+    public Stage getStartStage(Long lStageSetId) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String where = stage.getIsDirectoryPair().k() + "=? and " + stage.getStageSetPair().k() + "=? and " + stage.getFsParentIdPair().k() + " is null limit 1";
+        List<Stage> stages = sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(true, lStageSetId));
+        if (stages.size() > 0)
+            return stages.get(0);
+        return null;
+    }
+
 
     public static class BottomDirAndPath {
         private String[] parts;
