@@ -6,10 +6,14 @@ import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.sync.Conflict;
 import de.mein.drive.service.sync.ConflictSolver;
+import de.mein.drive.service.sync.EmptyRowConflict;
 import javafx.fxml.FXML;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.util.Callback;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -39,54 +43,44 @@ public class DriveFXConflictSolverControllerList implements PopupContentFX {
         meinDriveClientService.addConflictSolver(conflictSolver);
         System.out.println("DriveFXConflictSolverController.init");
         MergeListCell.setup(listLeft, listMerge, listRight);
-        listLeft.getItems().addAll(conflictSolver.getConflicts());
+        listLeft.getItems().addAll(prepareConflicts(conflictSolver.getConflicts()));
     }
 
-
-    private static abstract class GenCallback implements Callback<ListView<Conflict>, ListCell<Conflict>> {
-
-        @Override
-        public ListCell<Conflict> call(ListView<Conflict> param) {
-            return new ListCell<Conflict>() {
-                @Override
-                protected void updateItem(Conflict conflict, boolean empty) {
-                    super.updateItem(conflict, empty);
-                    GenCallback.this.updateItem(this, conflict, empty);
-                }
-            };
+    /**
+     * sorts, indents and adds empty rows
+     *
+     * @param conflicts
+     * @return
+     */
+    private List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
+        List<Conflict> result = new ArrayList<>();
+        List<Conflict> rootConflicts = new ArrayList<>();
+        List<Conflict> independentConflicts = new ArrayList<>();
+        for (Conflict conflict : conflicts) {
+            if (conflict.getDependsOn() == null)
+                rootConflicts.add(conflict);
+            else
+                independentConflicts.add(conflict);
         }
-
-        abstract void updateItem(ListCell<Conflict> listCell, Conflict item, boolean empty);
-
+        for (Conflict root : rootConflicts) {
+            result.add(root);
+            traversalAdding(result, root.getDependents());
+            if (root.getDependents().size() > 0)
+                result.add(new EmptyRowConflict());
+        }
+        for (Conflict conflict : independentConflicts) {
+            result.add(conflict);
+        }
+        return result;
     }
 
-    private GenCallback leftCellFactory = new GenCallback() {
-        @Override
-        void updateItem(ListCell<Conflict> listCell, Conflict conflict, boolean empty) {
-            if (empty || conflict == null) {
-                listCell.setText(null);
-            } else {
-                String text = conflict.getLeft().getName();
-                if (conflict.getLeft().getIsDirectory()) ;
-                text += " [D]";
-                listCell.setText(text);
+    private void traversalAdding(List<Conflict> result, Set<Conflict> stuffToTraverse) {
+        for (Conflict conflict : stuffToTraverse) {
+            result.add(conflict);
+            if (conflict.getDependents().size() > 0) {
+                traversalAdding(result, conflict.getDependents());
             }
         }
-    };
-
-    private GenCallback rightCellFactory = new GenCallback() {
-        @Override
-        void updateItem(ListCell<Conflict> listCell, Conflict conflict, boolean empty) {
-            if (empty || conflict == null) {
-                listCell.setText(null);
-            } else {
-                String text = conflict.getRight().getName();
-                if (conflict.getRight().getIsDirectory()) ;
-                text += " [D]";
-                listCell.setText(text);
-            }
-        }
-    };
-
+    }
 
 }

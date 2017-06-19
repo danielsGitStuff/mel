@@ -303,6 +303,4 @@ public class ConflictSolver extends SyncStageMerger {
     public Collection<Conflict> getConflicts() {
         return conflicts.values();
     }
-
-
 }

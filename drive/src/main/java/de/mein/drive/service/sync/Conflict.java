@@ -102,7 +102,7 @@ public class Conflict {
         return dependsOn;
     }
 
-//    public Set<Conflict> getDependents() {
-//        return dependents;
-//    }
+    public Set<Conflict> getDependents() {
+        return dependents;
+    }
 }
