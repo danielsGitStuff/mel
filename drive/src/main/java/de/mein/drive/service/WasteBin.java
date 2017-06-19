@@ -71,6 +71,9 @@ public class WasteBin {
      */
     public void del(Waste waste,File file) throws SqlQueriesException {
         try {
+            //todo debug
+            if (waste.getHash().v().equals("51037a4a37730f52c8732586d3aaa316"))
+                System.err.println("WasteBin.del.debug30tjf");
             File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
             file.renameTo(target);
             waste.getInplace().v(true);
@@ -81,6 +84,9 @@ public class WasteBin {
     }
 
     public void deleteFile(FsFile fsFile)  {
+        // todo debug
+        if (fsFile.getContentHash().v().equals("51037a4a37730f52c8732586d3aaa316") || fsFile.getName().v().equals("same1.txt"))
+            System.err.println("WasteBin.deleteFile.debug3434");
         try {
             File f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
             if (f.exists()) {
