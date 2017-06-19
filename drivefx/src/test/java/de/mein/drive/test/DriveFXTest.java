@@ -62,6 +62,16 @@ public class DriveFXTest {
     }
 
     @Test
+    public void complexConflict() throws Exception {
+        DriveTest driveTest = new DriveTest();
+        MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+
+        MeinBoot restartMeinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        driveTest.complexClientConflictImpl(meinBoot,null );
+        new WaitLock().lock().lock();
+    }
+
+    @Test
     public void startEmptyClient() throws Exception {
         //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);

@@ -247,6 +247,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 // roam
                 subStage = new Stage().setStageSet(stageSetId)
                         .setParentId(stage.getId())
+                        .setFsParentId(stage.getFsId())
                         .setName(subDir.getName())
                         .setIsDirectory(true);
                 System.out.println("StageIndexerRunnable.roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());

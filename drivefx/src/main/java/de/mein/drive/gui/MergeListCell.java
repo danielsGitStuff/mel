@@ -123,6 +123,7 @@ public abstract class MergeListCell extends ListCell<Conflict> {
                     if (conflict.hasDecision() && conflict.isLeft()) {
                         button.setText("");
                     } else {
+                        if (conflict.hasLeft())
                         button.setText(conflict.getLeft().getName() + " >>");
                     }
                     setGraphic(hbox);
@@ -161,7 +162,7 @@ public abstract class MergeListCell extends ListCell<Conflict> {
                     lastSelected = null;
                 } else {
                     lastSelected = conflict;
-                    if (!conflict.hasDecision() || conflict.isLeft()) {
+                    if ((!conflict.hasDecision() || conflict.isLeft()) && conflict.hasLeft()) {
                         button.setText("<< " + conflict.getLeft().getName());
                     } else {
                         button.setText("");

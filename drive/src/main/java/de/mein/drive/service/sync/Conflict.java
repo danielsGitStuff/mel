@@ -105,4 +105,8 @@ public class Conflict {
     public Set<Conflict> getDependents() {
         return dependents;
     }
+
+    public boolean hasLeft() {
+        return lStageId != null;
+    }
 }

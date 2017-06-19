@@ -71,6 +71,88 @@ public class DriveTest {
         clientConflictImpl(null, null);
     }
 
+    public void complexClientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
+        // start both instances, shutdown server, change something in client directory
+        final DriveSyncListener syncListener = new DriveSyncListener() {
+            public File file2;
+            public File file1;
+            public String rootPath;
+            public MeinDriveClientService meinDriveClientService;
+            private DriveSyncListener ins = this;
+            int count = 0;
+            int failCount = 0;
+
+            @Override
+            public void onSyncFailed() {
+                System.out.println("DriveTest.onSyncFailed");
+                if (failCount == 0) {
+                    N.r(() -> {
+                        //if (!file2.exists())
+                        System.out.println("DriveTest.onSyncFailed.creating new file...");
+                        rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
+                        File delFile = new File(rootPath + File.separator + "samedir");
+                        delFile.delete();
+                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
+                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
+                        rebooted.done(res -> N.r(() -> {
+                            System.out.println("DriveTest.alles ok");
+//                            testStructure.setMaClient(meinAuthService2)
+//                                    .setMaServer(meinAuthService1)
+//                                    .setClientDriveService(clientDriveService)
+//                                    .setServerDriveService(serverService)
+//                                    .setTestdir1(testdir1)
+//                                    .setTestdir2(testdir2);
+//                            clientDriveService.setSyncListener(clientSyncListener);
+                        }));
+                    });
+                }
+                failCount++;
+            }
+
+            private int transferCount = 0;
+
+            @Override
+            public void onTransfersDone() {
+                if (transferCount == 0) {
+                    N.r(() -> {
+                        meinAuthService1.shutDown();
+                        meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
+                        rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
+                        file1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+                        file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        TestFileCreator.saveFile("same1.client".getBytes(), file1);
+                        TestFileCreator.saveFile("same2.client".getBytes(), file2);
+                        File subDir = new File(rootPath + File.separator + "samedir" + File.separator + "samesub");
+                        subDir.mkdirs();
+                        File subFile = new File(subDir.getAbsolutePath() + File.separator + "samesub1.txt");
+                        TestFileCreator.saveFile("samesub1.client".getBytes(), subFile);
+
+                        String hash = Hash.md5(file1);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
+                        hash = Hash.md5(file2);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
+                    });
+
+                }
+                transferCount++;
+            }
+
+            @Override
+            public void onSyncDoneImpl() {
+                System.out.println("DriveTest.onSyncDoneImpl");
+                if (count == 1) {
+                    System.out.println("DriveTest.onSyncDoneImpl");
+                }
+                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                count++;
+            }
+        };
+        setup(false, syncListener, clientMeinBoot);
+        lock.lockWrite();
+        lock.unlockWrite();
+        System.out.println("DriveTest.clientMergeStages.END");
+    }
+
     public void clientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final DriveSyncListener syncListener = new DriveSyncListener() {

@@ -263,12 +263,14 @@ public class ClientSyncHandler extends SyncHandler {
             if (!conflictSolver.isSolved()) {
                 conflictSolverMap.remove(identifier);
                 conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
+                conflictSolver.beforeStart(  serverStageSet);
             } else {
                 conflictSolver.beforeStart(  serverStageSet);
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
             }
         } else {
             conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
+            conflictSolver.beforeStart(  serverStageSet);
             iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
         // only remember the conflict solver if it actually has conflicts
@@ -404,6 +406,9 @@ public class ClientSyncHandler extends SyncHandler {
             if (conflictSolver != null)
                 conflictSolver.solve(null, rStage);
             else {
+                // todo debug
+                if (rStage.getName().equals("samesub1.txt"))
+                    System.err.println("ClientSyncHandler.iterateStageSets.debug 32fh3204f0");
                 File rFile = stageDao.getFileByStage(rStage);
                 merger.stuffFound(null, rStage, null, rFile);
             }
