@@ -12,6 +12,8 @@ import java.util.Set;
  */
 public class Conflict {
 
+    private Stage lStage;
+    private Stage rStage;
     private Long lStageId, rStageId;
     private StageDao stageDao;
     private Boolean isRight;
@@ -22,6 +24,8 @@ public class Conflict {
     public Conflict(StageDao stageDao, Stage lStage, Stage rStage) {
         this.lStageId = lStage != null ? lStage.getId() : null;
         this.rStageId = rStage!= null ? rStage.getId() : null;
+        this.lStage = lStage;
+        this.rStage = rStage;
         this.stageDao = stageDao;
         key = createKey(lStage, rStage);
     }
@@ -64,23 +68,13 @@ public class Conflict {
     public Stage getLeft() {
         if (lStageId == null)
             return null;
-        try {
-            return stageDao.getStageById(lStageId);
-        } catch (SqlQueriesException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return rStage;
     }
 
     public Stage getRight() {
         if (rStageId == null)
             return null;
-        try {
-            return stageDao.getStageById(rStageId);
-        } catch (SqlQueriesException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return rStage;
     }
 
     public void chooseNothing() {

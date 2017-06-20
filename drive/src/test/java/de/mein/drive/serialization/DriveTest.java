@@ -20,6 +20,7 @@ import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
+import de.mein.drive.index.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;
@@ -91,7 +92,7 @@ public class DriveTest {
                         System.out.println("DriveTest.onSyncFailed.creating new file...");
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
                         File delFile = new File(rootPath + File.separator + "samedir");
-                        delFile.delete();
+                        BashTools.rmRf(delFile);
                         MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {

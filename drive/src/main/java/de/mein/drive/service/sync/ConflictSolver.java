@@ -20,13 +20,27 @@ public class ConflictSolver extends SyncStageMerger {
     private final String identifier;
     private final StageSet lStageSet, rStageSet;
     private final RootDirectory rootDirectory;
+    protected Map<String, Conflict> deletedParents = new HashMap<>();
     private Map<String, Conflict> conflicts = new HashMap<>();
     private Order order;
     private Map<Long, Long> oldeNewIdMap;
     private StageDao stageDao;
     private StageSet mergeStageSet;
     private FsDao fsDao;
-    protected Map<String, Conflict> deletedParents = new HashMap<>();
+
+    public ConflictSolver(DriveDatabaseManager driveDatabaseManager, StageSet lStageSet, StageSet rStageSet) {
+        super(lStageSet.getId().v(), rStageSet.getId().v());
+        this.rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
+        this.lStageSet = lStageSet;
+        this.rStageSet = rStageSet;
+        stageDao = driveDatabaseManager.getStageDao();
+        fsDao = driveDatabaseManager.getFsDao();
+        identifier = createIdentifier(lStageSet.getId().v(), rStageSet.getId().v());
+    }
+
+    public static String createIdentifier(Long lStageSetId, Long rStageSetId) {
+        return lStageSetId + ":" + rStageSetId;
+    }
 
     /**
      * will try to merge first. if it fails the merged {@link StageSet} is removed,
@@ -96,7 +110,6 @@ public class ConflictSolver extends SyncStageMerger {
             directory = directory.getParentFile();
         }
     }
-
 
     private Conflict createConflict(Stage left, Stage right) {
         String key = Conflict.createKey(left, right);
@@ -270,21 +283,6 @@ public class ConflictSolver extends SyncStageMerger {
                 e.printStackTrace();
             }
         }
-    }
-
-
-    public ConflictSolver(DriveDatabaseManager driveDatabaseManager, StageSet lStageSet, StageSet rStageSet) {
-        super(lStageSet.getId().v(), rStageSet.getId().v());
-        this.rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
-        this.lStageSet = lStageSet;
-        this.rStageSet = rStageSet;
-        stageDao = driveDatabaseManager.getStageDao();
-        fsDao = driveDatabaseManager.getFsDao();
-        identifier = createIdentifier(lStageSet.getId().v(), rStageSet.getId().v());
-    }
-
-    public static String createIdentifier(Long lStageSetId, Long rStageSetId) {
-        return lStageSetId + ":" + rStageSetId;
     }
 
     public String getIdentifier() {
