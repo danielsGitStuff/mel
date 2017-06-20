@@ -10,10 +10,7 @@ import de.mein.drive.service.sync.EmptyRowConflict;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -55,11 +52,11 @@ public class DriveFXConflictSolverControllerList implements PopupContentFX {
     private List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
         List<Conflict> result = new ArrayList<>();
         List<Conflict> rootConflicts = new ArrayList<>();
-        List<Conflict> independentConflicts = new ArrayList<>();
+        Set<Conflict> independentConflicts = new HashSet<>();
         for (Conflict conflict : conflicts) {
             if (conflict.getDependsOn() == null)
                 rootConflicts.add(conflict);
-            else
+            else if (conflict.getDependents().size() == 0)
                 independentConflicts.add(conflict);
         }
         for (Conflict root : rootConflicts) {
@@ -67,9 +64,6 @@ public class DriveFXConflictSolverControllerList implements PopupContentFX {
             traversalAdding(result, root.getDependents());
             if (root.getDependents().size() > 0)
                 result.add(new EmptyRowConflict());
-        }
-        for (Conflict conflict : independentConflicts) {
-            result.add(conflict);
         }
         return result;
     }
