@@ -92,7 +92,8 @@ public class ConflictSolver extends SyncStageMerger {
             directory = stageFile.getParentFile();
 
         Set<String> conflictFreePaths = new HashSet<>();
-        while (!directory.getAbsolutePath().equals(rootDirectory.getPath())) {
+        boolean resolved = false;
+        while (!resolved && !directory.getAbsolutePath().equals(rootDirectory.getPath())) {
             if (deletedParents.containsKey(directory.getAbsolutePath())) {
                 Conflict conflict = deletedParents.get(directory.getAbsolutePath());
                 // it is proven that this file is not in conflict
@@ -103,6 +104,11 @@ public class ConflictSolver extends SyncStageMerger {
                 } else {
                     Conflict dependentConflict = (stageIsFromRight ? createConflict(null, stage) : createConflict(stage, null));
                     dependentConflict.dependOn(conflict);
+                    // we want to build a hierarchy of dependent conflicts
+                    if (stage.getIsDirectory()) {
+                        deletedParents.put(stageFile.getAbsolutePath(), dependentConflict);
+                    }
+                    resolved = true;
                 }
             } else {
                 conflictFreePaths.add(directory.getAbsolutePath());
