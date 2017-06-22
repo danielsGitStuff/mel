@@ -37,10 +37,10 @@ public class LeftMergeListCell extends MergeListCell {
 
     @Override
     protected void updateItemImpl(Conflict conflict, boolean empty) {
+        indent = 0;
         if (empty || conflict == null) {
             setGraphic(null);
             lastSelected = null;
-            indent = 0;
         } else {
             lastSelected = conflict;
             boolean parentDeleted = false;
@@ -61,7 +61,9 @@ public class LeftMergeListCell extends MergeListCell {
                 } else if (parentDeleted)
                     label.setText("<parent deleted>");
                 setGraphic(hbox);
-            } else {
+            } else if (conflict.isLeft()){
+                label.setText("");
+                button.setVisible(false);
                 setBackground(null);
             }
         }
