@@ -3,17 +3,21 @@ package de.mein.drive.gui;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.service.sync.Conflict;
+import de.mein.drive.service.sync.EmptyRowConflict;
 import de.mein.drive.sql.Stage;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.HBox;
-import javafx.scene.text.TextAlignment;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.util.Callback;
 
 /**
@@ -21,27 +25,18 @@ import javafx.util.Callback;
  */
 @SuppressWarnings("Duplicates")
 public abstract class MergeListCell extends ListCell<Conflict> {
-    HBox hbox = new HBox();
-    HBox spacer;
-    Button button = new Button("x");
-    Conflict lastSelected;
-    int indent = 0;
+    protected HBox hbox = new HBox();
+    protected HBox spacer = new HBox();
+    protected HBox indentSpacer = new HBox();
+    protected Button button = new Button("x");
+    protected Label label = new Label("..not set..");
+    protected Conflict lastSelected;
+    protected int indent = 0;
     // left to right
     protected boolean buttonOnRight = true;
 
-    public MergeListCell(Boolean spaceLeft) {
+    public MergeListCell() {
         super();
-        if (spaceLeft != null) {
-            spacer = new HBox();
-            indent();
-        } else {
-            button.prefWidthProperty().bind(hbox.widthProperty());
-        }
-        if (spaceLeft != null && spaceLeft)
-            hbox.getChildren().add(spacer);
-        hbox.getChildren().add(button);
-        if (spaceLeft != null && !spaceLeft)
-            hbox.getChildren().add(spacer);
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -49,23 +44,51 @@ public abstract class MergeListCell extends ListCell<Conflict> {
             }
         });
         init();
+        indent();
         setGraphic(hbox);
 
     }
 
     void indent() {
-        spacer.prefWidthProperty().setValue(indent);
-        button.prefWidthProperty().bind(hbox.widthProperty().subtract(indent)
-                .subtract(button.paddingProperty().getValue().getLeft())
-                .subtract(button.paddingProperty().getValue().getRight()));
+        label.prefHeightProperty().bind(button.heightProperty()
+                .subtract(button.paddingProperty().getValue().getTop())
+                .subtract(button.paddingProperty().getValue().getBottom()));
+        indentSpacer.prefWidthProperty().setValue(indent);
+        HBox.setHgrow(spacer, Priority.ALWAYS);
     }
+
+    protected void addChildren(Node... elements) {
+        for (Node e : elements)
+            hbox.getChildren().add(e);
+    }
+
+    @Override
+    protected void updateItem(Conflict conflict, boolean empty) {
+        if (conflict instanceof EmptyRowConflict) {
+            setBackground(new Background(new BackgroundFill(new Color(.3, .3, .3, 1), CornerRadii.EMPTY, Insets.EMPTY)));
+        } else
+            updateItemImpl(conflict, empty);
+    }
+
+    abstract void updateItemImpl(Conflict conflict, boolean empty);
 
     abstract void handleAction(ActionEvent event);
 
+    protected Background createDeletedBackground() {
+        return new Background(new BackgroundFill(new Color(1, .7, .7, 1), CornerRadii.EMPTY, Insets.EMPTY));
+    }
+
+    protected Background createDefaultdBackground() {
+        return new Background(new BackgroundFill(new Color(.7, 1, .7, 1), CornerRadii.EMPTY, Insets.EMPTY));
+    }
+
+    /**
+     * add your stuff to the hbox here
+     */
     abstract void init();
 
     public static Callback<ListView<Conflict>, ListCell<Conflict>> createMergeCellFactory(ListView<Conflict> leftList, ListView<Conflict> rightList) {
-        Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = param -> new MergeListCell(null) {
+        Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = param -> new MergeListCell() {
 
 
             @Override
@@ -87,133 +110,24 @@ public abstract class MergeListCell extends ListCell<Conflict> {
 
             @Override
             protected void updateItem(Conflict conflict, boolean empty) {
-                super.updateItem(conflict, empty);
-                if (empty || conflict == null) {
-                    setGraphic(null);
-                    lastSelected = null;
-                } else {
-                    lastSelected = conflict;
-                    if (!conflict.hasDecision()) {
-                        button.setText("");
-                        setTextAlignment(TextAlignment.RIGHT);
-                    } else {
-                        button.setText("x");
-                        if (conflict.isRight()) {
-                            button.setText(conflict.getLeft().getName() + " <<");
-                        } else if (conflict.isLeft()) {
-                            if (conflict.getLeft() != null)
-                                button.setText(">> " + conflict.getLeft().getName());
-                            else
-                                button.setText(">> parents was chosen");
-                            buttonOnRight = false;
-                        }
-                    }
-                    setGraphic(hbox);
-                }
+
+            }
+
+            @Override
+            void updateItemImpl(Conflict conflict, boolean empty) {
+
             }
         };
         return mergeCellFactory;
     }
 
     public static Callback<ListView<Conflict>, ListCell<Conflict>> createLeftCellFactory(ListView<Conflict> mergeList, ListView<Conflict> rightList) {
-        Callback<ListView<Conflict>, ListCell<Conflict>> leftCellFactory = param -> new MergeListCell(true) {
-            @Override
-            void handleAction(ActionEvent event) {
-                if (lastSelected != null) {
-                    System.out.println("MergeListCell.left " + lastSelected);
-                    lastSelected.chooseLeft();
-                    getListView().refresh();
-                    mergeList.refresh();
-                    rightList.refresh();
-                    selectSame(getListView(), mergeList, rightList);
-                }
-            }
-
-            @Override
-            void init() {
-            }
-
-            @Override
-            protected void updateItem(Conflict conflict, boolean empty) {
-                super.updateItem(conflict, empty);
-                if (empty || conflict == null) {
-                    setGraphic(null);
-                    lastSelected = null;
-                } else {
-                    boolean parentDeleted = false;
-                    lastSelected = conflict;
-                    Conflict dependsOn = conflict.getDependsOn();
-                    while (dependsOn != null) {
-                        indent += 10;
-                        if (dependsOn.getLeft() != null && dependsOn.getLeft().getDeleted())
-                            parentDeleted = true;
-                        dependsOn = dependsOn.getDependsOn();
-                    }
-                    indent();
-                    if (conflict.hasDecision() && conflict.isLeft()) {
-                        button.setText("");
-                    } else {
-                        if (conflict.hasLeft())
-                            button.setText(conflict.getLeft().getName() + " >>");
-                        else if (parentDeleted)
-                            button.setText("<parent deleted>");
-                        else
-                            button.setText("<empty>");
-                    }
-                    setGraphic(hbox);
-                }
-
-            }
-        };
+        Callback<ListView<Conflict>, ListCell<Conflict>> leftCellFactory = param -> new LeftMergeListCell(mergeList, rightList);
         return leftCellFactory;
     }
 
     public static Callback<ListView<Conflict>, ListCell<Conflict>> createRightCellFactory(ListView<Conflict> leftList, ListView<Conflict> mergeList) {
-        Callback<ListView<Conflict>, ListCell<Conflict>> rightCellFactory = param -> new MergeListCell(false) {
-            @Override
-            void handleAction(ActionEvent event) {
-                if (lastSelected != null) {
-                    System.out.println("MergeListCell.left " + lastSelected);
-                    lastSelected.chooseRight();
-                    getListView().refresh();
-                    mergeList.refresh();
-                    leftList.refresh();
-                    selectSame(getListView(), leftList, mergeList);
-                }
-            }
-
-            @Override
-            void init() {
-                setText("");
-            }
-
-            @Override
-            protected void updateItem(Conflict conflict, boolean empty) {
-                super.updateItem(conflict, empty);
-                setText(null);  // No text in label of super class
-                if (empty || conflict == null) {
-                    setGraphic(null);
-                    lastSelected = null;
-                } else {
-                    boolean parentDeleted = false;
-                    lastSelected = conflict;
-                    Conflict dependsOn = conflict.getDependsOn();
-                    while (dependsOn != null) {
-                        indent += 10;
-                        if (dependsOn.getLeft() != null && dependsOn.getLeft().getDeleted())
-                            parentDeleted = true;
-                        dependsOn = dependsOn.getDependsOn();
-                    }
-                    if ((!conflict.hasDecision() || conflict.isRight()) && conflict.hasRight()) {
-                        button.setText("<< " + conflict.getRight().getName());
-                    }  else if (parentDeleted)
-                        button.setText("<parent deleted>");
-                    else
-                        button.setText("<empty>");
-                    setGraphic(hbox);
-                }
-            }
-        };
+        Callback<ListView<Conflict>, ListCell<Conflict>> rightCellFactory = param -> new RightMergeListCell(leftList, mergeList);
         return rightCellFactory;
     }
 

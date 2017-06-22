@@ -40,7 +40,8 @@ public class DriveFXConflictSolverControllerList implements PopupContentFX {
         meinDriveClientService.addConflictSolver(conflictSolver);
         System.out.println("DriveFXConflictSolverController.init");
         MergeListCell.setup(listLeft, listMerge, listRight);
-        listLeft.getItems().addAll(prepareConflicts(conflictSolver.getConflicts()));
+        List<Conflict> conflicts = prepareConflicts(conflictSolver.getConflicts());
+        listLeft.getItems().addAll(conflicts);
     }
 
     /**
