@@ -23,7 +23,7 @@ public class Conflict {
 
     public Conflict(StageDao stageDao, Stage lStage, Stage rStage) {
         this.lStageId = lStage != null ? lStage.getId() : null;
-        this.rStageId = rStage!= null ? rStage.getId() : null;
+        this.rStageId = rStage != null ? rStage.getId() : null;
         this.lStage = lStage;
         this.rStage = rStage;
         this.stageDao = stageDao;
@@ -41,11 +41,17 @@ public class Conflict {
 
     public Conflict chooseRight() {
         isRight = true;
+        for (Conflict sub : dependents) {
+            sub.chooseRight();
+        }
         return this;
     }
 
     public Conflict chooseLeft() {
         isRight = false;
+        for (Conflict sub : dependents) {
+            sub.chooseLeft();
+        }
         return this;
     }
 
@@ -68,7 +74,7 @@ public class Conflict {
     public Stage getLeft() {
         if (lStageId == null)
             return null;
-        return rStage;
+        return lStage;
     }
 
     public Stage getRight() {
@@ -102,5 +108,9 @@ public class Conflict {
 
     public boolean hasLeft() {
         return lStageId != null;
+    }
+
+    public boolean hasRight() {
+        return rStageId != null;
     }
 }
