@@ -24,7 +24,7 @@ import javafx.util.Callback;
  * Created by xor on 5/30/17.
  */
 @SuppressWarnings("Duplicates")
-public abstract class MergeListCell extends ListCell<Conflict> {
+public abstract class AbstractMergeListCell extends ListCell<Conflict> {
     protected HBox hbox = new HBox();
     protected HBox spacer = new HBox();
     protected HBox indentSpacer = new HBox();
@@ -35,7 +35,7 @@ public abstract class MergeListCell extends ListCell<Conflict> {
     // left to right
     protected boolean buttonOnRight = true;
 
-    public MergeListCell() {
+    public AbstractMergeListCell() {
         super();
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -62,15 +62,49 @@ public abstract class MergeListCell extends ListCell<Conflict> {
             hbox.getChildren().add(e);
     }
 
+    abstract Stage getConflictSide(Conflict dependsOn);
+
     @Override
     protected void updateItem(Conflict conflict, boolean empty) {
         if (conflict instanceof EmptyRowConflict) {
             setBackground(new Background(new BackgroundFill(new Color(.3, .3, .3, 1), CornerRadii.EMPTY, Insets.EMPTY)));
-        } else
-            updateItemImpl(conflict, empty);
+        } else {
+            indent = 0;
+            if (empty || conflict == null) {
+                setGraphic(null);
+                lastSelected = null;
+            } else {
+                lastSelected = conflict;
+                boolean parentDeleted = false;
+                Stage side = getConflictSide(conflict);
+                Conflict dependsOn = conflict.getDependsOn();
+                while (dependsOn != null) {
+                    indent += 10;
+                    Stage dependsOnSide = getConflictSide(dependsOn);
+                    if (dependsOnSide != null && dependsOnSide.getDeleted())
+                        parentDeleted = true;
+                    dependsOn = dependsOn.getDependsOn();
+                }
+                if (parentDeleted || (side != null && side.getDeleted()))
+                    setBackground(createDeletedBackground());
+                else
+                    setBackground(createDefaultdBackground());
+                if (!conflict.hasDecision()) {
+                    if (side != null) {
+                        label.setText(side.getName());
+                    } else if (parentDeleted)
+                        label.setText("<parent deleted>");
+                    setGraphic(hbox);
+                } else if (side != null) {
+                    label.setText("");
+                    button.setVisible(false);
+                    setBackground(null);
+                }
+            }
+            indent();
+        }
     }
 
-    abstract void updateItemImpl(Conflict conflict, boolean empty);
 
     abstract void handleAction(ActionEvent event);
 
@@ -88,13 +122,13 @@ public abstract class MergeListCell extends ListCell<Conflict> {
     abstract void init();
 
     public static Callback<ListView<Conflict>, ListCell<Conflict>> createMergeCellFactory(ListView<Conflict> leftList, ListView<Conflict> rightList) {
-        Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = param -> new MergeListCell() {
+        Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = param -> new AbstractMergeListCell() {
 
 
             @Override
             void handleAction(ActionEvent event) {
                 if (lastSelected != null) {
-                    System.out.println("MergeListCell.unsolve " + lastSelected);
+                    System.out.println("AbstractMergeListCell.unsolve " + lastSelected);
                     lastSelected.chooseNothing();
                     leftList.refresh();
                     rightList.refresh();
@@ -109,14 +143,15 @@ public abstract class MergeListCell extends ListCell<Conflict> {
             }
 
             @Override
+            Stage getConflictSide(Conflict dependsOn) {
+                return null;
+            }
+
+            @Override
             protected void updateItem(Conflict conflict, boolean empty) {
 
             }
 
-            @Override
-            void updateItemImpl(Conflict conflict, boolean empty) {
-
-            }
         };
         return mergeCellFactory;
     }
@@ -143,7 +178,7 @@ public abstract class MergeListCell extends ListCell<Conflict> {
     public static class AAAAA {
         public static void main(String[] args) {
             System.out.println(new JFXPanel());
-            System.out.println("MergeListCell.main");
+            System.out.println("AbstractMergeListCell.main");
             Platform.runLater(() -> N.r(() -> {
                 javafx.stage.Stage stage = new javafx.stage.Stage();
                 HBox root = new HBox();
