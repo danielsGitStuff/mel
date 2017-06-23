@@ -37,7 +37,7 @@ public class MergeListCell extends AbstractMergeListCell {
             leftList.refresh();
             rightList.refresh();
             getListView().refresh();
-            selectSame(getListView(), leftList, rightList);
+            //selectSame(getListView(), leftList, rightList);
         }
     }
 

@@ -77,6 +77,8 @@ public class BashTools {
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
                     List<String> errors = errorReader.lines().collect(Collectors.toList());
                     System.out.println("BashTools.stuffModifiedAfter.did not finish");
+                    for (String s : errors)
+                        System.out.println("BashTools.stuffModifiedAfter.ERROR: " + s);
                 }
                 int exitValue = proc.exitValue();
                 if (exitValue == 0) {

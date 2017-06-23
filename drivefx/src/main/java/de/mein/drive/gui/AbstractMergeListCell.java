@@ -54,7 +54,6 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
             @Override
             public void handle(ActionEvent event) {
                 handleAction(event);
-                updateItem(lastSelected, lastSelected == null);
             }
         });
     }
@@ -99,13 +98,16 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
                         parentDeleted = true;
                     dependsOn = dependsOn.getDependsOn();
                 }
-                if ((conflict.isLeft() && !isLeft() || conflict.isRight() && isLeft())) {
+                if (conflict.isLeft() && !isLeft() || conflict.isRight() && isLeft() || !conflict.hasDecision()) {
                     if (side != null)
                         label.setText(side.getName());
                     else if (parentDeleted)
                         label.setText("<parent deleted>");
                     else
                         System.err.println("j9034n3of");
+                    setGraphic(hbox);
+                } else {
+                    setGraphic(null);
                 }
                 // olde
                 if (isSelected()) {

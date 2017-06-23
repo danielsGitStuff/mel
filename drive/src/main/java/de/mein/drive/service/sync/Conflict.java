@@ -97,7 +97,7 @@ public class Conflict {
     }
 
     public boolean isLeft() {
-        return isRight == null || !isRight;
+        return isRight != null && !isRight;
     }
 
     public Conflict dependOn(Conflict dependsOn) {
