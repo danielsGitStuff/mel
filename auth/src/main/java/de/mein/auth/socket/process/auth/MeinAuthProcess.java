@@ -93,6 +93,7 @@ public class MeinAuthProcess extends MeinProcess {
                                         partnerAuthenticated = true;
                                         // get all allowed Services
                                         MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
+                                        send(response);
                                         // done here, set up validationprocess
                                         System.out.println(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
                                         MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate);
@@ -100,7 +101,6 @@ public class MeinAuthProcess extends MeinProcess {
                                         meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
                                         // propagate that we are connected!
                                         propagateAuthentication(this.partnerCertificate);
-                                        send(response);
                                     } else {
                                         System.out.println("MeinAuthProcess.onMessageReceived");
                                         IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
