@@ -37,16 +37,26 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
 
     public AbstractMergeListCell() {
         super();
+
+        init();
+        indent();
+        setGraphic(hbox);
+//        label.setOnMouseClicked(event -> {
+//            System.out.println("AbstractMergeListCell.AbstractMergeListCell");
+//            AbstractMergeListCell.this.updateSelected(true);
+//        });
+        label.setMouseTransparent(true);
+        //hbox.setMouseTransparent(true);
+        spacer.setMouseTransparent(true);
+        indentSpacer.setMouseTransparent(true);
+        button.setMouseTransparent(false);
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 handleAction(event);
+                updateItem(lastSelected, lastSelected == null);
             }
         });
-        init();
-        indent();
-        setGraphic(hbox);
-
     }
 
     void indent() {
@@ -69,6 +79,10 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
         if (conflict instanceof EmptyRowConflict) {
             setBackground(new Background(new BackgroundFill(new Color(.3, .3, .3, 1), CornerRadii.EMPTY, Insets.EMPTY)));
         } else {
+            //todo debug
+            if (AbstractMergeListCell.this instanceof LeftMergeListCell) {
+                System.out.println("AbstractMergeListCell.updateItem.debug9z9340g3");
+            }
             indent = 0;
             if (empty || conflict == null) {
                 setGraphic(null);
@@ -85,24 +99,31 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
                         parentDeleted = true;
                     dependsOn = dependsOn.getDependsOn();
                 }
-                if (parentDeleted || (side != null && side.getDeleted()))
-                    setBackground(createDeletedBackground());
-                else
-                    setBackground(createDefaultdBackground());
-                if (!conflict.hasDecision()) {
-                    if (side != null) {
+                if ((conflict.isLeft() && !isLeft() || conflict.isRight() && isLeft())) {
+                    if (side != null)
                         label.setText(side.getName());
-                    } else if (parentDeleted)
+                    else if (parentDeleted)
                         label.setText("<parent deleted>");
-                    setGraphic(hbox);
-                } else if (side != null) {
-                    label.setText("");
-                    button.setVisible(false);
-                    setBackground(null);
+                    else
+                        System.err.println("j9034n3of");
+                }
+                // olde
+                if (isSelected()) {
+                    setBackground(createSelectedBackground());
+                } else if (parentDeleted || (side != null && side.getDeleted())) {
+                    setBackground(createDeletedBackground());
+                } else {
+                    setBackground(createDefaultdBackground());
                 }
             }
             indent();
         }
+    }
+
+    abstract boolean isLeft();
+
+    private Background createSelectedBackground() {
+        return new Background(new BackgroundFill(new Color(.5, .5, 1, 1), CornerRadii.EMPTY, Insets.EMPTY));
     }
 
 
@@ -122,37 +143,7 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
     abstract void init();
 
     public static Callback<ListView<Conflict>, ListCell<Conflict>> createMergeCellFactory(ListView<Conflict> leftList, ListView<Conflict> rightList) {
-        Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = param -> new AbstractMergeListCell() {
-
-
-            @Override
-            void handleAction(ActionEvent event) {
-                if (lastSelected != null) {
-                    System.out.println("AbstractMergeListCell.unsolve " + lastSelected);
-                    lastSelected.chooseNothing();
-                    leftList.refresh();
-                    rightList.refresh();
-                    getListView().refresh();
-                    selectSame(getListView(), leftList, rightList);
-                }
-            }
-
-            @Override
-            void init() {
-
-            }
-
-            @Override
-            Stage getConflictSide(Conflict dependsOn) {
-                return null;
-            }
-
-            @Override
-            protected void updateItem(Conflict conflict, boolean empty) {
-
-            }
-
-        };
+        Callback<ListView<Conflict>, ListCell<Conflict>> mergeCellFactory = param -> new MergeListCell(leftList, rightList);
         return mergeCellFactory;
     }
 

@@ -46,6 +46,9 @@ public class UnixReferenceFileHandler {
         refOnFile1 = !refOnFile1;
         otherFile.delete();
         otherFile.mkdirs();
+        //todo debug
+        if (refFile.lastModified()>otherFile.lastModified())
+            System.err.println("dewjwojo94ig");
         return BashTools.stuffModifiedAfter(refFile, directoryToQuery, pruneDir);
     }
 }

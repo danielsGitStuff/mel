@@ -61,6 +61,7 @@ public class BashTools {
 
 
     public static List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+        System.out.println("BashTools.stuffModifiedAfter.referenceFile: " + referenceFile.getAbsolutePath());
         String[] args = new String[]{BIN_PATH, "-c",
                 "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
                         + " -path \"" + pruneDir + "\" -prune"

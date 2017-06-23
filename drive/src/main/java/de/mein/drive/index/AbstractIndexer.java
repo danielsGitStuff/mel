@@ -98,6 +98,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             while (iterator.hasNext()) {
                 try {
                     path = iterator.next();
+                    System.out.println("AbstractIndexer.initStage.fromBashTools: " + path);
                     File f = new File(path);
                     File parent = f.getParentFile();
                     FsDirectory fsParent = null;

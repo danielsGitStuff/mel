@@ -89,8 +89,8 @@ public class MeinAuthProcess extends MeinProcess {
                             try {
                                 if (r.getDecryptedSecret().equals(mySecret)) {
                                     if (finalIsolationDetails == null) {
-                                        // propagate that we are connected!
-                                        propagateAuthentication(this.partnerCertificate);
+                                        //todo debug
+                                        partnerAuthenticated = true;
                                         // get all allowed Services
                                         MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
                                         // done here, set up validationprocess
@@ -98,6 +98,8 @@ public class MeinAuthProcess extends MeinProcess {
                                         MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate);
                                         // tell MAS we are connected & authenticated
                                         meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
+                                        // propagate that we are connected!
+                                        propagateAuthentication(this.partnerCertificate);
                                         send(response);
                                     } else {
                                         System.out.println("MeinAuthProcess.onMessageReceived");

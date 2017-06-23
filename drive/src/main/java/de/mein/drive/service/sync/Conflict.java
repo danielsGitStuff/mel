@@ -2,7 +2,6 @@ package de.mein.drive.service.sync;
 
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.dao.StageDao;
-import de.mein.sql.SqlQueriesException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -59,8 +58,18 @@ public class Conflict {
         return isRight != null && isRight;
     }
 
-    public Stage getChoice() throws SqlQueriesException {
-        return isRight ? getRight() : getLeft();
+    public Stage getChoice() {
+        if (isRight) {
+            if (rStage != null)
+                return rStage;
+            else
+                return dependsOn.getChoice();
+        } else {
+            if (lStage != null)
+                return lStage;
+            else
+                return dependsOn.getChoice();
+        }
     }
 
     public boolean hasDecision() {

@@ -43,5 +43,10 @@ public class LeftMergeListCell extends AbstractMergeListCell {
         return null;
     }
 
+    @Override
+    boolean isLeft() {
+        return true;
+    }
+
 
 }

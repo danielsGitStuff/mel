@@ -100,6 +100,10 @@ StageDao extends Dao.LockingDao {
     }
 
     public void deleteStageById(Long id) throws SqlQueriesException {
+        //todo debug
+        Stage s = this.getStageById(id);
+        if (s.getName().equals("samesub1.txt"))
+            System.out.println("StageDao.deleteStageById.debugj0j3f034hh");
         Stage dummy = new Stage();
         sqlQueries.delete(dummy, dummy.getIdPair().k() + "=?", ISQLQueries.whereArgs(id));
     }
