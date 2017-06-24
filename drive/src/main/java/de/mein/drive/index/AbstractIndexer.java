@@ -286,6 +286,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // save to stage
         newFsDirectory.calcContentHash();
         stage.setContentHash(newFsDirectory.getContentHash().v());
+        //todo debug
+        if (stage.getName().equals("samedir"))
+            System.out.println("AbstractIndexer.roamDirectoryStage.h90984th030g5");
         RWLock waitLock = new RWLock().lockWrite();
         Promise<BashTools.NodeAndTime, Exception, Void> promise = BashTools.getNodeAndTime(stageFile);
         promise.done(nodeAndTime -> N.r(() -> {
@@ -313,6 +316,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage.setiNode(nodeAndTime.getInode());
                 stage.setModified(nodeAndTime.getModifiedTime());
                 stage.setSize(stageFile.length());
+                stage.setSynced(true);
                 // stage can be deleted if nothing changed
                 if (stage.getFsId() != null) {
                     FsEntry fsEntry = fsDao.getFile(stage.getFsId());

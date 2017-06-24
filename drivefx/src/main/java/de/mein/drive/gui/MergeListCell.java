@@ -5,10 +5,9 @@ import de.mein.drive.service.sync.EmptyRowConflict;
 import de.mein.drive.sql.Stage;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
 /**
@@ -18,6 +17,8 @@ public class MergeListCell extends AbstractMergeListCell {
 
     private final ListView<Conflict> rightList;
     private final ListView<Conflict> leftList;
+    private Button btnLeft, btnRight;
+    private HBox spacerLeft, spacerRight;
 
     public MergeListCell(ListView<Conflict> leftList, ListView<Conflict> rightList) {
         this.leftList = leftList;
@@ -43,7 +44,16 @@ public class MergeListCell extends AbstractMergeListCell {
 
     @Override
     void init() {
-        addChildren(button);
+        btnRight = new Button(">>");
+        btnLeft = new Button("<<");
+        spacerLeft = new HBox();
+        spacerRight = new HBox();
+        spacerRight.setMouseTransparent(true);
+        spacerLeft.setMouseTransparent(true);
+        HBox.setHgrow(spacerLeft, Priority.ALWAYS);
+        HBox.setHgrow(spacerRight, Priority.ALWAYS);
+
+        addChildren(btnLeft, spacerLeft, label, spacerRight, btnRight);
     }
 
     @Override
@@ -58,7 +68,8 @@ public class MergeListCell extends AbstractMergeListCell {
             } else {
                 lastSelected = conflict;
                 if (conflict.hasDecision())
-                    button.setText(conflict.getChoice().getName());
+                    label.setText(conflict.getChoice().getName());
+                setGraphic(hbox);
             }
             indent();
         }

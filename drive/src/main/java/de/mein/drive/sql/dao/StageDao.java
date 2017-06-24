@@ -43,6 +43,8 @@ StageDao extends Dao.LockingDao {
         RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
         String rootPath = rootDirectory.getPath();
         String path = f.getAbsolutePath();
+        if (path.length() < rootPath.length())
+            return null;
         // skip a File.separator
         String sh = path.substring(rootPath.length());
         if (sh.startsWith("/"))
@@ -285,7 +287,7 @@ StageDao extends Dao.LockingDao {
 
     public Stage insert(Stage stage) throws SqlQueriesException {
         //todo debug
-        if (stage.getName().equals("samesub"))
+        if (stage.getName().equals("samedir"))
             System.err.println("StageDao.getFileByStage.debug 4t4g5ge");
         Long id = sqlQueries.insert(stage);
         return stage.setId(id);
@@ -344,6 +346,8 @@ StageDao extends Dao.LockingDao {
     }
 
     public void update(Stage stage) throws SqlQueriesException {
+        if (stage.getName().equals("samedir"))
+            System.err.println("StageDao.getFileByStage.debug h99g359");
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(stage.getId());

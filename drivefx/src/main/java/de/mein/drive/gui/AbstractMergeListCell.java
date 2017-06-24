@@ -75,16 +75,14 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
 
     @Override
     protected void updateItem(Conflict conflict, boolean empty) {
+        super.updateItem(conflict,empty);
         if (conflict instanceof EmptyRowConflict) {
             setBackground(new Background(new BackgroundFill(new Color(.3, .3, .3, 1), CornerRadii.EMPTY, Insets.EMPTY)));
         } else {
-            //todo debug
-            if (AbstractMergeListCell.this instanceof LeftMergeListCell) {
-                System.out.println("AbstractMergeListCell.updateItem.debug9z9340g3");
-            }
             indent = 0;
             if (empty || conflict == null) {
                 setGraphic(null);
+                setBackground(null);
                 lastSelected = null;
             } else {
                 lastSelected = conflict;
@@ -121,6 +119,7 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
             indent();
         }
     }
+
 
     abstract boolean isLeft();
 

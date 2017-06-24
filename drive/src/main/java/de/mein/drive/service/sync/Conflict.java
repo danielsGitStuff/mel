@@ -92,6 +92,12 @@ public class Conflict {
         return rStage;
     }
 
+    @Override
+    public String toString() {
+        return "{class:\""+getClass().getSimpleName()+"\",key:\""+key+"\",isRight:\""+isRight+"\"}";
+    }
+
+
     public void chooseNothing() {
         isRight = null;
     }

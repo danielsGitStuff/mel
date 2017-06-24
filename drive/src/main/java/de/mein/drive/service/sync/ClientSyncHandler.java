@@ -263,14 +263,14 @@ public class ClientSyncHandler extends SyncHandler {
             if (!conflictSolver.isSolved()) {
                 conflictSolverMap.remove(identifier);
                 conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
-                conflictSolver.beforeStart(  serverStageSet);
+                conflictSolver.beforeStart(serverStageSet);
             } else {
-                conflictSolver.beforeStart(  serverStageSet);
+                //conflictSolver.beforeStart(  serverStageSet);
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
             }
         } else {
             conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
-            conflictSolver.beforeStart(  serverStageSet);
+            conflictSolver.beforeStart(serverStageSet);
             iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
         // only remember the conflict solver if it actually has conflicts
@@ -447,6 +447,14 @@ public class ClientSyncHandler extends SyncHandler {
         }));
     }
 
+    private void insertWithParentId(Map<Long, Long> entryIdStageIdMap , GenericFSEntry genericFSEntry, Stage stage) throws SqlQueriesException {
+        if (entryIdStageIdMap.containsKey(genericFSEntry.getParentId().v())) {
+            stage.setParentId(entryIdStageIdMap.get(genericFSEntry.getParentId().v()));
+        }
+        stageDao.insert(stage);
+        entryIdStageIdMap.put(genericFSEntry.getId().v(), stage.getId());
+    }
+
     /**
      * delta goes in here
      *
@@ -458,6 +466,7 @@ public class ClientSyncHandler extends SyncHandler {
     private Promise<Long, Void, Void> sync2Stage(SyncTask syncTask) throws SqlQueriesException, InterruptedException {
         DeferredObject<Void, Void, Void> communicationDone = new DeferredObject<>();
         DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
+        Map<Long, Long> entryIdStageIdMap = new HashMap<>();
         Order order = new Order();
         List<GenericFSEntry> entries = syncTask.getResult();
         if (entries == null) {
@@ -470,7 +479,7 @@ public class ClientSyncHandler extends SyncHandler {
         for (GenericFSEntry genericFSEntry : entries) {
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
-            stageDao.insert(stage);
+            insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
         // check if something was deleted
         List<Stage> stages = stageDao.getDirectoriesByStageSet(stageSet.getId().v());
@@ -546,7 +555,7 @@ public class ClientSyncHandler extends SyncHandler {
                             Stage stage = GenericFSEntry.generic2Stage(genSub, stageSet.getId().v());
                             stage.setDeleted(true);
                             stage.setOrder(order.ord());
-                            stageDao.insert(stage);
+                            insertWithParentId(entryIdStageIdMap,genSub,stage);
                         }
                     }
                 }
