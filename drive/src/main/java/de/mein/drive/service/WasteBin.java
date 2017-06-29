@@ -40,6 +40,9 @@ public class WasteBin {
 
     public void delete(Long fsId) throws SqlQueriesException, IOException {
         GenericFSEntry genericFSEntry = fsDao.getGenericById(fsId);
+        //todo debug
+        if (genericFSEntry == null || genericFSEntry.getIsDirectory().isNull())
+            System.out.println("WasteBin.delete.debugjfc3h0fg");
         if (genericFSEntry.getIsDirectory().v())
             deleteDirectory((FsDirectory) genericFSEntry.ins());
         else

@@ -185,7 +185,7 @@ public class ConflictSolver extends SyncStageMerger {
         while (rightStage != null) {
             rightStage.setId(null);
             File parentFile = stageDao.getFileByStage(rightStage).getParentFile();
-            if (parentFile.getAbsolutePath().length()>=rootPath.length()) {
+            if (parentFile.getAbsolutePath().length() >= rootPath.length()) {
                 // first, lets see if we have already created a parent!
                 Stage alreadyStagedParent = stageDao.getStageByPath(targetStageSet.getId().v(), parentFile);
                 Stage targetParentStage = new Stage()
@@ -246,6 +246,8 @@ public class ConflictSolver extends SyncStageMerger {
             stageDao.deleteStageSet(mergeStageSet.getId().v());
         mergeStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
         stageDao.updateStageSet(mergeStageSet);
+        if (!stageDao.stageSetHasContent(mergeStageSet.getId().v()))
+            stageDao.deleteStageSet(mergeStageSet.getId().v());
     }
 
     public StageSet getMergeStageSet() {
@@ -259,9 +261,11 @@ public class ConflictSolver extends SyncStageMerger {
             Conflict conflict = conflicts.remove(key);
             if (conflict.isRight() && conflict.hasRight()) {
                 solvedStage = right;
-                solvedStage.setFsParentId(left.getFsParentId());
-                solvedStage.setFsId(left.getFsId());
-                solvedStage.setVersion(left.getVersion());
+                if (left!=null) {
+                    solvedStage.setFsParentId(left.getFsParentId());
+                    solvedStage.setFsId(left.getFsId());
+                    solvedStage.setVersion(left.getVersion());
+                }
             } else if (conflict.isLeft() && conflict.hasLeft()) {
                 solvedStage = left;
                 // left is server side, so it comes with the appropriate FsIds
@@ -273,7 +277,7 @@ public class ConflictSolver extends SyncStageMerger {
             solvedStage = right;
 
         }
-        if (solvedStage != null) {
+        if (solvedStage != null && solvedStage == right) {
             try {
                 solvedStage.setOrder(order.ord());
                 solvedStage.setStageSet(mergeStageSet.getId().v());
