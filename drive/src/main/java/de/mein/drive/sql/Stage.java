@@ -272,4 +272,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         fsParentId.v(source.getFsParentId());
         return this;
     }
+
+    public Pair<Long> getiNodePair() {
+        return iNode;
+    }
 }

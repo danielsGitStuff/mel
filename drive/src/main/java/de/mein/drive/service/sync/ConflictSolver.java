@@ -242,8 +242,6 @@ public class ConflictSolver extends SyncStageMerger {
     public void cleanup() throws SqlQueriesException {
         //cleanup
         stageDao.deleteStageSet(rStageSetId);
-        if (!stageDao.stageSetHasContent(mergeStageSet.getId().v()))
-            stageDao.deleteStageSet(mergeStageSet.getId().v());
         mergeStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
         stageDao.updateStageSet(mergeStageSet);
         if (!stageDao.stageSetHasContent(mergeStageSet.getId().v()))

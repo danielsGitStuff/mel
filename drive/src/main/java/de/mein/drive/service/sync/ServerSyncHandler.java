@@ -56,11 +56,18 @@ public class ServerSyncHandler extends SyncHandler {
         Long oldVersion = fsDao.getLatestVersion();
         Map<Long, Long> stageIdFsIdMap = new HashMap<>();
         this.commitStage(stageSet.getId().v(), false, stageIdFsIdMap);
-        List<GenericFSEntry> delta = fsDao.getDelta(oldVersion);
-        CommitAnswer answer = new CommitAnswer().setDelta(delta).setStageIdFsIdMao(stageIdFsIdMap);
+        Map<Long, Long> newIdMap = new HashMap<>();
+        for (Long oldeStageId : oldStageIdStageIdMap.keySet()) {
+            Long newFsId = stageIdFsIdMap.get(oldStageIdStageIdMap.get(oldeStageId));
+            if (newFsId != null) {
+                newIdMap.put(oldeStageId, newFsId);
+            }
+        }
+        CommitAnswer answer = new CommitAnswer().setStageIdFsIdMap(newIdMap);
         request.resolve(answer);
         fsDao.unlockWrite();
         // TODO setup transfers
+        List<GenericFSEntry> delta = fsDao.getDelta(oldVersion);
         for (GenericFSEntry genericFSEntry : delta) {
             if (!genericFSEntry.getIsDirectory().v()) {
                 TransferDetails details = new TransferDetails();

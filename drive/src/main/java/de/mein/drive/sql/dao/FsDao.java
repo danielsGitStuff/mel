@@ -26,6 +26,7 @@ public class FsDao extends Dao {
     public void lockRead() {
         rwLock.readLock().lock();
         rcount++;
+        System.out.println("FsDao.lockRead.on " + Thread.currentThread().getName());
     }
 
 
@@ -36,8 +37,19 @@ public class FsDao extends Dao {
 
 
     public void unlockRead() {
-        rwLock.readLock().unlock();
-        urcount++;
+        //todo debug
+        System.out.println("FsDao.unlockRead.attempt.on " + Thread.currentThread().getName());
+        try {
+            if (rwLock.getWriteHoldCount() == 0 && rwLock.getReadHoldCount() == 0) {
+                System.out.println("FsDao.unlockRead.debugjfrje");
+            }
+            rwLock.readLock().unlock();
+            urcount++;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("FsDao.unlockRead.on " + Thread.currentThread().getName());
     }
 
 
@@ -149,6 +161,8 @@ public class FsDao extends Dao {
         // todo debug
         if (fsEntry.getContentHash().notNull() && fsEntry.getContentHash().equals("c72eb02c586d74bc41ad680ba5f184f3"))
             System.err.println("FsDao.insert.debug");
+        if (fsEntry.getContentHash().notNull() && fsEntry.getContentHash().v().equals("51037a4a37730f52c8732586d3aaa316"))
+            System.out.println("FsDao.insert.debugf934wt0ß4");
         if (fsEntry.getId().v() != null)
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
         else
