@@ -28,8 +28,7 @@ public class WasteDao extends Dao.LockingDao {
     public Waste fsToWaste(FsFile file) throws SqlQueriesException {
         Waste waste = Waste.fromFsFile(file);
         try {
-            Long id = sqlQueries.insert(waste);
-            waste.getId().v(id);
+            insert(waste);
         } catch (Exception e) {
             System.err.println("WasteDao.fsToWaste: " + e.getMessage());
         }
@@ -46,7 +45,7 @@ public class WasteDao extends Dao.LockingDao {
     }
 
     public void update(Waste waste) throws SqlQueriesException {
-        sqlQueries.update(waste, waste.getHash().k() + "=?", ISQLQueries.whereArgs(waste.getHash().v()));
+        sqlQueries.update(waste, waste.getId().k() + "=?", ISQLQueries.whereArgs(waste.getId().v()));
     }
 
     /**
@@ -60,7 +59,10 @@ public class WasteDao extends Dao.LockingDao {
     }
 
     public Waste insert(Waste waste) throws SqlQueriesException {
-        Long id =  sqlQueries.insert(waste);
+        //todo debug
+        if (!waste.getInplace().v() && waste.getName().v().equals("same1.txt"))
+            System.out.println("WasteDao.insert.debug0fj3ß4u");
+        Long id = sqlQueries.insert(waste);
         waste.getId().v(id);
         return waste;
     }
