@@ -125,16 +125,17 @@ public class ClientSyncHandler extends SyncHandler {
                         Long fsId = answer.getStageIdFsIdMap().get(stageId);
                         Stage stage = stageDao.getStageById(stageId);
                         stage.setFsId(fsId);
-                        if (stage.getParentId() != null) {
+                        if (stage.getParentId() != null && stage.getFsParentId() == null) {
                             Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
                             stage.setFsParentId(fsParentId);
                         }
                         stageDao.update(stage);
                     }
                     StageSet stageSet = stageDao.getStageSetById(stageSetId);
-                    stageSet.setStatus(DriveStrings.STAGESET_STATUS_SERVER_COMMITED);
+                    stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+                    stageSet.setSource(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER);
                     stageDao.updateStageSet(stageSet);
-//                    addJob(new CommitJob());
+                    meinDriveService.addJob(new CommitJob());
 //                    commitStage(stageSetId, false);
                     waitLock.unlock();
                     //fsDao.unlockWrite();

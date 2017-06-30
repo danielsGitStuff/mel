@@ -8,9 +8,7 @@ import de.mein.drive.sql.*;
 import de.mein.sql.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -437,6 +435,7 @@ public class FsDao extends Dao {
         FsFile dummy = new FsFile();
         String where = dummy.getContentHash().k() + "=? and " + dummy.getSynced().k() + "=?";
         List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(hash, false));
+        //return new HashSet<>(fsFiles);
         return fsFiles;
     }
 

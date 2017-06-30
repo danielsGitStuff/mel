@@ -66,4 +66,18 @@ public class WasteDao extends Dao.LockingDao {
         waste.getId().v(id);
         return waste;
     }
+
+    public Waste getWasteByHash(String hash) throws SqlQueriesException {
+        Waste waste = new Waste();
+        String where = waste.getHash().k() + "=? and " + waste.getInplace().k() + "=? limit 1";
+        List<Waste> wastes = sqlQueries.load(waste.getAllAttributes(), waste, where, ISQLQueries.whereArgs(hash, true));
+        if (wastes.size() > 0)
+            return wastes.get(0);
+        return null;
+    }
+
+    public void delete(Long id) throws SqlQueriesException {
+        Waste waste = new Waste();
+        sqlQueries.delete(waste, waste.getId().k() + "=?", ISQLQueries.whereArgs(id));
+    }
 }

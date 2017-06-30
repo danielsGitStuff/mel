@@ -52,7 +52,7 @@ public abstract class SyncHandler {
                 , wasteBin, this);
     }
 
-    protected File moveFile(File source, FsFile fsTarget) throws SqlQueriesException, IOException {
+    public File moveFile(File source, FsFile fsTarget) throws SqlQueriesException, IOException {
         File target = null;
         try {
             //fsDao.lockWrite();
@@ -82,6 +82,7 @@ public abstract class SyncHandler {
                 fsTarget.getiNode().v(nodeAndTime.getInode());
                 fsTarget.getModified().v(nodeAndTime.getModifiedTime());
                 fsTarget.getSize().v(source.length());
+                fsTarget.getSynced().v(true);
                 waitLock.unlockWrite();
             }));
             waitLock.lockWrite();
@@ -107,12 +108,8 @@ public abstract class SyncHandler {
             fsDao.lockWrite();
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             if (fsFiles.size() > 0) {
-                // todo check if file in wastebin, if so, tell wastebin to move it
-                if (file.getAbsolutePath().startsWith(wasteBin.getWastePath())) {
-                    System.err.println("SyncHandler.onFileTransferred.NOT:IMPLEMENTED:YET");
-                }
                 //TODO check if file is in transfer dir, then move, else copy
-                else if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
+                if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
                     FsFile fsFile = fsFiles.get(0);
                     file = moveFile(file, fsFile);
                     fsFile.getSynced().v(true);

@@ -83,11 +83,7 @@ public class TransferManager extends DeferredRunnable {
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {
                         logger.log(Level.FINER, "TransferManager.run.2222");
                         // todo ask WasteBin for files
-                        List<String> foundHashes = wasteBin.searchTransfer();
-                        for (String hash : foundHashes) {
-                            File file = wasteBin.getFileByHash(hash);
-                            syncHandler.onFileTransferred(file, hash);
-                        }
+                        wasteBin.restoreFsFiles(syncHandler);
                         // todo ask FS for files
                         try {
                             fsDao.lockRead();

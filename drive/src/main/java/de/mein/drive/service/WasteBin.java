@@ -4,6 +4,7 @@ import de.mein.drive.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.BashTools;
 import de.mein.drive.index.Indexer;
+import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -43,9 +44,6 @@ public class WasteBin {
 
     public void delete(Long fsId) throws SqlQueriesException, IOException {
         GenericFSEntry genericFSEntry = fsDao.getGenericById(fsId);
-        //todo debug
-        if (genericFSEntry == null || genericFSEntry.getIsDirectory().isNull())
-            System.out.println("WasteBin.delete.debugjfc3h0fg");
         if (genericFSEntry.getIsDirectory().v())
             deleteDirectory((FsDirectory) genericFSEntry.ins());
         else
@@ -76,9 +74,6 @@ public class WasteBin {
      */
     public void del(Waste waste, File file) throws SqlQueriesException {
         try {
-            //todo debug
-            if (waste.getHash().v().equals("51037a4a37730f52c8732586d3aaa316"))
-                System.err.println("WasteBin.del.debug30tjf");
             File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
             file.renameTo(target);
             waste.getInplace().v(true);
@@ -89,9 +84,6 @@ public class WasteBin {
     }
 
     public void deleteFile(FsFile fsFile) {
-        // todo debug
-        if (fsFile.getContentHash().v().equals("51037a4a37730f52c8732586d3aaa316") || fsFile.getName().v().equals("same1.txt"))
-            System.err.println("WasteBin.deleteFile.debug3434");
         try {
             File f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
             if (f.exists()) {
@@ -129,12 +121,12 @@ public class WasteBin {
 
     private String findHashOfFile(File file, Long inode) throws IOException, SqlQueriesException {
         GenericFSEntry genFsFile = fsDao.getGenericByINode(inode);
-        if (genFsFile != null)
-            return genFsFile.getContentHash().v();
         Stage stage = stageDao.getLatestStageFromFsByINode(inode);
         if (stage != null) {
             return stage.getContentHash();
         }
+        if (genFsFile != null)
+            return genFsFile.getContentHash().v();
         return null;
     }
 
@@ -180,7 +172,7 @@ public class WasteBin {
         return wasteDir.getAbsolutePath();
     }
 
-    public List<String> searchTransfer() throws SqlQueriesException {
+    private List<String> searchTransfer() throws SqlQueriesException {
         wasteDao.lockRead();
         try {
             return wasteDao.searchTransfer();
@@ -192,11 +184,26 @@ public class WasteBin {
         }
     }
 
-    public File getFileByHash(String hash) {
-        return new File(wasteDir + File.separator + hash);
+
+    public void restoreFsFiles(SyncHandler syncHandler) throws SqlQueriesException, IOException {
+        List<String> availableHashes = searchTransfer();
+        for (String hash : availableHashes) {
+            List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
+            for (FsFile fsFile : fsFiles) {
+                Waste waste = wasteDao.getWasteByHash(fsFile.getContentHash().v());
+                if (waste != null) {
+                    File wasteFile = new File(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
+                    wasteDao.delete(waste.getId().v());
+                    fsDao.setSynced(fsFile.getId().v(), true);
+                    syncHandler.moveFile(wasteFile, fsFile);
+                } else {
+                    //todo debug
+                    System.err.println("WasteBin.restoreFsFiles.degubgseo5ß");
+                }
+            }
+        }
+
     }
 
-    public void prepareDelete(FsFile oldeEntry) throws SqlQueriesException {
-        wasteDao.fsToWaste(oldeEntry);
-    }
+
 }
