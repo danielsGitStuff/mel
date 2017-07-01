@@ -86,7 +86,7 @@ public class TransferManager extends DeferredRunnable {
                         wasteBin.restoreFsFiles(syncHandler);
                         // todo ask FS for files
                         try {
-                            fsDao.lockRead();
+                            fsDao.lockWrite();
                             List<String> hashes = fsDao.searchTransfer();
                             for (String hash : hashes) {
                                 List<FsFile> fsFiles = fsDao.getFilesByHash(hash);
@@ -94,12 +94,13 @@ public class TransferManager extends DeferredRunnable {
                                     FsFile fsFile = fsFiles.get(0);
                                     File file = fsDao.getFileByFsFile(meinDriveService.getDriveSettings().getRootDirectory(), fsFile);
                                     syncHandler.onFileTransferred(file, hash);
+                                    transferDao.deleteByHash(hash);
                                 }
                             }
                         } catch (Exception e) {
                             throw e;
                         } finally {
-                            fsDao.unlockRead();
+                            fsDao.unlockWrite();
                         }
                         // ask the network for files
                         MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());

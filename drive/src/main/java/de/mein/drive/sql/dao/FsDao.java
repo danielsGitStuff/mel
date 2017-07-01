@@ -446,6 +446,11 @@ public class FsDao extends Dao {
         return fsFiles;
     }
 
+    /**
+     * searches for all hashes that the {@link de.mein.drive.transfer.TransferManager} is looking for and are already in the share
+     * @return
+     * @throws SqlQueriesException
+     */
     public List<String> searchTransfer() throws SqlQueriesException {
         FsFile fsFile = new FsFile();
         TransferDetails transfer = new TransferDetails();
