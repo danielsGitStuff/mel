@@ -8,7 +8,10 @@ import de.mein.drive.sql.*;
 import de.mein.sql.*;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -16,44 +19,54 @@ public class FsDao extends Dao {
 
     private RWSemaphore rwSemaphore = new RWSemaphore();
     private ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
-    private int rcount = 0;
-    private int urcount = 0;
-    private int wcount = 0;
-    private int uwcount = 0;
+    private AtomicInteger rcount = new AtomicInteger(0);
+    private AtomicInteger urcount = new AtomicInteger(0);
+    private AtomicInteger wcount = new AtomicInteger(0);
+    private AtomicInteger uwcount = new AtomicInteger(0);
+
+    private int printLock(String method, AtomicInteger count) {
+        int n = count.incrementAndGet();
+        System.out.println("FsDao." + method + "(" + n + ").on " + Thread.currentThread().getName());
+        return n;
+    }
+
+    private void printGotLock(String method, int n) {
+        System.out.println("FsDao." + method + "(" + n + ").got.lock.on " + Thread.currentThread().getName());
+    }
 
     public void lockRead() {
+        int n = printLock("lockRead", rcount);
+        if (n==4)
+            System.out.println("debug.efmspgjsß45");
         rwLock.readLock().lock();
-        rcount++;
-        System.out.println("FsDao.lockRead.on " + Thread.currentThread().getName());
+        printGotLock("lockRead", n);
     }
 
 
     public void lockWrite() {
+        int n = printLock("lockWrite", wcount);
         rwLock.writeLock().lock();
-        wcount++;
+        printGotLock("lockWrite", n);
     }
 
 
     public void unlockRead() {
         //todo debug
-        System.out.println("FsDao.unlockRead.attempt.on " + Thread.currentThread().getName());
         try {
             if (rwLock.getWriteHoldCount() == 0 && rwLock.getReadHoldCount() == 0) {
                 System.out.println("FsDao.unlockRead.debugjfrje");
             }
+            int n = printLock("unlockRead", urcount);
             rwLock.readLock().unlock();
-            urcount++;
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        System.out.println("FsDao.unlockRead.on " + Thread.currentThread().getName());
     }
 
 
     public void unlockWrite() {
+        printLock("unlockWrite", uwcount);
         rwLock.writeLock().unlock();
-        uwcount++;
     }
 
     private final DriveDatabaseManager driveDatabaseManager;
@@ -448,6 +461,7 @@ public class FsDao extends Dao {
 
     /**
      * searches for all hashes that the {@link de.mein.drive.transfer.TransferManager} is looking for and are already in the share
+     *
      * @return
      * @throws SqlQueriesException
      */

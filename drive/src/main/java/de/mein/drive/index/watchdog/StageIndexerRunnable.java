@@ -29,6 +29,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
 
     @Override
     public void runImpl() {
+        boolean unlocked = false;
         try {
             //todo debug
             System.out.println("StageIndexerRunnable.runImpl.locking read on " + Thread.currentThread().getName());
@@ -36,14 +37,17 @@ public class StageIndexerRunnable extends AbstractIndexer {
             System.out.println("StageIndexerRunnable.runImpl.locked");
             initStage(DriveStrings.STAGESET_TYPE_FS, pathCollection.getPaths().stream());
             examineStage();
+            fsDao.unlockRead();
+            unlocked = true;
             stagingDoneListener.onStagingFsEventsDone(stageSetId);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            System.out.println("StageIndexerRunnable.runImpl.unlocking on " + Thread.currentThread().getName());
-            fsDao.unlockRead();
-            System.out.println("StageIndexerRunnable.runImpl.unlocked");
-
+            if (!unlocked) {
+                System.out.println("StageIndexerRunnable.runImpl.unlocking on " + Thread.currentThread().getName());
+                fsDao.unlockRead();
+                System.out.println("StageIndexerRunnable.runImpl.unlocked");
+            }
         }
     }
 
