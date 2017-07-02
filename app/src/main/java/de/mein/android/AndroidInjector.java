@@ -29,8 +29,6 @@ public class AndroidInjector {
     }
 
     public static void inject(Context context, AssetManager assetManager) throws IOException {
-        InputStream sqlInput = assetManager.open("sql.sql");
-        InputStream driveSqlInput = assetManager.open("drive0.sql");
         MeinInjector.setExecutorImpl(new SqliteExecutorInjection() {
             @Override
             public void executeStream(SQLConnection con, InputStream in) {
@@ -95,7 +93,7 @@ public class AndroidInjector {
         });
         DriveInjector.setDriveSqlInputStreamInjector(() -> {
             try {
-                return assetManager.open("drive0.sql");
+                return assetManager.open("drive.sql");
             } catch (IOException e) {
                 e.printStackTrace();
             }
