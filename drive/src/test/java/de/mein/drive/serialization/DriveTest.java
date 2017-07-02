@@ -13,12 +13,14 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.tools.Hash;
 import de.mein.auth.tools.Lok;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
+import de.mein.drive.index.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;
@@ -70,7 +72,7 @@ public class DriveTest {
         clientConflictImpl(null, null);
     }
 
-    public void clientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
+    public void complexClientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final DriveSyncListener syncListener = new DriveSyncListener() {
             public File file2;
@@ -89,12 +91,8 @@ public class DriveTest {
                         //if (!file2.exists())
                         System.out.println("DriveTest.onSyncFailed.creating new file...");
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
-                        File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
-                        File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
-                        File f1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
-                        delFile.delete();
-                        TestFileCreator.saveFile("same3.server".getBytes(), newFile);
-                        TestFileCreator.saveFile("same1.server".getBytes(), f1);
+                        File delFile = new File(rootPath + File.separator + "samedir");
+                        BashTools.rmRf(delFile);
                         MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
@@ -125,6 +123,100 @@ public class DriveTest {
                         file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
                         TestFileCreator.saveFile("same1.client".getBytes(), file1);
                         TestFileCreator.saveFile("same2.client".getBytes(), file2);
+                        File subDir = new File(rootPath + File.separator + "samedir" + File.separator + "samesub");
+                        subDir.mkdirs();
+                        File subFile = new File(subDir.getAbsolutePath() + File.separator + "samesub1.txt");
+                        TestFileCreator.saveFile("samesub1.client".getBytes(), subFile);
+
+                        String hash = Hash.md5(file1);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
+                        hash = Hash.md5(file2);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
+                    });
+
+                }
+                transferCount++;
+            }
+
+            @Override
+            public void onSyncDoneImpl() {
+                System.out.println("DriveTest.onSyncDoneImpl");
+                if (count == 1) {
+                    System.out.println("DriveTest.onSyncDoneImpl");
+                }
+                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                count++;
+            }
+        };
+        setup(false, syncListener, clientMeinBoot);
+        lock.lockWrite();
+        lock.unlockWrite();
+        System.out.println("DriveTest.clientMergeStages.END");
+    }
+
+    public void clientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
+        // start both instances, shutdown server, change something in client directory
+        final DriveSyncListener syncListener = new DriveSyncListener() {
+            public File file2;
+            public File file1;
+            public String rootPath;
+            public MeinDriveClientService meinDriveClientService;
+            private DriveSyncListener ins = this;
+            int count = 0;
+            int failCount = 0;
+
+            @Override
+            public void onSyncFailed() {
+                System.out.println("DriveTest.onSyncFailed");
+                if (failCount == 0) {
+                    N.r(() -> {
+                        //if (!file2.exists())
+                        System.out.println("DriveTest.onSyncFailed.creating new file...");
+                        rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
+                        File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
+                        File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        File f1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+                        delFile.delete();
+                        TestFileCreator.saveFile("same3.server".getBytes(), newFile);
+                        TestFileCreator.saveFile("same1.server".getBytes(), f1);
+                        String hash = Hash.md5(f1);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
+                        hash = Hash.md5(newFile);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
+                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
+                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
+                        rebooted.done(res -> N.r(() -> {
+                            System.out.println("DriveTest.alles ok");
+//                            testStructure.setMaClient(meinAuthService2)
+//                                    .setMaServer(meinAuthService1)
+//                                    .setClientDriveService(clientDriveService)
+//                                    .setServerDriveService(serverService)
+//                                    .setTestdir1(testdir1)
+//                                    .setTestdir2(testdir2);
+//                            clientDriveService.setSyncListener(clientSyncListener);
+                        }));
+                    });
+                }
+                failCount++;
+            }
+
+            private int transferCount = 0;
+
+            @Override
+            public void onTransfersDone() {
+                if (transferCount == 0) {
+                    N.r(() -> {
+                        meinAuthService1.shutDown();
+                        meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
+                        rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
+                        file1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+                        file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        TestFileCreator.saveFile("same1.client".getBytes(), file1);
+                        TestFileCreator.saveFile("same2.client".getBytes(), file2);
+                        String hash = Hash.md5(file1);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
+                        hash = Hash.md5(file2);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
                     });
 
                 }

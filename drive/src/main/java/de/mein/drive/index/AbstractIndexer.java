@@ -98,6 +98,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             while (iterator.hasNext()) {
                 try {
                     path = iterator.next();
+                    System.out.println("AbstractIndexer.initStage.fromBashTools: " + path);
                     File f = new File(path);
                     File parent = f.getParentFile();
                     FsDirectory fsParent = null;
@@ -180,10 +181,14 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     protected void roamDirectoryStage(Stage stage, File stageFile) throws SqlQueriesException, IOException {
+        if (stage.getIsDirectory() && stage.getDeleted())
+            return;
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
         File[] files = stageFile.listFiles(File::isFile);
         File[] subDirs = stageFile.listFiles(File::isDirectory);
+        if (files == null || subDirs == null)
+            System.out.println("AbstractIndexer.roamDirectoryStage.dbuer903tj");
         // map will contain all FsEntry that must be deleted
         Map<String, GenericFSEntry> fsContent = new HashMap<>();
         if (stage.getFsId() != null) {
@@ -247,11 +252,22 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 // roam
                 subStage = new Stage().setStageSet(stageSetId)
                         .setParentId(stage.getId())
+                        .setFsParentId(stage.getFsId())
                         .setName(subDir.getName())
-                        .setIsDirectory(true);
+                        .setIsDirectory(true)
+                        .setDeleted(!subDir.exists());
                 System.out.println("StageIndexerRunnable.roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
                 subStage.setOrder(order.ord());
-                stageDao.insert(subStage);
+                //todo debug
+                if (subStage.getDeleted() == true && subStage.getName().equals("samesub"))
+                    System.out.println("AbstractIndexer.roamDirectoryStage");
+                if (subStage.getDeleted() == null)
+                    System.out.println("AbstractIndexer.roamDirectoryStage.debugemsagß5");
+                try {
+                    stageDao.insert(subStage);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 roamDirectoryStage(subStage, subDir);
             }
             if (leSubDirectory == null)
@@ -270,6 +286,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // save to stage
         newFsDirectory.calcContentHash();
         stage.setContentHash(newFsDirectory.getContentHash().v());
+        //todo debug
+        if (stage.getName().equals("samedir"))
+            System.out.println("AbstractIndexer.roamDirectoryStage.h90984th030g5");
         RWLock waitLock = new RWLock().lockWrite();
         Promise<BashTools.NodeAndTime, Exception, Void> promise = BashTools.getNodeAndTime(stageFile);
         promise.done(nodeAndTime -> N.r(() -> {
@@ -297,6 +316,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage.setiNode(nodeAndTime.getInode());
                 stage.setModified(nodeAndTime.getModifiedTime());
                 stage.setSize(stageFile.length());
+                stage.setSynced(true);
                 // stage can be deleted if nothing changed
                 if (stage.getFsId() != null) {
                     FsEntry fsEntry = fsDao.getFile(stage.getFsId());

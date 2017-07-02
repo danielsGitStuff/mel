@@ -1,11 +1,7 @@
 package de.mein.drive.sql.dao;
 
 import de.mein.drive.sql.TransferDetails;
-import de.mein.sql.Dao;
-import de.mein.sql.ISQLQueries;
-import de.mein.sql.Pair;
-import de.mein.sql.SQLResource;
-import de.mein.sql.SqlQueriesException;
+import de.mein.sql.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +45,8 @@ public class TransferDao extends Dao {
         List<TransferDetails> result = sqlQueries.load(columns, dummy, null, null, whatElse);
         return result;
     }
-    public SQLResource<TransferDetails> getTransferResource(){
+
+    public SQLResource<TransferDetails> getTransferResource() {
         return null;
     }
 
@@ -60,5 +57,10 @@ public class TransferDao extends Dao {
         String whatElse = " limit ?";
         List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, limit), whatElse);
         return result;
+    }
+
+    public void deleteByHash(String hash) throws SqlQueriesException {
+        TransferDetails transfer = new TransferDetails();
+        sqlQueries.delete(transfer, transfer.getHash().k() + "=?", ISQLQueries.whereArgs(hash));
     }
 }

@@ -55,11 +55,12 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
                             File file = new File(absolutePath);
+                            // todo debug
                             System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
                                 watchDogTimer.start();
-                                System.out.println("ignored");
+                                System.out.println("ignored/broken WatchService");
                             } else {
                                 analyze(event, file);
                                 System.out.println("analyzed");

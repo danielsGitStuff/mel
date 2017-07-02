@@ -43,6 +43,8 @@ StageDao extends Dao.LockingDao {
         RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
         String rootPath = rootDirectory.getPath();
         String path = f.getAbsolutePath();
+        if (path.length() < rootPath.length())
+            return null;
         // skip a File.separator
         String sh = path.substring(rootPath.length());
         if (sh.startsWith("/"))
@@ -100,6 +102,10 @@ StageDao extends Dao.LockingDao {
     }
 
     public void deleteStageById(Long id) throws SqlQueriesException {
+        //todo debug
+        Stage s = this.getStageById(id);
+        if (s.getName().equals("samesub1.txt"))
+            System.out.println("StageDao.deleteStageById.debugj0j3f034hh");
         Stage dummy = new Stage();
         sqlQueries.delete(dummy, dummy.getIdPair().k() + "=?", ISQLQueries.whereArgs(id));
     }
@@ -150,8 +156,10 @@ StageDao extends Dao.LockingDao {
     }
 
     public File getFileByStage(Stage stage) throws SqlQueriesException {
+        if (stage.getName().equals("samesub1.txt")) // todo debug
+            System.err.println("StageDao.getFileByStage.debug 34234234");
         RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
-        final Long stageSetId = stage.getId();
+        final Long stageSetId = stage.getStageSet();
         Stack<Stage> stageStack = new Stack<>();
         FsEntry bottomFsEntry = null;
         while (stage != null) {
@@ -168,10 +176,15 @@ StageDao extends Dao.LockingDao {
                 }
             }
             if (stage.getParentId() != null) {
-                stage = getStageByFsId(stage.getFsParentId(), stageSetId);
                 if (stage != null)
                     stageStack.push(stage);
+                stage = getStageById(stage.getParentId());
             }
+        }
+        try {
+            fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
+        } catch (Exception e) {
+            System.err.println("debug93h349");
         }
         File file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
         StringBuilder path = new StringBuilder(file.getAbsolutePath());
@@ -191,6 +204,33 @@ StageDao extends Dao.LockingDao {
         Stage stage = new Stage();
         String where = stage.getStageSetPair().k() + "=? and " + stage.getMergedPair().k() + "=? order by " + stage.getOrderPair().k() + " limit 1";
         List<Stage> stages = sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(stageSetId, false));
+        if (stages.size() > 0)
+            return stages.get(0);
+        return null;
+    }
+
+    public List<Stage> getDeletedDirectories(Long stageSetId) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String where = stage.getIsDirectoryPair().k() + "=? and " + stage.getStageSetPair().k() + "=? and " + stage.getDeletedPair().k() + "=?";
+        return sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(true, stageSetId, true));
+    }
+
+    public Stage getStartStage(Long lStageSetId) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String where = stage.getIsDirectoryPair().k() + "=? and " + stage.getStageSetPair().k() + "=? and " + stage.getFsParentIdPair().k() + " is null limit 1";
+        List<Stage> stages = sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(true, lStageSetId));
+        if (stages.size() > 0)
+            return stages.get(0);
+        return null;
+    }
+
+    public Stage getLatestStageFromFsByINode(Long inode) throws SqlQueriesException {
+        Stage stage = new Stage();
+        StageSet set = new StageSet();
+        String where = stage.getiNodePair().k() + "=? and " + stage.getStageSetPair().k()
+                + "=(select " + set.getId().k() + " from " + set.getTableName() + " where " + set.getSource().k() + "=? order by "
+                + set.getCreated().k() + " desc limit 1)";
+        List<Stage> stages = sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(inode,DriveStrings.STAGESET_TYPE_FS));
         if (stages.size() > 0)
             return stages.get(0);
         return null;
@@ -259,6 +299,11 @@ StageDao extends Dao.LockingDao {
 
     public Stage insert(Stage stage) throws SqlQueriesException {
         //todo debug
+        if (stage.getName().equals("samedir"))
+            System.err.println("StageDao.getFileByStage.debug 4t4g5ge");
+        if (stage.getStageSet() == null) {
+            System.out.println("StageDao.insert.debug08hf238hf08");
+        }
         Long id = sqlQueries.insert(stage);
         return stage.setId(id);
     }
@@ -316,6 +361,8 @@ StageDao extends Dao.LockingDao {
     }
 
     public void update(Stage stage) throws SqlQueriesException {
+        if (stage.getName().equals("samedir")) //todo debug
+            System.err.println("StageDao.getFileByStage.debug h99g359");
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(stage.getId());
@@ -395,4 +442,5 @@ StageDao extends Dao.LockingDao {
                 "where " + stage.getIdPair().k() + "=?";
         sqlQueries.execute(statement, ISQLQueries.whereArgs(found, stageId));
     }
+
 }

@@ -4,7 +4,6 @@ import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.AbstractIndexer;
 import de.mein.drive.sql.DriveDatabaseManager;
-import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.dao.FsDao;
 
 /**
@@ -30,21 +29,25 @@ public class StageIndexerRunnable extends AbstractIndexer {
 
     @Override
     public void runImpl() {
+        boolean unlocked = false;
         try {
             //todo debug
-            System.out.println("StageIndexerRunnable.runImpl.locking read");
+            System.out.println("StageIndexerRunnable.runImpl.locking read on " + Thread.currentThread().getName());
             fsDao.lockRead();
             System.out.println("StageIndexerRunnable.runImpl.locked");
             initStage(DriveStrings.STAGESET_TYPE_FS, pathCollection.getPaths().stream());
             examineStage();
+            fsDao.unlockRead();
+            unlocked = true;
             stagingDoneListener.onStagingFsEventsDone(stageSetId);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            System.out.println("StageIndexerRunnable.runImpl.unlocking");
-            fsDao.unlockRead();
-            System.out.println("StageIndexerRunnable.runImpl.unlocked");
-
+            if (!unlocked) {
+                System.out.println("StageIndexerRunnable.runImpl.unlocking on " + Thread.currentThread().getName());
+                fsDao.unlockRead();
+                System.out.println("StageIndexerRunnable.runImpl.unlocked");
+            }
         }
     }
 

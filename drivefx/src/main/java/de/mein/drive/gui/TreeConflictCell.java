@@ -12,6 +12,7 @@ public class TreeConflictCell extends TreeTableCell<Conflict, String> {
 
     public TreeConflictCell() {
         setText("nix");
+
     }
 
     @Override

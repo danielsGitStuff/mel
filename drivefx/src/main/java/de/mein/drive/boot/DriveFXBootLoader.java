@@ -24,6 +24,6 @@ public class DriveFXBootLoader extends DriveBootLoader implements BootLoaderFX<M
 
     @Override
     public String getPopupFXML(IMeinService meinService, Object dataObject) {
-        return "de/mein/drive/popupconflict.fxml";
+        return "de/mein/drive/popupconflict.olde.fxml";
     }
 }

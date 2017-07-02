@@ -78,8 +78,8 @@ public class StageSet extends SQLTableObject {
         return this;
     }
 
-    public Long getCreated() {
-        return created.v();
+    public Pair<Long> getCreated() {
+        return created;
     }
 
     public Pair<String> getStatus() {

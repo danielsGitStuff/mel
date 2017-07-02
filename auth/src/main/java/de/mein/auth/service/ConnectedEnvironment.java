@@ -1,24 +1,30 @@
 package de.mein.auth.service;
 
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 /**
  * Created by xor on 13.10.2016.
  */
 public class ConnectedEnvironment extends WaitLock{
-    private Map<Long, MeinValidationProcess> idValidateProcessMap = new ConcurrentHashMap<>();
-    private Map<String, MeinValidationProcess> addressValidateProcessMap = new ConcurrentHashMap<>();
+    private Map<Long, MeinValidationProcess> idValidateProcessMap = new HashMap<>();
+    private Map<String, MeinValidationProcess> addressValidateProcessMap = new HashMap<>();
+    private Semaphore semaphore = new Semaphore(1,true);
 
-    public synchronized void addValidationProcess(MeinValidationProcess validationProcess) {
+    public void addValidationProcess(MeinValidationProcess validationProcess) {
+        N.r(() -> semaphore.acquire());
         idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
         addressValidateProcessMap.put(validationProcess.getAddressString(), validationProcess);
+        semaphore.release();
     }
 
     public Collection<MeinValidationProcess> getValidationProcesses() {
@@ -37,8 +43,10 @@ public class ConnectedEnvironment extends WaitLock{
         return idValidateProcessMap.values().stream().map(MeinValidationProcess::getConnectedId).collect(Collectors.toList());
     }
 
-    public synchronized void removeValidationProcess(MeinValidationProcess process) {
+    public  void removeValidationProcess(MeinValidationProcess process) {
+        N.r(() -> semaphore.acquire());
         addressValidateProcessMap.remove(process.getAddressString());
         idValidateProcessMap.remove(process.getConnectedId());
+        semaphore.release();
     }
 }

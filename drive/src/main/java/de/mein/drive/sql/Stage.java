@@ -181,6 +181,10 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         return deleted.v();
     }
 
+    public Pair<Boolean> getDeletedPair(){
+        return deleted;
+    }
+
     public Stage setDeleted(Boolean deleted) {
         this.deleted.v(deleted);
         return this;
@@ -267,5 +271,9 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         fsId.v(source.getFsId());
         fsParentId.v(source.getFsParentId());
         return this;
+    }
+
+    public Pair<Long> getiNodePair() {
+        return iNode;
     }
 }

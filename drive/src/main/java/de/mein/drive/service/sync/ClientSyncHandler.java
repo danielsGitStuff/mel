@@ -97,6 +97,7 @@ public class ClientSyncHandler extends SyncHandler {
      * @throws SqlQueriesException
      * @throws InterruptedException
      */
+    @SuppressWarnings("unchecked")
     public void syncWithServer(Long stageSetId) throws SqlQueriesException, InterruptedException {
         // stage is complete. first lock on FS
         FsDao fsDao = driveDatabaseManager.getFsDao();
@@ -120,25 +121,21 @@ public class ClientSyncHandler extends SyncHandler {
                 mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> N.r(() -> {
                     //fsDao.lockWrite();
                     CommitAnswer answer = (CommitAnswer) result;
-                    ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
-                    Stage stage = stages.getNext();
-                    while (stage != null) {
-                        Long fsId = answer.getStageIdFsIdMap().get(stage.getId());
-                        if (fsId != null) {
-                            stage.setFsId(fsId);
-                            if (stage.getParentId() != null) {
-                                Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
-                                if (fsParentId != null)
-                                    stage.setFsParentId(fsParentId);
-                            }
-                            stageDao.update(stage);
+                    for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
+                        Long fsId = answer.getStageIdFsIdMap().get(stageId);
+                        Stage stage = stageDao.getStageById(stageId);
+                        stage.setFsId(fsId);
+                        if (stage.getParentId() != null && stage.getFsParentId() == null) {
+                            Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
+                            stage.setFsParentId(fsParentId);
                         }
-                        stage = stages.getNext();
+                        stageDao.update(stage);
                     }
                     StageSet stageSet = stageDao.getStageSetById(stageSetId);
-                    stageSet.setStatus(DriveStrings.STAGESET_STATUS_SERVER_COMMITED);
+                    stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+                    stageSet.setSource(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER);
                     stageDao.updateStageSet(stageSet);
-//                    addJob(new CommitJob());
+                    meinDriveService.addJob(new CommitJob());
 //                    commitStage(stageSetId, false);
                     waitLock.unlock();
                     //fsDao.unlockWrite();
@@ -262,13 +259,15 @@ public class ClientSyncHandler extends SyncHandler {
             conflictSolver = conflictSolverMap.get(identifier);
             if (!conflictSolver.isSolved()) {
                 conflictSolverMap.remove(identifier);
-                conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
+                conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
+                conflictSolver.beforeStart(serverStageSet);
             } else {
-                conflictSolver.beforeStart(fsDao, stageDao, serverStageSet);
+                //conflictSolver.beforeStart(  serverStageSet);
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
             }
         } else {
-            conflictSolver = new ConflictSolver(serverStageSet, stagedFromFs);
+            conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
+            conflictSolver.beforeStart(serverStageSet);
             iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
         // only remember the conflict solver if it actually has conflicts
@@ -281,6 +280,7 @@ public class ClientSyncHandler extends SyncHandler {
             conflictSolver.directoryStuff();
             conflictSolver.cleanup();
             this.commitStage(serverStageSet.getId().v());
+            setupTransfer();
             meinDriveService.addJob(new CommitJob());
         }
     }
@@ -307,7 +307,7 @@ public class ClientSyncHandler extends SyncHandler {
             private Map<Long, Long> idMapLeft = new HashMap<>();
 
             @Override
-            public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
+            public void stuffFound(Stage left, Stage right, File lFile, File rFile) throws SqlQueriesException {
                 if (left != null) {
                     if (right != null) {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
@@ -385,12 +385,14 @@ public class ClientSyncHandler extends SyncHandler {
         ISQLResource<Stage> lStages = stageDao.getStagesResource(lStageSet.getId().v());
         Stage lStage = lStages.getNext();
         while (lStage != null) {
-            File file = stageDao.getFileByStage(lStage);
-            Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), file);
+            File lFile = stageDao.getFileByStage(lStage);
+            Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
             if (conflictSolver != null)
                 conflictSolver.solve(lStage, rStage);
-            else
-                merger.stuffFound(lStage, rStage);
+            else {
+                File rFile = (rStage != null) ? new File(lFile.getAbsolutePath()) : null;
+                merger.stuffFound(lStage, rStage, lFile, rFile);
+            }
             if (rStage != null)
                 stageDao.flagMerged(rStage.getId(), true);
             lStage = lStages.getNext();
@@ -400,11 +402,17 @@ public class ClientSyncHandler extends SyncHandler {
         while (rStage != null) {
             if (conflictSolver != null)
                 conflictSolver.solve(null, rStage);
-            else
-                merger.stuffFound(null, rStage);
+            else {
+                // todo debug
+                if (rStage.getName().equals("samesub1.txt"))
+                    System.err.println("ClientSyncHandler.iterateStageSets.debug 32fh3204f0");
+                File rFile = stageDao.getFileByStage(rStage);
+                merger.stuffFound(null, rStage, null, rFile);
+            }
             rStage = rStages.getNext();
         }
     }
+
 
     /**
      * pulls StageSet from the Server
@@ -436,6 +444,14 @@ public class ClientSyncHandler extends SyncHandler {
         }));
     }
 
+    private void insertWithParentId(Map<Long, Long> entryIdStageIdMap, GenericFSEntry genericFSEntry, Stage stage) throws SqlQueriesException {
+        if (entryIdStageIdMap.containsKey(genericFSEntry.getParentId().v())) {
+            stage.setParentId(entryIdStageIdMap.get(genericFSEntry.getParentId().v()));
+        }
+        stageDao.insert(stage);
+        entryIdStageIdMap.put(genericFSEntry.getId().v(), stage.getId());
+    }
+
     /**
      * delta goes in here
      *
@@ -447,6 +463,7 @@ public class ClientSyncHandler extends SyncHandler {
     private Promise<Long, Void, Void> sync2Stage(SyncTask syncTask) throws SqlQueriesException, InterruptedException {
         DeferredObject<Void, Void, Void> communicationDone = new DeferredObject<>();
         DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
+        Map<Long, Long> entryIdStageIdMap = new HashMap<>();
         Order order = new Order();
         List<GenericFSEntry> entries = syncTask.getResult();
         if (entries == null) {
@@ -459,7 +476,7 @@ public class ClientSyncHandler extends SyncHandler {
         for (GenericFSEntry genericFSEntry : entries) {
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
-            stageDao.insert(stage);
+            insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
         // check if something was deleted
         List<Stage> stages = stageDao.getDirectoriesByStageSet(stageSet.getId().v());
@@ -535,7 +552,7 @@ public class ClientSyncHandler extends SyncHandler {
                             Stage stage = GenericFSEntry.generic2Stage(genSub, stageSet.getId().v());
                             stage.setDeleted(true);
                             stage.setOrder(order.ord());
-                            stageDao.insert(stage);
+                            insertWithParentId(entryIdStageIdMap, genSub, stage);
                         }
                     }
                 }

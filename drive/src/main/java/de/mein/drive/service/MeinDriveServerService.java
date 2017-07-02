@@ -122,7 +122,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             // staging is done. stage data is up to date. time to commit to fs
             FsDao fsDao = driveDatabaseManager.getFsDao();
             StageDao stageDao = driveDatabaseManager.getStageDao();
-            fsDao.unlockRead();
+            //fsDao.unlockRead();
             if (stageDao.stageSetHasContent(stageSetId)) {
                 fsDao.lockWrite();
                 //todo conflict checks

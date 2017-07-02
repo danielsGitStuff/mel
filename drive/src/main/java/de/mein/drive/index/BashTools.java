@@ -61,6 +61,7 @@ public class BashTools {
 
 
     public static List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+        System.out.println("BashTools.stuffModifiedAfter.referenceFile: " + referenceFile.getAbsolutePath());
         String[] args = new String[]{BIN_PATH, "-c",
                 "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
                         + " -path \"" + pruneDir + "\" -prune"
@@ -76,6 +77,8 @@ public class BashTools {
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
                     List<String> errors = errorReader.lines().collect(Collectors.toList());
                     System.out.println("BashTools.stuffModifiedAfter.did not finish");
+                    for (String s : errors)
+                        System.out.println("BashTools.stuffModifiedAfter.ERROR: " + s);
                 }
                 int exitValue = proc.exitValue();
                 if (exitValue == 0) {

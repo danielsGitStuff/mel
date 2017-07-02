@@ -12,6 +12,7 @@ import java.io.IOException;
 public class TestFileCreator {
     /**
      * generates ~240kb
+     *
      * @return
      */
     public static byte[] genBigFile() {
@@ -22,6 +23,7 @@ public class TestFileCreator {
     }
 
     public static void saveFile(byte[] data, File file) throws IOException {
+        System.out.println("TestFileCreator.saveFile: " + file.getAbsolutePath());
         FileOutputStream fos = new FileOutputStream(file);
         fos.write(data);
         fos.close();

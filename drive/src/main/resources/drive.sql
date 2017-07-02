@@ -39,7 +39,7 @@ CREATE TABLE stage (
   dir         INTEGER NOT NULL,
   inode       INTEGER,
   modified    INTEGER,
-  deleted     INTEGER,
+  deleted     INTEGER NOT NULL ,
   size        INTEGER,
   synced      INTEGER,
   merged      INTEGER,
