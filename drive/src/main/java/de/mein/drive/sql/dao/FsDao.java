@@ -36,8 +36,6 @@ public class FsDao extends Dao {
 
     public void lockRead() {
         int n = printLock("lockRead", rcount);
-        if (n==4)
-            System.out.println("debug.efmspgjsß45");
         rwLock.readLock().lock();
         printGotLock("lockRead", n);
     }
@@ -51,16 +49,8 @@ public class FsDao extends Dao {
 
 
     public void unlockRead() {
-        //todo debug
-        try {
-            if (rwLock.getWriteHoldCount() == 0 && rwLock.getReadHoldCount() == 0) {
-                System.out.println("FsDao.unlockRead.debugjfrje");
-            }
-            int n = printLock("unlockRead", urcount);
-            rwLock.readLock().unlock();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        printLock("unlockRead", urcount);
+        rwLock.readLock().unlock();
     }
 
 
