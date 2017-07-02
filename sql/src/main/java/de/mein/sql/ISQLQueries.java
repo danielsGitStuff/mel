@@ -1,5 +1,9 @@
 package de.mein.sql;
 
+import java.io.File;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +37,15 @@ public abstract class ISQLQueries {
                 args.add(v);
             }
         return args;
+    }
+
+    public static List<Pair<?>> columns(Pair... pairs) {
+        List<Pair<?>> cols = new ArrayList<>();
+        if (pairs != null) {
+            for (Pair pair : pairs)
+                cols.add(pair);
+        }
+        return cols;
     }
 
     protected void out(String msg) {
@@ -100,7 +113,7 @@ public abstract class ISQLQueries {
 
     public abstract <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException;
 
-    public abstract  <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException;
+    public abstract <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException;
 
     public abstract void execute(String statement, List<Object> whereArgs) throws SqlQueriesException;
 

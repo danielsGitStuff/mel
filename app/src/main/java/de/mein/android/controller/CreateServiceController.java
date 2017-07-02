@@ -12,12 +12,12 @@ import com.annimon.stream.Stream;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.mein.auth.boot.BootLoader;
-import de.mein.auth.boot.MeinBoot;
+import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.NoTryRunner;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.AndroidService;
+import de.mein.auth.service.MeinBoot;
+import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
 import mein.de.meindrive.R;
 import de.mein.android.MainActivity;
@@ -42,8 +42,9 @@ public class CreateServiceController extends GuiController {
         this.embedded = (LinearLayout) rootView.findViewById(R.id.embedded);
         this.btnCreate = (Button) rootView.findViewById(R.id.btnCreate);
 
+
         List<BootLoader> bootLoaders = new ArrayList<>();
-        Stream.of(MeinBoot.getBootloaderClasses()).forEach(bootloaderClass -> NoTryRunner.run(() -> {
+        Stream.of(meinAuthService.getMeinBoot().getBootloaderClasses()).forEach(bootloaderClass -> N.r(() -> {
             BootLoader bootLoader = bootloaderClass.newInstance();
             bootLoaders.add(bootLoader);
             //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
@@ -70,7 +71,7 @@ public class CreateServiceController extends GuiController {
     }
 
     private void showSelected() {
-        NoTryRunner.run(() -> {
+        N.r(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
             View v = View.inflate(rootView.getContext(), bootLoader.getCreateResource(), embedded);
             currentController = bootLoader.createGuiController(meinAuthService, activity, v);

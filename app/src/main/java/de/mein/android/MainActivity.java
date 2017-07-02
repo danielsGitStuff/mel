@@ -26,12 +26,12 @@ import java.util.List;
 
 import de.mein.android.controller.OthersController;
 import de.mein.android.drive.boot.AndroidDriveBootLoader;
-import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.controller.NetworkDiscoveryController;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.service.MeinBoot;
+import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
 import mein.de.meindrive.R;
 import de.mein.android.controller.GeneralController;
@@ -84,7 +84,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MeinBoot.addBootLoaderClass(AndroidDriveBootLoader.class);
         setContentView(R.layout.activity_main);
         content = (LinearLayout) findViewById(R.id.content);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -106,7 +105,7 @@ public class MainActivity extends AppCompatActivity
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 // refresh currently available service list
-                NoTryRunner.run(() -> showMenuServices());
+                N.r(() -> showMenuServices());
             }
         };
         drawer.setDrawerListener(toggle);

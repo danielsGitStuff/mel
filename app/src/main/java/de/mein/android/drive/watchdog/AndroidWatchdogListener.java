@@ -74,7 +74,12 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
     }
 
     @Override
-    public void run() {
+    public void onShutDown() {
+
+    }
+
+    @Override
+    public void runImpl() {
         System.out.println("AndroidWatchdogListener.run.nothing to do :)");
         RWLock lock = new RWLock();
         lock.lockWrite();
@@ -88,5 +93,10 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
     @Override
     public void onTimerStopped() {
         super.onTimerStopped();
+    }
+
+    @Override
+    public String getRunnableName() {
+        return getClass().getSimpleName();
     }
 }

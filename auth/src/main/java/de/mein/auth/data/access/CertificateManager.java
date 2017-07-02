@@ -5,6 +5,7 @@ import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.tools.Cryptor;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
+
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
@@ -13,6 +14,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.*;
+
 import java.io.*;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -373,4 +375,7 @@ public class CertificateManager extends FileRelatedManager {
     }
 
 
+    public List<Certificate> getAllCertificateDetails() throws SqlQueriesException {
+        return certificateDao.getAllCertificateDetails();
+    }
 }

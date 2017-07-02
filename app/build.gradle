@@ -7,7 +7,7 @@ android {
     buildToolsVersion "25.0.0"
     defaultConfig {
         applicationId "mein.de.meindrive"
-        minSdkVersion 25
+        minSdkVersion 24
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -42,16 +42,9 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.annimon:stream:1.1.6'
     compile 'com.android.support:multidex:+'
-   // compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+//    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }
 
-gradle.projectsEvaluated {
-    preBuild.dependsOn(copyFiles)
-}
-task copyFiles(type: Copy) {
-    from 'auth/src/main/resources/sql.sql'
-    into 'app/src/res/assets/sql.sql'
-}
 repositories {
     mavenCentral()
 }

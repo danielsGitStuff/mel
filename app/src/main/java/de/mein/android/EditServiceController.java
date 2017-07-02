@@ -9,13 +9,12 @@ import android.widget.Spinner;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.controller.GuiController;
-import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 
 /**
  * Created by xor on 3/25/17.
@@ -34,8 +33,8 @@ class EditServiceController extends GuiController {
         this.rootView = rootView;
         this.activity = activity;
         this.meinAuthService = meinAuthService;
-        NoTryRunner.run(() -> {
-            AndroidBootLoader bootLoader = (AndroidBootLoader) MeinBoot.getBootLoader(meinAuthService, service.getType().v());
+        N.r(() -> {
+            AndroidBootLoader bootLoader = (AndroidBootLoader) meinAuthService.getMeinBoot().getBootLoader(service.getType().v());
             View v = View.inflate(rootView.getContext(), bootLoader.getEditResource(runningInstance), embedded);
             currentController = bootLoader.createGuiController(meinAuthService, activity, v);
             //bootLoader.setupController(meinAuthService,v);

@@ -15,8 +15,8 @@ import de.mein.android.Threadder;
 import de.mein.android.drive.controller.AndroidDriveCreateGuiController;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.NoTryRunner;
 import de.mein.android.boot.AndroidBootLoader;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.service.MeinDriveClientService;
@@ -55,7 +55,7 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedDrive().getUuid().v();
                     Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certId, serviceUuid);
-                    promise.done(meinDriveClientService -> NoTryRunner.run(() -> meinDriveClientService.syncThisClient()));
+                    promise.done(meinDriveClientService -> N.r(() -> meinDriveClientService.syncThisClient()));
                 }
             });
     }

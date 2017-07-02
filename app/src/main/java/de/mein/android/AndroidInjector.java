@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.util.Scanner;
 
 import de.mein.MeinInjector;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveInjector;
 import de.mein.drive.data.DriveStrings;
 import de.mein.android.drive.service.AndroidDBConnection;
@@ -34,7 +34,7 @@ public class AndroidInjector {
         MeinInjector.setExecutorImpl(new SqliteExecutorInjection() {
             @Override
             public void executeStream(SQLConnection con, InputStream in) {
-                NoTryRunner.run(() -> {
+                N.r(() -> {
                     SQLiteDatabase db = ((AndroidDBConnection) con).getDb();
                     Scanner scanner = new Scanner(in, "UTF-8").useDelimiter(";");
                     while (scanner.hasNext()) {

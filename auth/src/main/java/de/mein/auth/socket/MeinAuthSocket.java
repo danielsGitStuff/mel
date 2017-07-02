@@ -15,6 +15,7 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -22,12 +23,14 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLSocket;
+
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -265,6 +268,11 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             java.security.cert.Certificate cert = sslSocket.getSession().getPeerCertificates()[0];
             byte[] certBytes = cert.getEncoded();
             String hash = Hash.sha256(certBytes);
+            // todo debug
+            List<Certificate> allCerts = meinAuthService.getCertificateManager().getAllCertificateDetails();
+            for (Certificate certificate : allCerts) {
+                System.out.println("avail cert: id: " + certificate.getId().v() + " , name: " + certificate.getName().v() + " ,hash: " + certificate.getHash().v() + " ,trusted: " + certificate.getTrusted().v());
+            }
             partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateByHash(hash);
             if (partnerCertificate == null) {
                 if (Arrays.equals(meinAuthService.getCertificateManager().getPublicKey().getEncoded(), cert.getPublicKey().getEncoded())) {

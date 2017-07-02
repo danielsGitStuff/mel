@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import de.mein.auth.boot.MeinBoot;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
@@ -18,10 +17,11 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
-import de.mein.auth.tools.NoTryRunner;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSyncListener;
@@ -39,6 +39,7 @@ public class AndroidService extends Service {
     private MeinAuthService meinAuthService;
     private final IBinder mBinder = new LocalBinder();
     private MeinAuthSettings meinAuthSettings;
+    private MeinBoot meinBoot;
 
     public interface AndroidServiceObserver {
         void onMeinAuthStarted(MeinAuthService meinAuthService);
@@ -156,7 +157,6 @@ public class AndroidService extends Service {
 //        CertificateManager.deleteDirectory(workingDir);
         CertificateManager.deleteDirectory(testdir1);
         TestDirCreator.createTestDir(testdir1);
-        meinAuthService = new MeinAuthService(meinAuthSettings);
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -176,15 +176,14 @@ public class AndroidService extends Service {
                 meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
             }
         };
-        meinAuthService.addRegisteredHandler(registeredHandler);
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot();
-        MeinBoot boot2 = new MeinBoot();
-        boot1.boot(meinAuthService).done(result -> {
-            NoTryRunner.run(() -> {
+        meinBoot = new MeinBoot(meinAuthSettings, AndroidDriveBootLoader.class);
+        meinBoot.boot().done(meinAuthService -> {
+            N.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
-
+                AndroidService.this.meinAuthService = meinAuthService;
+                meinAuthService.addRegisteredHandler(registeredHandler);
 
                 // setup the server Service
 //                System.out.println("AndroidService.setup!!!1");
@@ -227,7 +226,7 @@ public class AndroidService extends Service {
     }
 
     private void android() throws IOException {
-        MeinBoot.addBootLoaderClass(AndroidDriveBootLoader.class);
+        //meinBoot.addBootLoaderClass(AndroidDriveBootLoader.class);
         AndroidInjector.inject(this, getAssets());
     }
 

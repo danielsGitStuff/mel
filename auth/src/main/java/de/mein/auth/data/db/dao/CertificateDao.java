@@ -3,6 +3,7 @@ package de.mein.auth.data.db.dao;
 import de.mein.auth.data.db.Certificate;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
+import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 
@@ -128,4 +129,9 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
     }
 
 
+    public List<Certificate> getAllCertificateDetails() throws SqlQueriesException {
+        Certificate certificate = new Certificate();
+        List<Certificate> certificates = sqlQueries.load(ISQLQueries.columns(certificate.getId(), certificate.getPort(), certificate.getName(), certificate.getTrusted(), certificate.getHash()), certificate, null, null);
+        return certificates;
+    }
 }

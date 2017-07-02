@@ -13,9 +13,9 @@ import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.NoTryRunner;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.android.view.UnknownAuthListAdapter;
+import de.mein.auth.tools.N;
 import mein.de.meindrive.R;
 
 /**
@@ -86,7 +86,7 @@ public class NetworkDiscoveryController extends GuiController {
             unkownListAdapter.clear().addAll(environment.getUnknownAuthInstances());
             knownCertListAdapter.clear();
             Stream.of(environment.getCertificateIds()).forEach(certId -> {
-                NoTryRunner.run(() -> {
+                N.r(() -> {
                     Certificate c = certificateManager.getTrustedCertificateById(certId);
                     knownCertListAdapter.add(c);
                 });
