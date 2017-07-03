@@ -1,8 +1,8 @@
 BEGIN TRANSACTION;
-DROP TABLE IF EXISTS  certificate ;
+DROP TABLE IF EXISTS  type ;
 DROP TABLE IF EXISTS  service ;
-drop table if exists servicetype;
-DROP TABLE IF EXISTS  approval ;
+DROP TABLE IF EXISTS  authentication ;
+DROP TABLE IF EXISTS  certificate ;
 CREATE TABLE "servicetype" (
    id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    type         TEXT    NOT NULL UNIQUE,
@@ -15,7 +15,7 @@ CREATE TABLE "service" (
    typeid  INTEGER NOT NULL,
   FOREIGN KEY ( typeid ) REFERENCES type (id)
 );
-CREATE TABLE  "certificate"  (
+CREATE TABLE  certificate  (
    id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    uuid         TEXT    NOT NULL UNIQUE,
    name         TEXT    NOT NULL,
@@ -24,9 +24,9 @@ CREATE TABLE  "certificate"  (
    address      TEXT,
    port         INTEGER,
    certport     INTEGER,
-   greeting     TEXT,
+   greeting     TEXT not null,
    trusted      INTEGER,
-   hash text not null,
+   hash text,
   UNIQUE (uuid),
   UNIQUE (certificate)
 );
