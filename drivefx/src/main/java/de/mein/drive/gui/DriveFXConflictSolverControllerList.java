@@ -4,8 +4,9 @@ import de.mein.auth.gui.PopupContentFX;
 import de.mein.auth.service.MeinService;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.MeinDriveClientService;
-import de.mein.drive.service.sync.Conflict;
-import de.mein.drive.service.sync.ConflictSolver;
+import de.mein.drive.service.sync.conflict.Conflict;
+import de.mein.drive.service.sync.conflict.ConflictException;
+import de.mein.drive.service.sync.conflict.ConflictSolver;
 import de.mein.drive.service.sync.EmptyRowConflict;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
@@ -26,11 +27,14 @@ public class DriveFXConflictSolverControllerList implements PopupContentFX {
     @Override
     public String onOkCLicked() {
         System.out.println("DriveFXConflictSolverController.onOkCLicked");
-        if (conflictSolver.isSolved()) {
+        try {
+            conflictSolver.isSolved();
             meinDriveClientService.addJob(new CommitJob());
             return null;
+        } catch (ConflictException e) {
+            return "you bloody idiot! " + e.getClass().getSimpleName();
+
         }
-        return "you bloody idiot!";
     }
 
     @Override

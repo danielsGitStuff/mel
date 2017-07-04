@@ -1,9 +1,10 @@
-package de.mein.drive.service.sync;
+package de.mein.drive.service.sync.conflict;
 
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
+import de.mein.drive.service.sync.SyncStageMerger;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -259,7 +260,7 @@ public class ConflictSolver extends SyncStageMerger {
             Conflict conflict = conflicts.remove(key);
             if (conflict.isRight() && conflict.hasRight()) {
                 solvedStage = right;
-                if (left!=null) {
+                if (left != null) {
                     solvedStage.setFsParentId(left.getFsParentId());
                     solvedStage.setFsId(left.getFsId());
                     solvedStage.setVersion(left.getVersion());
@@ -300,9 +301,41 @@ public class ConflictSolver extends SyncStageMerger {
     }
 
 
-    public boolean isSolved() {
-        return conflicts.values().stream().allMatch(Conflict::hasDecision);
+    /**
+     * check if everything is solved and sane (eg. do not modify a file when the parent folder is deleted)
+     *
+     * @return
+     */
+    public boolean isSolved() throws ConflictException {
+        Set<Conflict> isOk = new HashSet<>();
+        Stack<String> stack = new Stack<>();
+        for (Conflict conflict : conflicts.values()) {
+            recurseUp(isOk, conflict);
+        }
+        return true;
     }
+
+    private void recurseUp(Set<Conflict> isOk, Conflict conflict) throws ConflictException {
+        if (!conflict.hasDecision())
+            throw new ConflictException.UnsolvedConflictsException();
+        if (isOk.contains(conflict))
+            return;
+        Stack<Conflict> stack = new Stack<>();
+        stack.push(conflict);
+        Conflict parent = conflict.getDependsOn();
+        while (parent != null) {
+            if (isOk.contains(parent))
+                break;
+            if (!parent.hasDecision())
+                throw new ConflictException.UnsolvedConflictsException();
+            if (parent.getChoice().getDeleted())
+                throw new ConflictException.ContradictingConflictsException();
+            stack.push(parent);
+            parent = parent.getDependsOn();
+        }
+        isOk.addAll(stack);
+    }
+
 
     public boolean hasConflicts() {
         return conflicts.size() > 0;
