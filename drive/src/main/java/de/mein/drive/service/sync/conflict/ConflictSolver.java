@@ -320,6 +320,7 @@ public class ConflictSolver extends SyncStageMerger {
             throw new ConflictException.UnsolvedConflictsException();
         if (isOk.contains(conflict))
             return;
+        final boolean deleted = conflict.getChoice().getDeleted();
         Stack<Conflict> stack = new Stack<>();
         stack.push(conflict);
         Conflict parent = conflict.getDependsOn();
@@ -328,7 +329,7 @@ public class ConflictSolver extends SyncStageMerger {
                 break;
             if (!parent.hasDecision())
                 throw new ConflictException.UnsolvedConflictsException();
-            if (parent.getChoice().getDeleted())
+            if (!deleted && parent.getChoice().getDeleted())
                 throw new ConflictException.ContradictingConflictsException();
             stack.push(parent);
             parent = parent.getDependsOn();

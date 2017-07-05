@@ -73,6 +73,7 @@ public class IndexerRunnable extends AbstractIndexer {
                     fsRoot.setOriginalFile(new File(rootDirectory.getPath()));
                 }
             }
+            indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
             try {
                 fsDao.lockRead();
                 Stream<String> found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
