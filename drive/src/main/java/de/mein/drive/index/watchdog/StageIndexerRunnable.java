@@ -39,6 +39,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
             examineStage();
             fsDao.unlockRead();
             unlocked = true;
+            System.out.println("StageIndexerRunnable.runImpl.56");
             stagingDoneListener.onStagingFsEventsDone(stageSetId);
         } catch (Exception e) {
             e.printStackTrace();

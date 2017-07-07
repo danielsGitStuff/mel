@@ -1,6 +1,7 @@
 package de.mein.drive.test;
 
 
+import de.mein.auth.boot.BootLoaderFX;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
@@ -20,6 +21,7 @@ import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.boot.DriveFXBootLoader;
+import de.mein.drive.gui.AbstractMergeListCell;
 import de.mein.drive.serialization.DriveTest;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveClientService;
@@ -129,6 +131,7 @@ public class DriveFXTest {
         RWLock lock = new RWLock();
         lock.lockWrite();
         MeinBoot boot1 = new MeinBoot(json1, DriveFXBootLoader.class);
+        boot1.addMeinAuthAdmin(new MeinAuthFxLoader());
         boot1.boot().done(result -> {
             result.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {

@@ -7,7 +7,7 @@ compileJava {
 }
 dependencies {
     compile project(path: ':drive')
-    testCompile project(path: ':drive')
+    testCompile project(path: ':drive',configuration :'driveTestOutput')
     compile project(path: ':authfx')
     testCompile project(path: ':authfx')
     testCompile 'junit:junit:4.12'
