@@ -32,6 +32,8 @@ public class StageIndexerRunnable extends AbstractIndexer {
         boolean unlocked = false;
         try {
             //todo debug
+            if(Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClientService for MA2"))
+                System.out.println("StageIndexerRunnable.runImpl.debug23r2300");
             System.out.println("StageIndexerRunnable.runImpl.locking read on " + Thread.currentThread().getName());
             fsDao.lockRead();
             System.out.println("StageIndexerRunnable.runImpl.locked");
@@ -39,6 +41,8 @@ public class StageIndexerRunnable extends AbstractIndexer {
             examineStage();
             fsDao.unlockRead();
             unlocked = true;
+            if(Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClientService for MA2"))
+                System.out.println("StageIndexerRunnable.runImpl.debug8fh384");
             stagingDoneListener.onStagingFsEventsDone(stageSetId);
         } catch (Exception e) {
             e.printStackTrace();

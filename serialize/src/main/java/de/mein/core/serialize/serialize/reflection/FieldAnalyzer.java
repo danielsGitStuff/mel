@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 /**
  * collects Fields of any given Class. It also can examine classes for different
@@ -166,5 +167,16 @@ public class FieldAnalyzer {
 
     public static boolean isTransinient(Field field) {
         return Modifier.isTransient(field.getModifiers());
+    }
+
+    public static Object readField(Object object, String fieldName) {
+        try{
+            Class clazz = object.getClass();
+            Field field = clazz.getField(fieldName);
+            return field.get(object);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 }
