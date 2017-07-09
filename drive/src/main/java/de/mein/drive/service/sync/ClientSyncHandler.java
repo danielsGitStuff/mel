@@ -13,6 +13,8 @@ import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.MeinDriveClientService;
+import de.mein.drive.service.sync.conflict.ConflictException;
+import de.mein.drive.service.sync.conflict.ConflictSolver;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -257,13 +259,13 @@ public class ClientSyncHandler extends SyncHandler {
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
         if (conflictSolverMap.containsKey(identifier)) {
             conflictSolver = conflictSolverMap.get(identifier);
-            if (!conflictSolver.isSolved()) {
+            try{
+                conflictSolver.isSolved();
+                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
+            }catch (ConflictException e){
                 conflictSolverMap.remove(identifier);
                 conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
                 conflictSolver.beforeStart(serverStageSet);
-            } else {
-                //conflictSolver.beforeStart(  serverStageSet);
-                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
             }
         } else {
             conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);

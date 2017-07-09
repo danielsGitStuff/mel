@@ -1,4 +1,4 @@
-package de.mein.drive.service.sync;
+package de.mein.drive.service.sync.conflict;
 
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.dao.StageDao;

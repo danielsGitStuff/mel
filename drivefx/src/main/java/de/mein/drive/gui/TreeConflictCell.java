@@ -1,6 +1,6 @@
 package de.mein.drive.gui;
 
-import de.mein.drive.service.sync.Conflict;
+import de.mein.drive.service.sync.conflict.Conflict;
 import javafx.scene.control.TreeTableCell;
 
 /**
