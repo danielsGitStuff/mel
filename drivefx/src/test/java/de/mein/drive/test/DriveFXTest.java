@@ -107,6 +107,8 @@ public class DriveFXTest {
     @Test
     public void startEmptyServer() throws Exception {
 //        inject(true);
+        File testdir = new File("testdir1");
+        CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
 //        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         N runner = new N(e -> e.printStackTrace());
@@ -129,53 +131,20 @@ public class DriveFXTest {
         lock.lockWrite();
         MeinBoot boot1 = new MeinBoot(json1, DriveFXBootLoader.class);
         boot1.addMeinAuthAdmin(new MeinAuthFxLoader());
-        boot1.boot().done(result -> {
-            result.addRegisterHandler(new RegisterHandlerFX());
+        boot1.boot().done(meinAuthService -> {
+            meinAuthService.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 System.out.println("DriveFXTest.startEmptyServer.booted");
+            });
+            N.r(() -> {
+                DriveCreateController createController = new DriveCreateController(meinAuthService);
+                createController.createDriveServerService("testiServer",testdir.getAbsolutePath());
             });
         });
         lock.lockWrite();
         lock.unlockWrite();
     }
 
-//    private void inject(Boolean isServer) {
-//        DriveBootLoader.deVinjector = new DriveBootLoader.DEVinjector() {
-//            @Override
-//            public void injectOnNoServices(DriveBootLoader driveBootLoader, MeinAuthService meinAuthService, ServiceType type) throws SqlQueriesException, JsonDeserializationException, JsonSerializationException, IOException, SQLException, IllegalAccessException, ClassNotFoundException {
-//                DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
-//                MeinDriveService meinDriveService = (isServer) ? new MeinDriveServerService(meinAuthService) : new MeinDriveClientService(meinAuthService);
-//                Service service = databaseManager.createService(type.getId().v(), "injected name");
-//                meinDriveService.setUuid(service.getUuid().v());
-//                meinDriveService.start();
-//                meinAuthService.registerMeinService(meinDriveService);
-//                String role = (isServer) ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
-//                RootDirectory rootDir = new RootDirectory().setPath("/home/xor/Documents/seminar");
-//                rootDir.setOriginalFile(new File("/home/xor/Documents/seminar"));
-//                rootDir.backup();
-//                driveBootLoader.startIndexer(meinDriveService, new DriveSettings().setRole(role).setRootDirectory(rootDir));
-//            }
-//        };
-//    }
-//
-//    private void inject(Boolean isServer, File rootDirFile) {
-//        DriveBootLoader.deVinjector = new DriveBootLoader.DEVinjector() {
-//            @Override
-//            public void injectOnNoServices(DriveBootLoader driveBootLoader, MeinAuthService meinAuthService, ServiceType type) throws SqlQueriesException, JsonDeserializationException, JsonSerializationException, IOException, SQLException, IllegalAccessException, ClassNotFoundException {
-//                DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
-//                MeinDriveService meinDriveService = (isServer) ? new MeinDriveServerService(meinAuthService) : new MeinDriveClientService(meinAuthService);
-//                Service service = databaseManager.createService(type.getId().v(), "injected name");
-//                meinDriveService.setUuid(service.getUuid().v());
-//                meinDriveService.start();
-//                meinAuthService.registerMeinService(meinDriveService);
-//                String role = (isServer) ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
-//                RootDirectory rootDir = new RootDirectory().setPath(rootDirFile.getAbsolutePath());
-//                rootDir.setOriginalFile(new File(rootDirFile.getAbsolutePath()));
-//                rootDir.backup();
-//                driveBootLoader.startIndexer(meinDriveService, new DriveSettings().setRole(role).setRootDirectory(rootDir));
-//            }
-//        };
-//    }
 
     @Test
     public void startBoth() throws Exception, SqlQueriesException {
@@ -244,6 +213,7 @@ public class DriveFXTest {
                 });
             });
         });
+        lock.lockWrite();
         lock.lockWrite();
         lock.unlockWrite();
     }
