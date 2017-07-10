@@ -41,12 +41,6 @@ public class ConflictSolver extends SyncStageMerger {
         stageDao = driveDatabaseManager.getStageDao();
         fsDao = driveDatabaseManager.getFsDao();
         identifier = createIdentifier(lStageSet.getId().v(), rStageSet.getId().v());
-        N.r(() -> {
-            listenerSemaphore.acquire();
-            if (obsolete)
-                tellObsolete();
-            listenerSemaphore.release();
-        });
     }
 
     public static String createIdentifier(Long lStageSetId, Long rStageSetId) {
@@ -377,9 +371,15 @@ public class ConflictSolver extends SyncStageMerger {
             listener.onConflictObsolete();
     }
 
-    public void checkObsolete(Long lStageSetId, Long rStageSetId) {
-        if (this.lStageSetId.equals(lStageSetId) || this.lStageSetId.equals(rStageSetId)
-                || this.rStageSetId.equals(lStageSetId) || this.rStageSetId.equals(rStageSetId)) {
+    /**
+     * tells the {@link ConflictSolverListener}s they are obsolete if one of the merged {@link StageSet}s was part of this instance.
+     *
+     * @param mergedLeftStageSetId
+     * @param mergedRightStageSetId
+     */
+    public void checkObsolete(Long mergedLeftStageSetId, Long mergedRightStageSetId) {
+        if (this.lStageSetId.equals(mergedLeftStageSetId) || this.lStageSetId.equals(mergedRightStageSetId)
+                || this.rStageSetId.equals(mergedLeftStageSetId) || this.rStageSetId.equals(mergedRightStageSetId)) {
             N.r(() -> {
                 listenerSemaphore.acquire();
                 this.obsolete = true;
@@ -390,6 +390,9 @@ public class ConflictSolver extends SyncStageMerger {
     }
 
     public interface ConflictSolverListener {
+        /**
+         * called when the {@link ConflictSolver}s {@link StageSet}s were merged.
+         */
         void onConflictObsolete();
     }
 }

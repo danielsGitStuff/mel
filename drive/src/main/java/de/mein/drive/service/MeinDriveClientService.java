@@ -188,6 +188,13 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         meinAuthService.onMessageFromService(this, conflictSolver);
     }
 
+    /**
+     * merged {@link StageSet}s might be handled by the {@link de.mein.drive.service.sync.SyncHandler} at some point.
+     * eg. it still might show some GUI handling {@link de.mein.drive.service.sync.conflict.Conflict}s.
+     * @param lStageSetId
+     * @param rStageSetId
+     * @param mergedStageSet
+     */
     public void onStageSetsMerged(Long lStageSetId, Long rStageSetId, StageSet mergedStageSet) {
         syncHandler.onStageSetsMerged(lStageSetId, rStageSetId, mergedStageSet);
     }

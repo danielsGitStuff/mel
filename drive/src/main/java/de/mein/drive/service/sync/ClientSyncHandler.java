@@ -370,6 +370,7 @@ public class ClientSyncHandler extends SyncHandler {
         stageDao.deleteStageSet(rStageSet.getId().v());
         stageDao.deleteStageSet(lStageSet.getId().v());
         stageDao.updateStageSet(mStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED).setSource(DriveStrings.STAGESET_TYPE_FS));
+        // tell the service which StageSets had been merged
         meinDriveService.onStageSetsMerged(lStageSet.getId().v(), rStageSet.getId().v(), mStageSet);
     }
 
