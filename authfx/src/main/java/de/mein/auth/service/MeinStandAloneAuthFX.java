@@ -14,7 +14,7 @@ public class MeinStandAloneAuthFX {
 
     public MeinStandAloneAuthFX(MeinAuthService meinAuthService) throws Exception {
         this.meinAuthService = meinAuthService;
-        meinAuthService.addMeinAuthAdmin(MeinAuthFX.load(meinAuthService));
+        meinAuthService.addMeinAuthAdmin(MeinAuthAdminFX.load(meinAuthService));
     }
 
     public static void main(String[] args) throws Exception {

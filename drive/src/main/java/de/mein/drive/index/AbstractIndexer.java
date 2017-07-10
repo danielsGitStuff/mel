@@ -290,10 +290,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getName().equals("samedir"))
             System.out.println("AbstractIndexer.roamDirectoryStage.h90984th030g5");
         RWLock waitLock = new RWLock().lockWrite();
-        Promise<BashTools.NodeAndTime, Exception, Void> promise = BashTools.getNodeAndTime(stageFile);
-        promise.done(nodeAndTime -> N.r(() -> {
-            stage.setModified(nodeAndTime.getModifiedTime())
-                    .setiNode(nodeAndTime.getInode());
+        Long inode = BashTools.getINodeOfFile(stageFile);
+            stage.setModified(stageFile.lastModified())
+                    .setiNode(inode);
             if (stage.getFsId() != null) {
                 FsDirectory oldFsDirectory = fsDao.getFsDirectoryById(stage.getFsId());
                 if (oldFsDirectory.getContentHash().v().equals(newFsDirectory.getContentHash().v()))
@@ -303,18 +302,15 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             } else
                 stageDao.update(stage);
             waitLock.unlockWrite();
-        }));
         waitLock.lockWrite();
     }
 
     protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException {
         if (stageFile.exists()) {
-            RWLock waitLock = new RWLock().lockWrite();
-            Promise<BashTools.NodeAndTime, Exception, Void> promise = BashTools.getNodeAndTime(stageFile);
-            promise.done(nodeAndTime -> N.r(() -> {
+            Long iNode = BashTools.getINodeOfFile(stageFile);
                 stage.setContentHash(Hash.md5(stageFile));
-                stage.setiNode(nodeAndTime.getInode());
-                stage.setModified(nodeAndTime.getModifiedTime());
+                stage.setiNode(iNode);
+                stage.setModified(stageFile.lastModified());
                 stage.setSize(stageFile.length());
                 stage.setSynced(true);
                 // stage can be deleted if nothing changed
@@ -326,9 +322,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                         stageDao.update(stage);
                 } else
                     stageDao.update(stage);
-                waitLock.unlockWrite();
-            }));
-            waitLock.lockWrite();
+
         } else {
             stage.setDeleted(true);
             stageDao.update(stage);

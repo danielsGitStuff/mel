@@ -15,7 +15,6 @@ import de.mein.drive.transfer.TransferManager;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
-import org.jdeferred.Promise;
 
 import java.io.*;
 import java.util.List;
@@ -76,16 +75,11 @@ public abstract class SyncHandler {
                 }
             }
             indexer.ignorePath(target.getAbsolutePath(), 1);
-            RWLock waitLock = new RWLock().lockWrite();
-            Promise<BashTools.NodeAndTime, Exception, Void> promise = BashTools.getNodeAndTime(source);
-            promise.done(nodeAndTime -> N.r(() -> {
-                fsTarget.getiNode().v(nodeAndTime.getInode());
-                fsTarget.getModified().v(nodeAndTime.getModifiedTime());
-                fsTarget.getSize().v(source.length());
-                fsTarget.getSynced().v(true);
-                waitLock.unlockWrite();
-            }));
-            waitLock.lockWrite();
+            Long iNode = BashTools.getINodeOfFile(source);
+            fsTarget.getiNode().v(iNode);
+            fsTarget.getModified().v(source.lastModified());
+            fsTarget.getSize().v(source.length());
+            fsTarget.getSynced().v(true);
             boolean moved = source.renameTo(target);
             if (!moved || !target.exists())
                 return null;
@@ -150,14 +144,11 @@ public abstract class SyncHandler {
             }
             //indexer.stopIgnore(target.getAbsolutePath());
             RWLock waitLock = new RWLock();
-            Promise<BashTools.NodeAndTime, Exception, Void> promise = BashTools.getNodeAndTime(target);
-            promise.done(nodeAndTime -> N.r(() -> {
-                fsTarget.getiNode().v(nodeAndTime.getInode());
-                fsTarget.getModified().v(nodeAndTime.getModifiedTime());
-                fsTarget.getSize().v(target.length());
-                driveDatabaseManager.getFsDao().update(fsTarget);
-                waitLock.unlockWrite();
-            }));
+            Long iNode = BashTools.getINodeOfFile(target);
+            fsTarget.getiNode().v(iNode);
+            fsTarget.getModified().v(target.lastModified());
+            fsTarget.getSize().v(target.length());
+            driveDatabaseManager.getFsDao().update(fsTarget);
             waitLock.lockWrite();
 
         } catch (Exception e) {
@@ -326,16 +317,10 @@ public abstract class SyncHandler {
     }
 
     private void updateInodeModified(FsEntry entry, File f) throws SqlQueriesException, IOException {
-        RWLock waitLock = new RWLock();
-        Promise<BashTools.NodeAndTime, Exception, Void> promise = BashTools.getNodeAndTime(f);
-        promise.done(nodeAndTime -> N.r(() -> {
-            entry.getiNode().v(nodeAndTime.getInode());
-            entry.getModified().v(nodeAndTime.getModifiedTime());
-            fsDao.update(entry);
-            waitLock.unlockWrite();
-        }));
-        waitLock.lockWrite();
-
+        Long iNode = BashTools.getINodeOfFile(f);
+        entry.getiNode().v(iNode);
+        entry.getModified().v(f.lastModified());
+        fsDao.update(entry);
     }
 
     public void start() {

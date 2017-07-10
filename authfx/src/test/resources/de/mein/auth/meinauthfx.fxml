@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <BorderPane prefHeight="524.0" prefWidth="755.0" xmlns="http://javafx.com/javafx/null"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.service.MeinAuthFX">
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.service.MeinAuthAdminFX">
     <bottom>
         <HBox alignment="CENTER" prefHeight="23.0" prefWidth="755.0" BorderPane.alignment="CENTER">
             <Button fx:id="btnApply" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Apply"

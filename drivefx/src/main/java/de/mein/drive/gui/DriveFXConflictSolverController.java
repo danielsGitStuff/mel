@@ -24,7 +24,7 @@ import java.util.ResourceBundle;
  * Created by xor on 5/30/17.
  */
 @SuppressWarnings("Duplicates")
-public class DriveFXConflictSolverController implements PopupContentFX, Initializable {
+public class DriveFXConflictSolverController extends PopupContentFX implements Initializable {
     @FXML
     private TreeTableView<Conflict> treeTableView;
     @FXML

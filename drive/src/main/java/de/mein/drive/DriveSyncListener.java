@@ -3,6 +3,7 @@ package de.mein.drive;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
+import de.mein.drive.sql.StageSet;
 
 import java.io.File;
 
@@ -20,6 +21,7 @@ public abstract class DriveSyncListener {
     public abstract void onSyncFailed();
 
     public abstract void onTransfersDone();
+
 
     public static class DTestStructure {
         public MeinAuthService maServer, maClient;

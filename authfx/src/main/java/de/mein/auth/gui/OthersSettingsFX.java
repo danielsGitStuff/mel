@@ -2,7 +2,7 @@ package de.mein.auth.gui;
 
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.gui.controls.CertListCell;
-import de.mein.auth.service.MeinAuthFX;
+import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.tools.N;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -57,7 +57,7 @@ public class OthersSettingsFX extends AuthSettingsFX {
     }
 
     @Override
-    public void configureParentGui(MeinAuthFX meinAuthFX) {
-        meinAuthFX.hideBottomButtons();
+    public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
+        meinAuthAdminFX.hideBottomButtons();
     }
 }

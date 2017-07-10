@@ -17,6 +17,7 @@ import de.mein.drive.service.sync.conflict.ConflictSolver;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.FsFile;
+import de.mein.drive.sql.StageSet;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.impl.DeferredObject;
 
@@ -185,5 +186,9 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     public void onConflicts(ConflictSolver conflictSolver) {
         System.out.println("MeinDriveClientService.onConflicts.oj9h034800");
         meinAuthService.onMessageFromService(this, conflictSolver);
+    }
+
+    public void onStageSetsMerged(Long lStageSetId, Long rStageSetId, StageSet mergedStageSet) {
+        syncHandler.onStageSetsMerged(lStageSetId, rStageSetId, mergedStageSet);
     }
 }

@@ -8,16 +8,19 @@ import de.mein.drive.service.sync.conflict.Conflict;
 import de.mein.drive.service.sync.conflict.ConflictException;
 import de.mein.drive.service.sync.conflict.ConflictSolver;
 import de.mein.drive.service.sync.EmptyRowConflict;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 
+import java.net.URL;
 import java.util.*;
 
 
 /**
  * Created by xor on 5/30/17.
  */
-public class DriveFXConflictSolverControllerList implements PopupContentFX {
+public class DriveFXConflictSolverControllerList extends PopupContentFX implements ConflictSolver.ConflictSolverListener{
     @FXML
     private ListView<Conflict> listLeft, listRight, listMerge;
     private MeinDriveClientService meinDriveClientService;
@@ -46,6 +49,7 @@ public class DriveFXConflictSolverControllerList implements PopupContentFX {
         AbstractMergeListCell.setup(listLeft, listMerge, listRight);
         List<Conflict> conflicts = prepareConflicts(conflictSolver.getConflicts());
         listLeft.getItems().addAll(conflicts);
+        conflictSolver.addListener(this);
     }
 
     /**
@@ -80,6 +84,11 @@ public class DriveFXConflictSolverControllerList implements PopupContentFX {
                 traversalAdding(result, conflict.getDependents());
             }
         }
+    }
+
+    @Override
+    public void onConflictObsolete() {
+        Platform.runLater(() -> stage.close());
     }
 
 }

@@ -61,7 +61,7 @@ public class BashTools {
 
 
     public static List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
-        System.out.println("BashTools.stuffModifiedAfter.referenceFile: " + referenceFile.getAbsolutePath());
+        System.out.println("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
         String[] args = new String[]{BIN_PATH, "-c",
                 "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
                         + " -path \"" + pruneDir + "\" -prune"
@@ -82,7 +82,6 @@ public class BashTools {
                 }
                 int exitValue = proc.exitValue();
                 if (exitValue == 0) {
-                    System.out.println("BashTools.stuffModifiedAfter");
                     BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
                     System.out.println("BashTools.stuffModifiedAfter.collecting.result");
                     List<String> result = reader.lines().collect(Collectors.toList());
@@ -119,32 +118,31 @@ public class BashTools {
     }
 
 
-    public static class NodeAndTime {
-        public NodeAndTime(Long inode, Long modifiedTime) {
-            this.inode = inode;
-            this.modifiedTime = modifiedTime;
-        }
-
-        private Long inode, modifiedTime;
-
-        public Long getInode() {
-            return inode;
-        }
-
-        public Long getModifiedTime() {
-            return modifiedTime;
-        }
-    }
+//    public static class NodeAndTime {
+//        public NodeAndTime(Long inode, Long modifiedTime) {
+//            this.inode = inode;
+//            this.modifiedTime = modifiedTime;
+//        }
+//
+//        private Long inode, modifiedTime;
+//
+//        public Long getInode() {
+//            return inode;
+//        }
+//
+//        public Long getModifiedTime() {
+//            return modifiedTime;
+//        }
+//    }
 
     private static ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public static Promise<NodeAndTime, Exception, Void> getNodeAndTime(File f) {
-        DeferredObject<NodeAndTime, Exception, Void> deferred = new DeferredObject<>();
+    public static Promise<Long, Exception, Void> getInode(File f) {
+        DeferredObject<Long, Exception, Void> deferred = new DeferredObject<>();
         executorService.execute(() -> N.r(() -> {
-            String ba = "echo $(ls -i -d '" + f.getAbsolutePath() + "')";
+            String ba = "ls -i -d '" + f.getAbsolutePath() + "'";
             String[] args = new String[]{BIN_PATH, "-c", ba};
-            String res = null;
-            Long inode = null, modifiedTime = f.lastModified();
+            Long inode;
             List<String> lines;
             boolean hasFinished = false;
             Process proc = null;
@@ -168,8 +166,7 @@ public class BashTools {
                     if (s[0].isEmpty())
                         System.out.println("BashTools.getNodeAndTime");
                     inode = Long.parseLong(s[0]);
-                    NodeAndTime nodeAndTime = new NodeAndTime(inode, modifiedTime);
-                    deferred.resolve(nodeAndTime);
+                    deferred.resolve(inode);
                     hasFinished = true;
                 } catch (Exception e) {
                     e.printStackTrace();

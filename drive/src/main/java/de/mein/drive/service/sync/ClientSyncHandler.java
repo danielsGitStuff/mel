@@ -259,10 +259,10 @@ public class ClientSyncHandler extends SyncHandler {
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
         if (conflictSolverMap.containsKey(identifier)) {
             conflictSolver = conflictSolverMap.get(identifier);
-            try{
+            try {
                 conflictSolver.isSolved();
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
-            }catch (ConflictException e){
+            } catch (ConflictException e) {
                 conflictSolverMap.remove(identifier);
                 conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
                 conflictSolver.beforeStart(serverStageSet);
@@ -294,13 +294,13 @@ public class ClientSyncHandler extends SyncHandler {
      * @throws SqlQueriesException
      */
     private void mergeStageSets(List<StageSet> stageSets) throws SqlQueriesException {
-        System.out.println("ClientSyncHandler.mergeStageSets");
         if (stageSets.size() > 2)
             System.err.println("ClientSyncHandler.mergeStageSets.TOO MANY!!!1");
         if (stageSets.size() <= 1)
             return;
         StageSet lStageSet = stageSets.get(0);
         StageSet rStageSet = stageSets.get(1);
+        System.out.println("ClientSyncHandler.mergeStageSets L: " + lStageSet.getId().v() + " R: " + rStageSet.getId().v());
         StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_MERGED, null, null);
         final Long mStageSetId = mStageSet.getId().v();
         SyncStageMerger merger = new SyncStageMerger(lStageSet.getId().v(), rStageSet.getId().v()) {
@@ -370,6 +370,7 @@ public class ClientSyncHandler extends SyncHandler {
         stageDao.deleteStageSet(rStageSet.getId().v());
         stageDao.deleteStageSet(lStageSet.getId().v());
         stageDao.updateStageSet(mStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED).setSource(DriveStrings.STAGESET_TYPE_FS));
+        meinDriveService.onStageSetsMerged(lStageSet.getId().v(), rStageSet.getId().v(), mStageSet);
     }
 
     /**
@@ -577,4 +578,9 @@ public class ClientSyncHandler extends SyncHandler {
         return finished;
     }
 
+    public void onStageSetsMerged(Long lStageSetId, Long rStageSetId, StageSet mergedStageSet) {
+        for (ConflictSolver solver : conflictSolverMap.values()){
+            solver.checkObsolete(lStageSetId,rStageSetId);
+        }
+    }
 }

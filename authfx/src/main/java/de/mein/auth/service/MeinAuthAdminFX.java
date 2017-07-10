@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * Created by xor on 6/25/16.
  */
-public class MeinAuthFX implements Initializable, MeinAuthAdmin {
+public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
 
     private MeinAuthService meinAuthService;
     private Stage stage;
@@ -86,7 +86,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
         Deferred<PopupContentFX, Void, Void> deferred = new DeferredObject<>();
         Platform.runLater(() -> {
             N.r(() -> {
-                FXMLLoader loader = new FXMLLoader(MeinAuthFX.class.getClassLoader().getResource("de/mein/auth/popup.fxml"));
+                FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/popup.fxml"));
                 Parent root = null;
                 root = loader.load();
                 Scene scene = new Scene(root);
@@ -95,18 +95,21 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
                 stage.setScene(scene);
                 stage.show();
                 PopupContainerFX popupController = loader.getController();
-                popupController.load(containingPath).done(deferred::resolve);
+                popupController.load(containingPath).done(contentFX -> {
+                    contentFX.setStage(stage);
+                    deferred.resolve(contentFX);
+                });
             });
         });
         return deferred;
         /*new JFXPanel();
         Platform.setImplicitExit(false);
-        final MeinAuthFX[] meinAuthFX = new MeinAuthFX[1];
-        MeinAuthFX m;
+        final MeinAuthAdminFX[] meinAuthFX = new MeinAuthAdminFX[1];
+        MeinAuthAdminFX m;
         RWLock lock = new RWLock().lockWrite();
         Platform.runLater(() -> {
                     try {
-                        FXMLLoader loader = new FXMLLoader(MeinAuthFX.class.getClassLoader().getResource("de/mein/auth/popup.fxml"));
+                        FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/popup.fxml"));
                         HBox root = null;
                         root = loader.load();
                         meinAuthFX[0] = loader.getController();
@@ -128,13 +131,13 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     }
 
 
-    public MeinAuthFX() {
+    public MeinAuthAdminFX() {
 
     }
 
     @Override
     public void onChanged() {
-        System.out.println("MeinAuthFX.onChanged");
+        System.out.println("MeinAuthAdminFX.onChanged");
         showContent();
     }
 
@@ -184,7 +187,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
             for (String name : names) {
                 MenuItem menuItem = new MenuItem(name);
                 menuItem.setOnAction(e1 -> {
-                    System.out.println("MeinAuthFX.initialize.createmenu.clicked");
+                    System.out.println("MeinAuthAdminFX.initialize.createmenu.clicked");
                     runner.r(() -> onCreateMenuItemClicked(name));
                 });
                 createServiceMenu.getItems().add(menuItem);
@@ -218,7 +221,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
         if (bootLoader instanceof BootLoaderFX) {
             loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML());
         } else {
-            System.out.println("MeinAuthFX.onCreateMenuItemClicked.NO.FX.BOOTLOADER");
+            System.out.println("MeinAuthAdminFX.onCreateMenuItemClicked.NO.FX.BOOTLOADER");
         }
 
     }
@@ -234,7 +237,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
             contentController.setMeinAuthService(meinAuthService);
             lblTitle.setText(contentController.getTitle());
             setContentPane(pane);
-            System.out.println("MeinAuthFX.loadSettingsFX.loaded");
+            System.out.println("MeinAuthAdminFX.loadSettingsFX.loaded");
         });
     }
 
@@ -249,26 +252,26 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
     }
 
     @SuppressWarnings("Duplicates")
-    public static MeinAuthFX load(MeinAuthService meinAuthService) {
+    public static MeinAuthAdminFX load(MeinAuthService meinAuthService) {
         new JFXPanel();
         Platform.setImplicitExit(false);
-        final MeinAuthFX[] meinAuthFX = new MeinAuthFX[1];
-        MeinAuthFX m;
+        final MeinAuthAdminFX[] meinAuthAdminFXES = new MeinAuthAdminFX[1];
+        MeinAuthAdminFX m;
         RWLock lock = new RWLock().lockWrite();
         Platform.runLater(() -> {
                     try {
-                        FXMLLoader loader = new FXMLLoader(MeinAuthFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
+                        FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
                         HBox root = null;
                         root = loader.load();
-                        meinAuthFX[0] = loader.getController();
-                        meinAuthFX[0].start(meinAuthService);
+                        meinAuthAdminFXES[0] = loader.getController();
+                        meinAuthAdminFXES[0].start(meinAuthService);
                         Scene scene = new Scene(root);
                         Stage stage = new Stage();
                         stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");
                         stage.setScene(scene);
                         stage.show();
-                        meinAuthFX[0].setStage(stage);
-                        meinAuthFX[0].showContent();
+                        meinAuthAdminFXES[0].setStage(stage);
+                        meinAuthAdminFXES[0].showContent();
                         lock.unlockWrite();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -276,7 +279,7 @@ public class MeinAuthFX implements Initializable, MeinAuthAdmin {
                 }
         );
         lock.lockWrite();
-        return meinAuthFX[0];
+        return meinAuthAdminFXES[0];
     }
 
     public void hideBottomButtons() {

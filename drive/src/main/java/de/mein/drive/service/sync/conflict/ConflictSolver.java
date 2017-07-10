@@ -13,6 +13,7 @@ import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by xor on 5/30/17.
@@ -28,6 +29,9 @@ public class ConflictSolver extends SyncStageMerger {
     private StageDao stageDao;
     private StageSet mergeStageSet;
     private FsDao fsDao;
+    private List<ConflictSolverListener> listeners = new ArrayList<>();
+    private Semaphore listenerSemaphore = new Semaphore(1, true);
+    private boolean obsolete = false;
 
     public ConflictSolver(DriveDatabaseManager driveDatabaseManager, StageSet lStageSet, StageSet rStageSet) {
         super(lStageSet.getId().v(), rStageSet.getId().v());
@@ -37,6 +41,12 @@ public class ConflictSolver extends SyncStageMerger {
         stageDao = driveDatabaseManager.getStageDao();
         fsDao = driveDatabaseManager.getFsDao();
         identifier = createIdentifier(lStageSet.getId().v(), rStageSet.getId().v());
+        N.r(() -> {
+            listenerSemaphore.acquire();
+            if (obsolete)
+                tellObsolete();
+            listenerSemaphore.release();
+        });
     }
 
     public static String createIdentifier(Long lStageSetId, Long rStageSetId) {
@@ -337,6 +347,10 @@ public class ConflictSolver extends SyncStageMerger {
         isOk.addAll(stack);
     }
 
+    @Override
+    public String toString() {
+        return lStageSetId + " vs " + rStageSetId + " -> " + mergeStageSet == null ? "null" : mergeStageSet.getId().v().toString();
+    }
 
     public boolean hasConflicts() {
         return conflicts.size() > 0;
@@ -344,5 +358,38 @@ public class ConflictSolver extends SyncStageMerger {
 
     public Collection<Conflict> getConflicts() {
         return conflicts.values();
+    }
+
+    public void addListener(ConflictSolverListener conflictSolverListener) {
+        N.r(() -> {
+            listenerSemaphore.acquire();
+            this.listeners.add(conflictSolverListener);
+            if (obsolete)
+                tellObsolete();
+            listenerSemaphore.release();
+        });
+
+    }
+
+
+    private void tellObsolete() {
+        for (ConflictSolverListener listener : listeners)
+            listener.onConflictObsolete();
+    }
+
+    public void checkObsolete(Long lStageSetId, Long rStageSetId) {
+        if (this.lStageSetId.equals(lStageSetId) || this.lStageSetId.equals(rStageSetId)
+                || this.rStageSetId.equals(lStageSetId) || this.rStageSetId.equals(rStageSetId)) {
+            N.r(() -> {
+                listenerSemaphore.acquire();
+                this.obsolete = true;
+                tellObsolete();
+                listenerSemaphore.release();
+            });
+        }
+    }
+
+    public interface ConflictSolverListener {
+        void onConflictObsolete();
     }
 }
