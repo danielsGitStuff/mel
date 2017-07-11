@@ -44,7 +44,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-        System.out.println(getClass().getSimpleName() + " for " + serviceName + ".onShutDown");
+        System.out.println(getClass().getSimpleName() + "["+stageSetId+"] for " + serviceName + ".onShutDown");
     }
 
     protected String buildPathFromStage(Stage stage) throws SqlQueriesException {
@@ -98,7 +98,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             while (iterator.hasNext()) {
                 try {
                     path = iterator.next();
-                    System.out.println("AbstractIndexer.initStage.fromBashTools: " + path);
+                    System.out.println("AbstractIndexer["+stageSetId+"].initStage.fromBashTools: " + path);
                     File f = new File(path);
                     File parent = f.getParentFile();
                     FsDirectory fsParent = null;
@@ -161,7 +161,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     stage.setOrder(order.ord());
                     stageDao.insert(stage);
                 } catch (Exception e) {
-                    System.err.println("MeinDriveServerService.doFsSyncJob: " + path);
+                    System.err.println("AbstractIndexer.initStage: " + path);
                     e.printStackTrace();
                 }
             }
@@ -188,7 +188,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         File[] files = stageFile.listFiles(File::isFile);
         File[] subDirs = stageFile.listFiles(File::isDirectory);
         if (files == null || subDirs == null)
-            System.out.println("AbstractIndexer.roamDirectoryStage.dbuer903tj");
+            System.out.println("AbstractIndexer["+stageSetId+"].roamDirectoryStage.dbuer903tj");
         // map will contain all FsEntry that must be deleted
         Map<String, GenericFSEntry> fsContent = new HashMap<>();
         if (stage.getFsId() != null) {
@@ -256,13 +256,13 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                         .setName(subDir.getName())
                         .setIsDirectory(true)
                         .setDeleted(!subDir.exists());
-                System.out.println("StageIndexerRunnable.roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
+                System.out.println("StageIndexerRunnable["+stageSetId+"].roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
                 subStage.setOrder(order.ord());
                 //todo debug
                 if (subStage.getDeleted() == true && subStage.getName().equals("samesub"))
-                    System.out.println("AbstractIndexer.roamDirectoryStage");
+                    System.out.println("AbstractIndexer["+stageSetId+"].roamDirectoryStage");
                 if (subStage.getDeleted() == null)
-                    System.out.println("AbstractIndexer.roamDirectoryStage.debugemsagß5");
+                    System.out.println("AbstractIndexer["+stageSetId+"].roamDirectoryStage.debugemsagß5");
                 try {
                     stageDao.insert(subStage);
                 } catch (Exception e) {
@@ -288,7 +288,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         stage.setContentHash(newFsDirectory.getContentHash().v());
         //todo debug
         if (stage.getName().equals("samedir"))
-            System.out.println("AbstractIndexer.roamDirectoryStage.h90984th030g5");
+            System.out.println("AbstractIndexer["+stageSetId+"].roamDirectoryStage.h90984th030g5");
         RWLock waitLock = new RWLock().lockWrite();
         Long inode = BashTools.getINodeOfFile(stageFile);
             stage.setModified(stageFile.lastModified())

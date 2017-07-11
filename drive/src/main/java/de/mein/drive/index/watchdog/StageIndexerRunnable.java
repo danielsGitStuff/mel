@@ -41,16 +41,16 @@ public class StageIndexerRunnable extends AbstractIndexer {
             examineStage();
             fsDao.unlockRead();
             unlocked = true;
-            if(Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClientService for MA2"))
-                System.out.println("StageIndexerRunnable.runImpl.debug8fh384");
+            if(Thread.currentThread().getName().startsWith("StageIndexerRunnable["+stageSetId+"] for MeinDriveClientService for MA2"))
+                System.out.println("StageIndexerRunnable["+stageSetId+"].runImpl.debug8fh384");
             stagingDoneListener.onStagingFsEventsDone(stageSetId);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             if (!unlocked) {
-                System.out.println("StageIndexerRunnable.runImpl.unlocking on " + Thread.currentThread().getName());
+                System.out.println("StageIndexerRunnable["+stageSetId+"].runImpl.unlocking on " + Thread.currentThread().getName());
                 fsDao.unlockRead();
-                System.out.println("StageIndexerRunnable.runImpl.unlocked");
+                System.out.println("StageIndexerRunnable["+stageSetId+"].runImpl.unlocked");
             }
         }
     }
