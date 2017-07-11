@@ -61,12 +61,9 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
     private List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
         List<Conflict> result = new ArrayList<>();
         List<Conflict> rootConflicts = new ArrayList<>();
-        Set<Conflict> independentConflicts = new HashSet<>();
         for (Conflict conflict : conflicts) {
             if (conflict.getDependsOn() == null)
                 rootConflicts.add(conflict);
-            else if (conflict.getDependents().size() == 0)
-                independentConflicts.add(conflict);
         }
         for (Conflict root : rootConflicts) {
             result.add(root);
