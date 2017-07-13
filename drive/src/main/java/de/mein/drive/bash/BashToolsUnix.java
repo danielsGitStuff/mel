@@ -20,10 +20,11 @@ import java.util.stream.Stream;
 /**
  * Created by xor on 13.07.2017.
  */
-public class BashToolsUnix implements BashToolsImpl{
+public class BashToolsUnix implements BashToolsImpl {
 
     private String BIN_PATH = "/bin/bash";
-    protected ExecutorService executorService = Executors.newCachedThreadPool();
+    private ExecutorService executorService = Executors.newCachedThreadPool();
+
 
     @Override
     public void setBinPath(String binPath) {

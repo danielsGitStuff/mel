@@ -2,8 +2,7 @@ package de.mein.drive.bash;
 
 import org.jdeferred.Promise;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -11,7 +10,10 @@ import java.util.stream.Stream;
 /**
  * Created by xor on 13.07.2017.
  */
+@SuppressWarnings("Duplicates")
 public class BashToolsWindows implements BashToolsImpl {
+    private static final String BIN_PATH = "cmd";
+
     @Override
     public void setBinPath(String binPath) {
         System.out.println("BashToolsWindows.setBinPath");
@@ -37,9 +39,29 @@ public class BashToolsWindows implements BashToolsImpl {
         return null;
     }
 
+    public BufferedReader exec(String command) throws IOException {
+        String[] args = new String[]{BIN_PATH};
+        Process process = new ProcessBuilder(args).start();
+        PrintWriter stdin = new PrintWriter(process.getOutputStream());
+        stdin.println(command);
+        stdin.close();
+        BufferedReader reader =  new BufferedReader(new InputStreamReader(process.getInputStream()));
+        reader.readLine();
+        reader.readLine();
+        reader.readLine();
+        reader.readLine();
+        return reader;
+    }
+
     @Override
     public Stream<String> find(File directory, File pruneDir) throws IOException {
-        return null;
+        String cmd = "dir /b/s \"" + directory.getAbsolutePath() + "\" | findstr /v \"" + pruneDir.getAbsolutePath() + "\"";
+        BufferedReader reader = exec(cmd);
+        reader.lines().forEach(System.out::println);
+        String res = null;
+        //proc.waitFor();
+        return reader.lines();
+
     }
 
     @Override
