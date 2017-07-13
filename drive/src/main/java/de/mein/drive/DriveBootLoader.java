@@ -9,6 +9,7 @@ import de.mein.auth.tools.MeinDeferredManager;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
@@ -31,6 +32,7 @@ import java.util.List;
 public class DriveBootLoader extends BootLoader {
 
     public DriveBootLoader() {
+        BashTools.init();
     }
 
 

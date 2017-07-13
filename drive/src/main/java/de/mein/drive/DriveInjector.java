@@ -1,6 +1,6 @@
 package de.mein.drive;
 
-import de.mein.drive.index.BashTools;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 

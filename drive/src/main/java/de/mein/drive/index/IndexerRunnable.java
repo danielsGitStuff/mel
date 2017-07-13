@@ -1,6 +1,7 @@
 package de.mein.drive.index;
 
 import de.mein.auth.tools.Order;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;

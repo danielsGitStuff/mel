@@ -1,12 +1,11 @@
 package de.mein.drive.index.watchdog;
 
-import de.mein.drive.index.BashTools;
-import de.mein.drive.index.BashToolsException;
+import de.mein.drive.bash.BashTools;
+import de.mein.drive.bash.BashToolsException;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Created by xor on 5/7/17.

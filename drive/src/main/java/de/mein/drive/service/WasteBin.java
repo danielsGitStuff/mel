@@ -2,7 +2,7 @@ package de.mein.drive.service;
 
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.DriveStrings;
-import de.mein.drive.index.BashTools;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.*;

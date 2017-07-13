@@ -7,7 +7,7 @@ import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.sync.conflict.Conflict;
 import de.mein.drive.service.sync.conflict.ConflictException;
 import de.mein.drive.service.sync.conflict.ConflictSolver;
-import de.mein.drive.service.sync.EmptyRowConflict;
+import de.mein.drive.service.sync.conflict.EmptyRowConflict;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;

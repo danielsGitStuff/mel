@@ -4,7 +4,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
-import de.mein.drive.index.BashTools;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.WasteBin;

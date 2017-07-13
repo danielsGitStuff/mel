@@ -20,7 +20,7 @@ import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
-import de.mein.drive.index.BashTools;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;

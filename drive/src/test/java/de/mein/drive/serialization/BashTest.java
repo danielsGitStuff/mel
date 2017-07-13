@@ -1,6 +1,6 @@
 package de.mein.drive.serialization;
 
-import de.mein.drive.index.BashTools;
+import de.mein.drive.bash.BashTools;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by xor on 10/28/16.

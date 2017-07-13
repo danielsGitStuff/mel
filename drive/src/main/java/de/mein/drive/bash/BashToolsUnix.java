@@ -1,4 +1,4 @@
-package de.mein.drive.index;
+package de.mein.drive.bash;
 
 import de.mein.auth.tools.N;
 import org.jdeferred.Promise;
@@ -18,18 +18,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Created by xor on 10/28/16.
+ * Created by xor on 13.07.2017.
  */
-@SuppressWarnings("Duplicates")
-public class BashTools {
+public class BashToolsUnix implements BashToolsImpl{
 
-    private static String BIN_PATH = "/bin/bash";
+    private String BIN_PATH = "/bin/bash";
+    protected ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public static void setBinPath(String binPath) {
+    @Override
+    public void setBinPath(String binPath) {
         BIN_PATH = binPath;
     }
 
-    public static Set<Long> getINodesOfDirectory(File file) throws IOException {
+    @Override
+    public Set<Long> getINodesOfDirectory(File file) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c", "find share/ -printf \"%p\\n\" | tail -n +2 | xargs -d '\\n' stat -c %i"};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -41,7 +43,8 @@ public class BashTools {
         return iNodes;
     }
 
-    public static Long getINodeOfFile(File file) throws IOException {
+    @Override
+    public Long getINodeOfFile(File file) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c", "stat -c %i \"" + file.getAbsolutePath() + "\""};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -54,13 +57,14 @@ public class BashTools {
      *
      * @param directory
      */
-    public static void rmRf(File directory) throws IOException {
+    @Override
+    public void rmRf(File directory) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c", "rm -rf \"" + directory.getAbsolutePath() + "\""};
         Process proc = new ProcessBuilder(args).start();
     }
 
-
-    public static List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+    @Override
+    public List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
         System.out.println("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
         String[] args = new String[]{BIN_PATH, "-c",
                 "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
@@ -100,7 +104,8 @@ public class BashTools {
         return null;
     }
 
-    public static Stream<String> find(File directory, File pruneDir) throws IOException {
+    @Override
+    public Stream<String> find(File directory, File pruneDir) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c",
                 "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
                         + " -path \"" + pruneDir + "\" -prune -o -print"};
@@ -117,27 +122,8 @@ public class BashTools {
         return null;
     }
 
-
-//    public static class NodeAndTime {
-//        public NodeAndTime(Long inode, Long modifiedTime) {
-//            this.inode = inode;
-//            this.modifiedTime = modifiedTime;
-//        }
-//
-//        private Long inode, modifiedTime;
-//
-//        public Long getInode() {
-//            return inode;
-//        }
-//
-//        public Long getModifiedTime() {
-//            return modifiedTime;
-//        }
-//    }
-
-    private static ExecutorService executorService = Executors.newCachedThreadPool();
-
-    public static Promise<Long, Exception, Void> getInode(File f) {
+    @Override
+    public Promise<Long, Exception, Void> getInode(File f) {
         DeferredObject<Long, Exception, Void> deferred = new DeferredObject<>();
         executorService.execute(() -> N.r(() -> {
             String ba = "ls -i -d '" + f.getAbsolutePath() + "'";
@@ -177,10 +163,4 @@ public class BashTools {
         }));
         return deferred;
     }
-
-    private void extractInode() {
-
-    }
-
-
 }

@@ -2,8 +2,8 @@ package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.tools.Hash;
-import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
@@ -11,7 +11,6 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
-import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.IOException;

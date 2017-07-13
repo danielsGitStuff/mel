@@ -1,4 +1,4 @@
-package de.mein.drive.index;
+package de.mein.drive.bash;
 
 import java.io.IOException;
 import java.util.stream.Stream;
