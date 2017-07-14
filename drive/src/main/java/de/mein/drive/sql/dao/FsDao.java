@@ -312,19 +312,24 @@ public class FsDao extends Dao {
     }
 
     public FsDirectory getFsDirectoryByPath(File f) throws SqlQueriesException {
-        RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
-        String rootPath = rootDirectory.getPath();
-        String path = f.getAbsolutePath();
-        String sh = path.substring(rootPath.length());
-        FsDirectory parent = this.getRootDirectory();
-        String[] parts = sh.split(File.separator);
-        for (int i = 1; i < parts.length; i++) {
-            String name = parts[i];
-            if (parent == null)
-                return null;
-            parent = this.getSubDirectoryByName(parent.getId().v(), name);
+        try {
+            RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
+            String rootPath = rootDirectory.getPath();
+            String path = f.getAbsolutePath();
+            String sh = path.substring(rootPath.length());
+            FsDirectory parent = this.getRootDirectory();
+            String[] parts = sh.split(File.separator);
+            for (int i = 1; i < parts.length; i++) {
+                String name = parts[i];
+                if (parent == null)
+                    return null;
+                parent = this.getSubDirectoryByName(parent.getId().v(), name);
+            }
+            return parent;
+        }catch (StringIndexOutOfBoundsException e){
+            e.printStackTrace();
         }
-        return parent;
+        return null;
     }
 
     public FsDirectory getRootDirectory() throws SqlQueriesException {
