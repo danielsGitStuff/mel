@@ -28,10 +28,6 @@ StageDao extends Dao.LockingDao {
         this.driveDatabaseManager = driveDatabaseManager;
 
     }
-/*
-    public StageDao(SQLQueries sqlQueries, boolean lock) {
-        super(sqlQueries, lock);
-    }*/
 
     /**
      * finds the relating stage. starts searching from leParentDirectory and traverses Stage table till it finds it.
@@ -42,19 +38,19 @@ StageDao extends Dao.LockingDao {
     public Stage getStageByPath(Long stageSetId, File f) throws SqlQueriesException {
         RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
         String rootPath = rootDirectory.getPath();
-        String path = f.getAbsolutePath();
-        if (path.length() < rootPath.length())
+        if (f.getAbsolutePath().length() < rootPath.length())
             return null;
-        // skip a File.separator
-        String sh = path.substring(rootPath.length());
-        if (sh.startsWith(File.separator))
-            sh = sh.substring(1);
-        //Stage parentStage = getStageByFsId(rootDirectory.getId(), stageSetId);
-        String[] parts = sh.split(File.separator);
-        BottomDirAndPath bottomDirAndPath = getBottomFsEntry(parts);
-        Stage bottomStage = this.getStageByFsId(bottomDirAndPath.fsEntry.getId().v(), stageSetId);
-        for (int i = 0; i < bottomDirAndPath.parts.length; i++) {
-            String name = bottomDirAndPath.parts[i];
+        File ff = new File(f.getAbsolutePath());
+        Stack<File> fileStack = new Stack<>();
+        while (ff.getAbsolutePath().length() > rootPath.length()) {
+            fileStack.push(ff);
+            ff = ff.getParentFile();
+        }
+
+        FsEntry bottomFsEntry = getBottomFsEntry(fileStack);
+        Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
+        while (!fileStack.empty()){
+            String name = fileStack.pop().getName();
             if (bottomStage == null)
                 continue;
             bottomStage = this.getSubStageByNameAndParent(stageSetId, bottomStage.getId(), name);
@@ -62,35 +58,21 @@ StageDao extends Dao.LockingDao {
         return bottomStage;
     }
 
-    private BottomDirAndPath getBottomFsEntry(String[] parts) throws SqlQueriesException {
-        BottomDirAndPath result = new BottomDirAndPath();
-        if (parts.length == 1 && parts[0].length() == 0) {
-            result.fsEntry = driveDatabaseManager.getFsDao().getRootDirectory();
-            result.parts = new String[0];
-            return result;
+    private FsEntry getBottomFsEntry(Stack<File> fileStack) throws SqlQueriesException {
+        if (fileStack.size() == 0){ //&& fileStack[0].length() == 0) {
+            return driveDatabaseManager.getFsDao().getRootDirectory();
         }
-        FsEntry bottomFsDir = driveDatabaseManager.getFsDao().getRootDirectory();
+        FsEntry bottomFsEntry = driveDatabaseManager.getFsDao().getRootDirectory();
         FsEntry lastFsEntry = null;
-        int offset = 0;
-        do {
+        do{
             Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : driveDatabaseManager.getDriveSettings().getRootDirectory().getId();
-            lastFsEntry = driveDatabaseManager.getFsDao().getGenericSubByName(parentId, parts[offset]);
+            lastFsEntry = driveDatabaseManager.getFsDao().getGenericSubByName(parentId, fileStack.peek().getName());
             if (lastFsEntry != null) {
-                bottomFsDir = lastFsEntry;
-                offset++;
+                bottomFsEntry = lastFsEntry;
+                fileStack.pop();
             }
-        } while (offset < parts.length && lastFsEntry != null);
-        //copy leftovers
-        int left = parts.length - offset;
-        String[] leftover = new String[0];
-        if (left > 0)
-            leftover = new String[parts.length - offset];
-        for (int ii = offset; ii < parts.length; ii++) {
-            leftover[ii - offset] = parts[ii];
-        }
-        result.fsEntry = bottomFsDir;
-        result.parts = leftover;
-        return result;
+        }while (lastFsEntry != null && !fileStack.empty());
+        return bottomFsEntry;
     }
 
     public StageSet getStageSetById(Long stageSetId) throws SqlQueriesException {
@@ -230,34 +212,10 @@ StageDao extends Dao.LockingDao {
         String where = stage.getiNodePair().k() + "=? and " + stage.getStageSetPair().k()
                 + "=(select " + set.getId().k() + " from " + set.getTableName() + " where " + set.getSource().k() + "=? order by "
                 + set.getCreated().k() + " desc limit 1)";
-        List<Stage> stages = sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(inode,DriveStrings.STAGESET_TYPE_FS));
+        List<Stage> stages = sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(inode, DriveStrings.STAGESET_TYPE_FS));
         if (stages.size() > 0)
             return stages.get(0);
         return null;
-    }
-
-
-    public static class BottomDirAndPath {
-        private String[] parts;
-        private FsEntry fsEntry;
-
-        public FsEntry getFsEntry() {
-            return fsEntry;
-        }
-
-        public String[] getParts() {
-            return parts;
-        }
-
-        public BottomDirAndPath setFsEntry(FsEntry fsEntry) {
-            this.fsEntry = fsEntry;
-            return this;
-        }
-
-        public BottomDirAndPath setParts(String[] parts) {
-            this.parts = parts;
-            return this;
-        }
     }
 
     private Stage getSubStageByNameAndFsParent(Stage parentStage, String name) throws SqlQueriesException {
