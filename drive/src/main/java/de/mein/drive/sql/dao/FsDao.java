@@ -315,18 +315,26 @@ public class FsDao extends Dao {
         try {
             RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
             String rootPath = rootDirectory.getPath();
-            String path = f.getAbsolutePath();
-            String sh = path.substring(rootPath.length());
+            //todo Exception here
+            if (!f.getAbsolutePath().startsWith(rootPath))
+                return null;
+            if (f.getAbsolutePath().length() == rootPath.length())
+                return null;
             FsDirectory parent = this.getRootDirectory();
-            String[] parts = sh.split(File.separator);
-            for (int i = 1; i < parts.length; i++) {
-                String name = parts[i];
+            Stack<File> fileStack = new Stack<>();
+            File ff = f;
+            while (ff.getAbsolutePath().length() > rootPath.length()) {
+                fileStack.push(ff);
+                ff = ff.getParentFile();
+            }
+            while (!fileStack.empty()) {
+                String name = fileStack.pop().getName();
                 if (parent == null)
                     return null;
                 parent = this.getSubDirectoryByName(parent.getId().v(), name);
             }
             return parent;
-        }catch (StringIndexOutOfBoundsException e){
+        } catch (StringIndexOutOfBoundsException e) {
             e.printStackTrace();
         }
         return null;
