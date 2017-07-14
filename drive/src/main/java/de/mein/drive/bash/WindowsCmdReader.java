@@ -22,6 +22,11 @@ public class WindowsCmdReader extends BufferedReader {
         super(in);
     }
 
+    /*
+     * cmd adds an empty line and a line containing its current working directory after the output of our command.
+     * this is where we get rid of it.
+     * @return
+     */
     @Override
     public Stream<String> lines() {
         Iterator<String> iter = new Iterator<String>() {
@@ -31,9 +36,7 @@ public class WindowsCmdReader extends BufferedReader {
             @Override
             public boolean hasNext() {
                 if (next != null) {
-                    if (next.length() == 0)
-                        return false;
-                    return true;
+                    return next.length() != 0;
                 } else {
                     try {
                         next = readLine();

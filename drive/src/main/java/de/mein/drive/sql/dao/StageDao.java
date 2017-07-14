@@ -47,7 +47,7 @@ StageDao extends Dao.LockingDao {
             return null;
         // skip a File.separator
         String sh = path.substring(rootPath.length());
-        if (sh.startsWith("/"))
+        if (sh.startsWith(File.separator))
             sh = sh.substring(1);
         //Stage parentStage = getStageByFsId(rootDirectory.getId(), stageSetId);
         String[] parts = sh.split(File.separator);
