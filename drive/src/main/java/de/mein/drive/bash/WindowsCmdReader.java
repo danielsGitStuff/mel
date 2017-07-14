@@ -40,7 +40,7 @@ public class WindowsCmdReader extends BufferedReader {
                 } else {
                     try {
                         next = readLine();
-                        if (next == null || next.length() == 0)
+                        if (next == null || (next!= null && next.length() == 0))
                             return false;
                         after = readLine();
                         return (next != null);
