@@ -407,9 +407,6 @@ public class ClientSyncHandler extends SyncHandler {
             if (conflictSolver != null)
                 conflictSolver.solve(null, rStage);
             else {
-                // todo debug
-                if (rStage.getName().equals("samesub1.txt"))
-                    System.err.println("ClientSyncHandler.iterateStageSets.debug 32fh3204f0");
                 File rFile = stageDao.getFileByStage(rStage);
                 merger.stuffFound(null, rStage, null, rFile);
             }

@@ -63,7 +63,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
     private static final int META_LENGTH = 17;
 
     /**
-     * //[8 bytes, file size]
+     * //[8 bytes, file size]<br>
      * format first block: [T][4 bytes, stream id][8 bytes, offset of PAYLOAD][4 bytes, length of PAYLOAD][PAYLOAD]<br>
      *
      * @param block

@@ -38,6 +38,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
     @Override
     public void run() {
         thread = Thread.currentThread();
+        thread.setName(getRunnableName());
         runImpl();
         System.out.println("DeferredRunnable.run.done on "+thread.getName());
     }
