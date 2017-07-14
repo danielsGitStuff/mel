@@ -319,7 +319,7 @@ public class FsDao extends Dao {
             if (!f.getAbsolutePath().startsWith(rootPath))
                 return null;
             if (f.getAbsolutePath().length() == rootPath.length())
-                return null;
+                return getRootDirectory();
             FsDirectory parent = this.getRootDirectory();
             Stack<File> fileStack = new Stack<>();
             File ff = f;
