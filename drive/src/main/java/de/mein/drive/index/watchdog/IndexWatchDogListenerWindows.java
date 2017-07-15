@@ -11,12 +11,12 @@ import java.nio.file.*;
 /**
  * Created by xor on 12.08.2016.
  */
-public class IndexWatchDogWindowsListener extends IndexWatchdogListenerPC {
+public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
 
     private boolean watchesRoot = false;
 
-    public IndexWatchDogWindowsListener(MeinDriveService meinDriveService, WatchService watchService) {
-        super(meinDriveService,"IndexWatchDogWindowsListener", watchService);
+    public IndexWatchDogListenerWindows(MeinDriveService meinDriveService, WatchService watchService) {
+        super(meinDriveService,"IndexWatchDogListenerWindows", watchService);
     }
 
 
@@ -25,6 +25,10 @@ public class IndexWatchDogWindowsListener extends IndexWatchdogListenerPC {
 
     }
 
+    @Override
+    public void onTimerStopped() {
+        super.onTimerStopped();
+    }
 
     @Override
     public void watchDirectory(File dir) {
@@ -33,7 +37,7 @@ public class IndexWatchDogWindowsListener extends IndexWatchdogListenerPC {
                 watchesRoot = true;
                 Path path = Paths.get(dir.getAbsolutePath());
                 path.register(watchService, KINDS, ExtendedWatchEventModifier.FILE_TREE);
-                System.out.println("IndexWatchDogWindowsListener.registerRoot: " + path.toString());
+                System.out.println("IndexWatchDogListenerWindows.registerRoot: " + path.toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }    }
@@ -56,6 +60,7 @@ public class IndexWatchDogWindowsListener extends IndexWatchdogListenerPC {
                             System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
+                                pathCollection.addPath(absolutePath);
                                 watchDogTimer.start();
                                 System.out.println("ignored/broken WatchService");
                             } else {
