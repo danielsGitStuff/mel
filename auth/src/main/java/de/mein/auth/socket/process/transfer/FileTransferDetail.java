@@ -50,6 +50,9 @@ public class FileTransferDetail implements SerializableEntity {
         this.end = end;
         this.position = start;
         assertCheck();
+        //todo debug
+        if (file.getName().equals("same1.txt"))
+            System.err.println("MeinIsolatedFileProcess.addFilesReceiving.debug");
     }
 
     public FileTransferDetail setHash(String hash) {

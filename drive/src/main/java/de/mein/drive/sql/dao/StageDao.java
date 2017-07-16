@@ -36,6 +36,9 @@ StageDao extends Dao.LockingDao {
      * @return relating Stage or null if f is not staged
      */
     public Stage getStageByPath(Long stageSetId, File f) throws SqlQueriesException {
+        //todo debug
+        if (f.getName().equals("samesub") && Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClient"))
+            System.out.println("StageDao.getStageByPath.debug");
         RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
