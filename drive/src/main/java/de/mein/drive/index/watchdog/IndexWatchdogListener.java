@@ -41,7 +41,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         }
         if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
             System.out.println("WatchDog.windows");
-            watchdogListener = new IndexWatchDogWindowsListener(meinDriveService1, watchService1);
+            watchdogListener = new IndexWatchDogListenerWindows(meinDriveService1, watchService1);
         } else {
             System.out.println("WatchDog.unix");
             watchdogListener = new IndexWatchdogListenerUnix2(meinDriveService1, watchService1);

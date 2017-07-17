@@ -2,21 +2,27 @@ package de.mein.drive.index.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
 
+import de.mein.drive.bash.BashTools;
+import de.mein.drive.data.PathCollection;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.*;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by xor on 12.08.2016.
  */
-public class IndexWatchDogWindowsListener extends IndexWatchdogListenerPC {
+public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
 
     private boolean watchesRoot = false;
+    private long latestTimeStamp = System.currentTimeMillis();
 
-    public IndexWatchDogWindowsListener(MeinDriveService meinDriveService, WatchService watchService) {
-        super(meinDriveService,"IndexWatchDogWindowsListener", watchService);
+    public IndexWatchDogListenerWindows(MeinDriveService meinDriveService, WatchService watchService) {
+        super(meinDriveService,"IndexWatchDogListenerWindows", watchService);
     }
 
 
@@ -25,6 +31,15 @@ public class IndexWatchDogWindowsListener extends IndexWatchdogListenerPC {
 
     }
 
+    @Override
+    public void onTimerStopped() {
+        System.out.println("IndexWatchdogListener.onTimerStopped");
+        long timeStamp = latestTimeStamp;
+        latestTimeStamp = System.currentTimeMillis();
+        Stream<String> paths = BashTools.stuffModifiedAfter(meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(),timeStamp);
+        paths.forEach(pathCollection::addPath);
+        stageIndexer.examinePaths(pathCollection);
+    }
 
     @Override
     public void watchDirectory(File dir) {
@@ -33,7 +48,7 @@ public class IndexWatchDogWindowsListener extends IndexWatchdogListenerPC {
                 watchesRoot = true;
                 Path path = Paths.get(dir.getAbsolutePath());
                 path.register(watchService, KINDS, ExtendedWatchEventModifier.FILE_TREE);
-                System.out.println("IndexWatchDogWindowsListener.registerRoot: " + path.toString());
+                System.out.println("IndexWatchDogListenerWindows.registerRoot: " + path.toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }    }

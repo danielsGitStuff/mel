@@ -95,4 +95,23 @@ public class BashToolsWindows implements BashToolsImpl {
     public Promise<Long, Exception, Void> getInode(File f) {
         return null;
     }
+
+    private Stream<String> execPowerShell(String command){
+        try {
+            Process process = exec("powershell.exe @'"+command+"'@");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            return reader.lines();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public Stream<String> stuffModifiedAfter(File directory, long timeStamp) {
+        Double winTimeStamp = timeStamp / 1000d;
+        //get-childitem "C:\Users\thefa\IdeaProjects\jdkbug\testfolder\" -recurse | where {(Get-Date($_.LastWriteTime) -UFormat "%s") -gt 1500167894.53368} | foreach {$_.FullName}
+        String command = "get-childitem \""+directory.getAbsolutePath()+"\" -recurse | where {(Get-Date($_.LastWriteTime) -UFormat \"%s\") -gt "+winTimeStamp+"} | foreach {$_.FullName}";
+        return execPowerShell(command);
+    }
 }

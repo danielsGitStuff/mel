@@ -1,18 +1,11 @@
 package de.mein.drive.bash;
 
-import de.mein.auth.tools.N;
 import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -38,4 +31,6 @@ public interface BashToolsImpl {
      Stream<String> find(File directory, File pruneDir) throws IOException;
 
      Promise<Long, Exception, Void> getInode(File f);
+
+    Stream<String> stuffModifiedAfter(File originalFile, long timeStamp);
 }

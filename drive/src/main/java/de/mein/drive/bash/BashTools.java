@@ -6,8 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 /**
@@ -61,5 +59,9 @@ public abstract class BashTools {
 
     public static Promise<Long, Exception, Void> getInode(File f) {
         return instance.getInode(f);
+    }
+
+    public static Stream<String> stuffModifiedAfter(File originalFile, long timeStamp) {
+        return instance.stuffModifiedAfter(originalFile, timeStamp);
     }
 }

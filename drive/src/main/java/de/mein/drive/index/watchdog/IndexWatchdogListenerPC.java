@@ -23,7 +23,6 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
     }
 
 
-
     @Override
     public void onShutDown() {
         N.r(() -> watchService.close());

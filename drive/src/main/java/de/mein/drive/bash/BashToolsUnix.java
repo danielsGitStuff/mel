@@ -174,4 +174,10 @@ public class BashToolsUnix implements BashToolsImpl {
         }));
         return deferred;
     }
+
+    @Override
+    public Stream<String> stuffModifiedAfter(File originalFile, long timeStamp) {
+        System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(");
+        return null;
+    }
 }
