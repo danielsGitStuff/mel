@@ -42,7 +42,7 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     private Process exec(String command) throws IOException {
-        System.out.println("BashToolsWindows.exec for: " + command);
+        System.out.println("BashToolsWindows.exec: " + command);
         String[] args = new String[]{BIN_PATH};
         Process process = new ProcessBuilder(args).start();
         PrintWriter stdin = new PrintWriter(process.getOutputStream());
@@ -68,10 +68,10 @@ public class BashToolsWindows implements BashToolsImpl {
         return null;
     }
 
-    private WindowsCmdReader execReader(String command) throws IOException {
+    private WindowsBashReader execReader(String command) throws IOException {
         try {
             Process process = exec(command);
-            WindowsCmdReader reader = new WindowsCmdReader(new InputStreamReader(process.getInputStream()));
+            WindowsBashReader reader = new WindowsBashReader(new InputStreamReader(process.getInputStream()));
             String s = "--nix--";
             s = reader.readLine();
             s = reader.readLine();
@@ -96,22 +96,24 @@ public class BashToolsWindows implements BashToolsImpl {
         return null;
     }
 
-    private Stream<String> execPowerShell(String command){
-        try {
-            Process process = exec("powershell.exe @'"+command+"'@");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            return reader.lines();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+    private Stream<String> execPowerShell(String command) throws IOException, InterruptedException {
+        System.out.println("BashToolsWindows.execPowerShell: " + command);
+        String[] args = new String[]{"powershell.exe"};
+        Process process = new ProcessBuilder(args).start();
+        PrintWriter stdin = new PrintWriter(process.getOutputStream());
+        stdin.println(command);
+        stdin.close();
+        BufferedReader reader = new WindowsPowerReader(new InputStreamReader(process.getInputStream()));
+        process.waitFor();
+        return reader.lines();
     }
 
     @Override
-    public Stream<String> stuffModifiedAfter(File directory, long timeStamp) {
+    public Stream<String> stuffModifiedAfter(File directory, File pruneDir, long timeStamp) throws IOException, InterruptedException {
         Double winTimeStamp = timeStamp / 1000d;
-        //get-childitem "C:\Users\thefa\IdeaProjects\jdkbug\testfolder\" -recurse | where {(Get-Date($_.LastWriteTime) -UFormat "%s") -gt 1500167894.53368} | foreach {$_.FullName}
-        String command = "get-childitem \""+directory.getAbsolutePath()+"\" -recurse | where {(Get-Date($_.LastWriteTime) -UFormat \"%s\") -gt "+winTimeStamp+"} | foreach {$_.FullName}";
+        String command = "get-childitem \"" + directory.getAbsolutePath() + "\" -recurse | " +
+                "where {(Get-Date($_.LastWriteTime) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not $_.FullName.StartsWith(\""+pruneDir.getAbsolutePath()+"\")} " +
+                "| foreach {$_.FullName}";
         return execPowerShell(command);
     }
 }

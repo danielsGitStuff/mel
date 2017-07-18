@@ -18,6 +18,7 @@ public class PathCollection {
 
     public PathCollection addPath(String path) {
         if (!pathSet.contains(path)) {
+            System.out.println("PathCollection.addPath: "+path);
             paths.add(path);
             pathSet.add(path);
         }

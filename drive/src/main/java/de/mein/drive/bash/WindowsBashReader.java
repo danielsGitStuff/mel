@@ -11,14 +11,14 @@ import java.util.stream.StreamSupport;
 /**
  * Created by xor on 13.07.2017.
  */
-public class WindowsCmdReader extends BufferedReader {
+public class WindowsBashReader extends BufferedReader {
 
 
-    public WindowsCmdReader(Reader in, int sz) {
+    public WindowsBashReader(Reader in, int sz) {
         super(in, sz);
     }
 
-    public WindowsCmdReader(Reader in) {
+    public WindowsBashReader(Reader in) {
         super(in);
     }
 

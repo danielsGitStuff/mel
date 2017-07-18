@@ -40,6 +40,10 @@ public class DriveSettings extends JsonSettings {
         return transferDirectoryPath;
     }
 
+    public File getTransferDirectoryFile() {
+        return new File(transferDirectoryPath);
+    }
+
     public interface DevRootDirInjector {
         File getRootDir(File jsonFile);
     }

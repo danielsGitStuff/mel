@@ -176,7 +176,7 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public Stream<String> stuffModifiedAfter(File originalFile, long timeStamp) {
+    public Stream<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) {
         System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(");
         return null;
     }

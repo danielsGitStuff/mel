@@ -61,7 +61,7 @@ public abstract class BashTools {
         return instance.getInode(f);
     }
 
-    public static Stream<String> stuffModifiedAfter(File originalFile, long timeStamp) {
-        return instance.stuffModifiedAfter(originalFile, timeStamp);
+    public static Stream<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException {
+        return instance.stuffModifiedAfter(originalFile,pruneDir, timeStamp);
     }
 }

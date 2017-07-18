@@ -32,5 +32,5 @@ public interface BashToolsImpl {
 
      Promise<Long, Exception, Void> getInode(File f);
 
-    Stream<String> stuffModifiedAfter(File originalFile, long timeStamp);
+    Stream<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException;
 }

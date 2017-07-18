@@ -2,6 +2,8 @@ package de.mein.drive.index.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
 
+import de.mein.auth.tools.N;
+import de.mein.drive.DriveSettings;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.service.MeinDriveService;
@@ -22,7 +24,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
     private long latestTimeStamp = System.currentTimeMillis();
 
     public IndexWatchDogListenerWindows(MeinDriveService meinDriveService, WatchService watchService) {
-        super(meinDriveService,"IndexWatchDogListenerWindows", watchService);
+        super(meinDriveService, "IndexWatchDogListenerWindows", watchService);
     }
 
 
@@ -36,8 +38,12 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
         System.out.println("IndexWatchdogListener.onTimerStopped");
         long timeStamp = latestTimeStamp;
         latestTimeStamp = System.currentTimeMillis();
-        Stream<String> paths = BashTools.stuffModifiedAfter(meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(),timeStamp);
-        paths.forEach(pathCollection::addPath);
+        PathCollection pathCollection = new PathCollection();
+        N.r(() -> {
+            DriveSettings driveSettings = meinDriveService.getDriveSettings();
+            Stream<String> paths = BashTools.stuffModifiedAfter(driveSettings.getRootDirectory().getOriginalFile(), driveSettings.getTransferDirectoryFile(), timeStamp);
+            paths.forEach(pathCollection::addPath);
+        });
         stageIndexer.examinePaths(pathCollection);
     }
 
@@ -51,7 +57,8 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
                 System.out.println("IndexWatchDogListenerWindows.registerRoot: " + path.toString());
             } catch (Exception e) {
                 e.printStackTrace();
-            }    }
+            }
+    }
 
     @SuppressWarnings("Duplicates")
     @Override
