@@ -112,7 +112,7 @@ public class BashToolsWindows implements BashToolsImpl {
     public Stream<String> stuffModifiedAfter(File directory, File pruneDir, long timeStamp) throws IOException, InterruptedException {
         Double winTimeStamp = timeStamp / 1000d;
         String command = "get-childitem \"" + directory.getAbsolutePath() + "\" -recurse | " +
-                "where {(Get-Date($_.LastWriteTime) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not $_.FullName.StartsWith(\""+pruneDir.getAbsolutePath()+"\")} " +
+                "where {(Get-Date($_.LastWriteTime.ToUniversalTime()) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not $_.FullName.StartsWith(\""+pruneDir.getAbsolutePath()+"\")} " +
                 "| foreach {$_.FullName}";
         return execPowerShell(command);
     }
