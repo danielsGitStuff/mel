@@ -89,6 +89,7 @@ public class LotsOfTests {
                     URL otters = getClass().getClassLoader().getResource("otters.jpg");
                     File source = new File(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
                     FileTransferDetail fileTransferDetail1 = new FileTransferDetail(source, 7, 0, source.length());
+                    fileTransferDetail1.openRead();
                     FileTransferDetail fileTransferDetail2 = new FileTransferDetail(new File("otters.transferred.jpg"), 7, 0, source.length());
 
                     DeferredObject<MeinIsolatedFileProcess, Exception, Void> isolated = standAloneAuth1.connectToService(MeinIsolatedFileProcess.class, 1L, serviceUuid2, serviceUuid1, null, null, null);

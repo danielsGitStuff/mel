@@ -105,7 +105,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                     logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.msg");
                     if (job.getIntent() != null && job.getIntent().equals(DriveStrings.INTENT_PLEASE_TRANSFER)) {
                         logger.log(Level.FINEST, "MeinDriveService.workWorkWork: transfer please");
-                        handleTransfer(job.getPartnerCertificate().getId().v(), (FileTransferDetailSet) job.getPayLoad());
+                        handleSending(job.getPartnerCertificate().getId().v(), (FileTransferDetailSet) job.getPayLoad());
                     }
                 }
             }
@@ -119,11 +119,11 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         return intent.equals(expected);
     }
 
-    protected void handleTransfer(Long partnerCertId, FileTransferDetailSet detailSet) {
-        handleTransfer(partnerCertId, detailSet, true);
+    protected void handleSending(Long partnerCertId, FileTransferDetailSet detailSet) {
+        handleSending(partnerCertId, detailSet, true);
     }
 
-    protected void handleTransfer(Long partnerCertId, FileTransferDetailSet detailSet, boolean lockFsEntry) {
+    protected void handleSending(Long partnerCertId, FileTransferDetailSet detailSet, boolean lockFsEntry) {
         FsDao fsDao = driveDatabaseManager.getFsDao();
         try {
             if (lockFsEntry)
@@ -133,8 +133,14 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                 List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
                 if (fsFiles.size() > 0) {
                     FsFile fsFile = fsFiles.get(0);
-                    File file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
+                    File file;
+                    if (!fsFile.getSynced().v()){
+                        file = wasteBin.getFile(detail.getHash());
+                    }else {
+                      file   = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
+                    }
                     FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
+                    mDetail.openRead();
                     fileProcess.sendFile(mDetail);
                 }
             }

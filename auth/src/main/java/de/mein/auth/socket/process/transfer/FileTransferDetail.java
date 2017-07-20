@@ -3,10 +3,7 @@ package de.mein.auth.socket.process.transfer;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
@@ -29,6 +26,10 @@ public class FileTransferDetail implements SerializableEntity {
     private FileTransferDoneListener transferDoneListener;
 
     private long start, end;
+
+    public void openRead() throws FileNotFoundException {
+        in = new FileInputStream(file);
+    }
 
     public interface FileTransferDoneListener {
         void onFileTransferDone(FileTransferDetail fileTransferDetail);
@@ -160,8 +161,6 @@ public class FileTransferDetail implements SerializableEntity {
      */
     public FReadInfo readFile(long offset, int length) throws IOException {
         byte[] bytes = new byte[length];
-        if (in == null)
-            in = new FileInputStream(file);
         FileChannel ch = in.getChannel();
         ch.position(offset);
         int readBytes = ch.read(ByteBuffer.wrap(bytes));

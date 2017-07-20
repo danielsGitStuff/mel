@@ -168,7 +168,7 @@ public class WasteBin {
         return wasteDir.getAbsolutePath() + File.separator;
     }
 
-    public String getWastePath() {
+    public String getWasteLocationPath() {
         return wasteDir.getAbsolutePath();
     }
 
@@ -187,6 +187,7 @@ public class WasteBin {
 
     public void restoreFsFiles(SyncHandler syncHandler) throws SqlQueriesException, IOException {
         List<String> availableHashes = searchTransfer();
+        fsDao.lockWrite();
         for (String hash : availableHashes) {
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             for (FsFile fsFile : fsFiles) {
@@ -202,8 +203,16 @@ public class WasteBin {
                 }
             }
         }
-
+        fsDao.unlockWrite();
     }
 
 
+    public File getFile(String hash) throws SqlQueriesException {
+        Waste waste = wasteDao.getWasteByHash(hash);
+        return getWasteFile(waste);
+    }
+
+    private File getWasteFile(Waste waste) {
+        return new File(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
+    }
 }
