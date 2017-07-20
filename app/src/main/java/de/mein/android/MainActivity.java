@@ -88,7 +88,6 @@ public class MainActivity extends AppCompatActivity
         content = (LinearLayout) findViewById(R.id.content);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        System.out.println(MeinBoot.defaultWorkingDir2.getAbsolutePath());
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override

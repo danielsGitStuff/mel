@@ -8,8 +8,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import de.mein.drive.service.sync.EmptyRowConflict;
 import de.mein.drive.service.sync.conflict.Conflict;
+import de.mein.drive.service.sync.conflict.EmptyRowConflict;
 import mein.de.meindrive.R;
 
 public class PopupActivity extends AppCompatActivity {

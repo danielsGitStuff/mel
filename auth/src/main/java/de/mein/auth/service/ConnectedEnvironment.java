@@ -4,6 +4,7 @@ import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +41,10 @@ public class ConnectedEnvironment extends WaitLock{
     }
 
     public List<Long> getConnectedIds() {
-        return idValidateProcessMap.values().stream().map(MeinValidationProcess::getConnectedId).collect(Collectors.toList());
+        List<Long> result = new ArrayList<>();
+        for (MeinValidationProcess mvp : idValidateProcessMap.values())
+            result.add(mvp.getConnectedId());
+        return result;
     }
 
     public  void removeValidationProcess(MeinValidationProcess process) {

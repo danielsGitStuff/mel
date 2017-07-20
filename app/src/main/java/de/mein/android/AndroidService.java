@@ -101,10 +101,10 @@ public class AndroidService extends Service {
                 meinAuthSettings = (MeinAuthSettings) JsonSettings.load(settingsFile);
             } else {
                 meinAuthSettings = new MeinAuthSettings()
-                        .setPort(8888)
-                        .setDeliveryPort(8889)
-                        .setBrotcastListenerPort(9966)
-                        .setBrotcastPort(9966)
+                        .setPort(8890)// default: 8888
+                        .setDeliveryPort(8891) // default: 8889
+                        .setBrotcastListenerPort(6699) // default: 9966
+                        .setBrotcastPort(9966) // default: 9966
                         .setWorkingDirectory(workingDir)
                         .setName("MeinAuthOnAndroid")
                         .setGreeting("greeting1");
@@ -156,7 +156,7 @@ public class AndroidService extends Service {
         openFileOutput("durr", MODE_PRIVATE);
 //        CertificateManager.deleteDirectory(workingDir);
         CertificateManager.deleteDirectory(testdir1);
-        TestDirCreator.createTestDir(testdir1);
+        //TestDirCreator.createTestDir(testdir1);
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override

@@ -1,13 +1,20 @@
 apply plugin: 'com.android.application'
 //apply plugin: 'kotlin-android'
-apply plugin: 'me.tatarka.retrolambda'
-
+//apply plugin: 'me.tatarka.retrolambda'
+allprojects {
+    repositories {
+        jcenter()
+        maven {
+            url "https://maven.google.com"
+        }
+    }
+}
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.0"
     defaultConfig {
         applicationId "mein.de.meindrive"
-        minSdkVersion 24
+        minSdkVersion 25
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -51,12 +58,12 @@ dependencies {
     compile project(':drive')
     //    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     //compile 'com.android.support:multidex:0.0.+'
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:design:25.3.1'
+    compile 'com.android.support:appcompat-v7:25.4.0'
+    compile 'com.android.support:design:25.4.0'
     compile 'org.sqldroid:sqldroid:1.0.3'
-    compile 'com.android.support.constraint:constraint-layout:1.0.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.annimon:stream:1.1.6'
-    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.android.support:support-v4:25.4.0'
     testCompile 'junit:junit:4.12'
 }
 

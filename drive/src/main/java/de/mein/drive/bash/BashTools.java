@@ -64,4 +64,8 @@ public abstract class BashTools {
     public static Stream<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException {
         return instance.stuffModifiedAfter(originalFile,pruneDir, timeStamp);
     }
+
+    public static void setInstance(BashToolsImpl instance) {
+        BashTools.instance = instance;
+    }
 }

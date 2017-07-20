@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: 'me.tatarka.retrolambda'
+//apply plugin: 'me.tatarka.retrolambda'
 
 compileJava {
     sourceCompatibility = '1.8'
@@ -15,4 +15,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'net.sourceforge.streamsupport:streamsupport:1.5.2'
     compile 'org.jdeferred:jdeferred-core:1.2.4'
+    compile project(path: ':serialize')
 }

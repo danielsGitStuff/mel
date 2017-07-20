@@ -13,6 +13,9 @@ import java.util.Scanner;
 import de.mein.MeinInjector;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveInjector;
+import de.mein.drive.bash.BashTools;
+import de.mein.drive.bash.BashToolsImpl;
+import de.mein.drive.bash.BashToolsUnix;
 import de.mein.drive.data.DriveStrings;
 import de.mein.android.drive.service.AndroidDBConnection;
 import de.mein.android.drive.watchdog.AndroidWatchdogListener;
@@ -99,6 +102,8 @@ public class AndroidInjector {
             }
             return null;
         });
+        BashToolsImpl bashTools = new BashToolsUnix();
+        BashTools.setInstance(bashTools);
         DriveInjector.setWatchDogRunner(meinDriveService -> new AndroidWatchdogListener(meinDriveService));
         DriveInjector.setBinPath("/system/bin/sh");
     }
