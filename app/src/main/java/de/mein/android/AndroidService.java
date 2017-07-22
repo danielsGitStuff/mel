@@ -6,6 +6,8 @@ import android.content.res.Configuration;
 import android.os.Binder;
 import android.os.IBinder;
 
+import org.jdeferred.Promise;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -26,7 +28,6 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSyncListener;
 import de.mein.android.drive.boot.AndroidDriveBootLoader;
-import de.mein.drive.serialization.TestDirCreator;
 import de.mein.sql.RWLock;
 
 
@@ -74,10 +75,13 @@ public class AndroidService extends Service {
         RWLock lock = new RWLock();
         try {
             System.out.println("AndroidService.onStartCommand.booting");
-            setup(null);
+            Promise<MeinAuthService, Exception, Void> bootedPromise = setup(null);
+            bootedPromise.done(result -> {
+                meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
+                observer.onMeinAuthStarted(meinAuthService);
+            });
             lock.lockWrite();
-            meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
-            observer.onMeinAuthStarted(meinAuthService);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -144,7 +148,7 @@ public class AndroidService extends Service {
         return new File("/data/data/" + getPackageName());
     }
 
-    public void setup(DriveSyncListener clientSyncListener) throws Exception {
+    public Promise<MeinAuthService, Exception, Void> setup(DriveSyncListener clientSyncListener) throws Exception {
         android();
 
         //setup working directories & directories with test data
@@ -179,11 +183,12 @@ public class AndroidService extends Service {
         lock.lockWrite();
 
         meinBoot = new MeinBoot(meinAuthSettings, AndroidDriveBootLoader.class);
-        meinBoot.boot().done(meinAuthService -> {
+        Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot().done(meinAuthService -> {
             N.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
                 AndroidService.this.meinAuthService = meinAuthService;
                 meinAuthService.addRegisteredHandler(registeredHandler);
+                //lock.unlockWrite();
 
                 // setup the server Service
 //                System.out.println("AndroidService.setup!!!1");
@@ -221,8 +226,9 @@ public class AndroidService extends Service {
                 });*/
             });
         });
+        return promise;
         //lock.lockWrite();
-        lock.unlockWrite();
+        //lock.unlockWrite();
     }
 
     private void android() throws IOException {

@@ -7,6 +7,7 @@ compileJava {
 }
 dependencies {
     compile project(path: ':sql')
+    compile project(path: ':serialize')
     testCompile project(path: ':sql')
 //    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'org.bouncycastle:bcprov-jdk15on:1.54'
