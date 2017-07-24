@@ -11,49 +11,21 @@ import java.util.stream.Stream;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsImpl;
+import de.mein.drive.bash.BashToolsJava;
+import de.mein.drive.bash.BashToolsUnix;
 
 /**
  * Created by xor on 7/20/17.
  */
 
-public class BashToolsAndroid implements BashToolsImpl {
-    @Override
-    public void setBinPath(String binPath) {
+public class BashToolsAndroid extends BashToolsUnix {
+    private BashToolsJava javaFallback;
 
+    public BashToolsAndroid(){
+        javaFallback = new BashToolsJava();
     }
-
-    @Override
-    public Set<Long> getINodesOfDirectory(File file) throws IOException {
-        return null;
-    }
-
-    @Override
-    public Long getINodeOfFile(File file) throws IOException {
-        return null;
-    }
-
-    @Override
-    public void rmRf(File directory) throws IOException {
-
-    }
-
-    @Override
-    public List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
-        return null;
-    }
-
     @Override
     public Stream<String> find(File directory, File pruneDir) throws IOException {
-        return null;
-    }
-
-    @Override
-    public Promise<Long, Exception, Void> getInode(File f) {
-        return null;
-    }
-
-    @Override
-    public Stream<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException {
-        return null;
+        return super.find(directory, pruneDir);
     }
 }

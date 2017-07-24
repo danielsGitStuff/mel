@@ -23,7 +23,7 @@ import java.util.stream.Stream;
  */
 public class BashToolsUnix implements BashToolsImpl {
 
-    private String BIN_PATH = "/bin/bash";
+    protected String BIN_PATH = "/bin/bash";
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
 
