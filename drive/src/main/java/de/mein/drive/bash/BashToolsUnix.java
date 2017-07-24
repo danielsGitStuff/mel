@@ -1,6 +1,7 @@
 package de.mein.drive.bash;
 
 import de.mein.auth.tools.N;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -108,6 +109,7 @@ public class BashToolsUnix implements BashToolsImpl {
     private Stream<String> exec(String cmd) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
+        System.out.println("BashToolsUnix.exec: " + cmd);
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         return reader.lines();
@@ -115,22 +117,7 @@ public class BashToolsUnix implements BashToolsImpl {
 
     @Override
     public Stream<String> find(File directory, File pruneDir) throws IOException {
-//        exec("find \"" + directory.getAbsolutePath() + "\" -mindepth 1" + " -path \"" + pruneDir + "\" -prune -o -print").forEach(s -> System.out.println("BashToolsUnix.find: "+s));
         return exec("find \"" + directory.getAbsolutePath() + "\" -mindepth 1" + " -path \"" + pruneDir + "\" -prune -o -print");
-//        String[] args = new String[]{BIN_PATH, "-c",
-//                "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
-//                        + " -path \"" + pruneDir + "\" -prune -o -print"};
-//        Process proc = new ProcessBuilder(args).start();
-//        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-//        String res = null;
-//        try {
-//            proc.waitFor();
-//            return reader.lines();
-//        } catch (InterruptedException e) {
-//            System.err.println("string I got from bash: " + res);
-//            e.printStackTrace();
-//        }
-//        return null;
     }
 
     @Override
