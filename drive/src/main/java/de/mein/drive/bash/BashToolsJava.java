@@ -4,13 +4,7 @@ import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.Stack;
-import java.util.stream.Stream;
+import java.util.*;
 
 /**
  * Created by xor on 7/24/17.
@@ -58,6 +52,8 @@ public class BashToolsJava implements BashToolsImpl {
     @Override
     public Iterator<String> find(File directory, File pruneDir) throws IOException {
         Stack<Iterator<File>> fileStack = new Stack<>();
+        String prunePath = pruneDir.getAbsolutePath();
+        System.out.println("BashToolsJava.find.prune: " + prunePath);
         fileStack.push(Arrays.asList(directory.listFiles()).iterator());
         return new Iterator<String>() {
             String nextLine = null;
@@ -65,6 +61,10 @@ public class BashToolsJava implements BashToolsImpl {
             @Override
             public boolean hasNext() {
                 if (nextLine != null) {
+                    if (nextLine.equals(prunePath)) {
+                        nextLine = null;
+                        return hasNext();
+                    }
                     return true;
                 } else {
                     try {
@@ -74,6 +74,8 @@ public class BashToolsJava implements BashToolsImpl {
                             if (nextFile.isDirectory())
                                 fileStack.push(Arrays.asList(nextFile.listFiles()).iterator());
                             nextLine = nextFile.getAbsolutePath();
+                            if (nextLine.equals(prunePath))
+                                return hasNext();
                             return true;
                         } else {
                             fileStack.pop();
