@@ -45,7 +45,8 @@ public class MeinRegisterProcess extends MeinProcess {
                     certificate.getAnswerUuid().v(confirm.getAnswerUuid());
                     certificateManager.updateCertificate(certificate);
                     certificateManager.trustCertificate(certificate.getId().v(), true);
-                    meinAuthSocket.getMeinAuthService().getRegisterHandlers().forEach(iRegisterHandler -> iRegisterHandler.onRegistrationCompleted(partnerCertificate));
+                    for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
+                        registerHandler.onRegistrationCompleted(partnerCertificate);
                     for (IRegisteredHandler handler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()) {
                         handler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), certificate);
                     }
@@ -54,7 +55,8 @@ public class MeinRegisterProcess extends MeinProcess {
         ).fail(results -> runner.runTry(() -> {
             System.out.println("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
             certificateManager.deleteCertificate(partnerCertificate);
-            meinAuthSocket.getMeinAuthService().getRegisterHandlers().forEach(iRegisterHandler -> iRegisterHandler.onRegistrationCompleted(partnerCertificate));
+            for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
+                registerHandler.onRegistrationCompleted(partnerCertificate);
             stop();
         }));
     }
@@ -106,13 +108,13 @@ public class MeinRegisterProcess extends MeinProcess {
                 response.setState(MeinRegisterProcess.STATE_OK);
                 send(response);
                 MeinRegisterProcess.this.removeThyself();
-                meinAuthSocket.getMeinAuthService().getRegisteredHandlers().forEach(h -> {
+                for (IRegisteredHandler registeredHandler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()){
                     try {
-                        h.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), partnerCertificate);
+                        registeredHandler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), partnerCertificate);
                     } catch (SqlQueriesException e) {
                         e.printStackTrace();
                     }
-                });
+                }
                 deferred.resolve(partnerCertificate);
             } catch (Exception e) {
                 e.printStackTrace();

@@ -61,7 +61,7 @@ public class BashToolsJava implements BashToolsImpl {
             @Override
             public boolean hasNext() {
                 if (nextLine != null) {
-                    if (nextLine.equals(prunePath)) {
+                    if (nextLine.startsWith(prunePath)) {
                         nextLine = null;
                         return hasNext();
                     }
@@ -74,7 +74,7 @@ public class BashToolsJava implements BashToolsImpl {
                             if (nextFile.isDirectory())
                                 fileStack.push(Arrays.asList(nextFile.listFiles()).iterator());
                             nextLine = nextFile.getAbsolutePath();
-                            if (nextLine.equals(prunePath))
+                            if (nextLine.startsWith(prunePath))
                                 return hasNext();
                             return true;
                         } else {
