@@ -14,18 +14,21 @@ import java.util.stream.Stream;
 public class BashToolsException extends IOException {
     private List<String> lines = new ArrayList<>();
 
-    public BashToolsException(Stream<String> lines) {
+    public BashToolsException(Iterator<String> lines) {
         readLines(lines);
     }
 
-    private void readLines(Stream<String> input) {
-        Iterator<String> iterator = input.iterator();
+    public BashToolsException(String line) {
+        lines.add(line);
+    }
+
+    private void readLines(Iterator<String> iterator) {
         while (iterator.hasNext())
             this.lines.add(iterator.next());
     }
 
     public BashToolsException(Process proc) {
-        Stream<String> lines = new BufferedReader(new InputStreamReader(proc.getErrorStream())).lines();
+        Iterator<String> lines = BashTools.inputStreamToIterator(proc.getErrorStream());
         readLines(lines);
     }
 

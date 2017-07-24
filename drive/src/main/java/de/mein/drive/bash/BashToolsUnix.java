@@ -11,7 +11,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by xor on 13.07.2017.
@@ -70,27 +69,48 @@ public class BashToolsUnix implements BashToolsImpl {
         ProcessBuilder processBuilder = new ProcessBuilder(args);
         processBuilder.redirectErrorStream(true);
         Process proc = processBuilder.start();
+        System.out.println("BashTools.stuffModifiedAfter.collecting.result");
+        List<String> result = new ArrayList<>();
+        Iterator<String> iterator = BashTools.inputStreamToIterator(proc.getInputStream());
+        while (iterator.hasNext())
+            result.add(iterator.next());
+        System.out.println("BashTools.stuffModifiedAfter.collecting.done");
+        return result;
+    }
+
+    public List<String> stuffModifiedAfterJava8(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+        System.out.println("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
+        String[] args = new String[]{BIN_PATH, "-c",
+                "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
+                        + " -path \"" + pruneDir + "\" -prune"
+                        + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print"};
+        ProcessBuilder processBuilder = new ProcessBuilder(args);
+        processBuilder.redirectErrorStream(true);
+        Process proc = processBuilder.start();
         boolean hasFinished = false;
         while (!hasFinished) {
             try {
                 hasFinished = proc.waitFor(10, TimeUnit.SECONDS);
                 if (!hasFinished) {
-                    BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-                    List<String> errors = errorReader.lines().collect(Collectors.toList());
+                    List<String> errors = new ArrayList<>();
+                    Iterator<String> iterator = BashTools.inputStreamToIterator(proc.getErrorStream());
+                    while (iterator.hasNext())
+                        errors.add(iterator.next());
                     System.out.println("BashTools.stuffModifiedAfter.did not finish");
                     for (String s : errors)
                         System.out.println("BashTools.stuffModifiedAfter.ERROR: " + s);
                 }
                 int exitValue = proc.exitValue();
                 if (exitValue == 0) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
                     System.out.println("BashTools.stuffModifiedAfter.collecting.result");
-                    List<String> result = reader.lines().collect(Collectors.toList());
+                    List<String> result = new ArrayList<>();
+                    Iterator<String> iterator = BashTools.inputStreamToIterator(proc.getInputStream());
+                    while (iterator.hasNext())
+                        result.add(iterator.next());
                     System.out.println("BashTools.stuffModifiedAfter.collecting.done");
                     return result;
                 } else {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-                    throw new BashToolsException(reader.lines());
+                    throw new BashToolsException(BashTools.inputStreamToIterator(proc.getErrorStream()));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -106,12 +126,7 @@ public class BashToolsUnix implements BashToolsImpl {
                 cmd};
         System.out.println("BashToolsUnix.exec: " + cmd);
         Process proc = new ProcessBuilder(args).start();
-        return readerToIterator(proc.getInputStream());
-    }
-
-    protected Iterator<String> readerToIterator(InputStream inputStream){
-        BufferedIterator bufferedReader = new BufferedIterator(new InputStreamReader(inputStream));
-        return bufferedReader.iterator();
+        return BashTools.inputStreamToIterator(proc.getInputStream());
     }
 
     @Override
