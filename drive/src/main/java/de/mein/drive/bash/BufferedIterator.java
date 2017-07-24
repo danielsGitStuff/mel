@@ -29,8 +29,9 @@ public class BufferedIterator extends BufferedReader {
                     try {
                         nextLine = readLine();
                         return (nextLine != null);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
                     }
                 }
             }
