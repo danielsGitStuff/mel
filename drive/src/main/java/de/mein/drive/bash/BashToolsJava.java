@@ -36,17 +36,24 @@ public class BashToolsJava implements BashToolsImpl {
         return null;
     }
 
+    //public static int max;
+    //public static int depth = 0;
+
     public static void main(String[] args) throws Exception {
         File dir = new File("bash.test");
         File prune = new File(dir.getAbsolutePath() + File.separator + "prune");
         File file = new File(dir.getAbsolutePath() + File.separator + "file");
         dir.mkdirs();
         prune.mkdirs();
+        for (int i = 0; i < 2100; i++) {
+            new File(prune.getAbsolutePath() + File.separator + i).createNewFile();
+        }
         file.createNewFile();
         BashToolsJava bashToolsJava = new BashToolsJava();
         Iterator<String> iterator = bashToolsJava.find(dir, prune);
         while (iterator.hasNext())
             System.out.println("BashToolsJava.main: " + iterator.next());
+        //System.out.println("BashToolsJava.main.max: " + max);
     }
 
     @Override
@@ -58,13 +65,33 @@ public class BashToolsJava implements BashToolsImpl {
         return new Iterator<String>() {
             String nextLine = null;
 
+            private void fastForward() {
+                Iterator<File> iterator = fileStack.peek();
+                while (iterator != null) {
+                    while (iterator.hasNext()) {
+                        File f = iterator.next();
+                        if (!f.getAbsolutePath().startsWith(prunePath)) {
+                            nextLine = f.getAbsolutePath();
+                            return;
+                        }
+                    }
+                    fileStack.pop();
+                    if (fileStack.size() != 0) {
+                        iterator = fileStack.peek();
+                    } else
+                        return;
+                }
+            }
+
             @Override
             public boolean hasNext() {
+                //inc();
                 if (nextLine != null) {
                     if (nextLine.startsWith(prunePath)) {
-                        nextLine = null;
-                        return hasNext();
+                        fastForward();
+                        return nextLine != null;
                     }
+                    //dec();
                     return true;
                 } else {
                     try {
@@ -74,13 +101,17 @@ public class BashToolsJava implements BashToolsImpl {
                             if (nextFile.isDirectory())
                                 fileStack.push(Arrays.asList(nextFile.listFiles()).iterator());
                             nextLine = nextFile.getAbsolutePath();
-                            if (nextLine.startsWith(prunePath))
+                            if (nextLine.startsWith(prunePath)) {
                                 return hasNext();
+                            }
+                            //dec();
                             return true;
                         } else {
                             fileStack.pop();
-                            if (fileStack.size() == 0)
+                            if (fileStack.size() == 0) {
+                                //dec();
                                 return false;
+                            }
                             return hasNext();
                         }
                     } catch (Exception e) {
@@ -89,6 +120,16 @@ public class BashToolsJava implements BashToolsImpl {
                     }
                 }
             }
+
+//            private void dec() {
+//                depth--;
+//            }
+//
+//            private void inc() {
+//                depth++;
+//                if (depth > max)
+//                    max = depth;
+//            }
 
             @Override
             public String next() {
