@@ -37,7 +37,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
             System.out.println("StageIndexerRunnable.runImpl.locking read on " + Thread.currentThread().getName());
             fsDao.lockRead();
             System.out.println("StageIndexerRunnable.runImpl.locked");
-            initStage(DriveStrings.STAGESET_TYPE_FS, pathCollection.getPaths().stream());
+            initStage(DriveStrings.STAGESET_TYPE_FS, pathCollection.getPaths().iterator());
             examineStage();
             fsDao.unlockRead();
             unlocked = true;

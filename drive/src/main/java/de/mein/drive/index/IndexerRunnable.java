@@ -12,6 +12,7 @@ import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -77,7 +78,7 @@ public class IndexerRunnable extends AbstractIndexer {
             indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
             try {
                 fsDao.lockRead();
-                Stream<String> found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
+                Iterator<String> found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
                 initStage(DriveStrings.STAGESET_TYPE_STARTUP_INDEX, found);
                 examineStage();
             } catch (Exception e) {

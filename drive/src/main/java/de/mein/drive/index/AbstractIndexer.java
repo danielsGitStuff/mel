@@ -87,12 +87,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Stream<String> paths) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<String> iterator) throws IOException, SqlQueriesException {
 //        stageDao.lockWrite();
         stageSet = stageDao.createStageSet(stageSetType, null, null);
         String path = "none yet";
         this.stageSetId = stageSet.getId().v();
-        Iterator<String> iterator = paths.iterator();
         while (iterator.hasNext()) {
             path = iterator.next();
             System.out.println("AbstractIndexer[" + stageSetId + "].initStage.fromBashTools: " + path);

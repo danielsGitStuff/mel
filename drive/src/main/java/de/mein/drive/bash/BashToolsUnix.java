@@ -5,13 +5,8 @@ import de.mein.auth.tools.N;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -106,17 +101,21 @@ public class BashToolsUnix implements BashToolsImpl {
         return null;
     }
 
-    private Stream<String> exec(String cmd) throws IOException {
+    private Iterator<String> exec(String cmd) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
         System.out.println("BashToolsUnix.exec: " + cmd);
         Process proc = new ProcessBuilder(args).start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        return reader.lines();
+        return readerToIterator(proc.getInputStream());
+    }
+
+    protected Iterator<String> readerToIterator(InputStream inputStream){
+        BufferedIterator bufferedReader = new BufferedIterator(new InputStreamReader(inputStream));
+        return bufferedReader.iterator();
     }
 
     @Override
-    public Stream<String> find(File directory, File pruneDir) throws IOException {
+    public Iterator<String> find(File directory, File pruneDir) throws IOException {
         return exec("find \"" + directory.getAbsolutePath() + "\" -mindepth 1" + " -path \"" + pruneDir + "\" -prune -o -print");
     }
 
@@ -163,7 +162,7 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public Stream<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) {
+    public Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) {
         System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(");
         return null;
     }

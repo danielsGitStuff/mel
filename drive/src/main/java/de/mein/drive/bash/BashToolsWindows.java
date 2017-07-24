@@ -3,6 +3,7 @@ package de.mein.drive.bash;
 import org.jdeferred.Promise;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -85,10 +86,10 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public Stream<String> find(File directory, File pruneDir) throws IOException {
+    public Iterator<String> find(File directory, File pruneDir) throws IOException {
         String cmd = "dir /b/s \"" + directory.getAbsolutePath()
                 + "\" | findstr /v \"" + pruneDir.getAbsolutePath() + "\"";
-        return execReader(cmd).lines();
+        return execReader(cmd).lines().iterator();
     }
 
     @Override
@@ -109,11 +110,11 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public Stream<String> stuffModifiedAfter(File directory, File pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public Iterator<String> stuffModifiedAfter(File directory, File pruneDir, long timeStamp) throws IOException, InterruptedException {
         Double winTimeStamp = timeStamp / 1000d;
         String command = "get-childitem \"" + directory.getAbsolutePath() + "\" -recurse | " +
                 "where {(Get-Date($_.LastWriteTime.ToUniversalTime()) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not $_.FullName.StartsWith(\""+pruneDir.getAbsolutePath()+"\")} " +
                 "| foreach {$_.FullName}";
-        return execPowerShell(command);
+        return execPowerShell(command).iterator();
     }
 }

@@ -4,6 +4,7 @@ import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -28,9 +29,9 @@ public interface BashToolsImpl {
 
     List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException;
 
-     Stream<String> find(File directory, File pruneDir) throws IOException;
+    Iterator<String> find(File directory, File pruneDir) throws IOException;
 
      Promise<Long, Exception, Void> getInode(File f);
 
-    Stream<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException;
+    Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException;
 }

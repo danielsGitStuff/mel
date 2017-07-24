@@ -4,6 +4,7 @@ import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -52,7 +53,7 @@ public abstract class BashTools {
     }
 
 
-    public static Stream<String> find(File directory, File pruneDir) throws IOException {
+    public static Iterator<String> find(File directory, File pruneDir) throws IOException {
         return instance.find(directory, pruneDir);
     }
 
@@ -61,7 +62,7 @@ public abstract class BashTools {
         return instance.getInode(f);
     }
 
-    public static Stream<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public static Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException {
         return instance.stuffModifiedAfter(originalFile,pruneDir, timeStamp);
     }
 

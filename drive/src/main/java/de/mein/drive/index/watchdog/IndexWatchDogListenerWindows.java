@@ -12,6 +12,7 @@ import de.mein.drive.sql.FsDirectory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -41,8 +42,9 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
         PathCollection pathCollection = new PathCollection();
         N.r(() -> {
             DriveSettings driveSettings = meinDriveService.getDriveSettings();
-            Stream<String> paths = BashTools.stuffModifiedAfter(driveSettings.getRootDirectory().getOriginalFile(), driveSettings.getTransferDirectoryFile(), timeStamp);
-            paths.forEach(pathCollection::addPath);
+            Iterator<String> paths = BashTools.stuffModifiedAfter(driveSettings.getRootDirectory().getOriginalFile(), driveSettings.getTransferDirectoryFile(), timeStamp);
+            while (paths.hasNext())
+                pathCollection.addPath(paths.next());
         });
         stageIndexer.examinePaths(pathCollection);
     }
