@@ -88,6 +88,7 @@ public class BashToolsJava implements BashToolsImpl {
                 //inc();
                 if (nextLine != null) {
                     if (nextLine.startsWith(prunePath)) {
+                        nextLine = null;
                         fastForward();
                         return nextLine != null;
                     }
