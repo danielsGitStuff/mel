@@ -75,8 +75,8 @@ public class DriveFXTest {
         //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         N runner = new N(e -> e.printStackTrace());
-        MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
-                .setBrotcastListenerPort(9966).setBrotcastPort(9966)
+        MeinAuthSettings json1 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
+                .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("Test Client").setGreeting("greeting2");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -114,7 +114,7 @@ public class DriveFXTest {
         N runner = new N(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
-                .setBrotcastListenerPort(9966).setBrotcastPort(9966)
+                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("Test Server").setGreeting("greeting1");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -201,14 +201,14 @@ public class DriveFXTest {
                     System.out.println("DriveFXTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
                     runner.r(() -> {
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
-                        connectPromise.done(integer -> {
-                            runner.r(() -> {
-                                System.out.println("DriveFXTest.driveGui.booted");
-                                //standAloneAuth2.getBrotCaster().discover(9966);
-                                //lock.unlockWrite();
-                            });
-                        });
+//                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+//                        connectPromise.done(integer -> {
+//                            runner.r(() -> {
+//                                System.out.println("DriveFXTest.driveGui.booted");
+//                                //standAloneAuth2.getBrotCaster().discover(9966);
+//                                //lock.unlockWrite();
+//                            });
+//                        });
                     });
                 });
             });
