@@ -353,6 +353,7 @@ StageDao extends Dao.LockingDao {
             fsFile.getContentHash().v(stage.getContentHash());
             fsFile.getVersion().v(version);
             fsFile.getSize().v(stage.getSize());
+            fsFile.getSynced().v(stage.getSynced());
             fsEntry = fsFile;
         }
         fsEntry.getParentId().v(stage.getFsParentId());
