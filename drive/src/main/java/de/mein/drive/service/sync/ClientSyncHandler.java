@@ -21,6 +21,7 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -542,10 +543,11 @@ public class ClientSyncHandler extends SyncHandler {
             promise.done(directories -> runner.runTry(() -> {
                 // stage everything not in the directories as deleted
                 for (FsDirectory directory : directories) {
-                    Set<Long> stillExistingIds = new HashSet<Long>();
-                    directory.getFiles().forEach(fsFile -> stillExistingIds.add(fsFile.getId().v()));
-                    directory.getSubDirectories().forEach(fsDirectory -> stillExistingIds.add(fsDirectory.getId().v()));
-
+                    Set<Long> stillExistingIds = new HashSet<>();
+                    for (FsFile fsFile : directory.getFiles())
+                        stillExistingIds.add(fsFile.getId().v());
+                    for (FsDirectory subDir : directory.getSubDirectories())
+                        stillExistingIds.add(subDir.getId().v());
                     List<GenericFSEntry> fsDirs = fsDao.getContentByFsDirectory(directory.getId().v());
                     for (GenericFSEntry genSub : fsDirs) {
                         if (!stillExistingIds.contains(genSub.getId().v())) {
@@ -577,8 +579,8 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     public void onStageSetsMerged(Long lStageSetId, Long rStageSetId, StageSet mergedStageSet) {
-        for (ConflictSolver solver : conflictSolverMap.values()){
-            solver.checkObsolete(lStageSetId,rStageSetId);
+        for (ConflictSolver solver : conflictSolverMap.values()) {
+            solver.checkObsolete(lStageSetId, rStageSetId);
         }
     }
 }
