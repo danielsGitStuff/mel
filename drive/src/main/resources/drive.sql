@@ -14,7 +14,7 @@ CREATE TABLE fsentry (
   inode       INTEGER,
   modified    INTEGER,
   size        INTEGER,
-  FOREIGN KEY (parentId) REFERENCES fsentry (id)
+  FOREIGN KEY (parentid) REFERENCES fsentry (id)
 );
 CREATE INDEX eversion
   ON fsentry (version);
@@ -65,7 +65,7 @@ CREATE INDEX sversion
 CREATE INDEX sdir
   ON stage (parentid, dir);
 CREATE INDEX sparent
-  ON stage (parentId);
+  ON stage (parentid);
 CREATE INDEX shash
   ON stage (contentHash);
 CREATE INDEX snode

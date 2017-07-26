@@ -14,9 +14,9 @@ import java.util.List;
 public abstract class FsEntry extends SQLTableObject implements SerializableEntity {
     private static final String ID = "id";
     private static final String NAME = "name";
-    private static final String PARENT_ID = "parentId";
+    private static final String PARENT_ID = "parentid";
     private static final String VERSION = "version";
-    private static final String CONTENT_HASH = "contentHash";
+    private static final String CONTENT_HASH = "contenthash";
     private static final String DIR = "dir";
     private static final String INODE = "inode";
     private static final String SYNCED = "synced";

@@ -85,7 +85,7 @@ public abstract class SyncHandler {
                 return null;
             fsDao.update(fsTarget);
         } catch (Exception e) {
-
+            e.printStackTrace();
         } finally {
             //fsDao.unlockWrite();
         }
