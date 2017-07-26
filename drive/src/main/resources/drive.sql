@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS transfer;
 CREATE TABLE fsentry (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name        TEXT    NOT NULL,
-  parentId    INTEGER,
+  parentid    INTEGER,
   version     INTEGER NOT NULL,
   contenthash TEXT    NOT NULL,
   dir         INTEGER NOT NULL,
@@ -19,11 +19,11 @@ CREATE TABLE fsentry (
 CREATE INDEX eversion
   ON fsentry (version);
 CREATE INDEX edir
-  ON fsentry (parentId, dir);
+  ON fsentry (parentid, dir);
 CREATE INDEX eparent
-  ON fsentry (parentId);
+  ON fsentry (parentid);
 CREATE INDEX ehash
-  ON fsentry (contentHash);
+  ON fsentry (contenthash);
 CREATE INDEX enode
   ON fsentry (inode);
 /*staging*/
@@ -33,7 +33,7 @@ CREATE TABLE stage (
   parentid    INTEGER,
   fsid        INTEGER,
   name        TEXT,
-  fsparentId  INTEGER,
+  fsparentid  INTEGER,
   version     INTEGER,
   contenthash TEXT,
   dir         INTEGER NOT NULL,
@@ -63,7 +63,7 @@ CREATE INDEX sid
 CREATE INDEX sversion
   ON stage (version);
 CREATE INDEX sdir
-  ON stage (parentId, dir);
+  ON stage (parentid, dir);
 CREATE INDEX sparent
   ON stage (parentId);
 CREATE INDEX shash
@@ -71,7 +71,7 @@ CREATE INDEX shash
 CREATE INDEX snode
   ON stage (inode);
 CREATE INDEX sstageid
-  ON stage (fsparentId);
+  ON stage (fsparentid);
 CREATE INDEX sstageparent
   ON stage (fsid);
 CREATE INDEX sssssesion
