@@ -254,8 +254,8 @@ public abstract class SyncHandler {
                                 wasteBin.deleteFile(oldeFsFile);
                             }
                         }
-//                        if (!fsEntry.getIsDirectory().v())
-//                            fsEntry.getSynced().v(false);
+                        if (fsEntry.getSynced().isNull())
+                            System.out.println("SyncHandler.commitStage.isnull");
                         fsDao.insertOrUpdate(fsEntry);
                         this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
                     }

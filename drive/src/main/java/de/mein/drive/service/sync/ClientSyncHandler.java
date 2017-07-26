@@ -21,7 +21,6 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -478,6 +477,8 @@ public class ClientSyncHandler extends SyncHandler {
         for (GenericFSEntry genericFSEntry : entries) {
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
+            if (!stage.getIsDirectory())
+                stage.setSynced(false);
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
         // check if something was deleted
