@@ -8,7 +8,7 @@ CREATE TABLE fsentry (
   name        TEXT    NOT NULL,
   parentId    INTEGER,
   version     INTEGER NOT NULL,
-  contentHash TEXT    NOT NULL,
+  contenthash TEXT    NOT NULL,
   dir         INTEGER NOT NULL,
   synced      INTEGER NOT NULL,
   inode       INTEGER,
