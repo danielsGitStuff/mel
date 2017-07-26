@@ -35,7 +35,7 @@ CREATE TABLE stage (
   name        TEXT,
   fsparentId  INTEGER,
   version     INTEGER,
-  contentHash TEXT,
+  contenthash TEXT,
   dir         INTEGER NOT NULL,
   inode       INTEGER,
   modified    INTEGER,
