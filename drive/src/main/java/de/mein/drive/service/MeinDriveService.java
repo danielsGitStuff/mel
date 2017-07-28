@@ -124,6 +124,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     }
 
     protected void handleSending(Long partnerCertId, FileTransferDetailSet detailSet, boolean lockFsEntry) {
+        //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
         FsDao fsDao = driveDatabaseManager.getFsDao();
         try {
             if (lockFsEntry)

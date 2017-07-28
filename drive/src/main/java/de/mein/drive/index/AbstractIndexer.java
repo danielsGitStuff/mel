@@ -69,6 +69,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
         Stage stage = stages.getNext();
         while (stage != null) {
+            //todo debug
+            if (stage.getName().equals("sub1"))
+                System.out.println("AbstractIndexer.examineStage.debug1");
             // build a File
             String path = buildPathFromStage(stage);
             File f = new File(path);
@@ -187,11 +190,12 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // remove deleted stuff first (because of the order)
         if (files != null) {
             for (File subFile : files) {
+                stuffToDelete.remove(subFile.getName());
                 // check if file is supposed to be here.
                 // it just might not be transferred yet.
-                FsFile fsFile = fsDao.getFsFileByFile(subFile);
-                if (fsFile != null && !fsFile.getSynced().v())
-                    stuffToDelete.remove(subFile.getName());
+//                FsFile fsFile = fsDao.getFsFileByFile(subFile);
+//                if (fsFile != null && fsFile.getSynced().v())
+//                    stuffToDelete.remove(subFile.getName());
             }
         }
         if (subDirs != null) {
