@@ -30,28 +30,32 @@ public class StageIndexerRunnable extends AbstractIndexer {
     @Override
     public void runImpl() {
         boolean unlocked = false;
-        try {
-            //todo debug
-            if(Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClientService for MA2"))
-                System.out.println("StageIndexerRunnable.runImpl.debug23r2300");
-            System.out.println("StageIndexerRunnable.runImpl.locking read on " + Thread.currentThread().getName());
-            fsDao.lockRead();
-            System.out.println("StageIndexerRunnable.runImpl.locked");
-            initStage(DriveStrings.STAGESET_TYPE_FS, pathCollection.getPaths().iterator());
-            examineStage();
-            fsDao.unlockRead();
-            unlocked = true;
-            if(Thread.currentThread().getName().startsWith("StageIndexerRunnable["+stageSetId+"] for MeinDriveClientService for MA2"))
-                System.out.println("StageIndexerRunnable["+stageSetId+"].runImpl.debug8fh384");
-            stagingDoneListener.onStagingFsEventsDone(stageSetId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (!unlocked) {
-                System.out.println("StageIndexerRunnable["+stageSetId+"].runImpl.unlocking on " + Thread.currentThread().getName());
+        if (pathCollection.getPaths().size()>0) {
+            try {
+                //todo debug
+                if (Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClientService for MA2"))
+                    System.out.println("StageIndexerRunnable.runImpl.debug23r2300");
+                System.out.println("StageIndexerRunnable.runImpl.locking read on " + Thread.currentThread().getName());
+                fsDao.lockRead();
+                System.out.println("StageIndexerRunnable.runImpl.locked");
+                initStage(DriveStrings.STAGESET_TYPE_FS, pathCollection.getPaths().iterator());
+                examineStage();
                 fsDao.unlockRead();
-                System.out.println("StageIndexerRunnable["+stageSetId+"].runImpl.unlocked");
+                unlocked = true;
+                if (Thread.currentThread().getName().startsWith("StageIndexerRunnable[" + stageSetId + "] for MeinDriveClientService for MA2"))
+                    System.out.println("StageIndexerRunnable[" + stageSetId + "].runImpl.debug8fh384");
+                stagingDoneListener.onStagingFsEventsDone(stageSetId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (!unlocked) {
+                    System.out.println("StageIndexerRunnable[" + stageSetId + "].runImpl.unlocking on " + Thread.currentThread().getName());
+                    fsDao.unlockRead();
+                    System.out.println("StageIndexerRunnable[" + stageSetId + "].runImpl.unlocked");
+                }
             }
+        }else {
+            System.out.println("StageIndexerRunnable.runImpl.got.empty.pathcollection");
         }
     }
 

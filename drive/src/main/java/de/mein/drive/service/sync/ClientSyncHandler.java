@@ -440,7 +440,11 @@ public class ClientSyncHandler extends SyncHandler {
                     meinDriveService.addJob(new CommitJob());
                     if (syncListener != null)
                         syncListener.onSyncDone();
-                })).fail(result -> System.err.println("j99f49459f54"));
+                })).fail(result -> {
+                            System.err.println("ClientSyncHandler.syncThisClient.j99f49459f54");
+                            N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
+                        }
+                );
             }));
         }));
     }

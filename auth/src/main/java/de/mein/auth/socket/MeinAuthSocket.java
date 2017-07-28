@@ -86,7 +86,6 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     @Override
     public void onMessage(MeinSocket meinSocket, String msg) {
         try {
-            System.out.println(meinAuthService.getName() + ".got: " + msg);
             SerializableEntityDeserializer deserializer = new SerializableEntityDeserializer();
             SerializableEntity deserialized = SerializableEntityDeserializer.deserialize(msg);
             //todo debug
