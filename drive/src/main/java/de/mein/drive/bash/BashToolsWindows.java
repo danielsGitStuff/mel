@@ -39,6 +39,7 @@ public class BashToolsWindows implements BashToolsImpl {
 
     @Override
     public List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+        System.err.println("BashToolsWindows.stuffModifiedAfter.I AM THE WINDOWS GUY!");
         return null;
     }
 
