@@ -199,6 +199,7 @@ public class ConflictSolver extends SyncStageMerger {
                         .setIsDirectory(true);
                 if (alreadyStagedParent == null) {
                     FsDirectory parentFsDirectory = fsDao.getFsDirectoryByPath(parentFile);
+                    targetParentStage.setName(parentFsDirectory.getName().v());
                     Stage leftParentStage = stageDao.getStageByPath(lStageSet.getId().v(), parentFile);
                     FsDirectory targetParentFsDirectory = new FsDirectory().setName(parentFile.getName());
                     // check if right parent already exists. else...
@@ -268,6 +269,12 @@ public class ConflictSolver extends SyncStageMerger {
                     solvedStage.setFsParentId(left.getFsParentId());
                     solvedStage.setFsId(left.getFsId());
                     solvedStage.setVersion(left.getVersion());
+                    Long parentId = left.getParentId();
+                    if (parentId != null) {
+                        if (oldeNewIdMap.containsKey(parentId)) {
+                            solvedStage.setParentId(oldeNewIdMap.get(parentId));
+                        }
+                    }
                 }
             } else if (conflict.isLeft() && conflict.hasLeft()) {
                 solvedStage = left;
@@ -280,23 +287,35 @@ public class ConflictSolver extends SyncStageMerger {
             solvedStage = right;
 
         }
-        if (solvedStage != null && solvedStage == right) {
+        if (solvedStage != null) {
+            solvedStage.setOrder(order.ord());
+            solvedStage.setStageSet(mergeStageSet.getId().v());
+            // adjust ids
+            Long oldeId = solvedStage.getId();
+            solvedStage.setMerged(false);
+            solvedStage.setId(null);
+            if (oldeNewIdMap.containsKey(solvedStage.getParentId())) {
+                solvedStage.setParentId(oldeNewIdMap.get(solvedStage.getParentId()));
+            }
             try {
-                solvedStage.setOrder(order.ord());
-                solvedStage.setStageSet(mergeStageSet.getId().v());
-                // adjust ids
-                Long oldeId = solvedStage.getId();
-                solvedStage.setMerged(false);
-                solvedStage.setId(null);
-                if (oldeNewIdMap.containsKey(solvedStage.getParentId())) {
-                    solvedStage.setParentId(oldeNewIdMap.get(solvedStage.getParentId()));
-                }
                 stageDao.insert(solvedStage);
                 oldeNewIdMap.put(oldeId, solvedStage.getId());
                 // map new id
             } catch (SqlQueriesException e) {
                 e.printStackTrace();
             }
+            if (solvedStage == right) {
+
+            } else {
+
+            }
+
+        }
+
+        if (solvedStage != null && solvedStage == right) {
+
+        } else if (solvedStage != null) {
+            solvedStage.setId(null);
         }
     }
 
