@@ -12,6 +12,7 @@ public class FsDirectory extends FsEntry {
 
     protected FsDirectory parent;
     protected List<FsFile> files = new ArrayList<>();
+    @JsonIgnore
     protected Set<String> contentSet = new HashSet<>();
     protected List<FsDirectory> subDirectories = new ArrayList<>();
 
