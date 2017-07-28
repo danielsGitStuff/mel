@@ -1,8 +1,8 @@
 package de.mein.drive.service;
 
 import de.mein.drive.DriveSettings;
-import de.mein.drive.data.DriveStrings;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.*;
@@ -216,6 +216,9 @@ public class WasteBin {
     }
 
     private File getWasteFile(Waste waste) {
+        //todo debug
+        if (waste == null || waste.getHash().isNull())
+            System.out.println("WasteBin.getWasteFile.debug.1");
         return new File(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
     }
 }

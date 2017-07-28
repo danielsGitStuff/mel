@@ -46,6 +46,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     protected String buildPathFromStage(Stage stage) throws SqlQueriesException {
+        //todo debug
+        if (stage.getName().equals("testdir2"))
+            System.out.println("AbstractIndexer.buildPathFromStage.debug.1");
         String res = "";
         if (stage.getFsParentId() != null) {
             FsDirectory fsParent = fsDao.getDirectoryById(stage.getFsParentId());
@@ -62,6 +65,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 return databaseManager.getDriveSettings().getRootDirectory().getPath();
             res = "2";
         }
+        //todo debug
+        if (res.length() == 0)
+            System.out.println("AbstractIndexer.buildPathFromStage.debug.2");
         return res;
     }
 
@@ -92,6 +98,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     protected void initStage(String stageSetType, Iterator<String> iterator) throws IOException, SqlQueriesException {
 //        stageDao.lockWrite();
         stageSet = stageDao.createStageSet(stageSetType, null, null);
+        final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         String path = "none yet";
         this.stageSetId = stageSet.getId().v();
         while (iterator.hasNext()) {
@@ -102,7 +109,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             FsDirectory fsParent = null;
             FsEntry fsEntry = null;
             Stage stage;
-            Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
             // find the actual relating FsEntry of the parent directory
             fsParent = fsDao.getFsDirectoryByPath(parent);
             // find its relating FsEntry
@@ -114,6 +120,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 if (gen != null) {
                     fsEntry = gen.ins();
                 }
+            }
+            // still finding.. might be root dir
+            if (fsEntry == null && f.isDirectory()){
+                fsEntry = fsDao.getFsDirectoryByPath(f);
             }
             //file might been deleted yet :(
             if (!f.exists() && fsEntry == null)
@@ -127,7 +137,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage.setFsParentId(fsParent.getId().v());
             }
             // we found everything which already exists in das datenbank
-            if (stageParent == null) {
+            Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
+            if (stageParent == null && parent.getAbsolutePath().length() >= rootPathLength) {
                 stageParent = new Stage().setStageSet(stageSet.getId().v());
                 if (fsParent == null) {
                     stageParent.setIsDirectory(parent.isDirectory());
@@ -144,7 +155,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stageParent.setOrder(order.ord());
                 stageDao.insert(stageParent);
             }
-            stage.setParentId(stageParent.getId());
+            if (stageParent != null)
+                stage.setParentId(stageParent.getId());
             if (fsParent != null) {
                 stage.setFsParentId(fsParent.getId().v());
             }
@@ -235,6 +247,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 }
             }
         }
+        //todo debug
+        if (subDirs == null)
+            System.out.println("AbstractIndexer.roamDirectoryStage.debug.1");
         for (File subDir : subDirs) {
             if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectoryPath()))
                 continue;

@@ -263,6 +263,8 @@ StageDao extends Dao.LockingDao {
     public Stage insert(Stage stage) throws SqlQueriesException {
         try {
             //todo debug
+            if (stage.getName() == null)
+                System.out.println("StageDao.insert.debug.1");
             if(stage.getName().equals("samesub1.txt") && stage.getStageSet().equals(3L))
                 System.out.println("StageDao.insert.debug");
             Long id = sqlQueries.insert(stage);
