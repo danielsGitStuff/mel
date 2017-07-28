@@ -41,13 +41,11 @@ public class BashToolsAndroid extends BashToolsUnix {
             dir.mkdirs();
             prune.mkdirs();
             file.createNewFile();
-            cmd = "find \"" + dir.getAbsolutePath() + "\" -mindepth 1" + " -path \"" + prune + "\" -prune -o -print";
+            cmd = "find \"" + dir.getAbsolutePath() + "\" -path \"" + prune + "\" -prune -o -print";
             Streams streams = testCommand(cmd);
             Iterator<String> iterator = streams.stdout;
             while (iterator.hasNext()) {
                 String line = iterator.next();
-                if (line.equals(dir.getAbsolutePath()))
-                    throw new BashToolsException("'find' ignored '-mindepth 1");
                 if (line.equals(prune.getAbsolutePath())) {
                     throw new BashToolsException("'find' ignored '-prune");
                 }
