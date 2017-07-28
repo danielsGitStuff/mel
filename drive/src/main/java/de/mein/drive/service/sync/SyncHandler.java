@@ -259,7 +259,7 @@ public abstract class SyncHandler {
                         }
                         if (fsEntry.getSynced().isNull())
                             System.out.println("SyncHandler.commitStage.isnull");
-                        if (!fsEntry.getIsDirectory().v())
+                        if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
                             fsEntry.getSynced().v(false);
                         fsDao.insertOrUpdate(fsEntry);
                         this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
