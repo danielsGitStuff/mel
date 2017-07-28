@@ -283,7 +283,25 @@ public class ClientSyncHandler extends SyncHandler {
             conflictSolver.cleanup();
             this.commitStage(serverStageSet.getId().v());
             setupTransfer();
-            meinDriveService.addJob(new CommitJob());
+            Long mergedId = conflictSolver.getMergeStageSet().getId().v();
+            this.minimizeStage(mergedId);
+            if (stageDao.stageSetHasContent(mergedId))
+                meinDriveService.addJob(new CommitJob());
+        }
+    }
+
+    private void minimizeStage(Long stageSetId) throws SqlQueriesException {
+        ISQLResource<Stage> stages = stageDao.getStagesResource(stageSetId);
+        Stage stage = stages.getNext();
+        while (stage != null) {
+            Long fsId = stage.getFsId();
+            if (fsId != null) {
+                FsEntry fsEntry = fsDao.getGenericById(fsId);
+                if (stage.getDeleted() || (fsEntry != null && fsEntry.getContentHash().v().equals(stage.getContentHash()))) {
+                    stageDao.deleteStageById(stage.getId());
+                }
+            }
+            stage = stages.getNext();
         }
     }
 
