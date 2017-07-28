@@ -5,10 +5,7 @@ import de.mein.sql.Pair;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 public class FsDirectory extends FsEntry {
@@ -26,14 +23,18 @@ public class FsDirectory extends FsEntry {
         return parentId.v() == null;
     }
 
+    public static Integer calcDirectoryContentHash(Collection<String> content) {
+        Integer hash = 0;
+        for (String name : content) {
+            hash += name.hashCode();
+        }
+        return hash;
+    }
+
 
     @Override
     protected void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files) {
-        Integer hash = 0;
-        for (String name : contentSet) {
-            hash += name.hashCode();
-        }
-        contentHash.v(hash.toString());
+        contentHash.v(calcDirectoryContentHash(contentSet).toString());
     }
 
     private static String calcCHash(List<FsDirectory> subDirectories, List<FsFile> files) {

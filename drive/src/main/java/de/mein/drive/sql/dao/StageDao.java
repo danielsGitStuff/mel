@@ -397,13 +397,10 @@ StageDao extends Dao.LockingDao {
         return sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
     }
 
-    public List<Stage> getStageContent(Long stageId, Long stageSetId) throws SqlQueriesException {
+    public List<Stage> getStageContent(Long stageId) throws SqlQueriesException {
         Stage dummy = new Stage();
-        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getParentIdPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";
-        List<Object> args = new ArrayList<>();
-        args.add(stageSetId);
-        args.add(stageId);
-        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
+        String where = dummy.getParentIdPair().k() + "=? order by " + dummy.getOrderPair().k() + " asc";
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(stageId));
     }
 
     public ISQLResource<de.mein.drive.sql.Stage> getFilesAsResource(Long stageSetId) throws IllegalAccessException, SqlQueriesException, InstantiationException {

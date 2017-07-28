@@ -169,6 +169,8 @@ public class FsDao extends Dao {
             System.out.println("FsDao.insert.debugf934wt0ß4");
         if (fsEntry.getName().equals("same1.txt") && !fsEntry.getSynced().v())
             System.out.println("FsDao.insert.debug3");
+        if (fsEntry.getParentId().isNull())
+            System.out.println("FsDao.insert.4");
         if (fsEntry.getId().v() != null)
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
         else
