@@ -3,8 +3,8 @@ package de.mein.drive.service.sync;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
-import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.WasteBin;
@@ -113,7 +113,9 @@ public abstract class SyncHandler {
             if (fsFiles.size() > 1) {
                 for (int i = 1; i < fsFiles.size(); i++) {
                     //TODO debug stopped here last night
-                    copyFile(file, fsFiles.get(i));
+                    FsFile fsFile = fsFiles.get(i);
+                    copyFile(file, fsFile);
+                    fsDao.setSynced(fsFile.getId().v(), true);
                 }
             }
         } catch (Exception e) {
@@ -239,6 +241,7 @@ public abstract class SyncHandler {
                     }
                 } else { // fs.id is not null
                     if (stage.getDeleted() != null && stage.getDeleted()) {
+                        //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
                         wasteBin.delete(stage.getFsId());
                     } else {
                         FsEntry fsEntry = stageDao.stage2FsEntry(stage, version);
@@ -256,6 +259,8 @@ public abstract class SyncHandler {
                         }
                         if (fsEntry.getSynced().isNull())
                             System.out.println("SyncHandler.commitStage.isnull");
+                        if (!fsEntry.getIsDirectory().v())
+                            fsEntry.getSynced().v(false);
                         fsDao.insertOrUpdate(fsEntry);
                         this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
                     }

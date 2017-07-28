@@ -343,7 +343,7 @@ public class ConflictSolver extends SyncStageMerger {
 
     @Override
     public String toString() {
-        return lStageSetId + " vs " + rStageSetId + " -> " + mergeStageSet == null ? "null" : mergeStageSet.getId().v().toString();
+        return lStageSetId + " vs " + rStageSetId + " -> " + (mergeStageSet == null ? "null" : mergeStageSet.getId().v().toString());
     }
 
     public boolean hasConflicts() {

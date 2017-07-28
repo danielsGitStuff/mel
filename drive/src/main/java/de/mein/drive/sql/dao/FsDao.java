@@ -68,10 +68,13 @@ public class FsDao extends Dao {
     }
 
 
-    public void update(FsEntry leFile) throws SqlQueriesException {
+    public void update(FsEntry fsEntry) throws SqlQueriesException {
+        //todo debug
+        if (fsEntry.getName().equals("same1.txt") && !fsEntry.getSynced().v())
+            System.out.println("FsDao.update.debug3");
         List<Object> whereArgs = new ArrayList<>();
-        whereArgs.add(leFile.getId().v());
-        sqlQueries.update(leFile, leFile.getId().k() + "=?", whereArgs);
+        whereArgs.add(fsEntry.getId().v());
+        sqlQueries.update(fsEntry, fsEntry.getId().k() + "=?", whereArgs);
     }
 
     public FsFile getFileByName(FsFile fsFile) throws SqlQueriesException {
@@ -164,6 +167,8 @@ public class FsDao extends Dao {
             System.err.println("FsDao.insert.debug");
         if (fsEntry.getContentHash().notNull() && fsEntry.getContentHash().v().equals("51037a4a37730f52c8732586d3aaa316"))
             System.out.println("FsDao.insert.debugf934wt0ß4");
+        if (fsEntry.getName().equals("same1.txt") && !fsEntry.getSynced().v())
+            System.out.println("FsDao.insert.debug3");
         if (fsEntry.getId().v() != null)
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
         else
@@ -386,6 +391,9 @@ public class FsDao extends Dao {
     }
 
     public void insertOrUpdate(FsEntry fsEntry) throws SqlQueriesException {
+        //todo debug
+        if (fsEntry.getName().equals("same1.txt") && !fsEntry.getSynced().v())
+            System.out.println("FsDao.insert.debug3");
         if (fsEntry.getId().v() != null && hasId(fsEntry.getId().v())) {
             update(fsEntry);
         } else {
@@ -495,5 +503,29 @@ public class FsDao extends Dao {
         if (gens.size() == 1)
             return gens.get(0);
         return null;
+    }
+
+    public FsFile getFsFileByFile(File file) throws SqlQueriesException {
+        RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
+        String rootPath = rootDirectory.getPath();
+        //todo throw Exception if f is not in rootDirectory
+        if (file.getAbsolutePath().length() < rootPath.length())
+            return null;
+        File ff = new File(file.getAbsolutePath());
+        Stack<File> fileStack = new Stack<>();
+        while (ff.getAbsolutePath().length() > rootPath.length()) {
+            fileStack.push(ff);
+            ff = ff.getParentFile();
+        }
+        FsEntry lastEntry = this.getRootDirectory();
+        while (!fileStack.empty()) {
+            if (lastEntry == null) {
+                System.out.println("FsDao.getFsFileByFile.did not find");
+                return null;
+            }
+            String name = fileStack.pop().getName();
+            lastEntry = this.getGenericSubByName(lastEntry.getId().v(), name);
+        }
+        return (FsFile) lastEntry.copyInstance();
     }
 }

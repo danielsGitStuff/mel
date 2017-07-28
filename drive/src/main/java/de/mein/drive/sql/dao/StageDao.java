@@ -2,6 +2,7 @@ package de.mein.drive.sql.dao;
 
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
+import de.mein.drive.index.watchdog.StageIndexerRunnable;
 import de.mein.drive.sql.*;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
@@ -301,6 +302,17 @@ StageDao extends Dao.LockingDao {
         StageSet stageSet = new StageSet().setSource(type).setOriginCertId(originCertId)
                 .setOriginServiceUuid(originServiceUuid).setStatus(status);
         Long id = sqlQueries.insert(stageSet);
+        //todo debug
+        if (id.equals(10))
+            System.out.println("StageDao.createStageSet.debug1");
+        if (id == 4 && Thread.currentThread().getName().startsWith(StageIndexerRunnable.class.getSimpleName()+" for MeinDriveServer"))
+            System.out.println("StageDao.createStageSet.debug2");
+        if (id.toString().equals("7") && Thread.currentThread().getName().startsWith("MeinDriveClientService"))
+            System.out.println("StageDao.createStageSet.debug3");
+        if (id.toString().equals("3") && Thread.currentThread().getName().toLowerCase().contains("client"))
+            System.out.println("StageDao.createStageSet.debug3");
+        if (id.toString().equals("6") && Thread.currentThread().getName().toLowerCase().contains("client"))
+            System.out.println("StageDao.createStageSet.debug3");
         return stageSet.setId(id);
     }
 

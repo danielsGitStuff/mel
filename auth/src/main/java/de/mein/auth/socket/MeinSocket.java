@@ -217,7 +217,7 @@ public class MeinSocket extends DeferredRunnable {
                     socketWorker.addJob(new BlockReceivedJob().setBlock(bytes));
                 } else {
                     String s = in.readUTF();
-                    System.out.println(meinAuthService.getName() + ".MeinSocket.runTry.got: " + s);
+                    System.out.println("   " + meinAuthService.getName() + ".MeinSocket.runTry.got: " + s);
                     if (s.equals(MODE_ISOLATE) && allowIsolation) {
                         if (!isIsolated)
                             send(MODE_ISOLATE);

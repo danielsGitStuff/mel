@@ -133,11 +133,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                 List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
                 if (fsFiles.size() > 0) {
                     FsFile fsFile = fsFiles.get(0);
-                    File file;
-                    if (!fsFile.getSynced().v()){
+                    File file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
+                    if (!file.exists()) {
                         file = wasteBin.getFile(detail.getHash());
-                    }else {
-                      file   = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
                     }
                     FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
                     mDetail.openRead();
