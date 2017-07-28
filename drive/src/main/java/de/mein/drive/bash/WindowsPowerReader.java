@@ -15,6 +15,8 @@ import java.util.stream.StreamSupport;
  * Created by xor on 18.07.2017.
  */
 public class WindowsPowerReader extends BufferedReader {
+    private String prependLine;
+
     public WindowsPowerReader(Reader in, int sz) {
         super(in, sz);
     }
@@ -31,7 +33,7 @@ public class WindowsPowerReader extends BufferedReader {
     @Override
     public Stream<String> lines() {
         Iterator<String> iter = new Iterator<String>() {
-            String next = null;
+            String next = prependLine;
             String after = null;
             private boolean reachedStartLine = false;
 
@@ -60,7 +62,7 @@ public class WindowsPowerReader extends BufferedReader {
                         {
                             next = readLine();
                             after = readLine();
-                            if (next == null || after==null)
+                            if (next == null || after == null)
                                 return false;
                         }
                         return (next != null);
@@ -84,5 +86,9 @@ public class WindowsPowerReader extends BufferedReader {
         };
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
                 iter, Spliterator.ORDERED | Spliterator.NONNULL), false);
+    }
+
+    public void prependLine(String prependLine) {
+        this.prependLine = prependLine;
     }
 }

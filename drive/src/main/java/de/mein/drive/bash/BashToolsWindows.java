@@ -97,14 +97,15 @@ public class BashToolsWindows implements BashToolsImpl {
         return null;
     }
 
-    private Stream<String> execPowerShell(String command) throws IOException, InterruptedException {
+    private Stream<String> execPowerShell(String command, String prependLine) throws IOException, InterruptedException {
         System.out.println("BashToolsWindows.execPowerShell: " + command);
         String[] args = new String[]{"powershell.exe"};
         Process process = new ProcessBuilder(args).start();
         PrintWriter stdin = new PrintWriter(process.getOutputStream());
         stdin.println(command);
         stdin.close();
-        BufferedReader reader = new WindowsPowerReader(new InputStreamReader(process.getInputStream()));
+        WindowsPowerReader reader = new WindowsPowerReader(new InputStreamReader(process.getInputStream()));
+        reader.prependLine(prependLine);
         process.waitFor();
         return reader.lines();
     }
@@ -112,9 +113,13 @@ public class BashToolsWindows implements BashToolsImpl {
     @Override
     public Iterator<String> stuffModifiedAfter(File directory, File pruneDir, long timeStamp) throws IOException, InterruptedException {
         Double winTimeStamp = timeStamp / 1000d;
+        String prependLine = null;
+        if (directory.lastModified() >= timeStamp) {
+            prependLine = directory.getAbsolutePath();
+        }
         String command = "get-childitem \"" + directory.getAbsolutePath() + "\" -recurse | " +
-                "where {(Get-Date($_.LastWriteTime.ToUniversalTime()) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not $_.FullName.StartsWith(\""+pruneDir.getAbsolutePath()+"\")} " +
+                "where {(Get-Date($_.LastWriteTime.ToUniversalTime()) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not $_.FullName.StartsWith(\"" + pruneDir.getAbsolutePath() + "\")} " +
                 "| foreach {$_.FullName}";
-        return execPowerShell(command).iterator();
+        return execPowerShell(command, prependLine).iterator();
     }
 }
