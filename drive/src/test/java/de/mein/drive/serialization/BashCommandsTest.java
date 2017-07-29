@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Created by thefa on 7/29/2017.
  */
-public class WindowsTest {
+public class BashCommandsTest {
     File testDir = new File("testdir1");
     List<String> paths;
 
@@ -32,7 +32,7 @@ public class WindowsTest {
         Iterator<String> iterator = BashTools.find(testDir, new File("blaaaa"));
         while (iterator.hasNext())
             System.out.println(iterator.next());
-        System.out.println("WindowsTest.bashtest.end");
+        System.out.println("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -44,7 +44,7 @@ public class WindowsTest {
         assertTrue(iterator.hasNext());
         iterator.next();
         assertFalse(iterator.hasNext());
-        System.out.println("WindowsTest.bashtest.end");
+        System.out.println("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -54,7 +54,7 @@ public class WindowsTest {
         testDir.mkdirs();
         Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new File("blaa"), Long.MAX_VALUE);
         assertFalse(iterator.hasNext());
-        System.out.println("WindowsTest.bashtest.end");
+        System.out.println("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -69,7 +69,36 @@ public class WindowsTest {
             assertEquals(expected, path);
         }
         assertFalse(expectedIterator.hasNext());
-        System.out.println("WindowsTest.bashtest.end");
+        System.out.println("BashCommandsTest.bashtest.end");
+    }
+
+    @Test
+    public void timestamp1() throws InterruptedException {
+        Long t1 = testDir.lastModified();
+        File dir = new File(testDir.getAbsoluteFile() + File.separator + "ttttttt");
+        dir.mkdirs();
+        Thread.sleep(1);
+        Long t2 = testDir.lastModified();
+        System.out.println("before: " + t1);
+        System.out.println("after : " + t2);
+        assertTrue(t1 < t2);
+    }
+
+    @Test
+    public void timestamp2() {
+        File dir = new File("ttttttt");
+        dir.mkdirs();
+        Long t1 = dir.lastModified();
+        Long tt1 = testDir.lastModified();
+        testDir.renameTo(new File(dir.getAbsolutePath() + File.separator + "movedTest"));
+        Long t2 = dir.lastModified();
+        Long tt2 = testDir.lastModified();
+        System.out.println("upper dir before: " + t1);
+        System.out.println("upper dir after : " + t2);
+        System.out.println("moved dir before: " + tt1);
+        System.out.println("moved dir after : " + tt2);
+        assertEquals(t1, t2);
+        assertEquals(tt1, tt2);
     }
 
     @After
