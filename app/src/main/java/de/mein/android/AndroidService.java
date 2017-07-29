@@ -93,11 +93,15 @@ public class AndroidService extends Service {
         return meinAuthService != null;
     }
 
+    public String getAndroidPath() {
+        return getApplicationContext().getApplicationInfo().dataDir;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         // configure MeinAuth
-        File workingDir = new File(getFilesDir().getAbsolutePath() + File.separator + "meinauth.workingdir");
+        File workingDir = new File(getAndroidPath() + File.separator + "meinauth.workingdir");
         workingDir.mkdirs();
         File settingsFile = new File(workingDir.getAbsolutePath() + File.separator + "meinauth.settings.json");
         try {
@@ -143,17 +147,17 @@ public class AndroidService extends Service {
         super.onTrimMemory(level);
     }
 
-    @Override
-    public File getFilesDir() {
-        return new File("/data/data/" + getPackageName());
-    }
+//    @Override
+//    public File getFilesDir() {
+//        return new File("/data/data/" + getPackageName());
+//    }
 
     public Promise<MeinAuthService, Exception, Void> setup(DriveSyncListener clientSyncListener) throws Exception {
         android();
 
         //setup working directories & directories with test data
         RWLock lock = new RWLock();
-        File testdir1 = new File(getFilesDir().getAbsolutePath() + File.separator + "testdir1");
+        File testdir1 = new File(getAndroidPath() + File.separator + "testdir1");
 //        boolean ba = testdir1.mkdirs();
 //        boolean bb = workingDir.mkdirs();
         Object asdasda = getResources();
@@ -188,6 +192,8 @@ public class AndroidService extends Service {
                 System.out.println("DriveFXTest.driveGui.1.booted");
                 AndroidService.this.meinAuthService = meinAuthService;
                 meinAuthService.addRegisteredHandler(registeredHandler);
+                Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
+                System.out.println(t1);
                 //lock.unlockWrite();
 
                 // setup the server Service
