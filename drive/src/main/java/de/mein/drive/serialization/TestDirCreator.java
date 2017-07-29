@@ -5,21 +5,22 @@ import de.mein.auth.TestFileCreator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by xor on 7/10/16.
  */
 public class TestDirCreator {
-    public static void createTestDir(File testDir) throws IOException {
+    public static List<String> createTestDir(File testDir) throws IOException {
 
+        List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
         File sub1 = new File(testDir.getPath() + File.separator + "sub1");
         File sub2 = new File(testDir.getPath() + File.separator + "sub2");
         sub1.mkdirs();
         sub2.mkdirs();
-
-        File sub2file = new File(sub2.getPath() + File.separator + "sub2.txt");
 
         File sub1txt = new File(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
@@ -34,8 +35,23 @@ public class TestDirCreator {
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
         File sameDir = new File(testDir.getPath() + File.separator + "samedir");
         sameDir.mkdirs();
-        TestFileCreator.saveFile("same".getBytes(), new File(sameDir.getPath() + File.separator + "same1.txt"));
-        TestFileCreator.saveFile("same".getBytes(), new File(sameDir.getPath() + File.separator + "same2.txt"));
+        File same1txt = new File(sameDir.getPath() + File.separator + "same1.txt");
+        File same2txt = new File(sameDir.getPath() + File.separator + "same2.txt");
+        TestFileCreator.saveFile("same".getBytes(), same1txt);
+        TestFileCreator.saveFile("same".getBytes(), same2txt);
+
+        paths.add(testDir.getAbsolutePath());
+        paths.add(sameDir.getAbsolutePath());
+        paths.add(sub1.getAbsolutePath());
+        paths.add(sub2.getAbsolutePath());
+        paths.add(same1txt.getAbsolutePath());
+        paths.add(same2txt.getAbsolutePath());
+        paths.add(sub1txt.getAbsolutePath());
+        paths.add(sub2txt.getAbsolutePath());
+        paths.add(sub22.getAbsolutePath());
+        paths.add(sub22txt.getAbsolutePath());
+
+        return paths;
     }
 
     /*

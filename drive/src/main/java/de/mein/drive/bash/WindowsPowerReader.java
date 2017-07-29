@@ -33,7 +33,7 @@ public class WindowsPowerReader extends BufferedReader {
     @Override
     public Stream<String> lines() {
         Iterator<String> iter = new Iterator<String>() {
-            String next = prependLine;
+            String next = null;
             String after = null;
             private boolean reachedStartLine = false;
 
@@ -53,18 +53,22 @@ public class WindowsPowerReader extends BufferedReader {
                 } else {
                     try {
                         if (!reachedStartLine) {
-                            readLine();
-                            readLine();
-                            readLine();
-                            readLine();
+                            String d = readLine();
+                            d = readLine();
+                            d = readLine();
+                            d = readLine();
                             reachedStartLine = true;
                         }
-                        {
+                        if (prependLine != null) {
+                            next = prependLine;
+                            prependLine = null;
+                            return true;
+                        } else {
                             next = readLine();
                             after = readLine();
-                            if (next == null || after == null)
-                                return false;
                         }
+                        if (next == null || after == null)
+                            return false;
                         return (next != null);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);

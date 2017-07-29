@@ -322,6 +322,9 @@ public class FsDao extends Dao {
         try {
             RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
             String rootPath = rootDirectory.getPath();
+            //todo debug
+            if (f == null)
+                System.err.println("FsDao.getFsDirectoryByPath.debug1");
             //todo Exception here
             if (!f.getAbsolutePath().startsWith(rootPath))
                 return null;

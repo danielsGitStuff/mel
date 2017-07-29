@@ -115,6 +115,7 @@ public class BashToolsWindows implements BashToolsImpl {
     public Iterator<String> stuffModifiedAfter(File directory, File pruneDir, long timeStamp) throws IOException, InterruptedException {
         Double winTimeStamp = timeStamp / 1000d;
         String prependLine = null;
+        Object lm = directory.lastModified();
         if (directory.lastModified() >= timeStamp) {
             prependLine = directory.getAbsolutePath();
         }
