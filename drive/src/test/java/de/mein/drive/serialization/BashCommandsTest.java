@@ -10,6 +10,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.attribute.FileTime;
 import java.util.Iterator;
 import java.util.List;
 
@@ -75,9 +76,9 @@ public class BashCommandsTest {
     @Test
     public void timestamp1() throws InterruptedException {
         Long t1 = testDir.lastModified();
+        Thread.sleep(1000);
         File dir = new File(testDir.getAbsoluteFile() + File.separator + "ttttttt");
         dir.mkdirs();
-        Thread.sleep(1);
         Long t2 = testDir.lastModified();
         System.out.println("before: " + t1);
         System.out.println("after : " + t2);
