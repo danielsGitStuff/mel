@@ -121,8 +121,9 @@ public class BashTests {
         while (true){
             Long before = System.currentTimeMillis();
             dir.mkdirs();
+            Long after = System.currentTimeMillis();
             Long modified = dir.lastModified();
-            System.out.println("b: "+before+" : "+modified);
+            System.out.println("b "+before+" / m "+modified+" / a "+after);
             dir.delete();
         }
     }
