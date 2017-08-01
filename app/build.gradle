@@ -66,6 +66,7 @@ dependencies {
     compile 'com.android.support:support-v4:25.4.0'
     testCompile 'junit:junit:4.12'
 
+    classpath "com.android.tools.build:gradle:3.0.8"
 
     //stream support
     compile 'net.sourceforge.streamsupport:streamsupport:1.5.5'
