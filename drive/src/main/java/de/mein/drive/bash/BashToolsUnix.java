@@ -1,11 +1,13 @@
 package de.mein.drive.bash;
 
 import de.mein.auth.tools.N;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,6 +21,44 @@ public class BashToolsUnix implements BashToolsImpl {
 
     protected String BIN_PATH = "/bin/bash";
     private ExecutorService executorService = Executors.newCachedThreadPool();
+
+    class ModifiedAndInode {
+        private final Long modified;
+        private final Long iNode;
+
+
+        ModifiedAndInode(Long modified, Long iNode) {
+            this.modified = modified;
+            this.iNode = iNode;
+        }
+
+        public Long getiNode() {
+            return iNode;
+        }
+
+        public Long getModified() {
+            return modified;
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        File f = new File("f");
+        f.mkdirs();
+        BashToolsUnix bashToolsUnix = new BashToolsUnix();
+        ModifiedAndInode modifiedAndInode = bashToolsUnix.getModifiedAndInode(f);
+        System.out.println("mod " + modifiedAndInode.getModified() + " ... inode " + modifiedAndInode.getiNode());
+        f.delete();
+    }
+
+
+    public ModifiedAndInode getModifiedAndInode(File file) throws IOException {
+        String[] args = new String[]{BIN_PATH, "-c", "stat -c %Y\" \"%i \"" + file.getAbsolutePath() + "\""};
+        Process proc = new ProcessBuilder(args).start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String line = reader.readLine();
+        String[] split = line.split(" ");
+        return new ModifiedAndInode(Long.parseLong(split[0]), Long.parseLong(split[1]));
+    }
 
 
     @Override
