@@ -25,7 +25,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     private final Map<String, Watcher> watchers = new HashMap<>();
     private final MeinDriveService meinDriveService;
 
-    public RecursiveWatcher(MeinDriveService meinDriveService ) {
+    public RecursiveWatcher(MeinDriveService meinDriveService) {
         this.target = meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile();
         watch(target);
         this.meinDriveService = meinDriveService;
@@ -89,14 +89,14 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     }
 
     private void eve(Watcher watcher, int event, String path) {
-        File f = new File(watcher.getTarget() + File.separator + path);
+        File f = path != null ? new File(watcher.getTarget() + File.separator + path) : watcher.getTarget();
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
             watch(f);
         }
         try {
             if ((FileObserver.ACCESS & event) == 0) {
                 watchDogTimer.start();
-            } else analyze(event, watcher,path);
+            } else analyze(event, watcher, path);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -105,7 +105,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     public void analyze(int event, Watcher watcher, String path) {
         try {
             watchDogTimer.start();
-            File file = new File(watcher.getTarget().getAbsoluteFile()+File.separator+path);
+            File file = new File(watcher.getTarget().getAbsoluteFile() + File.separator + path);
             if ((event & FileObserver.MODIFY) != 0 || (event & FileObserver.MOVE_SELF) != 0) {
                 // figure out whether or not writing to the file is still in progress
                 try {

@@ -33,11 +33,11 @@ public class BashToolsAndroid extends BashToolsUnix {
     private void testCommands() {
         // find
         String cmd = "";
+        File cacheDir = context.getCacheDir();
+        File dir = new File(cacheDir + File.separator + "bash.test");
+        File prune = new File(dir.getAbsolutePath() + File.separator + "prune");
+        File file = new File(dir.getAbsolutePath() + File.separator + "file");
         try {
-            File cacheDir = context.getCacheDir();
-            File dir = new File(cacheDir + File.separator + "bash.test");
-            File prune = new File(dir.getAbsolutePath() + File.separator + "prune");
-            File file = new File(dir.getAbsolutePath() + File.separator + "file");
             dir.mkdirs();
             prune.mkdirs();
             file.createNewFile();
@@ -58,7 +58,12 @@ public class BashToolsAndroid extends BashToolsUnix {
             findFallBack = javaBashTools;
             e.printStackTrace();
         }
-        // stat
+        // ls -i
+        try {
+            String regex = "^\\ +\\d+\\ images";
+        }catch (Exception e){
+
+        }
     }
 
     class Streams {
@@ -87,7 +92,10 @@ public class BashToolsAndroid extends BashToolsUnix {
         String[] args = new String[]{BIN_PATH, "-c", "ls -i \"" + file.getAbsolutePath() + "\""};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
         String line = reader.readLine();
+        if (line==null)
+            System.err.println("erjng0w54");
         line = line.trim();
         String node = line.split(" ")[0];
         return Long.parseLong(node);

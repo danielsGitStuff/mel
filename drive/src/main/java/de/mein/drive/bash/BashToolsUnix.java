@@ -22,25 +22,6 @@ public class BashToolsUnix implements BashToolsImpl {
     protected String BIN_PATH = "/bin/bash";
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
-    class ModifiedAndInode {
-        private final Long modified;
-        private final Long iNode;
-
-
-        ModifiedAndInode(Long modified, Long iNode) {
-            this.modified = modified;
-            this.iNode = iNode;
-        }
-
-        public Long getiNode() {
-            return iNode;
-        }
-
-        public Long getModified() {
-            return modified;
-        }
-    }
-
     public static void main(String[] args) throws Exception {
         File f = new File("f");
         f.mkdirs();
