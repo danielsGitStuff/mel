@@ -26,10 +26,11 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public Long getINodeOfFile(File file) throws IOException {
+    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
         String result = execLine("fsutil file queryfileid \"" + file.getAbsolutePath() + "\"");
         result = result.substring(11);
-        return Long.decode(result);
+        Long iNode = Long.decode(result);
+        return new ModifiedAndInode(file.lastModified(), iNode);
     }
 
     @Override

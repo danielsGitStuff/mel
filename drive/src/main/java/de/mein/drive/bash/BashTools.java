@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * Created by xor on 10/28/16.
@@ -40,8 +39,8 @@ public abstract class BashTools {
     }
 
 
-    public static Long getINodeOfFile(File file) throws IOException {
-        return instance.getINodeOfFile(file);
+    public static ModifiedAndInode getINodeOfFile(File file) throws IOException {
+        return instance.getModifiedAndINodeOfFile(file);
     }
 
 

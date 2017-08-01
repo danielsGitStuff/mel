@@ -2,6 +2,7 @@ package de.mein.drive.service;
 
 import de.mein.drive.DriveSettings;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.sync.SyncHandler;
@@ -92,8 +93,8 @@ public class WasteBin {
             if (f.exists()) {
                 indexer.ignorePath(f.getAbsolutePath(), 1);
                 if (f.isFile()) {
-                    Long inode = BashTools.getINodeOfFile(f);
-                    Waste waste = wasteDao.getWasteByInode(inode);
+                    ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
+                    Waste waste = wasteDao.getWasteByInode(modifiedAndInode.getiNode());
                     if (waste != null) {
                         // we once wanted this file to be deleted. check if it did not change in the meantime
                         if (waste.getInode().v().equals(fsFile.getiNode().v()) && waste.getModified().v().equals(fsFile.getModified().v())) {
@@ -133,11 +134,11 @@ public class WasteBin {
         return null;
     }
 
-    private void moveToBin(File file, String contentHash, Long inode) throws SqlQueriesException {
+    private void moveToBin(File file, String contentHash, ModifiedAndInode modifiedAndInode) throws SqlQueriesException {
         Waste waste = new Waste();
-        waste.getModified().v(file.lastModified());
+        waste.getModified().v(modifiedAndInode.getModified());
         waste.getHash().v(contentHash);
-        waste.getInode().v(inode);
+        waste.getInode().v(modifiedAndInode.getiNode());
         waste.getInplace().v(false);
         waste.getName().v(file.getName());
         waste.getSize().v(file.length());
@@ -150,10 +151,10 @@ public class WasteBin {
         FsDirectory fsDirectory = fsDao.getFsDirectoryByPath(dir);
         File[] files = dir.listFiles(File::isFile);
         for (File f : files) {
-            Long inode = BashTools.getINodeOfFile(f);
-            String contentHash = findHashOfFile(f, inode);
+            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
+            String contentHash = findHashOfFile(f, modifiedAndInode.getiNode());
             if (contentHash != null) {
-                moveToBin(f, contentHash, inode);
+                moveToBin(f, contentHash, modifiedAndInode);
             } else {
                 System.err.println("WasteBin.recursiveDelete.0ig4");
                 f.delete();

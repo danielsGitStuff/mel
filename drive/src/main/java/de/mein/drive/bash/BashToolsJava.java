@@ -22,7 +22,7 @@ public class BashToolsJava implements BashToolsImpl {
     }
 
     @Override
-    public Long getINodeOfFile(File file) throws IOException {
+    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
         return null;
     }
 

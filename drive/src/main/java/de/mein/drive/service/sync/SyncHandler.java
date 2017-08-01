@@ -4,6 +4,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;
@@ -59,13 +60,13 @@ public abstract class SyncHandler {
             System.out.println("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
             // check if there already is a file & delete
             if (target.exists()) {
-                Long inode = BashTools.getINodeOfFile(target);
+                ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(target);
                 // file had to be marked as deleted before, which means the inode and so on appear in the wastebin
-                Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(inode);
-                GenericFSEntry genericFSEntry = fsDao.getGenericByINode(inode);
+                Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(modifiedAndInode.getiNode());
+                GenericFSEntry genericFSEntry = fsDao.getGenericByINode(modifiedAndInode.getiNode());
                 if (target.isFile()) {
                     if (waste != null) {
-                        if (waste.getModified().v().equals(target.lastModified())) {
+                        if (waste.getModified().v().equals(modifiedAndInode.getModified())) {
                             wasteBin.del(waste, target);
                         } else {
                             System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
@@ -75,9 +76,9 @@ public abstract class SyncHandler {
                 }
             }
             indexer.ignorePath(target.getAbsolutePath(), 1);
-            Long iNode = BashTools.getINodeOfFile(source);
-            fsTarget.getiNode().v(iNode);
-            fsTarget.getModified().v(source.lastModified());
+            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(source);
+            fsTarget.getiNode().v(modifiedAndInode.getiNode());
+            fsTarget.getModified().v(modifiedAndInode.getModified());
             fsTarget.getSize().v(source.length());
             fsTarget.getSynced().v(true);
             boolean moved = source.renameTo(target);
@@ -146,9 +147,9 @@ public abstract class SyncHandler {
             }
             //indexer.stopIgnore(target.getAbsolutePath());
             RWLock waitLock = new RWLock();
-            Long iNode = BashTools.getINodeOfFile(target);
-            fsTarget.getiNode().v(iNode);
-            fsTarget.getModified().v(target.lastModified());
+            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(target);
+            fsTarget.getiNode().v(modifiedAndInode.getiNode());
+            fsTarget.getModified().v(modifiedAndInode.getModified());
             fsTarget.getSize().v(target.length());
             driveDatabaseManager.getFsDao().update(fsTarget);
             waitLock.lockWrite();
@@ -322,9 +323,9 @@ public abstract class SyncHandler {
     }
 
     private void updateInodeModified(FsEntry entry, File f) throws SqlQueriesException, IOException {
-        Long iNode = BashTools.getINodeOfFile(f);
-        entry.getiNode().v(iNode);
-        entry.getModified().v(f.lastModified());
+        ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
+        entry.getiNode().v(modifiedAndInode.getiNode());
+        entry.getModified().v(modifiedAndInode.getModified());
         fsDao.update(entry);
     }
 

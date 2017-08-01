@@ -12,6 +12,7 @@ import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsJava;
 import de.mein.drive.bash.BashToolsUnix;
+import de.mein.drive.bash.ModifiedAndInode;
 
 /**
  * Created by xor on 7/20/17.
@@ -58,12 +59,6 @@ public class BashToolsAndroid extends BashToolsUnix {
             findFallBack = javaBashTools;
             e.printStackTrace();
         }
-        // ls -i
-        try {
-            String regex = "^\\ +\\d+\\ images";
-        }catch (Exception e){
-
-        }
     }
 
     class Streams {
@@ -88,17 +83,15 @@ public class BashToolsAndroid extends BashToolsUnix {
     }
 
     @Override
-    public Long getINodeOfFile(File file) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "ls -i \"" + file.getAbsolutePath() + "\""};
+    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
+        String[] args = new String[]{BIN_PATH, "-c", "ls -id \"" + file.getAbsolutePath() + "\""};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
         String line = reader.readLine();
-        if (line==null)
-            System.err.println("erjng0w54");
         line = line.trim();
-        String node = line.split(" ")[0];
-        return Long.parseLong(node);
+        String[] parts = line.split(" ");
+        Long iNode = Long.parseLong(parts[0]);
+        return new ModifiedAndInode(file.lastModified(), iNode);
     }
 
     @Override

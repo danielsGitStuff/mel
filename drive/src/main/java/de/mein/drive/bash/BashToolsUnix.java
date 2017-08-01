@@ -1,6 +1,7 @@
 package de.mein.drive.bash;
 
 import de.mein.auth.tools.N;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -61,12 +62,15 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public Long getINodeOfFile(File file) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "stat -c %i \"" + file.getAbsolutePath() + "\""};
+    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
+        String[] args = new String[]{BIN_PATH, "-c", "stat -c %i\\ %Y \"" + file.getAbsolutePath() + "\""};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        String node = reader.readLine();
-        return Long.parseLong(node);
+        String line = reader.readLine();
+        String[] parts = line.split(" ");
+        Long iNode = Long.parseLong(parts[0]);
+        Long modified = Long.parseLong(parts[1]);
+        return new ModifiedAndInode(modified, iNode);
     }
 
     /**

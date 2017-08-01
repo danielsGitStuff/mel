@@ -3,12 +3,12 @@ package de.mein.drive.bash;
 /**
  * Created by xor on 8/1/17.
  */
-class ModifiedAndInode {
+public class ModifiedAndInode {
     private final Long modified;
     private final Long iNode;
 
 
-    ModifiedAndInode(Long modified, Long iNode) {
+    public ModifiedAndInode(Long modified, Long iNode) {
         this.modified = modified;
         this.iNode = iNode;
     }
