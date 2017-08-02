@@ -8,6 +8,7 @@ import android.widget.ListView;
 import com.annimon.stream.Exceptional;
 import com.annimon.stream.Stream;
 
+import de.mein.R;
 import de.mein.android.AndroidService;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;
@@ -16,7 +17,6 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.android.view.UnknownAuthListAdapter;
 import de.mein.auth.tools.N;
-import mein.de.meindrive.R;
 
 /**
  * Created by xor on 3/7/17.

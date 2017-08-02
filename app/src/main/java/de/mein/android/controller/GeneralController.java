@@ -11,10 +11,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import de.mein.R;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.AndroidService;
-import mein.de.meindrive.R;
 
 /**
  * Created by xor on 2/22/17.

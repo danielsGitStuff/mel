@@ -24,13 +24,16 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     private final File target;
     private final Map<String, Watcher> watchers = new HashMap<>();
     private final MeinDriveService meinDriveService;
+    private final File transferDirectory;
 
     public RecursiveWatcher(MeinDriveService meinDriveService) {
         this.target = meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile();
         watch(target);
         this.meinDriveService = meinDriveService;
         this.setStageIndexer(meinDriveService.getStageIndexer());
-        this.transferDirectoryPath = meinDriveService.getDriveSettings().getTransferDirectoryPath();
+        this.transferDirectory = meinDriveService.getDriveSettings().getTransferDirectoryFile();
+        this.transferDirectoryPath = transferDirectory.getAbsolutePath();
+
     }
 
     @Override
@@ -90,16 +93,55 @@ public class RecursiveWatcher extends IndexWatchdogListener {
 
     private void eve(Watcher watcher, int event, String path) {
         File f = path != null ? new File(watcher.getTarget() + File.separator + path) : watcher.getTarget();
+        if (watcher.getTarget().equals(transferDirectory))
+            return;
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
             watch(f);
         }
         try {
-            if ((FileObserver.ACCESS & event) == 0) {
+            //todo debug
+            Map<String, Boolean> flags = flags(event);
+            if (checkEvent(event,
+                    FileObserver.CLOSE_WRITE,
+                    FileObserver.DELETE,
+                    FileObserver.DELETE_SELF,
+                    FileObserver.CREATE,
+                    FileObserver.MODIFY,
+                    FileObserver.MOVE_SELF,
+                    FileObserver.MOVED_FROM,
+                    FileObserver.MOVED_TO)) {
                 watchDogTimer.start();
-            } else analyze(event, watcher, path);
+            } else
+                analyze(event, watcher, path);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean checkEvent(int event, int... expected) {
+        for (int e : expected) {
+            if ((e & event) != 0)
+                return true;
+        }
+        return false;
+    }
+
+    private Map<String, Boolean> flags(int event) {
+        Map<String, Boolean> flags = new HashMap<>();
+        flags.put("access", (FileObserver.ACCESS & event) != 0);
+        flags.put("all", (FileObserver.ALL_EVENTS & event) != 0);
+        flags.put("attrib", (FileObserver.ATTRIB & event) != 0);
+        flags.put("close.nowrite", (FileObserver.CLOSE_NOWRITE & event) != 0);
+        flags.put("close.write", (FileObserver.CLOSE_WRITE & event) != 0);
+        flags.put("create", (FileObserver.CREATE & event) != 0);
+        flags.put("delete", (FileObserver.DELETE & event) != 0);
+        flags.put("delete.self", (FileObserver.DELETE_SELF & event) != 0);
+        flags.put("modify", (FileObserver.MODIFY & event) != 0);
+        flags.put("modify.self", (FileObserver.MOVE_SELF & event) != 0);
+        flags.put("moved.from", (FileObserver.MOVED_FROM & event) != 0);
+        flags.put("moved.to", (FileObserver.MOVED_TO & event) != 0);
+        flags.put("open", (FileObserver.OPEN & event) != 0);
+        return flags;
     }
 
     public void analyze(int event, Watcher watcher, String path) {

@@ -5,8 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import de.mein.R;
 import de.mein.auth.data.db.Certificate;
-import mein.de.meindrive.R;
 
 /**
  * Created by xor on 3/16/17.

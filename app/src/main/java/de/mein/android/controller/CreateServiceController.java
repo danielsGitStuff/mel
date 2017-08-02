@@ -12,6 +12,7 @@ import com.annimon.stream.Stream;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.R;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
@@ -19,7 +20,6 @@ import de.mein.android.AndroidService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
-import mein.de.meindrive.R;
 import de.mein.android.MainActivity;
 /**
  * Created by xor on 2/20/17.

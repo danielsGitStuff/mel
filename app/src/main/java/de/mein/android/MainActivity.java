@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 
 import java.util.List;
 
+import de.mein.R;
 import de.mein.android.controller.OthersController;
 import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.auth.data.db.ServiceJoinServiceType;
@@ -33,7 +34,6 @@ import de.mein.android.controller.NetworkDiscoveryController;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
-import mein.de.meindrive.R;
 import de.mein.android.controller.GeneralController;
 import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.ApprovalController;

@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import mein.de.meindrive.R;
+import de.mein.R;
+
 
 /**
  * Created by xor on 3/16/17.

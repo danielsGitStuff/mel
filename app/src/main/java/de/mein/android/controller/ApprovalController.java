@@ -9,6 +9,7 @@ import com.annimon.stream.Stream;
 import java.util.List;
 import java.util.Map;
 
+import de.mein.R;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.db.Approval;
 import de.mein.auth.data.db.Certificate;
@@ -18,7 +19,6 @@ import de.mein.sql.SqlQueriesException;
 import de.mein.android.AndroidService;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.android.view.ApprovalCBListAdapter;
-import mein.de.meindrive.R;
 
 /**
  * Created by xor on 2/20/17.

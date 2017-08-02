@@ -10,6 +10,7 @@ import android.view.View;
 
 import org.jdeferred.Promise;
 
+import de.mein.R;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.Threadder;
 import de.mein.android.drive.controller.AndroidDriveCreateGuiController;
@@ -20,7 +21,6 @@ import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.service.MeinDriveClientService;
-import mein.de.meindrive.R;
 
 /**
  * Created by xor on 2/25/17.

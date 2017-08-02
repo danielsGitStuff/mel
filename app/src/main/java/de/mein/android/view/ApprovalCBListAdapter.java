@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.mein.R;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import mein.de.meindrive.R;
 
 /**
  * Created by xor on 3/17/17.

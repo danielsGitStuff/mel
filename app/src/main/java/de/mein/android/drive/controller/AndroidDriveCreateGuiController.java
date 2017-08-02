@@ -15,6 +15,7 @@ import com.annimon.stream.Stream;
 import java.io.File;
 import java.util.List;
 
+import de.mein.R;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
@@ -23,7 +24,6 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.data.DriveStrings;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.android.view.ServicesListAdapter;
-import mein.de.meindrive.R;
 
 /**
  * Created by xor on 2/25/17.

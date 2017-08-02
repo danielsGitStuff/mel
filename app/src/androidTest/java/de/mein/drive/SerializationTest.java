@@ -1,4 +1,4 @@
-package mein.de.meindrive;
+package de.mein.drive;
 
 import android.support.test.runner.AndroidJUnit4;
 

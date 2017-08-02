@@ -13,7 +13,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
-        applicationId "mein.de.meindrive"
+        applicationId "de.mein.meindrive"
         minSdkVersion 19
         targetSdkVersion 25
         versionCode 1

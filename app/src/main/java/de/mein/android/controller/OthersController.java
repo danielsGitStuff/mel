@@ -6,12 +6,12 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import de.mein.R;
 import de.mein.android.AndroidService;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.SqlQueriesException;
-import mein.de.meindrive.R;
 
 /**
  * Created by xor on 3/27/17.

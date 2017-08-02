@@ -9,13 +9,13 @@ import android.widget.TextView;
 
 import java.security.cert.X509Certificate;
 
+import de.mein.R;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.sql.RWLock;
-import mein.de.meindrive.R;
 
 public class CertActivity extends AppCompatActivity {
     private Button btnAccept, btnReject;
