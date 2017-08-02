@@ -21,7 +21,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
     private WatchDogTimer watchDogTimer;
 
     public AndroidWatchdogListener(MeinDriveService meinDriveService) {
-        this.meinDriveService = meinDriveService;
+        super(meinDriveService);
         this.setStageIndexer(meinDriveService.getStageIndexer());
         watchDogTimer = new WatchDogTimer(this, 20, 100, 100);
         watchDirectory(meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile());

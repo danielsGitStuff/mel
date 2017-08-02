@@ -1,6 +1,7 @@
 package de.mein.drive.index.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
+
 import de.mein.DeferredRunnable;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.IndexListener;
@@ -72,8 +73,8 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     }
 
 
-    public IndexWatchdogListener() {
-
+    public IndexWatchdogListener(MeinDriveService meinDriveService) {
+        this.meinDriveService = meinDriveService;
     }
 
     public StageIndexer getStageIndexer() {
@@ -97,37 +98,6 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         System.out.println("IndexWatchdogListener.done");
     }
 
-
-    private void analyze(WatchEvent<?> event, File file) {
-        try {
-            watchDogTimer.start();
-            if (event.kind().equals(StandardWatchEventKinds.ENTRY_MODIFY)) {
-                // figure out whether or not writing to the file is still in progress
-                try {
-                    double r = Math.random();
-                    System.out.println("IndexWatchdogListener.analyze.attempt to open " + file.getAbsolutePath() + " " + r);
-                    InputStream is = new FileInputStream(file);
-                    is.close();
-                    System.out.println("IndexWatchdogListener.analyze.success " + r);
-                    watchDogTimer.resume();
-                } catch (FileNotFoundException e) {
-                    System.out.println("IndexWatchdogListener.analyze.file not found: " + file.getAbsolutePath());
-                } catch (Exception e) {
-                    System.out.println("IndexWatchdogListener.analyze.writing in progress");
-                    watchDogTimer.waite();
-                }
-            } else if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE) && file.exists() && file.isDirectory()) {
-                this.watchDirectory(file);
-            }
-            System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.getAbsolutePath());
-            pathCollection.addPath(file.getAbsolutePath());
-            if (event.kind().equals(ExtendedWatchEventModifier.FILE_TREE)) {
-                System.out.println("ALARM!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public void ignore(String path, int amount) throws InterruptedException {
         System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getDriveDetails().getRole()

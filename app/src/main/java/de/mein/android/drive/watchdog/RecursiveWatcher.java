@@ -23,17 +23,16 @@ import de.mein.drive.sql.FsDirectory;
 public class RecursiveWatcher extends IndexWatchdogListener {
     private final File target;
     private final Map<String, Watcher> watchers = new HashMap<>();
-    private final MeinDriveService meinDriveService;
     private final File transferDirectory;
 
     public RecursiveWatcher(MeinDriveService meinDriveService) {
+        super(meinDriveService);
         this.target = meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile();
         watch(target);
         this.meinDriveService = meinDriveService;
         this.setStageIndexer(meinDriveService.getStageIndexer());
         this.transferDirectory = meinDriveService.getDriveSettings().getTransferDirectoryFile();
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
-
     }
 
     @Override
