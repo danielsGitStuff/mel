@@ -98,7 +98,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     }
 
 
-    public void analyze(WatchEvent<?> event, File file) {
+    private void analyze(WatchEvent<?> event, File file) {
         try {
             watchDogTimer.start();
             if (event.kind().equals(StandardWatchEventKinds.ENTRY_MODIFY)) {

@@ -31,12 +31,14 @@ import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRe
 import de.mein.sql.SqlQueriesException;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -53,10 +55,6 @@ import java.util.logging.Logger;
  * Created by xor on 2/14/16.
  */
 public class MeinAuthService {
-    static {
-        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
-        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
-    }
 
     private static Logger logger = Logger.getLogger(MeinAuthService.class.getName());
     public static final String SERVICE_NAME = "meinauth";
@@ -83,6 +81,9 @@ public class MeinAuthService {
 
 
     MeinAuthService(MeinAuthSettings meinAuthSettings, IDBCreatedListener dbCreatedListener) throws Exception {
+        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
+        FieldSerializerFactoryRepository.printSerializers();
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
         this.databaseManager = new DatabaseManager(meinAuthSettings);
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 1024);

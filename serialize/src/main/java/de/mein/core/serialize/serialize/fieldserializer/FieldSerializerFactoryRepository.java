@@ -22,9 +22,7 @@ import de.mein.core.serialize.serialize.reflection.FieldAnalyzer;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by xor on 12/20/15.
@@ -35,12 +33,13 @@ public class FieldSerializerFactoryRepository {
     /**
      * this is not bullet proof. you can add as many instances of the same factory as you want
      */
-    private static Set<FieldSerializerFactory> availableSerializationFactories = new HashSet<>();
-    private static Set<FieldDeserializerFactory> availableDeserializationFactories = new HashSet<>();
+    private static Map<String, FieldSerializerFactory> availableSerializationFactories = new HashMap<>();
+    private static Map<String, FieldDeserializerFactory> availableDeserializationFactories = new HashMap<>();
 
 
     public static void addAvailableSerializerFactory(FieldSerializerFactory factory) {
-        availableSerializationFactories.add(factory);
+        if (!availableSerializationFactories.containsKey(factory.getClass().getName()))
+            availableSerializationFactories.put(factory.getClass().getName(), factory);
     }
 
     public static void bindClassAndSerializerFactory(Field field, FieldSerializerFactory factory) {
@@ -48,7 +47,8 @@ public class FieldSerializerFactoryRepository {
     }
 
     public static void addAvailableDeserializerFactory(FieldDeserializerFactory factory) {
-        availableDeserializationFactories.add(factory);
+        if (!availableDeserializationFactories.containsKey(factory.getClass().getName()))
+            availableDeserializationFactories.put(factory.getClass().getName(), factory);
     }
 
     public static void bindClassAndDeserializerFactory(Field field, FieldDeserializerFactory factory) {
@@ -74,11 +74,11 @@ public class FieldSerializerFactoryRepository {
 
     public static void printSerializers() {
         Serialize.println("FieldSerializerFactoryRepository.printSerializers...");
-        for (FieldSerializerFactory f : availableSerializationFactories) {
+        for (FieldSerializerFactory f : availableSerializationFactories.values()) {
             Serialize.println(f.getClass());
         }
         Serialize.println("Deserializers...");
-        for (FieldDeserializerFactory f : availableDeserializationFactories) {
+        for (FieldDeserializerFactory f : availableDeserializationFactories.values()) {
             Serialize.println(f.getClass());
         }
         Serialize.println("FieldSerializerFactoryRepository.printSerializers.done");
@@ -104,7 +104,7 @@ public class FieldSerializerFactoryRepository {
             return fieldSerializerFactoryMap.get(field).createSerializer(parentSerializer, field);
         } else {
             //check if any available factory can serialize it
-            for (FieldSerializerFactory factory : availableSerializationFactories) {
+            for (FieldSerializerFactory factory : availableSerializationFactories.values()) {
                 if (factory.canSerialize(field)) {
                     bindClassAndSerializerFactory(field, factory);
                     return factory.createSerializer(parentSerializer, field);
@@ -122,7 +122,7 @@ public class FieldSerializerFactoryRepository {
             return classIDeserializerFactoryMap.get(field).createDeserializer(parentSerializer, field);
         } else {
             //check if any available factory can serialize it
-            for (FieldDeserializerFactory factory : availableDeserializationFactories) {
+            for (FieldDeserializerFactory factory : availableDeserializationFactories.values()) {
                 if (factory.canDeserialize(field)) {
                     bindClassAndDeserializerFactory(field, factory);
                     return factory.createDeserializer(parentSerializer, field);

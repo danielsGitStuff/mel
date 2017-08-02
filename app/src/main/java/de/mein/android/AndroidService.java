@@ -194,42 +194,6 @@ public class AndroidService extends Service {
                 meinAuthService.addRegisteredHandler(registeredHandler);
                 Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
                 System.out.println(t1);
-                //lock.unlockWrite();
-
-                // setup the server Service
-//                System.out.println("AndroidService.setup!!!1");
-//                MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
-//                System.out.println("AndroidService.setup11121321");
-
-
-                //lock.unlockWrite();
-                // connection goes here
-
-                /*
-                System.out.println("DriveFXTest.driveGui.2.booted");
-                runner.runTry(() -> {
-                    // connect first. this step will register
-                    Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
-                    connectPromise.done(meinValidationProcess -> {
-                        runner.runTry(() -> {
-                            System.out.println("DriveFXTest.driveGui.connected");
-                            // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                            Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid());
-                            promise.done(clientDriveService -> runner.runTry(() -> {
-                                        System.out.println("DriveFXTest attempting first syncThisClient");
-                                        clientSyncListener.testStructure.setMaClient(standAloneAuth2)
-                                                .setMaServer(standAloneAuth1)
-                                                .setClientDriveService(clientDriveService)
-                                                .setServerDriveService(serverService)
-                                                .setTestdir1(testdir1)
-                                                .setTestdir2(testdir2);
-                                        clientDriveService.setSyncListener(clientSyncListener);
-                                        clientDriveService.syncThisClient();
-                                    }
-                            ));
-                        });
-                    });
-                });*/
             });
         });
         return promise;
@@ -239,6 +203,7 @@ public class AndroidService extends Service {
 
     private void android() throws IOException {
         //meinBoot.addBootLoaderClass(AndroidDriveBootLoader.class);
+
         AndroidInjector.inject(this, getAssets());
     }
 

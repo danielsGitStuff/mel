@@ -126,7 +126,9 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
     }
 
     public boolean isValid() {
-        if (!(new File(txtPath.getText().toString()).exists()
+        File dir = new File(txtPath.getText().toString());
+        dir.mkdirs();
+        if (!(dir.exists()
                 && txtName.getText().toString().trim().length() > 0))
             return false;
         if (rdClient.isChecked()) {
