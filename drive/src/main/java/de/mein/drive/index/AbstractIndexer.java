@@ -123,7 +123,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 }
             }
             // still finding.. might be root dir
-            if (fsEntry == null && f.isDirectory()){
+            if (fsEntry == null && f.isDirectory()) {
                 fsEntry = fsDao.getFsDirectoryByPath(f);
             }
             //file might been deleted yet :(
@@ -251,41 +251,42 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         //todo debug
         if (subDirs == null)
             System.out.println("AbstractIndexer.roamDirectoryStage.debug.1");
-        for (File subDir : subDirs) {
-            if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectoryPath()))
-                continue;
-            stuffToDelete.remove(subDir.getName());
-            // if subDir is on stage or fs we don't have to roam it
-            Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subDir.getName());
-            FsDirectory leSubDirectory = null;
-            if (stage.getFsId() != null)
-                leSubDirectory = fsDao.getSubDirectoryByName(stage.getFsId(), subDir.getName());
-            if (subStage == null && leSubDirectory == null) {
-                // roam
-                subStage = new Stage().setStageSet(stageSetId)
-                        .setParentId(stage.getId())
-                        .setFsParentId(stage.getFsId())
-                        .setName(subDir.getName())
-                        .setIsDirectory(true)
-                        .setDeleted(!subDir.exists());
-                System.out.println("StageIndexerRunnable[" + stageSetId + "].roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
-                subStage.setOrder(order.ord());
-                //todo debug
-                if (subStage.getDeleted() == true && subStage.getName().equals("samesub"))
-                    System.out.println("AbstractIndexer[" + stageSetId + "].roamDirectoryStage");
-                if (subStage.getDeleted() == null)
-                    System.out.println("AbstractIndexer[" + stageSetId + "].roamDirectoryStage.debugemsagß5");
-                try {
-                    stageDao.insert(subStage);
-                } catch (Exception e) {
-                    e.printStackTrace();
+        if (subDirs != null)
+            for (File subDir : subDirs) {
+                if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectoryPath()))
+                    continue;
+                stuffToDelete.remove(subDir.getName());
+                // if subDir is on stage or fs we don't have to roam it
+                Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subDir.getName());
+                FsDirectory leSubDirectory = null;
+                if (stage.getFsId() != null)
+                    leSubDirectory = fsDao.getSubDirectoryByName(stage.getFsId(), subDir.getName());
+                if (subStage == null && leSubDirectory == null) {
+                    // roam
+                    subStage = new Stage().setStageSet(stageSetId)
+                            .setParentId(stage.getId())
+                            .setFsParentId(stage.getFsId())
+                            .setName(subDir.getName())
+                            .setIsDirectory(true)
+                            .setDeleted(!subDir.exists());
+                    System.out.println("StageIndexerRunnable[" + stageSetId + "].roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
+                    subStage.setOrder(order.ord());
+                    //todo debug
+                    if (subStage.getDeleted() == true && subStage.getName().equals("samesub"))
+                        System.out.println("AbstractIndexer[" + stageSetId + "].roamDirectoryStage");
+                    if (subStage.getDeleted() == null)
+                        System.out.println("AbstractIndexer[" + stageSetId + "].roamDirectoryStage.debugemsagß5");
+                    try {
+                        stageDao.insert(subStage);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    roamDirectoryStage(subStage, subDir);
                 }
-                roamDirectoryStage(subStage, subDir);
+                if (leSubDirectory == null)
+                    leSubDirectory = new FsDirectory(subDir);
+                newFsDirectory.addSubDirectory(leSubDirectory);
             }
-            if (leSubDirectory == null)
-                leSubDirectory = new FsDirectory(subDir);
-            newFsDirectory.addSubDirectory(leSubDirectory);
-        }
         // add not yet synced files to newStage
         if (stage.getFsId() != null) {
             List<FsFile> notSyncedFiles = fsDao.getNonSyncedFilesByFsDirectory(stage.getFsId());

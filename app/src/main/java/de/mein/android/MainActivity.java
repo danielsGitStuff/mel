@@ -268,9 +268,13 @@ public class MainActivity extends AppCompatActivity
                                 }
                         );
                     });
+                }).fail(result -> {
+                    System.out.println("erererere."+result);
                 });
 
             });
+        }).fail(result -> {
+            System.out.println("errrrr."+result);
         });
     }
 

@@ -422,7 +422,9 @@ public class MeinAuthService {
 
 
     public void onSocketAuthenticated(MeinValidationProcess validationProcess) {
+        connectedEnvironment.lock();
         this.connectedEnvironment.addValidationProcess(validationProcess);
+        connectedEnvironment.unlock();
     }
 
 
@@ -430,9 +432,9 @@ public class MeinAuthService {
         if (meinAuthSocket.isValidated()) {
             connectedEnvironment.lock();
             connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
-            sockets.remove(meinAuthSocket);
             connectedEnvironment.unlock();
         }
+        sockets.remove(meinAuthSocket);
     }
 
     public void execute(MeinRunnable runnable) {

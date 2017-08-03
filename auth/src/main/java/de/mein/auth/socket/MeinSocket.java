@@ -9,6 +9,7 @@ import de.mein.auth.service.MeinWorker;
 import de.mein.auth.tools.N;
 
 import javax.net.SocketFactory;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -264,6 +265,7 @@ public class MeinSocket extends DeferredRunnable {
 
     public void stop() {
         try {
+            System.out.println(getClass().getSimpleName() + ".stop() on " + Thread.currentThread().getName());
             if (this.thread != null) {
                 in.close();
                 out.close();

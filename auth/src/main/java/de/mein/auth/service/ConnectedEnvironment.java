@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 public class ConnectedEnvironment extends WaitLock{
     private Map<Long, MeinValidationProcess> idValidateProcessMap = new HashMap<>();
     private Map<String, MeinValidationProcess> addressValidateProcessMap = new HashMap<>();
-    private Semaphore semaphore = new Semaphore(1,true);
+//    private Semaphore semaphore = new Semaphore(1,true);
 
     public void addValidationProcess(MeinValidationProcess validationProcess) {
-        N.r(() -> semaphore.acquire());
+//        N.r(() -> semaphore.acquire());
         idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
         addressValidateProcessMap.put(validationProcess.getAddressString(), validationProcess);
-        semaphore.release();
+//        semaphore.release();
     }
 
     public Collection<MeinValidationProcess> getValidationProcesses() {
@@ -48,9 +48,9 @@ public class ConnectedEnvironment extends WaitLock{
     }
 
     public  void removeValidationProcess(MeinValidationProcess process) {
-        N.r(() -> semaphore.acquire());
+//        N.r(() -> semaphore.acquire());
         addressValidateProcessMap.remove(process.getAddressString());
         idValidateProcessMap.remove(process.getConnectedId());
-        semaphore.release();
+//        semaphore.release();
     }
 }

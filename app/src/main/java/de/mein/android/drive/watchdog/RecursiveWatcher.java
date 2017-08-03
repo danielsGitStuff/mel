@@ -105,12 +105,11 @@ public class RecursiveWatcher extends IndexWatchdogListener {
                     FileObserver.DELETE,
                     FileObserver.DELETE_SELF,
                     FileObserver.CREATE,
-                    FileObserver.MODIFY,
                     FileObserver.MOVE_SELF,
                     FileObserver.MOVED_FROM,
                     FileObserver.MOVED_TO)) {
                 watchDogTimer.start();
-            } else
+            } else if (checkEvent(event, FileObserver.MODIFY))
                 analyze(event, watcher, path);
         } catch (InterruptedException e) {
             e.printStackTrace();
