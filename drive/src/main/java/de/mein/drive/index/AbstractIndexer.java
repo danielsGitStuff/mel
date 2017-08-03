@@ -218,15 +218,23 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
         for (String name : stuffToDelete.keySet()) {
             GenericFSEntry gen = stuffToDelete.get(name);
-            Stage delStage = GenericFSEntry.generic2Stage(gen, stageSetId)
-                    .setDeleted(true)
-                    .setOrder(order.ord())
-                    .setVersion(gen.getVersion().v())
-                    .setiNode(gen.getiNode().v())
-                    .setModified(gen.getModified().v())
-                    .setSynced(gen.getSynced().v());
-
-            stageDao.insert(delStage);
+            Stage alreadyOnStage = stageDao.getStageByFsId(gen.getId().v(), stageSetId);
+            if (alreadyOnStage == null) {
+                Stage delStage = GenericFSEntry.generic2Stage(gen, stageSetId)
+                        .setDeleted(true)
+                        .setOrder(order.ord())
+                        .setVersion(gen.getVersion().v())
+                        .setiNode(gen.getiNode().v())
+                        .setModified(gen.getModified().v())
+                        .setSynced(gen.getSynced().v());
+                stageDao.insert(delStage);
+            } else {
+                alreadyOnStage.setContentHash(gen.getContentHash().v());
+                alreadyOnStage.setiNode(gen.getiNode().v());
+                stage.setSize(gen.getSize().v());
+                stage.setModified(gen.getModified().v());
+                stageDao.update(alreadyOnStage);
+            }
         }
         if (files != null) {
             for (File subFile : files) {

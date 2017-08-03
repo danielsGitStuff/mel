@@ -265,8 +265,6 @@ StageDao extends Dao.LockingDao {
             //todo debug
             if (stage.getName() == null)
                 System.out.println("StageDao.insert.debug.1");
-            if(stage.getName().equals("samesub1.txt") && stage.getStageSet().equals(3L))
-                System.out.println("StageDao.insert.debug");
             Long id = sqlQueries.insert(stage);
             return stage.setId(id);
         } catch (Exception e) {

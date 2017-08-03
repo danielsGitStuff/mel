@@ -97,8 +97,11 @@ public class BashToolsUnix implements BashToolsImpl {
         System.out.println("BashTools.stuffModifiedAfter.collecting.result");
         List<String> result = new ArrayList<>();
         Iterator<String> iterator = BashTools.inputStreamToIterator(proc.getInputStream());
-        while (iterator.hasNext())
-            result.add(iterator.next());
+        while (iterator.hasNext()) {
+            String path = iterator.next();
+            System.out.println(getClass().getSimpleName() + ".stuffModifiedAfter.collected: " + path);
+            result.add(path);
+        }
         System.out.println("BashTools.stuffModifiedAfter.collecting.done");
         return result;
     }

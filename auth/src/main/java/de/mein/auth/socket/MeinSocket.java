@@ -243,15 +243,11 @@ public class MeinSocket extends DeferredRunnable {
                 e.printStackTrace();
             }
         } finally {
-            try {
-                in.close();
-                out.close();
-                socket.close();
-                socketWorker.shutDown();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
+            System.out.println(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());
+            N.s(() -> in.close());
+            N.s(() -> out.close());
+            N.s(() -> socket.close());
+            N.s(() -> socketWorker.shutDown());
         }
     }
 
