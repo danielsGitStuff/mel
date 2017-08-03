@@ -4,14 +4,11 @@ import android.app.Activity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.controller.GuiController;
-import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
@@ -28,8 +25,8 @@ class EditServiceController extends GuiController {
     private Activity activity;
     private AndroidServiceCreatorGuiController currentController;
 
-    public EditServiceController(MeinAuthService meinAuthService, MainActivity mainActivity, View rootView, ServiceJoinServiceType service, IMeinService runningInstance) {
-        super();
+    public EditServiceController(Activity activity, MeinAuthService meinAuthService, MainActivity mainActivity, View rootView, ServiceJoinServiceType service, IMeinService runningInstance) {
+        super(activity);
         this.rootView = rootView;
         this.activity = activity;
         this.meinAuthService = meinAuthService;

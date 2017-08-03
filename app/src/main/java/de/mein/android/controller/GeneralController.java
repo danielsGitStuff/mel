@@ -1,5 +1,6 @@
 package de.mein.android.controller;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Color;
@@ -26,7 +27,8 @@ public class GeneralController extends GuiController {
     private TextView lblStatus;
     private EditText txtPort, txtCertPort, txtName;
 
-    public GeneralController(@NonNull View v, @Nullable AndroidService androidService) {
+    public GeneralController(Activity activity, @NonNull View v, @Nullable AndroidService androidService) {
+        super(activity);
         this.view = v;
         this.androidService = androidService;
         btnStartStop = (Button) v.findViewById(R.id.btnStart);
@@ -81,17 +83,19 @@ public class GeneralController extends GuiController {
     private void showAll() {
         // fill values
         if (androidService != null) {
-            MeinAuthSettings meinAuthSettings = androidService.getMeinAuthSettings();
-            txtPort.setText(meinAuthSettings.getPort().toString());
-            txtName.setText(meinAuthSettings.getName());
-            txtCertPort.setText(meinAuthSettings.getDeliveryPort().toString());
-            if (androidService.isRunning()) {
-                lblStatus.setText("Running");
-                lblStatus.setBackgroundColor(Color.parseColor("#ff99cc00"));
-            } else {
-                lblStatus.setText("Stopped");
-                lblStatus.setBackgroundColor(Color.parseColor("#ffcc0000"));
-            }
+            activity.runOnUiThread(() -> {
+                MeinAuthSettings meinAuthSettings = androidService.getMeinAuthSettings();
+                txtPort.setText(meinAuthSettings.getPort().toString());
+                txtName.setText(meinAuthSettings.getName());
+                txtCertPort.setText(meinAuthSettings.getDeliveryPort().toString());
+                if (androidService.isRunning()) {
+                    lblStatus.setText("Running");
+                    lblStatus.setBackgroundColor(Color.parseColor("#ff99cc00"));
+                } else {
+                    lblStatus.setText("Stopped");
+                    lblStatus.setBackgroundColor(Color.parseColor("#ffcc0000"));
+                }
+            });
         }
     }
 }

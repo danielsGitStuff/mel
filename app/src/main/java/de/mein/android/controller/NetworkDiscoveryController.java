@@ -1,11 +1,11 @@
 package de.mein.android.controller;
 
+import android.app.Activity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.annimon.stream.Exceptional;
 import com.annimon.stream.Stream;
 
 import de.mein.R;
@@ -32,7 +32,8 @@ public class NetworkDiscoveryController extends GuiController {
     private final EditText txtAddress, txtPort, txtDeliveryPort;
     private final Button btnConnect;
 
-    public NetworkDiscoveryController(MeinAuthService meinAuthService, View rootView) {
+    public NetworkDiscoveryController(Activity activity,MeinAuthService meinAuthService, View rootView) {
+        super(activity);
         this.meinAuthService = meinAuthService;
         this.rootView = rootView;
         this.listKnown = (ListView) rootView.findViewById(R.id.listKnown);

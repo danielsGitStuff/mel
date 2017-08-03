@@ -1,5 +1,6 @@
 package de.mein.android.controller;
 
+import android.app.Activity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.db.Approval;
 import de.mein.auth.data.db.Certificate;
@@ -33,7 +35,8 @@ public class ApprovalController extends GuiController {
     private ApprovalMatrix matrix;
     private Long selectedCertId;
 
-    public ApprovalController(MeinAuthService meinAuthService, View rootView) throws SqlQueriesException {
+    public ApprovalController(Activity activity, MeinAuthService meinAuthService, View rootView) throws SqlQueriesException {
+        super(activity);
         this.rootView = rootView;
         this.listCertificates = (ListView) rootView.findViewById(R.id.listCertificates);
         this.listServices = (ListView) rootView.findViewById(R.id.listServices);

@@ -1,6 +1,5 @@
 package de.mein.android.controller;
 
-import android.app.Activity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -17,7 +16,6 @@ import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.AndroidService;
-import de.mein.auth.service.MeinBoot;
 import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
 import de.mein.android.MainActivity;
@@ -35,6 +33,7 @@ public class CreateServiceController extends GuiController {
     private AndroidServiceCreatorGuiController currentController;
 
     public CreateServiceController(MeinAuthService meinAuthService, MainActivity activity, View v) {
+        super(activity);
         this.rootView = v;
         this.activity = activity;
         this.meinAuthService = meinAuthService;

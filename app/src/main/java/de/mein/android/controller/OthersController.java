@@ -1,10 +1,10 @@
 package de.mein.android.controller;
 
+import android.app.Activity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import de.mein.R;
 import de.mein.android.AndroidService;
@@ -25,7 +25,8 @@ public class OthersController extends GuiController {
     private KnownCertListAdapter listCertAdapter;
     private Certificate selectedCert;
 
-    public OthersController(MeinAuthService meinAuthService, View rootView) {
+    public OthersController(Activity activity,MeinAuthService meinAuthService, View rootView) {
+        super(activity);
         this.rootView = rootView;
         this.meinAuthService = meinAuthService;
         try {

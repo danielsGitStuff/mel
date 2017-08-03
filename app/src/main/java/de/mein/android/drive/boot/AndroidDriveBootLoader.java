@@ -63,6 +63,11 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
     @Override
     public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, Activity activity, View rootView) {
         // check for permission if necessary
+        askForPermission(activity);
+        return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
+    }
+
+    public static void askForPermission(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             int permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
             if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -72,6 +77,5 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
             }
             System.out.println(permission);
         }
-        return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
     }
 }

@@ -7,7 +7,9 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.SubMenu;
@@ -22,6 +24,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 
+import org.jdeferred.Promise;
+
+import java.io.File;
 import java.util.List;
 
 import de.mein.R;
@@ -32,7 +37,13 @@ import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.controller.NetworkDiscoveryController;
 import de.mein.auth.service.MeinBoot;
+import de.mein.auth.socket.process.val.MeinServicesPayload;
+import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.drive.DriveCreateController;
+import de.mein.drive.bash.BashTools;
+import de.mein.drive.service.MeinDriveClientService;
 import de.mein.sql.SqlQueriesException;
 import de.mein.android.controller.GeneralController;
 import de.mein.android.controller.CreateServiceController;
@@ -74,6 +85,7 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -99,7 +111,7 @@ public class MainActivity extends AppCompatActivity
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
@@ -174,14 +186,14 @@ public class MainActivity extends AppCompatActivity
         toolbar.setTitle("Other Instances");
         content.removeAllViews();
         View v = View.inflate(this, R.layout.content_others, content);
-        guiController = new OthersController(androidService.getMeinAuthService(), v);
+        guiController = new OthersController(this, androidService.getMeinAuthService(), v);
     }
 
     private void showDiscover() {
         toolbar.setTitle("Discover");
         content.removeAllViews();
         View v = View.inflate(this, R.layout.content_discover, content);
-        guiController = new NetworkDiscoveryController(androidService.getMeinAuthService(), v);
+        guiController = new NetworkDiscoveryController(this, androidService.getMeinAuthService(), v);
     }
 
     private void showCreateNewService() {
@@ -202,7 +214,7 @@ public class MainActivity extends AppCompatActivity
             content.removeAllViews();
             toolbar.setTitle("Approvals");
             View v = View.inflate(this, R.layout.content_approvals, content);
-            guiController = new ApprovalController(androidService.getMeinAuthService(), v);
+            guiController = new ApprovalController(this, androidService.getMeinAuthService(), v);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -212,7 +224,7 @@ public class MainActivity extends AppCompatActivity
         content.removeAllViews();
         toolbar.setTitle("General");
         View v = View.inflate(this, R.layout.content_general, content);
-        guiController = new GeneralController(v, androidService);
+        guiController = new GeneralController(this, v, androidService);
     }
 
     @Override
@@ -220,11 +232,46 @@ public class MainActivity extends AppCompatActivity
         if (guiController != null)
             guiController.onMeinAuthStarted(androidService.getMeinAuthService());
         try {
+            debugStuff();
             showMenuServices();
-        } catch (SqlQueriesException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         System.out.println();
+    }
+
+    private void debugStuff() throws InterruptedException {
+        MeinAuthService meinAuthService = androidService.getMeinAuthService();
+        System.out.println(meinAuthService);
+        Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(null, "10.0.2.2", 8888, 8889, true);
+        promise.done(meinValidationProcess -> {
+            N.r(() -> {
+                Request<MeinServicesPayload> gotAllowedServices = meinAuthService.getAllowedServices(meinValidationProcess.getConnectedId());
+                gotAllowedServices.done(meinServicesPayload -> {
+                    N.r(() -> {
+                        AndroidDriveBootLoader.askForPermission(this);
+                        DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
+                        File dir = new File("/sdcard/Download/drive");
+                        File[] content = dir.listFiles();
+                        if (content != null)
+                            for (File f : content)
+                                BashTools.rmRf(f);
+                        dir.mkdirs();
+                        Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
+                                dir.getAbsolutePath(),
+                                meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v());
+                        serviceCreated.done(meinDriveClientService -> {
+                                    N.r(() -> {
+                                        System.out.println("successssss");
+                                        meinDriveClientService.syncThisClient();
+                                    });
+                                }
+                        );
+                    });
+                });
+
+            });
+        });
     }
 
     public void showMenuServices() throws SqlQueriesException {
@@ -255,14 +302,14 @@ public class MainActivity extends AppCompatActivity
                     content.removeAllViews();
                     toolbar.setTitle("Edit Service: " + service.getName().v());
                     View v = View.inflate(MainActivity.this, R.layout.content_create_service, content);
-                    guiController = new EditServiceController(androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
+                    guiController = new EditServiceController(MainActivity.this, androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
                     return true;
                 }
             });
         }
         MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, "create new Service");
         mNewService.setIcon(R.drawable.ic_menu_add);
-
+        navigationView.refreshDrawableState();
         System.out.println();
     }
 }
