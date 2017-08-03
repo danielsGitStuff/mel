@@ -6,13 +6,17 @@ import android.support.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import de.mein.auth.tools.WaitLock;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
+import de.mein.drive.index.watchdog.UnixReferenceFileHandler;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
@@ -24,6 +28,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     private final File target;
     private final Map<String, Watcher> watchers = new HashMap<>();
     private final File transferDirectory;
+    private final UnixReferenceFileHandler unixReferenceFileHandler;
 
     public RecursiveWatcher(MeinDriveService meinDriveService) {
         super(meinDriveService);
@@ -33,6 +38,8 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         this.setStageIndexer(meinDriveService.getStageIndexer());
         this.transferDirectory = meinDriveService.getDriveSettings().getTransferDirectoryFile();
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
+        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), target, new File(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
+        unixReferenceFileHandler.onStart();
     }
 
     @Override
@@ -53,7 +60,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
 
     @Override
     public void runImpl() {
-        //nothing to do
+        // nothing to do
     }
 
     @Override
@@ -165,5 +172,26 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onTimerStopped() {
+        try {
+            /**
+             * we cannot retrieve all newly created things, so we have to do it now.
+             * and watching the directories as well
+             */
+            List<String> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            pathCollection.addAll(paths);
+            for (String p : paths) {
+                File f = new File(p);
+                if (f.exists() && f.isDirectory()) {
+                    watchDirectory(f);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        stageIndexer.examinePaths(pathCollection);
     }
 }

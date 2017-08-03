@@ -2,15 +2,12 @@ package de.mein.android.drive.boot;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
 
 import org.jdeferred.Promise;
 
 import de.mein.R;
+import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.Threadder;
 import de.mein.android.drive.controller.AndroidDriveCreateGuiController;
@@ -61,21 +58,10 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
     }
 
     @Override
-    public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, Activity activity, View rootView) {
+    public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, View rootView) {
         // check for permission if necessary
-        askForPermission(activity);
+        activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
     }
 
-    public static void askForPermission(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            int permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        PERMISSION_WRITE);
-            }
-            System.out.println(permission);
-        }
-    }
 }

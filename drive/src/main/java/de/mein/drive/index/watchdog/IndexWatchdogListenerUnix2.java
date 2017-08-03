@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("Duplicates")
 class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
     // we
-    private UnixReferenceFileHandler unixReferenceFileHandler;
+    private final UnixReferenceFileHandler unixReferenceFileHandler;
 
     IndexWatchdogListenerUnix2(MeinDriveService meinDriveService, WatchService watchService) {
         super(meinDriveService, "IndexWatchdogListenerUnix", watchService);

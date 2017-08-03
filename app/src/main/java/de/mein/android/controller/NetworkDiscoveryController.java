@@ -10,6 +10,7 @@ import com.annimon.stream.Stream;
 
 import de.mein.R;
 import de.mein.android.AndroidService;
+import de.mein.android.MeinActivity;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
@@ -32,7 +33,7 @@ public class NetworkDiscoveryController extends GuiController {
     private final EditText txtAddress, txtPort, txtDeliveryPort;
     private final Button btnConnect;
 
-    public NetworkDiscoveryController(Activity activity,MeinAuthService meinAuthService, View rootView) {
+    public NetworkDiscoveryController(MeinActivity activity, MeinAuthService meinAuthService, View rootView) {
         super(activity);
         this.meinAuthService = meinAuthService;
         this.rootView = rootView;

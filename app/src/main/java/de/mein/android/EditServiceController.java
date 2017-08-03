@@ -25,7 +25,7 @@ class EditServiceController extends GuiController {
     private Activity activity;
     private AndroidServiceCreatorGuiController currentController;
 
-    public EditServiceController(Activity activity, MeinAuthService meinAuthService, MainActivity mainActivity, View rootView, ServiceJoinServiceType service, IMeinService runningInstance) {
+    public EditServiceController(MeinActivity activity, MeinAuthService meinAuthService, MainActivity mainActivity, View rootView, ServiceJoinServiceType service, IMeinService runningInstance) {
         super(activity);
         this.rootView = rootView;
         this.activity = activity;

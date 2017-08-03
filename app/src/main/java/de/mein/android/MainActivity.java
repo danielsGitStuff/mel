@@ -1,15 +1,13 @@
 package de.mein.android;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.SubMenu;
@@ -18,7 +16,6 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,7 +33,6 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.controller.NetworkDiscoveryController;
-import de.mein.auth.service.MeinBoot;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
@@ -50,8 +46,7 @@ import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.ApprovalController;
 import de.mein.android.controller.GuiController;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, AndroidService.AndroidServiceObserver {
+public class MainActivity extends MeinActivity {
 
     private LinearLayout content;
     private Toolbar toolbar;
@@ -244,76 +239,77 @@ public class MainActivity extends AppCompatActivity
         MeinAuthService meinAuthService = androidService.getMeinAuthService();
         System.out.println(meinAuthService);
         Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(null, "10.0.2.2", 8888, 8889, true);
-        promise.done(meinValidationProcess -> {
-            N.r(() -> {
-                Request<MeinServicesPayload> gotAllowedServices = meinAuthService.getAllowedServices(meinValidationProcess.getConnectedId());
-                gotAllowedServices.done(meinServicesPayload -> {
-                    N.r(() -> {
-                        AndroidDriveBootLoader.askForPermission(this);
-                        DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
-                        File dir = new File("/sdcard/Download/drive");
-                        File[] content = dir.listFiles();
-                        if (content != null)
-                            for (File f : content)
-                                BashTools.rmRf(f);
-                        dir.mkdirs();
-                        Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
-                                dir.getAbsolutePath(),
-                                meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v());
-                        serviceCreated.done(meinDriveClientService -> {
-                                    N.r(() -> {
-                                        System.out.println("successssss");
-                                        meinDriveClientService.syncThisClient();
-                                    });
-                                }
-                        );
-                    });
-                }).fail(result -> {
-                    System.out.println("erererere."+result);
-                });
-
+        promise.done(meinValidationProcess -> N.r(() -> {
+            Request<MeinServicesPayload> gotAllowedServices = meinAuthService.getAllowedServices(meinValidationProcess.getConnectedId());
+            gotAllowedServices.done(meinServicesPayload -> N.r(() -> {
+                Promise<Void, Void, Void> permissionsGranted = MainActivity.this.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                permissionsGranted.done(nil -> Threadder.runNoTryThread(() -> {
+                    DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
+                    File dir = new File("/sdcard/Download/drive");
+                    File[] content = dir.listFiles();
+                    if (content != null)
+                        for (File f : content)
+                            BashTools.rmRf(f);
+                    dir.mkdirs();
+                    Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
+                            dir.getAbsolutePath(),
+                            meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v());
+                    serviceCreated.done(meinDriveClientService -> {
+                                N.r(() -> {
+                                    System.out.println("successssss");
+                                    meinDriveClientService.syncThisClient();
+                                });
+                            }
+                    );
+                }));
+            })).fail(result -> {
+                System.out.println("erererere." + result);
             });
-        }).fail(result -> {
-            System.out.println("errrrr."+result);
+
+        })).fail(result -> {
+            System.out.println("errrrr." + result);
         });
     }
 
-    public void showMenuServices() throws SqlQueriesException {
-        MeinAuthService meinAuthService = androidService.getMeinAuthService();
-        Menu menu = navigationView.getMenu();
-        menu.clear();
-        SubMenu subMeinAuth = menu.addSubMenu("MeinAuth");
-        //general
-        MenuItem mGeneral = subMeinAuth.add(5, R.id.nav_general, 0, "General");
-        mGeneral.setIcon(R.drawable.ic_menu_manage);
-        MenuItem mOthers = subMeinAuth.add(5, R.id.nav_others, 1, "Other Instances");
-        mOthers.setIcon(R.drawable.ic_menu_gallery);
-        //discover ic_menu_search
-        MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 2, "Discover");
-        mDiscover.setIcon(R.drawable.ic_menu_search);
-        //approvals ic_menu_approval
-        MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 3, "Approvals");
-        mApprovals.setIcon(R.drawable.ic_menu_approval);
+    public void showMenuServices() {
+        runOnUiThread(() -> N.r(() -> {
+            MeinAuthService meinAuthService = androidService.getMeinAuthService();
+            Menu menu = navigationView.getMenu();
+            menu.clear();
+            SubMenu subMeinAuth = menu.addSubMenu("MeinAuth");
+            //general
+            MenuItem mGeneral = subMeinAuth.add(5, R.id.nav_general, 0, "General");
+            mGeneral.setIcon(R.drawable.ic_menu_manage);
+            MenuItem mOthers = subMeinAuth.add(5, R.id.nav_others, 1, "Other Instances");
+            mOthers.setIcon(R.drawable.ic_menu_gallery);
+            //discover ic_menu_search
+            MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 2, "Discover");
+            mDiscover.setIcon(R.drawable.ic_menu_search);
+            //approvals ic_menu_approval
+            MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 3, "Approvals");
+            mApprovals.setIcon(R.drawable.ic_menu_approval);
 
-        SubMenu subServices = menu.addSubMenu("Services");
-        List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
-        for (ServiceJoinServiceType service : services) {
-            IMeinService runningInstance = meinAuthService.getMeinService(service.getUuid().v());
-            MenuItem mService = subServices.add(service.getType().v() + "/" + service.getName().v());
-            mService.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    content.removeAllViews();
-                    toolbar.setTitle("Edit Service: " + service.getName().v());
-                    View v = View.inflate(MainActivity.this, R.layout.content_create_service, content);
-                    guiController = new EditServiceController(MainActivity.this, androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
-                    return true;
-                }
-            });
-        }
-        MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, "create new Service");
-        mNewService.setIcon(R.drawable.ic_menu_add);
-        navigationView.refreshDrawableState();
-        System.out.println();
+            SubMenu subServices = menu.addSubMenu("Services");
+            List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
+            for (ServiceJoinServiceType service : services) {
+                IMeinService runningInstance = meinAuthService.getMeinService(service.getUuid().v());
+                MenuItem mService = subServices.add(service.getType().v() + "/" + service.getName().v());
+                mService.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        content.removeAllViews();
+                        toolbar.setTitle("Edit Service: " + service.getName().v());
+                        View v = View.inflate(MainActivity.this, R.layout.content_create_service, content);
+                        guiController = new EditServiceController(MainActivity.this, androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
+                        return true;
+                    }
+                });
+            }
+            MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, "create new Service");
+            mNewService.setIcon(R.drawable.ic_menu_add);
+            navigationView.refreshDrawableState();
+            System.out.println();
+        }));
+
     }
 }

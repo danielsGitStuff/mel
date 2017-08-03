@@ -94,6 +94,7 @@ public class MeinSocket extends DeferredRunnable {
 
     public void send(String json) {
         try {
+            System.out.println("   " + meinAuthService.getName() + ".MeinSocket.send: " + json);
             this.out.writeUTF(json);
             this.out.flush();
         } catch (IOException e) {

@@ -2,6 +2,7 @@ package de.mein.android.controller;
 
 import android.app.Activity;
 
+import de.mein.android.MeinActivity;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.AndroidService;
 
@@ -11,9 +12,9 @@ import de.mein.android.AndroidService;
 
 public abstract class GuiController {
 
-    protected final Activity activity;
+    protected final MeinActivity activity;
 
-    protected GuiController(Activity activity) {
+    protected GuiController(MeinActivity activity) {
         this.activity = activity;
     }
 

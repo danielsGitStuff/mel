@@ -19,6 +19,7 @@ import de.mein.android.AndroidService;
 import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
 import de.mein.android.MainActivity;
+
 /**
  * Created by xor on 2/20/17.
  */
@@ -60,11 +61,7 @@ public class CreateServiceController extends GuiController {
         btnCreate.setOnClickListener(view -> {
             if (bootLoader != null) {
                 bootLoader.createService(activity, meinAuthService, currentController);
-                try {
-                    activity.showMenuServices();
-                } catch (SqlQueriesException e) {
-                    e.printStackTrace();
-                }
+                activity.showMenuServices();
             }
         });
     }

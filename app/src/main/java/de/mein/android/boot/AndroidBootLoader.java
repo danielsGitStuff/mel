@@ -3,6 +3,7 @@ package de.mein.android.boot;
 import android.app.Activity;
 import android.view.View;
 
+import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
@@ -19,5 +20,5 @@ public interface AndroidBootLoader<T extends IMeinService> {
 
     void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceCreatorGuiController currentController);
 
-    AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, Activity activity, View rootView);
+    AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, View rootView);
 }

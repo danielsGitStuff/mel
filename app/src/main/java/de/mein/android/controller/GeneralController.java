@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import de.mein.R;
+import de.mein.android.MeinActivity;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.AndroidService;
@@ -27,7 +28,7 @@ public class GeneralController extends GuiController {
     private TextView lblStatus;
     private EditText txtPort, txtCertPort, txtName;
 
-    public GeneralController(Activity activity, @NonNull View v, @Nullable AndroidService androidService) {
+    public GeneralController(MeinActivity activity, @NonNull View v, @Nullable AndroidService androidService) {
         super(activity);
         this.view = v;
         this.androidService = androidService;

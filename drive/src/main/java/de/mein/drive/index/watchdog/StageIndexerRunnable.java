@@ -17,7 +17,6 @@ public class StageIndexerRunnable extends AbstractIndexer {
 
     public StageIndexerRunnable(DriveDatabaseManager databaseManager, PathCollection pathCollection) {
         super(databaseManager);
-
         this.pathCollection = pathCollection;
     }
 
@@ -30,7 +29,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
     @Override
     public void runImpl() {
         boolean unlocked = false;
-        if (pathCollection.getPaths().size()>0) {
+        if (pathCollection.getPaths().size() > 0) {
             try {
                 //todo debug
                 if (Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClientService for MA2"))
@@ -54,7 +53,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
                     System.out.println("StageIndexerRunnable[" + stageSetId + "].runImpl.unlocked");
                 }
             }
-        }else {
+        } else {
             System.out.println("StageIndexerRunnable.runImpl.got.empty.pathcollection");
         }
     }
