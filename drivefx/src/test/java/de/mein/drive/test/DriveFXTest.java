@@ -4,12 +4,11 @@ package de.mein.drive.test;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.RegisterHandlerFX;
-import de.mein.auth.service.MeinAuthFxLoader;
-import de.mein.auth.service.MeinBoot;
-import de.mein.auth.service.MeinStandAloneAuthFX;
+import de.mein.auth.service.*;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
@@ -56,7 +55,7 @@ public class DriveFXTest {
         MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
 
         MeinBoot restartMeinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
-        driveTest.clientConflictImpl(meinBoot,null );
+        driveTest.clientConflictImpl(meinBoot, null);
         new WaitLock().lock().lock();
     }
 
@@ -66,7 +65,7 @@ public class DriveFXTest {
         MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
 
         MeinBoot restartMeinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
-        driveTest.complexClientConflictImpl(meinBoot,null );
+        driveTest.complexClientConflictImpl(meinBoot, null);
         new WaitLock().lock().lock();
     }
 
@@ -106,11 +105,9 @@ public class DriveFXTest {
 
     @Test
     public void startEmptyServer() throws Exception {
-//        inject(true);
         File testdir = new File("testdir1");
         CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
-//        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         N runner = new N(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
@@ -138,7 +135,53 @@ public class DriveFXTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                createController.createDriveServerService("testiServer",testdir.getAbsolutePath());
+                createController.createDriveServerService("testiServer", testdir.getAbsolutePath());
+            });
+        });
+        lock.lockWrite();
+        lock.unlockWrite();
+    }
+
+    @Test
+    public void startAcceptingServer() throws Exception {
+        File testdir = new File("testdir1");
+        CertificateManager.deleteDirectory(testdir);
+        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        N runner = new N(e -> e.printStackTrace());
+        MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
+                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
+                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("Test Server").setGreeting("greeting1");
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
+        };
+        IRegisteredHandler allowRegisteredHandler = (meinAuthService, registered) -> {
+            DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
+            for (ServiceJoinServiceType service : databaseManager.getAllServices()) {
+                databaseManager.grant(service.getServiceId().v(), registered.getId().v());
+            }
+        };
+        RWLock lock = new RWLock();
+        lock.lockWrite();
+        MeinBoot boot1 = new MeinBoot(meinAuthSettings, DriveFXBootLoader.class);
+        boot1.addMeinAuthAdmin(new MeinAuthFxLoader());
+        boot1.boot().done(meinAuthService -> {
+            meinAuthService.addRegisterHandler(allowRegisterHandler);
+            meinAuthService.addRegisteredHandler(allowRegisteredHandler);
+//            meinAuthService.addRegisterHandler(new RegisterHandlerFX());
+            runner.r(() -> {
+                System.out.println("DriveFXTest.startEmptyServer.booted");
+            });
+            N.r(() -> {
+                DriveCreateController createController = new DriveCreateController(meinAuthService);
+                createController.createDriveServerService("testiServer", testdir.getAbsolutePath());
             });
         });
         lock.lockWrite();
