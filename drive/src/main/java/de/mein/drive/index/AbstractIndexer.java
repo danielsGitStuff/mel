@@ -73,6 +73,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     protected void examineStage() throws SqlQueriesException, IOException {
+        //todo problem
         ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
         Stage stage = stages.getNext();
         while (stage != null) {
@@ -90,6 +91,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             System.out.println("StageIndexerRunnable.run: " + path);
             stage = stages.getNext();
         }
+        stageDao.deleteMarkedForRemoval(stageSet.getId().v());
         System.out.println("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
         stageDao.updateStageSet(stageSet);
@@ -185,8 +187,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
         //todo debug
-        if (stage.getName().equals("samedir") && Thread.currentThread().getName().toLowerCase().contains("client"))
-            System.out.println("AbstractIndexer.roamDirectoryStage.debug1");
+        System.out.println("AbstractIndexer.roamDirectoryStage: " + stageFile.getAbsolutePath());
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
         File[] files = stageFile.listFiles(File::isFile);
@@ -317,7 +318,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getFsId() != null) {
             FsDirectory oldFsDirectory = fsDao.getFsDirectoryById(stage.getFsId());
             if (oldFsDirectory.getContentHash().v().equals(newFsDirectory.getContentHash().v()))
-                stageDao.deleteStageById(stage.getId());
+                stageDao.markRemoved(stage.getId());
             else
                 stageDao.update(stage);
         } else

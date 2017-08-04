@@ -87,10 +87,12 @@ public class BashToolsUnix implements BashToolsImpl {
     @Override
     public List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
         System.out.println("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
+        String cmd = "find \"" + directory.getAbsolutePath() + "\"  "
+                + " -path \"" + pruneDir + "\" -prune"
+                + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print";
+        System.out.println("BashTools.stuffModifiedAfter.cmd: "+cmd);
         String[] args = new String[]{BIN_PATH, "-c",
-                "find \"" + directory.getAbsolutePath() + "\"  "
-                        + " -path \"" + pruneDir + "\" -prune"
-                        + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print"};
+                cmd};
         ProcessBuilder processBuilder = new ProcessBuilder(args);
         processBuilder.redirectErrorStream(true);
         Process proc = processBuilder.start();

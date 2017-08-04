@@ -25,6 +25,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private static final String SYNCED = "synced";
     private static final String MERGED = "merged";
     private static final String ORDER = "ord";
+    private static final String REMOVE = "rem";
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> parentId = new Pair<>(Long.class, PARENTID);
     private Pair<Long> fsId = new Pair<>(Long.class, FSID);
@@ -46,6 +47,9 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     @JsonIgnore
     private Pair<Boolean> merged = new Pair<>(Boolean.class, MERGED, false);
     private Pair<Long> order = new Pair<>(Long.class, ORDER);
+    @JsonIgnore
+    private Pair<Boolean> remove = new Pair<>(Boolean.class, REMOVE);
+
 
     public Stage() {
         init();
@@ -276,5 +280,13 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public Pair<Long> getiNodePair() {
         return iNode;
+    }
+
+    public Pair<Boolean> getRemovePair() {
+        return remove;
+    }
+
+    public Boolean getRemove() {
+        return remove.v();
     }
 }

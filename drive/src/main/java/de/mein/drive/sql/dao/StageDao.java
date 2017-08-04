@@ -305,7 +305,7 @@ StageDao extends Dao.LockingDao {
         //todo debug
         if (id.equals(10))
             System.out.println("StageDao.createStageSet.debug1");
-        if (id == 4 && Thread.currentThread().getName().startsWith(StageIndexerRunnable.class.getSimpleName()+" for MeinDriveServer"))
+        if (id == 4 && Thread.currentThread().getName().startsWith(StageIndexerRunnable.class.getSimpleName() + " for MeinDriveServer"))
             System.out.println("StageDao.createStageSet.debug2");
         if (id.toString().equals("7") && Thread.currentThread().getName().startsWith("MeinDriveClientService"))
             System.out.println("StageDao.createStageSet.debug3");
@@ -336,6 +336,12 @@ StageDao extends Dao.LockingDao {
         if (res.size() == 1)
             return res.get(0);
         return null;
+    }
+
+    public void markRemoved(Long id) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String statement = "update " + stage.getTableName() + " set " + stage.getRemovePair().k() + "=? where " + stage.getIdPair().k() + "=?";
+        sqlQueries.execute(statement, ISQLQueries.whereArgs(true, id));
     }
 
     public void update(Stage stage) throws SqlQueriesException {
@@ -419,4 +425,9 @@ StageDao extends Dao.LockingDao {
         sqlQueries.execute(statement, ISQLQueries.whereArgs(found, stageId));
     }
 
+    public void deleteMarkedForRemoval(Long stageSetId) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String statement = "delete from " + stage.getTableName() + " where " + stage.getStageSetPair().k() + "=? and " + stage.getRemovePair().k() + "=?";
+        sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId, true));
+    }
 }
