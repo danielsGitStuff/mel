@@ -15,6 +15,7 @@ import java.util.concurrent.Semaphore;
 
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.index.watchdog.UnixReferenceFileHandler;
 import de.mein.drive.service.MeinDriveService;
@@ -176,6 +177,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
 
     @Override
     public void onTimerStopped() {
+        PathCollection pathCollection = new PathCollection();
         try {
             /**
              * we cannot retrieve all newly created things, so we have to do it now.
