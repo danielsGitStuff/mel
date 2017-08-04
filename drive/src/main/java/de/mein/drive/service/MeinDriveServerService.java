@@ -111,7 +111,6 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
