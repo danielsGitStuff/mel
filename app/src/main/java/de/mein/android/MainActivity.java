@@ -47,7 +47,7 @@ import de.mein.android.controller.ApprovalController;
 import de.mein.android.controller.GuiController;
 
 public class MainActivity extends MeinActivity {
-
+    //shell pm uninstall de.mein.meindrive
     private LinearLayout content;
     private Toolbar toolbar;
     private AndroidService androidService;
