@@ -28,7 +28,7 @@ import java.util.List;
 
 import de.mein.R;
 import de.mein.android.controller.OthersController;
-import de.mein.android.drive.boot.AndroidDriveBootLoader;
+import de.mein.android.service.AndroidService;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
@@ -40,7 +40,6 @@ import de.mein.auth.tools.N;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
-import de.mein.sql.SqlQueriesException;
 import de.mein.android.controller.GeneralController;
 import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.ApprovalController;

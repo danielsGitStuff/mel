@@ -1,4 +1,4 @@
-package de.mein.android;
+package de.mein.android.service;
 
 import android.app.Service;
 import android.content.Intent;
@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import de.mein.android.AndroidInjector;
+import de.mein.android.AndroidRegHandler;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
@@ -57,7 +59,7 @@ public class AndroidService extends Service {
      * runs in the same process as its clients, we don't need to deal with IPC.
      */
     public class LocalBinder extends Binder {
-        AndroidService getService() {
+        public AndroidService getService() {
             // Return this instance of LocalService so clients can call public methods
             return AndroidService.this;
         }
@@ -186,7 +188,9 @@ public class AndroidService extends Service {
         };
         lock.lockWrite();
 
+        AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
         meinBoot = new MeinBoot(meinAuthSettings, AndroidDriveBootLoader.class);
+        meinBoot.addMeinAuthAdmin(admin);
         Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot().done(meinAuthService -> {
             N.r(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");
@@ -194,6 +198,7 @@ public class AndroidService extends Service {
                 meinAuthService.addRegisteredHandler(registeredHandler);
                 Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
                 System.out.println(t1);
+                admin.onMessageFromService(null, null);
             });
         });
         return promise;

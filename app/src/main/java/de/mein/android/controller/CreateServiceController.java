@@ -15,9 +15,8 @@ import de.mein.R;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
-import de.mein.android.AndroidService;
+import de.mein.android.service.AndroidService;
 import de.mein.auth.tools.N;
-import de.mein.sql.SqlQueriesException;
 import de.mein.android.MainActivity;
 
 /**

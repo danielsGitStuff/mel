@@ -1,4 +1,4 @@
-package de.mein.drive.service.sync.conflict;
+package de.mein.drive.data.conflict;
 
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;

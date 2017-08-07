@@ -8,6 +8,7 @@ import android.widget.LinearLayout;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.controller.GuiController;
+import de.mein.android.service.AndroidService;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;

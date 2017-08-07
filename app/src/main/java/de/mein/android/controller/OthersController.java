@@ -1,13 +1,12 @@
 package de.mein.android.controller;
 
-import android.app.Activity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 
 import de.mein.R;
-import de.mein.android.AndroidService;
+import de.mein.android.service.AndroidService;
 import de.mein.android.MeinActivity;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.auth.data.db.Certificate;

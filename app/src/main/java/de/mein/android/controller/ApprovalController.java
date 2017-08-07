@@ -1,6 +1,5 @@
 package de.mein.android.controller;
 
-import android.app.Activity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -11,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import de.mein.R;
-import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.db.Approval;
@@ -19,7 +17,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.SqlQueriesException;
-import de.mein.android.AndroidService;
+import de.mein.android.service.AndroidService;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.android.view.ApprovalCBListAdapter;
 

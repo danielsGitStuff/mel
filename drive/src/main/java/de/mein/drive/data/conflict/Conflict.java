@@ -1,9 +1,12 @@
-package de.mein.drive.service.sync.conflict;
+package de.mein.drive.data.conflict;
 
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.dao.StageDao;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -127,5 +130,30 @@ public class Conflict {
 
     public boolean hasRight() {
         return rStageId != null;
+    }
+
+    public static List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
+        List<Conflict> result = new ArrayList<>();
+        List<Conflict> rootConflicts = new ArrayList<>();
+        for (Conflict conflict : conflicts) {
+            if (conflict.getDependsOn() == null)
+                rootConflicts.add(conflict);
+        }
+        for (Conflict root : rootConflicts) {
+            result.add(root);
+            traversalAdding(result, root.getDependents());
+            if (root.getDependents().size() > 0)
+                result.add(new EmptyRowConflict());
+        }
+        return result;
+    }
+
+    private static void traversalAdding(List<Conflict> result, Set<Conflict> stuffToTraverse) {
+        for (Conflict conflict : stuffToTraverse) {
+            result.add(conflict);
+            if (conflict.getDependents().size() > 0) {
+                traversalAdding(result, conflict.getDependents());
+            }
+        }
     }
 }

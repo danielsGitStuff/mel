@@ -9,11 +9,12 @@ import de.mein.auth.tools.N;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.service.sync.ClientSyncHandler;
-import de.mein.drive.service.sync.conflict.ConflictSolver;
+import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.FsFile;
@@ -190,7 +191,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     /**
      * merged {@link StageSet}s might be handled by the {@link de.mein.drive.service.sync.SyncHandler} at some point.
-     * eg. it still might show some GUI handling {@link de.mein.drive.service.sync.conflict.Conflict}s.
+     * eg. it still might show some GUI handling {@link Conflict}s.
      * @param lStageSetId
      * @param rStageSetId
      * @param mergedStageSet

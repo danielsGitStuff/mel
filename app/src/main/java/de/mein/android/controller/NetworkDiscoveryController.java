@@ -1,6 +1,5 @@
 package de.mein.android.controller;
 
-import android.app.Activity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -9,7 +8,7 @@ import android.widget.ListView;
 import com.annimon.stream.Stream;
 
 import de.mein.R;
-import de.mein.android.AndroidService;
+import de.mein.android.service.AndroidService;
 import de.mein.android.MeinActivity;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;

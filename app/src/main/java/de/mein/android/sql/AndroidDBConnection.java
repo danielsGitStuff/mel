@@ -1,4 +1,4 @@
-package de.mein.android.drive.service;
+package de.mein.android.sql;
 
 import android.database.sqlite.SQLiteDatabase;
 

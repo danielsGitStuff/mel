@@ -1,4 +1,4 @@
-package de.mein.drive.service.sync.conflict;
+package de.mein.drive.data.conflict;
 
 /**
  * Created by xor on 7/4/17.

@@ -28,7 +28,7 @@
         </activity>
 
         <service
-            android:name="de.mein.android.AndroidService"
+            android:name="de.mein.android.service.AndroidService"
             android:exported="true" />
 
         <activity

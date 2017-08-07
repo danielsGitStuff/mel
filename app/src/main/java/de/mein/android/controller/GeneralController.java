@@ -1,6 +1,5 @@
 package de.mein.android.controller;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Color;
@@ -16,7 +15,7 @@ import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.android.AndroidService;
+import de.mein.android.service.AndroidService;
 
 /**
  * Created by xor on 2/22/17.

@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.mein.android.drive.service.AndroidDBConnection;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.Pair;
