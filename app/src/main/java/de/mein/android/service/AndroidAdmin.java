@@ -61,8 +61,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
     public void onNotificationFromService(MeinService meinService, MeinNotification meinNotification) {
         try {
             MeinAuthService meinAuthService = meinService.getMeinAuthService();
-            Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
-            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());
+            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(meinService.getServiceTypeId());
             BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
             int requestCode = new SecureRandom().nextInt();
             String intention = meinNotification.getIntention();

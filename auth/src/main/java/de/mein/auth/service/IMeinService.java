@@ -37,8 +37,6 @@ public interface IMeinService {
      */
     void handleCertificateSpotted(Certificate partnerCertificate);
 
-    void setUuid(String uuid);
-
     String getUuid();
 
     /**

@@ -257,9 +257,6 @@ public class MainActivity extends MeinActivity {
                     serviceCreated.done(meinDriveClientService -> {
                                 N.r(() -> {
                                     System.out.println("successssss");
-                                    // for testing only
-                                    MeinNotification meinNotification = new MeinNotification("test.uuid", "test.intention", "Test", "nothing to say here");
-                                    meinAuthService.onNotificationFromService(meinDriveClientService, meinNotification);
                                     meinDriveClientService.syncThisClient();
                                 });
                             }

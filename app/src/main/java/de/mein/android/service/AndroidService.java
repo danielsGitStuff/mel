@@ -197,11 +197,14 @@ public class AndroidService extends Service {
         meinBoot.addMeinAuthAdmin(admin);
         Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot().done(meinAuthService -> {
             N.r(() -> {
-                System.out.println("DriveFXTest.driveGui.1.booted");
+                System.out.println("AndroidService.booted");
                 AndroidService.this.meinAuthService = meinAuthService;
                 meinAuthService.addRegisteredHandler(registeredHandler);
                 Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
                 System.out.println(t1);
+                // for testing only
+                MeinNotification meinNotification = new MeinNotification("test.uuid", "test.intention", "Test", "nothing to say here");
+                meinAuthService.onNotificationFromService(new MeinDriveClientService(meinAuthService,null,1L, "test.uuid"), meinNotification);
             });
         });
         return promise;

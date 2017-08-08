@@ -35,8 +35,8 @@ import java.util.logging.Logger;
 public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> {
     private static Logger logger = Logger.getLogger(MeinDriveServerService.class.getName());
 
-    public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory) {
-        super(meinAuthService, workingDirectory);
+    public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
+        super(meinAuthService, workingDirectory,serviceTypeId,uuid);
     }
 
 

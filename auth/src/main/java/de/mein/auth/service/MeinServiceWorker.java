@@ -15,8 +15,8 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     protected LinkedList<Job> jobs = new LinkedList<>();
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
 
-    public MeinServiceWorker(MeinAuthService meinAuthService, File workingDirectory) {
-        super(meinAuthService, workingDirectory);
+    public MeinServiceWorker(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid);
     }
 
     @Override
@@ -33,10 +33,7 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     protected String uuid;
 
 
-    @Override
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
+
 
     @Override
     public String getUuid() {

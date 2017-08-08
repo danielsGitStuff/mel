@@ -16,6 +16,7 @@ import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.DeferredManager;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -65,10 +66,10 @@ public class DriveBootLoader extends BootLoader {
 
     public MeinDriveService boot(MeinAuthService meinAuthService, Service service, DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
+        Long serviceTypeId = service.getTypeId().v();
+        String uuid = service.getUuid().v();
         MeinDriveService meinDriveService = (driveSettings.isServer()) ?
-                new MeinDriveServerService(meinAuthService, workingDirectory) : new MeinDriveClientService(meinAuthService, workingDirectory);
-        meinDriveService.setUuid(service.getUuid().v());
-        meinDriveService.setServiceTypeId(service.getTypeId().v())
+                new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid);
         meinAuthService.execute(meinDriveService);
         System.out.println("DriveBootLoader.boot");
         meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));

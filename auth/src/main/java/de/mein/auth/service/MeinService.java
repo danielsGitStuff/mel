@@ -17,8 +17,8 @@ import java.util.concurrent.ThreadFactory;
 public abstract class MeinService extends MeinWorker implements IMeinService {
     protected final File serviceInstanceWorkingDirectory;
     protected MeinAuthService meinAuthService;
-    protected Integer id;
-    protected String uuid;
+    protected final String uuid;
+    protected final Long serviceTypeId;
     private ExecutorService executorService;
     private final Semaphore threadSemaphore = new Semaphore(1, true);
     private final LinkedList<MeinThread> threadQueue = new LinkedList<>();
@@ -38,9 +38,11 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         }
     };
 
-    public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory) {
+    public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid) {
         this.meinAuthService = meinAuthService;
         this.serviceInstanceWorkingDirectory = serviceInstanceWorkingDirectory;
+        this.serviceTypeId = serviceTypeId;
+        this.uuid = uuid;
         executorService = createExecutorService(threadFactory);
     }
 
@@ -48,12 +50,12 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         return meinAuthService;
     }
 
-    public File getServiceInstanceWorkingDirectory() {
-        return serviceInstanceWorkingDirectory;
+    public Long getServiceTypeId() {
+        return serviceTypeId;
     }
 
-    public Integer getId() {
-        return id;
+    public File getServiceInstanceWorkingDirectory() {
+        return serviceInstanceWorkingDirectory;
     }
 
     public String getUuid() {
@@ -84,11 +86,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         return getClass().getSimpleName() + " for " + meinAuthService.getName();
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    @Override
+     @Override
     public void onShutDown() {
         executorService.shutdown();
 

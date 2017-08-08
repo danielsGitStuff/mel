@@ -53,8 +53,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     private WasteBin wasteBin;
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
 
-    public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory) {
-        super(meinAuthService, workingDirectory);
+    public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
+        super(meinAuthService, workingDirectory,serviceTypeId,uuid);
     }
 
     @Override
