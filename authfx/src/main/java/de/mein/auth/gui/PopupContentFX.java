@@ -1,5 +1,6 @@
 package de.mein.auth.gui;
 
+import de.mein.auth.MeinNotification;
 import de.mein.auth.service.MeinService;
 import javafx.stage.Stage;
 
@@ -15,7 +16,7 @@ public abstract class PopupContentFX {
      */
     public abstract String onOkCLicked();
 
-    public abstract void init(MeinService meinService, Object msgObject);
+    public abstract void init(MeinService meinService, MeinNotification notification);
 
     public void setStage(Stage stage) {
         this.stage = stage;

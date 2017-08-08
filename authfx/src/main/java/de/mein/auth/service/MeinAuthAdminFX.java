@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.auth.MeinAuthAdmin;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
@@ -69,7 +70,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     }
 
     @Override
-    public void onMessageFromService(MeinService meinService, Object msgObject) {
+    public void onNotificationFromService(MeinService meinService, MeinNotification msgObject) {
         N.r(() -> {
             Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
             ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());

@@ -1,6 +1,7 @@
 package de.mein.drive.service;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceMessageHandlerJob;
 import de.mein.auth.service.MeinAuthService;
@@ -47,11 +48,8 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         return Executors.newCachedThreadPool(threadFactory);
     }
 
-    private Set<Thread> threads = new HashSet<>();
-
     @Override
     public void run() {
-        threads.add(Thread.currentThread());
         super.run();
     }
 
@@ -186,12 +184,15 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     public void onConflicts(ConflictSolver conflictSolver) {
         System.out.println("MeinDriveClientService.onConflicts.oj9h034800");
-        meinAuthService.onMessageFromService(this, conflictSolver);
+        MeinNotification notification = new MeinNotification("Conflict detected", "here we go");
+        notification.setContent(conflictSolver);
+        meinAuthService.onMessageFromService(this, notification);
     }
 
     /**
      * merged {@link StageSet}s might be handled by the {@link de.mein.drive.service.sync.SyncHandler} at some point.
      * eg. it still might show some GUI handling {@link Conflict}s.
+     *
      * @param lStageSetId
      * @param rStageSetId
      * @param mergedStageSet

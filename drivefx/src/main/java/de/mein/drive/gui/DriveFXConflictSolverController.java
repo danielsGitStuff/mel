@@ -1,5 +1,6 @@
 package de.mein.drive.gui;
 
+import de.mein.auth.MeinNotification;
 import de.mein.auth.gui.PopupContentFX;
 import de.mein.auth.service.MeinService;
 import de.mein.drive.data.conflict.Conflict;
@@ -47,10 +48,11 @@ public class DriveFXConflictSolverController extends PopupContentFX implements I
     }
 
     @Override
-    public void init(MeinService meinService, Object msgObject) {
+    public void init(MeinService meinService, MeinNotification notification) {
         System.out.println("DriveFXConflictSolverController.init");
         this.meinDriveClientService = (MeinDriveClientService) meinService;
-        conflictSolver = (ConflictSolver) msgObject;
+        stage.setTitle(notification.getTitle());
+        conflictSolver = (ConflictSolver) notification.getContent();
         meinDriveClientService.addConflictSolver(conflictSolver);
         TreeItem<Conflict> root = new TreeItem<>(new Conflict());
         treeTableView.setRoot(root);

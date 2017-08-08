@@ -13,9 +13,9 @@ public interface MeinAuthAdmin {
     /**
      * when there is an event that the user has to be noticed of or has to take care of
      * @param meinService
-     * @param msgObject
+     * @param notification
      */
-    void onMessageFromService(MeinService meinService, Object msgObject);
+    void onNotificationFromService(MeinService meinService, MeinNotification notification);
 
     void onChanged();
 

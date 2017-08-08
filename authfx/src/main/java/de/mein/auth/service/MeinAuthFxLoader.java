@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.auth.MeinAuthAdmin;
+import de.mein.auth.MeinNotification;
 
 /**
  * Created by xor on 5/30/17.
@@ -16,8 +17,8 @@ public class MeinAuthFxLoader implements MeinAuthAdmin {
     }
 
     @Override
-    public void onMessageFromService(MeinService meinService, Object msgObject) {
-        meinAuthAdminFX.onMessageFromService(meinService, msgObject);
+    public void onNotificationFromService(MeinService meinService, MeinNotification notification) {
+        meinAuthAdminFX.onNotificationFromService(meinService, notification);
     }
 
     @Override

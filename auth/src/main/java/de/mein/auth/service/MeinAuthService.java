@@ -4,6 +4,7 @@ package de.mein.auth.service;
 import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
 import de.mein.auth.MeinAuthAdmin;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.MeinAuthSettings;
@@ -495,8 +496,8 @@ public class MeinAuthService {
             this.addMeinAuthAdmin(admin);
     }
 
-    public void onMessageFromService(MeinService meinService, Object msgObject) {
+    public void onMessageFromService(MeinService meinService, MeinNotification notification) {
         for (MeinAuthAdmin admin : meinAuthAdmins)
-            admin.onMessageFromService(meinService, msgObject);
+            admin.onNotificationFromService(meinService, notification);
     }
 }
