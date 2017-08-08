@@ -2,12 +2,12 @@ package de.mein.drive.gui;
 
 import de.mein.auth.gui.PopupContentFX;
 import de.mein.auth.service.MeinService;
+import de.mein.drive.data.conflict.Conflict;
+import de.mein.drive.data.conflict.ConflictException;
+import de.mein.drive.data.conflict.ConflictSolver;
+import de.mein.drive.data.conflict.EmptyRowConflict;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.MeinDriveClientService;
-import de.mein.drive.service.sync.conflict.Conflict;
-import de.mein.drive.service.sync.conflict.ConflictException;
-import de.mein.drive.service.sync.conflict.ConflictSolver;
-import de.mein.drive.service.sync.conflict.EmptyRowConflict;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
