@@ -68,6 +68,7 @@ public class DriveBootLoader extends BootLoader {
         MeinDriveService meinDriveService = (driveSettings.isServer()) ?
                 new MeinDriveServerService(meinAuthService, workingDirectory) : new MeinDriveClientService(meinAuthService, workingDirectory);
         meinDriveService.setUuid(service.getUuid().v());
+        meinDriveService.setServiceTypeId(service.getTypeId().v())
         meinAuthService.execute(meinDriveService);
         System.out.println("DriveBootLoader.boot");
         meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));

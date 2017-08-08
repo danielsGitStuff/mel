@@ -493,7 +493,7 @@ public class MeinAuthService {
             this.addMeinAuthAdmin(admin);
     }
 
-    public void onMessageFromService(MeinService meinService, MeinNotification notification) {
+    public void onNotificationFromService(MeinService meinService, MeinNotification notification) {
         for (MeinAuthAdmin admin : meinAuthAdmins)
             admin.onNotificationFromService(meinService, notification);
     }

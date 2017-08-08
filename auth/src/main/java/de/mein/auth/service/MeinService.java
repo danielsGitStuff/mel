@@ -44,6 +44,10 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         executorService = createExecutorService(threadFactory);
     }
 
+    public MeinAuthService getMeinAuthService() {
+        return meinAuthService;
+    }
+
     public File getServiceInstanceWorkingDirectory() {
         return serviceInstanceWorkingDirectory;
     }

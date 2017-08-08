@@ -14,6 +14,8 @@ import java.util.List;
 
 import de.mein.android.AndroidInjector;
 import de.mein.android.AndroidRegHandler;
+import de.mein.android.ConflictPopupActivity;
+import de.mein.android.drive.data.AndroidDriveStrings;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
@@ -31,6 +33,7 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSyncListener;
 import de.mein.android.drive.boot.AndroidDriveBootLoader;
+import de.mein.drive.service.MeinDriveClientService;
 import de.mein.sql.RWLock;
 
 
@@ -199,7 +202,6 @@ public class AndroidService extends Service {
                 meinAuthService.addRegisteredHandler(registeredHandler);
                 Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
                 System.out.println(t1);
-                admin.onNotificationFromService(null, new MeinNotification("test.uuid", "test.intention", "Test", "nothing to say here"));
             });
         });
         return promise;

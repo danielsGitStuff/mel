@@ -1,5 +1,6 @@
 package de.mein.android.service;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,13 +11,23 @@ import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
+import java.security.SecureRandom;
+
 import de.mein.R;
-import de.mein.android.PopupActivity;
+import de.mein.android.ConflictPopupActivity;
+import de.mein.android.boot.AndroidBootLoader;
+import de.mein.android.drive.boot.AndroidDriveBootLoader;
+import de.mein.android.drive.data.AndroidDriveStrings;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
+import de.mein.auth.data.db.Service;
+import de.mein.auth.data.db.ServiceType;
+import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinService;
+import de.mein.drive.data.DriveStrings;
 
 /**
  * Created by xor on 07.08.2017.
@@ -48,18 +59,34 @@ public class AndroidAdmin implements MeinAuthAdmin {
 
     @Override
     public void onNotificationFromService(MeinService meinService, MeinNotification meinNotification) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
-        Intent intent = new Intent(context, PopupActivity.class);
-        intent.putExtra(MeinStrings.Notifications.SERVICE_UUID, meinNotification.getServiceUuid());
-        intent.putExtra(MeinStrings.Notifications.INTENTION, meinNotification.getIntention());
-        intent.putExtra(MeinStrings.Notifications.EXTRA,meinNotification.getExtra());
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 666, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = builder.setSmallIcon(R.drawable.ic_menu_add)
-                .setContentTitle(meinNotification.getTitle())
-                .setContentText(meinNotification.getText())
-                .setContentIntent(pendingIntent)
-                .build();
-        notificationManager.notify(666, notification);
+        try {
+            MeinAuthService meinAuthService = meinService.getMeinAuthService();
+            Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
+            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());
+            BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
+            int requestCode = new SecureRandom().nextInt();
+            String intention = meinNotification.getIntention();
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
+            Intent intent = new Intent(context, ConflictPopupActivity.class);
+            intent.putExtra(MeinStrings.Notifications.SERVICE_UUID, meinNotification.getServiceUuid());
+            intent.putExtra(MeinStrings.Notifications.INTENTION, intention);
+            intent.putExtra(DriveStrings.Notifications.REQUEST_CODE, requestCode);
+            if (bootloader instanceof AndroidBootLoader) {
+                AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootloader;
+                Class activityClass = androidBootLoader.getNotificationConsumerActivityClass(meinService, intention, meinNotification);
+                intent.putExtra(AndroidDriveStrings.Notifications.ACTIVITY_CLASS, activityClass);
+            }
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Notification notification = builder.setSmallIcon(R.drawable.ic_menu_add)
+                    .setContentTitle(meinNotification.getTitle())
+                    .setContentText(meinNotification.getText())
+                    .setContentIntent(pendingIntent)
+                    .build();
+            notificationManager.notify(666, notification);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override

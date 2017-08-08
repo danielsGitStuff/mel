@@ -39,7 +39,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.mein.android.CertActivity" />
         </activity>
-        <activity android:name="de.mein.android.PopupActivity"></activity>
+        <activity android:name="de.mein.android.ConflictPopupActivity"></activity>
     </application>
 
 </manifest>

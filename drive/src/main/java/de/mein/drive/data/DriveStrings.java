@@ -32,5 +32,6 @@ public abstract class DriveStrings {
 
     public class Notifications {
         public static final String CONFLICT_DETECTED = "drive.conflict.detected";
+        public static final String REQUEST_CODE = "drive.notification.id";
     }
 }

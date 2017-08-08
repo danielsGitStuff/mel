@@ -1,6 +1,11 @@
 package de.mein.auth;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import de.mein.core.serialize.SerializableEntity;
+import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
+import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
@@ -13,7 +18,7 @@ public class MeinNotification {
     private Object content;
     private final String serviceUuid;
     private final String intention;
-    private String serializedExtra;
+    private Map<String, Object> extras = new HashMap<>();
 
     /**
      * @param serviceUuid source of the notification
@@ -26,6 +31,11 @@ public class MeinNotification {
         this.intention = intention;
         this.text = text;
         this.title = title;
+    }
+
+    public MeinNotification(String serviceUuid, String intention, String title, String text, Object content) {
+        this(serviceUuid, intention, title, text);
+        this.content = content;
     }
 
     public String getText() {
@@ -60,15 +70,26 @@ public class MeinNotification {
     /**
      * If you want to consume a data object later(eg. fill a table with its content) you can store it as an extra here. Note: The extra will be serialized.<br>
      * Android likes this.
+     *
      * @param extra
      * @throws JsonSerializationException
      * @throws IllegalAccessException
      */
-    public void setExtra(SerializableEntity extra) throws JsonSerializationException, IllegalAccessException {
-        this.serializedExtra = SerializableEntitySerializer.serialize(extra);
+    public void addSerializedExtra(String key, SerializableEntity extra) throws JsonSerializationException, IllegalAccessException {
+        String json = SerializableEntitySerializer.serialize(extra);
+        extras.put(key, json);
     }
 
-    public String getExtra() {
-        return serializedExtra;
+    public SerializableEntity getSerializedExtra(String key) throws JsonDeserializationException {
+        return SerializableEntityDeserializer.deserialize((String) extras.get(key));
+    }
+
+    public Object getExtra(String key) {
+        return extras.get(key);
+    }
+
+    public MeinNotification addExtra(String key, Object value) {
+        extras.put(key, value);
+        return this;
     }
 }

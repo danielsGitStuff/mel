@@ -29,6 +29,7 @@ import java.util.List;
 import de.mein.R;
 import de.mein.android.controller.OthersController;
 import de.mein.android.service.AndroidService;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
@@ -256,6 +257,9 @@ public class MainActivity extends MeinActivity {
                     serviceCreated.done(meinDriveClientService -> {
                                 N.r(() -> {
                                     System.out.println("successssss");
+                                    // for testing only
+                                    MeinNotification meinNotification = new MeinNotification("test.uuid", "test.intention", "Test", "nothing to say here");
+                                    meinAuthService.onNotificationFromService(meinDriveClientService, meinNotification);
                                     meinDriveClientService.syncThisClient();
                                 });
                             }

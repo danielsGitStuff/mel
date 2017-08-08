@@ -2,7 +2,6 @@ package de.mein.drive.service;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.MeinNotification;
-import de.mein.auth.MeinStrings;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceMessageHandlerJob;
 import de.mein.auth.service.MeinAuthService;
@@ -186,7 +185,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         System.out.println("MeinDriveClientService.onConflicts.oj9h034800");
         MeinNotification notification = new MeinNotification(uuid, DriveStrings.Notifications.CONFLICT_DETECTED, "Conflict detected", "here we go");
         notification.setContent(conflictSolver);
-        meinAuthService.onMessageFromService(this, notification);
+        meinAuthService.onNotificationFromService(this, notification);
     }
 
     /**

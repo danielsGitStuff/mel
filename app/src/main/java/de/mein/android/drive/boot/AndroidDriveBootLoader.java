@@ -2,21 +2,26 @@ package de.mein.android.drive.boot;
 
 import android.Manifest;
 import android.app.Activity;
+import android.support.annotation.NonNull;
 import android.view.View;
 
 import org.jdeferred.Promise;
 
 import de.mein.R;
+import de.mein.android.ConflictPopupActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.Threadder;
 import de.mein.android.drive.controller.AndroidDriveCreateGuiController;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
+import de.mein.auth.service.MeinService;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveClientService;
 
 /**
@@ -62,6 +67,13 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
         // check for permission if necessary
         activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
+    }
+
+    @Override
+    public Class getNotificationConsumerActivityClass(@NonNull MeinService meinService, @NonNull String intention, @NonNull MeinNotification meinNotification) {
+        if (meinService.getClass().equals(MeinDriveClientService.class) && intention.equals(DriveStrings.Notifications.CONFLICT_DETECTED))
+            return ConflictPopupActivity.class;
+        return null;
     }
 
 }
