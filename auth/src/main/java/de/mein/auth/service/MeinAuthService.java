@@ -5,6 +5,7 @@ import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.MeinAuthSettings;
@@ -58,10 +59,6 @@ import java.util.logging.Logger;
 public class MeinAuthService {
 
     private static Logger logger = Logger.getLogger(MeinAuthService.class.getName());
-    public static final String SERVICE_NAME = "meinauth";
-    public static final String INTENT_REGISTER = "reg";
-    public static final String INTENT_AUTH = "auth";
-    public static final String INTENT_GET_SERVICES = "getservices";
     private final MeinAuthSettings settings;
     private MeinAuthWorker meinAuthWorker;
     protected final CertificateManager certificateManager;
@@ -196,7 +193,7 @@ public class MeinAuthService {
 
     public Request<MeinServicesPayload> getAllowedServices(Long certificateId) throws JsonSerializationException, IllegalAccessException {
         MeinValidationProcess validationProcess = connectedEnvironment.getValidationProcess(certificateId);
-        Request<MeinServicesPayload> promise = validationProcess.request(MeinAuthService.SERVICE_NAME, MeinAuthService.INTENT_GET_SERVICES, null);
+        Request<MeinServicesPayload> promise = validationProcess.request(MeinStrings.SERVICE_NAME, MeinStrings.msg.INTENT_GET_SERVICES, null);
         return promise;
     }
 

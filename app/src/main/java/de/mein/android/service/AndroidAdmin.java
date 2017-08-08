@@ -13,9 +13,10 @@ import android.support.v4.app.NotificationManagerCompat;
 import de.mein.R;
 import de.mein.android.PopupActivity;
 import de.mein.auth.MeinAuthAdmin;
+import de.mein.auth.MeinNotification;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinService;
-import de.mein.auth.tools.N;
 
 /**
  * Created by xor on 07.08.2017.
@@ -46,15 +47,19 @@ public class AndroidAdmin implements MeinAuthAdmin {
     }
 
     @Override
-    public void onMessageFromService(MeinService meinService, Object msgObject) {
+    public void onNotificationFromService(MeinService meinService, MeinNotification meinNotification) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context,666,new Intent(context, PopupActivity.class),PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent intent = new Intent(context, PopupActivity.class);
+        intent.putExtra(MeinStrings.Notifications.SERVICE_UUID, meinNotification.getServiceUuid());
+        intent.putExtra(MeinStrings.Notifications.INTENTION, meinNotification.getIntention());
+        intent.putExtra(MeinStrings.Notifications.EXTRA,meinNotification.getExtra());
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 666, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = builder.setSmallIcon(R.drawable.ic_menu_add)
-                .setContentTitle("Test x35")
-                .setContentText("Test x46")
+                .setContentTitle(meinNotification.getTitle())
+                .setContentText(meinNotification.getText())
                 .setContentIntent(pendingIntent)
                 .build();
-        notificationManager.notify(666,notification);
+        notificationManager.notify(666, notification);
     }
 
     @Override

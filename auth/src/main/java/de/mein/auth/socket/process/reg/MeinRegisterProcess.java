@@ -1,9 +1,9 @@
 package de.mein.auth.socket.process.reg;
 
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
 import de.mein.auth.tools.N;
@@ -73,7 +73,7 @@ public class MeinRegisterProcess extends MeinProcess {
         myCert.setPort(settings.getPort())
                 .setGreeting(settings.getGreeting())
                 .setCertDeliveryPort(settings.getDeliveryPort());
-        MeinRequest request = new MeinRequest(MeinAuthService.SERVICE_NAME, MeinAuthService.INTENT_REGISTER)
+        MeinRequest request = new MeinRequest(MeinStrings.SERVICE_NAME, MeinStrings.msg.INTENT_REGISTER)
                 .setCertificate(myCert)
                 .setRequestHandler(this).queue();
         for (IRegisterHandler regHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers()) {
@@ -105,7 +105,7 @@ public class MeinRegisterProcess extends MeinProcess {
             try {
                 partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().addAnswerUuid(partnerCertificate.getId().v(), certificate.getAnswerUuid().v());
                 MeinResponse response = r.reponse();
-                response.setState(MeinRegisterProcess.STATE_OK);
+                response.setState(MeinStrings.msg.STATE_OK);
                 send(response);
                 MeinRegisterProcess.this.removeThyself();
                 for (IRegisteredHandler registeredHandler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()){
@@ -134,7 +134,7 @@ public class MeinRegisterProcess extends MeinProcess {
     }
 
     public void sendConfirmation(boolean trusted) throws JsonSerializationException, IllegalAccessException {
-        MeinMessage message = new MeinMessage(MeinAuthService.SERVICE_NAME, null);
+        MeinMessage message = new MeinMessage(MeinStrings.SERVICE_NAME, null);
         if (trusted)
             message.setPayLoad(new MeinRegisterConfirm().setConfirmed(trusted).setAnswerUuid(partnerCertificate.getUuid().v()));
         else

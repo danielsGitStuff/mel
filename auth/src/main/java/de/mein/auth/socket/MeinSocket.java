@@ -1,6 +1,7 @@
 package de.mein.auth.socket;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ReceivedJob;
@@ -32,8 +33,6 @@ public class MeinSocket extends DeferredRunnable {
         isIsolated = isolated;
         return this;
     }
-
-    public static final String MODE_ISOLATE = "isolate";
 
     // 64 * 4kb + meta
     public static final int BLOCK_SIZE = 16 * 4096 + 21;
@@ -220,9 +219,9 @@ public class MeinSocket extends DeferredRunnable {
                 } else {
                     String s = in.readUTF();
                     System.out.println("   " + meinAuthService.getName() + ".MeinSocket.runTry.got: " + s);
-                    if (s.equals(MODE_ISOLATE) && allowIsolation) {
+                    if (s.equals(MeinStrings.msg.MODE_ISOLATE) && allowIsolation) {
                         if (!isIsolated)
-                            send(MODE_ISOLATE);
+                            send(MeinStrings.msg.MODE_ISOLATE);
                         else
                             listener.onIsolated();
                         isIsolated = true;

@@ -29,4 +29,8 @@ public abstract class DriveStrings {
     public static final String STAGESET_STATUS_STAGING = "staging";
     public static final String STAGESET_STATUS_STAGED = "staged";
     public static final String STAGESET_STATUS_SERVER_COMMITED = "server.com.done";
+
+    public class Notifications {
+        public static final String CONFLICT_DETECTED = "drive.conflict.detected";
+    }
 }

@@ -14,6 +14,7 @@ import java.util.List;
 
 import de.mein.android.AndroidInjector;
 import de.mein.android.AndroidRegHandler;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
@@ -198,7 +199,7 @@ public class AndroidService extends Service {
                 meinAuthService.addRegisteredHandler(registeredHandler);
                 Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
                 System.out.println(t1);
-                admin.onMessageFromService(null, null);
+                admin.onNotificationFromService(null, new MeinNotification("test.uuid", "test.intention", "Test", "nothing to say here"));
             });
         });
         return promise;

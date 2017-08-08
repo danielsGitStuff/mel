@@ -2,6 +2,7 @@ package de.mein.drive.service;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.MeinNotification;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceMessageHandlerJob;
 import de.mein.auth.service.MeinAuthService;
@@ -21,11 +22,10 @@ import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.StageSet;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -184,7 +184,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     public void onConflicts(ConflictSolver conflictSolver) {
         System.out.println("MeinDriveClientService.onConflicts.oj9h034800");
-        MeinNotification notification = new MeinNotification("Conflict detected", "here we go");
+        MeinNotification notification = new MeinNotification(uuid, DriveStrings.Notifications.CONFLICT_DETECTED, "Conflict detected", "here we go");
         notification.setContent(conflictSolver);
         meinAuthService.onMessageFromService(this, notification);
     }

@@ -1,10 +1,10 @@
 package de.mein.auth.socket.process.val;
 
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.IMeinService;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
 import de.mein.auth.socket.process.auth.MeinAuthProcess;
@@ -121,8 +121,8 @@ public class MeinValidationProcess extends MeinProcess {
     private boolean handleGetServices(SerializableEntity deserialized) throws JsonSerializationException, IllegalAccessException, SqlQueriesException {
         if (deserialized instanceof MeinRequest) {
             MeinRequest request = (MeinRequest) deserialized;
-            if (request.getServiceUuid().equals(MeinAuthService.SERVICE_NAME)
-                    && request.getIntent().equals(MeinAuthService.INTENT_GET_SERVICES)) {
+            if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME)
+                    && request.getIntent().equals(MeinStrings.msg.INTENT_GET_SERVICES)) {
                 MeinResponse response = request.reponse();
                 MeinAuthProcess.addAllowedServicesJoinTypes(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
                 send(response);

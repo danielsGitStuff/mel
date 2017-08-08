@@ -1,8 +1,6 @@
 package de.mein.auth.data;
 
-import java.io.Serializable;
-
-import de.mein.auth.socket.MeinProcess;
+import de.mein.auth.MeinStrings;
 import de.mein.core.serialize.SerializableEntity;
 
 /**
@@ -10,7 +8,7 @@ import de.mein.core.serialize.SerializableEntity;
  */
 public abstract class StateMsg implements SerializableEntity {
 
-    protected String state = MeinProcess.STATE_OK;
+    protected String state = MeinStrings.msg.STATE_OK;
     protected IPayload payload;
 
 

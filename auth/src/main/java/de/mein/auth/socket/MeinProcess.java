@@ -1,5 +1,6 @@
 package de.mein.auth.socket;
 
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
 import de.mein.core.serialize.SerializableEntity;
@@ -17,8 +18,6 @@ import java.util.logging.Logger;
  */
 public abstract class MeinProcess implements IRequestHandler {
     private static Logger logger = Logger.getLogger(MeinProcess.class.getName());
-    public static final String STATE_OK = "ok";
-    public static final String STATE_ERR = "err";
     protected MeinAuthSocket meinAuthSocket;
     protected Certificate partnerCertificate;
     protected Map<Long, Dobject> requestMap = new ConcurrentHashMap<>();
@@ -53,7 +52,7 @@ public abstract class MeinProcess implements IRequestHandler {
             StateMsg msg = (StateMsg) deserialized;
             Dobject deferred = requestMap.get(answerId);
             this.requestMap.remove(answerId);
-            if (!msg.getState().equals(STATE_OK)) {
+            if (!msg.getState().equals(MeinStrings.msg.STATE_OK)) {
                 if (msg.getPayload() != null)
                     deferred.reject((Exception) msg.getPayload());
                 else

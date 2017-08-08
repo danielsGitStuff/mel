@@ -1,5 +1,6 @@
 package de.mein.auth.socket;
 
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.AConnectJob;
@@ -100,13 +101,13 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
                 process.onMessageReceived(deserialized, this);
             } else if (deserialized instanceof MeinRequest) {
                 MeinRequest request = (MeinRequest) deserialized;
-                if (request.getServiceUuid().equals(MeinAuthService.SERVICE_NAME) &&
-                        request.getIntent().equals(MeinAuthService.INTENT_REGISTER)) {
+                if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME) &&
+                        request.getIntent().equals(MeinStrings.msg.INTENT_REGISTER)) {
                     MeinRegisterProcess meinRegisterProcess = new MeinRegisterProcess(this);
                     process = meinRegisterProcess;
                     meinRegisterProcess.onMessageReceived(deserialized, this);
-                } else if (request.getServiceUuid().equals(MeinAuthService.SERVICE_NAME) &&
-                        request.getIntent().equals(MeinAuthService.INTENT_AUTH)) {
+                } else if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME) &&
+                        request.getIntent().equals(MeinStrings.msg.INTENT_AUTH)) {
                     MeinAuthProcess meinAuthProcess = new MeinAuthProcess(this);
                     process = meinAuthProcess;
                     meinAuthProcess.onMessageReceived(deserialized, this);

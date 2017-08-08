@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.auth;
 
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.IsolationDetails;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.MeinResponse;
@@ -110,7 +111,7 @@ public class MeinAuthProcess extends MeinProcess {
                                         send(response);
                                     }
                                 } else {
-                                    response.setState(MeinProcess.STATE_ERR);
+                                    response.setState(MeinStrings.msg.STATE_ERR);
                                     send(response);
                                 }
                             } catch (Exception e) {
@@ -167,7 +168,7 @@ public class MeinAuthProcess extends MeinProcess {
 //        }
             this.mySecret = UUID.randomUUID().toString();
             byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
-            MeinRequest request = new MeinRequest(MeinAuthService.SERVICE_NAME, MeinAuthService.INTENT_AUTH)
+            MeinRequest request = new MeinRequest(MeinStrings.SERVICE_NAME, MeinStrings.msg.INTENT_AUTH)
                     .setRequestHandler(this).queue().setSecret(secret)
                     .setUserUuid(partnerCertificate.getAnswerUuid().v());
             if (job instanceof IsolatedConnectJob) {

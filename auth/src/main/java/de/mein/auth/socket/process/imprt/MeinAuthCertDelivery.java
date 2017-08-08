@@ -1,6 +1,7 @@
 package de.mein.auth.socket.process.imprt;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.MeinResponse;
 import de.mein.auth.data.access.CertificateManager;
@@ -27,8 +28,6 @@ import java.util.logging.Logger;
 public class MeinAuthCertDelivery extends DeferredRunnable {
     private static Logger logger = Logger.getLogger(MeinAuthCertDelivery.class.getName());
     protected ServerSocket serverSocket;
-    public static final String GET_CERT_ANSWER = "getCert.answer";
-    public static final String GET_CERT = "getCert";
     private final CertificateManager certificateManager;
     protected DataOutputStream out;
     protected DataInputStream in;
@@ -55,7 +54,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
                 try {
                     logger.log(Level.FINEST, meinAuthService.getName() + ".MeinAuthCertDelivery.onMessage.got: " + messageString);
                     MeinRequest request = (MeinRequest) new SerializableEntityDeserializer().deserialize(messageString);
-                    if (request.getServiceUuid().equals(MeinAuthService.SERVICE_NAME) && request.getIntent().equals(GET_CERT)) {
+                    if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME) && request.getIntent().equals(MeinStrings.msg.GET_CERT)) {
                         X509Certificate x509Certificate = certificateManager.getMyX509Certificate();
                         Certificate certificate = new Certificate();
                         certificate.setCertificate(x509Certificate.getEncoded());
@@ -105,7 +104,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
     }
 
     public static MeinRequest createCertDeliveryGet() {
-        return new MeinRequest(MeinAuthService.SERVICE_NAME, GET_CERT);
+        return new MeinRequest(MeinStrings.SERVICE_NAME, MeinStrings.msg.GET_CERT);
     }
 
 

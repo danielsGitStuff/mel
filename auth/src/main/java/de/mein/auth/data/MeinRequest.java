@@ -1,7 +1,7 @@
 package de.mein.auth.data;
 
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.socket.MeinProcess;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
@@ -140,7 +140,7 @@ public class MeinRequest extends MeinMessage {
     }
 
     public MeinResponse respondError(Exception e) {
-        MeinResponse response = reponse().setState(MeinProcess.STATE_ERR);
+        MeinResponse response = reponse().setState(MeinStrings.msg.STATE_ERR);
         if (e instanceof ResponseException) {
             response.setPayLoad((IPayload) e);
         } else {

@@ -1,9 +1,9 @@
 package de.mein.auth.socket.process.transfer;
 
+import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
-import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.tools.ByteTools;
 import de.mein.core.serialize.SerializableEntity;
 import org.jdeferred.Promise;
@@ -68,7 +68,7 @@ public abstract class MeinIsolatedProcess extends MeinProcess{
 
     public Promise<Void, Exception, Void> sendIsolate() {
         System.out.println("MeinIsolatedProcess.sendIsolate");
-        meinAuthSocket.send(MeinSocket.MODE_ISOLATE);
+        meinAuthSocket.send(MeinStrings.msg.MODE_ISOLATE);
         meinAuthSocket.setIsolated(true);
         return isolatedPromise;
     }
