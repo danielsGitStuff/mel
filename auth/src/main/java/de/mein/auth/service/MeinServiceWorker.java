@@ -30,16 +30,6 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
         return isolatedProcessMap.get(key);
     }
 
-    protected String uuid;
-
-
-
-
-    @Override
-    public String getUuid() {
-        return uuid;
-    }
-
     @Override
     public void runImpl() {
         try {
