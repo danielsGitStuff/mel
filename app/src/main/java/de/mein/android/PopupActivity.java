@@ -7,12 +7,13 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import de.mein.R;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IMeinService;
-import de.mein.auth.service.MeinService;
+import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveStrings;
 
 public abstract class PopupActivity<T extends IMeinService> extends AppCompatActivity {
@@ -21,6 +22,11 @@ public abstract class PopupActivity<T extends IMeinService> extends AppCompatAct
     protected AndroidService androidService;
     protected String serviceUuid;
     protected T service;
+    protected N runner = new N(e -> {
+        Context context = getApplicationContext();
+        Toast toast = Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG);
+        toast.show();
+    });
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
@@ -47,7 +53,7 @@ public abstract class PopupActivity<T extends IMeinService> extends AppCompatAct
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_popup);
+        setContentView(R.layout.activity_conflict_popup);
         Bundle extra = getIntent().getExtras();
         requestCode = extra.getInt(DriveStrings.Notifications.REQUEST_CODE);
         serviceUuid = extra.getString(MeinStrings.Notifications.SERVICE_UUID);

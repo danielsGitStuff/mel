@@ -23,6 +23,14 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
     protected void onServiceConnected() {
         conflictSolverMap = service.getConflictSolverMap();
         listView = findViewById(R.id.listView);
+        for (ConflictSolver conflictSolver : conflictSolverMap.values()) {
+            runner.runTry(() -> {
+                if (conflictSolver.hasConflicts() && conflictSolver.isSolved()) {
+
+                }
+            });
+
+        }
     }
 
     @Override
