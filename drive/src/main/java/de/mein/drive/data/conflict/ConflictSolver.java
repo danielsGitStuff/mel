@@ -275,12 +275,15 @@ public class ConflictSolver extends SyncStageMerger {
 
             File solvedFile = stageDao.getFileByStage(solvedStage);
             File solvedParent = solvedFile.getParentFile();
-            if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
+
+            if (deletedParents.containsKey(solvedParent.getAbsolutePath()) || deletedParents.containsKey(solvedFile.getAbsolutePath())){
                 solvedStage.setFsId(null);
-                solvedStage.setFsParentId(null);
+                if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
+                    solvedStage.setFsParentId(null);
+                }
+                if (!solvedStage.getIsDirectory())
+                    solvedStage.setSynced(false);
             }
-            if (deletedParents.containsKey(solvedFile.getAbsolutePath()))
-                solvedStage.setFsId(null);
             // adjust ids
             Long oldeId = solvedStage.getId();
             solvedStage.setMerged(false);
