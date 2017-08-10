@@ -46,7 +46,6 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
         this.meinDriveClientService = (MeinDriveClientService) meinService;
         stage.setTitle(notification.getTitle());
         conflictSolver = (ConflictSolver) notification.getContent();
-        meinDriveClientService.addConflictSolver(conflictSolver);
         System.out.println("DriveFXConflictSolverController.init");
         AbstractMergeListCell.setup(listLeft, listMerge, listRight);
         List<Conflict> conflicts = prepareConflicts(conflictSolver.getConflicts());

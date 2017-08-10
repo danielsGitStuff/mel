@@ -349,6 +349,7 @@ public class SQLQueries extends ISQLQueries {
     @Override
     public Long insertWithAttributes(SQLTableObject sqlTableObject, List<Pair<?>> attributes) throws SqlQueriesException {
         lockWrite();
+        Boolean next;
         out("insert()");
         String query = null;
         String fromTable = sqlTableObject.getTableName();
@@ -383,7 +384,7 @@ public class SQLQueries extends ISQLQueries {
             }
             pstmt.executeUpdate();
             ResultSet resultSet = pstmt.getGeneratedKeys();
-            resultSet.next();
+            next = resultSet.next();
             if (resultSet.getRow() > 0) {
                 Object id = resultSet.getObject(1);
                 if (id instanceof Integer)

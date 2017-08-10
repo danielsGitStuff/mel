@@ -53,7 +53,6 @@ public class DriveFXConflictSolverController extends PopupContentFX implements I
         this.meinDriveClientService = (MeinDriveClientService) meinService;
         stage.setTitle(notification.getTitle());
         conflictSolver = (ConflictSolver) notification.getContent();
-        meinDriveClientService.addConflictSolver(conflictSolver);
         TreeItem<Conflict> root = new TreeItem<>(new Conflict());
         treeTableView.setRoot(root);
 
