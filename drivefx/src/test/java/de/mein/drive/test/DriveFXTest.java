@@ -147,6 +147,7 @@ public class DriveFXTest {
         File testdir = new File("testdir1");
         CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        TestDirCreator.createTestDir(testdir);
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
