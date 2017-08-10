@@ -1,6 +1,5 @@
 package de.mein.android.service;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -14,18 +13,15 @@ import android.support.v4.app.NotificationManagerCompat;
 import java.security.SecureRandom;
 
 import de.mein.R;
-import de.mein.android.ConflictPopupActivity;
+import de.mein.android.PopupActivity;
 import de.mein.android.boot.AndroidBootLoader;
-import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.android.drive.data.AndroidDriveStrings;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
-import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinService;
 import de.mein.drive.data.DriveStrings;
 
@@ -66,7 +62,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
             int requestCode = new SecureRandom().nextInt();
             String intention = meinNotification.getIntention();
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
-            Intent intent = new Intent(context, ConflictPopupActivity.class);
+            Intent intent = new Intent(context, PopupActivity.class);
             intent.putExtra(MeinStrings.Notifications.SERVICE_UUID, meinNotification.getServiceUuid());
             intent.putExtra(MeinStrings.Notifications.INTENTION, intention);
             intent.putExtra(DriveStrings.Notifications.REQUEST_CODE, requestCode);

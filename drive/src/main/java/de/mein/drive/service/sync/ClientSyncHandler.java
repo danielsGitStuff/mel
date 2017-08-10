@@ -36,7 +36,6 @@ public class ClientSyncHandler extends SyncHandler {
     private DriveSyncListener syncListener;
     private MeinDriveClientService meinDriveService;
     private Map<String, ConflictSolver> conflictSolverMap = new HashMap<>();
-    private List<ConflictSolver> conflictSolvers = new ArrayList<>();
 
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
@@ -46,10 +45,6 @@ public class ClientSyncHandler extends SyncHandler {
     public ClientSyncHandler(MeinAuthService meinAuthService, MeinDriveClientService meinDriveService) {
         super(meinAuthService, meinDriveService);
         this.meinDriveService = meinDriveService;
-    }
-
-    public void addConflictSolver(ConflictSolver conflictSolver) {
-        conflictSolvers.add(conflictSolver);
     }
 
 
@@ -605,5 +600,9 @@ public class ClientSyncHandler extends SyncHandler {
         for (ConflictSolver solver : conflictSolverMap.values()) {
             solver.checkObsolete(lStageSetId, rStageSetId);
         }
+    }
+
+    public Map<String, ConflictSolver> getConflictSolverMap() {
+        return conflictSolverMap;
     }
 }

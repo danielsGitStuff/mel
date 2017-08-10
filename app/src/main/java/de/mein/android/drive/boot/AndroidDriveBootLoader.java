@@ -8,7 +8,7 @@ import android.view.View;
 import org.jdeferred.Promise;
 
 import de.mein.R;
-import de.mein.android.ConflictPopupActivity;
+import de.mein.android.PopupActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.Threadder;
@@ -72,7 +72,7 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
     @Override
     public Class getNotificationConsumerActivityClass(@NonNull MeinService meinService, @NonNull String intention, @NonNull MeinNotification meinNotification) {
         if (meinService.getClass().equals(MeinDriveClientService.class) && intention.equals(DriveStrings.Notifications.CONFLICT_DETECTED))
-            return ConflictPopupActivity.class;
+            return PopupActivity.class;
         return null;
     }
 
