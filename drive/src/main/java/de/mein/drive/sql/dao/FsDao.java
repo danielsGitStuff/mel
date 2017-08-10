@@ -501,7 +501,7 @@ public class FsDao extends Dao {
         return sqlQueries.loadResource(fsFile.getAllAttributes(), FsFile.class, where, ISQLQueries.whereArgs(false));
     }
 
-    public FsEntry getGenericSubByName(Long parentId, String name) throws SqlQueriesException {
+    public GenericFSEntry getGenericSubByName(Long parentId, String name) throws SqlQueriesException {
         GenericFSEntry genericFSEntry = new GenericFSEntry();
         String where = genericFSEntry.getParentId().k() + " =? and " + genericFSEntry.getName().k() + "=?";
         List<GenericFSEntry> gens = sqlQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, ISQLQueries.whereArgs(parentId, name));

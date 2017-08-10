@@ -14,8 +14,6 @@ import java.util.List;
 
 import de.mein.android.AndroidInjector;
 import de.mein.android.AndroidRegHandler;
-import de.mein.android.ConflictPopupActivity;
-import de.mein.android.drive.data.AndroidDriveStrings;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;

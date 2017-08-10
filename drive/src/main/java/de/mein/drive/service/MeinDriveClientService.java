@@ -25,6 +25,7 @@ import de.mein.sql.SqlQueriesException;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -107,10 +108,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             N.r(() -> syncHandler.syncThisClient());
         }
         return false;
-    }
-
-    public void addConflictSolver(ConflictSolver conflictSolver) {
-        syncHandler.addConflictSolver(conflictSolver);
     }
 
 
@@ -198,5 +195,9 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
      */
     public void onStageSetsMerged(Long lStageSetId, Long rStageSetId, StageSet mergedStageSet) {
         syncHandler.onStageSetsMerged(lStageSetId, rStageSetId, mergedStageSet);
+    }
+
+    public Map<String, ConflictSolver> getConflictSolverMap() {
+        return syncHandler.getConflictSolverMap();
     }
 }
