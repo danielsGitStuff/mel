@@ -2,12 +2,17 @@ package de.mein.android.drive;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 
+import java.util.List;
 import java.util.Map;
 
 import de.mein.R;
 import de.mein.android.PopupActivity;
+import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.service.MeinDriveClientService;
 
@@ -18,6 +23,7 @@ import de.mein.drive.service.MeinDriveClientService;
 public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService> {
     private Map<String, ConflictSolver> conflictSolverMap;
     private ListView listView;
+    private ListAdapter listAdapter;
 
     @Override
     protected void onServiceConnected() {
@@ -26,7 +32,10 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
         for (ConflictSolver conflictSolver : conflictSolverMap.values()) {
             runner.runTry(() -> {
                 if (conflictSolver.hasConflicts() && conflictSolver.isSolved()) {
-
+                    List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
+                    listAdapter = new ArrayAdapter<Conflict>(getApplicationContext(), R.layout.listitem_conflict);
+                    listView.setAdapter(listAdapter);
+                    listAdapter.
                 }
             });
 
