@@ -13,6 +13,10 @@ import java.util.List;
  */
 public class TestDirCreator {
     public static List<String> createTestDir(File testDir) throws IOException {
+        return createTestDir(testDir, "");
+    }
+
+    public static List<String> createTestDir(File testDir, String appendix) throws IOException {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
@@ -26,7 +30,7 @@ public class TestDirCreator {
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
 
         File sub2txt = new File(sub1.getPath() + File.separator + "sub2.txt");
-        TestFileCreator.saveFile("sub2.txt text".getBytes(), sub2txt);
+        TestFileCreator.saveFile(("sub2.txt text" + appendix).getBytes(), sub2txt);
 
         File sub22 = new File(sub2.getPath() + File.separator + "sub22");
         sub22.mkdirs();

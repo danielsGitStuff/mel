@@ -30,7 +30,6 @@ public class ApprovalCBListAdapter extends BaseAdapter {
     public ApprovalCBListAdapter(Context context) {
         this.context = context;
         this.layoutInflator = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
     }
 
     @Override

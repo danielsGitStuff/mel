@@ -44,6 +44,7 @@ import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.jobs.CommitJob;
+import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.android.controller.GeneralController;
 import de.mein.android.controller.CreateServiceController;
@@ -59,13 +60,13 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 
 public class MainActivity extends MeinActivity {
-    //shell pm uninstall de.mein.meindrive
     private LinearLayout content;
     private Toolbar toolbar;
     private AndroidService androidService;
     private boolean mBound = false;
     private GuiController guiController;
     private NavigationView navigationView;
+    private File driveDir = new File("/sdcard/Download/drive");
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -103,11 +104,13 @@ public class MainActivity extends MeinActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        BashTools.init();
+        N.r(() -> BashTools.rmRf(driveDir));
         setContentView(R.layout.activity_main);
-        content = (LinearLayout) findViewById(R.id.content);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        content = findViewById(R.id.content);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -116,7 +119,7 @@ public class MainActivity extends MeinActivity {
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
@@ -129,7 +132,7 @@ public class MainActivity extends MeinActivity {
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         showGeneral();
         System.out.println();
@@ -137,7 +140,7 @@ public class MainActivity extends MeinActivity {
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -257,19 +260,15 @@ public class MainActivity extends MeinActivity {
                 Promise<Void, Void, Void> permissionsGranted = MainActivity.this.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
                 permissionsGranted.done(nil -> Threadder.runNoTryThread(() -> {
                     DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
-                    File dir = new File("/sdcard/Download/drive");
-                    File[] content = dir.listFiles();
-                    if (content != null)
-                        for (File f : content)
-                            BashTools.rmRf(f);
-                    dir.mkdirs();
+                    driveDir.mkdirs();
+                    TestDirCreator.createTestDir(driveDir," kek");
                     Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
-                            dir.getAbsolutePath(),
+                            driveDir.getAbsolutePath(),
                             meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v());
                     serviceCreated.done(meinDriveClientService -> {
                                 N.r(() -> {
                                     System.out.println("successssss");
-                                    meinDriveClientService.setSyncListener(new DriveSyncListener() {
+                                    DriveSyncListener syncListener = new DriveSyncListener() {
                                         @Override
                                         public void onSyncFailed() {
 
@@ -332,9 +331,9 @@ public class MainActivity extends MeinActivity {
                                         public void onSyncDoneImpl() {
 
                                         }
-                                    });
+                                    };
+                                    //meinDriveClientService.setSyncListener(syncListener);
                                     meinDriveClientService.syncThisClient();
-
                                 });
                             }
                     );

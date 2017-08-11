@@ -12,6 +12,7 @@ import java.util.Map;
 
 import de.mein.R;
 import de.mein.android.PopupActivity;
+import de.mein.android.drive.view.ConflictListAdapter;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.service.MeinDriveClientService;
@@ -33,9 +34,8 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
             runner.runTry(() -> {
                 if (conflictSolver.hasConflicts() && conflictSolver.isSolved()) {
                     List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
-                    listAdapter = new ArrayAdapter<Conflict>(getApplicationContext(), R.layout.listitem_conflict);
+                    listAdapter = new ConflictListAdapter(getApplicationContext(),conflicts);
                     listView.setAdapter(listAdapter);
-                    listAdapter.
                 }
             });
 
