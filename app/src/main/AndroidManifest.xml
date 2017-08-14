@@ -27,6 +27,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".android.drive.ConflictsPopupActivity"/>
+
         <service
             android:name="de.mein.android.service.AndroidService"
             android:exported="true" />
@@ -39,7 +41,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.mein.android.CertActivity" />
         </activity>
-        <activity android:name="de.mein.android.PopupActivity"></activity>
     </application>
 
 </manifest>

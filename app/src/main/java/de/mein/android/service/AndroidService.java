@@ -200,9 +200,6 @@ public class AndroidService extends Service {
                 meinAuthService.addRegisteredHandler(registeredHandler);
                 Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
                 System.out.println(t1);
-                // for testing only
-                MeinNotification meinNotification = new MeinNotification("test.uuid", "test.intention", "Test", "nothing to say here");
-                meinAuthService.onNotificationFromService(new MeinDriveClientService(meinAuthService,null,1L, "test.uuid"), meinNotification);
             });
         });
         return promise;

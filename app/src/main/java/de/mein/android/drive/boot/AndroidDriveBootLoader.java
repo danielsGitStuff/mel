@@ -12,6 +12,7 @@ import de.mein.android.PopupActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.Threadder;
+import de.mein.android.drive.ConflictsPopupActivity;
 import de.mein.android.drive.controller.AndroidDriveCreateGuiController;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.service.IMeinService;
@@ -67,13 +68,6 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
         // check for permission if necessary
         activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
-    }
-
-    @Override
-    public Class getNotificationConsumerActivityClass(@NonNull MeinService meinService, @NonNull String intention, @NonNull MeinNotification meinNotification) {
-        if (meinService.getClass().equals(MeinDriveClientService.class) && intention.equals(DriveStrings.Notifications.CONFLICT_DETECTED))
-            return PopupActivity.class;
-        return null;
     }
 
 }

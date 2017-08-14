@@ -62,15 +62,11 @@ public class AndroidAdmin implements MeinAuthAdmin {
             int requestCode = new SecureRandom().nextInt();
             String intention = meinNotification.getIntention();
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
-            Intent intent = new Intent(context, PopupActivity.class);
+            Class activityClass = (Class) meinNotification.getExtra(AndroidDriveStrings.Notifications.ACTIVITY_CLASS);
+            Intent intent = new Intent(context, activityClass);
             intent.putExtra(MeinStrings.Notifications.SERVICE_UUID, meinNotification.getServiceUuid());
             intent.putExtra(MeinStrings.Notifications.INTENTION, intention);
             intent.putExtra(DriveStrings.Notifications.REQUEST_CODE, requestCode);
-            if (bootloader instanceof AndroidBootLoader) {
-                AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootloader;
-                Class activityClass = androidBootLoader.getNotificationConsumerActivityClass(meinService, intention, meinNotification);
-                intent.putExtra(AndroidDriveStrings.Notifications.ACTIVITY_CLASS, activityClass);
-            }
             PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             Notification notification = builder.setSmallIcon(R.drawable.ic_menu_add)
                     .setContentTitle(meinNotification.getTitle())

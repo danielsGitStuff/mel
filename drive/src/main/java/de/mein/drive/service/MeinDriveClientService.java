@@ -182,6 +182,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         System.out.println("MeinDriveClientService.onConflicts.oj9h034800");
         MeinNotification notification = new MeinNotification(uuid, DriveStrings.Notifications.CONFLICT_DETECTED, "Conflict detected", "here we go");
         notification.setContent(conflictSolver);
+        weiter
         meinAuthService.onNotificationFromService(this, notification);
     }
 

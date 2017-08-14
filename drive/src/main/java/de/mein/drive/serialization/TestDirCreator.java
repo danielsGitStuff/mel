@@ -2,6 +2,7 @@ package de.mein.drive.serialization;
 
 
 import de.mein.auth.TestFileCreator;
+import de.mein.drive.bash.BashTools;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,11 +21,11 @@ public class TestDirCreator {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
-        testDir.mkdirs();
+        BashTools.mkdir(testDir);
         File sub1 = new File(testDir.getPath() + File.separator + "sub1");
         File sub2 = new File(testDir.getPath() + File.separator + "sub2");
-        sub1.mkdirs();
-        sub2.mkdirs();
+        BashTools.mkdir(sub1);
+        BashTools.mkdir(sub2);
 
         File sub1txt = new File(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
@@ -33,12 +34,12 @@ public class TestDirCreator {
         TestFileCreator.saveFile(("sub2.txt text" + appendix).getBytes(), sub2txt);
 
         File sub22 = new File(sub2.getPath() + File.separator + "sub22");
-        sub22.mkdirs();
+        BashTools.mkdir(sub22);
 
         File sub22txt = new File(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
         File sameDir = new File(testDir.getPath() + File.separator + "samedir");
-        sameDir.mkdirs();
+        BashTools.mkdir(sameDir);
         File same1txt = new File(sameDir.getPath() + File.separator + "same1.txt");
         File same2txt = new File(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);

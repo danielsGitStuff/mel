@@ -24,5 +24,4 @@ public interface AndroidBootLoader<T extends IMeinService> {
 
     AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, View rootView);
 
-    Class getNotificationConsumerActivityClass(MeinService meinService, String intention, MeinNotification meinNotification);
 }

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -30,6 +31,7 @@ import de.mein.R;
 import de.mein.android.controller.OthersController;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.MeinNotification;
+import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
@@ -66,7 +68,7 @@ public class MainActivity extends MeinActivity {
     private boolean mBound = false;
     private GuiController guiController;
     private NavigationView navigationView;
-    private File driveDir = new File("/sdcard/Download/drive");
+    private File driveDir;
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -104,8 +106,6 @@ public class MainActivity extends MeinActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        BashTools.init();
-        N.r(() -> BashTools.rmRf(driveDir));
         setContentView(R.layout.activity_main);
         content = findViewById(R.id.content);
         toolbar = findViewById(R.id.toolbar);
@@ -257,10 +257,17 @@ public class MainActivity extends MeinActivity {
         promise.done(meinValidationProcess -> N.r(() -> {
             Request<MeinServicesPayload> gotAllowedServices = meinAuthService.getAllowedServices(meinValidationProcess.getConnectedId());
             gotAllowedServices.done(meinServicesPayload -> N.r(() -> {
-                Promise<Void, Void, Void> permissionsGranted = MainActivity.this.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                Promise<Void, Void, Void> permissionsGranted = MainActivity.this.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
                 permissionsGranted.done(nil -> Threadder.runNoTryThread(() -> {
-                    DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
+                    BashTools.init();
+                    Thread.sleep(1000);
+                    File download = new File(Environment.getExternalStorageDirectory(),"Download");
+                    driveDir = new File(download,"drive");
+                    N.r(() -> CertificateManager.deleteDirectory(driveDir));
                     driveDir.mkdirs();
+                    driveDir.mkdir();
+                    BashTools.mkdir(driveDir);
+                    DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
                     TestDirCreator.createTestDir(driveDir," kek");
                     Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
                             driveDir.getAbsolutePath(),

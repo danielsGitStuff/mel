@@ -90,7 +90,7 @@ public class BashToolsUnix implements BashToolsImpl {
         String cmd = "find \"" + directory.getAbsolutePath() + "\"  "
                 + " -path \"" + pruneDir + "\" -prune"
                 + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print";
-        System.out.println("BashTools.stuffModifiedAfter.cmd: "+cmd);
+        System.out.println("BashTools.stuffModifiedAfter.cmd: " + cmd);
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
         ProcessBuilder processBuilder = new ProcessBuilder(args);
@@ -210,5 +210,12 @@ public class BashToolsUnix implements BashToolsImpl {
     public Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) {
         System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(");
         return null;
+    }
+
+    @Override
+    public void mkdir(File dir) throws IOException {
+        String[] args = new String[]{BIN_PATH, "-c",
+                "mkdir \"" + dir.getAbsolutePath() + "\""};
+        new ProcessBuilder(args).start();
     }
 }

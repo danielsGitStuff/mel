@@ -154,4 +154,13 @@ public class BashToolsJava implements BashToolsImpl {
     public Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException {
         return null;
     }
+
+    @Override
+    public void mkdir(File dir) throws IOException {
+        int i = 0;
+        while (!dir.exists()) {
+            dir.mkdirs();
+            System.out.println("BashToolsJava.mkdir."+i);
+        }
+    }
 }

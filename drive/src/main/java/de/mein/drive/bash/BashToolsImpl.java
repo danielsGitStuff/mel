@@ -34,4 +34,6 @@ public interface BashToolsImpl {
      Promise<Long, Exception, Void> getInode(File f);
 
     Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException;
+
+    void mkdir(File dir) throws IOException;
 }

@@ -33,7 +33,6 @@ public abstract class BashTools {
     }
 
 
-
     public static Set<Long> getINodesOfDirectory(File file) throws IOException {
         return instance.getINodesOfDirectory(file);
     }
@@ -64,15 +63,24 @@ public abstract class BashTools {
     }
 
     public static Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException {
-        return instance.stuffModifiedAfter(originalFile,pruneDir, timeStamp);
+        return instance.stuffModifiedAfter(originalFile, pruneDir, timeStamp);
     }
 
     public static void setInstance(BashToolsImpl instance) {
         BashTools.instance = instance;
     }
 
-    public static Iterator<String> inputStreamToIterator(InputStream inputStream){
+    public static Iterator<String> inputStreamToIterator(InputStream inputStream) {
         BufferedIterator bufferedReader = new BufferedIterator(new InputStreamReader(inputStream));
         return bufferedReader.iterator();
+    }
+
+    public static void mkdir(File dir) throws IOException {
+        int i = 0;
+        while (!dir.exists()) {
+            dir.mkdirs();
+            System.out.println("BashTools.mkdir(" + i + ") for " + dir.getAbsolutePath());
+        }
+        //instance.mkdir(dir);
     }
 }

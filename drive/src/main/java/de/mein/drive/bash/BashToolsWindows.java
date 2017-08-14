@@ -125,4 +125,9 @@ public class BashToolsWindows implements BashToolsImpl {
                 "| foreach {$_.FullName}";
         return execPowerShell(command, prependLine).iterator();
     }
+
+    @Override
+    public void mkdir(File dir) throws IOException {
+        exec("mkdir \"" + dir.getAbsolutePath() + "\"");
+    }
 }

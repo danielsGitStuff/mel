@@ -50,11 +50,18 @@ public abstract class MeinActivity extends AppCompatActivity
     public Promise<Void, Void, Void> annoyWithPermissions(@NonNull String... permissions) {
         Deferred<Void, Void, Void> deferred = new DeferredObject<>();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
 
+            boolean request = false;
+            for (String permission: permissions) {
+                int result = ContextCompat.checkSelfPermission(this, permission);
+                if (result!= PackageManager.PERMISSION_GRANTED){
+                    request = true;
+                    break;
+                }
+            }
             int id = new SecureRandom().nextInt(65536);
             id = id > 0 ? id : -1 * id;//make positive
-            if (permission != PackageManager.PERMISSION_GRANTED) {
+            if (request) {
                 permissionPromises.append(id, deferred);
                 ActivityCompat.requestPermissions(this,
                         permissions,
@@ -62,7 +69,7 @@ public abstract class MeinActivity extends AppCompatActivity
             } else {
                 deferred.resolve(null);
             }
-            System.out.println(AndroidDriveBootLoader.class.getSimpleName() + ".askForPermission(): " + permission);
+            System.out.println(AndroidDriveBootLoader.class.getSimpleName() + ".askForPermission()?: " + request);
         } else {
             deferred.resolve(null);
         }
