@@ -276,7 +276,7 @@ public class ConflictSolver extends SyncStageMerger {
             File solvedFile = stageDao.getFileByStage(solvedStage);
             File solvedParent = solvedFile.getParentFile();
 
-            if (deletedParents.containsKey(solvedParent.getAbsolutePath()) || deletedParents.containsKey(solvedFile.getAbsolutePath())){
+            if (deletedParents.containsKey(solvedParent.getAbsolutePath()) || deletedParents.containsKey(solvedFile.getAbsolutePath())) {
                 solvedStage.setFsId(null);
                 if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
                     solvedStage.setFsParentId(null);
@@ -323,11 +323,17 @@ public class ConflictSolver extends SyncStageMerger {
      *
      * @return
      */
-    public boolean isSolved() throws ConflictException {
+    public boolean isSolved() {
         Set<Conflict> isOk = new HashSet<>();
-        Stack<String> stack = new Stack<>();
-        for (Conflict conflict : conflicts.values()) {
-            recurseUp(isOk, conflict);
+        try {
+            for (Conflict conflict : conflicts.values()) {
+                recurseUp(isOk, conflict);
+            }
+        } catch (ConflictException.UnsolvedConflictsException | ConflictException.ContradictingConflictsException e) {
+            return false;
+        } catch (ConflictException e) {
+            System.err.println(getClass().getSimpleName() + ".isSolved().Error: " + e.getMessage());
+            return false;
         }
         return true;
     }

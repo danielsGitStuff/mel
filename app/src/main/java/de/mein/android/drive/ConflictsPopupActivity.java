@@ -32,10 +32,12 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
         listView = findViewById(R.id.listView);
         for (ConflictSolver conflictSolver : conflictSolverMap.values()) {
             runner.runTry(() -> {
-                if (conflictSolver.hasConflicts() && conflictSolver.isSolved()) {
+                if (conflictSolver.hasConflicts() && !conflictSolver.isSolved()) {
                     List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
                     listAdapter = new ConflictListAdapter(getApplicationContext(),conflicts);
-                    listView.setAdapter(listAdapter);
+                    runOnUiThread(() -> {
+                        listView.setAdapter(listAdapter);
+                    });
                 }
             });
 

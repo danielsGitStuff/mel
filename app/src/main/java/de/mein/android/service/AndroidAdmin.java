@@ -15,6 +15,7 @@ import java.security.SecureRandom;
 import de.mein.R;
 import de.mein.android.PopupActivity;
 import de.mein.android.boot.AndroidBootLoader;
+import de.mein.android.drive.ConflictsPopupActivity;
 import de.mein.android.drive.data.AndroidDriveStrings;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
@@ -56,13 +57,12 @@ public class AndroidAdmin implements MeinAuthAdmin {
     @Override
     public void onNotificationFromService(MeinService meinService, MeinNotification meinNotification) {
         try {
-            MeinAuthService meinAuthService = meinService.getMeinAuthService();
-            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(meinService.getServiceTypeId());
-            BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
             int requestCode = new SecureRandom().nextInt();
             String intention = meinNotification.getIntention();
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
-            Class activityClass = (Class) meinNotification.getExtra(AndroidDriveStrings.Notifications.ACTIVITY_CLASS);
+            Class activityClass = null;
+            if (intention.equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED))
+                activityClass = ConflictsPopupActivity.class;
             Intent intent = new Intent(context, activityClass);
             intent.putExtra(MeinStrings.Notifications.SERVICE_UUID, meinNotification.getServiceUuid());
             intent.putExtra(MeinStrings.Notifications.INTENTION, intention);
@@ -77,7 +77,6 @@ public class AndroidAdmin implements MeinAuthAdmin {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @Override

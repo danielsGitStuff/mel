@@ -254,10 +254,9 @@ public class ClientSyncHandler extends SyncHandler {
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
         if (conflictSolverMap.containsKey(identifier)) {
             conflictSolver = conflictSolverMap.get(identifier);
-            try {
-                conflictSolver.isSolved();
+            if (conflictSolver.isSolved()){
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
-            } catch (ConflictException e) {
+            }else {
                 conflictSolverMap.remove(identifier);
                 conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
                 conflictSolver.beforeStart(serverStageSet);
