@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -22,6 +23,8 @@ public class ConflictListAdapter extends BaseAdapter {
     private final List<Conflict> conflicts;
     private final Context context;
     private final LayoutInflater layoutInflator;
+    private final int imageDirectoryId = R.drawable.ic_menu_add;
+    private final int imageFileId = R.drawable.ic_menu_search;
 
     public ConflictListAdapter(Context context, List<Conflict> conflicts) {
         this.context = context;
@@ -51,16 +54,28 @@ public class ConflictListAdapter extends BaseAdapter {
             view = layoutInflator.inflate(R.layout.listitem_conflict, null);
         TextView txtLeft = view.findViewById(R.id.txtLeft);
         TextView txtRight = view.findViewById(R.id.txtRight);
+        ImageView imageLeft = view.findViewById(R.id.imageLeft);
+        ImageView imageRight = view.findViewById(R.id.imageRight);
+
         Conflict conflict = conflicts.get(i);
         Stage leftStage = conflict.getLeft();
         Stage rightStage = conflict.getRight();
         if (leftStage != null) {
             txtLeft.setText(leftStage.getName());
+            if (leftStage.getIsDirectory())
+                imageLeft.setImageResource(imageDirectoryId);
+            else
+                imageLeft.setImageResource(imageFileId);
+
         } else {
             txtLeft.setText("-- not available--");
         }
         if (rightStage != null) {
             txtRight.setText(rightStage.getName());
+            if (rightStage.getIsDirectory())
+                imageRight.setImageResource(imageDirectoryId);
+            else
+                imageRight.setImageResource(imageFileId);
         } else {
             txtRight.setText("-- not available --");
         }

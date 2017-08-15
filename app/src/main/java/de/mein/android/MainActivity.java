@@ -240,7 +240,7 @@ public class MainActivity extends MeinActivity {
     @Override
     public void onMeinAuthStarted(MeinAuthService meinAuthService) {
         if (guiController != null)
-            guiController.onMeinAuthStarted(androidService.getMeinAuthService());
+            guiController.onMeinAuthStarted(meinAuthService);
         try {
             debugStuff();
             showMenuServices();

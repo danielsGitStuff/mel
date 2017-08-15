@@ -15,6 +15,7 @@ import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.service.MeinDriveService;
 
 public abstract class PopupActivity<T extends IMeinService> extends AppCompatActivity {
 
@@ -26,6 +27,8 @@ public abstract class PopupActivity<T extends IMeinService> extends AppCompatAct
         Context context = getApplicationContext();
         Toast toast = Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG);
         toast.show();
+        System.err.println(PopupActivity.class.getSimpleName()+".runner.Exception: "+e.getMessage());
+        e.printStackTrace();
     });
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -38,7 +41,7 @@ public abstract class PopupActivity<T extends IMeinService> extends AppCompatAct
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             AndroidService.LocalBinder localBinder = (AndroidService.LocalBinder) binder;
             androidService = localBinder.getService();
-            service = (T) androidService.getMeinAuthService().getMeinService(serviceUuid);
+            N.r(() -> service = (T) androidService.getMeinAuthService().getMeinService(serviceUuid));
             PopupActivity.this.onServiceConnected();
         }
 
@@ -55,8 +58,10 @@ public abstract class PopupActivity<T extends IMeinService> extends AppCompatAct
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conflict_popup);
         Bundle extra = getIntent().getExtras();
-        requestCode = extra.getInt(DriveStrings.Notifications.REQUEST_CODE);
-        serviceUuid = extra.getString(MeinStrings.Notifications.SERVICE_UUID);
+        if (extra != null) {
+            requestCode = extra.getInt(DriveStrings.Notifications.REQUEST_CODE);
+            serviceUuid = extra.getString(MeinStrings.Notifications.SERVICE_UUID);
+        }
     }
 
     @Override
