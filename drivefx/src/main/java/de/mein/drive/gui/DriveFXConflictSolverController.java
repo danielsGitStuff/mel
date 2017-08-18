@@ -37,14 +37,9 @@ public class DriveFXConflictSolverController extends PopupContentFX implements I
     @Override
     public String onOkCLicked() {
         System.out.println("DriveFXConflictSolverController.onOkCLicked");
-        try {
-            conflictSolver.isSolved();
-            meinDriveClientService.addJob(new CommitJob());
-            return null;
-        } catch (ConflictException e) {
-            return "you bloody idiot! you caused an " + e.getClass().getSimpleName();
-
-        }
+        conflictSolver.isSolved();
+        meinDriveClientService.addJob(new CommitJob());
+        return null;
     }
 
     @Override

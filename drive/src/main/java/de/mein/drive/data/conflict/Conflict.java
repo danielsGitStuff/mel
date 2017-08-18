@@ -132,6 +132,12 @@ public class Conflict {
         return rStageId != null;
     }
 
+    /**
+     * sorts, indents and adds empty rows
+     *
+     * @param conflicts
+     * @return
+     */
     public static List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
         List<Conflict> result = new ArrayList<>();
         List<Conflict> rootConflicts = new ArrayList<>();
