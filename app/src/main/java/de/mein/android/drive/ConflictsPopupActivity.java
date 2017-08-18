@@ -47,15 +47,31 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
 //        }
     }
 
-    private void debugStuff(){
+    private void debugStuff() {
         runner.runTry(() -> {
-                List<Conflict> conflicts = new ArrayList<>();
-                Conflict conflict = new Conflict(null, new Stage().setName("Ljfznz7it67zint768ikt879kz89jnki78njt78it78L").setId(1L).setIsDirectory(true),new Stage().setName("RR").setId(2L).setIsDirectory(false));
-                conflicts.add(conflict);
-                listAdapter = new ConflictListAdapter(getApplicationContext(),conflicts);
-                runOnUiThread(() -> {
-                    listView.setAdapter(listAdapter);
-                });
+            Stage left1 = new Stage().setName("1")
+                    .setId(1L)
+                    .setIsDirectory(true);
+            Stage right1 = new Stage().setName("1")
+                    .setId(2L)
+                    .setIsDirectory(true);
+            Stage left1_1 = new Stage().setName("1.1")
+                    .setId(3L)
+                    .setIsDirectory(false)
+                    .setParentId(left1.getId());
+            Stage right_1_1 = new Stage().setName("1.1")
+                    .setId(4L)
+                    .setIsDirectory(false)
+                    .setParentId(right1.getId());
+            Conflict c1 = new Conflict(null, left1, right1);
+            Conflict c2 = new Conflict(null, left1_1, right_1_1);
+            c2.dependOn(c1);
+            List<Conflict> conflicts = new ArrayList<>();
+            conflicts.add(c1);
+            listAdapter = new ConflictListAdapter(listView, this, null, conflicts);
+            runOnUiThread(() -> {
+                listView.setAdapter(listAdapter);
+            });
         });
     }
 

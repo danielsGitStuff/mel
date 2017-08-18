@@ -97,7 +97,7 @@ public class Conflict {
 
     @Override
     public String toString() {
-        return "{class:\""+getClass().getSimpleName()+"\",key:\""+key+"\",isRight:\""+isRight+"\"}";
+        return "{class:\"" + getClass().getSimpleName() + "\",key:\"" + key + "\",isRight:\"" + isRight + "\"}";
     }
 
 
@@ -161,5 +161,15 @@ public class Conflict {
                 traversalAdding(result, conflict.getDependents());
             }
         }
+    }
+
+    public Conflict getDependentByName(String name) {
+        for (Conflict dep : dependents) {
+            if (dep.getLeft() != null && dep.getLeft().getName().equals(name))
+                return dep;
+            if (dep.getRight() != null && dep.getRight().getName().equals(name))
+                return dep;
+        }
+        return null;
     }
 }
