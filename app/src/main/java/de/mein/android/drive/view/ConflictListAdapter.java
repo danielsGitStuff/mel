@@ -2,6 +2,7 @@ package de.mein.android.drive.view;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -38,6 +40,8 @@ public class ConflictListAdapter extends BaseAdapter {
     private final View.OnClickListener onUpClickedListener;
     private boolean isRoot = true;
     private int lastCount;
+    private final int red = Color.argb(120, 125, 0, 0);
+    private final int green = Color.argb(120, 0, 120, 0);
 
     public ConflictListAdapter(ListView listView, Activity activity, Collection<Conflict> rootConflicts) {
         this.activity = activity;
@@ -117,10 +121,14 @@ public class ConflictListAdapter extends BaseAdapter {
         View view = layoutInflator.inflate(R.layout.listitem_conflict, null);
         TextView txtLeft = view.findViewById(R.id.txtLeft);
         TextView txtRight = view.findViewById(R.id.txtRight);
+        TextView txtAddLeft = view.findViewById(R.id.txtAdditionalLeft);
+        TextView txtAddRight = view.findViewById(R.id.txtAdditionalRight);
         ImageView imageLeft = view.findViewById(R.id.imageLeft);
         ImageView imageRight = view.findViewById(R.id.imageRight);
         LinearLayout layoutLeft = view.findViewById(R.id.layoutLeft);
         LinearLayout layoutRight = view.findViewById(R.id.layoutRight);
+        RadioButton rdLeft = view.findViewById(R.id.rdLeft);
+        RadioButton rdRight = view.findViewById(R.id.rdRight);
 
         Conflict conflict = items.get(i);
         // find reasonable captions for both sides
@@ -145,6 +153,9 @@ public class ConflictListAdapter extends BaseAdapter {
         } else {
             txtRight.setText("-- not available --");
         }
+        String additional = "affects >=" + conflict.getDependents().size() + " sub conflicts";
+        txtAddLeft.setText(additional);
+        txtAddRight.setText(additional);
         //setup click listener
         view.setOnClickListener(vv -> {
             if (conflict.getDependents().size() > 0) {
@@ -152,7 +163,36 @@ public class ConflictListAdapter extends BaseAdapter {
                 ConflictListAdapter.this.notifyDataSetChanged();
             }
         });
+        rdLeft.setOnClickListener(vv -> {
+            if (rdLeft.isChecked()) {
+                conflict.chooseLeft();
+            }
+            adjustToConflict(conflict, layoutLeft, layoutRight, rdLeft, rdRight);
+        });
+        rdRight.setOnClickListener(vv -> {
+            if (rdRight.isChecked()) {
+                conflict.chooseRight();
+            }
+            adjustToConflict(conflict, layoutLeft, layoutRight, rdLeft, rdRight);
+        });
+        adjustToConflict(conflict, layoutLeft, layoutRight, rdLeft, rdRight);
         return view;
+    }
+
+    private void adjustToConflict(Conflict conflict, LinearLayout layoutLeft, LinearLayout layoutRight, RadioButton rdLeft, RadioButton rdRight) {
+        if (conflict.isLeft()) {
+            layoutLeft.setBackgroundColor(green);
+            layoutRight.setBackgroundColor(red);
+            rdLeft.setChecked(true);
+            rdRight.setChecked(false);
+        } else if (conflict.isRight()) {
+            layoutLeft.setBackgroundColor(red);
+            layoutRight.setBackgroundColor(green);
+            rdLeft.setChecked(false);
+            rdRight.setChecked(true);
+        } else {
+            System.out.println("ConflictListAdapter.adjustToConflict.debug333");
+        }
     }
 
 
