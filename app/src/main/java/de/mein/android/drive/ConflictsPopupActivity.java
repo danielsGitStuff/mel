@@ -68,7 +68,7 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
             c2.dependOn(c1);
             List<Conflict> conflicts = new ArrayList<>();
             conflicts.add(c1);
-            listAdapter = new ConflictListAdapter(listView, this, null, conflicts);
+            listAdapter = new ConflictListAdapter(listView, this, conflicts);
             runOnUiThread(() -> {
                 listView.setAdapter(listAdapter);
             });

@@ -14,6 +14,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import de.mein.R;
 import de.mein.drive.data.conflict.Conflict;
@@ -27,6 +28,7 @@ import de.mein.drive.sql.Stage;
 public class ConflictListAdapter extends BaseAdapter {
 
     private final ListView listView;
+    private final Collection<Conflict> rootConflicts;
     private List<Conflict> items;
     private final Activity activity;
     private final LayoutInflater layoutInflator;
@@ -35,13 +37,27 @@ public class ConflictListAdapter extends BaseAdapter {
     private Conflict upperConflict;
     private final View.OnClickListener onUpClickedListener;
     private boolean isRoot = true;
+    private int lastCount;
 
-    public ConflictListAdapter(ListView listView, Activity activity, Conflict upperConflict, Collection<Conflict> conflicts) {
+    public ConflictListAdapter(ListView listView, Activity activity, Collection<Conflict> rootConflicts) {
         this.activity = activity;
         this.listView = listView;
+        this.rootConflicts = rootConflicts;
         this.layoutInflator = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        this.onUpClickedListener = view -> init(upperConflict.getDependsOn(), conflicts);
-        init(upperConflict, conflicts);
+        this.onUpClickedListener = view -> {
+            if (ConflictListAdapter.this.upperConflict != null) {
+                Collection<Conflict> conflicts = null;
+                if (ConflictListAdapter.this.upperConflict.getDependsOn() != null)
+                    conflicts = ConflictListAdapter.this.upperConflict.getDependsOn().getDependents();
+                if (conflicts == null)
+                    conflicts = rootConflicts;
+                init(ConflictListAdapter.this.upperConflict.getDependsOn(), conflicts);
+            } else {
+                init(null, rootConflicts);
+            }
+            ConflictListAdapter.this.notifyDataSetChanged();
+        };
+        init(null, rootConflicts);
     }
 
     private void init(Conflict upperConflict, Collection<Conflict> conflicts) {
@@ -74,7 +90,8 @@ public class ConflictListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return isRoot ? items.size() : items.size() + 1;
+        lastCount = isRoot ? items.size() : items.size() + 1;
+        return lastCount;
     }
 
     @Override
@@ -95,6 +112,8 @@ public class ConflictListAdapter extends BaseAdapter {
             textView.setOnClickListener(onUpClickedListener);
             return textView;
         }
+        if (!isRoot)
+            i--;
         View view = layoutInflator.inflate(R.layout.listitem_conflict, null);
         TextView txtLeft = view.findViewById(R.id.txtLeft);
         TextView txtRight = view.findViewById(R.id.txtRight);
@@ -128,17 +147,10 @@ public class ConflictListAdapter extends BaseAdapter {
         }
         //setup click listener
         view.setOnClickListener(vv -> {
-            Conflict subConflict = null;
-            init(conflict,conflict.getDependents());
-            activity.runOnUiThread(()-> ConflictListAdapter.this.notifyDataSetChanged());
-//            if (leftStage != null && leftStage.getIsDirectory()) {
-//                subConflict = conflict.getDependentByName(leftStage.getName());
-//            }
-//            if (subConflict == null && rightStage != null && rightStage.getIsDirectory()) {
-//                subConflict = conflict.getDependentByName(rightStage.getName());
-//            }
-//            if (subConflict != null)
-//                init(subConflict, subConflict.getDependents());
+            if (conflict.getDependents().size() > 0) {
+                init(conflict, conflict.getDependents());
+                ConflictListAdapter.this.notifyDataSetChanged();
+            }
         });
         return view;
     }
