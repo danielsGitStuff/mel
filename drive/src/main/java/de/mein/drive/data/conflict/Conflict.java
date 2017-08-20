@@ -140,11 +140,7 @@ public class Conflict {
      */
     public static List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
         List<Conflict> result = new ArrayList<>();
-        List<Conflict> rootConflicts = new ArrayList<>();
-        for (Conflict conflict : conflicts) {
-            if (conflict.getDependsOn() == null)
-                rootConflicts.add(conflict);
-        }
+        List<Conflict> rootConflicts = getRootConflicts(conflicts);
         for (Conflict root : rootConflicts) {
             result.add(root);
             traversalAdding(result, root.getDependents());
@@ -171,5 +167,14 @@ public class Conflict {
                 return dep;
         }
         return null;
+    }
+
+    public static List<Conflict> getRootConflicts(Collection<Conflict> conflicts) {
+        List<Conflict> rootConflicts = new ArrayList<>();
+        for (Conflict conflict : conflicts) {
+            if (conflict.getDependsOn() == null)
+                rootConflicts.add(conflict);
+        }
+        return rootConflicts;
     }
 }

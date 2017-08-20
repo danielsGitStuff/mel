@@ -140,6 +140,7 @@ public class ConflictListAdapter extends BaseAdapter {
                 imageLeft.setImageResource(imageDirectoryId);
             else
                 imageLeft.setImageResource(imageFileId);
+            txtAddLeft.setText(leftStage.getContentHash());
 
         } else {
             txtLeft.setText("-- not available--");
@@ -150,12 +151,10 @@ public class ConflictListAdapter extends BaseAdapter {
                 imageRight.setImageResource(imageDirectoryId);
             else
                 imageRight.setImageResource(imageFileId);
+            txtAddRight.setText(rightStage.getContentHash());
         } else {
             txtRight.setText("-- not available --");
         }
-        String additional = "affects >=" + conflict.getDependents().size() + " sub conflicts";
-        txtAddLeft.setText(additional);
-        txtAddRight.setText(additional);
         //setup click listener
         view.setOnClickListener(vv -> {
             if (conflict.getDependents().size() > 0) {

@@ -3,6 +3,7 @@ package de.mein.android.drive;
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -27,24 +28,24 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
     private Map<String, ConflictSolver> conflictSolverMap;
     private ListView listView;
     private ListAdapter listAdapter;
+    private Button btnChooseLeft, btnChooseRight;
 
     @Override
     protected void onServiceConnected() {
+        //debugStuff();
+        conflictSolverMap = service.getConflictSolverMap();
         listView = findViewById(R.id.listView);
-        debugStuff();
-//        conflictSolverMap = service.getConflictSolverMap();
-//        listView = findViewById(R.id.listView);
-//        for (ConflictSolver conflictSolver : conflictSolverMap.values()) {
-//            runner.runTry(() -> {
-//                if (conflictSolver.hasConflicts() && !conflictSolver.isSolved()) {
-//                    List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
-//                    listAdapter = new ConflictListAdapter(getApplicationContext(),conflicts);
-//                    runOnUiThread(() -> {
-//                        listView.setAdapter(listAdapter);
-//                    });
-//                }
-//            });
-//        }
+        for (ConflictSolver conflictSolver : conflictSolverMap.values()) {
+            runner.runTry(() -> {
+                if (conflictSolver.hasConflicts() && !conflictSolver.isSolved()) {
+                    List<Conflict> conflicts = Conflict.getRootConflicts(conflictSolver.getConflicts());
+                    listAdapter = new ConflictListAdapter(listView, this, conflicts);
+                    runOnUiThread(() -> {
+                        listView.setAdapter(listAdapter);
+                    });
+                }
+            });
+        }
     }
 
     private void debugStuff() {
@@ -78,5 +79,9 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        listView = findViewById(R.id.listView);
+        btnChooseLeft = findViewById(R.id.btnChooseLeft);
+        btnChooseRight = findViewById(R.id.btnChooseRight);
+        setTitle("Conflict detected!");
     }
 }
