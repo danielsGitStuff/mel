@@ -64,7 +64,7 @@ public class ConflictSolver extends SyncStageMerger {
             System.err.println("ConflictSolver.stuffFound.e2");
         }
 
-        if (left != null && right != null) {
+        if (left != null && right != null && !left.getContentHash().equals(right.getContentHash())) {
             String key = Conflict.createKey(left, right);
             if (!conflicts.containsKey(key)) {
                 //todo oof for deletion

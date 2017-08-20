@@ -2,6 +2,7 @@ package de.mein.android.sql;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 
 import java.sql.SQLException;
@@ -203,9 +204,15 @@ public class AndroidSQLQueries extends ISQLQueries {
     public Long insertWithAttributes(SQLTableObject sqlTableObject, List<Pair<?>> attributes) throws SqlQueriesException {
         lockWrite();
         ContentValues contentValues = createContentValues(attributes);
-        Long id = db.insert(sqlTableObject.getTableName(), null, contentValues);
-        unlockWrite();
-        return id;
+        try {
+            Long id = db.insertOrThrow(sqlTableObject.getTableName(), null, contentValues);
+            unlockWrite();
+            return id;
+        } catch (Exception e) {
+            System.err.println(getClass().getSimpleName() + ".insertWithAttributes().exception");
+            System.err.println("e: " + sqlTableObject.toString());
+            throw new SqlQueriesException(e);
+        }
     }
 
     @Override

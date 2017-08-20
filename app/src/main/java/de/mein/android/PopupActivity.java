@@ -25,8 +25,7 @@ public abstract class PopupActivity<T extends IMeinService> extends AppCompatAct
     protected T service;
     protected N runner = new N(e -> {
         Context context = getApplicationContext();
-        Toast toast = Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG);
-        toast.show();
+        MeinToast.toast(context,e.getMessage());
         System.err.println(PopupActivity.class.getSimpleName()+".runner.Exception: "+e.getMessage());
         e.printStackTrace();
     });
