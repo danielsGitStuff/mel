@@ -221,9 +221,12 @@ public class ClientSyncHandler extends SyncHandler {
             // lets assume that everything went fine!
             boolean hasCommitted = false;
             for (StageSet stageSet : updateSets) {
-                commitStage(stageSet.getId().v(), false);
-                setupTransfer();
-                hasCommitted = true;
+                if (stageDao.stageSetHasContent(stageSet.getId().v())) {
+                    commitStage(stageSet.getId().v(), false);
+                    setupTransfer();
+                    hasCommitted = true;
+                }else
+                    stageDao.deleteStageSet(stageSet.getId().v());
             }
             // new job in case we have solved conflicts in this run.
             // they must be committed to the server

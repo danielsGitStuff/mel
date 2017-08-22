@@ -289,4 +289,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     public Boolean getRemove() {
         return remove.v();
     }
+
+    public Pair<Long> getModifiedPair() {
+        return modified;
+    }
 }

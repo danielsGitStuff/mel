@@ -266,9 +266,15 @@ public class ConflictSolver extends SyncStageMerger {
                 System.err.println(getClass().getSimpleName() + ".solve()... strange things happened");
         } else if (left != null) {
             solvedStage = left;
+            if (right != null) {
+                if (left.getiNode() == null && left.getModified() == null && left.getContentHash().equals(right.getContentHash())) {
+                    solvedStage.setModified(right.getModified());
+                    solvedStage.setiNode(right.getiNode());
+                    stageDao.updateInodeAndModified(solvedStage.getId(),right.getiNode(),right.getModified());
+                }
+            }
         } else if (right != null) {
             solvedStage = right;
-
         }
         if (solvedStage != null) {
             solvedStage.setOrder(order.ord());
