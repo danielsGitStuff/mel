@@ -70,8 +70,10 @@ public class FsDao extends Dao {
 
     public void update(FsEntry fsEntry) throws SqlQueriesException {
         //todo debug
-        if (fsEntry.getName().equals("same1.txt") && !fsEntry.getSynced().v())
+        if (fsEntry.getName().v().equals("sub1.txt"))
             System.out.println("FsDao.update.debug3");
+        if (fsEntry.getName().v().equals("sub2.txt"))
+            System.out.println("FsDao.update.debug3243");
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(fsEntry.getId().v());
         sqlQueries.update(fsEntry, fsEntry.getId().k() + "=?", whereArgs);
@@ -171,12 +173,16 @@ public class FsDao extends Dao {
             System.out.println("FsDao.insert.debug3");
         if (fsEntry.getParentId().isNull())
             System.out.println("FsDao.insert.4");
-        if (fsEntry.getName().v().equals("same2.txt"))
+        if (fsEntry.getName().v().equals("sub2.txt") && fsEntry.getSynced().v())
             System.out.println("FsDao.insert.debug5");
+        if (fsEntry.getName().v().equals("sub1.txt") && fsEntry.getSynced().v())
+            System.out.println("FsDao.insert.debug3");
         if (fsEntry.getId().v() != null)
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
         else
             id = sqlQueries.insert(fsEntry);
+        if (id == 7)
+            System.out.println("FsDao.insert.debug238rz2f9");
         fsEntry.getId().v(id);
         return fsEntry;
     }
@@ -492,9 +498,12 @@ public class FsDao extends Dao {
 
     public void setSynced(Long id, boolean synced) throws SqlQueriesException {
         assert id != null;
+        //todo debug
+        if (id == 10 || id == 7)
+            System.out.println("FsDao.setSynced.debug9uf93");
         FsFile dummy = new FsFile();
         String statement = "update " + dummy.getTableName() + " set " + dummy.getSynced().k() + "=? where " + dummy.getId().k() + "=?";
-        sqlQueries.execute(statement, ISQLQueries.whereArgs(true, id));
+        sqlQueries.execute(statement, ISQLQueries.whereArgs(synced, id));
     }
 
     public ISQLResource<FsFile> getNonSyncedFilesResource() throws SqlQueriesException {

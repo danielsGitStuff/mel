@@ -114,7 +114,6 @@ public class TransferManager extends DeferredRunnable {
                             );
                         }
                     }
-                    lock.lockWrite();
                 }
             });
         }

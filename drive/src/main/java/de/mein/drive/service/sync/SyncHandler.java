@@ -57,6 +57,9 @@ public abstract class SyncHandler {
         try {
             //fsDao.lockWrite();
             target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
+            //todo debug
+            if (target.getName().equals("sub1.txt"))
+                System.out.println("SyncHandler.moveFile.debugr23hr03w");
             System.out.println("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
             // check if there already is a file & delete
             if (target.exists()) {
@@ -76,8 +79,10 @@ public abstract class SyncHandler {
                             || (fsTarget.getiNode().isNull() || fsTarget.getiNode().notNull() && !fsTarget.getiNode().v().equals(modifiedAndInode.getiNode()))) {
                         //file is not equal to the one in the fs table
                         wasteBin.deleteUnknown(target);
-                    } else
-                        System.err.println(getClass().getSimpleName() + ".moveFile().errrr");
+                    } else {
+                        System.err.println(getClass().getSimpleName() + ".moveFile().errrr.files.identical? .. deleting anyway");
+                        wasteBin.deleteUnknown(target);
+                    }
                 }
             }
             indexer.ignorePath(target.getAbsolutePath(), 1);
@@ -106,6 +111,14 @@ public abstract class SyncHandler {
     public void onFileTransferred(File file, String hash) throws SqlQueriesException, IOException {
         try {
             fsDao.lockWrite();
+            //todo debug
+            if (hash.equals("fdcbc1aca23cfebaa128bac31df20969"))
+                System.out.println("SyncHandler.onFileTransferred.debug23423r");
+            if (hash.equals("238810397cd86edae7957bca350098bc")) {
+                System.out.println("SyncHandler.onFileTransferred.debugjivf3hi8o");
+            }
+            if (hash.equals("0610338abac66dc659f5c04dc95a480a"))
+                System.out.println("SyncHandler.onFileTransferred.debugf43fh30w");
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             if (fsFiles.size() > 0) {
                 //TODO check if file is in transfer dir, then move, else copy
@@ -199,6 +212,11 @@ public abstract class SyncHandler {
             ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
             Stage stage = stages.getNext();
             while (stage != null) {
+                //todo debug
+                if (stage.getName().equals("sub1.txt"))
+                    System.out.println("SyncHandler.commitStag.debugn3uivw34e");
+                if (stage.getName().equals("sub2.txt"))
+                    System.out.println("SyncHandler.commitStag.debugl,b45ni");
                 if (stage.getFsId() == null) {
                     if (stage.getIsDirectory()) {
                         if (stage.getFsId() != null) {
