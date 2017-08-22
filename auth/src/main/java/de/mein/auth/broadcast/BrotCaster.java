@@ -1,6 +1,7 @@
 package de.mein.auth.broadcast;
 
 import de.mein.DeferredRunnable;
+import de.mein.WaitingDeferredRunnable;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

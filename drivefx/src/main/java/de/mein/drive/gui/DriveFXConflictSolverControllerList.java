@@ -31,8 +31,13 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
     @Override
     public String onOkCLicked() {
         System.out.println("DriveFXConflictSolverController.onOkCLicked");
-        conflictSolver.isSolved();
-        meinDriveClientService.addJob(new CommitJob());
+        if (conflictSolver.isSolved()) {
+            CommitJob commitJob = new CommitJob();
+            meinDriveClientService.addJob(commitJob);
+        }
+        else {
+            System.err.println("not all conflicts were solved");
+        }
         return null;
     }
 
@@ -47,7 +52,6 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
         listLeft.getItems().addAll(conflicts);
         conflictSolver.addListener(this);
     }
-
 
 
     @Override

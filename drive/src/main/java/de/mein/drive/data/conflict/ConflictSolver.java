@@ -32,6 +32,7 @@ public class ConflictSolver extends SyncStageMerger {
     private List<ConflictSolverListener> listeners = new ArrayList<>();
     private Semaphore listenerSemaphore = new Semaphore(1, true);
     private boolean obsolete = false;
+    private boolean solving = false;
 
     public ConflictSolver(DriveDatabaseManager driveDatabaseManager, StageSet lStageSet, StageSet rStageSet) {
         super(lStageSet.getId().v(), rStageSet.getId().v());
@@ -406,6 +407,14 @@ public class ConflictSolver extends SyncStageMerger {
                 listenerSemaphore.release();
             });
         }
+    }
+
+    public boolean isSolving() {
+        return solving;
+    }
+
+    public void setSolving(boolean solving) {
+        this.solving = solving;
     }
 
     public interface ConflictSolverListener {

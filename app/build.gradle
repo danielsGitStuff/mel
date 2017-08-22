@@ -1,37 +1,52 @@
-apply plugin: 'com.android.application'
+//apply plugin: 'com.android.application'
 //apply plugin: 'kotlin-android'
 //apply plugin: 'me.tatarka.retrolambda'
-allprojects {
+//allprojects {
+//    repositories {
+//        jcenter()
+//        maven {
+//            url "https://maven.google.com"
+//        }
+//    }
+//}
+
+
+buildscript {
     repositories {
         jcenter()
-        maven {
-            url "https://maven.google.com"
-        }
+        mavenCentral()
+    }
+    dependencies {
+        //classpath 'com.android.tools.build:gradle:3.0.0-alpha8'
+        //classpath 'me.tatarka:gradle-retrolambda:3.2.0'
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 }
-android {
-    compileSdkVersion 26
-    buildToolsVersion "25.0.2"
-    defaultConfig {
-        applicationId "de.mein.meindrive"
-        minSdkVersion 19
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
-        multiDexEnabled false
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-    compileOptions {
-        targetCompatibility 1.8
-        sourceCompatibility 1.8
-    }
-}
+
+//android {
+//    compileSdkVersion 26
+//    buildToolsVersion "25.0.2"
+//    defaultConfig {
+//        applicationId "de.mein.meindrive"
+//        minSdkVersion 19
+//        targetSdkVersion 26
+//        versionCode 1
+//        versionName "1.0"
+//        multiDexEnabled false
+//        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+//    }
+//    buildTypes {
+//        release {
+//            minifyEnabled false
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//        }
+//    }
+//    compileOptions {
+//        targetCompatibility 1.8
+//        sourceCompatibility 1.8
+//    }
+//}
 task copyFiles(type: Copy) {
     def f = rootProject.file('auth/src/main/resources')
     def f2 = rootProject.file('drive/src/main/resources')
@@ -44,7 +59,7 @@ task copyFiles(type: Copy) {
     logger.error(t.getAbsolutePath())
 }
 
-preBuild.dependsOn(copyFiles)
+//preBuild.dependsOn(copyFiles)
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])

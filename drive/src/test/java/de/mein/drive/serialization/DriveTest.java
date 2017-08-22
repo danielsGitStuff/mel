@@ -663,7 +663,7 @@ public class DriveTest {
         if (identicalTestDirs)
             TestDirCreator.createTestDir(testdir2);
         else
-            testdir2.mkdirs();
+            TestDirCreator.createTestDir(testdir2, " lel");
 
 
         // configure MeinAuth
@@ -740,16 +740,35 @@ public class DriveTest {
         //lock.unlockWrite();
     }
 
-    public MeinAuthSettings createJson2() {
+    public static MeinAuthSettings createJson2() {
         return new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
     }
 
-    public MeinAuthSettings createJson1() {
+    public static MeinAuthSettings createJson1() {
         return new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
+    }
+
+    public void startUpConflicts(MeinBoot meinBoot) throws Exception {
+        setup(false, new DriveSyncListener() {
+            @Override
+            public void onSyncFailed() {
+
+            }
+
+            @Override
+            public void onTransfersDone() {
+
+            }
+
+            @Override
+            public void onSyncDoneImpl() {
+
+            }
+        }, meinBoot);
     }
 }

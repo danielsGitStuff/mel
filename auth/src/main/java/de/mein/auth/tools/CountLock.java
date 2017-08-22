@@ -3,6 +3,8 @@ package de.mein.auth.tools;
 import de.mein.sql.RWLock;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by xor on 6/7/17.
@@ -10,15 +12,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CountLock {
 
     private AtomicInteger counter = new AtomicInteger(0);
-    private RWLock accessLock = new RWLock();
+    private Lock accessLock = new ReentrantLock();
     private RWLock lock = new RWLock();
 
     public CountLock lock() {
-        accessLock.lockWrite();
+        accessLock.lock();
         if (counter.incrementAndGet() > 1) {
             lock.lockWrite();
         }
-        accessLock.unlockWrite();
+        accessLock.unlock();
         return this;
     }
 

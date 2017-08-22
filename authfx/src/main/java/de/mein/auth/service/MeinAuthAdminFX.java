@@ -8,6 +8,7 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.gui.*;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.WaitLock;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import javafx.application.Platform;
@@ -252,15 +253,22 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         AnchorPane.setTopAnchor(pane, 0.0);
     }
 
+    public static void main(String[] args) {
+        WaitLock waitLock = new WaitLock().lock();
+        waitLock.lock();
+        System.out.println("MeinAuthAdminFX.main");
+    }
+
     @SuppressWarnings("Duplicates")
     public static MeinAuthAdminFX load(MeinAuthService meinAuthService) {
         new JFXPanel();
         Platform.setImplicitExit(false);
         final MeinAuthAdminFX[] meinAuthAdminFXES = new MeinAuthAdminFX[1];
         MeinAuthAdminFX m;
-        RWLock lock = new RWLock().lockWrite();
+        WaitLock lock = new WaitLock().lock();
         Platform.runLater(() -> {
                     try {
+                        System.out.println("MeinAuthAdminFX.load...");
                         FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
                         HBox root = null;
                         root = loader.load();
@@ -273,13 +281,13 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                         stage.show();
                         meinAuthAdminFXES[0].setStage(stage);
                         meinAuthAdminFXES[0].showContent();
-                        lock.unlockWrite();
+                        lock.unlock();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
         );
-        lock.lockWrite();
+        lock.lock();
         return meinAuthAdminFXES[0];
     }
 

@@ -93,6 +93,7 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
                 if (booted != null)
                     bootedPromises.add(booted);
             }
+            //bootedPromises.add(promiseAuthIsUp);
             promiseAuthIsUp.done(result -> {
                 deferredObject.resolve(meinAuthService);
             });

@@ -54,7 +54,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
 
     public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
-        super(meinAuthService, workingDirectory,serviceTypeId,uuid);
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid);
     }
 
     @Override
@@ -239,6 +239,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     @Override
     public void start() {
         System.out.println("MeinDriveService.start");
+        super.start();
     }
 
     public void onTransfersDone() {

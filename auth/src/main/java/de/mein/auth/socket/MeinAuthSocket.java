@@ -311,4 +311,9 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     public void onShutDown() {
         super.onShutDown();
     }
+
+    @Override
+    public void start() {
+        super.start();
+    }
 }

@@ -53,4 +53,14 @@ public class ConnectedEnvironment extends WaitLock{
         idValidateProcessMap.remove(process.getConnectedId());
 //        semaphore.release();
     }
+
+    @Override
+    public synchronized WaitLock lock() {
+        return super.lock();
+    }
+
+    @Override
+    public WaitLock unlock() {
+        return super.unlock();
+    }
 }

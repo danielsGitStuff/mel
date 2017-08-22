@@ -60,6 +60,7 @@ public class DriveCreateController {
             waitLock.unlock();
         });
         waitLock.lock();
+        System.out.println("DriveCreateController.boot.booted");
     }
 
     public MeinDriveServerService createDriveServerService(String name, String path) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
@@ -68,7 +69,9 @@ public class DriveCreateController {
         DriveSettings driveSettings = new DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
         driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + DriveSettings.TRANSFER_DIR);
         boot(service, driveSettings);
-        return (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
+        MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
+        mdss.start();
+        return mdss;
     }
 
     public Promise<MeinDriveServerService, Exception, Void> createDriveServerServiceDeferred(String name, String path) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
@@ -79,6 +82,7 @@ public class DriveCreateController {
         driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + DriveSettings.TRANSFER_DIR);
         boot(service, driveSettings);
         MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
+        mdss.start();
         deferred.resolve(mdss);
         return deferred;
     }
@@ -107,6 +111,7 @@ public class DriveCreateController {
             System.out.println("DriveCreateController.createDriveClientServiceAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             driveSettings.getClientSettings().setServerCertId(certId).setServerServiceUuid(serviceUuid);
             driveSettings.save();
+            meinDriveClientService.start();
             deferred.resolve(meinDriveClientService);
         })))).fail(result -> runner.runTry(() -> {
             System.out.println("DriveCreateController.createDriveClientService.FAIL");

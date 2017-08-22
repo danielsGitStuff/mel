@@ -303,11 +303,11 @@ StageDao extends Dao.LockingDao {
                 .setOriginServiceUuid(originServiceUuid).setStatus(status);
         Long id = sqlQueries.insert(stageSet);
         //todo debug
-        if (id.equals(10))
+        if (id == 6)
             System.out.println("StageDao.createStageSet.debug1");
         if (id == 4 && Thread.currentThread().getName().startsWith(StageIndexerRunnable.class.getSimpleName() + " for MeinDriveServer"))
             System.out.println("StageDao.createStageSet.debug2");
-        if (id == 4)
+        if (id == 3)
             System.out.println("StageDao.createStageSet.debug2.2");
         if (id.toString().equals("7") && Thread.currentThread().getName().startsWith("MeinDriveClientService"))
             System.out.println("StageDao.createStageSet.debug3");
@@ -317,12 +317,15 @@ StageDao extends Dao.LockingDao {
             System.out.println("StageDao.createStageSet.debug4");
         if (id.toString().equals("5") && Thread.currentThread().getName().toLowerCase().contains("client"))
             System.out.println("StageDao.createStageSet.debug5");
-        if (id== 10)
+        if (id == 2)
             System.out.println("StageDao.createStageSet.debug6");
         return stageSet.setId(id);
     }
 
     public void deleteStageSet(Long id) throws SqlQueriesException {
+        //todo debug
+        if (id == 2)
+            System.out.println("StageDao.deleteStageSet.debugh98g4h5g");
         StageSet stageSet = new StageSet();
         List<Object> args = new ArrayList<>();
         args.add(id);

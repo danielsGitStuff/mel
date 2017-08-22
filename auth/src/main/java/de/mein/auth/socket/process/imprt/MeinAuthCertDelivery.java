@@ -1,6 +1,7 @@
 package de.mein.auth.socket.process.imprt;
 
 import de.mein.DeferredRunnable;
+import de.mein.WaitingDeferredRunnable;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.MeinResponse;

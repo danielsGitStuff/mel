@@ -101,6 +101,7 @@ public class MeinAuthService {
 
     public MeinAuthService addMeinAuthAdmin(MeinAuthAdmin admin) {
         meinAuthAdmins.add(admin);
+        admin.start(this);
         return this;
     }
 
@@ -146,9 +147,9 @@ public class MeinAuthService {
 
     public void start() {
         execute(meinAuthWorker);
-        for (MeinAuthAdmin admin : meinAuthAdmins) {
-            admin.start(this);
-        }
+//        for (MeinAuthAdmin admin : meinAuthAdmins) {
+//            admin.start(this);
+//        }
     }
 
 
@@ -286,16 +287,21 @@ public class MeinAuthService {
         Certificate certificate = certificateManager.getTrustedCertificateById(certificateId);
         // check if already connected via id and address
         connectedEnvironment.lock();
-        if (certificateId != null && (mvp = connectedEnvironment.getValidationProcess(certificateId)) != null) {
-            deferred.resolve(mvp);
-        } else if ((mvp = connectedEnvironment.getValidationProcess(certificate.getAddress().v())) != null) {
-            deferred.resolve(mvp);
-        } else {
-            ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-            job.getPromise().done(result -> deferred.resolve(result)).fail(result -> deferred.reject(result));
-            meinAuthWorker.addJob(job);
+        try {
+            if (certificateId != null && (mvp = connectedEnvironment.getValidationProcess(certificateId)) != null) {
+                deferred.resolve(mvp);
+            } else if (certificate!= null && (mvp = connectedEnvironment.getValidationProcess(certificate.getAddress().v())) != null) {
+                deferred.resolve(mvp);
+            } else {
+                ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
+                job.getPromise().done(result -> deferred.resolve(result)).fail(result -> deferred.reject(result));
+                meinAuthWorker.addJob(job);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            connectedEnvironment.unlock();
         }
-        connectedEnvironment.unlock();
         return deferred;
     }
 
@@ -487,8 +493,9 @@ public class MeinAuthService {
     }
 
     public void addAllMeinAuthAdmin(List<MeinAuthAdmin> meinAuthAdmins) {
-        for (MeinAuthAdmin admin : meinAuthAdmins)
+        for (MeinAuthAdmin admin : meinAuthAdmins) {
             this.addMeinAuthAdmin(admin);
+        }
     }
 
     public void onNotificationFromService(MeinService meinService, MeinNotification notification) {

@@ -72,7 +72,12 @@ public abstract class SyncHandler {
                             System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
                             System.err.println("SyncHandler.moveFile: " + target.getAbsolutePath());
                         }
-                    }
+                    } else if ((fsTarget.getModified().isNull() || (fsTarget.getModified().notNull() && !fsTarget.getModified().v().equals(modifiedAndInode.getModified())))
+                            || (fsTarget.getiNode().isNull() || fsTarget.getiNode().notNull() && !fsTarget.getiNode().v().equals(modifiedAndInode.getiNode()))) {
+                        //file is not equal to the one in the fs table
+                        wasteBin.deleteUnknown(target);
+                    } else
+                        System.err.println(getClass().getSimpleName() + ".moveFile().errrr");
                 }
             }
             indexer.ignorePath(target.getAbsolutePath(), 1);
@@ -107,6 +112,9 @@ public abstract class SyncHandler {
                 if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
                     FsFile fsFile = fsFiles.get(0);
                     file = moveFile(file, fsFile);
+                    //todo debug
+                    if (file == null)
+                        System.out.println("SyncHandler.onFileTransferred.debug.ja09gf4");
                     fsFile.getSynced().v(true);
                     fsDao.setSynced(fsFile.getId().v(), true);
                 }
@@ -132,6 +140,9 @@ public abstract class SyncHandler {
         File target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
         fsDao.unlockRead();
         indexer.ignorePath(target.getAbsolutePath(), 2);
+        //todo debug
+        if (source == null)
+            System.out.println("SyncHandler.copyFile.debug1");
         InputStream in = new FileInputStream(source);
         try {
             OutputStream out = new FileOutputStream(target);
@@ -175,6 +186,9 @@ public abstract class SyncHandler {
      * @param stageSetId
      */
     public void commitStage(Long stageSetId, boolean lockFsEntry, Map<Long, Long> stageIdFsIdMap) {
+        //todo debug
+        if (stageSetId == 2)
+            System.out.println("SyncHandler.commitStage.debugj9v0jaseß");
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         try {

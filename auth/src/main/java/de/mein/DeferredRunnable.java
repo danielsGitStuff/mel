@@ -8,7 +8,7 @@ import org.jdeferred.impl.DeferredObject;
  */
 public abstract class DeferredRunnable implements MeinRunnable {
     protected DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
-    private Thread thread;
+    protected Thread thread;
     private boolean interrupted = false;
 
     /**
@@ -40,7 +40,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
         thread = Thread.currentThread();
         thread.setName(getRunnableName());
         runImpl();
-        System.out.println("DeferredRunnable.run.done on "+thread.getName());
+        System.out.println(getClass().getSimpleName()+".run.done on "+thread.getName());
     }
 
     /**

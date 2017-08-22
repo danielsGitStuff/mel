@@ -1,6 +1,7 @@
 package de.mein.auth.socket;
 
 import de.mein.DeferredRunnable;
+import de.mein.WaitingDeferredRunnable;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 

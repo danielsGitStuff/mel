@@ -1,5 +1,6 @@
 package de.mein.drive.service;
 
+import de.mein.auth.tools.Hash;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
@@ -29,6 +30,7 @@ public class WasteBin {
     private final DriveDatabaseManager driveDatabaseManager;
     private final WasteDao wasteDao;
     private final StageDao stageDao;
+    private final File deferredDir;
 
     public WasteBin(MeinDriveService meinDriveService) {
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
@@ -39,7 +41,9 @@ public class WasteBin {
         this.indexer = meinDriveService.getIndexer();
         this.wasteDao = driveDatabaseManager.getWasteDao();
         this.wasteDir = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN);
+        this.deferredDir = new File(wasteDir, "deferred");
         wasteDir.mkdirs();
+        deferredDir.mkdirs();
     }
 
     public void delete(Long fsId) throws SqlQueriesException, IOException {
@@ -220,5 +224,31 @@ public class WasteBin {
         if (waste == null || waste.getHash().isNull())
             System.out.println("WasteBin.getWasteFile.debug.1");
         return new File(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
+    }
+
+    /**
+     * deletes the file immediately but does not assume its content(hash).
+     * the content hash is determined deferred.
+     *
+     * @param file
+     * @throws IOException
+     */
+    public void deleteUnknown(File file) throws IOException, SqlQueriesException {
+        ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
+        File target = new File(deferredDir, modifiedAndInode.getiNode().toString());
+        file.renameTo(target);
+        //todo hashing is blocking yet!
+        String hash = Hash.md5(target);
+        Waste waste = new Waste();
+        waste.getHash().v(hash);
+        waste.getInode().v(modifiedAndInode.getiNode());
+        waste.getModified().v(modifiedAndInode.getModified());
+        waste.getInplace().v(false);
+        waste.getSize().v(target.length());
+        waste.getName().v(file.getName());
+        wasteDao.insert(waste);
+        this.del(waste, target);
+        //todo tell a worker to investigate the deferred directory
+        //todo worker has to tell the drive service or transfermanager that a file has been found
     }
 }

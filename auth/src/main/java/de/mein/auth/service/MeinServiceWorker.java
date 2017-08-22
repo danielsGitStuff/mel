@@ -2,6 +2,8 @@ package de.mein.auth.service;
 
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
+import de.mein.auth.tools.CountLock;
+import de.mein.auth.tools.CountdownLock;
 
 import java.io.File;
 import java.util.HashMap;
@@ -14,6 +16,7 @@ import java.util.Map;
 public abstract class MeinServiceWorker extends MeinService implements IMeinService {
     protected LinkedList<Job> jobs = new LinkedList<>();
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
+    private CountdownLock initLock = new CountdownLock(1).lock();
 
     public MeinServiceWorker(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
@@ -33,6 +36,7 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     @Override
     public void runImpl() {
         try {
+            initLock.lock();
             while (!isInterrupted()) {
                 queueLock.lockWrite();
                 Job job = jobs.poll();
@@ -74,6 +78,7 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     }
 
     public void start() {
+        initLock.unlock();
         meinAuthService.execute(this);
     }
 

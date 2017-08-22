@@ -141,7 +141,7 @@ public class ClientSyncHandler extends SyncHandler {
                             if (result instanceof TooOldVersionException) {
                                 System.out.println("ClientSyncHandler.syncWithServer");
                                 N.r(() -> {
-                                    syncThisClient();
+                                    meinDriveService.addJob(new CommitJob());
                                 });
                             }
                             waitLock.unlock();
@@ -254,12 +254,14 @@ public class ClientSyncHandler extends SyncHandler {
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
         if (conflictSolverMap.containsKey(identifier)) {
             conflictSolver = conflictSolverMap.get(identifier);
-            if (conflictSolver.isSolved()){
+            if (conflictSolver.isSolved()) {
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
-            }else {
-                conflictSolverMap.remove(identifier);
-                conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
-                conflictSolver.beforeStart(serverStageSet);
+                conflictSolver.setSolving(false);
+            } else {
+                System.err.println(getClass().getSimpleName() + ".handleConflict(): conflict " + identifier + " was not resolved");
+//                conflictSolverMap.remove(identifier);
+//                conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
+//                conflictSolver.beforeStart(serverStageSet);
             }
         } else {
             conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
@@ -267,20 +269,23 @@ public class ClientSyncHandler extends SyncHandler {
             iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
         // only remember the conflict solver if it actually has conflicts
-        if (conflictSolver.hasConflicts()) {
-            System.err.println("conflicts!!!!1!");
-            conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
-            meinDriveService.onConflicts(conflictSolver);
-        } else {
-            // todo FsDir hash conflicts
-            conflictSolver.directoryStuff();
-            conflictSolver.cleanup();
-            this.commitStage(serverStageSet.getId().v());
-            setupTransfer();
-            Long mergedId = conflictSolver.getMergeStageSet().getId().v();
-            this.minimizeStage(mergedId);
-            if (stageDao.stageSetHasContent(mergedId))
-                meinDriveService.addJob(new CommitJob());
+        if (!conflictSolver.isSolving()) {
+            if (conflictSolver.hasConflicts()) {
+                System.err.println("conflicts!!!!1!");
+                conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
+                conflictSolver.setSolving(true);
+                meinDriveService.onConflicts(conflictSolver);
+            } else {
+                // todo FsDir hash conflicts
+                conflictSolver.directoryStuff();
+                conflictSolver.cleanup();
+                this.commitStage(serverStageSet.getId().v());
+                setupTransfer();
+                Long mergedId = conflictSolver.getMergeStageSet().getId().v();
+                this.minimizeStage(mergedId);
+                if (stageDao.stageSetHasContent(mergedId))
+                    meinDriveService.addJob(new CommitJob());
+            }
         }
     }
 

@@ -18,6 +18,7 @@ public class GenericFSEntry extends FsEntry  {
                 .setContentHash(genericFSEntry.getContentHash().v())
                 .setStageSet(stageSetId)
                 .setSize(genericFSEntry.getSize().v())
+                .setVersion(genericFSEntry.getVersion().v())
                 .setDeleted(false);
     }
 
