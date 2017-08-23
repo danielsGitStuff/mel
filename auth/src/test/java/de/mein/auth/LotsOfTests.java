@@ -23,6 +23,8 @@ import org.jdeferred.impl.DeferredObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.net.URL;
 import java.util.List;
@@ -81,7 +83,8 @@ public class LotsOfTests {
      */
     @Test
     public void sendFile() throws Exception {
-
+        File target = new File("otters.transferred.jpg");
+        target.delete();
         setup(new OnConnectedListener() {
             @Override
             public void onConnected() {
@@ -90,8 +93,10 @@ public class LotsOfTests {
                     File source = new File(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
                     FileTransferDetail fileTransferDetail1 = new FileTransferDetail(source, 7, 0, source.length());
                     fileTransferDetail1.openRead();
-                    FileTransferDetail fileTransferDetail2 = new FileTransferDetail(new File("otters.transferred.jpg"), 7, 0, source.length());
-
+                    FileTransferDetail fileTransferDetail2 = new FileTransferDetail(target, 7, 0, source.length());
+                    fileTransferDetail2.setTransferDoneListener(fileTransferDetail -> {
+                        lock.unlockWrite();
+                    });
                     DeferredObject<MeinIsolatedFileProcess, Exception, Void> isolated = standAloneAuth1.connectToService(MeinIsolatedFileProcess.class, 1L, serviceUuid2, serviceUuid1, null, null, null);
                     isolated.done(fileProcess -> run(() -> {
                         System.out.println("LotsOfTests.onConnected1");
@@ -113,6 +118,54 @@ public class LotsOfTests {
         });
         lock.lockWrite();
         lock.unlockWrite();
+
+        if (!target.exists())
+            System.out.println("LotsOfTests.sendFile.debugf43g");
+        assertTrue(target.exists());
+        System.out.println("DriveTest.isolation.END");
+    }
+
+    /**
+     * instance 1 sends to 2 after exchanging FileTransferDetails
+     *
+     * @throws Exception
+     */
+    @Test
+    public void sendError() throws Exception {
+        File target = new File("otters.transferred.jpg");
+        target.delete();
+        setup(new OnConnectedListener() {
+            @Override
+            public void onConnected() {
+                run(() -> {
+                    URL otters = getClass().getClassLoader().getResource("otters.jpg");
+                    File source = new File(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
+                    FileTransferDetail fileTransferDetail1 = new FileTransferDetail(source, 7, 0, source.length());
+                    fileTransferDetail1.setError(true);
+                    FileTransferDetail fileTransferDetail2 = new FileTransferDetail(target, 7, 0, source.length());
+
+                    DeferredObject<MeinIsolatedFileProcess, Exception, Void> isolated = standAloneAuth1.connectToService(MeinIsolatedFileProcess.class, 1L, serviceUuid2, serviceUuid1, null, null, null);
+                    isolated.done(fileProcess -> run(() -> {
+                        System.out.println("LotsOfTests.onConnected1");
+                        MeinIsolatedFileProcess iso1 = (MeinIsolatedFileProcess) meinTestService1.getIsolatedProcess(1L, serviceUuid2);
+                        MeinIsolatedFileProcess iso2 = (MeinIsolatedFileProcess) meinTestService2.getIsolatedProcess(1L, serviceUuid1);
+                        System.out.println("LotsOfTests.onConnected2");
+                        iso2.addFilesReceiving(fileTransferDetail2);
+                        System.out.println("LotsOfTests.onConnected3");
+                        iso1.sendFile(fileTransferDetail1);
+                        System.out.println("DriveTest.onSyncDoneImpl.SUCCESS");
+                        //fileProcess.sendFile(source);
+                        lock.unlockWrite();
+                    })).fail(result -> {
+                        System.out.println("DriveTest.onSyncDoneImpl.FAIL");
+                        Assert.fail("did not connect");
+                    });
+                });
+            }
+        });
+        lock.lockWrite();
+        lock.unlockWrite();
+        assertFalse(target.exists());
         System.out.println("DriveTest.isolation.END");
     }
 

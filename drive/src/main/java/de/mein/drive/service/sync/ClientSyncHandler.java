@@ -57,6 +57,9 @@ public class ClientSyncHandler extends SyncHandler {
             resource = fsDao.getNonSyncedFilesResource();
             FsFile fsFile = resource.getNext();
             while (fsFile != null) {
+                //todo debug
+                if (fsFile.getContentHash().v().equals("238810397cd86edae7957bca350098bc"))
+                    System.out.println("TransferDao.insert.debugmic3n0fv");
                 TransferDetails transfer = new TransferDetails();
                 transfer.getServiceUuid().v(driveSettings.getClientSettings().getServerServiceUuid());
                 transfer.getCertId().v(driveSettings.getClientSettings().getServerCertId());
@@ -225,7 +228,7 @@ public class ClientSyncHandler extends SyncHandler {
                     commitStage(stageSet.getId().v(), false);
                     setupTransfer();
                     hasCommitted = true;
-                }else
+                } else
                     stageDao.deleteStageSet(stageSet.getId().v());
             }
             // new job in case we have solved conflicts in this run.

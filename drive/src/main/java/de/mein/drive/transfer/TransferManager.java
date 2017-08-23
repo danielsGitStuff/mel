@@ -119,21 +119,32 @@ public class TransferManager extends DeferredRunnable {
         }
     }
 
+    private void countDown(AtomicInteger countDown) {
+        int count = countDown.decrementAndGet();
+        if (count == 0)
+            lock.unlockWrite();
+    }
+
     private void retrieveFiles(MeinIsolatedFileProcess fileProcess, TransferDetails strippedTransferDetails) throws SqlQueriesException, InterruptedException {
         final String workingPath = meinDriveService.getDriveSettings().getTransferDirectoryPath() + File.separator;
-        List<TransferDetails> transfers = transferDao.getTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), LIMIT_PER_ADDRESS);
+        List<TransferDetails> transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), LIMIT_PER_ADDRESS);
         AtomicInteger countDown = new AtomicInteger(transfers.size());
         FileTransferDetailSet payLoad = new FileTransferDetailSet().setServiceUuid(meinDriveService.getUuid());
         for (TransferDetails transferDetails : transfers) {
+            transferDao.setStarted(transferDetails.getId().v(), true);
+            transferDetails.getStarted().v(true);
             File target = new File(workingPath + transferDetails.getHash().v());
             FileTransferDetail fileTransferDetail = new FileTransferDetail(target, new Random().nextInt(), 0L, transferDetails.getSize().v())
                     .setHash(transferDetails.getHash().v())
                     .setTransferDoneListener(fileTransferDetail1 -> N.r(() -> {
                         transferDao.delete(transferDetails.getId().v());
-                        int count = countDown.decrementAndGet();
-                        if (count == 0)
-                            lock.unlockWrite();
+                        countDown(countDown);
                         syncHandler.onFileTransferred(target, transferDetails.getHash().v());
+                    }))
+                    .setTransferFailedListener(fileTransferDetail1 -> N.r(() -> {
+                        transferDao.delete(transferDetails.getId().v());
+                        countDown(countDown);
+                        syncHandler.onFileTransferFailed(transferDetails.getHash().v());
                     }));
             System.out.println("TransferManager.retrieveFiles.add.transfer: " + fileTransferDetail.getStreamId());
             fileProcess.addFilesReceiving(fileTransferDetail);

@@ -24,15 +24,30 @@ public class FileTransferDetail implements SerializableEntity {
     @JsonIgnore
     private boolean transferred = false;
     private FileTransferDoneListener transferDoneListener;
+    private FileTransferFailedListener transferFailedListener;
 
     private long start, end;
+    private boolean e404 = false;
 
     public void openRead() throws FileNotFoundException {
         in = new FileInputStream(file);
     }
 
+    public FileTransferDetail setError(boolean hasError) {
+        this.e404 = hasError;
+        return this;
+    }
+
+    public void onFailed() {
+
+    }
+
     public interface FileTransferDoneListener {
         void onFileTransferDone(FileTransferDetail fileTransferDetail);
+    }
+
+    public interface FileTransferFailedListener{
+        void onFileTransferFailed(FileTransferDetail fileTransferDetail);
     }
 
     public FileTransferDetail() {
@@ -41,6 +56,11 @@ public class FileTransferDetail implements SerializableEntity {
 
     public FileTransferDetail setTransferDoneListener(FileTransferDoneListener transferDoneListener) {
         this.transferDoneListener = transferDoneListener;
+        return this;
+    }
+
+    public FileTransferDetail setTransferFailedListener(FileTransferFailedListener transferFailedListener) {
+        this.transferFailedListener = transferFailedListener;
         return this;
     }
 
@@ -175,5 +195,9 @@ public class FileTransferDetail implements SerializableEntity {
             transferred = true;
         }
         return new FReadInfo(bytes, length - readBytes);
+    }
+
+    public boolean hasError() {
+        return e404;
     }
 }

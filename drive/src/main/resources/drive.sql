@@ -34,13 +34,13 @@ CREATE TABLE stage (
   fsid        INTEGER,
   name        TEXT,
   fsparentid  INTEGER,
-  rem INTEGER,
+  rem         INTEGER,
   version     INTEGER,
   contenthash TEXT,
   dir         INTEGER NOT NULL,
   inode       INTEGER,
   modified    INTEGER,
-  deleted     INTEGER NOT NULL ,
+  deleted     INTEGER NOT NULL,
   size        INTEGER,
   synced      INTEGER,
   merged      INTEGER,
@@ -53,7 +53,7 @@ CREATE TABLE stage (
 );
 CREATE TABLE stageset (
   id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  source          TEXT,
+  source        TEXT,
   origincert    INTEGER,
   originservice TEXT,
   status        TEXT,
@@ -83,6 +83,7 @@ CREATE TABLE transfer (
   certid      INTEGER NOT NULL,
   serviceuuid TEXT    NOT NULL,
   size        INTEGER NOT NULL,
+  started     INTEGER NOT NULL,
   UNIQUE (certid, serviceuuid, hash)
 );
 CREATE TABLE waste (

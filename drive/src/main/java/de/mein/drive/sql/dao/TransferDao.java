@@ -38,11 +38,12 @@ public class TransferDao extends Dao {
 
     public List<TransferDetails> getTwoTransferSets() throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
+        String where = dummy.getStarted().k() + "=?";
         String whatElse = "group by " + dummy.getCertId().k() + "," + dummy.getServiceUuid().k() + " limit 2";
         List<Pair<?>> columns = new ArrayList<>();
         columns.add(dummy.getCertId());
         columns.add(dummy.getServiceUuid());
-        List<TransferDetails> result = sqlQueries.load(columns, dummy, null, null, whatElse);
+        List<TransferDetails> result = sqlQueries.load(columns, dummy, where, ISQLQueries.whereArgs(false), whatElse);
         return result;
     }
 
@@ -51,16 +52,22 @@ public class TransferDao extends Dao {
     }
 
 
-    public List<TransferDetails> getTransfers(Long certId, String serviceUuid, int limit) throws SqlQueriesException {
+    public List<TransferDetails> getNotStartedTransfers(Long certId, String serviceUuid, int limit) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
-        String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=?";
+        String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=? and " + dummy.getStarted().k() + "=?";
         String whatElse = " limit ?";
-        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, limit), whatElse);
+        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, false, limit), whatElse);
         return result;
     }
 
     public void deleteByHash(String hash) throws SqlQueriesException {
         TransferDetails transfer = new TransferDetails();
         sqlQueries.delete(transfer, transfer.getHash().k() + "=?", ISQLQueries.whereArgs(hash));
+    }
+
+    public void setStarted(Long id, boolean started) throws SqlQueriesException {
+        TransferDetails details = new TransferDetails();
+        String stmt = "update " + details.getTableName() + " set " + details.getStarted().k() + "=? where " + details.getId().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true, id));
     }
 }

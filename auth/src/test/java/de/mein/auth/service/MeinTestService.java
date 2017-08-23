@@ -15,8 +15,8 @@ import java.util.concurrent.ThreadFactory;
  */
 public class MeinTestService extends MeinServiceWorker {
 
-    public MeinTestService(MeinAuthService meinAuthService, File workingDirectory) {
-        super(meinAuthService, workingDirectory);
+    public MeinTestService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
+        super(meinAuthService, workingDirectory,serviceTypeId,uuid);
     }
 
     @Override

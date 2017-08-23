@@ -103,6 +103,19 @@ public abstract class SyncHandler {
         return target;
     }
 
+    public void onFileTransferFailed(String hash){
+        try{
+            fsDao.lockRead();
+            if (fsDao.desiresHash(hash)){
+                System.err.println(getClass().getSimpleName()+".onFileTransferFailed() file with hash "+hash+" is required but failed to transfer");
+            }
+        }catch (SqlQueriesException e){
+            e.printStackTrace();
+        }finally {
+            fsDao.unlockRead();
+        }
+    }
+
     /**
      * @param file File in working directory
      * @param v
@@ -364,4 +377,6 @@ public abstract class SyncHandler {
     public void start() {
         transferManager.start();
     }
+
+
 }

@@ -544,4 +544,10 @@ public class FsDao extends Dao {
         }
         return (FsFile) lastEntry.copyInstance();
     }
+
+    public boolean desiresHash(String hash) throws SqlQueriesException {
+        FsFile fsFile = new FsFile();
+        String query = "select count(*)>0 from " + fsFile.getTableName() + " where " + fsFile.getSynced().k() + "=? and " + fsFile.getContentHash().k() + "=?";
+        return sqlQueries.querySingle(query, ISQLQueries.whereArgs(false, hash), Boolean.class);
+    }
 }

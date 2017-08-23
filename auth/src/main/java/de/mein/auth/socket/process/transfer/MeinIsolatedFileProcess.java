@@ -32,8 +32,8 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
         System.out.println("MeinIsolatedFileProcess.addFilesReceiving.ID: " + fileTransferDetail.getStreamId());
         receivingSemaphore.acquire();
         streamIdFileMapReceiving.put(fileTransferDetail.getStreamId(), fileTransferDetail);
-        receivingSemaphore.release();
         System.out.println("MeinIsolatedFileProcess.addFilesReceiving.stored.hash: " + streamIdFileMapReceiving.get(fileTransferDetail.getStreamId()).getHash());
+        receivingSemaphore.release();
     }
 
     public MeinIsolatedFileProcess(MeinAuthSocket meinAuthSocket, IMeinService meinService, Long partnerCertificateId, String partnerServiceUuid, String isolatedUuid) {
@@ -93,6 +93,18 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
             }
             block.setFirstByteToProcessIndex(firstByteToProcess + length + META_LENGTH);
             return true;
+        } else if (c.equals('E')) {
+            byte[] bytes = block.getBytes();
+            int firstByteToProcess = block.getFirstByteToProcessIndex();
+            int streamId = ByteTools.bytesToInt(bytes, firstByteToProcess + 1);
+            FileTransferDetail transferDetail = streamIdFileMapReceiving.get(streamId);
+            if (transferDetail == null) {
+                System.out.println("MeinIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
+            } else {
+                transferDetail.setError(true);
+                transferDetail.onFailed();
+            }
+            streamIdFileMapReceiving.remove(streamId);
         }
         return false;
     }
@@ -121,7 +133,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
                 sendingSemaphore.acquire();
                 FileTransferDetail details = sendingDetails.peek();
                 sendingSemaphore.release();
-                if (details != null && !Thread.currentThread().isInterrupted()) {
+                if (details != null && !Thread.currentThread().isInterrupted() && !details.hasError()) {
                     transfer();
                 } else {
                     // wait
@@ -132,7 +144,6 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
             e.printStackTrace();
         }
     }
-
 
     /**
      * sends one block of bytes over the socket. so it does not block until the file is transferred.<br>
@@ -150,24 +161,33 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
         FileTransferDetail transferDetail = sendingDetails.peek();
         while (transferDetail != null) {
             // [T/t][streamId][offset]
-            Character charToSend = 'T';
-            // already done, already done or it fits completely
-            if (transferDetail.transferred() || transferDetail.getPosition() == transferDetail.getEnd()
-                    || transferDetail.getEnd() - transferDetail.getPosition() <= bytesLeft - META_LENGTH)
-                charToSend = 't';
-            blockOffset = ByteTools.fill(block, blockOffset,
-                    charToSend.toString().getBytes(),
-                    ByteTools.intToBytes(transferDetail.getStreamId()),
-                    ByteTools.longToBytes(transferDetail.getPosition())
-            );
-            //keep in mind that 4 bytes still have to be added before the actual PAYLOAD
-            bytesLeft = MeinSocket.BLOCK_SIZE - blockOffset - 4;
-            FileTransferDetail.FReadInfo readResult = transferDetail.readFile(transferDetail.getPosition(), bytesLeft);
-            // [length of PAYLOAD]
-            blockOffset = ByteTools.fill(block, blockOffset, ByteTools.intToBytes(readResult.getBytes().length), readResult.getBytes());
+            Character charToSend = transferDetail.hasError() ? 'E' : 'T';
+            if (!transferDetail.hasError()) {
+                // already done, already done or it fits completely
+                if (transferDetail.transferred() || transferDetail.getPosition() == transferDetail.getEnd()
+                        || transferDetail.getEnd() - transferDetail.getPosition() <= bytesLeft - META_LENGTH)
+                    charToSend = 't';
+                blockOffset = ByteTools.fill(block, blockOffset,
+                        charToSend.toString().getBytes(),
+                        ByteTools.intToBytes(transferDetail.getStreamId()),
+                        ByteTools.longToBytes(transferDetail.getPosition())
+                );
+            } else {
+                blockOffset = ByteTools.fill(block, blockOffset,
+                        charToSend.toString().getBytes(),
+                        ByteTools.intToBytes(transferDetail.getStreamId()));
+            }
+            FileTransferDetail.FReadInfo readResult = null;
+            if (!transferDetail.hasError()) {
+                //keep in mind that 4 bytes still have to be added before the actual PAYLOAD
+                bytesLeft = MeinSocket.BLOCK_SIZE - blockOffset - 4;
+                readResult = transferDetail.readFile(transferDetail.getPosition(), bytesLeft);
+                // [length of PAYLOAD]
+                blockOffset = ByteTools.fill(block, blockOffset, ByteTools.intToBytes(readResult.getBytes().length), readResult.getBytes());
+            }
             bytesLeft = MeinSocket.BLOCK_SIZE - blockOffset;
             // if file is processed
-            if (transferDetail.transferred() || readResult.getNotFilledBytes() > 0) {
+            if (transferDetail.transferred() || (readResult != null && readResult.getNotFilledBytes() > 0)) {
                 sendingSemaphore.acquire();
                 sendingDetails.poll();
                 sendingSemaphore.release();
@@ -193,5 +213,13 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
     @Override
     public String getRunnableName() {
         return getClass().getSimpleName();
+    }
+
+    public void sendError(FileTransferDetail detail) throws InterruptedException {
+        detail.setError(true);
+        sendingSemaphore.acquire();
+        sendingDetails.add(detail);
+        sendingSemaphore.release();
+        sendWaitLock.unlockWrite();
     }
 }
