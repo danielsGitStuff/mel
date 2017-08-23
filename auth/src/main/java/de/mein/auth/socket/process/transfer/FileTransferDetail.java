@@ -39,14 +39,15 @@ public class FileTransferDetail implements SerializableEntity {
     }
 
     public void onFailed() {
-
+        if (transferFailedListener != null)
+            transferFailedListener.onFileTransferFailed(this);
     }
 
     public interface FileTransferDoneListener {
         void onFileTransferDone(FileTransferDetail fileTransferDetail);
     }
 
-    public interface FileTransferFailedListener{
+    public interface FileTransferFailedListener {
         void onFileTransferFailed(FileTransferDetail fileTransferDetail);
     }
 

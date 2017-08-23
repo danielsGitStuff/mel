@@ -142,8 +142,11 @@ public class LotsOfTests {
                     File source = new File(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
                     FileTransferDetail fileTransferDetail1 = new FileTransferDetail(source, 7, 0, source.length());
                     fileTransferDetail1.setError(true);
+                    fileTransferDetail1.openRead();
                     FileTransferDetail fileTransferDetail2 = new FileTransferDetail(target, 7, 0, source.length());
-
+                    fileTransferDetail2.setTransferFailedListener(fileTransferDetail -> {
+                        lock.unlockWrite();
+                    });
                     DeferredObject<MeinIsolatedFileProcess, Exception, Void> isolated = standAloneAuth1.connectToService(MeinIsolatedFileProcess.class, 1L, serviceUuid2, serviceUuid1, null, null, null);
                     isolated.done(fileProcess -> run(() -> {
                         System.out.println("LotsOfTests.onConnected1");
@@ -155,7 +158,7 @@ public class LotsOfTests {
                         iso1.sendFile(fileTransferDetail1);
                         System.out.println("DriveTest.onSyncDoneImpl.SUCCESS");
                         //fileProcess.sendFile(source);
-                        lock.unlockWrite();
+                        //lock.unlockWrite();
                     })).fail(result -> {
                         System.out.println("DriveTest.onSyncDoneImpl.FAIL");
                         Assert.fail("did not connect");
@@ -165,6 +168,9 @@ public class LotsOfTests {
         });
         lock.lockWrite();
         lock.unlockWrite();
+
+        if (target.exists())
+            System.out.println("LotsOfTests.sendFile.debugf43g");
         assertFalse(target.exists());
         System.out.println("DriveTest.isolation.END");
     }

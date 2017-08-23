@@ -104,7 +104,9 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
                 transferDetail.setError(true);
                 transferDetail.onFailed();
             }
+            block.setFirstByteToProcessIndex(firstByteToProcess+5);
             streamIdFileMapReceiving.remove(streamId);
+            return true;
         }
         return false;
     }
@@ -133,7 +135,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
                 sendingSemaphore.acquire();
                 FileTransferDetail details = sendingDetails.peek();
                 sendingSemaphore.release();
-                if (details != null && !Thread.currentThread().isInterrupted() && !details.hasError()) {
+                if (details != null && !Thread.currentThread().isInterrupted()) {
                     transfer();
                 } else {
                     // wait
@@ -187,7 +189,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
             }
             bytesLeft = MeinSocket.BLOCK_SIZE - blockOffset;
             // if file is processed
-            if (transferDetail.transferred() || (readResult != null && readResult.getNotFilledBytes() > 0)) {
+            if (transferDetail.transferred() || transferDetail.hasError() ||readResult == null || (readResult!=null && readResult.getNotFilledBytes() > 0)) {
                 sendingSemaphore.acquire();
                 sendingDetails.poll();
                 sendingSemaphore.release();
