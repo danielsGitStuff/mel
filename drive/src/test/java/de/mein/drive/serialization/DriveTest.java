@@ -116,22 +116,22 @@ public class DriveTest {
             public void onTransfersDone() {
                 if (transferCount == 0) {
                     N.r(() -> {
-//                        meinAuthService1.shutDown();
-//                        meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
-//                        rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
-//                        file1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
-//                        file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
-//                        TestFileCreator.saveFile("same1.client".getBytes(), file1);
-//                        TestFileCreator.saveFile("same2.client".getBytes(), file2);
-//                        File subDir = new File(rootPath + File.separator + "samedir" + File.separator + "samesub");
-//                        subDir.mkdirs();
-//                        File subFile = new File(subDir.getAbsolutePath() + File.separator + "samesub1.txt");
-//                        TestFileCreator.saveFile("samesub1.client".getBytes(), subFile);
-//
-//                        String hash = Hash.md5(file1);
-//                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
-//                        hash = Hash.md5(file2);
-//                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
+                        //meinAuthService1.shutDown();
+                        meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
+                        rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
+                        file1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+                        file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        TestFileCreator.saveFile("same1.client".getBytes(), file1);
+                        TestFileCreator.saveFile("same2.client".getBytes(), file2);
+                        File subDir = new File(rootPath + File.separator + "samedir" + File.separator + "samesub");
+                        subDir.mkdirs();
+                        File subFile = new File(subDir.getAbsolutePath() + File.separator + "samesub1.txt");
+                        TestFileCreator.saveFile("samesub1.client".getBytes(), subFile);
+
+                        String hash = Hash.md5(file1);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
+                        hash = Hash.md5(file2);
+                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
                     });
 
                 }

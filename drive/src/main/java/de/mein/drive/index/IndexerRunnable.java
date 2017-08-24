@@ -79,7 +79,7 @@ public class IndexerRunnable extends AbstractIndexer {
             try {
                 fsDao.lockRead();
                 Iterator<String> found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
-                initStage(DriveStrings.STAGESET_TYPE_FS, found);
+                initStage(DriveStrings.STAGESET_TYPE_FS, found, indexWatchdogListener);
                 examineStage();
             } catch (Exception e) {
                 e.printStackTrace();

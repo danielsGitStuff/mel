@@ -10,11 +10,8 @@ import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.*;
 import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Created by xor on 12.08.2016.
@@ -50,7 +47,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
                 pathCollection.addPath(path);
             }
         });
-        stageIndexer.examinePaths(pathCollection);
+        stageIndexer.examinePaths(this, pathCollection);
     }
 
     @Override

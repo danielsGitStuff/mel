@@ -6,6 +6,7 @@ import de.mein.auth.tools.Order;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -98,7 +99,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Iterator<String> iterator) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<String> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
 //        stageDao.lockWrite();
         stageSet = stageDao.createStageSet(stageSetType, null, null);
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
@@ -169,7 +170,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             stage.setStageSet(stageSet.getId().v());
             stage.setDeleted(!f.exists());
-            if (!stage.getIsDirectory())
+            if (stage.getIsDirectory())
+                indexWatchdogListener.watchDirectory(f);
+            else
                 stage.setSynced(true);
             stage.setOrder(order.ord());
             stageDao.insert(stage);

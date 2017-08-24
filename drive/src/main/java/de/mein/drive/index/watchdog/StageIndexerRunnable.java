@@ -13,11 +13,13 @@ import de.mein.drive.sql.dao.FsDao;
 public class StageIndexerRunnable extends AbstractIndexer {
 
     private final PathCollection pathCollection;
+    private final IndexWatchdogListener indexWatchdogListener;
     private StageIndexer.StagingDoneListener stagingDoneListener;
 
-    public StageIndexerRunnable(DriveDatabaseManager databaseManager, PathCollection pathCollection) {
+    public StageIndexerRunnable(DriveDatabaseManager databaseManager, PathCollection pathCollection, IndexWatchdogListener indexWatchdogListener) {
         super(databaseManager);
         this.pathCollection = pathCollection;
+        this.indexWatchdogListener = indexWatchdogListener;
     }
 
 
@@ -37,7 +39,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
                 System.out.println("StageIndexerRunnable.runImpl.locking read on " + Thread.currentThread().getName());
                 fsDao.lockRead();
                 System.out.println("StageIndexerRunnable.runImpl.locked");
-                initStage(DriveStrings.STAGESET_TYPE_FS, pathCollection.getPaths().iterator());
+                initStage(DriveStrings.STAGESET_TYPE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener);
                 examineStage();
                 fsDao.unlockRead();
                 unlocked = true;

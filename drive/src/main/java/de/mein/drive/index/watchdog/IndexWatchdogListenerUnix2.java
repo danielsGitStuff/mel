@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Created by xor on 7/11/16.
@@ -113,7 +112,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
             e.printStackTrace();
         }
         //meinDriveService.addJob(new FsSyncJob(pathCollection));
-        stageIndexer.examinePaths(pathCollection);
+        stageIndexer.examinePaths(this, pathCollection);
         pathCollection = new PathCollection();
     }
 

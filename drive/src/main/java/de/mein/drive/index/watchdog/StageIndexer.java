@@ -41,8 +41,8 @@ public class StageIndexer extends BackgroundExecutor {
     }
 
 
-    public void examinePaths(PathCollection pathCollection) {
-        StageIndexerRunnable indexerRunnable = new StageIndexerRunnable(databaseManager, pathCollection);
+    public void examinePaths(IndexWatchdogListener indexWatchdogListener, PathCollection pathCollection) {
+        StageIndexerRunnable indexerRunnable = new StageIndexerRunnable(databaseManager, pathCollection, indexWatchdogListener);
         indexerRunnable.setStagingDoneListener(stagingDoneListener);
         System.out.println(getClass().getSimpleName() + ".examinePaths.execute.on: " + Thread.currentThread().getName());
         execute(indexerRunnable);

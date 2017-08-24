@@ -68,7 +68,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     public void onTimerStopped() {
         System.out.println("IndexWatchdogListener.onTimerStopped");
         //meinDriveService.addJob(new FsSyncJob(pathCollection));
-        stageIndexer.examinePaths(pathCollection);
+        stageIndexer.examinePaths(this,pathCollection);
         pathCollection = new PathCollection();
     }
 
