@@ -81,8 +81,6 @@ public class TransferManager extends DeferredRunnable {
         while (!Thread.currentThread().isInterrupted()) {
             N.r(() -> {
                 logger.log(Level.FINER, "TransferManager.RUN");
-                // store Deferreds of every started IsolatedFileProcess here
-//                List<Deferred<TransferDetails,TransferDetails,Void>> processesDoneDeferreds = new ArrayList<>();
                 // these only contain certId and serviceUuid
                 List<TransferDetails> groupedTransferSets = transferDao.getTwoTransferSets();
                 // check if groupedTransferSets are active yet
@@ -118,7 +116,6 @@ public class TransferManager extends DeferredRunnable {
                         }
                         //check if files remain
                         DeferredObject<TransferDetails, TransferDetails, Void> processDone = new DeferredObject<>();
-//                        processesDoneDeferreds.add(processDone);
                         // when done: set to not active
                         processDone.done(transferDetails -> {
                             activeTransfers.remove(activeTransferKey(transferDetails));
@@ -145,9 +142,6 @@ public class TransferManager extends DeferredRunnable {
                             }
                         }
                     }
-//                    DeferredManager deferredManager = new DefaultDeferredManager();
-//                    Deferred<TransferDetails,TransferDetails,Void>[] processesDone = processesDoneDeferreds.toArray(new Deferred[0]);
-//                    deferredManager.when(processesDone).done(result -> )
                 }
             });
         }
@@ -167,6 +161,14 @@ public class TransferManager extends DeferredRunnable {
             lock.unlockWrite();
     }
 
+    /**
+     * starts a new Retriever thread that transfers everything from the other side and then shuts down.
+     * @param fileProcess
+     * @param strippedTransferDetails
+     * @return
+     * @throws SqlQueriesException
+     * @throws InterruptedException
+     */
     private DeferredObject<TransferDetails, TransferDetails, Void> retrieveFiles(MeinIsolatedFileProcess fileProcess, TransferDetails strippedTransferDetails) throws SqlQueriesException, InterruptedException {
         DeferredObject<TransferDetails, TransferDetails, Void> deferred = new DeferredObject<>();
         MeinRunnable runnable = new MeinRunnable() {
@@ -219,6 +221,7 @@ public class TransferManager extends DeferredRunnable {
                             System.out.println("TransferManager.retrieveFiles.48nf49");
                             deferred.reject(strippedTransferDetails);
                         }));
+                        //wait until current batch is transferred
                         lock.lockWrite();
                         transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), LIMIT_PER_ADDRESS);
                     }
