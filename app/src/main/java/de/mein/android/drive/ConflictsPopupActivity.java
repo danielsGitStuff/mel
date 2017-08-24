@@ -17,6 +17,7 @@ import java.util.Map;
 
 import de.mein.R;
 import de.mein.android.MeinToast;
+import de.mein.android.Notifier;
 import de.mein.android.PopupActivity;
 import de.mein.android.drive.view.ConflictListAdapter;
 import de.mein.drive.data.conflict.Conflict;
@@ -56,10 +57,7 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
         }
         btnOk.setOnClickListener(view -> {
             if (conflictSolver.isSolved()) {
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, requestCode, getIntent(), PendingIntent.FLAG_UPDATE_CURRENT);
-                pendingIntent.cancel();
-                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-                notificationManager.cancel(requestCode);
+                Notifier.cancel(this, getIntent(), requestCode);
                 service.addJob(new CommitJob());
                 finish();
             } else {

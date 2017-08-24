@@ -77,4 +77,7 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
+    <string name="REG_CERT_NOTITIFCATION_TITLE">Incoming Cert! :)</string>
+    <string name="REG_CERT_NOTIFICATION_TEXT">someome wants to connect to you</string>
+    <string name="REG_CERT_TITLE">Look at it!</string>
 </resources>
