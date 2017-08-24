@@ -438,10 +438,12 @@ StageDao extends Dao.LockingDao {
         sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId, true));
     }
 
-    public void updateInodeAndModified(Long id, Long iNode, Long modified) throws SqlQueriesException {
+    public void updateInodeAndModifiedAndSynced(Long id, Long iNode, Long modified, Boolean synced) throws SqlQueriesException {
         Stage stage = new Stage();
-        String statement = "update " + stage.getTableName() + " set " + stage.getiNodePair().k() + "=?, " + stage.getModifiedPair().k()
-                + "=? where " + stage.getIdPair().k() + "=?";
-        sqlQueries.execute(statement, ISQLQueries.whereArgs(iNode, modified, id));
+        String statement = "update " + stage.getTableName() + " set " + stage.getiNodePair().k() + "=?, "
+                + stage.getModifiedPair().k() + "=?, "
+                + stage.getSyncedPair().k() + "=? "
+                + "where " + stage.getIdPair().k() + "=?";
+        sqlQueries.execute(statement, ISQLQueries.whereArgs(iNode, modified, synced, id));
     }
 }

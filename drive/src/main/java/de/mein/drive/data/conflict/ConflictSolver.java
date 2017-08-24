@@ -271,7 +271,7 @@ public class ConflictSolver extends SyncStageMerger {
                     solvedStage.setModified(right.getModified());
                     solvedStage.setiNode(right.getiNode());
                     solvedStage.setSynced(right.getSynced());
-                    stageDao.updateInodeAndModified(solvedStage.getId(),right.getiNode(),right.getModified());
+                    stageDao.updateInodeAndModifiedAndSynced(solvedStage.getId(),right.getiNode(),right.getModified(),right.getSynced());
                 }
             }
         } else if (right != null) {
