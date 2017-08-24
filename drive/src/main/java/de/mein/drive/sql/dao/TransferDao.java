@@ -82,6 +82,6 @@ public class TransferDao extends Dao {
     public void resetStarted() throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
         String stmt = "update " + dummy.getTableName() + " set " + dummy.getStarted().k() + "=?";
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true));
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(false));
     }
 }

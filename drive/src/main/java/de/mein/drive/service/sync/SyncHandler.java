@@ -285,7 +285,7 @@ public abstract class SyncHandler {
                             stage.setFsId(fsFile.getId().v());
                         }
                     } else { // fs.id is not null
-                        if (stage.getDeleted() != null && stage.getDeleted()) {
+                        if (stage.getDeleted() != null && stage.getDeleted() && stage.getSynced()) {
                             //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
                             wasteBin.delete(stage.getFsId());
                         } else {

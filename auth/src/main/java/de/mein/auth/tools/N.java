@@ -5,6 +5,7 @@ import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public class N {
     /**
      * closes the Resource when failing or finishing
      *
-     * @param sqlResource
+     * @param sqlResource is handed to the {@link INoTryRunnable}
      * @param noTryRunnable
      */
     public static <T extends SQLTableObject> void sqlResource(ISQLResource<T> sqlResource, SqlTryRunnable<T> noTryRunnable) {

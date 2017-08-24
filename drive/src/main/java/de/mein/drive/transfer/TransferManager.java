@@ -79,7 +79,7 @@ public class TransferManager extends DeferredRunnable {
         transferDir.mkdirs();
         activeTransfers = new HashSet<>();
         while (!Thread.currentThread().isInterrupted()) {
-            N.r(() -> {
+            try {
                 logger.log(Level.FINER, "TransferManager.RUN");
                 // these only contain certId and serviceUuid
                 List<TransferDetails> groupedTransferSets = transferDao.getTwoTransferSets();
@@ -143,8 +143,12 @@ public class TransferManager extends DeferredRunnable {
                         }
                     }
                 }
-            });
+            }catch (Exception e){
+                e.printStackTrace();
+                break;
+            }
         }
+        shutDown();
     }
 
     private boolean allTransferSetsAreActive(List<TransferDetails> groupedTransferSets) {

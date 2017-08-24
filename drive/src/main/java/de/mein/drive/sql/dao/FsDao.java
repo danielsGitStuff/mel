@@ -389,6 +389,9 @@ public class FsDao extends Dao {
     }
 
     public void deleteById(Long fsId) throws SqlQueriesException {
+        //todo debug
+        if (fsId == 7)
+            System.out.println("FsDao.deleteById.debugjc03jg0äpeg");
         System.out.println("FsDao.deleteById: " + fsId);
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(fsId);
