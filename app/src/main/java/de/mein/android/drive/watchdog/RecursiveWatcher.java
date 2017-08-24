@@ -194,6 +194,6 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        stageIndexer.examinePaths(pathCollection);
+        stageIndexer.examinePaths(this,pathCollection);
     }
 }

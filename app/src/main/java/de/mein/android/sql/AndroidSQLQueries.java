@@ -2,7 +2,6 @@ package de.mein.android.sql;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 
 import java.sql.SQLException;
@@ -156,32 +155,34 @@ public class AndroidSQLQueries extends ISQLQueries {
     public <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException {
         System.out.println("AndroidSQLQueries.queryValue");
         Cursor cursor = db.rawQuery(query, argsToStringArgs(args));
-        if (cursor.moveToNext()) {
-            Object res = null;
+        return readValue(cursor, clazz);
+    }
+
+    private <T> T readValue(Cursor cursor, Class<T> clazz) {
+        if (cursor.moveToNext() && cursor.getCount() == 1 && cursor.getColumnCount() == 1) {
             int index = 0;
-            if (cursor.getCount() == 1 && cursor.getColumnCount() == 1) {
-                if (clazz.equals(Double.class))
-                    res = cursor.getDouble(index);
-                else if (clazz.equals(Float.class))
-                    res = cursor.getFloat(index);
-                else if (clazz.equals(Integer.class))
-                    res = cursor.getInt(index);
-                else if (clazz.equals(Short.class))
-                    res = cursor.getShort(index);
-                else if (clazz.equals(Boolean.class)) {
-                    Integer v = cursor.getInt(index);
-                    res = (v == index);
-                } else if (clazz.equals(Long.class))
-                    res = cursor.getLong(index);
-                else if (clazz.equals(byte[].class))
-                    res = cursor.getBlob(index);
-                else if (clazz.equals(Byte[].class))
-                    res = cursor.getBlob(index);
-                else if (clazz.equals(String.class))
-                    res = cursor.getString(index);
-                else {
-                    System.err.println("AndroidSQLQueries.UNKOWN TYPE");
-                }
+            Object res = null;
+            if (clazz.equals(Double.class))
+                res = cursor.getDouble(index);
+            else if (clazz.equals(Float.class))
+                res = cursor.getFloat(index);
+            else if (clazz.equals(Integer.class))
+                res = cursor.getInt(index);
+            else if (clazz.equals(Short.class))
+                res = cursor.getShort(index);
+            else if (clazz.equals(Boolean.class)) {
+                Integer v = cursor.getInt(index);
+                res = (v == index);
+            } else if (clazz.equals(Long.class))
+                res = cursor.getLong(index);
+            else if (clazz.equals(byte[].class))
+                res = cursor.getBlob(index);
+            else if (clazz.equals(Byte[].class))
+                res = cursor.getBlob(index);
+            else if (clazz.equals(String.class))
+                res = cursor.getString(index);
+            else {
+                System.err.println("AndroidSQLQueries.UNKOWN TYPE");
             }
             return (T) res;
         }
@@ -242,16 +243,8 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public <C> C querySingle(String query, List<Object> arguments, Class<C> resultClass) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.err.println("AndroidSQLQueries.querySingle!!!!!!!!!!!!!!!!!!!!!!!!");
-        return null;
+        Cursor cursor = db.rawQuery(query, argsToStringArgs(arguments));
+        return readValue(cursor, resultClass);
     }
 
     @Override
@@ -268,6 +261,11 @@ public class AndroidSQLQueries extends ISQLQueries {
         System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
         System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
         return null;
+    }
+
+    @Override
+    public void onShutDown() {
+
     }
 
     private static String[] argsToStringArgs(List<Object> whereArgs) {
