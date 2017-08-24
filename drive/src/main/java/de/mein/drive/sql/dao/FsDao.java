@@ -549,12 +549,6 @@ public class FsDao extends Dao {
         FsFile fsFile = new FsFile();
         String query = "select count(*)>0 from " + fsFile.getTableName() + " where " + fsFile.getSynced().k() + "=? and " + fsFile.getContentHash().k() + "=?";
         Integer result = sqlQueries.querySingle(query, ISQLQueries.whereArgs(false, hash), Integer.class);
-        if (result == null)
-            return false;
-        if (result == 1)
-            return true;
-        if (result == 0)
-            return false;
-        throw new SqlQueriesException("something went horribly wrong converting the database result: " + (result == null ? "null" : result.getClass() + ": " + result));
+        return SqliteConverter.intToBoolean(result);
     }
 }

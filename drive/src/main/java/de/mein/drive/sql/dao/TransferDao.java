@@ -1,5 +1,6 @@
 package de.mein.drive.sql.dao;
 
+import de.mein.drive.sql.SqliteConverter;
 import de.mein.drive.sql.TransferDetails;
 import de.mein.sql.*;
 
@@ -69,5 +70,12 @@ public class TransferDao extends Dao {
         TransferDetails details = new TransferDetails();
         String stmt = "update " + details.getTableName() + " set " + details.getStarted().k() + "=? where " + details.getId().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(true, id));
+    }
+
+    public boolean hasNotStartedTransfers(Long certId, String serviceUuid) throws SqlQueriesException {
+        TransferDetails dummy = new TransferDetails();
+        String query = "select count(*)>0 from " + dummy.getTableName() + " where " + dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=?";
+        Integer result = sqlQueries.querySingle(query, ISQLQueries.whereArgs(certId, serviceUuid), Integer.class);
+        return SqliteConverter.intToBoolean(result);
     }
 }
