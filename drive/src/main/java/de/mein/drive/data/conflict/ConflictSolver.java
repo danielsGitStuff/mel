@@ -270,6 +270,7 @@ public class ConflictSolver extends SyncStageMerger {
                 if (left.getiNode() == null && left.getModified() == null && left.getContentHash().equals(right.getContentHash())) {
                     solvedStage.setModified(right.getModified());
                     solvedStage.setiNode(right.getiNode());
+                    solvedStage.setSynced(right.getSynced());
                     stageDao.updateInodeAndModified(solvedStage.getId(),right.getiNode(),right.getModified());
                 }
             }

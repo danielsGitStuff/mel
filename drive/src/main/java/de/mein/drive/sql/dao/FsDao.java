@@ -548,6 +548,13 @@ public class FsDao extends Dao {
     public boolean desiresHash(String hash) throws SqlQueriesException {
         FsFile fsFile = new FsFile();
         String query = "select count(*)>0 from " + fsFile.getTableName() + " where " + fsFile.getSynced().k() + "=? and " + fsFile.getContentHash().k() + "=?";
-        return sqlQueries.querySingle(query, ISQLQueries.whereArgs(false, hash), Boolean.class);
+        Integer result = sqlQueries.querySingle(query, ISQLQueries.whereArgs(false, hash), Integer.class);
+        if (result == null)
+            return false;
+        if (result == 1)
+            return true;
+        if (result == 0)
+            return false;
+        throw new SqlQueriesException("something went horribly wrong converting the database result: " + (result == null ? "null" : result.getClass() + ": " + result));
     }
 }

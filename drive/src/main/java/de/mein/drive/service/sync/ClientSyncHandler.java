@@ -286,7 +286,7 @@ public class ClientSyncHandler extends SyncHandler {
                 conflictSolver.directoryStuff();
                 conflictSolver.cleanup();
                 this.commitStage(serverStageSet.getId().v());
-                setupTransfer();
+                //setupTransfer();
                 Long mergedId = conflictSolver.getMergeStageSet().getId().v();
                 this.minimizeStage(mergedId);
                 if (stageDao.stageSetHasContent(mergedId))
