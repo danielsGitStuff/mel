@@ -69,7 +69,11 @@ public class TransferManager extends DeferredRunnable {
     }
 
     private String activeTransferKey(TransferDetails details) {
-        return details.getCertId().v() + "." + details.getServiceUuid().v();
+        String key = details.getCertId().v() + "." + details.getServiceUuid().v();
+        //todo debug
+        if (key.equals("1.d89e2ebc-032b-479c-ba90-b50d48fab01c"))
+            System.out.println("TransferManager.activeTransferKey.debugn0jv45jfh9awe");
+        return key;
     }
 
     @Override
@@ -138,7 +142,9 @@ public class TransferManager extends DeferredRunnable {
                                             done.done(result -> processDone.resolve(groupedTransferSet))
                                                     .fail(result -> processDone.resolve(groupedTransferSet));
                                         })
-                                );
+                                ).fail(exc -> {
+                                    processDone.reject(groupedTransferSet);
+                                });
                             }
                         }
                     }

@@ -216,7 +216,9 @@ public class WasteBin {
 
     public File getFile(String hash) throws SqlQueriesException {
         Waste waste = wasteDao.getWasteByHash(hash);
-        return getWasteFile(waste);
+        if (waste != null)
+            return getWasteFile(waste);
+        return null;
     }
 
     private File getWasteFile(Waste waste) {
