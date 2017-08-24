@@ -186,30 +186,31 @@ public class ConflictSolver extends SyncStageMerger {
         Map<Long, Long> oldeIdNewIdMapForDirectories = new HashMap<>();
         order = new Order();
         StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v());
-        ISQLResource<Stage> stageSet = stageDao.getStagesResource(oldeMergedSetId);
-        Stage rightStage = stageSet.getNext();
-        while (rightStage != null) {
-            if (rightStage.getIsDirectory()) {
-                FsDirectory contentHashDummy = fsDao.getDirectoryById(rightStage.getFsId());
-                if (contentHashDummy == null) {
-                    // it is not in fs. just add every child from the Stage
-                    contentHashDummy = new FsDirectory();
-                    List<Stage> content = stageDao.getStageContent(rightStage.getId());
-                    for (Stage stage : content)
-                        contentHashDummy.addDummyFsFile(stage.getName());
-                } else {
-                    // fill with info from FS
-                    List<GenericFSEntry> fsContent = fsDao.getContentByFsDirectory(contentHashDummy.getId().v());
-                    contentHashDummy.addContent(fsContent);
-                    mergeFsDirectoryWithSubStages(contentHashDummy, rightStage);
+        N.sqlResource(stageDao.getStagesResource(oldeMergedSetId), stageSet->{
+            Stage rightStage = stageSet.getNext();
+            while (rightStage != null) {
+                if (rightStage.getIsDirectory()) {
+                    FsDirectory contentHashDummy = fsDao.getDirectoryById(rightStage.getFsId());
+                    if (contentHashDummy == null) {
+                        // it is not in fs. just add every child from the Stage
+                        contentHashDummy = new FsDirectory();
+                        List<Stage> content = stageDao.getStageContent(rightStage.getId());
+                        for (Stage stage : content)
+                            contentHashDummy.addDummyFsFile(stage.getName());
+                    } else {
+                        // fill with info from FS
+                        List<GenericFSEntry> fsContent = fsDao.getContentByFsDirectory(contentHashDummy.getId().v());
+                        contentHashDummy.addContent(fsContent);
+                        mergeFsDirectoryWithSubStages(contentHashDummy, rightStage);
+                    }
+                    // apply delta
+                    contentHashDummy.calcContentHash();
+                    rightStage.setContentHash(contentHashDummy.getContentHash().v());
                 }
-                // apply delta
-                contentHashDummy.calcContentHash();
-                rightStage.setContentHash(contentHashDummy.getContentHash().v());
+                saveRightStage(rightStage, targetStageSet.getId().v(), oldeIdNewIdMapForDirectories);
+                rightStage = stageSet.getNext();
             }
-            saveRightStage(rightStage, targetStageSet.getId().v(), oldeIdNewIdMapForDirectories);
-            rightStage = stageSet.getNext();
-        }
+        });
         stageDao.deleteStageSet(oldeMergedSetId);
         mergeStageSet = targetStageSet;
     }

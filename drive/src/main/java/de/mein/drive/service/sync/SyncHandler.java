@@ -13,7 +13,6 @@ import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.transfer.TransferManager;
-import de.mein.sql.ISQLResource;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 
@@ -103,15 +102,15 @@ public abstract class SyncHandler {
         return target;
     }
 
-    public void onFileTransferFailed(String hash){
-        try{
+    public void onFileTransferFailed(String hash) {
+        try {
             fsDao.lockRead();
-            if (fsDao.desiresHash(hash)){
-                System.err.println(getClass().getSimpleName()+".onFileTransferFailed() file with hash "+hash+" is required but failed to transfer");
+            if (fsDao.desiresHash(hash)) {
+                System.err.println(getClass().getSimpleName() + ".onFileTransferFailed() file with hash " + hash + " is required but failed to transfer");
             }
-        }catch (SqlQueriesException e){
+        } catch (SqlQueriesException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             fsDao.unlockRead();
         }
     }
@@ -222,100 +221,101 @@ public abstract class SyncHandler {
                 fsDao.lockWrite();
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
             StageSet stageSet = stageDao.getStageSetById(stageSetId);
-            ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
-            Stage stage = stages.getNext();
-            while (stage != null) {
-                //todo debug
-                if (stage.getName().equals("sub1.txt"))
-                    System.out.println("SyncHandler.commitStag.debugn3uivw34e");
-                if (stage.getName().equals("sub2.txt"))
-                    System.out.println("SyncHandler.commitStag.debugl,b45ni");
-                if (stage.getFsId() == null) {
-                    if (stage.getIsDirectory()) {
-                        if (stage.getFsId() != null) {
-                            FsDirectory dbDir = fsDao.getDirectoryById(stage.getId());
-                            dbDir.getVersion().v(version);
-                            dbDir.getContentHash().v(stage.getContentHash());
-                            dbDir.getModified().v(stage.getModified());
-                            fsDao.update(dbDir);
+            N.sqlResource(stageDao.getStagesByStageSet(stageSetId), stages -> {
+                Stage stage = stages.getNext();
+                while (stage != null) {
+                    //todo debug
+                    if (stage.getName().equals("sub1.txt"))
+                        System.out.println("SyncHandler.commitStag.debugn3uivw34e");
+                    if (stage.getName().equals("sub2.txt"))
+                        System.out.println("SyncHandler.commitStag.debugl,b45ni");
+                    if (stage.getFsId() == null) {
+                        if (stage.getIsDirectory()) {
+                            if (stage.getFsId() != null) {
+                                FsDirectory dbDir = fsDao.getDirectoryById(stage.getId());
+                                dbDir.getVersion().v(version);
+                                dbDir.getContentHash().v(stage.getContentHash());
+                                dbDir.getModified().v(stage.getModified());
+                                fsDao.update(dbDir);
+                            } else {
+                                FsDirectory dir = new FsDirectory();
+                                dir.getVersion().v(version);
+                                dir.getContentHash().v(stage.getContentHash());
+                                dir.getName().v(stage.getName());
+                                dir.getModified().v(stage.getModified());
+                                dir.getiNode().v(stage.getiNode());
+                                Long fsParentId = null;
+                                if (stage.getParentId() != null) {
+                                    fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
+                                } else if (stage.getFsParentId() != null)
+                                    fsParentId = stage.getFsParentId();
+                                dir.getParentId().v(fsParentId);
+                                fsDao.insert(dir);
+                                if (stageIdFsIdMap != null) {
+                                    stageIdFsIdMap.put(stage.getId(), dir.getId().v());
+                                }
+                                this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), dir);
+                                stage.setFsId(dir.getId().v());
+                            }
                         } else {
-                            FsDirectory dir = new FsDirectory();
-                            dir.getVersion().v(version);
-                            dir.getContentHash().v(stage.getContentHash());
-                            dir.getName().v(stage.getName());
-                            dir.getModified().v(stage.getModified());
-                            dir.getiNode().v(stage.getiNode());
-                            Long fsParentId = null;
-                            if (stage.getParentId() != null) {
-                                fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
-                            } else if (stage.getFsParentId() != null)
-                                fsParentId = stage.getFsParentId();
-                            dir.getParentId().v(fsParentId);
-                            fsDao.insert(dir);
+                            // it is a new file
+                            FsFile fsFile = null;
+                            if (stage.getFsId() != null)
+                                fsFile = fsDao.getFile(stage.getFsId());
+                            else {
+                                fsFile = new FsFile();
+                                Long fsParentId = null;
+                                if (stage.getParentId() != null) {
+                                    fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
+                                } else if (stage.getFsParentId() != null)
+                                    fsParentId = stage.getFsParentId();
+                                fsFile.getParentId().v(fsParentId);
+                            }
+                            fsFile.getName().v(stage.getName());
+                            fsFile.getContentHash().v(stage.getContentHash());
+                            fsFile.getVersion().v(version);
+                            fsFile.getModified().v(stage.getModified());
+                            fsFile.getiNode().v(stage.getiNode());
+                            fsFile.getSize().v(stage.getSize());
+                            fsFile.getSynced().v(stage.getSynced());
+                            fsDao.insert(fsFile);
                             if (stageIdFsIdMap != null) {
-                                stageIdFsIdMap.put(stage.getId(), dir.getId().v());
+                                stageIdFsIdMap.put(stage.getId(), fsFile.getId().v());
                             }
-                            this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), dir);
-                            stage.setFsId(dir.getId().v());
+                            stage.setFsId(fsFile.getId().v());
                         }
-                    } else {
-                        // it is a new file
-                        FsFile fsFile = null;
-                        if (stage.getFsId() != null)
-                            fsFile = fsDao.getFile(stage.getFsId());
-                        else {
-                            fsFile = new FsFile();
-                            Long fsParentId = null;
-                            if (stage.getParentId() != null) {
-                                fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
-                            } else if (stage.getFsParentId() != null)
-                                fsParentId = stage.getFsParentId();
-                            fsFile.getParentId().v(fsParentId);
-                        }
-                        fsFile.getName().v(stage.getName());
-                        fsFile.getContentHash().v(stage.getContentHash());
-                        fsFile.getVersion().v(version);
-                        fsFile.getModified().v(stage.getModified());
-                        fsFile.getiNode().v(stage.getiNode());
-                        fsFile.getSize().v(stage.getSize());
-                        fsFile.getSynced().v(stage.getSynced());
-                        fsDao.insert(fsFile);
-                        if (stageIdFsIdMap != null) {
-                            stageIdFsIdMap.put(stage.getId(), fsFile.getId().v());
-                        }
-                        stage.setFsId(fsFile.getId().v());
-                    }
-                } else { // fs.id is not null
-                    if (stage.getDeleted() != null && stage.getDeleted()) {
-                        //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
-                        wasteBin.delete(stage.getFsId());
-                    } else {
-                        FsEntry fsEntry = stageDao.stage2FsEntry(stage, version);
-                        // TODO inode & co
-                        FsEntry oldeEntry = fsDao.getGenericById(fsEntry.getId().v());
-                        if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v()) {
-                            fsEntry.getiNode().v(oldeEntry.getiNode());
-                            fsEntry.getModified().v(oldeEntry.getModified());
-                        }
-                        if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
-                            FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
-                            if (oldeFsFile != null && !stageSet.fromFs() && !fsEntry.getSynced().v()) {
-                                wasteBin.deleteFile(oldeFsFile);
+                    } else { // fs.id is not null
+                        if (stage.getDeleted() != null && stage.getDeleted()) {
+                            //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
+                            wasteBin.delete(stage.getFsId());
+                        } else {
+                            FsEntry fsEntry = stageDao.stage2FsEntry(stage, version);
+                            // TODO inode & co
+                            FsEntry oldeEntry = fsDao.getGenericById(fsEntry.getId().v());
+                            if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v()) {
+                                fsEntry.getiNode().v(oldeEntry.getiNode());
+                                fsEntry.getModified().v(oldeEntry.getModified());
                             }
+                            if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
+                                FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
+                                if (oldeFsFile != null && !stageSet.fromFs() && !fsEntry.getSynced().v()) {
+                                    wasteBin.deleteFile(oldeFsFile);
+                                }
+                            }
+                            if (fsEntry.getSynced().isNull())
+                                System.out.println("SyncHandler.commitStage.isnull");
+                            if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
+                                fsEntry.getSynced().v(false);
+                            fsDao.insertOrUpdate(fsEntry);
+                            this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
                         }
-                        if (fsEntry.getSynced().isNull())
-                            System.out.println("SyncHandler.commitStage.isnull");
-                        if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
-                            fsEntry.getSynced().v(false);
-                        fsDao.insertOrUpdate(fsEntry);
-                        this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
                     }
+                    stageDao.update(stage);
+                    stage = stages.getNext();
                 }
-                stageDao.update(stage);
-                stage = stages.getNext();
-            }
-            driveDatabaseManager.updateVersion();
-            stageDao.deleteStageSet(stageSetId);
+                driveDatabaseManager.updateVersion();
+                stageDao.deleteStageSet(stageSetId);
+            });
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

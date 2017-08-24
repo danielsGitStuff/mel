@@ -11,10 +11,9 @@ import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.MeinDriveClientService;
-import de.mein.drive.data.conflict.ConflictException;
-import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -25,7 +24,6 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -52,38 +50,31 @@ public class ClientSyncHandler extends SyncHandler {
      * call this if you are the receiver
      */
     private void setupTransfer() {
-        ISQLResource<FsFile> resource = null;
         try {
-            resource = fsDao.getNonSyncedFilesResource();
-            FsFile fsFile = resource.getNext();
-            while (fsFile != null) {
-                //todo debug
-                if (fsFile.getContentHash().v().equals("238810397cd86edae7957bca350098bc"))
-                    System.out.println("TransferDao.insert.debugmic3n0fv");
-                TransferDetails transfer = new TransferDetails();
-                transfer.getServiceUuid().v(driveSettings.getClientSettings().getServerServiceUuid());
-                transfer.getCertId().v(driveSettings.getClientSettings().getServerCertId());
-                transfer.getHash().v(fsFile.getContentHash());
-                transfer.getSize().v(fsFile.getSize());
-                // this might fail due to unique constraint violation.
-                // happens if you created two identical files at once.
-                // no problem here
-                try {
-                    transferManager.createTransfer(transfer);
-                } catch (SqlQueriesException e) {
-                    System.err.println("ClientSyncHandler.setupTransfer.exception: " + e.getMessage());
+            N.sqlResource(fsDao.getNonSyncedFilesResource(),resource ->{
+                FsFile fsFile = resource.getNext();
+                while (fsFile != null) {
+                    //todo debug
+                    if (fsFile.getContentHash().v().equals("238810397cd86edae7957bca350098bc"))
+                        System.out.println("TransferDao.insert.debugmic3n0fv");
+                    TransferDetails transfer = new TransferDetails();
+                    transfer.getServiceUuid().v(driveSettings.getClientSettings().getServerServiceUuid());
+                    transfer.getCertId().v(driveSettings.getClientSettings().getServerCertId());
+                    transfer.getHash().v(fsFile.getContentHash());
+                    transfer.getSize().v(fsFile.getSize());
+                    // this might fail due to unique constraint violation.
+                    // happens if you created two identical files at once.
+                    // no problem here
+                    try {
+                        transferManager.createTransfer(transfer);
+                    } catch (SqlQueriesException e) {
+                        System.err.println("ClientSyncHandler.setupTransfer.exception: " + e.getMessage());
+                    }
+                    fsFile = resource.getNext();
                 }
-                fsFile = resource.getNext();
-            }
+            });
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (resource != null)
-                try {
-                    resource.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
         }
         System.out.println("ClientSyncHandler.setupTransfer.done: starting...");
         transferManager.research();
@@ -296,18 +287,19 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     private void minimizeStage(Long stageSetId) throws SqlQueriesException {
-        ISQLResource<Stage> stages = stageDao.getStagesResource(stageSetId);
-        Stage stage = stages.getNext();
-        while (stage != null) {
-            Long fsId = stage.getFsId();
-            if (fsId != null) {
-                FsEntry fsEntry = fsDao.getGenericById(fsId);
-                if (stage.getDeleted() || (fsEntry != null && fsEntry.getContentHash().v().equals(stage.getContentHash()))) {
-                    stageDao.deleteStageById(stage.getId());
+        N.sqlResource(stageDao.getStagesResource(stageSetId),stages -> {
+            Stage stage = stages.getNext();
+            while (stage != null) {
+                Long fsId = stage.getFsId();
+                if (fsId != null) {
+                    FsEntry fsEntry = fsDao.getGenericById(fsId);
+                    if (stage.getDeleted() || (fsEntry != null && fsEntry.getContentHash().v().equals(stage.getContentHash()))) {
+                        stageDao.deleteStageById(stage.getId());
+                    }
                 }
+                stage = stages.getNext();
             }
-            stage = stages.getNext();
-        }
+        });
     }
 
     /**
@@ -408,33 +400,36 @@ public class ClientSyncHandler extends SyncHandler {
      * @param merger
      * @throws SqlQueriesException
      */
+    @SuppressWarnings("Duplicates")
     private void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStageMerger merger, ConflictSolver conflictSolver) throws SqlQueriesException {
-        ISQLResource<Stage> lStages = stageDao.getStagesResource(lStageSet.getId().v());
-        Stage lStage = lStages.getNext();
-        while (lStage != null) {
-            File lFile = stageDao.getFileByStage(lStage);
-            Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
-            if (conflictSolver != null)
-                conflictSolver.solve(lStage, rStage);
-            else {
-                File rFile = (rStage != null) ? new File(lFile.getAbsolutePath()) : null;
-                merger.stuffFound(lStage, rStage, lFile, rFile);
+        N.sqlResource(stageDao.getStagesResource(lStageSet.getId().v()), lStages -> {
+            Stage lStage = lStages.getNext();
+            while (lStage != null) {
+                File lFile = stageDao.getFileByStage(lStage);
+                Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
+                if (conflictSolver != null)
+                    conflictSolver.solve(lStage, rStage);
+                else {
+                    File rFile = (rStage != null) ? new File(lFile.getAbsolutePath()) : null;
+                    merger.stuffFound(lStage, rStage, lFile, rFile);
+                }
+                if (rStage != null)
+                    stageDao.flagMerged(rStage.getId(), true);
+                lStage = lStages.getNext();
             }
-            if (rStage != null)
-                stageDao.flagMerged(rStage.getId(), true);
-            lStage = lStages.getNext();
-        }
-        ISQLResource<Stage> rStages = stageDao.getNotMergedStagesResource(rStageSet.getId().v());
-        Stage rStage = rStages.getNext();
-        while (rStage != null) {
-            if (conflictSolver != null)
-                conflictSolver.solve(null, rStage);
-            else {
-                File rFile = stageDao.getFileByStage(rStage);
-                merger.stuffFound(null, rStage, null, rFile);
+        });
+        N.sqlResource(stageDao.getNotMergedStagesResource(rStageSet.getId().v()), rStages -> {
+            Stage rStage = rStages.getNext();
+            while (rStage != null) {
+                if (conflictSolver != null)
+                    conflictSolver.solve(null, rStage);
+                else {
+                    File rFile = stageDao.getFileByStage(rStage);
+                    merger.stuffFound(null, rStage, null, rFile);
+                }
+                rStage = rStages.getNext();
             }
-            rStage = rStages.getNext();
-        }
+        });
     }
 
 

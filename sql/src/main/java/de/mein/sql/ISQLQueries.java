@@ -135,4 +135,6 @@ public abstract class ISQLQueries {
     public abstract <C> C querySingle(String query, List<Object> arguments, Class<C> resultClass) throws SqlQueriesException;
 
     public abstract <T> List<T> load(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse, Class<T> castClass) throws SqlQueriesException;
+
+    public abstract void onShutDown();
 }

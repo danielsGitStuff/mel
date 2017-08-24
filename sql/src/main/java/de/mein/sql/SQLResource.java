@@ -21,6 +21,7 @@ public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
         this.resultSet = preparedStatement.getResultSet();
     }
 
+
     @Override
     public T getNext() throws SqlQueriesException {
         T sqlTable = null;
@@ -44,8 +45,13 @@ public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
     }
 
     @Override
-    public void close() throws SQLException {
-        resultSet.close();
-        preparedStatement.close();
+    public void close() throws SqlQueriesException {
+        try {
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SqlQueriesException(e);
+        }
     }
 }

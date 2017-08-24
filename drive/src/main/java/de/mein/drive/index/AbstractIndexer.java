@@ -2,6 +2,7 @@ package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.tools.Hash;
+import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
@@ -75,23 +76,24 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     protected void examineStage() throws SqlQueriesException, IOException {
         //todo problem
-        ISQLResource<Stage> stages = stageDao.getStagesByStageSet(stageSetId);
-        Stage stage = stages.getNext();
-        while (stage != null) {
-            //todo debug
-            if (stage.getName().equals("sub1"))
-                System.out.println("AbstractIndexer.examineStage.debug1");
-            // build a File
-            String path = buildPathFromStage(stage);
-            File f = new File(path);
-            if (stage.getIsDirectory()) {
-                roamDirectoryStage(stage, f);
-            } else {
-                this.updateFileStage(stage, f);
+        N.sqlResource(stageDao.getStagesByStageSet(stageSetId),stages->{
+            Stage stage = stages.getNext();
+            while (stage != null) {
+                //todo debug
+                if (stage.getName().equals("sub1"))
+                    System.out.println("AbstractIndexer.examineStage.debug1");
+                // build a File
+                String path = buildPathFromStage(stage);
+                File f = new File(path);
+                if (stage.getIsDirectory()) {
+                    roamDirectoryStage(stage, f);
+                } else {
+                    this.updateFileStage(stage, f);
+                }
+                System.out.println("StageIndexerRunnable.run: " + path);
+                stage = stages.getNext();
             }
-            System.out.println("StageIndexerRunnable.run: " + path);
-            stage = stages.getNext();
-        }
+        });
         stageDao.deleteMarkedForRemoval(stageSet.getId().v());
         System.out.println("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);

@@ -541,4 +541,14 @@ public class SQLQueries extends ISQLQueries {
             throw new SqlQueriesException(e);
         }
     }
+
+    @Override
+    public void onShutDown() {
+        try {
+            if (connection != null)
+                connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

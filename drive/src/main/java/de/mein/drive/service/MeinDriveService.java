@@ -236,6 +236,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     @Override
     public void onShutDown() {
         super.onShutDown();
+        driveDatabaseManager.shutDown();
         indexer.shutDown();
     }
 

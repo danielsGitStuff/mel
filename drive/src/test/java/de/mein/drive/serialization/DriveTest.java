@@ -1,5 +1,6 @@
 package de.mein.drive.serialization;
 
+import de.mein.MeinRunnable;
 import de.mein.auth.TestFileCreator;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
@@ -116,7 +117,7 @@ public class DriveTest {
             public void onTransfersDone() {
                 if (transferCount == 0) {
                     N.r(() -> {
-                        //meinAuthService1.shutDown();
+                        meinAuthService1.shutDown();
                         meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
                         rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
                         file1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");

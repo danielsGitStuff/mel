@@ -1,12 +1,8 @@
 package de.mein.auth.data.db.dao;
 
 import de.mein.auth.data.db.ServiceType;
-import de.mein.sql.Dao;
-import de.mein.sql.ISQLQueries;
-import de.mein.sql.SQLTableObject;
-import de.mein.sql.SqlQueriesException;
+import de.mein.sql.*;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +32,10 @@ public class ServiceTypeDao extends Dao {
 
     public ServiceType getServiceTypeById(Long id) throws SqlQueriesException {
         ServiceType dummy = new ServiceType();
-        return sqlQueries.loadResource(dummy.getAllAttributes(), ServiceType.class, dummy.getId().k() + "=?", ISQLQueries.whereArgs(id)).getNext();
+        ISQLResource<ServiceType> resource = sqlQueries.loadResource(dummy.getAllAttributes(), ServiceType.class, dummy.getId().k() + "=?", ISQLQueries.whereArgs(id));
+        ServiceType result = resource.getNext();
+        resource.close();
+        return result;
     }
 
 

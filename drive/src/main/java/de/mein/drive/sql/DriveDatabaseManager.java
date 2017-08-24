@@ -32,11 +32,16 @@ import java.util.List;
  */
 public class DriveDatabaseManager extends FileRelatedManager {
     private final MeinDriveService meinDriveService;
+    private final ISQLQueries sqlQueries;
     private FsDao fsDao;
     private StageDao stageDao;
     private final DriveSettings driveSettings;
     private TransferDao transferDao;
     private WasteDao wasteDao;
+
+    public void shutDown() {
+        sqlQueries.onShutDown();
+    }
 
     public interface SQLConnectionCreator {
         ISQLQueries createConnection(DriveDatabaseManager driveDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
@@ -82,7 +87,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
          java.sql.Driver driver = (java.sql.Driver) Class.forName("org.sqlite.JDBC").newInstance();
          java.sql.Connection conn = driver.connect(url, config.toProperties());
          */
-        ISQLQueries sqlQueries = sqlqueriesCreator.createConnection(this,meinDriveService.getUuid());
+        sqlQueries = sqlqueriesCreator.createConnection(this,meinDriveService.getUuid());
         SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
         st.execute();
         st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
@@ -104,6 +109,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         this.driveSettings.getRootDirectory().setOriginalFile(new File(this.driveSettings.getRootDirectory().getPath()));
         this.driveSettings.setTransferDirectoryPath(driveSettingsCfg.getTransferDirectoryPath());
         fsDao.setDriveSettings(this.driveSettings);
+        transferDao.resetStarted();
         System.out.println("DriveDatabaseManager.initialised");
     }
 

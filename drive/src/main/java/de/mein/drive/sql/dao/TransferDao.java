@@ -78,4 +78,10 @@ public class TransferDao extends Dao {
         Integer result = sqlQueries.querySingle(query, ISQLQueries.whereArgs(certId, serviceUuid), Integer.class);
         return SqliteConverter.intToBoolean(result);
     }
+
+    public void resetStarted() throws SqlQueriesException {
+        TransferDetails dummy = new TransferDetails();
+        String stmt = "update " + dummy.getTableName() + " set " + dummy.getStarted().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true));
+    }
 }

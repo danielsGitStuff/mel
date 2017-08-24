@@ -1,6 +1,9 @@
 package de.mein.auth.tools;
 
 import de.mein.auth.socket.ShamefulSelfConnectException;
+import de.mein.sql.ISQLResource;
+import de.mein.sql.SQLTableObject;
+import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +26,13 @@ public class N {
         void run() throws Exception, ShamefulSelfConnectException;
     }
 
+    public interface SqlTryRunnable<T extends SQLTableObject> {
+        void run(ISQLResource<T> sqlResource) throws Exception;
+    }
+
     public interface NoTryExceptionConsumer {
         void accept(Exception e);
     }
-
 
     private static N runner = new N(new NoTryExceptionConsumer() {
         @Override
@@ -37,6 +43,27 @@ public class N {
 
     public static void r(N.INoTryRunnable noTryRunnable) {
         N.runner.runTry(noTryRunnable);
+    }
+
+    /**
+     * closes the Resource when failing or finishing
+     *
+     * @param sqlResource
+     * @param noTryRunnable
+     */
+    public static <T extends SQLTableObject> void sqlResource(ISQLResource<T> sqlResource, SqlTryRunnable<T> noTryRunnable) {
+        try {
+            noTryRunnable.run(sqlResource);
+            sqlResource.close();
+        } catch (Exception e) {
+            try {
+                e.printStackTrace();
+                sqlResource.close();
+            } catch (SqlQueriesException e1) {
+                System.err.println("N.sqlResource.close() FAILED!");
+                e1.printStackTrace();
+            }
+        }
     }
 
     private NoTryExceptionConsumer consumer;
