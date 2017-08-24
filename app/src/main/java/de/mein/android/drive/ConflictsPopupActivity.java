@@ -1,7 +1,10 @@
 package de.mein.android.drive;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListAdapter;
@@ -53,7 +56,12 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
         }
         btnOk.setOnClickListener(view -> {
             if (conflictSolver.isSolved()) {
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, requestCode, getIntent(), PendingIntent.FLAG_UPDATE_CURRENT);
+                pendingIntent.cancel();
+                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+                notificationManager.cancel(requestCode);
                 service.addJob(new CommitJob());
+                finish();
             } else {
                 MeinToast.toast(this, "not all conflicts were resolved");
             }
