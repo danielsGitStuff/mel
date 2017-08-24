@@ -48,15 +48,17 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
 
     @Override
     protected void init() {
-        txtName = (EditText) rootView.findViewById(R.id.txtName);
-        txtPath = (EditText) rootView.findViewById(R.id.txtPath);
-        rdServer = (RadioButton) rootView.findViewById(R.id.rdServer);
-        rdClient = (RadioButton) rootView.findViewById(R.id.rdClient);
-        lDriveChooser = (LinearLayout) rootView.findViewById(R.id.lDriveChooser);
-        RadioGroup radioGroup = (RadioGroup) rootView.findViewById(R.id.rdgClient);
-        radioGroup.setOnCheckedChangeListener((group, checkedId) -> checkRadioButtons());
-        checkRadioButtons();
-        knownCertList = (ListView) rootView.findViewById(R.id.knownCertList);
+        txtName = rootView.findViewById(R.id.txtName);
+        txtPath = rootView.findViewById(R.id.txtPath);
+        rdServer = rootView.findViewById(R.id.rdServer);
+        rdClient = rootView.findViewById(R.id.rdClient);
+        lDriveChooser = rootView.findViewById(R.id.lDriveChooser);
+        RadioGroup radioGroup = rootView.findViewById(R.id.rdgClient);
+        if (radioGroup != null) {
+            radioGroup.setOnCheckedChangeListener((group, checkedId) -> checkRadioButtons());
+            checkRadioButtons();
+        }
+        knownCertList = rootView.findViewById(R.id.knownCertList);
         knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
         knownCertList.setOnItemClickListener((parent, view, position, id) -> {
             selectedCertId = knownCertListAdapter.getItemT(position).getId().v();
@@ -64,12 +66,12 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
             showDrives(selectedCertId);
         });
         knownCertList.setAdapter(knownCertListAdapter);
-        drivesList = (ListView) rootView.findViewById(R.id.listDrives);
+        drivesList = rootView.findViewById(R.id.listDrives);
         drivesListAdapter = new ServicesListAdapter(rootView.getContext());
         drivesList.setAdapter(drivesListAdapter);
         drivesList.setOnItemClickListener((parent, view, position, id) -> {
             selectedDrive = drivesListAdapter.getItemT(position);
-            int colour = ContextCompat.getColor(rootView.getContext(),R.color.colorListSelected);
+            int colour = ContextCompat.getColor(rootView.getContext(), R.color.colorListSelected);
             view.setBackgroundColor(colour);
         });
     }

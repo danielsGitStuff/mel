@@ -68,8 +68,9 @@ public class CreateServiceController extends GuiController {
     private void showSelected() {
         N.r(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
-            View v = View.inflate(rootView.getContext(), bootLoader.getCreateResource(), embedded);
-            currentController = bootLoader.createGuiController(meinAuthService, activity, v);
+            bootLoader.inflateEmbeddedView(embedded,activity,meinAuthService,null);
+//            View v = View.inflate(rootView.getContext(), bootLoader.getCreateResource(), embedded);
+//            currentController = bootLoader.createGuiController(meinAuthService, activity, v, null);
             //bootLoader.setupController(meinAuthService,v);
             System.out.println("CreateServiceController.showSelected");
         });
