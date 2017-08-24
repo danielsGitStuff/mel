@@ -247,7 +247,7 @@ public class MainActivity extends MeinActivity {
         if (guiController != null)
             guiController.onMeinAuthStarted(meinAuthService);
         try {
-            debugStuff();
+            //debugStuff();
             showMenuServices();
         } catch (Exception e) {
             e.printStackTrace();

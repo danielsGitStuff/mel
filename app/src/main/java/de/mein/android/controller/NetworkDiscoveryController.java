@@ -92,8 +92,10 @@ public class NetworkDiscoveryController extends GuiController {
                     knownCertListAdapter.add(c);
                 });
             });
-            unkownListAdapter.notifyDataSetChanged();
-            knownCertListAdapter.notifyDataSetChanged();
+            activity.runOnUiThread(() -> {
+                unkownListAdapter.notifyDataSetChanged();
+                knownCertListAdapter.notifyDataSetChanged();
+            });
         });
 //        environment.deleteObservers();
 //        environment.deleteObservers();
