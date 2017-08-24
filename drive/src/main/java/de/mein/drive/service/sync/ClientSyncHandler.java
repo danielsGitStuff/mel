@@ -197,6 +197,8 @@ public class ClientSyncHandler extends SyncHandler {
             if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
                 // method should create a new CommitJob with conflict solving details
                 handleConflict(updateSets.get(0), stagedFromFs.get(0));
+                setupTransfer();
+                transferManager.research();
                 System.out.println("ClientSyncHandler.commitJob.fwq3j0");
                 return;
             } else if (stagedFromFs.size() == 1) {
