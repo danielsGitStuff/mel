@@ -9,8 +9,8 @@ import de.mein.sql.SQLTableObject;
  */
 public class Approval extends SQLTableObject implements SerializableEntity {
     private Pair<Long> id = new Pair<>(Long.class, "id");
-    private Pair<Long> certificateId = new Pair<>(Long.class, "certificateId");
-    private Pair<Long> serviceid = new Pair<>(Long.class, "serviceid");
+    private Pair<Long> certificateId = new Pair<>(Long.class, "certificateid");
+    private Pair<Long> serviceId = new Pair<>(Long.class, "serviceid");
 
     public Approval() {
         init();
@@ -27,7 +27,7 @@ public class Approval extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(certificateId, serviceid);
+        populateInsert(certificateId, serviceId);
         populateAll(id);
     }
 
@@ -40,12 +40,12 @@ public class Approval extends SQLTableObject implements SerializableEntity {
         return this;
     }
 
-    public Approval setServiceid(Long serviceid) {
-        this.serviceid.v(serviceid);
+    public Approval setServiceId(Long serviceId) {
+        this.serviceId.v(serviceId);
         return this;
     }
 
-    public Pair<Long> getServiceid() {
-        return serviceid;
+    public Pair<Long> getServiceId() {
+        return serviceId;
     }
 }

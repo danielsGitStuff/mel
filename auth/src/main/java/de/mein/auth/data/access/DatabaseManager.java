@@ -110,7 +110,7 @@ public final class DatabaseManager extends FileRelatedManager {
 
     public void grant(Long serviceId, Long certificateId) throws SqlQueriesException {
         Approval approval = new Approval();
-        approval.setServiceid(serviceId);
+        approval.setServiceId(serviceId);
         approval.setCertificateId(certificateId);
         ISQLQueries.insert(approval);
     }
@@ -165,7 +165,7 @@ public final class DatabaseManager extends FileRelatedManager {
         String query = "select s." + s.getId().k() + ",s." + s.getUuid().k() + ",s." + s.getName().k() + ", t." + t.getType().k() + ", t." + t.getDescription().k()
                 + " from " + s.getTableName() + " s"
                 + " left join " + t.getTableName() + " t on s." + s.getTypeId().k() + "=t." + t.getId().k()
-                + " left join " + a.getTableName() + " a on s." + s.getId().k() + "=a." + a.getServiceid().k()
+                + " left join " + a.getTableName() + " a on s." + s.getId().k() + "=a." + a.getServiceId().k()
                 + " left join " + c.getTableName() + " c on c." + c.getId().k() + "=a." + a.getCertificateId().k() + " where c." + c.getId().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(certId);
@@ -187,7 +187,7 @@ public final class DatabaseManager extends FileRelatedManager {
 
     public void revoke(Long serviceId, Long certificateId) throws SqlQueriesException {
         Approval approval = new Approval();
-        String where = approval.getServiceid().k() + "=? and " + approval.getCertificateId().k() + "=?";
+        String where = approval.getServiceId().k() + "=? and " + approval.getCertificateId().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(serviceId);
         args.add(certificateId);
