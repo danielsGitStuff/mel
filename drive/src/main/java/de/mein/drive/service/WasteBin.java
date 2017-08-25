@@ -106,7 +106,7 @@ public class WasteBin {
                             // it changed :(
                             System.err.println("WasteBin.deleteFilr5436t34e");
                         }
-                    } else {
+                    } else if (fsFile.getSynced().v()) {
                         waste = wasteDao.fsToWaste(fsFile);
                         del(waste, f);
                     }
