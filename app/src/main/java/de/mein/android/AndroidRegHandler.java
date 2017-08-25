@@ -1,19 +1,26 @@
 package de.mein.android;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import de.mein.R;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.tools.Hash;
+import de.mein.drive.data.DriveStrings;
 
 /**
  * Created by xor on 3/6/17.
@@ -27,10 +34,12 @@ public class AndroidRegHandler implements IRegisterHandler {
 
     private final MeinAuthService meinAuthService;
     private final Context context;
+    private final NotificationManagerCompat notificationManager;
 
     public AndroidRegHandler(Context context, MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
         this.context = context;
+        notificationManager = Notifier.createNotificationManager(context);
     }
 
     public static RegBundle retrieveRegBundle(String uuid) {
@@ -49,11 +58,24 @@ public class AndroidRegHandler implements IRegisterHandler {
                 .setRemoteCert(certificate)
                 .setAndroidRegHandler(this);
         regBundles.put(uuid, regBundle);
-        Intent i = new Intent();
-        i.setClass(context, CertActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        i.putExtra(REGBUNDLE_UUID, uuid);
-        context.startActivity(i);
+//        Intent i = new Intent();
+//        i.setClass(context, CertActivity.class);
+//        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        i.putExtra(REGBUNDLE_UUID, uuid);
+//        context.startActivity(i);
+
+        int requestCode = new SecureRandom().nextInt();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID);
+        Intent intent = new Intent(context, CertActivity.class);
+        intent.putExtra(DriveStrings.Notifications.REQUEST_CODE, requestCode);
+        intent.putExtra(REGBUNDLE_UUID, uuid);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = builder.setSmallIcon(R.drawable.ic_menu_add)
+                .setContentTitle(context.getString(R.string.REG_CERT_NOTITIFCATION_TITLE))
+                .setContentText(context.getString(R.string.REG_CERT_NOTIFICATION_TEXT))
+                .setContentIntent(pendingIntent)
+                .build();
+        notificationManager.notify(requestCode, notification);
     }
 
     @Override

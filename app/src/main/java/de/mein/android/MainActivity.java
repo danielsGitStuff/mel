@@ -20,6 +20,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import org.jdeferred.Promise;
@@ -187,9 +188,13 @@ public class MainActivity extends MeinActivity {
             showOthers();
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        closeDrawer();
         return true;
+    }
+
+    private void closeDrawer() {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
     }
 
     private void showOthers() {
@@ -242,7 +247,7 @@ public class MainActivity extends MeinActivity {
         if (guiController != null)
             guiController.onMeinAuthStarted(meinAuthService);
         try {
-            debugStuff();
+            //debugStuff();
             showMenuServices();
         } catch (Exception e) {
             e.printStackTrace();
@@ -261,14 +266,14 @@ public class MainActivity extends MeinActivity {
                 permissionsGranted.done(nil -> Threadder.runNoTryThread(() -> {
                     BashTools.init();
                     Thread.sleep(1000);
-                    File download = new File(Environment.getExternalStorageDirectory(),"Download");
-                    driveDir = new File(download,"drive");
+                    File download = new File(Environment.getExternalStorageDirectory(), "Download");
+                    driveDir = new File(download, "drive");
                     N.r(() -> CertificateManager.deleteDirectory(driveDir));
                     driveDir.mkdirs();
                     driveDir.mkdir();
                     BashTools.mkdir(driveDir);
                     DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
-                    TestDirCreator.createTestDir(driveDir," kek");
+                    TestDirCreator.createTestDir(driveDir, " kek");
                     Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
                             driveDir.getAbsolutePath(),
                             meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v());
@@ -382,8 +387,9 @@ public class MainActivity extends MeinActivity {
                     public boolean onMenuItemClick(MenuItem item) {
                         content.removeAllViews();
                         toolbar.setTitle("Edit Service: " + service.getName().v());
-                        View v = View.inflate(MainActivity.this, R.layout.content_create_service, content);
+                        ViewGroup v = (ViewGroup) View.inflate(MainActivity.this, R.layout.content_create_service, content);
                         guiController = new EditServiceController(MainActivity.this, androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
+                        closeDrawer();
                         return true;
                     }
                 });

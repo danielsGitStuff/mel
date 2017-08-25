@@ -17,7 +17,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private static final String VERSION = "version";
     private static final String CONTENTHASH = "contenthash";
     private static final String DIR = "dir";
-    private static final String INODE = "iNode";
+    private static final String INODE = "inode";
     private static final String MODIFIED = "modified";
     private static final String DELETED = "deleted";
     private static final String STAGESET = "stageset";

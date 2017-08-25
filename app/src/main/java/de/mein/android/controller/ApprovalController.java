@@ -37,14 +37,14 @@ public class ApprovalController extends GuiController {
     public ApprovalController(MeinActivity activity, MeinAuthService meinAuthService, View rootView) throws SqlQueriesException {
         super(activity);
         this.rootView = rootView;
-        this.listCertificates = (ListView) rootView.findViewById(R.id.listCertificates);
-        this.listServices = (ListView) rootView.findViewById(R.id.listServices);
+        this.listCertificates = rootView.findViewById(R.id.listCertificates);
+        this.listServices = rootView.findViewById(R.id.listServices);
         this.meinAuthService = meinAuthService;
         this.knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
         this.serviceAdapter = new ApprovalCBListAdapter(rootView.getContext());
         listCertificates.setAdapter(knownCertListAdapter);
         listServices.setAdapter(serviceAdapter);
-        Button btnApply = (Button) rootView.findViewById(R.id.btnApply);
+        Button btnApply = rootView.findViewById(R.id.btnApply);
         btnApply.setOnClickListener(v -> {
             try {
                 meinAuthService.getDatabaseManager().saveApprovals(this.matrix);

@@ -2,9 +2,11 @@ package de.mein.android;
 
 import android.app.Activity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import de.mein.R;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.controller.GuiController;
@@ -26,20 +28,22 @@ class EditServiceController extends GuiController {
     private Activity activity;
     private AndroidServiceCreatorGuiController currentController;
 
-    public EditServiceController(MeinActivity activity, MeinAuthService meinAuthService, MainActivity mainActivity, View rootView, ServiceJoinServiceType service, IMeinService runningInstance) {
+    public EditServiceController(MeinActivity activity, MeinAuthService meinAuthService, MainActivity mainActivity, ViewGroup rootView, ServiceJoinServiceType service, IMeinService runningInstance) {
         super(activity);
         this.rootView = rootView;
         this.activity = activity;
         this.meinAuthService = meinAuthService;
         N.r(() -> {
+            embedded = rootView.findViewById(R.id.embedded);
             AndroidBootLoader bootLoader = (AndroidBootLoader) meinAuthService.getMeinBoot().getBootLoader(service.getType().v());
-            View v = View.inflate(rootView.getContext(), bootLoader.getEditResource(runningInstance), embedded);
-            currentController = bootLoader.createGuiController(meinAuthService, activity, v);
+            currentController = bootLoader.inflateEmbeddedView(embedded, activity, meinAuthService, runningInstance);
+
+//                    View.inflateEmbeddedView(rootView.getContext(), bootLoader.getEditResource(runningInstance), embedded);
+//            currentController = bootLoader.createGuiController(meinAuthService, activity, v, runningInstance);
             //bootLoader.setupController(meinAuthService,v);
-            System.out.println("CreateServiceController.showSelected");
+            System.out.println("EditServiceController.showSelected");
         });
     }
-
 
 
     @Override

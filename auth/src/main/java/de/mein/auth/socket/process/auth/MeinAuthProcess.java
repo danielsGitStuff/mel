@@ -103,7 +103,7 @@ public class MeinAuthProcess extends MeinProcess {
                                         // propagate that we are connected!
                                         propagateAuthentication(this.partnerCertificate);
                                     } else {
-                                        System.out.println("MeinAuthProcess.onMessageReceived");
+                                        System.out.println("MeinAuthProcess.isolation.onMessageReceived");
                                         IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
                                         Class<? extends MeinIsolatedProcess> isolatedClass = (Class<? extends MeinIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
                                         MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());

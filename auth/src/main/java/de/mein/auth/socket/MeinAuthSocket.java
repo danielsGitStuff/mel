@@ -16,7 +16,6 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -24,7 +23,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLSocket;
-
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
@@ -256,6 +254,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         if (certId != null)
             partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         Socket socket = meinAuthService.getCertificateManager().createSocket();
+        System.out.println("MeinAuthSocket.connectSSL: " + address + ":" + port);
         socket.connect(new InetSocketAddress(address, port));
         //stop();
         setSocket(socket);

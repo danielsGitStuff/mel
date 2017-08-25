@@ -87,7 +87,7 @@ CREATE TABLE transfer (
   UNIQUE (certid, serviceuuid, hash)
 );
 CREATE TABLE waste (
-  id       INTEGER NOT NULL PRIMARY KEY,
+  id       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name     TEXT    NOT NULL,
   hash     TEXT    NOT NULL,
   deleted  DATETIME,

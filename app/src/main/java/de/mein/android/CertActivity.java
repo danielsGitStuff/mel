@@ -1,8 +1,6 @@
 package de.mein.android;
 
 import android.os.Bundle;
-import android.app.Activity;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 import android.widget.TabHost;
 import android.widget.TextView;
@@ -10,14 +8,11 @@ import android.widget.TextView;
 import java.security.cert.X509Certificate;
 
 import de.mein.R;
-import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.socket.process.reg.IRegisterHandler;
-import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.sql.RWLock;
 
-public class CertActivity extends AppCompatActivity {
+public class CertActivity extends PopupActivity {
     private Button btnAccept, btnReject;
     private TextView txtRemote, txtOwn;
     private RegBundle regBundle;
@@ -25,14 +20,19 @@ public class CertActivity extends AppCompatActivity {
     private RWLock lock = new RWLock();
 
     @Override
+    protected void onServiceConnected() {
+
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle("Incoming Certificate");
+        setTitle(getString(R.string.REG_CERT_TITLE));
         setContentView(R.layout.activity_cert_incoming);
-        txtRemote = (TextView) findViewById(R.id.txtRemote);
-        txtOwn = (TextView) findViewById(R.id.txtOwn);
-        btnAccept = (Button) findViewById(R.id.btnAccept);
-        btnReject = (Button) findViewById(R.id.btnReject);
+        txtRemote = findViewById(R.id.txtRemote);
+        txtOwn = findViewById(R.id.txtOwn);
+        btnAccept = findViewById(R.id.btnAccept);
+        btnReject = findViewById(R.id.btnReject);
         String regUuid = getIntent().getExtras().getString(AndroidRegHandler.REGBUNDLE_UUID);
         regBundle = AndroidRegHandler.retrieveRegBundle(regUuid);
         regBundle.getAndroidRegHandler().addActivity(regBundle.getRemoteCert(), this);
@@ -41,12 +41,14 @@ public class CertActivity extends AppCompatActivity {
         btnAccept.setOnClickListener(
                 view -> {
                     regBundle.getAndroidRegHandler().onUserAccepted(regBundle);
+                    Notifier.cancel(this, getIntent(), requestCode);
                     showWaiting();
                 }
         );
         btnReject.setOnClickListener(
                 view -> Threadder.runNoTryThread(() -> {
                     regBundle.getAndroidRegHandler().onUserRejected(regBundle);
+                    Notifier.cancel(this, getIntent(), requestCode);
                     showWaiting();
                 })
         );

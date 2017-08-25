@@ -33,10 +33,10 @@ CREATE TABLE  certificate  (
 CREATE TABLE  approval  (
    id             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    certificateid  INTEGER NOT NULL,
-   serviceId      INTEGER NOT NULL,
+   serviceid      INTEGER NOT NULL,
   FOREIGN KEY ( certificateid ) REFERENCES certificate (id),
-  FOREIGN KEY ( serviceId ) REFERENCES service (id),
-  UNIQUE (serviceId, certificateid)
+  FOREIGN KEY ( serviceid ) REFERENCES service (id),
+  UNIQUE (serviceid, certificateid)
 );
 CREATE INDEX uuidindex
   ON certificate (uuid);
