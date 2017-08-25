@@ -68,7 +68,11 @@ public abstract class BackgroundExecutor {
             //}
             //threadQueue.add(new MeinThread(runnable));
             threadSemaphore.release();
-            executorService.execute(new RunnableWrapper(runnable));
+            //todo debug
+            RunnableWrapper wrapper = new RunnableWrapper(runnable);
+            if (wrapper.meinRunnable.getRunnableName().toLowerCase().startsWith("meindriveclientservice for test"))
+                System.out.println("BackgroundExecutor.execute.debugkßc3ß4");
+            executorService.execute(wrapper);
         } catch (Exception e) {
             e.printStackTrace();
         }

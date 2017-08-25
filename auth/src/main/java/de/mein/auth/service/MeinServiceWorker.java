@@ -79,7 +79,7 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
 
     public void start() {
         initLock.unlock();
-        meinAuthService.execute(this);
+        //meinAuthService.execute(this);
     }
 
 }
