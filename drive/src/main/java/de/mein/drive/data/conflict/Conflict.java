@@ -140,24 +140,58 @@ public class Conflict {
      */
     public static List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
         List<Conflict> result = new ArrayList<>();
-        List<Conflict> rootConflicts = getRootConflicts(conflicts);
+        List<Conflict> rootConflicts = new ArrayList<>();
+        Set<Conflict> independentConflicts = new HashSet<>();
+        for (Conflict conflict : conflicts) {
+            if (conflict.getDependsOn() == null)
+                rootConflicts.add(conflict);
+            else if (conflict.getDependents().size() == 0)
+                independentConflicts.add(conflict);
+        }
         for (Conflict root : rootConflicts) {
             result.add(root);
-            traversalAdding(result, root.getDependents());
+            traversalAdding2(result, root.getDependents());
             if (root.getDependents().size() > 0)
                 result.add(new EmptyRowConflict());
         }
         return result;
     }
 
-    private static void traversalAdding(List<Conflict> result, Set<Conflict> stuffToTraverse) {
+    private static void traversalAdding2(List<Conflict> result, Set<Conflict> stuffToTraverse) {
         for (Conflict conflict : stuffToTraverse) {
             result.add(conflict);
             if (conflict.getDependents().size() > 0) {
-                traversalAdding(result, conflict.getDependents());
+                traversalAdding2(result, conflict.getDependents());
             }
         }
     }
+
+//    /**
+//     * sorts, indents and adds empty rows
+//     *
+//     * @param conflicts
+//     * @return
+//     */
+//    public static List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
+//        List<Conflict> result = new ArrayList<>();
+//        List<Conflict> rootConflicts = getRootConflicts(conflicts);
+//        for (Conflict root : rootConflicts) {
+//            result.add(root);
+//            traversalAdding(result, root.getDependents());
+//            if (root.getDependents().size() > 0)
+//                result.add(new EmptyRowConflict());
+//        }
+//        return result;
+//    }
+//
+//    private static void traversalAdding(List<Conflict> result, Set<Conflict> stuffToTraverse) {
+//        for (Conflict conflict : stuffToTraverse) {
+//            result.add(conflict);
+//            if (conflict.getDependents().size() > 0) {
+//                traversalAdding(result, conflict.getDependents());
+//            }
+//        }
+//    }
 
     public Conflict getDependentByName(String name) {
         for (Conflict dep : dependents) {

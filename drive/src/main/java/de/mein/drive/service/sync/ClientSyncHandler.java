@@ -18,7 +18,6 @@ import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
-import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -51,7 +50,7 @@ public class ClientSyncHandler extends SyncHandler {
      */
     private void setupTransfer() {
         try {
-            N.sqlResource(fsDao.getNonSyncedFilesResource(),resource ->{
+            N.sqlResource(fsDao.getNonSyncedFilesResource(), resource -> {
                 FsFile fsFile = resource.getNext();
                 while (fsFile != null) {
                     //todo debug
@@ -289,7 +288,7 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     private void minimizeStage(Long stageSetId) throws SqlQueriesException {
-        N.sqlResource(stageDao.getStagesResource(stageSetId),stages -> {
+        N.sqlResource(stageDao.getStagesResource(stageSetId), stages -> {
             Stage stage = stages.getNext();
             while (stage != null) {
                 Long fsId = stage.getFsId();
