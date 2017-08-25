@@ -454,6 +454,7 @@ public class DriveFXTest {
                 }
             }
         });
+        new WaitLock().lock().lock();
     }
 
 

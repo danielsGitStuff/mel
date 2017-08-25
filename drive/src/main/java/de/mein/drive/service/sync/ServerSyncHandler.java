@@ -40,7 +40,7 @@ public class ServerSyncHandler extends SyncHandler {
         for (Stage stage : commit.getStages()) {
             stage.setStageSet(stageSet.getId().v());
             if (!stage.getIsDirectory())
-                stage.setSynced(false);
+                stage.setSynced(true);
             // set "new" parent id
             if (stage.getParentId() != null && oldStageIdStageIdMap.containsKey(stage.getParentId())) {
                 stage.setParentId(oldStageIdStageIdMap.get(stage.getParentId()));
