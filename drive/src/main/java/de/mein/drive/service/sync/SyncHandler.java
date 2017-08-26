@@ -288,7 +288,10 @@ public abstract class SyncHandler {
                         //todo debug
                         if (stage.getSyncedPair().isNull())
                             System.out.println("SyncHandler.commitStage.debugebguse0");
-                        if (stage.getDeleted() != null && stage.getSynced() != null && (stage.getDeleted() && stage.getSynced())) {
+//                        if (stage.getDeleted() != null && stage.getDeleted() && stage.getIsDirectory())
+//                            wasteBin.delete(stage.getFsId()););
+                        if ((stage.getDeleted() != null && stage.getDeleted() && stage.getSynced() != null && stage.getSynced()) || (stage.getIsDirectory() && stage.getDeleted())) {
+                            //if (stage.getDeleted() != null && stage.getSynced() != null && (stage.getDeleted() && stage.getSynced())) {
                             //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
                             wasteBin.delete(stage.getFsId());
                         } else {
