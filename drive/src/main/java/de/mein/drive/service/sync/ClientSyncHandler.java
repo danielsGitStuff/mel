@@ -123,10 +123,11 @@ public class ClientSyncHandler extends SyncHandler {
                     }
                     StageSet stageSet = stageDao.getStageSetById(stageSetId);
                     stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
-                    stageSet.setSource(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER);
-                    stageDao.updateStageSet(stageSet);
-                    meinDriveService.addJob(new CommitJob());
-//                    commitStage(stageSetId, false);
+                    stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
+//                    stageDao.updateStageSet(stageSet);
+//                    meinDriveService.addJob(new CommitJob());
+                    commitStage(stageSetId, false);
+
                     waitLock.unlock();
                     //fsDao.unlockWrite();
                 }))
@@ -317,7 +318,7 @@ public class ClientSyncHandler extends SyncHandler {
         StageSet lStageSet = stageSets.get(0);
         StageSet rStageSet = stageSets.get(1);
         System.out.println("ClientSyncHandler.mergeStageSets L: " + lStageSet.getId().v() + " R: " + rStageSet.getId().v());
-        StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_MERGED, null, null);
+        StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, null, null);
         final Long mStageSetId = mStageSet.getId().v();
         SyncStageMerger merger = new SyncStageMerger(lStageSet.getId().v(), rStageSet.getId().v()) {
             private Order order = new Order();
@@ -385,7 +386,7 @@ public class ClientSyncHandler extends SyncHandler {
         iterateStageSets(lStageSet, rStageSet, merger, null);
         stageDao.deleteStageSet(rStageSet.getId().v());
         stageDao.deleteStageSet(lStageSet.getId().v());
-        stageDao.updateStageSet(mStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED).setSource(DriveStrings.STAGESET_TYPE_FS));
+        stageDao.updateStageSet(mStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED).setSource(DriveStrings.STAGESET_SOURCE_FS));
         // tell the service which StageSets had been merged
         meinDriveService.onStageSetsMerged(lStageSet.getId().v(), rStageSet.getId().v(), mStageSet);
     }
@@ -448,7 +449,7 @@ public class ClientSyncHandler extends SyncHandler {
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v(), serverCert.getAddress().v(), serverCert.getPort().v(), serverCert.getCertDeliveryPort().v(), false);
         connected.done(mvp -> runner.runTry(() -> {
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
-            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER, null, null);
+            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, null, null);
             Request<SyncTask> request = mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, new SyncTask().setVersion(version));
             request.done(syncTask -> runner.runTry(() -> {
                 syncTask.setStageSet(stageSet);
@@ -500,8 +501,15 @@ public class ClientSyncHandler extends SyncHandler {
         for (GenericFSEntry genericFSEntry : entries) {
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
-            if (!stage.getIsDirectory())
+            //todo duplicate
+            if (stage.getFsId() != null && !stage.getIsDirectory() && fsDao.hasId(stage.getFsId())) {
+                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
+                stage.setSynced(fsEntry.getSynced().v());
+            } else {
                 stage.setSynced(false);
+            }
+//            if (!stage.getIsDirectory())
+//                stage.setSynced(false);
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
         // check if something was deleted
@@ -579,6 +587,13 @@ public class ClientSyncHandler extends SyncHandler {
                             Stage stage = GenericFSEntry.generic2Stage(genSub, stageSet.getId().v());
                             stage.setDeleted(true);
                             stage.setOrder(order.ord());
+                            //todo dubplicate 2
+                            if (stage.getFsId() != null && !stage.getIsDirectory() && fsDao.hasId(stage.getFsId())) {
+                                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
+                                stage.setSynced(fsEntry.getSynced().v());
+                            } else {
+                                stage.setSynced(false);
+                            }
                             insertWithParentId(entryIdStageIdMap, genSub, stage);
                         }
                     }

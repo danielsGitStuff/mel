@@ -154,7 +154,7 @@ public class ConflictSolver extends SyncStageMerger {
         oldeNewIdMap = new HashMap<>();
         this.fsDao = fsDao;
         N.r(() -> {
-            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v());
+            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v());
         });
         // now lets find directories that have been deleted. so we can build nice dependencies between conflicts
         List<Stage> leftDirs = stageDao.getDeletedDirectories(lStageSetId);
@@ -203,7 +203,7 @@ public class ConflictSolver extends SyncStageMerger {
         final long oldeMergedSetId = mergeStageSet.getId().v();
         Map<Long, Long> oldeIdNewIdMapForDirectories = new HashMap<>();
         order = new Order();
-        StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v());
+        StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v());
         N.sqlResource(stageDao.getStagesResource(oldeMergedSetId), stageSet -> {
             Stage rightStage = stageSet.getNext();
             while (rightStage != null) {

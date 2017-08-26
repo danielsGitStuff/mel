@@ -14,7 +14,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Created by xor on 10.07.2016.
@@ -79,7 +78,7 @@ public class IndexerRunnable extends AbstractIndexer {
             try {
                 fsDao.lockRead();
                 Iterator<String> found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
-                initStage(DriveStrings.STAGESET_TYPE_FS, found, indexWatchdogListener);
+                initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
                 examineStage();
             } catch (Exception e) {
                 e.printStackTrace();

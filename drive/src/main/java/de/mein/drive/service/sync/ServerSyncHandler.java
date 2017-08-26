@@ -35,7 +35,7 @@ public class ServerSyncHandler extends SyncHandler {
         }
         StageDao stageDao = driveDatabaseManager.getStageDao();
         FsDao fsDao = driveDatabaseManager.getFsDao();
-        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FROM_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid());
+        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid());
         Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
         for (Stage stage : commit.getStages()) {
             stage.setStageSet(stageSet.getId().v());

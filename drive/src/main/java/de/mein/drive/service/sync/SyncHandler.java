@@ -212,7 +212,7 @@ public abstract class SyncHandler {
      */
     public void commitStage(Long stageSetId, boolean lockFsEntry, Map<Long, Long> stageIdFsIdMap) {
         //todo debug
-        if (stageSetId == 2)
+        if (stageSetId == 5)
             System.out.println("SyncHandler.commitStage.debugj9v0jaseß");
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
@@ -285,7 +285,10 @@ public abstract class SyncHandler {
                             stage.setFsId(fsFile.getId().v());
                         }
                     } else { // fs.id is not null
-                        if (stage.getDeleted() != null && (stage.getDeleted() && stage.getSynced())) {
+                        //todo debug
+                        if (stage.getSyncedPair().isNull())
+                            System.out.println("SyncHandler.commitStage.debugebguse0");
+                        if (stage.getDeleted() != null && stage.getSynced() != null && (stage.getDeleted() && stage.getSynced())) {
                             //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
                             wasteBin.delete(stage.getFsId());
                         } else {
