@@ -29,7 +29,9 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
     protected HBox spacer = new HBox();
     protected HBox indentSpacer = new HBox();
     protected Button button = new Button("x");
+    protected VBox vBox = new VBox();
     protected Label label = new Label("..not set..");
+    protected Label lblHash = new Label("-");
     protected Conflict lastSelected;
     protected int indent = 0;
     // left to right
@@ -41,12 +43,8 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
         init();
         indent();
         setGraphic(hbox);
-//        label.setOnMouseClicked(event -> {
-//            System.out.println("AbstractMergeListCell.AbstractMergeListCell");
-//            AbstractMergeListCell.this.updateSelected(true);
-//        });
         label.setMouseTransparent(true);
-        //hbox.setMouseTransparent(true);
+        lblHash.setMouseTransparent(true);
         spacer.setMouseTransparent(true);
         indentSpacer.setMouseTransparent(true);
         button.setMouseTransparent(false);
@@ -59,23 +57,23 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
     }
 
     void indent() {
-        label.prefHeightProperty().bind(button.heightProperty()
+        vBox.prefHeightProperty().bind(button.heightProperty()
                 .subtract(button.paddingProperty().getValue().getTop())
                 .subtract(button.paddingProperty().getValue().getBottom()));
         indentSpacer.prefWidthProperty().setValue(indent);
         HBox.setHgrow(spacer, Priority.ALWAYS);
     }
 
-    protected void addChildren(Node... elements) {
+    protected void addChildren(Pane box, Node... elements) {
         for (Node e : elements)
-            hbox.getChildren().add(e);
+            box.getChildren().add(e);
     }
 
     abstract Stage getConflictSide(Conflict dependsOn);
 
     @Override
     protected void updateItem(Conflict conflict, boolean empty) {
-        super.updateItem(conflict,empty);
+        super.updateItem(conflict, empty);
         if (conflict instanceof EmptyRowConflict) {
             setBackground(new Background(new BackgroundFill(new Color(.3, .3, .3, 1), CornerRadii.EMPTY, Insets.EMPTY)));
         } else {
@@ -97,10 +95,14 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
                     dependsOn = dependsOn.getDependsOn();
                 }
                 if (conflict.isLeft() && !isLeft() || conflict.isRight() && isLeft() || !conflict.hasDecision()) {
-                    if (side != null)
+                    if (side != null) {
                         label.setText(side.getName());
-                    else if (parentDeleted)
+                        lblHash.setText(side.getContentHash());
+                    }
+                    else if (parentDeleted) {
                         label.setText("<parent deleted>");
+                        lblHash.setText("-");
+                    }
                     else
                         System.err.println("j9034n3of");
                     setGraphic(hbox);

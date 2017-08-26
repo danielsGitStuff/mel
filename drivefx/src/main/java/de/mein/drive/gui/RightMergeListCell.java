@@ -3,6 +3,7 @@ package de.mein.drive.gui;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.sql.Stage;
 import javafx.event.ActionEvent;
+import javafx.geometry.Pos;
 import javafx.scene.control.ListView;
 
 /**
@@ -34,7 +35,8 @@ public class RightMergeListCell extends AbstractMergeListCell {
     @Override
     void init() {
         button.setText("<<");
-        addChildren(button, spacer, label, indentSpacer);
+        addChildren(vBox, label, lblHash);
+        addChildren(hbox, button, spacer, vBox, indentSpacer);
     }
 
     @Override

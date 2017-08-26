@@ -57,7 +57,7 @@ public abstract class SyncHandler {
             //fsDao.lockWrite();
             target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
             //todo debug
-            if (target.getName().equals("sub1.txt"))
+            if (target.getName().equals("sub2.txt"))
                 System.out.println("SyncHandler.moveFile.debugr23hr03w");
             System.out.println("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
             // check if there already is a file & delete

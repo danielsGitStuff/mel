@@ -130,13 +130,18 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             if (lockFsEntry)
                 fsDao.lockRead();
             for (FileTransferDetail detail : detailSet.getDetails()) {
+                File wasteFile = wasteBin.getByHash(detail.getHash());
                 MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) getIsolatedProcess(partnerCertId, detailSet.getServiceUuid());
                 List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
-                if (fsFiles.size() > 0) {
+                if (wasteFile != null) {
+                    FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());
+                    mDetail.openRead();
+                    fileProcess.sendFile(mDetail);
+                } else if (fsFiles.size() > 0) {
                     FsFile fsFile = fsFiles.get(0);
                     File file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
                     if (!file.exists()) {
-                        file = wasteBin.getFile(detail.getHash());
+                        file = wasteBin.getByHash(detail.getHash());
                     }
                     FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
                     mDetail.openRead();

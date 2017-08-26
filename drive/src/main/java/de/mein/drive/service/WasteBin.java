@@ -76,18 +76,20 @@ public class WasteBin {
     /**
      * moves file to wastebin without any hesitations
      *
-     * @param file
      * @param waste
+     * @param file
      */
-    public void del(Waste waste, File file) throws SqlQueriesException {
+    public File del(Waste waste, File file) throws SqlQueriesException {
         try {
             File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
             file.renameTo(target);
             waste.getInplace().v(true);
             wasteDao.update(waste);
+            return target;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public void deleteFile(FsFile fsFile) {
@@ -214,7 +216,7 @@ public class WasteBin {
     }
 
 
-    public File getFile(String hash) throws SqlQueriesException {
+    public File getByHash(String hash) throws SqlQueriesException {
         Waste waste = wasteDao.getWasteByHash(hash);
         if (waste != null)
             return getWasteFile(waste);
@@ -249,8 +251,9 @@ public class WasteBin {
         waste.getSize().v(target.length());
         waste.getName().v(file.getName());
         wasteDao.insert(waste);
-        this.del(waste, target);
+        File movedTo = this.del(waste, target);
         //todo tell a worker to investigate the deferred directory
         //todo worker has to tell the drive service or transfermanager that a file has been found
+        meinDriveService.syncHandler.onFileTransferred(movedTo, hash);
     }
 }

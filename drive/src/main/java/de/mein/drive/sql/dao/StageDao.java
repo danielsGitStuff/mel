@@ -354,7 +354,7 @@ StageDao extends Dao.LockingDao {
     }
 
     public void update(Stage stage) throws SqlQueriesException {
-        if (stage.getName().equals("samedir")) //todo debug
+        if (stage.getName().equals("sub2.txt")) //todo debug
             System.err.println("StageDao.getFileByStage.debug h99g359");
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();

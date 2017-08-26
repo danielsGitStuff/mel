@@ -33,7 +33,8 @@ public class LeftMergeListCell extends AbstractMergeListCell {
     @Override
     void init() {
         button.setText(">>");
-        addChildren(indentSpacer, label, spacer, button);
+        addChildren(vBox,label,lblHash);
+        addChildren(hbox,indentSpacer, vBox, spacer, button);
     }
 
     @Override

@@ -53,8 +53,8 @@ public class MergeListCell extends AbstractMergeListCell {
         spacerLeft.setMouseTransparent(true);
         HBox.setHgrow(spacerLeft, Priority.ALWAYS);
         HBox.setHgrow(spacerRight, Priority.ALWAYS);
-
-        addChildren(btnLeft, spacerLeft, label, spacerRight, btnRight);
+        addChildren(vBox, label, lblHash);
+        addChildren(hbox, btnLeft, spacerLeft, vBox, spacerRight, btnRight);
     }
 
     @Override
@@ -68,8 +68,10 @@ public class MergeListCell extends AbstractMergeListCell {
                 lastSelected = null;
             } else {
                 lastSelected = conflict;
-                if (conflict.hasDecision())
+                if (conflict.hasDecision()) {
                     label.setText(conflict.getChoice().getName());
+                    lblHash.setText(conflict.getChoice().getContentHash());
+                }
                 setGraphic(hbox);
             }
             indent();

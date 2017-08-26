@@ -595,6 +595,7 @@ public class ClientSyncHandler extends SyncHandler {
                                 stage.setSynced(false);
                             }
                             insertWithParentId(entryIdStageIdMap, genSub, stage);
+                            recursiveDeleteOnStage(entryIdStageIdMap, order, genSub, stage);
                         }
                     }
                 }
@@ -615,6 +616,21 @@ public class ClientSyncHandler extends SyncHandler {
             finished.reject(null);
         });
         return finished;
+    }
+
+    private void recursiveDeleteOnStage(Map<Long, Long> entryIdStageIdMap, Order order, GenericFSEntry generic, Stage stage) throws SqlQueriesException {
+        List<GenericFSEntry> content = fsDao.getContentByFsDirectory(generic.getId().v());
+        for (GenericFSEntry subGen : content) {
+            Stage subStage = GenericFSEntry.generic2Stage(subGen, stage.getStageSet());
+            subStage.setDeleted(true);
+            subStage.setOrder(order.ord());
+            subStage.setParentId(stage.getId());
+            stageDao.insert(subStage);
+            entryIdStageIdMap.put(subGen.getId().v(), subStage.getId());
+            if (subGen.getIsDirectory().v()) {
+                recursiveDeleteOnStage(entryIdStageIdMap, order, subGen, subStage);
+            }
+        }
     }
 
     public void onStageSetsMerged(Long lStageSetId, Long rStageSetId, StageSet mergedStageSet) {
