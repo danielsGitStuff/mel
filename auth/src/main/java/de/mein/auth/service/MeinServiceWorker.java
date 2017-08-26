@@ -2,7 +2,6 @@ package de.mein.auth.service;
 
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
-import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.CountdownLock;
 
 import java.io.File;
@@ -77,6 +76,11 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
         waitLock.unlock();
     }
 
+    /**
+     * this is method is called when all {@link MeinService}s and {@link MeinAuthService} booted up.
+     * the worker waits for a lock being released when this method is called.
+     * this prevents it from trying to communicate while initialization is still in progress and hurts you.
+     */
     public void start() {
         initLock.unlock();
         //meinAuthService.execute(this);

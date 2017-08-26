@@ -147,6 +147,11 @@ public class MeinAuthService {
 
     public void start() {
         execute(meinAuthWorker);
+        for (MeinService service : uuidServiceMap.values()) {
+            if (service instanceof MeinServiceWorker) {
+                ((MeinServiceWorker) service).start();
+            }
+        }
 //        for (MeinAuthAdmin admin : meinAuthAdmins) {
 //            admin.start(this);
 //        }
@@ -290,7 +295,7 @@ public class MeinAuthService {
         try {
             if (certificateId != null && (mvp = connectedEnvironment.getValidationProcess(certificateId)) != null) {
                 deferred.resolve(mvp);
-            } else if (certificate!= null && (mvp = connectedEnvironment.getValidationProcess(certificate.getAddress().v())) != null) {
+            } else if (certificate != null && (mvp = connectedEnvironment.getValidationProcess(certificate.getAddress().v())) != null) {
                 deferred.resolve(mvp);
             } else {
                 ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);

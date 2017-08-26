@@ -98,7 +98,9 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
                 deferredObject.resolve(meinAuthService);
             });
             new MeinDeferredManager().when(bootedPromises)
-                    .done(nil -> meinAuthService.start()).fail(result -> {
+                    .done(nil -> {
+                        meinAuthService.start();
+                    }).fail(result -> {
                 System.err.println("MeinBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT");
             });
         } catch (Exception e) {
