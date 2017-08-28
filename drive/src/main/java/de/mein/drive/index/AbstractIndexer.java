@@ -11,7 +11,6 @@ import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
-import de.mein.sql.ISQLResource;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 
@@ -76,7 +75,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     protected void examineStage() throws SqlQueriesException, IOException {
         //todo problem
-        N.sqlResource(stageDao.getStagesByStageSet(stageSetId),stages->{
+        N.sqlResource(stageDao.getStagesByStageSet(stageSetId), stages -> {
             Stage stage = stages.getNext();
             while (stage != null) {
                 //todo debug
@@ -159,6 +158,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     stageParent.setDeleted(!exists.exists());
                 }
                 stageParent.setOrder(order.ord());
+                stageParent.setSynced(true);
                 stageDao.insert(stageParent);
             }
             if (stageParent != null)
@@ -172,9 +172,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             stage.setStageSet(stageSet.getId().v());
             stage.setDeleted(!f.exists());
-            if (stage.getIsDirectory())
+            if (stage.getIsDirectory()) {
+                stage.setSynced(true);
                 indexWatchdogListener.watchDirectory(f);
-            else
+            } else
                 stage.setSynced(true);
             stage.setOrder(order.ord());
             stageDao.insert(stage);
@@ -282,7 +283,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                             .setFsParentId(stage.getFsId())
                             .setName(subDir.getName())
                             .setIsDirectory(true)
-                            .setDeleted(!subDir.exists());
+                            .setDeleted(!subDir.exists())
+                            .setSynced(true);
                     System.out.println("StageIndexerRunnable[" + stageSetId + "].roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
                     subStage.setOrder(order.ord());
                     //todo debug

@@ -629,6 +629,8 @@ public class ClientSyncHandler extends SyncHandler {
             subStage.setDeleted(true);
             subStage.setOrder(order.ord());
             subStage.setParentId(stage.getId());
+            if (!subStage.getIsDirectory())
+                subStage.setSynced(false);
             stageDao.insert(subStage);
             entryIdStageIdMap.put(subGen.getId().v(), subStage.getId());
             if (subGen.getIsDirectory().v()) {

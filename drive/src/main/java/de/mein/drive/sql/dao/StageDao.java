@@ -263,9 +263,9 @@ StageDao extends Dao.LockingDao {
     public Stage insert(Stage stage) throws SqlQueriesException {
         try {
             //todo debug
-            if (stage.getName() == null)
+            if (stage.getSynced() == null && stage.getIsDirectory())
                 System.out.println("StageDao.insert.debug.1");
-            if (stage.getName().equals("3.jpg"))
+            if (stage.getName().equals("same2.txt") && stage.getSynced() == null)
                 System.out.println("StageDao.insert.debugnu4hg0");
             Long id = sqlQueries.insert(stage);
             return stage.setId(id);
