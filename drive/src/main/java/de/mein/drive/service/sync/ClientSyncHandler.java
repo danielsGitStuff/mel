@@ -24,7 +24,6 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by xor on 10/27/16.
@@ -342,14 +341,14 @@ public class ClientSyncHandler extends SyncHandler {
                     } else {
                         // only merge if file exists
                         File fLeft = stageDao.getFileByStage(left);
-                        if (fLeft.exists()) {
-                            Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
-                            stage.mergeValuesFrom(left);
-                            if (idMapLeft.containsKey(left.getParentId()))
-                                stage.setParentId(idMapLeft.get(left.getParentId()));
-                            stageDao.insert(stage);
-                            idMapLeft.put(left.getId(), stage.getId());
-                        }
+//                        if (fLeft.exists() || left.getSynced()) {
+                        Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                        stage.mergeValuesFrom(left);
+                        if (idMapLeft.containsKey(left.getParentId()))
+                            stage.setParentId(idMapLeft.get(left.getParentId()));
+                        stageDao.insert(stage);
+                        idMapLeft.put(left.getId(), stage.getId());
+//                        }
                     }
                 } else {
                     if (right != null) {
