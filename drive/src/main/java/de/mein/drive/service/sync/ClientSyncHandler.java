@@ -24,6 +24,7 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by xor on 10/27/16.
@@ -156,6 +157,9 @@ public class ClientSyncHandler extends SyncHandler {
         waitLock.lock();
     }
 
+    //todo debug
+    private static AtomicInteger count = new AtomicInteger(0);
+
     /**
      * Merges all staged StageSets (from file system) and checks the result for conflicts
      * with the stage from the server (if it exists).
@@ -170,7 +174,7 @@ public class ClientSyncHandler extends SyncHandler {
             fsDao.lockRead();
 
             List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
-            System.out.println("ClientSyncHandler.commitJob");
+            System.out.println("ClientSyncHandler.commitJob." + count.getAndIncrement());
 
             // first: merge everything which has been analysed by the indexer
             mergeStageSets(stagedFromFs);

@@ -448,4 +448,10 @@ StageDao extends Dao.LockingDao {
                 + "where " + stage.getIdPair().k() + "=?";
         sqlQueries.execute(statement, ISQLQueries.whereArgs(iNode, modified, synced, id));
     }
+
+    public void flagMergedStageSet(Long stageSetId, boolean merged) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String stmt = "update " + stage.getTableName() + " set " + stage.getMergedPair().k() + "=? where " + stage.getStageSetPair().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(merged, stageSetId));
+    }
 }

@@ -1,13 +1,10 @@
 package de.mein.drive.data.conflict;
 
+import de.mein.auth.tools.Eva;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.dao.StageDao;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by xor on 5/30/17.
@@ -30,6 +27,12 @@ public class Conflict {
         this.rStage = rStage;
         this.stageDao = stageDao;
         key = createKey(lStage, rStage);
+        if (lStageId != null && rStageId != null && lStageId == 18 && rStageId == 40)
+            System.out.println("Conflict.Conflict");
+        Eva.eva((eva, count) -> {
+            if (lStageId != null && rStageId != null && lStageId == 18 && rStageId == 40)
+                eva.error();
+        });
     }
 
 

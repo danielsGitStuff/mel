@@ -51,10 +51,12 @@ public class WasteBin {
         //todo debug
         if (genericFSEntry == null)
             System.out.println("WasteBin.delete.debug1");
-        if (genericFSEntry.getIsDirectory().v())
-            deleteDirectory((FsDirectory) genericFSEntry.ins());
-        else
-            deleteFile((FsFile) genericFSEntry.ins());
+        if (genericFSEntry != null) {
+            if (genericFSEntry.getIsDirectory().v())
+                deleteDirectory((FsDirectory) genericFSEntry.ins());
+            else
+                deleteFile((FsFile) genericFSEntry.ins());
+        }
     }
 
     private void deleteDirectory(FsDirectory fsDirectory) throws SqlQueriesException, IOException {

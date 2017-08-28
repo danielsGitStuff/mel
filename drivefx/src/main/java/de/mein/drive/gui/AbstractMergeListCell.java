@@ -71,11 +71,13 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
 
     abstract Stage getConflictSide(Conflict dependsOn);
 
+    protected static Background BACKGROUND_WHITE = new Background(new BackgroundFill(new Color(.3, .3, .3, 1), CornerRadii.EMPTY, Insets.EMPTY));
+
     @Override
     protected void updateItem(Conflict conflict, boolean empty) {
         super.updateItem(conflict, empty);
         if (conflict instanceof EmptyRowConflict) {
-            setBackground(new Background(new BackgroundFill(new Color(.3, .3, .3, 1), CornerRadii.EMPTY, Insets.EMPTY)));
+            setBackground(BACKGROUND_WHITE);
         } else {
             indent = 0;
             if (empty || conflict == null) {
