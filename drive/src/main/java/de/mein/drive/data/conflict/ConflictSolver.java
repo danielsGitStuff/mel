@@ -318,6 +318,14 @@ public class ConflictSolver extends SyncStageMerger {
             if (solvedParentStage != null && right != null && right.getFsParentId() == null) {
                 solvedStage.setFsParentId(solvedParentStage.getFsId());
             }
+            if (deletedParents.containsKey(solvedFile.getAbsolutePath()) && (left != null && left.getDeleted())) {
+                solvedStage.setFsId(null);
+            }
+            if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
+                Conflict parentConflict = deletedParents.get(solvedParent.getAbsolutePath());
+                if (parentConflict.hasLeft() && parentConflict.getLeft().getDeleted())
+                    solvedStage.setFsParentId(null);
+            }
             if (deletedParents.containsKey(solvedParent.getAbsolutePath()) || deletedParents.containsKey(solvedFile.getAbsolutePath())) {
                 solvedStage.setFsId(null);
                 if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
