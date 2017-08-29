@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Takes care about Services and Approvals (which Certificate is permitted to talk to which Service).<br>
@@ -50,7 +51,7 @@ public final class DatabaseManager extends FileRelatedManager {
 
     private static SQLConnectionCreator sqlConnectionCreator = databaseManager -> {
         File f = new File(databaseManager.createWorkingPath() + DB_FILENAME);
-        return new SQLQueries(SQLConnector.createSqliteConnection(f), new RWLock());
+        return new SQLQueries(SQLConnector.createSqliteConnection(f),new ReentrantLock(), new RWLock());
     };
     public static void setSqlConnectionCreator(SQLConnectionCreator sqlConnectionCreator) {
         DatabaseManager.sqlConnectionCreator = sqlConnectionCreator;

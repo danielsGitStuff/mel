@@ -54,8 +54,8 @@ public class WasteDao extends Dao.LockingDao {
     public List<String> searchTransfer() throws SqlQueriesException {
         TransferDetails transfer = new TransferDetails();
         Waste waste = new Waste();
-        String where = " w exists (select " + transfer.getHash().k() + " from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=w." + waste.getHash().k() + ")";
-        return sqlQueries.loadColumn(waste.getHash(), String.class, waste, where, null, null);
+        String where = "exists (select " + transfer.getHash().k() + " from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=w." + waste.getHash().k() + ")";
+        return sqlQueries.loadColumn(waste.getHash(), String.class, waste, "w", where, null, null);
     }
 
     public Waste insert(Waste waste) throws SqlQueriesException {

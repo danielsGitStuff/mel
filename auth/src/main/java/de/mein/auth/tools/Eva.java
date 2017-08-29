@@ -9,11 +9,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by xor on 27.08.2017.
  */
 public class Eva {
+    private final String key;
+
+    public void print() {
+        print(null);
+    }
+
+    public void print(String appendix) {
+        System.out.println(key + "." + countMap.get(key).get() + (appendix != null ? "." + appendix : ""));
+    }
+
     public interface EvaRun {
         void run(Eva eva, final int count) throws Exception;
     }
 
-    private Eva() {
+    private Eva(String key) {
+        this.key = key;
     }
 
     public Eva out(String msg) {
@@ -45,7 +56,7 @@ public class Eva {
                     countMap.put(key, new AtomicInteger(0));
                 final int count = countMap.get(key).getAndIncrement();
                 semaphore.release();
-                run.run(new Eva(), count);
+                run.run(new Eva(key), count);
             } catch (Exception ee) {
                 System.err.println(Eva.class.getSimpleName() + ".eva(): Exception!!!");
                 ee.printStackTrace();

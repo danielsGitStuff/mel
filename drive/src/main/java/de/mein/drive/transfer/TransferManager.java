@@ -7,6 +7,7 @@ import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -241,6 +242,9 @@ public class TransferManager extends DeferredRunnable {
                 }
             }
         };
+        Eva.eva((eva, count) -> {
+            eva.print("appendix");
+        });
         meinDriveService.execute(runnable);
         return deferred;
     }

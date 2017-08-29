@@ -67,6 +67,10 @@ public class BashToolsUnix implements BashToolsImpl {
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line = reader.readLine();
+        //todo debug
+        if (line == null){
+            System.out.println("BashToolsUnix.getModifiedAndINodeOfFile.debugivn04g0");
+        }
         String[] parts = line.split(" ");
         Long iNode = Long.parseLong(parts[0]);
         Long modified = Long.parseLong(parts[1]);

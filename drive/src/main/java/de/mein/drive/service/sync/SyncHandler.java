@@ -325,6 +325,7 @@ public abstract class SyncHandler {
                 }
                 driveDatabaseManager.updateVersion();
                 stageDao.deleteStageSet(stageSetId);
+                transferManager.research();
             });
         } catch (Exception e) {
             e.printStackTrace();

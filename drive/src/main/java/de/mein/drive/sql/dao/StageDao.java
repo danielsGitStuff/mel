@@ -1,5 +1,7 @@
 package de.mein.drive.sql.dao;
 
+import de.mein.auth.tools.Eva;
+import de.mein.drive.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.watchdog.StageIndexerRunnable;
@@ -21,13 +23,12 @@ import java.util.Stack;
 public class
 StageDao extends Dao.LockingDao {
     private final FsDao fsDao;
-    private DriveDatabaseManager driveDatabaseManager;
+    private final DriveSettings driveSettings;
 
-    public StageDao(DriveDatabaseManager driveDatabaseManager, ISQLQueries isqlQueries, FsDao fsDao) {
+    public StageDao(DriveSettings driveSettings, ISQLQueries isqlQueries, FsDao fsDao) {
         super(isqlQueries);
         this.fsDao = fsDao;
-        this.driveDatabaseManager = driveDatabaseManager;
-
+        this.driveSettings = driveSettings;
     }
 
     /**
@@ -40,7 +41,7 @@ StageDao extends Dao.LockingDao {
         //todo debug
         if (f.getName().equals("samesub") && Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClient"))
             System.out.println("StageDao.getStageByPath.debug");
-        RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
+        RootDirectory rootDirectory = driveSettings.getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
         if (f.getAbsolutePath().length() < rootPath.length())
@@ -65,13 +66,13 @@ StageDao extends Dao.LockingDao {
 
     private FsEntry getBottomFsEntry(Stack<File> fileStack) throws SqlQueriesException {
         if (fileStack.size() == 0) { //&& fileStack[0].length() == 0) {
-            return driveDatabaseManager.getFsDao().getRootDirectory();
+            return fsDao.getRootDirectory();
         }
-        FsEntry bottomFsEntry = driveDatabaseManager.getFsDao().getRootDirectory();
+        FsEntry bottomFsEntry = fsDao.getRootDirectory();
         FsEntry lastFsEntry = null;
         do {
-            Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : driveDatabaseManager.getDriveSettings().getRootDirectory().getId();
-            lastFsEntry = driveDatabaseManager.getFsDao().getGenericSubByName(parentId, fileStack.peek().getName());
+            Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : driveSettings.getRootDirectory().getId();
+            lastFsEntry = fsDao.getGenericSubByName(parentId, fileStack.peek().getName());
             if (lastFsEntry != null) {
                 bottomFsEntry = lastFsEntry;
                 fileStack.pop();
@@ -145,7 +146,7 @@ StageDao extends Dao.LockingDao {
     public File getFileByStage(Stage stage) throws SqlQueriesException {
         if (stage.getName().equals("samesub1.txt")) // todo debug
             System.err.println("StageDao.getFileByStage.debug 34234234");
-        RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
+        RootDirectory rootDirectory = driveSettings.getRootDirectory();
         final Long stageSetId = stage.getStageSet();
         Stack<Stage> stageStack = new Stack<>();
         FsEntry bottomFsEntry = null;
@@ -263,6 +264,10 @@ StageDao extends Dao.LockingDao {
     public Stage insert(Stage stage) throws SqlQueriesException {
         try {
             //todo debug
+            if (stage == null || stage.getName() == null)
+                System.out.println("StageDao.insert.debugfj34ßf");
+            if (stage.getStageSet() == 6 && stage.getName().equals("samesub"))
+                System.out.println("StageDao.insert.debugkjg093j0");
             if (stage.getSynced() == null && stage.getIsDirectory())
                 System.out.println("StageDao.insert.debug.1");
             if (stage.getName().equals("same2.txt") && stage.getSynced() == null)
@@ -303,6 +308,9 @@ StageDao extends Dao.LockingDao {
     public StageSet createStageSet(String type, String status, Long originCertId, String originServiceUuid) throws SqlQueriesException {
         StageSet stageSet = new StageSet().setSource(type).setOriginCertId(originCertId)
                 .setOriginServiceUuid(originServiceUuid).setStatus(status);
+        Eva.eva((eva, count) -> {
+            System.out.println("StageDao.createStageSet.eva." + count);
+        });
         Long id = sqlQueries.insert(stageSet);
         //todo debug
         if (id == 6)
@@ -364,7 +372,6 @@ StageDao extends Dao.LockingDao {
 
 
     public FsEntry stage2FsEntry(Stage stage, long version) throws SqlQueriesException {
-        FsDao fsDao = driveDatabaseManager.getFsDao();
         FsEntry fsEntry;
         if (stage.getIsDirectory()) {
             FsDirectory fsDirectory = fsDao.getDirectoryById(stage.getFsId());

@@ -21,7 +21,7 @@ public abstract class DriveStrings {
     // file system related stuff
     public static final String WASTEBIN = "wastebin";
     public static final String DB_FILENAME = "meindrive.db";
-    public static final String STAGESET_TYPE_STARTUP_INDEX = "startup";
+    public static final String STAGESET_SOURCE_STARTUP_INDEX = "startup";
     public static final String STAGESET_SOURCE_FS = "fs";
     public static final String STAGESET_SOURCE_MERGED = "merged";
     public static final String STAGESET_SOURCE_SERVER = "server";

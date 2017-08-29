@@ -7,6 +7,7 @@ import de.mein.sql.conn.SQLConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * builds and executes mysql queries for several purposes.
@@ -27,8 +28,9 @@ public class SQLQueries extends ISQLQueries {
         this.connection = sqlConnection.getConnection();
     }
 
-    public SQLQueries(JDBCConnection connection, RWLock lock) {
+    public SQLQueries(JDBCConnection connection, ReentrantLock reentrantWriteLock, RWLock lock) {
         this.sqlConnection = connection;
+        this.reentrantWriteLock = reentrantWriteLock;
         this.connection = sqlConnection.getConnection();
         this.lock = lock;
     }
@@ -134,10 +136,12 @@ public class SQLQueries extends ISQLQueries {
     }
 
     @Override
-    public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
+    public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String tableReference, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
         List<T> result = new ArrayList<>();
         out("load()");
         String fromTable = sqlTableObject.getTableName();
+        if (tableReference != null)
+            fromTable += " " + tableReference;
         String selectString = buildSelectQuery(new ArrayList<Pair<?>>() {
             {
                 add(column);
@@ -382,19 +386,22 @@ public class SQLQueries extends ISQLQueries {
                 Pair<?> attribute = attributes.get(i - 1);
                 pstmt.setObject(i, attribute.v());
             }
+            if (reentrantWriteLock != null)
+                reentrantWriteLock.lock();
             pstmt.executeUpdate();
             ResultSet resultSet = pstmt.getGeneratedKeys();
             next = resultSet.next();
             if (resultSet.getRow() > 0) {
                 Object id = resultSet.getObject(1);
+                resultSet.close();
+                pstmt.close();
+                if (reentrantWriteLock != null)
+                    reentrantWriteLock.unlock();
                 if (id instanceof Integer)
                     return Long.valueOf((Integer) id);
                 if (id instanceof Long)
                     return (Long) id;
             }
-            //n2
-            resultSet.close();
-            pstmt.close();
         } catch (Exception e) {
             //e.printStackTrace();
             System.err.println("SQLQueries.insert.query: " + query);

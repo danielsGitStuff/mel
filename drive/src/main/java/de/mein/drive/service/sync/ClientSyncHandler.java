@@ -177,8 +177,10 @@ public class ClientSyncHandler extends SyncHandler {
             mergeStageSets(stagedFromFs);
 
             stagedFromFs = stageDao.getStagedStageSetsFromFS();
-            if (stagedFromFs.size() > 1)
+            if (stagedFromFs.size() > 1) {
+                meinDriveService.addJob(new CommitJob());
                 return;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

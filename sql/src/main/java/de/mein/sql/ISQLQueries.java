@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import de.mein.sql.conn.SQLConnection;
 
@@ -16,6 +17,7 @@ import de.mein.sql.conn.SQLConnection;
 public abstract class ISQLQueries {
     public static final boolean SYSOUT = false;
     protected RWLock lock;
+    protected ReentrantLock reentrantWriteLock;
 
     public static <T extends SQLTableObject> String buildQueryFrom(List<Pair<?>> columns, Class<T> clazz, String where) throws SqlQueriesException {
         try {
@@ -104,7 +106,7 @@ public abstract class ISQLQueries {
 
     public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException;
 
-    public abstract <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException;
+    public abstract <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject,String tableReference, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException;
 
     public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException;
 

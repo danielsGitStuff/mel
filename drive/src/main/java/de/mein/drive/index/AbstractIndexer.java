@@ -146,7 +146,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             if (stageParent == null && parent.getAbsolutePath().length() >= rootPathLength) {
                 stageParent = new Stage().setStageSet(stageSet.getId().v());
                 if (fsParent == null) {
+                    //todo check if necessary
                     stageParent.setIsDirectory(parent.isDirectory());
+                    stageParent.setName(parent.getName());
+                    stageParent.setDeleted(!parent.exists());
+                    stageParent.setStageSet(stageSet.getId().v());
                 } else {
                     stageParent.setName(fsParent.getName().v())
                             .setFsId(fsParent.getId().v())

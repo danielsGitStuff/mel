@@ -11,11 +11,7 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.drive.sql.dao.WasteDao;
 import de.mein.execute.SqliteExecutor;
-import de.mein.sql.ISQLQueries;
-import de.mein.sql.RWLock;
-import de.mein.sql.SQLQueries;
-import de.mein.sql.SQLStatement;
-import de.mein.sql.SqlQueriesException;
+import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
 
 import java.io.File;
@@ -25,6 +21,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * does everything file (database) related
@@ -47,7 +44,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         ISQLQueries createConnection(DriveDatabaseManager driveDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
     }
 
-    private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME)), new RWLock());
+    private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME)), new ReentrantLock(),new RWLock());
 
     public static void setSqlqueriesCreator(SQLConnectionCreator sqlqueriesCreator) {
         DriveDatabaseManager.sqlqueriesCreator = sqlqueriesCreator;
@@ -68,7 +65,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         DriveDatabaseManager.driveSqlInputStreamInjector = driveSqlInputStreamInjector;
     }
 
-    public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg ) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
+    public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
         super(workingDirectory);
 
         this.meinDriveService = meinDriveService;
@@ -87,7 +84,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
          java.sql.Driver driver = (java.sql.Driver) Class.forName("org.sqlite.JDBC").newInstance();
          java.sql.Connection conn = driver.connect(url, config.toProperties());
          */
-        sqlQueries = sqlqueriesCreator.createConnection(this,meinDriveService.getUuid());
+        sqlQueries = sqlqueriesCreator.createConnection(this, meinDriveService.getUuid());
         SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
         st.execute();
         st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
@@ -99,15 +96,17 @@ public class DriveDatabaseManager extends FileRelatedManager {
             hadToInitialize = true;
         }
 
-        fsDao = new FsDao(this, sqlQueries);
-        stageDao = new StageDao(this, sqlQueries, fsDao);
-        transferDao = new TransferDao(sqlQueries);
-        wasteDao = new WasteDao(sqlQueries);
         File driveSettingsFile = new File(workingDirectory.getAbsolutePath() + File.separator + "drive.settings.json");
         this.driveSettings = DriveSettings.load(fsDao, driveSettingsFile, driveSettingsCfg).setRole(driveSettingsCfg.getRole()).setRootDirectory(driveSettingsCfg.getRootDirectory());
         this.driveSettings.getRootDirectory().backup();
         this.driveSettings.getRootDirectory().setOriginalFile(new File(this.driveSettings.getRootDirectory().getPath()));
         this.driveSettings.setTransferDirectoryPath(driveSettingsCfg.getTransferDirectoryPath());
+
+        fsDao = new FsDao(this, sqlQueries);
+        stageDao = new StageDao(driveSettings, sqlQueries, fsDao);
+        transferDao = new TransferDao(sqlQueries);
+        wasteDao = new WasteDao(sqlQueries);
+
         fsDao.setDriveSettings(this.driveSettings);
         transferDao.resetStarted();
         System.out.println("DriveDatabaseManager.initialised");
