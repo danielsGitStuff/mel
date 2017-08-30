@@ -24,6 +24,23 @@ public class FsDao extends Dao {
     private AtomicInteger wcount = new AtomicInteger(0);
     private AtomicInteger uwcount = new AtomicInteger(0);
 
+    public FsEntry getBottomFsEntry(Stack<File> fileStack) throws SqlQueriesException {
+        if (fileStack.size() == 0) { //&& fileStack[0].length() == 0) {
+            return getRootDirectory();
+        }
+        FsEntry bottomFsEntry = getRootDirectory();
+        FsEntry lastFsEntry = null;
+        do {
+            Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : driveSettings.getRootDirectory().getId();
+            lastFsEntry = getGenericSubByName(parentId, fileStack.peek().getName());
+            if (lastFsEntry != null) {
+                bottomFsEntry = lastFsEntry;
+                fileStack.pop();
+            }
+        } while (lastFsEntry != null && !fileStack.empty());
+        return bottomFsEntry;
+    }
+
     private int printLock(String method, AtomicInteger count) {
         int n = count.incrementAndGet();
         System.out.println("FsDao." + method + "(" + n + ").on " + Thread.currentThread().getName());

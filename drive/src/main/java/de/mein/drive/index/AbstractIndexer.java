@@ -16,10 +16,7 @@ import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by xor on 5/18/17.
@@ -143,28 +140,26 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             // we found everything which already exists in das datenbank
             Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
-            if (stageParent == null && parent.getAbsolutePath().length() >= rootPathLength) {
-                stageParent = new Stage().setStageSet(stageSet.getId().v());
-                if (fsParent == null) {
-                    //todo check if necessary
-                    stageParent.setIsDirectory(parent.isDirectory());
-                    stageParent.setName(parent.getName());
-                    stageParent.setDeleted(!parent.exists());
-                    stageParent.setStageSet(stageSet.getId().v());
-                } else {
-                    stageParent.setName(fsParent.getName().v())
-                            .setFsId(fsParent.getId().v())
-                            .setFsParentId(fsParent.getParentId().v())
-                            .setStageSet(stageSet.getId().v())
-                            .setVersion(fsParent.getVersion().v())
-                            .setIsDirectory(fsParent.getIsDirectory().v());
-                    File exists = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), fsParent);
-                    stageParent.setDeleted(!exists.exists());
-                }
-                stageParent.setOrder(order.ord());
-                stageParent.setSynced(true);
-                stageDao.insert(stageParent);
-            }
+            stageParent = connectToFs(fsParent, stageParent, parent);
+//            if (stageParent == null && parent.getAbsolutePath().length() >= rootPathLength) {
+//                stageParent = new Stage().setStageSet(stageSet.getId().v());
+//                if (fsParent == null) {
+//                    //todo check if necessary
+//                    stageParent = connectToFs(,stageParent, parent);
+//                } else {
+//                    stageParent.setName(fsParent.getName().v())
+//                            .setFsId(fsParent.getId().v())
+//                            .setFsParentId(fsParent.getParentId().v())
+//                            .setStageSet(stageSet.getId().v())
+//                            .setVersion(fsParent.getVersion().v())
+//                            .setIsDirectory(fsParent.getIsDirectory().v());
+//                    File exists = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), fsParent);
+//                    stageParent.setDeleted(!exists.exists());
+//                }
+//                stageParent.setOrder(order.ord());
+//                stageParent.setSynced(true);
+//                stageDao.insert(stageParent);
+//            }
             if (stageParent != null)
                 stage.setParentId(stageParent.getId());
             if (fsParent != null) {
@@ -186,6 +181,55 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
         }
         // done here. set the indexer to work
+    }
+
+    private Stage connectToFs(FsDirectory fsDirectory, Stage stage, File directory) throws SqlQueriesException {
+        final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
+        Stack<File> fileStack = new Stack<>();
+        File parent = directory;
+        while (parent.getAbsolutePath().length() > rootPathLength) {
+            fileStack.push(parent);
+            parent = parent.getParentFile();
+        }
+        FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
+        File bottomFile = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), bottomFsEntry);
+        Stage bottomStage = new Stage();
+        bottomStage.setName(bottomFsEntry.getName().v())
+                .setFsParentId(bottomFsEntry.getParentId().v())
+                .setFsId(bottomFsEntry.getId().v())
+                .setIsDirectory(true)
+                .setDeleted(!bottomFile.exists())
+                .setStageSet(stageSetId)
+                .setOrder(order.ord());
+        Stage alreadyStaged = stageDao.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
+        if (alreadyStaged == null) {
+            stageDao.insert(bottomStage);
+        } else {
+            bottomStage = alreadyStaged;
+        }
+        Stage oldeBottom = bottomStage;
+        while (!fileStack.empty()) {
+            File file = fileStack.pop();
+            bottomStage = new Stage()
+                    .setName(file.getName())
+                    .setIsDirectory(true)
+                    .setStageSet(stageSetId)
+                    .setFsParentId(oldeBottom.getFsId())
+                    .setParentId(oldeBottom.getId())
+                    .setOrder(order.ord())
+                    .setDeleted(!file.exists());
+            alreadyStaged = stageDao.getStageByStageSetParentName(stageSetId, oldeBottom.getId(), file.getName());
+            //stageDao.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
+            if (alreadyStaged == null) {
+                stageDao.insert(bottomStage);
+                alreadyStaged = bottomStage;
+                //oldeBottom = bottomStage;
+            }
+            oldeBottom = alreadyStaged;
+        }
+        if (alreadyStaged != null)
+            return alreadyStaged;
+        return bottomStage;
     }
 
     @Override

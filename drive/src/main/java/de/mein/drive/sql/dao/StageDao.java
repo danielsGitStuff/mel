@@ -53,7 +53,7 @@ StageDao extends Dao.LockingDao {
             ff = ff.getParentFile();
         }
 
-        FsEntry bottomFsEntry = getBottomFsEntry(fileStack);
+        FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
         Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
         while (!fileStack.empty()) {
             String name = fileStack.pop().getName();
@@ -64,22 +64,6 @@ StageDao extends Dao.LockingDao {
         return bottomStage;
     }
 
-    private FsEntry getBottomFsEntry(Stack<File> fileStack) throws SqlQueriesException {
-        if (fileStack.size() == 0) { //&& fileStack[0].length() == 0) {
-            return fsDao.getRootDirectory();
-        }
-        FsEntry bottomFsEntry = fsDao.getRootDirectory();
-        FsEntry lastFsEntry = null;
-        do {
-            Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : driveSettings.getRootDirectory().getId();
-            lastFsEntry = fsDao.getGenericSubByName(parentId, fileStack.peek().getName());
-            if (lastFsEntry != null) {
-                bottomFsEntry = lastFsEntry;
-                fileStack.pop();
-            }
-        } while (lastFsEntry != null && !fileStack.empty());
-        return bottomFsEntry;
-    }
 
     public StageSet getStageSetById(Long stageSetId) throws SqlQueriesException {
         StageSet dummy = new StageSet();
@@ -264,7 +248,7 @@ StageDao extends Dao.LockingDao {
     public Stage insert(Stage stage) throws SqlQueriesException {
         try {
             //todo debug
-            if (stage == null || stage.getName() == null)
+            if (stage.getName() == null)
                 System.out.println("StageDao.insert.debugfj34ßf");
             if (stage.getStageSet() == 6 && stage.getName().equals("samesub"))
                 System.out.println("StageDao.insert.debugkjg093j0");
