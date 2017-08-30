@@ -68,11 +68,15 @@ public class AndroidSQLQueries extends ISQLQueries {
         return load(columns, sqlTableObject, where, whereArgs, null);
     }
 
+
     @Override
-    public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
+    public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String tableReference, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
         List<Pair<?>> columns = new ArrayList<>();
         columns.add(column);
-        String selectString = buildSelectQuery(columns, sqlTableObject.getTableName()) + " where " + where;
+        String selectString = buildSelectQuery(columns, sqlTableObject.getTableName());
+        if (tableReference != null)
+            selectString += " " + tableReference;
+        selectString += " where " + where;
         Cursor cursor = db.rawQuery(selectString, argsToStringArgs(whereArgs));
         List<T> result = new ArrayList<>(cursor.getCount());
         try {

@@ -65,7 +65,7 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
             return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
         } else {
             rootView = View.inflate(activity, R.layout.embedded_edit_drive, embedded);
-            return new AndroidDriveEditGuiController(meinAuthService,activity,runningInstance,rootView);
+            return new AndroidDriveEditGuiController(meinAuthService, activity, runningInstance, rootView);
         }
 
     }

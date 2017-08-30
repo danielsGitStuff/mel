@@ -37,9 +37,9 @@ public class CreateServiceController extends GuiController {
         this.rootView = v;
         this.activity = activity;
         this.meinAuthService = meinAuthService;
-        this.spinner = (Spinner) rootView.findViewById(R.id.spin_bootloaders);
-        this.embedded = (LinearLayout) rootView.findViewById(R.id.embedded);
-        this.btnCreate = (Button) rootView.findViewById(R.id.btnCreate);
+        this.spinner = rootView.findViewById(R.id.spin_bootloaders);
+        this.embedded = rootView.findViewById(R.id.embedded);
+        this.btnCreate = rootView.findViewById(R.id.btnCreate);
 
 
         List<BootLoader> bootLoaders = new ArrayList<>();
@@ -53,7 +53,6 @@ public class CreateServiceController extends GuiController {
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<BootLoader> adapter = new ArrayAdapter<>(rootView.getContext(), R.layout.support_simple_spinner_dropdown_item, bootLoaders);
         // Specify the layout to use when the list of choices appears
-        //adapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
         showSelected();
@@ -68,10 +67,7 @@ public class CreateServiceController extends GuiController {
     private void showSelected() {
         N.r(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
-            bootLoader.inflateEmbeddedView(embedded,activity,meinAuthService,null);
-//            View v = View.inflate(rootView.getContext(), bootLoader.getCreateResource(), embedded);
-//            currentController = bootLoader.createGuiController(meinAuthService, activity, v, null);
-            //bootLoader.setupController(meinAuthService,v);
+            currentController = bootLoader.inflateEmbeddedView(embedded, activity, meinAuthService, null);
             System.out.println("CreateServiceController.showSelected");
         });
 

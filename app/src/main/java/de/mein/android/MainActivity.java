@@ -294,7 +294,7 @@ public class MainActivity extends MeinActivity {
                                                 StageDao stageDao = dbManager.getStageDao();
                                                 FsDao fsDao = dbManager.getFsDao();
                                                 // pretend the server deleted "samedir"
-                                                StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_STAGING_FROM_SERVER, DriveStrings.STAGESET_STATUS_STAGED, null, null);
+                                                StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_STAGED, null, null);
                                                 FsDirectory root = fsDao.getRootDirectory();
                                                 List<GenericFSEntry> content = fsDao.getContentByFsDirectory(root.getId().v());
                                                 root.addContent(content);
@@ -315,7 +315,7 @@ public class MainActivity extends MeinActivity {
                                                 stageDao.insert(sameStage);
 
                                                 //pretend that we have added a file to the local "samedir"
-                                                StageSet localStageSet = stageDao.createStageSet(DriveStrings.STAGESET_TYPE_FS, DriveStrings.STAGESET_STATUS_STAGED, null, null);
+                                                StageSet localStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, DriveStrings.STAGESET_STATUS_STAGED, null, null);
                                                 FsDirectory fsDirectory = new FsDirectory(new File("bla"));
                                                 fsDirectory.addDummyFsFile("same1.txt");
                                                 fsDirectory.addDummyFsFile("same2.txt");
