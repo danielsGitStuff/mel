@@ -142,6 +142,9 @@ public class WasteBin {
     }
 
     private void moveToBin(File file, String contentHash, ModifiedAndInode modifiedAndInode) throws SqlQueriesException {
+        //todo debug
+        if (contentHash.equals("9471e9c1779a51bb6fcb5735127c0701"))
+            System.out.println("WasteBin.moveToBin.debugjfc03jg0w");
         Waste waste = new Waste();
         waste.getModified().v(modifiedAndInode.getModified());
         waste.getHash().v(contentHash);
@@ -155,6 +158,9 @@ public class WasteBin {
     }
 
     private void recursiveDelete(File dir) throws SqlQueriesException, IOException {
+        //todo debug
+        if (dir.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir/samesub"))
+            System.out.println("WasteBin.recursiveDelete.debugnfi34fa");
         FsDirectory fsDirectory = fsDao.getFsDirectoryByPath(dir);
         File[] files = dir.listFiles(File::isFile);
         for (File f : files) {

@@ -250,6 +250,8 @@ StageDao extends Dao.LockingDao {
             //todo debug
             if (stage.getName() == null)
                 System.out.println("StageDao.insert.debugfj34ßf");
+            if (stage.getName().equals("samesub1.txt") && stage.getSynced() != null && stage.getSynced())
+                System.out.println("StageDao.insert.debugnj34ßfg3w");
             if (stage.getStageSet() == 6 && stage.getName().equals("samesub"))
                 System.out.println("StageDao.insert.debugkjg093j0");
             if (stage.getSynced() == null && stage.getIsDirectory())
@@ -444,5 +446,11 @@ StageDao extends Dao.LockingDao {
         Stage stage = new Stage();
         String stmt = "update " + stage.getTableName() + " set " + stage.getMergedPair().k() + "=? where " + stage.getStageSetPair().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(merged, stageSetId));
+    }
+
+    public void flagSynced(Long id, boolean synced) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String stmt = "update " + stage.getTableName() + " set " + stage.getSyncedPair().k() + "=? where " + stage.getIdPair().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(synced, id));
     }
 }

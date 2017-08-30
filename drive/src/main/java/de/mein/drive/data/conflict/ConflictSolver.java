@@ -286,6 +286,9 @@ public class ConflictSolver extends SyncStageMerger {
                             solvedStage.setParentId(oldeNewIdMap.get(parentId));
                         }
                     }
+                }else {
+                    right.setSynced(false);
+                    stageDao.flagSynced(right.getId(),false);
                 }
             } else if (conflict.isLeft() && conflict.hasLeft()) {
                 solvedStage = left;
