@@ -140,6 +140,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             // we found everything which already exists in das datenbank
             Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
+            //todo debug
+            if (stageSetId == 14)
+                System.out.println("AbstractIndexer.initStage.debugjfg3jhgw0");
             stageParent = connectToFs(fsParent, stageParent, parent);
 //            if (stageParent == null && parent.getAbsolutePath().length() >= rootPathLength) {
 //                stageParent = new Stage().setStageSet(stageSet.getId().v());
@@ -185,6 +188,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     private Stage connectToFs(FsDirectory fsDirectory, Stage stage, File directory) throws SqlQueriesException {
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
+        if (directory.getAbsolutePath().length() < rootPathLength)
+            return null;
         Stack<File> fileStack = new Stack<>();
         File parent = directory;
         while (parent.getAbsolutePath().length() > rootPathLength) {

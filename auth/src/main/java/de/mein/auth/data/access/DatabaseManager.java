@@ -51,7 +51,7 @@ public final class DatabaseManager extends FileRelatedManager {
 
     private static SQLConnectionCreator sqlConnectionCreator = databaseManager -> {
         File f = new File(databaseManager.createWorkingPath() + DB_FILENAME);
-        return new SQLQueries(SQLConnector.createSqliteConnection(f),new ReentrantLock(), new RWLock());
+        return new SQLQueries(SQLConnector.createSqliteConnection(f),true, new RWLock());
     };
     public static void setSqlConnectionCreator(SQLConnectionCreator sqlConnectionCreator) {
         DatabaseManager.sqlConnectionCreator = sqlConnectionCreator;

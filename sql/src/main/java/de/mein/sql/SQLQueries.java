@@ -28,9 +28,9 @@ public class SQLQueries extends ISQLQueries {
         this.connection = sqlConnection.getConnection();
     }
 
-    public SQLQueries(JDBCConnection connection, ReentrantLock reentrantWriteLock, RWLock lock) {
+    public SQLQueries(JDBCConnection connection, boolean reentrantLockOnWrite, RWLock lock) {
         this.sqlConnection = connection;
-        this.reentrantWriteLock = reentrantWriteLock;
+        this.reentrantWriteLock = reentrantLockOnWrite ? new ReentrantLock(true) : null;
         this.connection = sqlConnection.getConnection();
         this.lock = lock;
     }
@@ -404,6 +404,8 @@ public class SQLQueries extends ISQLQueries {
             }
         } catch (Exception e) {
             //e.printStackTrace();
+            if (reentrantWriteLock != null)
+                reentrantWriteLock.unlock();
             System.err.println("SQLQueries.insert.query: " + query);
             System.err.println("SQLQueries.insert.attributes: ");
             for (Pair pair : attributes) {

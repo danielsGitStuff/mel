@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
 
 @SuppressWarnings("Duplicates")
 public class SqliteThreadingTest {
@@ -42,7 +41,7 @@ public class SqliteThreadingTest {
                 .setRootDirectory(root)
                 .setTransferDirectoryPath(testDir.getPath() + File.separator + "transfer");
 
-        DriveDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir, "test.db")),new ReentrantLock(), new RWLock());
+        DriveDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir, "test.db")), true, new RWLock());
         ISQLQueries sqlQueries = sqlqueriesCreator.createConnection(null, null);
         SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
         st.execute();
