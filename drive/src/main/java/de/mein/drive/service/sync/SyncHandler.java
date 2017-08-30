@@ -212,7 +212,7 @@ public abstract class SyncHandler {
      */
     public void commitStage(Long stageSetId, boolean lockFsEntry, Map<Long, Long> stageIdFsIdMap) {
         //todo debug
-        if (stageSetId == 8)
+        if (stageSetId == 16)
             System.out.println("SyncHandler.commitStage.debugj9v0jaseß");
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
@@ -327,6 +327,7 @@ public abstract class SyncHandler {
                 }
                 driveDatabaseManager.updateVersion();
                 stageDao.deleteStageSet(stageSetId);
+
                 transferManager.research();
             });
         } catch (Exception e) {

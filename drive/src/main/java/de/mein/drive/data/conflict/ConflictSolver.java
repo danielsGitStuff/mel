@@ -286,9 +286,13 @@ public class ConflictSolver extends SyncStageMerger {
                             solvedStage.setParentId(oldeNewIdMap.get(parentId));
                         }
                     }
-                }else {
+                    if (left.getIsDirectory() ^ right.getIsDirectory() || !left.getContentHash().equals(right.getContentHash())) {
+                        right.setSynced(false);
+                        stageDao.flagSynced(right.getId(), false);
+                    }
+                } else {
                     right.setSynced(false);
-                    stageDao.flagSynced(right.getId(),false);
+                    stageDao.flagSynced(right.getId(), false);
                 }
             } else if (conflict.isLeft() && conflict.hasLeft()) {
                 solvedStage = left;

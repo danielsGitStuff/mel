@@ -127,7 +127,8 @@ public class ClientSyncHandler extends SyncHandler {
 //                    stageDao.updateStageSet(stageSet);
 //                    meinDriveService.addJob(new CommitJob());
                     commitStage(stageSetId, false);
-
+                    setupTransfer();
+                    transferManager.research();
                     waitLock.unlock();
                     //fsDao.unlockWrite();
                 }))
@@ -285,7 +286,8 @@ public class ClientSyncHandler extends SyncHandler {
                 conflictSolver.directoryStuff();
                 conflictSolver.cleanup();
                 this.commitStage(serverStageSet.getId().v());
-                //setupTransfer();
+                setupTransfer();
+                transferManager.research();
                 Long mergedId = conflictSolver.getMergeStageSet().getId().v();
                 this.minimizeStage(mergedId);
                 if (stageDao.stageSetHasContent(mergedId))
