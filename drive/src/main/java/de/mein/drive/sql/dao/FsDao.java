@@ -62,6 +62,9 @@ public class FsDao extends Dao {
         int n = printLock("lockWrite", wcount);
         rwLock.writeLock().lock();
         printGotLock("lockWrite", n);
+        //todo debug
+        if (n == 22)
+            System.out.println("FsDao.lockWrite.debugj8ivj450v");
     }
 
 

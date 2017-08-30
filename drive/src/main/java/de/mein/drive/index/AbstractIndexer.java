@@ -76,7 +76,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             Stage stage = stages.getNext();
             while (stage != null) {
                 //todo debug
-                if (stage.getName().equals("sub1"))
+                if (stage.getName().equals("samedir") && stageSetId == 14)
                     System.out.println("AbstractIndexer.examineStage.debug1");
                 // build a File
                 String path = buildPathFromStage(stage);
@@ -140,9 +140,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             // we found everything which already exists in das datenbank
             Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
-            //todo debug
-            if (stageSetId == 14)
-                System.out.println("AbstractIndexer.initStage.debugjfg3jhgw0");
             stageParent = connectToFs(fsParent, stageParent, parent);
 //            if (stageParent == null && parent.getAbsolutePath().length() >= rootPathLength) {
 //                stageParent = new Stage().setStageSet(stageSet.getId().v());
@@ -257,8 +254,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         Map<String, GenericFSEntry> stuffToDelete = new HashMap<>();
         if (stage.getFsId() != null) {
             List<GenericFSEntry> generics = fsDao.getContentByFsDirectory(stage.getFsId());
-            for (GenericFSEntry gen : generics)
-                stuffToDelete.put(gen.getName().v(), gen);
+            for (GenericFSEntry gen : generics) {
+                if (gen.getSynced().v())
+                    stuffToDelete.put(gen.getName().v(), gen);
+            }
         }
         // remove deleted stuff first (because of the order)
         if (files != null) {

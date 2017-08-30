@@ -40,6 +40,9 @@ public class StageIndexerRunnable extends AbstractIndexer {
                 fsDao.lockRead();
                 System.out.println("StageIndexerRunnable.runImpl.locked");
                 initStage(DriveStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener);
+                //todo debug
+                if (stageSetId == 14)
+                    System.out.println("AbstractIndexer.initStage.debugjfg3jhgw0");
                 examineStage();
                 fsDao.unlockRead();
                 unlocked = true;
