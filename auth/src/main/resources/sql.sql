@@ -24,7 +24,6 @@ CREATE TABLE  certificate  (
    address      TEXT,
    port         INTEGER,
    certport     INTEGER,
-   greeting     TEXT not null,
    trusted      INTEGER,
    hash text,
   UNIQUE (uuid),
