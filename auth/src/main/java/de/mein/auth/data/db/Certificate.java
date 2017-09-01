@@ -83,7 +83,7 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
             }
             return value;
         });
-        populateInsert(uuid, answerUuid, name, certificate, address, port, certDeliveryPort, trusted, hash);
+        populateInsert(uuid, answerUuid, name, certificate, address, greeting, port, certDeliveryPort, trusted, hash);
         populateAll(id);
     }
 
