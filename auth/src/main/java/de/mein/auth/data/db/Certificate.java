@@ -26,6 +26,8 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
     private Pair<Integer> certDeliveryPort = new Pair<>(Integer.class, "certport");
     private Pair<String> name = new Pair<>(String.class, "name");
     private Pair<Boolean> trusted = new Pair<>(Boolean.class, "trusted");
+    private Pair<String> greeting = new Pair<>(String.class, "greeting");
+
     @JsonIgnore
     private Pair<String> hash = new Pair<>(String.class, "hash");
 
@@ -35,6 +37,14 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
         return hash;
     }
 
+    public Certificate setGreeting(String greeting) {
+        this.greeting.v(greeting);
+        return this;
+    }
+
+    public Pair<String> getGreeting() {
+        return greeting;
+    }
 
     @Override
     public boolean equals(Object obj) {

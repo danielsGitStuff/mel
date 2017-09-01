@@ -149,18 +149,20 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     }
 
     private void showContent() {
-        try {
-            List<ServiceJoinServiceType> serviceJoinServiceTypes = meinAuthService.getDatabaseManager().getAllServices();
-            serviceList.getItems().clear();
-            for (ServiceJoinServiceType serviceJoinServiceType : serviceJoinServiceTypes) {
-                IMeinService runningService = meinAuthService.getMeinService(serviceJoinServiceType.getUuid().v());
-                if (runningService != null)
-                    serviceJoinServiceType.setRunning(true);
-                serviceList.getItems().add(serviceJoinServiceType);
+        Platform.runLater(() -> {
+            try {
+                List<ServiceJoinServiceType> serviceJoinServiceTypes = meinAuthService.getDatabaseManager().getAllServices();
+                serviceList.getItems().clear();
+                for (ServiceJoinServiceType serviceJoinServiceType : serviceJoinServiceTypes) {
+                    IMeinService runningService = meinAuthService.getMeinService(serviceJoinServiceType.getUuid().v());
+                    if (runningService != null)
+                        serviceJoinServiceType.setRunning(true);
+                    serviceList.getItems().add(serviceJoinServiceType);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     public void setStage(Stage stage) {

@@ -25,6 +25,8 @@ import java.util.logging.Logger;
  * Boots up the MeinAuth instance and all existing services by calling the corresponding bootloaders.
  */
 public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
+    public static final String DEFAULT_WORKING_DIR_NAME = "mein.auth";
+    public static final String DEFAULT_SETTINGS_FILE_NAME = "auth.settings";
     private static Logger logger = Logger.getLogger(MeinBoot.class.getName());
     private Set<Class<? extends BootLoader>> bootloaderClasses = new HashSet<>();
     private Map<String, Class<? extends BootLoader>> bootloaderMap = new HashMap<>();
