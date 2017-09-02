@@ -8,13 +8,12 @@ import org.json.JSONObject;
  * constructor.
  *
  * @author xor
- *
  */
 public abstract class AbstractException extends Exception {
     protected final Exception exception;
 
     public AbstractException(Exception e) {
-        this.exception =e;
+        this.exception = e;
     }
 
 
@@ -36,7 +35,6 @@ public abstract class AbstractException extends Exception {
 
     @Override
     public String toString() {
-        JSONObject object = new JSONObject(this);
-        return object.toString();
+        return getClass().getSimpleName() + ": msg: " + (exception == null ? "null " : exception.getMessage());
     }
 }
