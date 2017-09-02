@@ -1,0 +1,30 @@
+<component name="ArtifactManager">
+  <artifact build-on-make="true" name="drive:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/drive_jar</output-path>
+    <root id="root">
+      <element id="archive" name="drive.jar">
+        <element id="directory" name="META-INF">
+          <element id="file-copy" path="$PROJECT_DIR$/drivefx/src/main/resources/META-INF/MANIFEST.MF" />
+        </element>
+        <element id="module-output" name="auth_main" />
+        <element id="module-output" name="sql_main" />
+        <element id="module-output" name="serialize_main" />
+        <element id="module-output" name="json_main" />
+        <element id="module-output" name="authfx_main" />
+        <element id="module-output" name="drive-drive_main" />
+        <element id="module-output" name="drivefx_main" />
+        <element id="dir-copy" path="$PROJECT_DIR$/drivefx/src/main/resources" />
+        <element id="dir-copy" path="$PROJECT_DIR$/drive/src/main/resources" />
+        <element id="dir-copy" path="$PROJECT_DIR$/auth/src/main/resources" />
+        <element id="dir-copy" path="$PROJECT_DIR$/authfx/src/main/resources" />
+      </element>
+      <element id="library" level="project" name="Gradle: org.bouncycastle:bcprov-jdk15on:1.54" />
+      <element id="library" level="project" name="Gradle: org.hamcrest:hamcrest-core:1.3" />
+      <element id="library" level="project" name="Gradle: org.xerial:sqlite-jdbc:3.18.0" />
+      <element id="library" level="project" name="Gradle: junit:junit:4.12" />
+      <element id="library" level="project" name="Gradle: org.slf4j:slf4j-api:1.7.12" />
+      <element id="library" level="project" name="Gradle: org.hamcrest:hamcrest-all:1.3" />
+      <element id="library" level="project" name="Gradle: org.jdeferred:jdeferred-core:1.2.4" />
+    </root>
+  </artifact>
+</component>
