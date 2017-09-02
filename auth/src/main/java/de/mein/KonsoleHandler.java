@@ -1,11 +1,9 @@
 package de.mein;
 
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.service.MeinBoot;
 import de.mein.sql.Pair;
 
 import java.io.File;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,26 +52,12 @@ public class KonsoleHandler {
             if (jsonFile.exists()) {
                 System.out.println("KonsoleHandler.start.loading settings from file: " + jsonFile.getAbsolutePath());
                 meinAuthSettings = (MeinAuthSettings) MeinAuthSettings.load(jsonFile);
-            } else {
-                meinAuthSettings.setPort(8888)
-                        .setDeliveryPort(8889)
-                        .setName("meinauth")
-                        .setBrotcastListenerPort(MeinAuthSettings.BROTCAST_PORT)
-                        .setBrotcastPort(MeinAuthSettings.BROTCAST_PORT)
-                        .setWorkingDirectory(MeinBoot.defaultWorkingDir1)
-                        .setGreeting(generateGreeting())
-                        .setJsonFile(new File("meinAuth.settings.json"));
-            }
+            } else meinAuthSettings = MeinAuthSettings.createDefaultSettings();
         }
         return meinAuthSettings;
     }
 
-    private String generateGreeting() {
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[6];
-        random.nextBytes(bytes);
-        return new String(bytes);
-    }
+
 
     private void read() {
         String key = args[position++];

@@ -2,9 +2,10 @@ package de.mein.auth.data;
 
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.service.MeinBoot;
 
 import java.io.File;
-import java.io.InputStream;
+import java.security.SecureRandom;
 
 /**
  * Created by xor on 6/10/16.
@@ -19,6 +20,29 @@ public class MeinAuthSettings extends JsonSettings {
     private Integer brotcastPort;
     private Class<? extends MeinAuthService> meinAuthServiceClass;
     private IDBCreatedListener idbCreatedListener;
+
+    public static MeinAuthSettings createDefaultSettings() {
+        MeinAuthSettings meinAuthSettings = new MeinAuthSettings();
+        meinAuthSettings.setPort(8888)
+                .setDeliveryPort(8889)
+                .setName("meinauth")
+                .setBrotcastListenerPort(BROTCAST_PORT)
+                .setBrotcastPort(BROTCAST_PORT)
+                .setWorkingDirectory(MeinBoot.defaultWorkingDir1)
+                .setGreeting(generateGreeting())
+                .setJsonFile(new File("meinAuth.settings.json"));
+        return meinAuthSettings;
+    }
+
+    private static String generateGreeting() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw1234567890";
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[6];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte) chars.charAt(random.nextInt(chars.length()));
+        }
+        return new String(bytes);
+    }
 
     public MeinAuthSettings setBrotcastListenerPort(Integer brotcastListenerPort) {
         this.brotcastListenerPort = brotcastListenerPort;
