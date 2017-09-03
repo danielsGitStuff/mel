@@ -14,7 +14,7 @@ dependencies {
     compile project(path: ':sql')
     testCompile 'org.jdeferred:jdeferred-core:1.2.4'
     testCompile 'junit:junit:4.12'
-    compile 'net.sourceforge.streamsupport:streamsupport:1.5.2'
+//    compile 'net.sourceforge.streamsupport:streamsupport:1.5.2'
     compile 'org.jdeferred:jdeferred-core:1.2.4'
     compile project(path: ':serialize')
 }

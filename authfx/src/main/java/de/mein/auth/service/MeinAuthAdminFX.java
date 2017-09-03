@@ -9,7 +9,6 @@ import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.gui.*;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
-import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
@@ -96,11 +95,13 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                 stage.setTitle("MeinAuthAdmin.Popup '" + meinAuthService.getName() + "'");
                 stage.setScene(scene);
                 stage.show();
+
                 PopupContainerFX popupController = loader.getController();
                 popupController.load(containingPath).done(contentFX -> {
                     contentFX.setStage(stage);
                     deferred.resolve(contentFX);
                 });
+                stage.close();
             });
         });
         return deferred;
@@ -281,6 +282,10 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                         stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");
                         stage.setScene(scene);
                         stage.show();
+                        stage.setOnCloseRequest(event -> {
+                            meinAuthAdminFXES[0].shutDown();
+                            System.exit(0);
+                        });
                         meinAuthAdminFXES[0].setStage(stage);
                         meinAuthAdminFXES[0].showContent();
                         lock.unlock();
