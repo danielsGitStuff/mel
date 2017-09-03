@@ -116,14 +116,9 @@ public class AndroidService extends Service {
             if (settingsFile.exists()) {
                 meinAuthSettings = (MeinAuthSettings) JsonSettings.load(settingsFile);
             } else {
-                meinAuthSettings = new MeinAuthSettings()
-                        .setPort(8890)// default: 8888
-                        .setDeliveryPort(8891) // default: 8889
-                        .setBrotcastListenerPort(6699) // default: 9966
-                        .setBrotcastPort(9966) // default: 9966
-                        .setWorkingDirectory(workingDir)
-                        .setName("MeinAuthOnAndroid")
-                        .setGreeting("greeting1");
+                meinAuthSettings = MeinAuthSettings.createDefaultSettings();
+                meinAuthSettings.setWorkingDirectory(workingDir)
+                        .setName("MeinAuthOnAndroid");
                 meinAuthSettings.setJsonFile(settingsFile).save();
             }
         } catch (IOException | JsonDeserializationException | JsonSerializationException | IllegalAccessException e) {
