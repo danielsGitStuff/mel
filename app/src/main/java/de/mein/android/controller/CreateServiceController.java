@@ -6,7 +6,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
-import com.annimon.stream.Stream;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,13 +42,15 @@ public class CreateServiceController extends GuiController {
 
 
         List<BootLoader> bootLoaders = new ArrayList<>();
-        Stream.of(meinAuthService.getMeinBoot().getBootloaderClasses()).forEach(bootloaderClass -> N.r(() -> {
-            BootLoader bootLoader = bootloaderClass.newInstance();
-            bootLoaders.add(bootLoader);
-            //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
+        for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()){
+            N.r(() -> {
+                BootLoader bootLoader = bootloaderClass.newInstance();
+                bootLoaders.add(bootLoader);
+                //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
+                System.out.println("CreateServiceController.CreateServiceController");
+            });
+        }
 
-            System.out.println("CreateServiceController.CreateServiceController");
-        }));
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<BootLoader> adapter = new ArrayAdapter<>(rootView.getContext(), R.layout.support_simple_spinner_dropdown_item, bootLoaders);
         // Specify the layout to use when the list of choices appears

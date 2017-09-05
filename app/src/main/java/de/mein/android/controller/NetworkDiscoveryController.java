@@ -5,7 +5,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.annimon.stream.Stream;
 
 import de.mein.R;
 import de.mein.android.service.AndroidService;
@@ -86,12 +85,12 @@ public class NetworkDiscoveryController extends GuiController {
             System.out.println("NetworkDiscoveryController.discover");
             unkownListAdapter.clear().addAll(environment.getUnknownAuthInstances());
             knownCertListAdapter.clear();
-            Stream.of(environment.getCertificateIds()).forEach(certId -> {
+            for (Long certId: environment.getCertificateIds()){
                 N.r(() -> {
                     Certificate c = certificateManager.getTrustedCertificateById(certId);
                     knownCertListAdapter.add(c);
                 });
-            });
+            }
             activity.runOnUiThread(() -> {
                 unkownListAdapter.notifyDataSetChanged();
                 knownCertListAdapter.notifyDataSetChanged();

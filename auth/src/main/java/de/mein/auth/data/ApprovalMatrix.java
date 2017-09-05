@@ -57,6 +57,13 @@ public class ApprovalMatrix {
         return this;
     }
 
+    public void setApproved(Long certificateId, Long serviceId, boolean approved) {
+        if (approved)
+            approve(certificateId, serviceId);
+        else
+            disapprove(certificateId, serviceId);
+    }
+
     public static class ApprovalMatrixRow {
         private Set<Certificate> approvedCertificates = new HashSet<>();
         private ServiceJoinServiceType service;

@@ -4,7 +4,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 
-import com.annimon.stream.Stream;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +51,6 @@ public class ApprovalController extends GuiController {
                 e.printStackTrace();
             }
         });
-        System.out.println("ApprovalController.ApprovalController");
         fillContent();
     }
 
@@ -104,11 +102,10 @@ public class ApprovalController extends GuiController {
             serviceAdapter.clear();
             for (Certificate certificate : certificates) {
                 knownCertListAdapter.add(certificate);
-                Stream.of(services).forEach(serviceJoinServiceType -> {
+                for (ServiceJoinServiceType serviceJoinServiceType : services) {
                     long serviceId = serviceJoinServiceType.getServiceId().v();
                     Map<Long, Approval> certIdApprovalList = matrix.getMatrix().get(serviceId);
-
-                });
+                }
             }
             knownCertListAdapter.notifyDataSetChanged();
             serviceAdapter.notifyDataSetChanged();
@@ -117,13 +114,11 @@ public class ApprovalController extends GuiController {
                 selectedCertId = cert.getId().v();
                 System.out.println("ApprovalController.fillContent.CLICKED: " + cert.getName().v());
                 serviceAdapter.clear();
+                System.out.println("ApprovalController.ApprovalController");
+                serviceAdapter.setApprovalCheckedListener((serviceId, approved) -> matrix.setApproved(selectedCertId, serviceId, approved));
                 for (ServiceJoinServiceType s : services) {
                     // check if it is approved
-                    boolean approved = false;
-                    long serviceId = s.getServiceId().v();
-                    if (matrix.getMatrix().containsKey(serviceId)) {
-                        approved = matrix.getMatrix().get(serviceId).get(selectedCertId) != null;
-                    }
+                    boolean approved = matrix.isApproved(selectedCertId,s.getServiceId().v());
                     serviceAdapter.add(s, approved);
                 }
                 serviceAdapter.notifyDataSetChanged();

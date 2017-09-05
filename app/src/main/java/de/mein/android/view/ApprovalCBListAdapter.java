@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,14 +23,24 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 
 public class ApprovalCBListAdapter extends BaseAdapter {
 
+    public interface ApprovalCheckedListener {
+        void approvalCheck(Long serviceId, boolean checked);
+    }
+
     private final Context context;
     private final LayoutInflater layoutInflator;
     private List<ServiceJoinServiceType> serviceJoinServiceTypes = new ArrayList<>();
     private Map<Long, Boolean> approvalMap = new HashMap<>();
+    private CompoundButton.OnCheckedChangeListener checkChangedListener;
+    private ApprovalCheckedListener approvalCheckedListener;
 
     public ApprovalCBListAdapter(Context context) {
         this.context = context;
         this.layoutInflator = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
+
+    public void setApprovalCheckedListener(ApprovalCheckedListener approvalCheckedListener) {
+        this.approvalCheckedListener = approvalCheckedListener;
     }
 
     @Override
@@ -55,12 +66,14 @@ public class ApprovalCBListAdapter extends BaseAdapter {
         CheckBox cb = (CheckBox) v.findViewById(R.id.cbApproved);
         cb.setText(service.getName().v());
         cb.setChecked(checked);
-        cb.setOnClickListener(v1 -> {
-            boolean approved = cb.isChecked();
-            approvalMap.put(service.getServiceId().v(), approved);
-        });
+        cb.setOnCheckedChangeListener((compoundButton, b) -> approvalCheckedListener.approvalCheck(service.getServiceId().v(), cb.isChecked()));
+//        cb.setOnClickListener(v1 -> {
+//            boolean approved = cb.isChecked();
+//            approvalMap.put(service.getServiceId().v(), approved);
+//        });
         return v;
     }
+
 
     public void clear() {
         serviceJoinServiceTypes = new ArrayList<>();
@@ -79,5 +92,9 @@ public class ApprovalCBListAdapter extends BaseAdapter {
 
     public Boolean isApproved(Long serviceId) {
         return approvalMap.get(serviceId);
+    }
+
+    public void setCheckedChangedListener(CompoundButton.OnCheckedChangeListener checkChangedListener) {
+        this.checkChangedListener = checkChangedListener;
     }
 }

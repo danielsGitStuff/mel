@@ -9,10 +9,9 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import com.annimon.stream.Collectors;
-import com.annimon.stream.Stream;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.R;
@@ -109,7 +108,11 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
 
     private void showDrives(Long selectedCertId) {
         List<ServiceJoinServiceType> services = meinAuthService.getNetworkEnvironment().getServices(selectedCertId);
-        List<ServiceJoinServiceType> filtered = Stream.of(services).filter(service -> service.getType().v().equals(DriveStrings.NAME)).collect(Collectors.toList());
+        List<ServiceJoinServiceType> filtered = new ArrayList<>();
+        for (ServiceJoinServiceType service : services) {
+            if (service.getType().v().equals(DriveStrings.NAME))
+                filtered.add(service);
+        }
         drivesListAdapter.clear();
         drivesListAdapter.addAll(filtered);
         drivesListAdapter.notifyDataSetChanged();
