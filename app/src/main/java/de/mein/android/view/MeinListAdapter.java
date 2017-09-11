@@ -7,6 +7,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -66,5 +67,9 @@ public abstract class MeinListAdapter<T> extends BaseAdapter {
         TextView lbl2 = (TextView) v.findViewById(R.id.lbl2);
         lbl2.setText(line2);
         return v;
+    }
+
+    public void addAll(T[] values) {
+        items.addAll(Arrays.asList(values));
     }
 }

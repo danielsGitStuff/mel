@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.List;
 
 import de.mein.R;
+import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.OthersController;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.MeinNotification;
@@ -40,6 +41,7 @@ import de.mein.android.controller.NetworkDiscoveryController;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.MeinLogger;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.DriveCreateController;
@@ -107,6 +109,8 @@ public class MainActivity extends MeinActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //use custom logger
+        MeinLogger.redirectSysOut(200);
         setContentView(R.layout.activity_main);
         content = findViewById(R.id.content);
         toolbar = findViewById(R.id.toolbar);
@@ -136,7 +140,7 @@ public class MainActivity extends MeinActivity {
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         showGeneral();
-        System.out.println();
+
     }
 
     @Override
@@ -186,6 +190,8 @@ public class MainActivity extends MeinActivity {
             showCreateNewService();
         } else if (id == R.id.nav_others) {
             showOthers();
+        } else if (id == R.id.nav_logcat) {
+            showLogCat();
         }
 
         closeDrawer();
@@ -202,6 +208,13 @@ public class MainActivity extends MeinActivity {
         content.removeAllViews();
         View v = View.inflate(this, R.layout.content_others, content);
         guiController = new OthersController(this, androidService.getMeinAuthService(), v);
+    }
+
+    private void showLogCat() {
+        toolbar.setTitle("LogCat");
+        content.removeAllViews();
+        View v = View.inflate(this, R.layout.content_logcat, content);
+        guiController = new LogCatController(this, v);
     }
 
     private void showDiscover() {
@@ -376,6 +389,9 @@ public class MainActivity extends MeinActivity {
             //approvals ic_menu_approval
             MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 3, "Approvals");
             mApprovals.setIcon(R.drawable.ic_menu_approval);
+            //logcat
+            MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 4, "LogCat");
+            mLogCat.setIcon(R.drawable.ic_menu_slideshow);
 
             SubMenu subServices = menu.addSubMenu("Services");
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
