@@ -8,6 +8,7 @@ import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
@@ -50,7 +51,7 @@ public class TransferManager extends DeferredRunnable {
     private final WasteBin wasteBin;
     private final FsDao fsDao;
     private Future<?> future;
-    private RWLock lock = new RWLock();
+    private CountLock lock = new CountLock();
     //private TransferDetails currentTransfer;
     private File transferDir;
     private Map<String, MeinNotification> activeTransfers;
@@ -58,7 +59,6 @@ public class TransferManager extends DeferredRunnable {
 
     public TransferManager(MeinAuthService meinAuthService, MeinDriveService meinDriveService, TransferDao transferDao, WasteBin wasteBin, SyncHandler syncHandler) {
         this.transferDao = transferDao;
-        this.lock.lockWrite();
         this.meinDriveService = meinDriveService;
         this.meinAuthService = meinAuthService;
         this.indexer = meinDriveService.getIndexer();
@@ -95,7 +95,7 @@ public class TransferManager extends DeferredRunnable {
                 if (groupedTransferSets.size() == 0 || allTransferSetsAreActive(groupedTransferSets)) {
                     logger.log(Level.FINER, "TransferManager.WAIT");
                     meinDriveService.onTransfersDone();
-                    lock.lockWrite();
+                    lock.lock();
                 } else {
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {
                         logger.log(Level.FINER, "TransferManager.run.2222");
@@ -236,11 +236,6 @@ public class TransferManager extends DeferredRunnable {
         return true;
     }
 
-    private void countDown(AtomicInteger countDown) {
-        int count = countDown.decrementAndGet();
-        if (count == 0)
-            lock.unlockWrite();
-    }
 
     /**
      * starts a new Retriever thread that transfers everything from the other side and then shuts down.
@@ -323,7 +318,7 @@ public class TransferManager extends DeferredRunnable {
     }
 
     public void research() {
-        lock.unlockWrite();
+        lock.unlock();
     }
 
     public void start() {

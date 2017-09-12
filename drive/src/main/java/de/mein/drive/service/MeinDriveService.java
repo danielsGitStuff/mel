@@ -143,6 +143,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                     if (!file.exists()) {
                         file = wasteBin.getByHash(detail.getHash());
                     }
+                    if (file == null) {
+                        fileProcess.sendError(detail);
+                    }
                     FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
                     mDetail.openRead();
                     fileProcess.sendFile(mDetail);
