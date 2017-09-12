@@ -154,7 +154,7 @@ public class DriveTest {
         System.out.println("DriveTest.clientMergeStages.END");
     }
 
-    public void simpleTransferFromServerToClient(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
+    public void simpleTransferFromServerToClient(MeinBoot clientMeinBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final DriveSyncListener syncListener = new DriveSyncListener() {
             public File file2;
