@@ -260,7 +260,7 @@ public class MainActivity extends MeinActivity {
         if (guiController != null)
             guiController.onMeinAuthStarted(meinAuthService);
         try {
-            //debugStuff();
+            debugStuff();
             showMenuServices();
         } catch (Exception e) {
             e.printStackTrace();
@@ -301,55 +301,55 @@ public class MainActivity extends MeinActivity {
 
                                         @Override
                                         public void onTransfersDone() {
-                                            N.r(() -> {
-                                                Order order = new Order();
-                                                DriveDatabaseManager dbManager = meinDriveClientService.getDriveDatabaseManager();
-                                                StageDao stageDao = dbManager.getStageDao();
-                                                FsDao fsDao = dbManager.getFsDao();
-                                                // pretend the server deleted "samedir"
-                                                StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_STAGED, null, null);
-                                                FsDirectory root = fsDao.getRootDirectory();
-                                                List<GenericFSEntry> content = fsDao.getContentByFsDirectory(root.getId().v());
-                                                root.addContent(content);
-                                                root.removeSubFsDirecoryByName("samedir");
-                                                root.calcContentHash();
-                                                Stage rootStage = new Stage().setStageSet(stageSet.getId().v())
-                                                        .setContentHash(root.getContentHash().v())
-                                                        .setFsId(root.getId().v())
-                                                        .setIsDirectory(true)
-                                                        .setName(root.getName().v())
-                                                        .setOrder(order.ord())
-                                                        .setVersion(root.getVersion().v())
-                                                        .setDeleted(false);
-                                                stageDao.insert(rootStage);
-                                                GenericFSEntry sameDir = fsDao.getGenericSubByName(root.getId().v(), "samedir");
-                                                Stage sameStage = GenericFSEntry.generic2Stage(sameDir, stageSet.getId().v());
-                                                sameStage.setDeleted(true);
-                                                stageDao.insert(sameStage);
-
-                                                //pretend that we have added a file to the local "samedir"
-                                                StageSet localStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, DriveStrings.STAGESET_STATUS_STAGED, null, null);
-                                                FsDirectory fsDirectory = new FsDirectory(new File("bla"));
-                                                fsDirectory.addDummyFsFile("same1.txt");
-                                                fsDirectory.addDummyFsFile("same2.txt");
-                                                fsDirectory.addDummyFsFile("same3.txt");
-                                                fsDirectory.calcContentHash();
-                                                sameDir = fsDao.getGenericSubByName(root.getId().v(), "samedir");
-                                                sameStage = GenericFSEntry.generic2Stage(sameDir, stageSet.getId().v());
-                                                sameStage.setContentHash(fsDirectory.getContentHash().v());
-                                                sameStage.setStageSet(localStageSet.getId().v());
-                                                stageDao.insert(sameStage);
-                                                Stage same3 = new Stage().setContentHash("5")
-                                                        .setDeleted(false)
-                                                        .setFsParentId(sameStage.getFsId())
-                                                        .setParentId(sameStage.getId())
-                                                        .setIsDirectory(false)
-                                                        .setName("same3.txt")
-                                                        .setSynced(true)
-                                                        .setStageSet(localStageSet.getId().v());
-                                                stageDao.insert(same3);
-                                                meinDriveClientService.addJob(new CommitJob());
-                                            });
+//                                            N.r(() -> {
+//                                                Order order = new Order();
+//                                                DriveDatabaseManager dbManager = meinDriveClientService.getDriveDatabaseManager();
+//                                                StageDao stageDao = dbManager.getStageDao();
+//                                                FsDao fsDao = dbManager.getFsDao();
+//                                                // pretend the server deleted "samedir"
+//                                                StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_STAGED, null, null);
+//                                                FsDirectory root = fsDao.getRootDirectory();
+//                                                List<GenericFSEntry> content = fsDao.getContentByFsDirectory(root.getId().v());
+//                                                root.addContent(content);
+//                                                root.removeSubFsDirecoryByName("samedir");
+//                                                root.calcContentHash();
+//                                                Stage rootStage = new Stage().setStageSet(stageSet.getId().v())
+//                                                        .setContentHash(root.getContentHash().v())
+//                                                        .setFsId(root.getId().v())
+//                                                        .setIsDirectory(true)
+//                                                        .setName(root.getName().v())
+//                                                        .setOrder(order.ord())
+//                                                        .setVersion(root.getVersion().v())
+//                                                        .setDeleted(false);
+//                                                stageDao.insert(rootStage);
+//                                                GenericFSEntry sameDir = fsDao.getGenericSubByName(root.getId().v(), "samedir");
+//                                                Stage sameStage = GenericFSEntry.generic2Stage(sameDir, stageSet.getId().v());
+//                                                sameStage.setDeleted(true);
+//                                                stageDao.insert(sameStage);
+//
+//                                                //pretend that we have added a file to the local "samedir"
+//                                                StageSet localStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, DriveStrings.STAGESET_STATUS_STAGED, null, null);
+//                                                FsDirectory fsDirectory = new FsDirectory(new File("bla"));
+//                                                fsDirectory.addDummyFsFile("same1.txt");
+//                                                fsDirectory.addDummyFsFile("same2.txt");
+//                                                fsDirectory.addDummyFsFile("same3.txt");
+//                                                fsDirectory.calcContentHash();
+//                                                sameDir = fsDao.getGenericSubByName(root.getId().v(), "samedir");
+//                                                sameStage = GenericFSEntry.generic2Stage(sameDir, stageSet.getId().v());
+//                                                sameStage.setContentHash(fsDirectory.getContentHash().v());
+//                                                sameStage.setStageSet(localStageSet.getId().v());
+//                                                stageDao.insert(sameStage);
+//                                                Stage same3 = new Stage().setContentHash("5")
+//                                                        .setDeleted(false)
+//                                                        .setFsParentId(sameStage.getFsId())
+//                                                        .setParentId(sameStage.getId())
+//                                                        .setIsDirectory(false)
+//                                                        .setName("same3.txt")
+//                                                        .setSynced(true)
+//                                                        .setStageSet(localStageSet.getId().v());
+//                                                stageDao.insert(same3);
+//                                                meinDriveClientService.addJob(new CommitJob());
+//                                            });
                                         }
 
                                         @Override

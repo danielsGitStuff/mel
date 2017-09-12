@@ -23,8 +23,8 @@ public class MeinAuthSettings extends JsonSettings {
 
     public static MeinAuthSettings createDefaultSettings() {
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings();
-        meinAuthSettings.setPort(8888)
-                .setDeliveryPort(8889)
+        meinAuthSettings.setPort(8890)
+                .setDeliveryPort(8891)
                 .setName("meinauth")
                 .setBrotcastListenerPort(BROTCAST_PORT)
                 .setBrotcastPort(BROTCAST_PORT)

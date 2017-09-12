@@ -310,6 +310,18 @@ public abstract class SyncHandler {
                                 FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
                                 if (oldeFsFile != null && !stageSet.fromFs() && !fsEntry.getSynced().v()) {
                                     wasteBin.deleteFile(oldeFsFile);
+                                }else {
+                                    // delete file. consider that it might be in the same state as the stage
+                                    File stageFile = stageDao.getFileByStage(stage);
+                                    if (stageFile.exists()) {
+                                        ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
+                                        if (stage.getiNode() == null || stage.getModified() == null ||
+                                                !(modifiedAndInode.getiNode().equals(stage.getiNode()) && modifiedAndInode.getModified().equals(stage.getModified()))){
+                                            wasteBin.deleteUnknown(stageFile);
+                                            // we could search more recent stagesets to find some clues here and prevent deleteUnknown().
+                                        }
+                                        // else: the file is as we want it to be
+                                    }
                                 }
                             }
                             if (fsEntry.getSynced().isNull())
