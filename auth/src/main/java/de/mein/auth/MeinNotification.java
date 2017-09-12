@@ -1,13 +1,15 @@
 package de.mein.auth;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by xor on 08.08.2017.
@@ -19,6 +21,43 @@ public class MeinNotification {
     private final String serviceUuid;
     private final String intention;
     private Map<String, Object> extras = new HashMap<>();
+    // progress related stuff
+    private List<MeinProgressListener> progressListeners = new ArrayList<>();
+    private boolean indeterminate = false;
+    private int current = 0;
+    private int max = 0;
+    private boolean canceled = false;
+    private boolean finished = false;
+
+    public void cancel() {
+        canceled = true;
+        for (MeinProgressListener listener : progressListeners) {
+            listener.cancel();
+        }
+    }
+
+    public boolean isCanceled() {
+        return canceled;
+    }
+
+    public void finish() {
+        finished = true;
+        for (MeinProgressListener listener : progressListeners) {
+            listener.finish();
+        }
+    }
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public interface MeinProgressListener {
+        void onProgress(int max, int current, boolean indeterminate);
+
+        void cancel();
+
+        void finish();
+    }
 
     /**
      * @param serviceUuid source of the notification
@@ -91,5 +130,29 @@ public class MeinNotification {
     public MeinNotification addExtra(String key, Object value) {
         extras.put(key, value);
         return this;
+    }
+
+    public void addProgressListener(MeinProgressListener progressListener) {
+        progressListeners.add(progressListener);
+    }
+
+    public void setProgress(int max, int current, boolean indeterminate) {
+        this.max = max;
+        this.current = current;
+        this.indeterminate = indeterminate;
+        for (MeinProgressListener listener : progressListeners)
+            listener.onProgress(max, current, indeterminate);
+    }
+
+    public int getMax() {
+        return max;
+    }
+
+    public int getCurrent() {
+        return current;
+    }
+
+    public boolean isIndeterminate() {
+        return indeterminate;
     }
 }

@@ -43,7 +43,7 @@ public class DriveFXConflictSolverController extends PopupContentFX implements I
     }
 
     @Override
-    public void init(MeinService meinService, MeinNotification notification) {
+    public void initImpl(MeinService meinService, MeinNotification notification) {
         System.out.println("DriveFXConflictSolverController.init");
         this.meinDriveClientService = (MeinDriveClientService) meinService;
         stage.setTitle(notification.getTitle());

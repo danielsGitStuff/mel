@@ -2,6 +2,7 @@ package de.mein.drive.transfer;
 
 import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
@@ -25,8 +26,9 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,7 +53,8 @@ public class TransferManager extends DeferredRunnable {
     private RWLock lock = new RWLock();
     //private TransferDetails currentTransfer;
     private File transferDir;
-    private HashSet<String> activeTransfers;
+    private Map<String, MeinNotification> activeTransfers;
+    private ReentrantLock activeTransfersLock = new ReentrantLock();
 
     public TransferManager(MeinAuthService meinAuthService, MeinDriveService meinDriveService, TransferDao transferDao, WasteBin wasteBin, SyncHandler syncHandler) {
         this.transferDao = transferDao;
@@ -82,7 +85,7 @@ public class TransferManager extends DeferredRunnable {
         String transferDirPath = meinDriveService.getDriveSettings().getRootDirectory().getPath() + File.separator + DriveSettings.TRANSFER_DIR;
         transferDir = new File(transferDirPath);
         transferDir.mkdirs();
-        activeTransfers = new HashSet<>();
+        activeTransfers = new HashMap<>();
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 logger.log(Level.FINER, "TransferManager.RUN");
@@ -97,8 +100,12 @@ public class TransferManager extends DeferredRunnable {
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {
                         logger.log(Level.FINER, "TransferManager.run.2222");
                         // skip if already active
-                        if (activeTransfers.contains(activeTransferKey(groupedTransferSet)))
+                        activeTransfersLock.lock();
+                        if (activeTransfers.containsKey(activeTransferKey(groupedTransferSet))) {
+                            activeTransfersLock.unlock();
                             continue;
+                        }
+                        activeTransfersLock.unlock();
                         // todo ask WasteBin for files
                         wasteBin.restoreFsFiles(syncHandler);
                         // todo ask FS for files
@@ -123,13 +130,15 @@ public class TransferManager extends DeferredRunnable {
                         DeferredObject<TransferDetails, TransferDetails, Void> processDone = new DeferredObject<>();
                         // when done: set to not active
                         processDone.done(transferDetails -> {
-                            activeTransfers.remove(activeTransferKey(transferDetails));
+                            finishActiveTransfer(transferDetails);
                         }).fail(transferDetails -> {
-                            activeTransfers.remove(activeTransferKey(transferDetails));
+                            cancelActiveTransfer(transferDetails);
                         });
                         boolean transfersRemain = transferDao.hasNotStartedTransfers(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
                         if (transfersRemain) {
-                            activeTransfers.add(activeTransferKey(groupedTransferSet));
+                            activeTransfersLock.lock();
+                            activeTransfers.put(activeTransferKey(groupedTransferSet), null);
+                            activeTransfersLock.unlock();
                             // ask the network for files
                             MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
                             if (fileProcess != null && fileProcess.isOpen()) {
@@ -150,7 +159,7 @@ public class TransferManager extends DeferredRunnable {
                         }
                     }
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 break;
             }
@@ -158,9 +167,70 @@ public class TransferManager extends DeferredRunnable {
         shutDown();
     }
 
+    private void finishActiveTransfer(TransferDetails transferDetails) {
+        activeTransfersLock.lock();
+        MeinNotification notification = activeTransfers.remove(activeTransferKey(transferDetails));
+        if (notification != null)
+            notification.finish();
+        activeTransfersLock.unlock();
+    }
+
+    private void cancelActiveTransfer(TransferDetails transferDetails) {
+        activeTransfersLock.lock();
+        MeinNotification notification = activeTransfers.remove(activeTransferKey(transferDetails));
+        if (notification != null)
+            notification.cancel();
+        activeTransfersLock.unlock();
+    }
+
+    private Map<String, MeinNotification> notActiveTransfers = new HashMap<>();
+
+    private void showProgress() {
+        activeTransfersLock.lock();
+        try {
+            List<TransferDetails> transferSets = transferDao.getTransferSets(null);
+            for (TransferDetails transferDetails : transferSets) {
+                final String key = activeTransferKey(transferDetails);
+                int max = transferDao.count(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
+                int current = transferDao.countStarted(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
+                if (activeTransfers.containsKey(key)) {
+                    if (notActiveTransfers.containsKey(key)) {
+                        MeinNotification notification = notActiveTransfers.remove(key);
+                        notification.cancel();
+                    }
+                    MeinNotification notification = activeTransfers.get(key);
+                    if (notification == null) {
+                        notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_PROGRESS, "transferring", "line2");
+                        activeTransfers.put(key, notification);
+                        notification.setProgress(max, current, false);
+                        meinAuthService.onNotificationFromService(meinDriveService, notification);
+                    } else {
+                        if (max > 0)
+                            notification.setProgress(max, current, false);
+                        else {
+                            notification.cancel();
+                        }
+                    }
+                } else {
+                    MeinNotification notification = notActiveTransfers.get(key);
+                    if (notification == null) {
+                        notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_PROGRESS, "transferring", "line2");
+                        notActiveTransfers.put(key, notification);
+                        meinAuthService.onNotificationFromService(meinDriveService, notification);
+                    }
+                    notification.setProgress(0, 0, true);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            activeTransfersLock.unlock();
+        }
+    }
+
     private boolean allTransferSetsAreActive(List<TransferDetails> groupedTransferSets) {
         for (TransferDetails details : groupedTransferSets) {
-            if (!activeTransfers.contains(activeTransferKey(details)))
+            if (!activeTransfers.containsKey(activeTransferKey(details)))
                 return false;
         }
         return true;
@@ -174,6 +244,7 @@ public class TransferManager extends DeferredRunnable {
 
     /**
      * starts a new Retriever thread that transfers everything from the other side and then shuts down.
+     *
      * @param fileProcess
      * @param strippedTransferDetails
      * @return
@@ -187,6 +258,7 @@ public class TransferManager extends DeferredRunnable {
             private RWLock lock = new RWLock().lockWrite();
 
             private void countDown(AtomicInteger countDown) {
+                showProgress();
                 int count = countDown.decrementAndGet();
                 if (count == 0)
                     lock.unlockWrite();
@@ -225,6 +297,7 @@ public class TransferManager extends DeferredRunnable {
                             fileProcess.addFilesReceiving(fileTransferDetail);
                             payLoad.add(fileTransferDetail);
                         }
+                        showProgress();
                         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(strippedTransferDetails.getCertId().v());
                         connected.done(validationProcess -> N.r(() -> {
                             validationProcess.message(strippedTransferDetails.getServiceUuid().v(), DriveStrings.INTENT_PLEASE_TRANSFER, payLoad);

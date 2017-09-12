@@ -2,9 +2,11 @@ package de.mein.drive.sql.dao;
 
 import de.mein.drive.sql.SqliteConverter;
 import de.mein.drive.sql.TransferDetails;
-import de.mein.sql.*;
+import de.mein.sql.Dao;
+import de.mein.sql.ISQLQueries;
+import de.mein.sql.SQLResource;
+import de.mein.sql.SqlQueriesException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,9 +40,19 @@ public class TransferDao extends Dao {
     }
 
     public List<TransferDetails> getTwoTransferSets() throws SqlQueriesException {
+        return getTransferSets(2);
+    }
+
+    /**
+     * @param limit
+     * @return all TransferSets if limit is null
+     */
+    public List<TransferDetails> getTransferSets(Integer limit) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
         String where = dummy.getStarted().k() + "=?";
-        String whatElse = "group by " + dummy.getCertId().k() + "," + dummy.getServiceUuid().k() + " limit 2";
+        String whatElse = "group by " + dummy.getCertId().k() + "," + dummy.getServiceUuid().k();
+        if (limit != null)
+            whatElse += " limit " + limit;
         List<TransferDetails> result = sqlQueries.load(ISQLQueries.columns(dummy.getCertId(), dummy.getServiceUuid()), dummy, where, ISQLQueries.whereArgs(false), whatElse);
         return result;
     }
@@ -80,5 +92,19 @@ public class TransferDao extends Dao {
         TransferDetails dummy = new TransferDetails();
         String stmt = "update " + dummy.getTableName() + " set " + dummy.getStarted().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(false));
+    }
+
+    public int count(Long certId, String serviceUuid) throws SqlQueriesException {
+        TransferDetails details = new TransferDetails();
+        String query = "select count (*) from " + details.getTableName() + " where " + details.getCertId().k() + "=? and " + details.getServiceUuid().k() + "=?";
+        return sqlQueries.querySingle(query, ISQLQueries.whereArgs(certId, serviceUuid), Integer.class);
+    }
+
+    public int countStarted(Long certId, String serviceUuid) throws SqlQueriesException {
+        TransferDetails details = new TransferDetails();
+        String query = "select count (*) from " + details.getTableName() + " where " + details.getStarted().k() + "=? and "
+                + details.getCertId().k() + "=? and "
+                + details.getServiceUuid().k() + "=?";
+        return sqlQueries.querySingle(query, ISQLQueries.whereArgs(true, certId, serviceUuid), Integer.class);
     }
 }

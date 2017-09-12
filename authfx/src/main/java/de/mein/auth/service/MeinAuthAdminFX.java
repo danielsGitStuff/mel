@@ -70,15 +70,17 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     }
 
     @Override
-    public void onNotificationFromService(MeinService meinService, MeinNotification msgObject) {
+    public void onNotificationFromService(MeinService meinService, MeinNotification meinNotification) {
         N.r(() -> {
             Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
             ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());
             BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
             if (bootloader instanceof BootLoaderFX) {
                 BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
-                String containingPath = bootLoaderFX.getPopupFXML(meinService, msgObject);
-                loadPopup(containingPath).done(popupContentFX -> popupContentFX.init(meinService, msgObject));
+                String containingPath = bootLoaderFX.getPopupFXML(meinService, meinNotification);
+                loadPopup(containingPath).done(popupContentFX -> {
+                    popupContentFX.init(meinService, meinNotification);
+                });
             }
         });
     }

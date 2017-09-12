@@ -1,8 +1,10 @@
 package de.mein.drive.boot;
 
+import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
 import de.mein.auth.service.IMeinService;
 import de.mein.drive.DriveBootLoader;
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
 
@@ -23,7 +25,13 @@ public class DriveFXBootLoader extends DriveBootLoader implements BootLoaderFX<M
     }
 
     @Override
-    public String getPopupFXML(IMeinService meinService, Object dataObject) {
-        return "de/mein/drive/popupconflict.olde.fxml";
+    public String getPopupFXML(IMeinService meinService, MeinNotification meinNotification) {
+        if (meinNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED)) {
+            return "de/mein/drive/popupconflict.olde.fxml";
+        }
+        if (meinNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_PROGRESS)) {
+            return "de/mein/auth/progress.fxml";
+        }
+        return null;
     }
 }

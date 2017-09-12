@@ -1,5 +1,6 @@
 package de.mein.auth.boot;
 
+import de.mein.auth.MeinNotification;
 import de.mein.auth.service.IMeinService;
 
 /**
@@ -10,6 +11,6 @@ public interface BootLoaderFX<T extends IMeinService> {
 
     String getEditFXML(T meinService);
 
-    String getPopupFXML(IMeinService meinService, Object dataObject);
+    String getPopupFXML(IMeinService meinService, MeinNotification dataObject);
 
 }

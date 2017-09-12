@@ -42,9 +42,8 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
     }
 
     @Override
-    public void init(MeinService meinService, MeinNotification notification) {
+    public void initImpl(MeinService meinService, MeinNotification notification) {
         this.meinDriveClientService = (MeinDriveClientService) meinService;
-        stage.setTitle(notification.getTitle());
         conflictSolver = (ConflictSolver) notification.getContent();
         System.out.println("DriveFXConflictSolverController.init");
         AbstractMergeListCell.setup(listLeft, listMerge, listRight);

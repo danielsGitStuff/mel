@@ -16,7 +16,12 @@ public abstract class PopupContentFX {
      */
     public abstract String onOkCLicked();
 
-    public abstract void init(MeinService meinService, MeinNotification notification);
+    public final void init(MeinService meinService,MeinNotification notification){
+        stage.setTitle(notification.getTitle());
+        initImpl(meinService,notification);
+    }
+
+    public abstract void initImpl(MeinService meinService, MeinNotification notification);
 
     public void setStage(Stage stage) {
         this.stage = stage;
