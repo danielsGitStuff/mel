@@ -15,8 +15,8 @@ import java.util.Map;
  * Created by xor on 08.08.2017.
  */
 public class MeinNotification {
-    private final String title;
-    private final String text;
+    private String title;
+    private String text;
     private Object content;
     private final String serviceUuid;
     private final String intention;
@@ -34,6 +34,16 @@ public class MeinNotification {
         for (MeinProgressListener listener : progressListeners) {
             listener.cancel();
         }
+    }
+
+    public MeinNotification setText(String text) {
+        this.text = text;
+        return this;
+    }
+
+    public MeinNotification setTitle(String title) {
+        this.title = title;
+        return this;
     }
 
     public boolean isCanceled() {

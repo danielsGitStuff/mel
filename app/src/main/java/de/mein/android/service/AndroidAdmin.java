@@ -10,6 +10,7 @@ import android.support.v4.app.NotificationManagerCompat;
 import java.security.SecureRandom;
 
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.Notifier;
 import de.mein.android.drive.ConflictsPopupActivity;
 import de.mein.auth.MeinAuthAdmin;
@@ -42,21 +43,51 @@ public class AndroidAdmin implements MeinAuthAdmin {
     public void onNotificationFromService(MeinService meinService, MeinNotification meinNotification) {
         int requestCode = new SecureRandom().nextInt();
         String intention = meinNotification.getIntention();
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID);
         Class activityClass = null;
+        NotificationCompat.Builder builder;
         if (intention.equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED))
             activityClass = ConflictsPopupActivity.class;
+        builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
+
+        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)) {
+            activityClass = MainActivity.class;
+            builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SILENT);
+        }
         Intent intent = new Intent(context, activityClass);
         intent.putExtra(MeinStrings.Notifications.SERVICE_UUID, meinNotification.getServiceUuid());
         intent.putExtra(MeinStrings.Notifications.INTENTION, intention);
         intent.putExtra(DriveStrings.Notifications.REQUEST_CODE, requestCode);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = builder.setSmallIcon(R.drawable.ic_menu_add)
+        builder.setSmallIcon(R.drawable.ic_menu_add)
                 .setContentTitle(meinNotification.getTitle())
                 .setContentText(meinNotification.getText())
-                .setContentIntent(pendingIntent)
-                .build();
-        notificationManager.notify(requestCode, notification);
+                .setContentIntent(pendingIntent);
+        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)) {
+            NotificationCompat.Builder finalBuilder = builder;
+            meinNotification.addProgressListener(new MeinNotification.MeinProgressListener() {
+                @Override
+                public void onProgress(int max, int current, boolean indeterminate) {
+                    finalBuilder.setProgress(max, current, indeterminate);
+                    finalBuilder.setContentTitle(meinNotification.getTitle())
+                            .setContentText(meinNotification.getText());
+                    notificationManager.notify(requestCode, finalBuilder.build());
+                }
+
+                @Override
+                public void cancel() {
+                    Notifier.cancel(context,intent,requestCode);
+                }
+
+                @Override
+                public void finish() {
+                    finalBuilder.setProgress(1, 1, false);
+                    finalBuilder.setContentTitle(meinNotification.getTitle())
+                            .setContentText(meinNotification.getText());
+                    notificationManager.notify(requestCode, finalBuilder.build());
+                }
+            });
+        }
+        notificationManager.notify(requestCode, builder.build());
     }
 
     @Override

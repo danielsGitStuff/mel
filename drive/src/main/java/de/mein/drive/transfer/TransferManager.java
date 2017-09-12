@@ -23,6 +23,7 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -170,8 +171,11 @@ public class TransferManager extends DeferredRunnable {
     private void finishActiveTransfer(TransferDetails transferDetails) {
         activeTransfersLock.lock();
         MeinNotification notification = activeTransfers.remove(activeTransferKey(transferDetails));
-        if (notification != null)
-            notification.finish();
+        if (notification != null) {
+            notification.setTitle("Transfers finished")
+                    .setText("!")
+                    .finish();
+        }
         activeTransfersLock.unlock();
     }
 

@@ -286,7 +286,7 @@ public class MainActivity extends MeinActivity {
                     driveDir.mkdir();
                     BashTools.mkdir(driveDir);
                     DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
-                    TestDirCreator.createTestDir(driveDir, " kek");
+                    //TestDirCreator.createTestDir(driveDir, " kek");
                     Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
                             driveDir.getAbsolutePath(),
                             meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v());
