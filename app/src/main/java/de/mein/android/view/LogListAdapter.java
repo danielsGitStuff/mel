@@ -1,5 +1,6 @@
 package de.mein.android.view;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,13 +15,16 @@ import de.mein.auth.tools.MeinLogger;
 
 public class LogListAdapter extends MeinListAdapter<String> implements MeinLogger.LoggerListener {
 
+    private final Activity activity;
     private LogListClickListener clickListener;
 
     public interface LogListClickListener {
         void onLineClicked(String line);
     }
-    public LogListAdapter(Context context) {
-        super(context);
+
+    public LogListAdapter(Activity activity) {
+        super(activity);
+        this.activity = activity;
     }
 
     public void setClickListener(LogListClickListener clickListener) {
@@ -34,7 +38,7 @@ public class LogListAdapter extends MeinListAdapter<String> implements MeinLogge
             view = layoutInflator.inflate(R.layout.listitem_small, null);
         TextView textView = view.findViewById(R.id.text);
         textView.setText(line);
-        if (clickListener!=null)
+        if (clickListener != null)
             view.setOnClickListener(view1 -> clickListener.onLineClicked(line));
         return view;
     }
@@ -42,6 +46,6 @@ public class LogListAdapter extends MeinListAdapter<String> implements MeinLogge
     @Override
     public void onPrintLn(String line) {
         items.add(line);
-        this.notifyDataSetChanged();
+        activity.runOnUiThread(this::notifyDataSetChanged);
     }
 }
