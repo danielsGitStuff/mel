@@ -41,10 +41,7 @@ public class TransferDao extends Dao {
         TransferDetails dummy = new TransferDetails();
         String where = dummy.getStarted().k() + "=?";
         String whatElse = "group by " + dummy.getCertId().k() + "," + dummy.getServiceUuid().k() + " limit 2";
-        List<Pair<?>> columns = new ArrayList<>();
-        columns.add(dummy.getCertId());
-        columns.add(dummy.getServiceUuid());
-        List<TransferDetails> result = sqlQueries.load(columns, dummy, where, ISQLQueries.whereArgs(false), whatElse);
+        List<TransferDetails> result = sqlQueries.load(ISQLQueries.columns(dummy.getCertId(), dummy.getServiceUuid()), dummy, where, ISQLQueries.whereArgs(false), whatElse);
         return result;
     }
 
