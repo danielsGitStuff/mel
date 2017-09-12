@@ -427,34 +427,39 @@ public class DriveFXTest {
 
     @Test
     public void firstSync() throws Exception {
-        setup(new DriveSyncListener() {
+        DriveTest driveTest = new DriveTest();
+        MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
 
-            @Override
-            public void onSyncFailed() {
-
-            }
-
-            @Override
-            public void onTransfersDone() {
-
-            }
-
-            @Override
-            public void onSyncDoneImpl() {
-                try {
-                    if (getCount() == 0) {
-                        DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
-                        List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
-                        for (FsFile f : rootFiles) {
-                            System.out.println(f.getName().v());
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        driveTest.simpleTransferFromServerToClient(meinBoot, null);
         new WaitLock().lock().lock();
+//        setup(new DriveSyncListener() {
+//
+//            @Override
+//            public void onSyncFailed() {
+//
+//            }
+//
+//            @Override
+//            public void onTransfersDone() {
+//
+//            }
+//
+//            @Override
+//            public void onSyncDoneImpl() {
+//                try {
+//                    if (getCount() == 0) {
+//                        DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
+//                        List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
+//                        for (FsFile f : rootFiles) {
+//                            System.out.println(f.getName().v());
+//                        }
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
+//        new WaitLock().lock().lock();
     }
 
 

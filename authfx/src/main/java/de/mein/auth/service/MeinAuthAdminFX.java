@@ -101,7 +101,6 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                     contentFX.setStage(stage);
                     deferred.resolve(contentFX);
                 });
-                stage.close();
             });
         });
         return deferred;

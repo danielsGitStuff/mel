@@ -1,6 +1,5 @@
 package de.mein.drive.serialization;
 
-import de.mein.MeinRunnable;
 import de.mein.auth.TestFileCreator;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
@@ -150,6 +149,42 @@ public class DriveTest {
             }
         };
         setup(false, syncListener, clientMeinBoot);
+        lock.lockWrite();
+        lock.unlockWrite();
+        System.out.println("DriveTest.clientMergeStages.END");
+    }
+
+    public void simpleTransferFromServerToClient(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
+        // start both instances, shutdown server, change something in client directory
+        final DriveSyncListener syncListener = new DriveSyncListener() {
+            public File file2;
+            public File file1;
+            public String rootPath;
+            public MeinDriveClientService meinDriveClientService;
+            private DriveSyncListener ins = this;
+            int count = 0;
+
+            @Override
+            public void onSyncFailed() {
+            }
+
+            private int transferCount = 0;
+
+            @Override
+            public void onTransfersDone() {
+            }
+
+            @Override
+            public void onSyncDoneImpl() {
+                System.out.println("DriveTest.onSyncDoneImpl");
+                if (count == 1) {
+                    System.out.println("DriveTest.onSyncDoneImpl");
+                }
+                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                count++;
+            }
+        };
+        setup(null, syncListener, clientMeinBoot);
         lock.lockWrite();
         lock.unlockWrite();
         System.out.println("DriveTest.clientMergeStages.END");
@@ -652,7 +687,13 @@ public class DriveTest {
 
     }
 
-    public void setup(boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot) throws Exception {
+    /**
+     * @param identicalTestDirs  does not create a second directory if null
+     * @param clientSyncListener
+     * @param clientMeinBoot
+     * @throws Exception
+     */
+    public void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot) throws Exception {
         //setup working directories & directories with test data
         File testdir1 = new File("testdir1");
         File testdir2 = new File("testdir2");
@@ -661,10 +702,12 @@ public class DriveTest {
         CertificateManager.deleteDirectory(testdir1);
         CertificateManager.deleteDirectory(testdir2);
         TestDirCreator.createTestDir(testdir1);
-        if (identicalTestDirs)
-            TestDirCreator.createTestDir(testdir2);
-        else
-            TestDirCreator.createTestDir(testdir2, " lel");
+        if (identicalTestDirs != null) {
+            if (identicalTestDirs)
+                TestDirCreator.createTestDir(testdir2);
+            else
+                TestDirCreator.createTestDir(testdir2, " lel");
+        }
 
 
         // configure MeinAuth
