@@ -70,7 +70,7 @@ public class MeinAuthService {
     private Set<MeinSocket> sockets = new HashSet<>();
     private ConnectedEnvironment connectedEnvironment = new ConnectedEnvironment();
     private WaitLock uuidServiceMapSemaphore = new WaitLock();
-    private Map<String, MeinService> uuidServiceMap = new ConcurrentHashMap<>();
+    private Map<String, MeinService> uuidServiceMap = new HashMap<>();
     private MeinAuthBrotCaster brotCaster;
     private MeinBoot meinBoot;
     private DeferredObject<DeferredRunnable, Exception, Void> startedPromise;
@@ -203,7 +203,10 @@ public class MeinAuthService {
 
 
     public IMeinService getMeinService(String serviceUuid) {
-        return uuidServiceMap.get(serviceUuid);
+        uuidServiceMapSemaphore.lock();
+        IMeinService service = uuidServiceMap.get(serviceUuid);
+        uuidServiceMapSemaphore.unlock();
+        return service;
     }
 
 
@@ -233,16 +236,6 @@ public class MeinAuthService {
         this.settings.setName(name);
         return this;
     }
-
-    public static void main(String[] args) throws Exception {
-        Set<InetAddress> addresses = new HashSet<>();
-        InetAddress i1 = InetAddress.getByName("127.0.0.1");
-        InetAddress i2 = InetAddress.getByName("127.0.0.1");
-        addresses.add(i1);
-        addresses.add(i2);
-        addresses.forEach(inetAddress -> System.out.println(inetAddress.toString()));
-    }
-
 
     public void updateCertAddresses(Long remoteCertId, String address, Integer port, Integer portCert) throws SqlQueriesException {
         Certificate c = certificateManager.getTrustedCertificateById(remoteCertId);

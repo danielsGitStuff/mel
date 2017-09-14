@@ -45,7 +45,9 @@ public class LogListAdapter extends MeinListAdapter<String> implements MeinLogge
 
     @Override
     public void onPrintLn(String line) {
-        items.add(line);
-        activity.runOnUiThread(this::notifyDataSetChanged);
+        activity.runOnUiThread(() -> {
+            items.add(line);
+            notifyDataSetChanged();
+        });
     }
 }

@@ -1,6 +1,7 @@
 package de.mein.drive;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.BootLoader;
@@ -70,6 +71,11 @@ public class DriveBootLoader extends BootLoader {
         String uuid = service.getUuid().v();
         MeinDriveService meinDriveService = (driveSettings.isServer()) ?
                 new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid);
+        //notify user
+        MeinNotification notification = new MeinNotification(service.getUuid().v(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
+        notification.setProgress(0, 0, true);
+        meinAuthService.onNotificationFromService(meinDriveService, notification);
+        //exec
         meinAuthService.execute(meinDriveService);
         System.out.println("DriveBootLoader.boot");
         meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
@@ -84,7 +90,7 @@ public class DriveBootLoader extends BootLoader {
     }
 
 
-    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer(MeinDriveService meinDriveService, DriveSettings driveSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    private DeferredObject<DeferredRunnable, Exception, Void> startIndexer(MeinDriveService meinDriveService, DriveSettings driveSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         File workingDir = new File(bootLoaderDir.getAbsolutePath() + File.separator + meinDriveService.getUuid());
         workingDir.mkdirs();
         DriveDatabaseManager databaseManager = new DriveDatabaseManager(meinDriveService, workingDir, driveSettings);

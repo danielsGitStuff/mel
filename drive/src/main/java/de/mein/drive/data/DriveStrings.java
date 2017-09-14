@@ -34,5 +34,6 @@ public abstract class DriveStrings {
         public static final String INTENTION_CONFLICT_DETECTED = "drive.conflict.detected";
         public static final String REQUEST_CODE = "drive.notification.id";
         public static final String INTENTION_PROGRESS = "drive.progress";
+        public static final String INTENTION_BOOT = "drive.boot";
     }
 }
