@@ -19,6 +19,7 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -473,7 +474,9 @@ public class ClientSyncHandler extends SyncHandler {
                             N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
                         }
                 );
-            }));
+            })).fail(exc -> {
+                System.out.println("ClientSyncHandler.syncThisClient.EXCEPTION: " + exc);
+            });
         }));
     }
 

@@ -260,7 +260,7 @@ public class MainActivity extends MeinActivity {
         if (guiController != null)
             guiController.onMeinAuthStarted(meinAuthService);
         try {
-            debugStuff();
+            //debugStuff();
             showMenuServices();
         } catch (Exception e) {
             e.printStackTrace();
@@ -394,21 +394,23 @@ public class MainActivity extends MeinActivity {
             mLogCat.setIcon(R.drawable.ic_menu_slideshow);
 
             SubMenu subServices = menu.addSubMenu("Services");
-            List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
-            for (ServiceJoinServiceType service : services) {
-                IMeinService runningInstance = meinAuthService.getMeinService(service.getUuid().v());
-                MenuItem mService = subServices.add(service.getType().v() + "/" + service.getName().v());
-                mService.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        content.removeAllViews();
-                        toolbar.setTitle("Edit Service: " + service.getName().v());
-                        ViewGroup v = (ViewGroup) View.inflate(MainActivity.this, R.layout.content_create_service, content);
-                        guiController = new EditServiceController(MainActivity.this, androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
-                        closeDrawer();
-                        return true;
-                    }
-                });
+            if (meinAuthService != null) {
+                List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
+                for (ServiceJoinServiceType service : services) {
+                    IMeinService runningInstance = meinAuthService.getMeinService(service.getUuid().v());
+                    MenuItem mService = subServices.add(service.getType().v() + "/" + service.getName().v());
+                    mService.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
+                            content.removeAllViews();
+                            toolbar.setTitle("Edit Service: " + service.getName().v());
+                            ViewGroup v = (ViewGroup) View.inflate(MainActivity.this, R.layout.content_create_service, content);
+                            guiController = new EditServiceController(MainActivity.this, androidService.getMeinAuthService(), MainActivity.this, v, service, runningInstance);
+                            closeDrawer();
+                            return true;
+                        }
+                    });
+                }
             }
             MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, "create new Service");
             mNewService.setIcon(R.drawable.ic_menu_add);

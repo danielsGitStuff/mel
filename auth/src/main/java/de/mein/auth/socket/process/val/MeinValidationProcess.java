@@ -12,13 +12,26 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by xor on 4/27/16.
  */
 public class MeinValidationProcess extends MeinProcess {
     private final Long connectedId;
+    private ReentrantLock requestLock = new ReentrantLock();
+    private Set<Request> openRequests = new HashSet<>();
+
+    private boolean stopped = false;
+
+    public class SendException extends Exception {
+        public SendException(String msg) {
+            super(msg);
+        }
+    }
 
     public MeinValidationProcess(MeinAuthSocket meinAuthSocket, Certificate partnercertificate) {
         super(meinAuthSocket);
@@ -31,12 +44,21 @@ public class MeinValidationProcess extends MeinProcess {
         }
     }
 
+    @Override
+    public void stop() {
+        super.stop();
+        requestLock.lock();
+        stopped = true;
+        for (Request request : openRequests) {
+            request.reject(new SendException(getClass().getSimpleName() + ".stop() was called"));
+        }
+        requestLock.unlock();
+    }
+
     public Long getConnectedId() {
         return connectedId;
     }
 
-
-    private Map<Long, Request> promiseMap;
 
     @Override
     public synchronized void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) {
@@ -133,7 +155,14 @@ public class MeinValidationProcess extends MeinProcess {
     }
 
     public Request request(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
+        requestLock.lock();
         Request promise = new Request();
+        requestLock.lock();
+        if (!stopped)
+            openRequests.add(promise);
+        else
+            promise.reject(new SendException(getClass().getSimpleName() + ".request.socket.stopped"));
+        requestLock.unlock();
         MeinRequest request = new MeinRequest(serviceUuid, intent);
         if (payload != null) {
             request.setPayLoad(payload);
@@ -143,10 +172,13 @@ public class MeinValidationProcess extends MeinProcess {
             StateMsg response = (StateMsg) result;
             promise.resolve(response.getPayload());
         }).fail(result -> {
-            if (validateFail(result))
-                promise.reject(result);
-            else
-                promise.reject(result);
+            if (validateFail(result)) {
+                if (!promise.isRejected())
+                    promise.reject(result);
+            } else {
+                if (!promise.isRejected())
+                    promise.reject(result);
+            }
         });
         send(request);
         return promise;
