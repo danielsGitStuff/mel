@@ -49,7 +49,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
             activityClass = ConflictsPopupActivity.class;
         builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
 
-        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)) {
+        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS) || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
             activityClass = MainActivity.class;
             builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SILENT);
         }
@@ -62,7 +62,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
                 .setContentTitle(meinNotification.getTitle())
                 .setContentText(meinNotification.getText())
                 .setContentIntent(pendingIntent);
-        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)) {
+        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS) || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
             NotificationCompat.Builder finalBuilder = builder;
             meinNotification.addProgressListener(new MeinNotification.MeinProgressListener() {
                 @Override
@@ -75,7 +75,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
 
                 @Override
                 public void cancel() {
-                    Notifier.cancel(context,intent,requestCode);
+                    Notifier.cancel(context, intent, requestCode);
                 }
 
                 @Override

@@ -23,12 +23,14 @@ import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
@@ -139,7 +141,9 @@ public class MeinAuthProcess extends MeinProcess {
         List<Service> services = meinAuthSocket.getMeinAuthService().getDatabaseManager().getAllowedServices(partnerCertificate.getId().v());
         for (Service service : services) {
             IMeinService ins = meinAuthSocket.getMeinAuthService().getMeinService(service.getUuid().v());
-            ins.connectionAuthenticated(partnerCertificate);
+            if (ins != null) {
+                ins.connectionAuthenticated(partnerCertificate);
+            }
         }
     }
 

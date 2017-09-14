@@ -81,9 +81,12 @@ public class DriveBootLoader extends BootLoader {
         meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
         meinDriveService.getStartedDeferred()
                 .done(result -> N.r(() -> {
+                    notification.cancel();
                     meinAuthService.registerMeinService(meinDriveService);
                 }))
                 .fail(ex -> {
+                    notification.setText("failed :(")
+                            .finish();
                     System.err.println("DriveBootLoader.boot." + meinDriveService.getUuid() + " failed");
                 });
         return meinDriveService;
