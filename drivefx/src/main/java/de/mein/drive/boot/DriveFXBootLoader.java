@@ -29,7 +29,8 @@ public class DriveFXBootLoader extends DriveBootLoader implements BootLoaderFX<M
         if (meinNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED)) {
             return "de/mein/drive/popupconflict.olde.fxml";
         }
-        if (meinNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_PROGRESS)) {
+        if (meinNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_PROGRESS)
+                || meinNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_BOOT)) {
             return "de/mein/auth/progress.fxml";
         }
         return null;

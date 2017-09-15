@@ -83,6 +83,10 @@ public class DriveBootLoader extends BootLoader {
                 .done(result -> N.r(() -> {
                     notification.cancel();
                     meinAuthService.registerMeinService(meinDriveService);
+//                    if (!driveSettings.isServer()){
+//                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
+//                        meinDriveClientService.syncThisClient();
+//                    }
                 }))
                 .fail(ex -> {
                     notification.setText("failed :(")

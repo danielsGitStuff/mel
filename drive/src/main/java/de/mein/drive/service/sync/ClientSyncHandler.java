@@ -13,6 +13,7 @@ import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.jobs.CommitJob;
+import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
@@ -137,7 +138,7 @@ public class ClientSyncHandler extends SyncHandler {
                             if (result instanceof TooOldVersionException) {
                                 System.out.println("ClientSyncHandler.syncWithServer");
                                 N.r(() -> {
-                                    meinDriveService.addJob(new CommitJob());
+                                    meinDriveService.addJob(new SyncClientJob());
                                 });
                             }
                             waitLock.unlock();

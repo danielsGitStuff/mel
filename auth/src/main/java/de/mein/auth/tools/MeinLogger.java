@@ -13,20 +13,23 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class MeinLogger extends PrintStream {
     private static MeinLogger logger;
+    private final boolean timeStamp;
     private boolean filled = false;
     private final String[] lines;
+    private long lineCount = 0;
     private int pos = 0;
     private static LoggerListener loggerListener;
     private DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-    private ReentrantLock reentrantLock = new ReentrantLock();
+    private ReentrantLock reentrantLock = new ReentrantLock(true);
 
 
     public interface LoggerListener {
         void onPrintLn(String line);
     }
 
-    public MeinLogger(int size, OutputStream out) {
+    public MeinLogger(int size, OutputStream out, boolean timeStamp) {
         super(out);
+        this.timeStamp = timeStamp;
         lines = new String[size];
     }
 
@@ -39,12 +42,18 @@ public class MeinLogger extends PrintStream {
     }
 
     @Override
-    public void println(String line) {
-        super.println(line);
+    public synchronized void println(String line) {
+        if (!timeStamp)
+            super.println(line);
+        if (reentrantLock.hasQueuedThreads())
+            lineCount = lineCount;
         reentrantLock.lock();
+        lineCount++;
         Date date = new Date();
-        line = "[" + dateFormat.format(date) + "] " + line;
+        line = "[" + dateFormat.format(date) + " | " + lineCount + " ] " + line;
         lines[pos] = line;
+        if (timeStamp)
+            super.println(line);
         pos++;
         if (pos >= lines.length) {
             pos = 0;
@@ -53,6 +62,9 @@ public class MeinLogger extends PrintStream {
         if (loggerListener != null)
             loggerListener.onPrintLn(line);
         reentrantLock.unlock();
+        //todo debug
+        if (lineCount == 738)
+            lineCount = lineCount;
     }
 
     @Override
@@ -123,8 +135,12 @@ public class MeinLogger extends PrintStream {
     }
 
     public static void redirectSysOut(int size) {
+        redirectSysOut(size, false);
+    }
+
+    public static void redirectSysOut(int size, boolean timeStamp) {
         if (logger == null)
-            logger = new MeinLogger(size, System.out);
+            logger = new MeinLogger(size, System.out, timeStamp);
         System.setOut(logger);
         System.setErr(logger);
     }

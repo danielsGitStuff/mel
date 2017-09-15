@@ -307,7 +307,7 @@ public abstract class SyncHandler {
                                 fsEntry.getModified().v(oldeEntry.getModified());
                             }
                             if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
-                                FsFile oldeFsFile = (FsFile) oldeEntry;
+                                FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
                                 if (oldeFsFile != null && !stageSet.fromFs() && !fsEntry.getSynced().v()) {
                                     wasteBin.deleteFile(oldeFsFile);
                                 }else {
@@ -326,7 +326,7 @@ public abstract class SyncHandler {
                             }
                             if (fsEntry.getSynced().isNull())
                                 System.out.println("SyncHandler.commitStage.isnull");
-                            if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
+                            if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && stage.getSynced()))
                                 fsEntry.getSynced().v(false);
 //                            File file = stageDao.getFileByStage(stage);
 //                            fsEntry.getSynced().v(file.exists());

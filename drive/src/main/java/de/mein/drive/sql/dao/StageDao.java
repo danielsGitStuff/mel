@@ -296,6 +296,8 @@ StageDao extends Dao.LockingDao {
                 .setOriginServiceUuid(originServiceUuid).setStatus(status);
         Eva.eva((eva, count) -> {
             System.out.println("StageDao.createStageSet.eva." + count);
+            if (count == 9)
+                System.out.println("StageDao.createStageSet.fmner9hg0sa");
         });
         Long id = sqlQueries.insert(stageSet);
         //todo debug
