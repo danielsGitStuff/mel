@@ -3,8 +3,10 @@ package de.mein.android.drive;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListAdapter;
@@ -20,6 +22,8 @@ import de.mein.android.MeinToast;
 import de.mein.android.Notifier;
 import de.mein.android.PopupActivity;
 import de.mein.android.drive.view.ConflictListAdapter;
+import de.mein.android.service.AndroidService;
+import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.jobs.CommitJob;
@@ -37,9 +41,48 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
     private Button btnChooseLeft, btnChooseRight, btnOk;
     private ConflictSolver conflictSolver;
 
+
+
+    private void debugStuff() {
+        runner.runTry(() -> {
+            Stage left1 = new Stage().setName("1")
+                    .setId(1L)
+                    .setIsDirectory(true);
+            Stage right1 = new Stage().setName("1")
+                    .setId(2L)
+                    .setIsDirectory(true);
+            Stage left1_1 = new Stage().setName("1.1")
+                    .setId(3L)
+                    .setIsDirectory(false)
+                    .setParentId(left1.getId());
+            Stage right_1_1 = new Stage().setName("1.1")
+                    .setId(4L)
+                    .setIsDirectory(false)
+                    .setParentId(right1.getId());
+            Conflict c1 = new Conflict(null, left1, right1);
+            Conflict c2 = new Conflict(null, left1_1, right_1_1);
+            c2.dependOn(c1);
+            List<Conflict> conflicts = new ArrayList<>();
+            conflicts.add(c1);
+            listAdapter = new ConflictListAdapter(listView, this, conflicts);
+            runOnUiThread(() -> {
+                listView.setAdapter(listAdapter);
+            });
+        });
+    }
+
     @Override
-    protected void onServiceConnected() {
-        //debugStuff();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        listView = findViewById(R.id.listView);
+        btnChooseLeft = findViewById(R.id.btnChooseLeft);
+        btnChooseRight = findViewById(R.id.btnChooseRight);
+        btnOk = findViewById(R.id.btnOk);
+        setTitle("Conflict detected!");
+    }
+
+    @Override
+    protected void onAndroidServiceAvailable(AndroidService androidService) {
         conflictSolverMap = service.getConflictSolverMap();
         listView = findViewById(R.id.listView);
         //search for the first not solved ConflictSolver. There still might be solved ones that do not need our attention here.
@@ -84,41 +127,9 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
         });
     }
 
-    private void debugStuff() {
-        runner.runTry(() -> {
-            Stage left1 = new Stage().setName("1")
-                    .setId(1L)
-                    .setIsDirectory(true);
-            Stage right1 = new Stage().setName("1")
-                    .setId(2L)
-                    .setIsDirectory(true);
-            Stage left1_1 = new Stage().setName("1.1")
-                    .setId(3L)
-                    .setIsDirectory(false)
-                    .setParentId(left1.getId());
-            Stage right_1_1 = new Stage().setName("1.1")
-                    .setId(4L)
-                    .setIsDirectory(false)
-                    .setParentId(right1.getId());
-            Conflict c1 = new Conflict(null, left1, right1);
-            Conflict c2 = new Conflict(null, left1_1, right_1_1);
-            c2.dependOn(c1);
-            List<Conflict> conflicts = new ArrayList<>();
-            conflicts.add(c1);
-            listAdapter = new ConflictListAdapter(listView, this, conflicts);
-            runOnUiThread(() -> {
-                listView.setAdapter(listAdapter);
-            });
-        });
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        return false;
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        listView = findViewById(R.id.listView);
-        btnChooseLeft = findViewById(R.id.btnChooseLeft);
-        btnChooseRight = findViewById(R.id.btnChooseRight);
-        btnOk = findViewById(R.id.btnOk);
-        setTitle("Conflict detected!");
-    }
 }

@@ -86,7 +86,7 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
                 selectedDrive = null;
                 knownCertListAdapter.clear();
                 drivesListAdapter.clear();
-                NetworkEnvironment env = meinAuthService.getNetworkEnvironment().clear();
+                NetworkEnvironment env = meinAuthService.getNetworkEnvironment();
                 env.addObserver((o, arg) -> {
                     if (selectedCertId != null) {
                         showDrives(selectedCertId);
@@ -109,9 +109,11 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
     private void showDrives(Long selectedCertId) {
         List<ServiceJoinServiceType> services = meinAuthService.getNetworkEnvironment().getServices(selectedCertId);
         List<ServiceJoinServiceType> filtered = new ArrayList<>();
-        for (ServiceJoinServiceType service : services) {
-            if (service.getType().v().equals(DriveStrings.NAME))
-                filtered.add(service);
+        if (services != null) {
+            for (ServiceJoinServiceType service : services) {
+                if (service.getType().v().equals(DriveStrings.NAME))
+                    filtered.add(service);
+            }
         }
         drivesListAdapter.clear();
         drivesListAdapter.addAll(filtered);

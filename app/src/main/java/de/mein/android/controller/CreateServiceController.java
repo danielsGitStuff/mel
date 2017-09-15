@@ -22,66 +22,64 @@ import de.mein.android.MainActivity;
  * Created by xor on 2/20/17.
  */
 public class CreateServiceController extends GuiController {
-    private final MeinAuthService meinAuthService;
     private final Spinner spinner;
-    private View rootView;
     private LinearLayout embedded;
     private Button btnCreate;
     private AndroidBootLoader bootLoader;
-    private MainActivity activity;
     private AndroidServiceCreatorGuiController currentController;
+    private MainActivity mainActivity;
 
-    public CreateServiceController(MeinAuthService meinAuthService, MainActivity activity, View v) {
-        super(activity);
-        this.rootView = v;
-        this.activity = activity;
-        this.meinAuthService = meinAuthService;
+    public CreateServiceController(MainActivity activity, LinearLayout content ) {
+        super(activity, content,R.layout.content_create_service);
+        this.mainActivity = activity;
         this.spinner = rootView.findViewById(R.id.spin_bootloaders);
         this.embedded = rootView.findViewById(R.id.embedded);
         this.btnCreate = rootView.findViewById(R.id.btnCreate);
 
-
-        List<BootLoader> bootLoaders = new ArrayList<>();
-        for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()){
-            N.r(() -> {
-                BootLoader bootLoader = bootloaderClass.newInstance();
-                bootLoaders.add(bootLoader);
-                //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
-                System.out.println("CreateServiceController.CreateServiceController");
-            });
-        }
-
-        // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<BootLoader> adapter = new ArrayAdapter<>(rootView.getContext(), R.layout.support_simple_spinner_dropdown_item, bootLoaders);
-        // Specify the layout to use when the list of choices appears
-        // Apply the adapter to the spinner
-        spinner.setAdapter(adapter);
-        showSelected();
-        btnCreate.setOnClickListener(view -> {
-            if (bootLoader != null) {
-                bootLoader.createService(activity, meinAuthService, currentController);
-                activity.showMenuServices();
-            }
-        });
     }
 
     private void showSelected() {
         N.r(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
-            currentController = bootLoader.inflateEmbeddedView(embedded, activity, meinAuthService, null);
+            currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
             System.out.println("CreateServiceController.showSelected");
         });
 
     }
 
-    @Override
-    public void onMeinAuthStarted(MeinAuthService androidService) {
 
+    @Override
+    public String getTitle() {
+        return "Create Service";
     }
 
     @Override
-    public void onAndroidServiceBound(AndroidService androidService) {
+    public void onAndroidServiceAvailable() {
+        activity.runOnUiThread(() -> {
+            MeinAuthService meinAuthService = androidService.getMeinAuthService();
+            List<BootLoader> bootLoaders = new ArrayList<>();
+            for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()){
+                N.r(() -> {
+                    BootLoader bootLoader = bootloaderClass.newInstance();
+                    bootLoaders.add(bootLoader);
+                    //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
+                    System.out.println("CreateServiceController.CreateServiceController");
+                });
+            }
 
+            // Create an ArrayAdapter using the string array and a default spinner layout
+            ArrayAdapter<BootLoader> adapter = new ArrayAdapter<>(rootView.getContext(), R.layout.support_simple_spinner_dropdown_item, bootLoaders);
+            // Specify the layout to use when the list of choices appears
+            // Apply the adapter to the spinner
+            spinner.setAdapter(adapter);
+            showSelected();
+            btnCreate.setOnClickListener(view -> {
+                if (bootLoader != null) {
+                    bootLoader.createService(activity, meinAuthService, currentController);
+                    mainActivity.showMenuServices();
+                }
+            });
+        });
     }
 
     @Override

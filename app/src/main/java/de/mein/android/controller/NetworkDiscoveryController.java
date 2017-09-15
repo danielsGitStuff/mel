@@ -3,6 +3,7 @@ package de.mein.android.controller;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 
@@ -22,70 +23,34 @@ import de.mein.auth.tools.N;
  */
 
 public class NetworkDiscoveryController extends GuiController {
-    private final MeinAuthService meinAuthService;
-    private final View rootView;
-    private final NetworkEnvironment environment;
-    private final KnownCertListAdapter knownCertListAdapter;
+    private NetworkEnvironment environment;
+    private KnownCertListAdapter knownCertListAdapter;
     private ListView listKnown, listUnkown;
     private UnknownAuthListAdapter unkownListAdapter;
     private final EditText txtAddress, txtPort, txtDeliveryPort;
     private final Button btnConnect;
 
-    public NetworkDiscoveryController(MeinActivity activity, MeinAuthService meinAuthService, View rootView) {
-        super(activity);
-        this.meinAuthService = meinAuthService;
-        this.rootView = rootView;
-        this.listKnown = (ListView) rootView.findViewById(R.id.listKnown);
-        this.listUnkown = (ListView) rootView.findViewById(R.id.listUnknown);
-        this.txtDeliveryPort = (EditText) rootView.findViewById(R.id.txtDeliveryPort);
-        this.txtPort = (EditText) rootView.findViewById(R.id.txtPort);
-        this.txtAddress = (EditText) rootView.findViewById(R.id.txtAddress);
-        this.btnConnect = (Button) rootView.findViewById(R.id.btnConnect);
-        environment = meinAuthService.getNetworkEnvironment();
-        unkownListAdapter = new UnknownAuthListAdapter(rootView.getContext(), environment);
-        listUnkown.setAdapter(unkownListAdapter);
-        listUnkown.setOnItemClickListener((parent, view, position, id) -> {
-            System.out.println("NetworkDiscoveryController.NetworkDiscoveryController");
-            NetworkEnvironment.UnknownAuthInstance unknown = unkownListAdapter.getItemT(position);
-            txtAddress.setText(unknown.getAddress());
-            txtPort.setText(Integer.toString(unknown.getPort()));
-            txtDeliveryPort.setText(Integer.toString(unknown.getPortCert()));
-        });
-        knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
-        listKnown.setAdapter(knownCertListAdapter);
-        listKnown.setOnItemClickListener((parent, view, position, id) -> {
-            System.out.println("NetworkDiscoveryController.NetworkDiscoveryController");
-            Certificate c = knownCertListAdapter.getItemT(position);
-            txtAddress.setText(c.getAddress().v());
-            txtPort.setText(c.getPort().v());
-            txtDeliveryPort.setText(c.getCertDeliveryPort().v());
-        });
-        btnConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String address = txtAddress.getText().toString();
-                Integer port = Integer.parseInt(txtPort.getText().toString());
-                Integer portCert = Integer.parseInt(txtDeliveryPort.getText().toString());
-                try {
-                    meinAuthService.connect(null, address, port, portCert, true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        discover();
+    public NetworkDiscoveryController(MeinActivity activity, LinearLayout content) {
+        super(activity, content, R.layout.content_discover);
+        this.listKnown = rootView.findViewById(R.id.listKnown);
+        this.listUnkown = rootView.findViewById(R.id.listUnknown);
+        this.txtDeliveryPort = rootView.findViewById(R.id.txtDeliveryPort);
+        this.txtPort = rootView.findViewById(R.id.txtPort);
+        this.txtAddress = rootView.findViewById(R.id.txtAddress);
+        this.btnConnect = rootView.findViewById(R.id.btnConnect);
+
     }
 
 
     private void discover() {
-        CertificateManager certificateManager = meinAuthService.getCertificateManager();
+        CertificateManager certificateManager = androidService.getMeinAuthService().getCertificateManager();
         environment.deleteObservers();
         environment.deleteObservers();
         environment.addObserver((observable, o) -> {
             System.out.println("NetworkDiscoveryController.discover");
             unkownListAdapter.clear().addAll(environment.getUnknownAuthInstances());
             knownCertListAdapter.clear();
-            for (Long certId: environment.getCertificateIds()){
+            for (Long certId : environment.getCertificateIds()) {
                 N.r(() -> {
                     Certificate c = certificateManager.getTrustedCertificateById(certId);
                     knownCertListAdapter.add(c);
@@ -114,17 +79,51 @@ public class NetworkDiscoveryController extends GuiController {
 //                }
 //            }
 //        });
-        meinAuthService.discoverNetworkEnvironment();
+        androidService.getMeinAuthService().discoverNetworkEnvironment();
     }
 
     @Override
-    public void onMeinAuthStarted(MeinAuthService androidService) {
-        System.out.println("NetworkDiscoveryController.onMeinAuthStarted");
+    public String getTitle() {
+        return "Discover Network";
     }
 
     @Override
-    public void onAndroidServiceBound(AndroidService androidService) {
-        System.out.println("NetworkDiscoveryController.onAndroidServiceBound");
+    public void onAndroidServiceAvailable() {
+        environment = androidService.getMeinAuthService().getNetworkEnvironment();
+        unkownListAdapter = new UnknownAuthListAdapter(rootView.getContext(), environment);
+        listUnkown.setOnItemClickListener((parent, view, position, id) -> {
+            System.out.println("NetworkDiscoveryController.NetworkDiscoveryController");
+            NetworkEnvironment.UnknownAuthInstance unknown = unkownListAdapter.getItemT(position);
+            txtAddress.setText(unknown.getAddress());
+            txtPort.setText(Integer.toString(unknown.getPort()));
+            txtDeliveryPort.setText(Integer.toString(unknown.getPortCert()));
+        });
+        knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
+        listKnown.setOnItemClickListener((parent, view, position, id) -> {
+            System.out.println("NetworkDiscoveryController.NetworkDiscoveryController");
+            Certificate c = knownCertListAdapter.getItemT(position);
+            txtAddress.setText(c.getAddress().v());
+            txtPort.setText(c.getPort().v());
+            txtDeliveryPort.setText(c.getCertDeliveryPort().v());
+        });
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String address = txtAddress.getText().toString();
+                Integer port = Integer.parseInt(txtPort.getText().toString());
+                Integer portCert = Integer.parseInt(txtDeliveryPort.getText().toString());
+                try {
+                    androidService.getMeinAuthService().connect(null, address, port, portCert, true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        activity.runOnUiThread(() -> {
+            listUnkown.setAdapter(unkownListAdapter);
+            listKnown.setAdapter(knownCertListAdapter);
+        });
+        discover();
     }
 
     @Override

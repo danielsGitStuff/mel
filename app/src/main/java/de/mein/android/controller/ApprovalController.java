@@ -2,6 +2,7 @@ package de.mein.android.controller;
 
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 
@@ -15,6 +16,7 @@ import de.mein.auth.data.db.Approval;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
 import de.mein.android.service.AndroidService;
 import de.mein.android.view.KnownCertListAdapter;
@@ -25,20 +27,16 @@ import de.mein.android.view.ApprovalCBListAdapter;
  */
 
 public class ApprovalController extends GuiController {
-    private final View rootView;
-    private final MeinAuthService meinAuthService;
     private final ListView listCertificates, listServices;
     private final KnownCertListAdapter knownCertListAdapter;
     private final ApprovalCBListAdapter serviceAdapter;
     private ApprovalMatrix matrix;
     private Long selectedCertId;
 
-    public ApprovalController(MeinActivity activity, MeinAuthService meinAuthService, View rootView) throws SqlQueriesException {
-        super(activity);
-        this.rootView = rootView;
+    public ApprovalController(MeinActivity activity, LinearLayout content){
+        super(activity, content, R.layout.content_approvals);
         this.listCertificates = rootView.findViewById(R.id.listCertificates);
         this.listServices = rootView.findViewById(R.id.listServices);
-        this.meinAuthService = meinAuthService;
         this.knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
         this.serviceAdapter = new ApprovalCBListAdapter(rootView.getContext());
         listCertificates.setAdapter(knownCertListAdapter);
@@ -46,16 +44,16 @@ public class ApprovalController extends GuiController {
         Button btnApply = rootView.findViewById(R.id.btnApply);
         btnApply.setOnClickListener(v -> {
             try {
-                meinAuthService.getDatabaseManager().saveApprovals(this.matrix);
+                androidService.getMeinAuthService().getDatabaseManager().saveApprovals(this.matrix);
             } catch (SqlQueriesException e) {
                 e.printStackTrace();
             }
         });
-        fillContent();
     }
 
     private void fillContent() throws SqlQueriesException {
-        if (meinAuthService != null) {
+        if (androidService != null) {
+            MeinAuthService meinAuthService = androidService.getMeinAuthService();
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
             List<Certificate> certificates = meinAuthService.getCertificateManager().getTrustedCertificates();
             List<Approval> approvals = meinAuthService.getDatabaseManager().getAllApprovals();
@@ -118,7 +116,7 @@ public class ApprovalController extends GuiController {
                 serviceAdapter.setApprovalCheckedListener((serviceId, approved) -> matrix.setApproved(selectedCertId, serviceId, approved));
                 for (ServiceJoinServiceType s : services) {
                     // check if it is approved
-                    boolean approved = matrix.isApproved(selectedCertId,s.getServiceId().v());
+                    boolean approved = matrix.isApproved(selectedCertId, s.getServiceId().v());
                     serviceAdapter.add(s, approved);
                 }
                 serviceAdapter.notifyDataSetChanged();
@@ -137,14 +135,15 @@ public class ApprovalController extends GuiController {
 
     }
 
-    @Override
-    public void onMeinAuthStarted(MeinAuthService androidService) {
 
+    @Override
+    public String getTitle() {
+        return "Approvals";
     }
 
     @Override
-    public void onAndroidServiceBound(AndroidService androidService) {
-
+    public void onAndroidServiceAvailable() {
+        N.r(this::fillContent);
     }
 
     @Override

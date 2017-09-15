@@ -157,12 +157,13 @@ public class MeinValidationProcess extends MeinProcess {
     public Request request(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
         requestLock.lock();
         Request promise = new Request();
-        requestLock.lock();
-        if (!stopped)
+        if (!stopped) {
             openRequests.add(promise);
-        else
+            requestLock.unlock();
+        } else {
+            requestLock.unlock();
             promise.reject(new SendException(getClass().getSimpleName() + ".request.socket.stopped"));
-        requestLock.unlock();
+        }
         MeinRequest request = new MeinRequest(serviceUuid, intent);
         if (payload != null) {
             request.setPayLoad(payload);

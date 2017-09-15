@@ -1,7 +1,13 @@
 package de.mein.android.controller;
 
+import android.view.View;
+import android.widget.LinearLayout;
+
+import org.greenrobot.eventbus.Subscribe;
+
+import java.util.stream.Stream;
+
 import de.mein.android.MeinActivity;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.android.service.AndroidService;
 
 /**
@@ -11,15 +17,29 @@ import de.mein.android.service.AndroidService;
 public abstract class GuiController {
 
     protected final MeinActivity activity;
+    protected final View rootView;
 
-    protected GuiController(MeinActivity activity) {
+    protected AndroidService androidService;
+
+    protected GuiController(MeinActivity activity, LinearLayout content, int resourceId) {
         this.activity = activity;
+        content.removeAllViews();
+        this.rootView = View.inflate(activity, resourceId, content);
     }
 
+    @Subscribe(sticky = true)
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        this.androidService = androidService;
+        onAndroidServiceAvailable();
+    }
 
-    public abstract void onMeinAuthStarted(MeinAuthService androidService);
+    public abstract String getTitle();
 
-    public abstract void onAndroidServiceBound(AndroidService androidService);
+    public abstract void onAndroidServiceAvailable();
 
     public abstract void onAndroidServiceUnbound(AndroidService androidService);
+
+    public View getRootView() {
+        return rootView;
+    }
 }

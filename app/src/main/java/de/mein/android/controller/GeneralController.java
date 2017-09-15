@@ -8,45 +8,40 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.android.service.AndroidService;
 
 /**
  * Created by xor on 2/22/17.
  */
 public class GeneralController extends GuiController {
-    private final View view;
-    private AndroidService androidService;
     private Button btnStartStop, btnApply;
     private TextView lblStatus;
     private EditText txtPort, txtCertPort, txtName;
 
-    public GeneralController(MeinActivity activity, @NonNull View v, @Nullable AndroidService androidService) {
-        super(activity);
-        this.view = v;
-        this.androidService = androidService;
-        btnStartStop = (Button) v.findViewById(R.id.btnStart);
-        btnApply = (Button) v.findViewById(R.id.btnApply);
-        lblStatus = (TextView) v.findViewById(R.id.lblStatus);
-        txtCertPort = (EditText) v.findViewById(R.id.txtCertPort);
-        txtName = (EditText) v.findViewById(R.id.txtName);
-        txtPort = (EditText) v.findViewById(R.id.txtPort);
+    public GeneralController(MeinActivity activity, LinearLayout content) {
+        super(activity, content, R.layout.content_general);
+        btnStartStop = rootView.findViewById(R.id.btnStart);
+        btnApply = rootView.findViewById(R.id.btnApply);
+        lblStatus = rootView.findViewById(R.id.lblStatus);
+        txtCertPort = rootView.findViewById(R.id.txtCertPort);
+        txtName = rootView.findViewById(R.id.txtName);
+        txtPort = rootView.findViewById(R.id.txtPort);
 
         // action listeners
         btnStartStop.setOnClickListener(v1 -> {
             //service
-            Intent serviceIntent = new Intent(v.getContext(), AndroidService.class);
-            ComponentName name = v.getContext().startService(serviceIntent);
+            Intent serviceIntent = new Intent(rootView.getContext(), AndroidService.class);
+            ComponentName name = rootView.getContext().startService(serviceIntent);
             System.out.println("GeneralController.GeneralController.service.started: " + name.getClassName());
         });
         btnApply.setOnClickListener(v1 -> applyInputs());
-        showAll();
         System.out.println("GeneralController.GeneralController");
     }
 
@@ -60,18 +55,18 @@ public class GeneralController extends GuiController {
             meinAuthSettings.setName(name).setDeliveryPort(certPort).setPort(port);
             meinAuthSettings.save();
         } catch (Exception e) {
-            Toast.makeText(view.getContext(), e.getMessage(), Toast.LENGTH_LONG);
+            Toast.makeText(activity, e.getMessage(), Toast.LENGTH_LONG);
         }
     }
 
+
     @Override
-    public void onMeinAuthStarted(MeinAuthService androidService) {
-        showAll();
+    public String getTitle() {
+        return "General";
     }
 
     @Override
-    public void onAndroidServiceBound(AndroidService androidService) {
-        this.androidService = androidService;
+    public void onAndroidServiceAvailable() {
         showAll();
     }
 

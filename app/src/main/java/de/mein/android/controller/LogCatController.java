@@ -1,6 +1,7 @@
 package de.mein.android.controller;
 
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -20,8 +21,8 @@ public class LogCatController extends GuiController {
     private final TextView txtLogCat;
     private LogListAdapter listAdapter;
 
-    public LogCatController(MeinActivity activity, View rootView) {
-        super(activity);
+    public LogCatController(MeinActivity activity, LinearLayout content) {
+        super(activity, content, R.layout.content_logcat);
         this.txtLogCat = rootView.findViewById(R.id.txtLogCat);
         listAdapter = new LogListAdapter(activity);
         listAdapter.setClickListener(txtLogCat::setText);
@@ -31,21 +32,21 @@ public class LogCatController extends GuiController {
         showLog();
     }
 
+    @Override
+    public String getTitle() {
+        return "LogCat";
+    }
+
+    @Override
+    public void onAndroidServiceAvailable() {
+        System.out.println("LogCatController.onAndroidServiceAvailable");
+    }
+
     private void showLog() {
         MeinLogger logger = MeinLogger.getInstance();
         String[] lines = logger.getLines();
         listAdapter.clear().addAll(lines);
         listAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public void onMeinAuthStarted(MeinAuthService androidService) {
-
-    }
-
-    @Override
-    public void onAndroidServiceBound(AndroidService androidService) {
-
     }
 
     @Override

@@ -307,7 +307,7 @@ public abstract class SyncHandler {
                                 fsEntry.getModified().v(oldeEntry.getModified());
                             }
                             if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
-                                FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
+                                FsFile oldeFsFile = (FsFile) oldeEntry;
                                 if (oldeFsFile != null && !stageSet.fromFs() && !fsEntry.getSynced().v()) {
                                     wasteBin.deleteFile(oldeFsFile);
                                 }else {

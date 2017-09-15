@@ -36,6 +36,11 @@ android {
         versionName "1.0"
         multiDexEnabled false
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+//        javaCompileOptions {
+//            annotationProcessorOptions {
+//                arguments = [ eventBusIndex : 'com.example.myapp.MyEventBusIndex' ]
+//            }
+//        }
     }
     buildTypes {
         release {
@@ -64,6 +69,8 @@ task copyFiles(type: Copy) {
 preBuild.dependsOn(copyFiles)
 
 dependencies {
+//    compile 'org.greenrobot:eventbus:3.0.0'
+//    annotationProcessor 'org.greenrobot:eventbus-annotation-processor:3.0.1'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -73,6 +80,7 @@ dependencies {
     compile project(':sql')
     compile project(':auth')
     compile project(':drive')
+    compile 'org.greenrobot:eventbus:3.0.0'
     //    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     //compile 'com.android.support:multidex:0.0.+'
     compile 'com.android.support:appcompat-v7:26.0.2'

@@ -1,6 +1,8 @@
 package de.mein.android;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TabHost;
 import android.widget.TextView;
@@ -8,8 +10,10 @@ import android.widget.TextView;
 import java.security.cert.X509Certificate;
 
 import de.mein.R;
+import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.RWLock;
 
 public class CertActivity extends PopupActivity {
@@ -19,10 +23,7 @@ public class CertActivity extends PopupActivity {
     private TabHost tabHost;
     private RWLock lock = new RWLock();
 
-    @Override
-    protected void onServiceConnected() {
 
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,5 +85,15 @@ public class CertActivity extends PopupActivity {
     public void onRegistrationFinished() {
         lock.unlockWrite();
         finish();
+    }
+
+    @Override
+    protected void onAndroidServiceAvailable(AndroidService androidService) {
+
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        return false;
     }
 }

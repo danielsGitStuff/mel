@@ -21,19 +21,30 @@ import de.mein.auth.tools.N;
  */
 
 class EditServiceController extends GuiController {
-    private final MeinAuthService meinAuthService;
+    private final IMeinService runningInstance;
+    private final ServiceJoinServiceType service;
     private View rootView;
     private LinearLayout embedded;
     private Button btnCreate;
-    private Activity activity;
     private AndroidServiceCreatorGuiController currentController;
 
-    public EditServiceController(MeinActivity activity, MeinAuthService meinAuthService, MainActivity mainActivity, ViewGroup rootView, ServiceJoinServiceType service, IMeinService runningInstance) {
-        super(activity);
+    public EditServiceController(MeinActivity activity, LinearLayout content, ServiceJoinServiceType service, IMeinService runningInstance) {
+        super(activity, content,R.layout.content_create_service);
         this.rootView = rootView;
-        this.activity = activity;
-        this.meinAuthService = meinAuthService;
-        N.r(() -> {
+        this.service = service;
+        this.runningInstance = runningInstance;
+    }
+
+
+    @Override
+    public String getTitle() {
+        return "Edit Service";
+    }
+
+    @Override
+    public void onAndroidServiceAvailable() {
+        activity.runOnUiThread(() -> N.r(() -> {
+            MeinAuthService meinAuthService = androidService.getMeinAuthService();
             embedded = rootView.findViewById(R.id.embedded);
             AndroidBootLoader bootLoader = (AndroidBootLoader) meinAuthService.getMeinBoot().getBootLoader(service.getType().v());
             currentController = bootLoader.inflateEmbeddedView(embedded, activity, meinAuthService, runningInstance);
@@ -42,18 +53,7 @@ class EditServiceController extends GuiController {
 //            currentController = bootLoader.createGuiController(meinAuthService, activity, v, runningInstance);
             //bootLoader.setupController(meinAuthService,v);
             System.out.println("EditServiceController.showSelected");
-        });
-    }
-
-
-    @Override
-    public void onMeinAuthStarted(MeinAuthService androidService) {
-
-    }
-
-    @Override
-    public void onAndroidServiceBound(AndroidService androidService) {
-
+        }));
     }
 
     @Override

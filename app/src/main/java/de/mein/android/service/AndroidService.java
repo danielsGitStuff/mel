@@ -11,6 +11,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationManagerCompat;
 
+import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -50,16 +51,6 @@ public class AndroidService extends Service {
     private MeinBoot meinBoot;
 
 
-    public interface AndroidServiceObserver {
-        void onMeinAuthStarted(MeinAuthService meinAuthService);
-    }
-
-    private AndroidServiceObserver observer;
-
-    public void setObserver(AndroidServiceObserver observer) {
-        this.observer = observer;
-    }
-
     /**
      * Class used for the client Binder.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with IPC.
@@ -86,7 +77,7 @@ public class AndroidService extends Service {
             Promise<MeinAuthService, Exception, Void> bootedPromise = setup(null);
             bootedPromise.done(result -> {
                 meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
-                observer.onMeinAuthStarted(meinAuthService);
+                EventBus.getDefault().postSticky(this);
             });
             lock.lockWrite();
 
