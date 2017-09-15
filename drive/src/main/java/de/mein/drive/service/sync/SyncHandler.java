@@ -318,6 +318,7 @@ public abstract class SyncHandler {
                                         if (stage.getiNode() == null || stage.getModified() == null ||
                                                 !(modifiedAndInode.getiNode().equals(stage.getiNode()) && modifiedAndInode.getModified().equals(stage.getModified()))){
                                             wasteBin.deleteUnknown(stageFile);
+                                            stage.setSynced(false);
                                             // we could search more recent stagesets to find some clues here and prevent deleteUnknown().
                                         }
                                         // else: the file is as we want it to be
@@ -326,7 +327,7 @@ public abstract class SyncHandler {
                             }
                             if (fsEntry.getSynced().isNull())
                                 System.out.println("SyncHandler.commitStage.isnull");
-                            if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && stage.getSynced()))
+                            if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
                                 fsEntry.getSynced().v(false);
 //                            File file = stageDao.getFileByStage(stage);
 //                            fsEntry.getSynced().v(file.exists());

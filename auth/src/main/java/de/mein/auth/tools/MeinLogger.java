@@ -63,7 +63,7 @@ public class MeinLogger extends PrintStream {
             loggerListener.onPrintLn(line);
         reentrantLock.unlock();
         //todo debug
-        if (lineCount == 738)
+        if (lineCount == 776)
             lineCount = lineCount;
     }
 
