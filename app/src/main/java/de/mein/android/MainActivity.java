@@ -1,13 +1,9 @@
 package de.mein.android;
 
 import android.Manifest;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -31,9 +27,9 @@ import java.util.List;
 
 import de.mein.R;
 import de.mein.android.boot.AndroidBootLoader;
+import de.mein.android.controller.InfoController;
 import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.OthersController;
-import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.ServiceJoinServiceType;
@@ -50,7 +46,6 @@ import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
-import de.mein.android.controller.GeneralController;
 import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.ApprovalController;
 import de.mein.android.controller.GuiController;
@@ -112,7 +107,7 @@ public class MainActivity extends MeinActivity {
 
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        enableGuiController(new GeneralController(this, content));
+        enableGuiController(new InfoController(this, content));
         startService();
     }
 
@@ -154,7 +149,7 @@ public class MainActivity extends MeinActivity {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         if (id == R.id.nav_general) {
-            enableGuiController(new GeneralController(this, content));
+            enableGuiController(new InfoController(this, content));
         } else if (id == R.id.nav_discover) {
             enableGuiController(new NetworkDiscoveryController(this, content));
         } else if (id == R.id.nav_approvals) {
@@ -311,19 +306,19 @@ public class MainActivity extends MeinActivity {
                 menu.clear();
                 SubMenu subMeinAuth = menu.addSubMenu("MeinAuth");
                 //general
-                MenuItem mGeneral = subMeinAuth.add(5, R.id.nav_general, 0, "General");
-                mGeneral.setIcon(R.drawable.ic_menu_manage);
-                MenuItem mOthers = subMeinAuth.add(5, R.id.nav_others, 1, "Other Instances");
-                mOthers.setIcon(R.drawable.ic_menu_gallery);
+                MenuItem mGeneral = subMeinAuth.add(5, R.id.nav_general, 0, "Info");
+                mGeneral.setIcon(R.drawable.icon_info);
+                MenuItem mOthers = subMeinAuth.add(5, R.id.nav_others, 1, "Connected");
+                mOthers.setIcon(R.drawable.icon_connected);
                 //discover ic_menu_search
                 MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 2, "Discover");
-                mDiscover.setIcon(R.drawable.ic_menu_search);
+                mDiscover.setIcon(R.drawable.icon_wifi);
                 //approvals ic_menu_approval
                 MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 3, "Approvals");
-                mApprovals.setIcon(R.drawable.ic_menu_approval);
+                mApprovals.setIcon(R.drawable.icon_share);
                 //logcat
                 MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 4, "LogCat");
-                mLogCat.setIcon(R.drawable.ic_menu_slideshow);
+                mLogCat.setIcon(R.drawable.icon_fail);
 
                 SubMenu subServices = menu.addSubMenu("Services");
                 if (meinAuthService != null) {

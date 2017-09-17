@@ -20,12 +20,12 @@ import de.mein.android.service.AndroidService;
 /**
  * Created by xor on 2/22/17.
  */
-public class GeneralController extends GuiController {
+public class InfoController extends GuiController {
     private Button btnStartStop, btnApply;
     private TextView lblStatus;
     private EditText txtPort, txtCertPort, txtName;
 
-    public GeneralController(MeinActivity activity, LinearLayout content) {
+    public InfoController(MeinActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_general);
         btnStartStop = rootView.findViewById(R.id.btnStart);
         btnApply = rootView.findViewById(R.id.btnApply);
@@ -39,10 +39,10 @@ public class GeneralController extends GuiController {
             //service
             Intent serviceIntent = new Intent(rootView.getContext(), AndroidService.class);
             ComponentName name = rootView.getContext().startService(serviceIntent);
-            System.out.println("GeneralController.GeneralController.service.started: " + name.getClassName());
+            System.out.println("InfoController.InfoController.service.started: " + name.getClassName());
         });
         btnApply.setOnClickListener(v1 -> applyInputs());
-        System.out.println("GeneralController.GeneralController");
+        System.out.println("InfoController.InfoController");
     }
 
     private void applyInputs() {
@@ -62,7 +62,7 @@ public class GeneralController extends GuiController {
 
     @Override
     public String getTitle() {
-        return "General";
+        return "Info";
     }
 
     @Override
