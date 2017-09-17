@@ -20,4 +20,6 @@ public interface AndroidBootLoader<T extends IMeinService> {
     AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, View rootView, IMeinService runningInstance);
 
     AndroidServiceCreatorGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance);
+
+    int getMenuIcon();
 }

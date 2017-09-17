@@ -7,19 +7,27 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.security.SecureRandom;
 
 import de.mein.R;
 import de.mein.android.MainActivity;
 import de.mein.android.Notifier;
+import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.drive.ConflictsPopupActivity;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
+import de.mein.auth.data.db.Service;
+import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinService;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.service.MeinDriveClientService;
+import de.mein.sql.SqlQueriesException;
 
 /**
  * Created by xor on 07.08.2017.
@@ -29,6 +37,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
 
     private final Context context;
     private final NotificationManagerCompat notificationManager;
+    private MeinAuthService meinAuthService;
 
     public AndroidAdmin(Context context) {
         this.context = context;
@@ -37,7 +46,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
 
     @Override
     public void start(MeinAuthService meinAuthService) {
-
+        this.meinAuthService = meinAuthService;
     }
 
     @Override
@@ -54,12 +63,20 @@ public class AndroidAdmin implements MeinAuthAdmin {
             activityClass = MainActivity.class;
             builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SILENT);
         }
+        // get the icon
+        int icon = R.drawable.ic_menu_add;
+        try {
+            BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(meinService);
+            icon = bootLoader instanceof AndroidBootLoader ? ((AndroidBootLoader) bootLoader).getMenuIcon() : icon;
+        } catch (SqlQueriesException | InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
         Intent intent = new Intent(context, activityClass);
         intent.putExtra(MeinStrings.Notifications.SERVICE_UUID, meinNotification.getServiceUuid());
         intent.putExtra(MeinStrings.Notifications.INTENTION, intention);
         intent.putExtra(DriveStrings.Notifications.REQUEST_CODE, requestCode);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setSmallIcon(R.drawable.ic_menu_add)
+        builder.setSmallIcon(icon)
                 .setContentTitle(meinNotification.getTitle())
                 .setContentText(meinNotification.getText())
                 .setContentIntent(pendingIntent);

@@ -30,11 +30,14 @@ import java.io.File;
 import java.util.List;
 
 import de.mein.R;
+import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.OthersController;
+import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.controller.NetworkDiscoveryController;
@@ -339,6 +342,12 @@ public class MainActivity extends MeinActivity {
                                 return true;
                             }
                         });
+                        // get icon from AndroidBootLoader
+                        BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(service.getType().v());
+                        if (bootLoader instanceof AndroidBootLoader) {
+                            AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootLoader;
+                            mService.setIcon(androidBootLoader.getMenuIcon());
+                        }
                     }
                 }
                 MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, "create new Service");

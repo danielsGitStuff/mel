@@ -88,8 +88,7 @@ public class AndroidService extends Service {
             }
             lock.unlockWrite();
         }
-        return Service.START_STICKY;
-        //return super.onStartCommand(intent, flags, startId);
+        return super.onStartCommand(intent, flags, startId);
     }
 
     public boolean isRunning() {

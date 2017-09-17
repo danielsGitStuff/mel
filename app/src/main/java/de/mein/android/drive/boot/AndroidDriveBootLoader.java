@@ -70,4 +70,9 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
 
     }
 
+    @Override
+    public int getMenuIcon() {
+        return R.drawable.icon_folder;
+    }
+
 }

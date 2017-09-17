@@ -17,11 +17,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Takes care about Services and Approvals (which Certificate is permitted to talk to which Service).<br>
- *
  */
 public final class DatabaseManager extends FileRelatedManager {
     public static final String DB_FILENAME = "meinauth.db";
@@ -31,7 +29,18 @@ public final class DatabaseManager extends FileRelatedManager {
     protected final ApprovalDao approvalDao;
 
     public ServiceType getServiceTypeById(Long id) throws SqlQueriesException {
-        return  serviceTypeDao.getServiceTypeById(id);
+        return serviceTypeDao.getServiceTypeById(id);
+    }
+
+    public String getServiceNameByServiceUuid(String uuid) throws SqlQueriesException {
+        ServiceType serviceType = new ServiceType();
+        Service service = new Service();
+        String query = "select " + serviceType.getType().k()
+                + " from " + service.getTableName() + " s left join " + serviceType.getTableName() + " t on s."
+                + service.getTypeId().k() + "=t." + serviceType.getId().k()
+                + " where " + service.getUuid().k() + "=?";
+        String name = getSqlQueries().querySingle(query, de.mein.sql.ISQLQueries.whereArgs(uuid), String.class);
+        return name;
     }
 
     public interface SqlInputStreamInjector {
@@ -45,19 +54,21 @@ public final class DatabaseManager extends FileRelatedManager {
     public static void setSqlInputStreamInjector(SqlInputStreamInjector sqlInputStreamInjector) {
         DatabaseManager.sqlInputStreamInjector = sqlInputStreamInjector;
     }
+
     public interface SQLConnectionCreator {
         ISQLQueries createConnection(DatabaseManager databaseManager) throws SQLException, ClassNotFoundException;
     }
 
     private static SQLConnectionCreator sqlConnectionCreator = databaseManager -> {
         File f = new File(databaseManager.createWorkingPath() + DB_FILENAME);
-        return new SQLQueries(SQLConnector.createSqliteConnection(f),true, new RWLock());
+        return new SQLQueries(SQLConnector.createSqliteConnection(f), true, new RWLock());
     };
+
     public static void setSqlConnectionCreator(SQLConnectionCreator sqlConnectionCreator) {
         DatabaseManager.sqlConnectionCreator = sqlConnectionCreator;
     }
 
-    public DatabaseManager(MeinAuthSettings meinAuthSettings ) throws SQLException, ClassNotFoundException, IOException {
+    public DatabaseManager(MeinAuthSettings meinAuthSettings) throws SQLException, ClassNotFoundException, IOException {
         super(meinAuthSettings.getWorkingDirectory());
         //android der Hurensohn
         //init DB stuff

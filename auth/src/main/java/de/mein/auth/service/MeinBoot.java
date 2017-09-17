@@ -10,6 +10,7 @@ import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.tools.BackgroundExecutor;
 import de.mein.auth.tools.MeinDeferredManager;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -149,4 +150,8 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
         return Executors.newCachedThreadPool(threadFactory);
     }
 
+    public BootLoader getBootLoader(IMeinService meinService) throws SqlQueriesException, InstantiationException, IllegalAccessException {
+        String typeName = meinAuthService.getDatabaseManager().getServiceNameByServiceUuid(meinService.getUuid());
+        return getBootLoader(typeName);
+    }
 }
