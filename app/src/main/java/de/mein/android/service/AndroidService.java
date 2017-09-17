@@ -13,6 +13,7 @@ import android.support.v4.app.NotificationManagerCompat;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,21 +72,24 @@ public class AndroidService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        RWLock lock = new RWLock();
-        try {
-            System.out.println("AndroidService.onStartCommand.booting");
-            Promise<MeinAuthService, Exception, Void> bootedPromise = setup(null);
-            bootedPromise.done(result -> {
-                meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
-                EventBus.getDefault().postSticky(this);
-            });
-            lock.lockWrite();
+        if (meinAuthService == null) {
+            RWLock lock = new RWLock();
+            try {
+                System.out.println("AndroidService.onStartCommand.booting");
+                Promise<MeinAuthService, Exception, Void> bootedPromise = setup(null);
+                bootedPromise.done(result -> {
+                    meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
+                    EventBus.getDefault().postSticky(this);
+                });
+                lock.lockWrite();
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            lock.unlockWrite();
         }
-        lock.unlockWrite();
-        return super.onStartCommand(intent, flags, startId);
+        return Service.START_STICKY;
+        //return super.onStartCommand(intent, flags, startId);
     }
 
     public boolean isRunning() {
@@ -99,6 +103,7 @@ public class AndroidService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        System.out.println("AndroidService.onCreate()");
         // configure MeinAuth
         File workingDir = new File(getAndroidPath() + File.separator + "meinauth.workingdir");
         workingDir.mkdirs();

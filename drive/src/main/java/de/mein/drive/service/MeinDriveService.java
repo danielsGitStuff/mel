@@ -1,6 +1,7 @@
 package de.mein.drive.service;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
@@ -28,6 +29,7 @@ import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.tasks.DirectoriesContentTask;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -61,6 +63,15 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     public void handleRequest(Request request) throws Exception {
         logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.handleRequest");
         addJob(new ServiceMessageHandlerJob().setRequest(request));
+    }
+
+    @Override
+    public MeinNotification createSendingNotification() {
+        MeinNotification notification = new MeinNotification(uuid,
+                DriveStrings.Notifications.INTENTION_PROGRESS
+                , "Sending Files", "!")
+                .setProgress(0, 0, true);
+        return notification;
     }
 
     @Override

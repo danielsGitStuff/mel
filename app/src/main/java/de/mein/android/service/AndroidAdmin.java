@@ -16,6 +16,7 @@ import de.mein.android.drive.ConflictsPopupActivity;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
+import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinService;
 import de.mein.drive.data.DriveStrings;
@@ -40,7 +41,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
     }
 
     @Override
-    public void onNotificationFromService(MeinService meinService, MeinNotification meinNotification) {
+    public void onNotificationFromService(IMeinService meinService, MeinNotification meinNotification) {
         int requestCode = new SecureRandom().nextInt();
         String intention = meinNotification.getIntention();
         Class activityClass = null;

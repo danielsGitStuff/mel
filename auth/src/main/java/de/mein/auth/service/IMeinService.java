@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
@@ -46,4 +47,6 @@ public interface IMeinService {
     void onIsolatedConnectionEstablished(MeinIsolatedProcess isolatedProcess);
 
     void onMeinAuthIsUp();
+
+    MeinNotification createSendingNotification();
 }

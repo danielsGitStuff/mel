@@ -18,7 +18,7 @@ import java.util.Arrays;
 public abstract class MeinIsolatedProcess extends MeinProcess{
 
     private final String isolatedUuid;
-    private IMeinService service;
+    protected IMeinService service;
 
 
     public void setService(IMeinService service) {

@@ -1,5 +1,6 @@
 package de.mein.auth;
 
+import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinService;
 
@@ -15,7 +16,7 @@ public interface MeinAuthAdmin {
      * @param meinService
      * @param notification
      */
-    void onNotificationFromService(MeinService meinService, MeinNotification notification);
+    void onNotificationFromService(IMeinService meinService, MeinNotification notification);
 
     void onChanged();
 

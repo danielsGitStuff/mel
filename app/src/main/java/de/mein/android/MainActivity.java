@@ -61,8 +61,12 @@ public class MainActivity extends MeinActivity {
     private File driveDir;
 
     protected void startService() {
-        Intent intent = new Intent(getBaseContext(), AndroidService.class);
-        startService(intent);
+        if (androidService == null) {
+            Intent intent = new Intent(getBaseContext(), AndroidService.class);
+            startService(intent);
+        } else {
+            System.out.println("MainActivity.startService(): AndroidService already running");
+        }
     }
 
 

@@ -1,5 +1,6 @@
 package de.mein.drive.service.sync;
 
+import de.mein.auth.MeinNotification;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveSettings;
@@ -37,6 +38,7 @@ public abstract class SyncHandler {
     protected DriveDatabaseManager driveDatabaseManager;
     protected Indexer indexer;
     protected WasteBin wasteBin;
+
 
     public SyncHandler(MeinAuthService meinAuthService, MeinDriveService meinDriveService) {
         this.meinAuthService = meinAuthService;

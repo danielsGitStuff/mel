@@ -146,12 +146,13 @@ public class MeinNotification {
         progressListeners.add(progressListener);
     }
 
-    public void setProgress(int max, int current, boolean indeterminate) {
+    public MeinNotification setProgress(int max, int current, boolean indeterminate) {
         this.max = max;
         this.current = current;
         this.indeterminate = indeterminate;
         for (MeinProgressListener listener : progressListeners)
             listener.onProgress(max, current, indeterminate);
+        return this;
     }
 
     public int getMax() {

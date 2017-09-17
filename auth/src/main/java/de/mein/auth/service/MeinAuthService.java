@@ -496,7 +496,7 @@ public class MeinAuthService {
         }
     }
 
-    public void onNotificationFromService(MeinService meinService, MeinNotification notification) {
+    public void onNotificationFromService(IMeinService meinService, MeinNotification notification) {
         for (MeinAuthAdmin admin : meinAuthAdmins)
             admin.onNotificationFromService(meinService, notification);
     }
