@@ -23,11 +23,12 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.android.service.AndroidService;
-import de.mein.auth.service.MeinAuthService;
 
 /**
  * Created by xor on 03.08.2017.
@@ -36,6 +37,17 @@ import de.mein.auth.service.MeinAuthService;
 public abstract class MeinActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private SparseArray<Deferred<Void, Void, Void>> permissionPromises = new SparseArray<>();
+    private Map<Integer, MeinActivityLaunchResult> launchResultMap = new HashMap<>();
+
+    public void launchActifityForResult(Intent launchIntent, MeinActivityLaunchResult meinActivityLaunchResult) {
+        final int id = Tools.generateIntentRequestCode();
+        launchResultMap.put(id, meinActivityLaunchResult);
+        startActivityForResult(launchIntent, id);
+    }
+
+    public interface MeinActivityLaunchResult {
+        void onResultReceived(int resultCode, Intent result);
+    }
 
 
     protected AndroidService androidService;
@@ -136,5 +148,13 @@ public abstract class MeinActivity extends AppCompatActivity
             deferred.resolve(null);
         }
         return deferred;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        MeinActivityLaunchResult launchResult = launchResultMap.remove(requestCode);
+        if (launchResult != null)
+            launchResult.onResultReceived(resultCode, data);
     }
 }

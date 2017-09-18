@@ -15,6 +15,7 @@ import java.security.SecureRandom;
 import de.mein.R;
 import de.mein.android.MainActivity;
 import de.mein.android.Notifier;
+import de.mein.android.Tools;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.drive.ConflictsPopupActivity;
 import de.mein.auth.MeinAuthAdmin;
@@ -51,7 +52,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
 
     @Override
     public void onNotificationFromService(IMeinService meinService, MeinNotification meinNotification) {
-        int requestCode = new SecureRandom().nextInt();
+        int requestCode = Tools.generateIntentRequestCode();
         String intention = meinNotification.getIntention();
         Class activityClass = null;
         NotificationCompat.Builder builder;

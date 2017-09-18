@@ -159,7 +159,6 @@ public class ClientSyncHandler extends SyncHandler {
         waitLock.lock();
     }
 
-
     /**
      * Merges all staged StageSets (from file system) and checks the result for conflicts
      * with the stage from the server (if it exists).

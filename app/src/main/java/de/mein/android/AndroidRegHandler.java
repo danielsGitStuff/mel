@@ -64,7 +64,7 @@ public class AndroidRegHandler implements IRegisterHandler {
 //        i.putExtra(REGBUNDLE_UUID, uuid);
 //        context.startActivity(i);
 
-        int requestCode = new SecureRandom().nextInt();
+        int requestCode = Tools.generateIntentRequestCode();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
         Intent intent = new Intent(context, CertActivity.class);
         intent.putExtra(DriveStrings.Notifications.REQUEST_CODE, requestCode);

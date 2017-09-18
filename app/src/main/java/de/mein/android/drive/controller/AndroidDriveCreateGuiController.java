@@ -1,8 +1,13 @@
 package de.mein.android.drive.controller;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Environment;
+import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -10,11 +15,15 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 
+import net.rdrei.android.dirchooser.DirectoryChooserActivity;
+import net.rdrei.android.dirchooser.DirectoryChooserConfig;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.R;
+import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
@@ -30,6 +39,7 @@ import de.mein.android.view.ServicesListAdapter;
 
 public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiController {
 
+    private static final int REQUEST_DIRECTORY = 987;
     private final MeinAuthService meinAuthService;
     private EditText txtName, txtPath;
     private RadioButton rdServer, rdClient;
@@ -39,12 +49,14 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
     private Long selectedCertId = null;
     private ServicesListAdapter drivesListAdapter;
     private ServiceJoinServiceType selectedDrive;
+    private Button btnPath;
 
-    public AndroidDriveCreateGuiController(MeinAuthService meinAuthService, Activity activity, View rootView) {
+    public AndroidDriveCreateGuiController(MeinAuthService meinAuthService, MeinActivity activity, View rootView) {
         super(activity, rootView);
         this.meinAuthService = meinAuthService;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void init() {
         txtName = rootView.findViewById(R.id.txtName);
@@ -52,6 +64,7 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
         rdServer = rootView.findViewById(R.id.rdServer);
         rdClient = rootView.findViewById(R.id.rdClient);
         lDriveChooser = rootView.findViewById(R.id.lDriveChooser);
+        btnPath = rootView.findViewById(R.id.btnPath);
         RadioGroup radioGroup = rootView.findViewById(R.id.rdgClient);
         if (radioGroup != null) {
             radioGroup.setOnCheckedChangeListener((group, checkedId) -> checkRadioButtons());
@@ -73,6 +86,28 @@ public class AndroidDriveCreateGuiController extends AndroidServiceCreatorGuiCon
             int colour = ContextCompat.getColor(rootView.getContext(), R.color.colorListSelected);
             view.setBackgroundColor(colour);
         });
+        txtPath.setText(createDrivePath());
+        btnPath.setOnClickListener(view -> {
+
+            final Intent chooserIntent = new Intent(activity, DirectoryChooserActivity.class);
+            final DirectoryChooserConfig config = DirectoryChooserConfig.builder()
+                    .newDirectoryName("drive")
+                    .allowReadOnlyDirectory(true)
+                    .allowNewDirectoryNameModification(true)
+                    .initialDirectory(createDrivePath())
+                    .build();
+            chooserIntent.putExtra(DirectoryChooserActivity.EXTRA_CONFIG, config);
+            activity.launchActifityForResult(chooserIntent, (resultCode, result) -> {
+                //result is here
+                String path = result.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR);
+                txtPath.setText(path);
+            });
+        });
+    }
+
+    private String createDrivePath() {
+        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        return new File(downloadDir, "drive").getAbsolutePath();
     }
 
     private void checkRadioButtons() {
