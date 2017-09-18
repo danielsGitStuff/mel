@@ -1,6 +1,7 @@
 package de.mein.auth.gui;
 
 import de.mein.auth.MeinNotification;
+import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -16,7 +17,7 @@ public class ProgressPopupContentFX extends PopupContentFX implements MeinNotifi
     }
 
     @Override
-    public void initImpl(MeinService meinService, MeinNotification notification) {
+    public void initImpl(IMeinService meinService, MeinNotification notification) {
         notification.addProgressListener(this);
         if (!notification.isCanceled() || !notification.isFinished())
             showProgress(notification.getMax(), notification.getCurrent(), notification.isIndeterminate());

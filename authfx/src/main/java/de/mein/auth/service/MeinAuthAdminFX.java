@@ -70,7 +70,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     }
 
     @Override
-    public void onNotificationFromService(MeinService meinService, MeinNotification meinNotification) {
+    public void onNotificationFromService(IMeinService meinService, MeinNotification meinNotification) {
         N.r(() -> {
             Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
             ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());

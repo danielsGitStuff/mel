@@ -2,6 +2,7 @@ package de.mein.drive.gui;
 
 import de.mein.auth.MeinNotification;
 import de.mein.auth.gui.PopupContentFX;
+import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinService;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.data.conflict.ConflictException;
@@ -43,7 +44,7 @@ public class DriveFXConflictSolverController extends PopupContentFX implements I
     }
 
     @Override
-    public void initImpl(MeinService meinService, MeinNotification notification) {
+    public void initImpl(IMeinService meinService, MeinNotification notification) {
         System.out.println("DriveFXConflictSolverController.init");
         this.meinDriveClientService = (MeinDriveClientService) meinService;
         stage.setTitle(notification.getTitle());
