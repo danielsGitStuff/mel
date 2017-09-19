@@ -80,7 +80,7 @@ public class NetworkDiscoveryFX extends AuthSettingsFX implements Initializable 
             }
         });
         btnRegister.setOnAction(event -> N.r(() -> {
-            Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(null, txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);
+            Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);
             promise.done(result -> discover());
         }));
     }

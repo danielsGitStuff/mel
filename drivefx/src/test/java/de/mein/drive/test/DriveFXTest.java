@@ -190,7 +190,7 @@ public class DriveFXTest {
                 System.out.println("DriveFXTest.startEmptyServer.booted");
             });
             N.r(() -> {
-                Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(null, "127.0.0.1", 8888, 8889, true);
+                Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
                     DriveCreateController createController = new DriveCreateController(meinAuthService);
                     Promise<MeinDriveClientService, Exception, Void> clientBooted = createController.createDriveClientService("drive client", testdir.getAbsolutePath(), 1L, tmp);
@@ -429,7 +429,7 @@ public class DriveFXTest {
                     System.out.println("DriveFXTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
                     runner.r(() -> {
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
                             runner.r(() -> {
                                 System.out.println("DriveFXTest.driveGui.booted");
@@ -503,7 +503,7 @@ public class DriveFXTest {
 
                     runner.r(() -> {
                         // connect first. this step will register
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
                         connectPromise.done(meinValidationProcess -> {
                             runner.r(() -> {
                                 System.out.println("DriveFXTest.driveGui.connected");

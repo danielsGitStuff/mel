@@ -4,6 +4,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.WaitLock;
@@ -13,19 +14,21 @@ import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.jobs.CommitJob;
-import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
+import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by xor on 10/27/16.
@@ -138,7 +141,9 @@ public class ClientSyncHandler extends SyncHandler {
                             if (result instanceof TooOldVersionException) {
                                 System.out.println("ClientSyncHandler.syncWithServer");
                                 N.r(() -> {
-                                    meinDriveService.addJob(new SyncClientJob());
+                                    syncThisClient(true);
+                                    System.out.println("ClientSyncHandler.syncWithServer");
+//                                    meinDriveService.addJob(new SyncClientJob());
                                 });
                             }
                             waitLock.unlock();
@@ -443,6 +448,30 @@ public class ClientSyncHandler extends SyncHandler {
         });
     }
 
+//    public class CountLock {
+//
+//        private AtomicInteger counter = new AtomicInteger(0);
+//        private Lock accessLock = new ReentrantLock();
+//        private RWLock lock = new RWLock().lockWrite();
+//
+//        public CountLock lock() {
+//            accessLock.lock();
+//            if (counter.incrementAndGet() > 1) {
+//                lock.lockWrite();
+//            }
+//            accessLock.unlock();
+//            return this;
+//        }
+//
+//        public CountLock unlock() {
+//            synchronized (counter) {
+//                counter.decrementAndGet();
+//                lock.unlockWrite();
+//            }
+//            return this;
+//        }
+//    }
+
 
     /**
      * pulls StageSet from the Server
@@ -450,10 +479,11 @@ public class ClientSyncHandler extends SyncHandler {
      * @throws SqlQueriesException
      * @throws InterruptedException
      */
-    public void syncThisClient() throws SqlQueriesException, InterruptedException {
+    public void syncThisClient(boolean block) throws SqlQueriesException, InterruptedException {
         runner.runTry(() -> {
             stageDao.deleteServerStageSets();
         });
+        CountLock lock = new CountLock();
         Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(driveSettings.getClientSettings().getServerCertId());
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v());
         connected.done(mvp -> runner.runTry(() -> {
@@ -469,16 +499,35 @@ public class ClientSyncHandler extends SyncHandler {
                     meinDriveService.addJob(new CommitJob());
                     if (syncListener != null)
                         syncListener.onSyncDone();
+                    lock.unlock();
                 })).fail(result -> {
                             System.err.println("ClientSyncHandler.syncThisClient.j99f49459f54");
                             N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
+                            lock.unlock();
                         }
                 );
             })).fail(exc -> {
                 System.out.println("ClientSyncHandler.syncThisClient.EXCEPTION: " + exc);
+                lock.unlock();
             });
-        }));
+        })).fail(result -> {
+            System.out.println("ClientSyncHandler.syncThisClient.debughv08e5hg");
+            lock.unlock();
+        });
+        if (block)
+            lock.lock();
     }
+
+    /**
+     * pulls StageSet from the Server
+     *
+     * @throws SqlQueriesException
+     * @throws InterruptedException
+     */
+    public void syncThisClient() throws SqlQueriesException, InterruptedException {
+        syncThisClient(false);
+    }
+
 
     private void insertWithParentId(Map<Long, Long> entryIdStageIdMap, GenericFSEntry genericFSEntry, Stage stage) throws SqlQueriesException {
         if (entryIdStageIdMap.containsKey(genericFSEntry.getParentId().v())) {

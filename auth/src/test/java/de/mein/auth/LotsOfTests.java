@@ -238,7 +238,7 @@ public class LotsOfTests {
                     meinTestService2 = (MeinTestService) standAloneAuth2.getMeinService("test uuid no. 1");
                     runner.runTry(() -> {
                         // connect first. this step will register
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
                         connectPromise.done(meinValidationProcess -> {
                             runner.runTry(() -> {
                                 System.out.println("LotsOfTests.setup.connected");

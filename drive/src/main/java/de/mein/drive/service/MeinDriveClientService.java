@@ -98,7 +98,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
             Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
             if (authenticatedJob.getPartnerCertificate().getId().v().equals(driveSettings.getClientSettings().getServerCertId())) {
-                N.r(() -> addJob(new SyncClientJob()));
+                N.r(() -> addJob(new CommitJob(true)));
             }
         } else if (unknownJob instanceof SyncClientJob) {
             N.r(() -> syncHandler.syncThisClient());

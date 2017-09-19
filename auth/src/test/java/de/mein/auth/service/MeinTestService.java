@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
@@ -42,6 +43,21 @@ public class MeinTestService extends MeinServiceWorker {
     @Override
     public void onMeinAuthIsUp() {
         System.out.println("MeinTestService.onMeinAuthIsUp");
+    }
+
+    @Override
+    public MeinNotification createSendingNotification() {
+        return null;
+    }
+
+    @Override
+    public void onCommunicationsDisabled() {
+
+    }
+
+    @Override
+    public void onCommunicationsEnabled() {
+
     }
 
 

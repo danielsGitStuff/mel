@@ -756,7 +756,7 @@ public class DriveTest {
                     meinAuthService2.addRegisterHandler(allowRegisterHandler);
                     runner.runTry(() -> {
                         // connect first. this step will register
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = meinAuthService2.connect(null, "localhost", 8888, 8889, true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = meinAuthService2.connect( "localhost", 8888, 8889, true);
                         connectPromise.done(meinValidationProcess -> {
                             runner.runTry(() -> {
                                 System.out.println("DriveFXTest.driveGui.connected");

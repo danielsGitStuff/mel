@@ -62,7 +62,7 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
     protected abstract void workWork(Job job) throws Exception;
 
 
-    public synchronized void addJob(Job job) {
+    public void addJob(Job job) {
         queueLock.lockWrite();
         jobs.offer(job);
         queueLock.unlockWrite();

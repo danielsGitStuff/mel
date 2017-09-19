@@ -88,7 +88,7 @@ public class DriveFXCreateController extends AuthSettingsFX {
                         if (service.getType().v().equals(new DriveBootLoader().getName())) {
                             Long certId = env.getCertificateId(service);
                             Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
-                            Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
+                            Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
                             connected.done(mvp -> runner.r(() -> {
                                 Request promise = mvp.request(service.getUuid().v(), DriveStrings.INTENT_DRIVE_DETAILS, null);
                                 promise.done(result -> runner.r(() -> {
