@@ -232,7 +232,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     public Promise<List<FsDirectory>, Exception, Void> requestDirectoriesByIds(Set<Long> fsDirIdsToRetrieve, Long certId, String serviceUuid) throws SqlQueriesException, InterruptedException {
         Deferred<List<FsDirectory>, Exception, Void> deferred = new DeferredObject<>();
         Certificate cert = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
-        Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId, cert.getAddress().v(), cert.getPort().v(), cert.getCertDeliveryPort().v(), false);
+        Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
         connected.done(meinValidationProcess -> runner.runTry(() -> {
             logger.log(Level.FINEST, "MeinDriveService.requestDirectoriesByIds:::::::::::::::");
             Request<DirectoriesContentTask> answer = meinValidationProcess.request(serviceUuid, DriveStrings.INTENT_DIRECTORY_CONTENT, new DirectoriesContentTask().setIDs(fsDirIdsToRetrieve));
@@ -266,6 +266,16 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     }
 
     public void onTransfersDone() {
+
+    }
+
+    @Override
+    public void onCommunicationsDisabled() {
+
+    }
+
+    @Override
+    public void onCommunicationsEnabled() {
 
     }
 }

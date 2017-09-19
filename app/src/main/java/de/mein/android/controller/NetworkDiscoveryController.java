@@ -113,7 +113,7 @@ public class NetworkDiscoveryController extends GuiController {
                 Integer port = Integer.parseInt(txtPort.getText().toString());
                 Integer portCert = Integer.parseInt(txtDeliveryPort.getText().toString());
                 try {
-                    androidService.getMeinAuthService().connect(null, address, port, portCert, true);
+                    androidService.getMeinAuthService().connect(address, port, portCert, true);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

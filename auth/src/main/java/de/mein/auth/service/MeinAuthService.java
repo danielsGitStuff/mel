@@ -17,6 +17,7 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.socket.ShamefulSelfConnectException;
@@ -33,15 +34,16 @@ import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRe
 import de.mein.sql.SqlQueriesException;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.security.*;
 import java.security.cert.CertificateEncodingException;
@@ -70,16 +72,18 @@ public class MeinAuthService {
     private Set<MeinSocket> sockets = new HashSet<>();
     private ConnectedEnvironment connectedEnvironment = new ConnectedEnvironment();
     private WaitLock uuidServiceMapSemaphore = new WaitLock();
-    private Map<String, MeinService> uuidServiceMap = new HashMap<>();
+    private Map<String, IMeinService> uuidServiceMap = new HashMap<>();
     private MeinAuthBrotCaster brotCaster;
     private MeinBoot meinBoot;
     private DeferredObject<DeferredRunnable, Exception, Void> startedPromise;
+    private final PowerManager powerManager;
 
 
     MeinAuthService(MeinAuthSettings meinAuthSettings, IDBCreatedListener dbCreatedListener) throws Exception {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.printSerializers();
+        this.powerManager = new PowerManager(meinAuthSettings);
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
         this.databaseManager = new DatabaseManager(meinAuthSettings);
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 1024);
@@ -147,7 +151,7 @@ public class MeinAuthService {
 
     public void start() {
         execute(meinAuthWorker);
-        for (MeinService service : uuidServiceMap.values()) {
+        for (IMeinService service : uuidServiceMap.values()) {
             if (service instanceof MeinServiceWorker) {
                 ((MeinServiceWorker) service).start();
             }
@@ -251,7 +255,7 @@ public class MeinAuthService {
         System.out.println("MeinAuthService.boot.trying to connect to everybody");
         startedPromise.done(result -> N.r(() -> {
             for (Certificate certificate : certificateManager.getTrustedCertificates()) {
-                Promise<MeinValidationProcess, Exception, Void> connected = connect(certificate.getId().v(), certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
+                Promise<MeinValidationProcess, Exception, Void> connected = connect(certificate.getId().v());
                 connected.done(mvp -> N.r(() -> {
 
                 })).fail(result1 -> System.err.println("MeinAuthServive.boot.could not connect to: '" + certificate.getName().v() + "' address: " + certificate.getAddress().v()));
@@ -286,13 +290,24 @@ public class MeinAuthService {
         // check if already connected via id and address
         connectedEnvironment.lock();
         try {
+            Promise<MeinValidationProcess, Exception, Void> def = connectedEnvironment.currentlyConnecting(certificateId);
+            if (def != null) {
+                return def;
+            }
             if (certificateId != null && (mvp = connectedEnvironment.getValidationProcess(certificateId)) != null) {
                 deferred.resolve(mvp);
             } else if (certificate != null && (mvp = connectedEnvironment.getValidationProcess(certificate.getAddress().v())) != null) {
                 deferred.resolve(mvp);
             } else {
                 ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-                job.getPromise().done(result -> deferred.resolve(result)).fail(result -> deferred.reject(result));
+                connectedEnvironment.currentlyConnecting(certificateId, deferred);
+                job.getPromise().done(result -> {
+                    connectedEnvironment.removeCurrentlyConnecting(certificateId);
+                    deferred.resolve(result);
+                }).fail(result -> {
+                    connectedEnvironment.removeCurrentlyConnecting(certificateId);
+                    deferred.reject(result);
+                });
                 meinAuthWorker.addJob(job);
             }
         } catch (Exception e) {
@@ -303,19 +318,30 @@ public class MeinAuthService {
         return deferred;
     }
 
-    public Promise<MeinValidationProcess, Exception, Void> connect(Long certificateId, String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
+
+    public Promise<MeinValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
-        // check if already connected via id and address
-        if (certificateId != null && (mvp = connectedEnvironment.getValidationProcess(certificateId)) != null) {
-            deferred.resolve(mvp);
-        } else if ((mvp = connectedEnvironment.getValidationProcess(address)) != null) {
-            deferred.resolve(mvp);
-        } else {
-            ConnectJob job = new ConnectJob(certificateId, address, port, portCert, regOnUnkown);
-            job.getPromise().done(result -> deferred.resolve((MeinValidationProcess) result)).fail(result -> deferred.reject(result));
-            meinAuthWorker.addJob(job);
+        try {
+            connectedEnvironment.lock();
+            // check if already connected via address
+            Promise<MeinValidationProcess, Exception, Void> def = connectedEnvironment.currentlyConnecting(address, port, portCert);
+            if (def != null)
+                return def;
+            if ((mvp = connectedEnvironment.getValidationProcess(address)) != null) {
+                deferred.resolve(mvp);
+            } else {
+                connectedEnvironment.currentlyConnecting(address, port, portCert, deferred);
+                ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
+                job.getPromise().done(result -> {
+                    deferred.resolve(result);
+                }).fail(result -> deferred.reject(result));
+                meinAuthWorker.addJob(job);
+            }
+        } finally {
+            connectedEnvironment.unlock();
         }
+
         return deferred;
     }
 
@@ -346,7 +372,7 @@ public class MeinAuthService {
         N runner = new N(e -> e.printStackTrace());
         if (!checkedAddresses.containsKey(address)) {
             checkedAddresses.put(address, true);
-            Promise<MeinValidationProcess, Exception, Void> authenticatedPromise = this.connect(intendedCertificate.getId().v(), intendedCertificate.getAddress().v(), intendedCertificate.getPort().v(), intendedCertificate.getCertDeliveryPort().v(), false);
+            Promise<MeinValidationProcess, Exception, Void> authenticatedPromise = this.connect(intendedCertificate.getAddress().v(), intendedCertificate.getPort().v(), intendedCertificate.getCertDeliveryPort().v(), false);
             authenticatedPromise.done(meinValidationProcess -> {
                 runner.runTry(() -> {
                     Request<MeinServicesPayload> servicesPromise = this.getAllowedServices(meinValidationProcess.getPartnerCertificate().getId().v());
@@ -388,7 +414,7 @@ public class MeinAuthService {
                 runner.runTry(() -> {
                     String address = MeinAuthSocket.getAddressString(inetAddress, port);
                     checkedAddresses.put(address, true);
-                    Promise<MeinValidationProcess, Exception, Void> promise = this.connect(null, inetAddress.getHostAddress(), port, portCert, false);
+                    Promise<MeinValidationProcess, Exception, Void> promise = this.connect(inetAddress.getHostAddress(), port, portCert, false);
                     promise.done(meinValidationProcess -> {
                         runner.runTry(() -> {
                             networkEnvironment.add(meinValidationProcess.getPartnerCertificate().getId().v(), null);
@@ -446,22 +472,22 @@ public class MeinAuthService {
     }
 
     public void shutDown() {
-        N.r(() -> {
-            uuidServiceMapSemaphore.lock();
-            for (MeinService service : uuidServiceMap.values()) {
-                service.shutDown();
+        uuidServiceMapSemaphore.lock();
+        for (IMeinService service : uuidServiceMap.values()) {
+            if (service instanceof MeinService) {
+                N.r(((MeinService) service)::shutDown);
             }
-            uuidServiceMapSemaphore.unlock();
-            Set<MeinSocket> socks = new HashSet<>(sockets);
-            for (MeinSocket socket : socks) {
-                socket.shutDown();
-            }
-            for (MeinAuthAdmin admin : meinAuthAdmins) {
-                admin.shutDown();
-            }
-            meinAuthWorker.shutDown();
-            meinBoot.shutDown();
-        });
+        }
+        uuidServiceMapSemaphore.unlock();
+        Set<MeinSocket> socks = new HashSet<>(sockets);
+        for (MeinSocket socket : socks) {
+            socket.shutDown();
+        }
+        for (MeinAuthAdmin admin : meinAuthAdmins) {
+            admin.shutDown();
+        }
+        meinAuthWorker.shutDown();
+        N.r(meinBoot::shutDown);
     }
 
     public void addMeinSocket(MeinSocket meinSocket) {
@@ -499,5 +525,9 @@ public class MeinAuthService {
     public void onNotificationFromService(IMeinService meinService, MeinNotification notification) {
         for (MeinAuthAdmin admin : meinAuthAdmins)
             admin.onNotificationFromService(meinService, notification);
+    }
+
+    public PowerManager getPowerManager() {
+        return powerManager;
     }
 }

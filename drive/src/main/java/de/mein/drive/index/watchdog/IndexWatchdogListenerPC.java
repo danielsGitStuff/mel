@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by xor on 2/6/17.
@@ -19,6 +20,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
     protected WatchService watchService;
     protected WatchEvent.Kind<?>[] KINDS = new WatchEvent.Kind<?>[]{StandardWatchEventKinds.ENTRY_MODIFY,
             StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE};
+
 
     public IndexWatchdogListenerPC(MeinDriveService meinDriveService, String name, WatchService watchService) {
         super(meinDriveService);
@@ -30,7 +32,10 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
 
     protected void analyze(WatchEvent<?> event, File file) {
         try {
-            watchDogTimer.start();
+            if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed()) {
+                watchDogTimer.start();
+            }else
+                surpressEvent();
             if (event.kind().equals(StandardWatchEventKinds.ENTRY_MODIFY)) {
                 // figure out whether or not writing to the file is still in progress
                 try {
@@ -69,4 +74,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
     public String getRunnableName() {
         return getClass().getSimpleName() + " for " + meinDriveService.getRunnableName();
     }
+
+
+
 }

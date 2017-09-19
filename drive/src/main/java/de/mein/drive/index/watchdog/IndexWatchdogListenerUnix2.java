@@ -58,7 +58,8 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
                             System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
-                                watchDogTimer.start();
+                                if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed())
+                                    watchDogTimer.start();
                                 System.out.println("ignored/broken WatchService");
                             } else {
                                 analyze(event, file);
@@ -119,5 +120,11 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
     @Override
     public void onShutDown() {
         super.onShutDown();
+    }
+
+
+    @Override
+    public void onHeavyWorkForbidden() {
+
     }
 }

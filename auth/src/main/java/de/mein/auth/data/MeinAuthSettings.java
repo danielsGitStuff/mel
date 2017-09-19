@@ -20,6 +20,7 @@ public class MeinAuthSettings extends JsonSettings {
     private Integer brotcastPort;
     private Class<? extends MeinAuthService> meinAuthServiceClass;
     private IDBCreatedListener idbCreatedListener;
+    private PowerManagerSettings powerManagerSettings = new PowerManagerSettings();
 
     public static MeinAuthSettings createDefaultSettings() {
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings();
@@ -32,6 +33,10 @@ public class MeinAuthSettings extends JsonSettings {
                 .setGreeting(generateGreeting())
                 .setJsonFile(new File("meinAuth.settings.json"));
         return meinAuthSettings;
+    }
+
+    public PowerManagerSettings getPowerManagerSettings() {
+        return powerManagerSettings;
     }
 
     private static String generateGreeting() {

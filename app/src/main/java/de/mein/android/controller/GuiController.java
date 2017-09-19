@@ -33,6 +33,13 @@ public abstract class GuiController {
         onAndroidServiceAvailable();
     }
 
+    /**
+     * called when the controller is removed from the view. you should clean up references to this instance here.
+     */
+    public void onDestroy(){
+
+    }
+
     public abstract String getTitle();
 
     public abstract void onAndroidServiceAvailable();

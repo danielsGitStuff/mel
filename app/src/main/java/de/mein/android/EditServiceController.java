@@ -23,14 +23,12 @@ import de.mein.auth.tools.N;
 class EditServiceController extends GuiController {
     private final IMeinService runningInstance;
     private final ServiceJoinServiceType service;
-    private View rootView;
     private LinearLayout embedded;
     private Button btnCreate;
     private AndroidServiceCreatorGuiController currentController;
 
     public EditServiceController(MeinActivity activity, LinearLayout content, ServiceJoinServiceType service, IMeinService runningInstance) {
         super(activity, content,R.layout.content_create_service);
-        this.rootView = rootView;
         this.service = service;
         this.runningInstance = runningInstance;
     }

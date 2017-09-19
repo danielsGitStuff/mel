@@ -49,4 +49,8 @@ public interface IMeinService {
     void onMeinAuthIsUp();
 
     MeinNotification createSendingNotification();
+
+    void onCommunicationsDisabled();
+
+    void onCommunicationsEnabled();
 }

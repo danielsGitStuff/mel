@@ -27,6 +27,7 @@ CREATE TABLE  certificate  (
    greeting     TEXT not null,
    trusted      INTEGER,
    hash text,
+   wifi text,
   UNIQUE (uuid),
   UNIQUE (certificate)
 );

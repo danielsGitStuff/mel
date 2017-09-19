@@ -30,6 +30,7 @@ import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.controller.InfoController;
 import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.OthersController;
+import de.mein.android.controller.SettingsController;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.ServiceJoinServiceType;
@@ -158,6 +159,8 @@ public class MainActivity extends MeinActivity {
             enableGuiController(new CreateServiceController(this, content));
         } else if (id == R.id.nav_others) {
             enableGuiController(new OthersController(this, content));
+        } else if (id == R.id.nav_settings) {
+            enableGuiController(new SettingsController(this, content));
         } else if (id == R.id.nav_logcat) {
             enableGuiController(new LogCatController(this, content));
         }
@@ -197,7 +200,7 @@ public class MainActivity extends MeinActivity {
     private void debugStuff() throws InterruptedException {
         MeinAuthService meinAuthService = androidService.getMeinAuthService();
         System.out.println(meinAuthService);
-        Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(null, "10.0.2.2", 8888, 8889, true);
+        Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect("10.0.2.2", 8888, 8889, true);
         promise.done(meinValidationProcess -> N.r(() -> {
             Request<MeinServicesPayload> gotAllowedServices = meinAuthService.getAllowedServices(meinValidationProcess.getConnectedId());
             gotAllowedServices.done(meinServicesPayload -> N.r(() -> {
@@ -316,8 +319,11 @@ public class MainActivity extends MeinActivity {
                 //approvals ic_menu_approval
                 MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 3, "Approvals");
                 mApprovals.setIcon(R.drawable.icon_share);
+                //settings
+                MenuItem mSettings = subMeinAuth.add(5, R.id.nav_settings, 4, "Settings");
+                mSettings.setIcon(R.drawable.icon_settings);
                 //logcat
-                MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 4, "LogCat");
+                MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 5, "LogCat");
                 mLogCat.setIcon(R.drawable.icon_fail);
 
                 SubMenu subServices = menu.addSubMenu("Services");
@@ -331,8 +337,8 @@ public class MainActivity extends MeinActivity {
                             public boolean onMenuItemClick(MenuItem item) {
                                 content.removeAllViews();
                                 toolbar.setTitle("Edit Service: " + service.getName().v());
-                                ViewGroup v = (ViewGroup) View.inflate(MainActivity.this, R.layout.content_create_service, content);
-                                guiController = new EditServiceController(MainActivity.this, content, service, runningInstance);
+//                                ViewGroup v = (ViewGroup) View.inflate(MainActivity.this, R.layout.content_create_service, content);
+                                enableGuiController(new EditServiceController(MainActivity.this, content, service, runningInstance));
                                 closeDrawer();
                                 return true;
                             }

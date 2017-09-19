@@ -3,6 +3,7 @@ package de.mein.drive.index.watchdog;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.service.MeinDriveService;
@@ -17,12 +18,13 @@ import java.nio.file.WatchService;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by xor on 7/11/16.
  */
 @SuppressWarnings("Duplicates")
-public abstract class IndexWatchdogListener extends DeferredRunnable implements IndexListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
+public abstract class IndexWatchdogListener extends DeferredRunnable implements IndexListener, Runnable, WatchDogTimer.WatchDogTimerFinished, PowerManager.PowerManagerListener {
 
     protected String name;
     protected WatchDogTimer watchDogTimer = new WatchDogTimer(this, 20, 100, 100);
@@ -32,6 +34,9 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     protected Semaphore ignoredSemaphore = new Semaphore(1, true);
     protected String transferDirectoryPath;
     protected StageIndexer stageIndexer;
+    private ReentrantLock surpressLock = new ReentrantLock();
+    private boolean hasSupressedEvents = false;
+
     private static WatchDogRunner watchDogRunner = meinDriveService1 -> {
         WatchService watchService1 = null;
         IndexWatchdogListener watchdogListener;
@@ -128,5 +133,26 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         watchDogTimer.cancel();
         // dereference cause JavaDoc says so
         watchDogTimer = null;
+    }
+
+    protected void surpressEvent() {
+        surpressLock.lock();
+        hasSupressedEvents = true;
+        surpressLock.unlock();
+    }
+
+    @Override
+    public void onHeavyWorkAllowed() {
+        surpressLock.lock();
+        try {
+            if (hasSupressedEvents) {
+                hasSupressedEvents = false;
+                watchDogTimer.start();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            surpressLock.unlock();
+        }
     }
 }

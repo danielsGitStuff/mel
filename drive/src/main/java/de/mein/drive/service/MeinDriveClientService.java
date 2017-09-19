@@ -48,10 +48,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         return Executors.newCachedThreadPool(threadFactory);
     }
 
-    @Override
-    public void run() {
-        super.run();
-    }
 
     @Override
     protected void onSyncReceived(Request request) {
@@ -168,6 +164,8 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         });
     }
 
+
+
     public void onSyncFailed() {
         if (syncListener != null)
             syncListener.onSyncFailed();
@@ -199,5 +197,11 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     public Map<String, ConflictSolver> getConflictSolverMap() {
         return syncHandler.getConflictSolverMap();
+    }
+
+    @Override
+    public void start() {
+        super.start();
+        addJob(new CommitJob());
     }
 }

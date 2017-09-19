@@ -139,6 +139,8 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
         } catch (Exception e) {
             if (!isInterrupted())
                 e.printStackTrace();
+            else
+                System.out.println("MeinAuthCertDelivery.runImpl.interrupted");
         } finally {
             try {
                 in.close();

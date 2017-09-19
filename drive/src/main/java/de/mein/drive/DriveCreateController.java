@@ -105,7 +105,7 @@ public class DriveCreateController {
         System.out.println("DriveCreateController.createDriveClientService");
         System.out.println("approve successful? " + meinAuthService.getDatabaseManager().isApproved(certId, service.getId().v()));
 
-        Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
+        Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
         DriveDetails driveDetails = new DriveDetails().setRole(DriveStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.getUuid().v());
         connected.done(validationProcess -> runner.runTry(() -> validationProcess.request(serviceUuid, DriveStrings.INTENT_REG_AS_CLIENT, driveDetails).done(result -> runner.runTry(() -> {
             System.out.println("DriveCreateController.createDriveClientServiceAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");

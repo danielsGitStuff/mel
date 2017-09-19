@@ -69,6 +69,11 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         watch(dir);
     }
 
+    @Override
+    public void onHeavyWorkForbidden() {
+
+    }
+
     private class Watcher extends FileObserver {
 
         private final RecursiveWatcher recursiveWatcher;
@@ -116,7 +121,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
                     FileObserver.MOVE_SELF,
                     FileObserver.MOVED_FROM,
                     FileObserver.MOVED_TO)) {
-                watchDogTimer.start();
+                startTimer();
             } else if (checkEvent(event, FileObserver.MODIFY))
                 analyze(event, watcher, path);
         } catch (InterruptedException e) {
@@ -150,9 +155,14 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         return flags;
     }
 
+    private void startTimer() throws InterruptedException {
+        if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed())
+            watchDogTimer.start();
+    }
+
     public void analyze(int event, Watcher watcher, String path) {
         try {
-            watchDogTimer.start();
+            startTimer();
             File file = new File(watcher.getTarget().getAbsoluteFile() + File.separator + path);
             if ((event & FileObserver.MODIFY) != 0 || (event & FileObserver.MOVE_SELF) != 0) {
                 // figure out whether or not writing to the file is still in progress
@@ -194,6 +204,6 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        stageIndexer.examinePaths(this,pathCollection);
+        stageIndexer.examinePaths(this, pathCollection);
     }
 }

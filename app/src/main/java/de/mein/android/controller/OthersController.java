@@ -57,7 +57,7 @@ public class OthersController extends GuiController {
 
     @Override
     public String getTitle() {
-        return "Others";
+        return "Connected instances";
     }
 
     @Override

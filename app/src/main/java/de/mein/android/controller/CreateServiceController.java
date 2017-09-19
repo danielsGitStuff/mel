@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.R;
+import de.mein.android.view.BootloaderAdapter;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
@@ -29,8 +30,8 @@ public class CreateServiceController extends GuiController {
     private AndroidServiceCreatorGuiController currentController;
     private MainActivity mainActivity;
 
-    public CreateServiceController(MainActivity activity, LinearLayout content ) {
-        super(activity, content,R.layout.content_create_service);
+    public CreateServiceController(MainActivity activity, LinearLayout content) {
+        super(activity, content, R.layout.content_create_service);
         this.mainActivity = activity;
         this.spinner = rootView.findViewById(R.id.spin_bootloaders);
         this.embedded = rootView.findViewById(R.id.embedded);
@@ -58,7 +59,7 @@ public class CreateServiceController extends GuiController {
         activity.runOnUiThread(() -> {
             MeinAuthService meinAuthService = androidService.getMeinAuthService();
             List<BootLoader> bootLoaders = new ArrayList<>();
-            for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()){
+            for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
                 N.r(() -> {
                     BootLoader bootLoader = bootloaderClass.newInstance();
                     bootLoaders.add(bootLoader);
@@ -67,8 +68,7 @@ public class CreateServiceController extends GuiController {
                 });
             }
 
-            // Create an ArrayAdapter using the string array and a default spinner layout
-            ArrayAdapter<BootLoader> adapter = new ArrayAdapter<>(rootView.getContext(), R.layout.support_simple_spinner_dropdown_item, bootLoaders);
+            BootloaderAdapter adapter = new BootloaderAdapter(rootView.getContext(), bootLoaders);
             // Specify the layout to use when the list of choices appears
             // Apply the adapter to the spinner
             spinner.setAdapter(adapter);

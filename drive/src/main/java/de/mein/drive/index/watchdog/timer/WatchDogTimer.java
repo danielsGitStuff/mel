@@ -69,6 +69,13 @@ public class WatchDogTimer extends Timer {
         lock.release();
     }
 
+    /**
+     * calls WatchDogTimerFinished.onTimerStopped() without countdown
+     */
+    public void finish() throws InterruptedException {
+        watchDogTimerFinished.onTimerStopped();
+    }
+
     public interface WatchDogTimerFinished {
         void onTimerStopped() throws InterruptedException;
     }

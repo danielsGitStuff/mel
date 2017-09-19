@@ -62,8 +62,11 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
             ignoredSemaphore.acquire();
             if (!ignoredMap.containsKey(path)) {
                 System.out.println("AndroidWatchdogListener.analyzeEvent: " + path);
-                watchDogTimer.start();
                 pathCollection.addPath(path);
+                if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed()) {
+                    watchDogTimer.start();
+                }else
+                    surpressEvent();
             }
         }
     }
@@ -98,5 +101,10 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
     @Override
     public String getRunnableName() {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public void onHeavyWorkForbidden() {
+
     }
 }

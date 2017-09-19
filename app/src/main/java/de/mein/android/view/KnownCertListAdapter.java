@@ -20,15 +20,16 @@ public class KnownCertListAdapter extends MeinListAdapter<Certificate> {
 
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View v, ViewGroup parent) {
         Certificate certificate = items.get(position);
-        View v = layoutInflator.inflate(R.layout.line_3_list_item, null);
-        TextView lblName = (TextView) v.findViewById(R.id.lbl1);
+        if (v == null)
+            v = layoutInflator.inflate(R.layout.line_3_list_item, null);
+        TextView lblName = v.findViewById(R.id.lbl1);
         lblName.setText(certificate.getName().v());
-        TextView lblAddress = (TextView) v.findViewById(R.id.lbl2);
+        TextView lblAddress = v.findViewById(R.id.lbl2);
         String line2 = (certificate.getAddress().v() != null) ? certificate.getAddress().v() + " " : "";
         lblAddress.setText(line2);
-        TextView lblPorts = (TextView) v.findViewById(R.id.lbl3);
+        TextView lblPorts = v.findViewById(R.id.lbl3);
         String line3 = (certificate.getPort().v() != null) ? "Port: " + certificate.getPort().v() + " " : "";
         line3 += (certificate.getCertDeliveryPort().v() != null) ? "CertPort: " + certificate.getCertDeliveryPort().v() : "";
         lblPorts.setText(line3);

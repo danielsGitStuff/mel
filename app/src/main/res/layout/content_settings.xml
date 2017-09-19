@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="?attr/actionBarSize"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="de.mein.android.MainActivity">
+    <!--tools:showIn="@layout/app_bar_main"-->
+
+
+    <CheckBox
+        android:id="@+id/cbWorkWhenPlugged"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Always do heavy work when plugged" />
+
+    <CheckBox
+        android:id="@+id/cbWorkWhenOffline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Allow heavy work when WiFi if off" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="*Heavy work might drain your battery. It allows things like file indexing."/>
+
+</LinearLayout>
+

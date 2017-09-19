@@ -85,4 +85,9 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
     public void runImpl() {
 
     }
+
+    @Override
+    public void onHeavyWorkForbidden() {
+
+    }
 }

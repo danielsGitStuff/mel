@@ -1,19 +1,16 @@
 package de.mein.android.service;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiInfo;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.app.NotificationManagerCompat;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +26,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
@@ -50,6 +48,19 @@ public class AndroidService extends Service {
     private final IBinder mBinder = new LocalBinder();
     private MeinAuthSettings meinAuthSettings;
     private MeinBoot meinBoot;
+    private NetworkChangeReceiver networkChangeReceiver;
+    private PowerChangeReceiver powerChangeReceiver;
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (meinAuthService != null)
+            meinAuthService.shutDown();
+        if (networkChangeReceiver != null)
+            unregisterReceiver(networkChangeReceiver);
+        if (powerChangeReceiver != null)
+            unregisterReceiver(powerChangeReceiver);
+    }
 
 
     /**
@@ -75,11 +86,19 @@ public class AndroidService extends Service {
         if (meinAuthService == null) {
             RWLock lock = new RWLock();
             try {
-                System.out.println("AndroidService.onStartCommand.booting");
                 Promise<MeinAuthService, Exception, Void> bootedPromise = setup(null);
                 bootedPromise.done(result -> {
                     meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
                     EventBus.getDefault().postSticky(this);
+                    // listen for connectivity changes
+                    IntentFilter conIntentFilter = new IntentFilter();
+                    conIntentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+                    networkChangeReceiver = new NetworkChangeReceiver(this);
+                    this.registerReceiver(networkChangeReceiver, conIntentFilter);
+                    // listen for charging state changes
+                    IntentFilter powIntentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+                    powerChangeReceiver = new PowerChangeReceiver(this);
+                    this.registerReceiver(powerChangeReceiver, powIntentFilter);
                 });
                 lock.lockWrite();
 
@@ -210,4 +229,5 @@ public class AndroidService extends Service {
     public MeinAuthService getMeinAuthService() {
         return meinAuthService;
     }
+
 }

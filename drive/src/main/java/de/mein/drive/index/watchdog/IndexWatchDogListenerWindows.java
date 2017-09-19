@@ -100,4 +100,9 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void onHeavyWorkForbidden() {
+
+    }
 }
