@@ -13,7 +13,6 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -154,6 +153,12 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
+    private void closeRequest(Request request) {
+        requestLock.lock();
+        openRequests.remove(request);
+        requestLock.unlock();
+    }
+
     public Request request(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
         requestLock.lock();
         Request promise = new Request();
@@ -170,9 +175,11 @@ public class MeinValidationProcess extends MeinProcess {
         }
         request.setRequestHandler(this).queue();
         request.getPromise().done(result -> {
+            closeRequest(promise);
             StateMsg response = (StateMsg) result;
             promise.resolve(response.getPayload());
         }).fail(result -> {
+            closeRequest(promise);
             if (validateFail(result)) {
                 if (!promise.isRejected())
                     promise.reject(result);

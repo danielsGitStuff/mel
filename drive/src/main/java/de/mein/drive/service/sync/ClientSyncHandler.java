@@ -483,7 +483,7 @@ public class ClientSyncHandler extends SyncHandler {
         runner.runTry(() -> {
             stageDao.deleteServerStageSets();
         });
-        CountLock lock = new CountLock();
+        WaitLock lock = new WaitLock().lock();
         Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(driveSettings.getClientSettings().getServerCertId());
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v());
         connected.done(mvp -> runner.runTry(() -> {

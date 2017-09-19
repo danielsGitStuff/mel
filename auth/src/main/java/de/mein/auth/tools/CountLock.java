@@ -47,20 +47,21 @@ public class CountLock {
     public CountLock lock() {
         accessLock.lock();
 //        if (counter.incrementAndGet() > 0) {
-//            //todo debug
-//            if (counter.get() == 2) {
-//                System.out.println("CountLock.lock.debug");
-//            }
-//            lastLockedThread = Thread.currentThread();
-//            try{
-//                throw new Exception("");
-//            }catch (Exception e){
-//                this.stacktrace = e.getStackTrace();
-//            }
 //            lock.lockWrite();
 //        }
-        if (counter.accumulateAndGet(1,intBinaryOperator)>0)
+        if (counter.accumulateAndGet(1,intBinaryOperator)>0) {
+            //todo debug
+            if (counter.get() == 2) {
+                System.out.println("CountLock.lock.debug");
+            }
+            lastLockedThread = Thread.currentThread();
+            try {
+                throw new Exception("");
+            } catch (Exception e) {
+                this.stacktrace = e.getStackTrace();
+            }
             lock.lockWrite();
+        }
         accessLock.unlock();
         return this;
     }
