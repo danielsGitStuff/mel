@@ -50,12 +50,13 @@ public class InfoController extends GuiController {
             int port = Integer.parseInt(txtPort.getText().toString());
             int certPort = Integer.parseInt(txtCertPort.getText().toString());
             String name = txtName.getText().toString();
-            assert !name.trim().isEmpty();
+            if (name.trim().isEmpty())
+                throw new Exception("No name entered");
             MeinAuthSettings meinAuthSettings = androidService.getMeinAuthSettings();
             meinAuthSettings.setName(name).setDeliveryPort(certPort).setPort(port);
             meinAuthSettings.save();
         } catch (Exception e) {
-            Toast.makeText(activity, e.getMessage(), Toast.LENGTH_LONG);
+            Toast.makeText(activity, e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 

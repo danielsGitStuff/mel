@@ -21,12 +21,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class MeinValidationProcess extends MeinProcess {
     private final Long connectedId;
-    private ReentrantLock requestLock = new ReentrantLock();
-    private Set<Request> openRequests = new HashSet<>();
 
-    private boolean stopped = false;
 
-    public class SendException extends Exception {
+    public static class SendException extends Exception {
         public SendException(String msg) {
             super(msg);
         }
@@ -46,12 +43,7 @@ public class MeinValidationProcess extends MeinProcess {
     @Override
     public void stop() {
         super.stop();
-        requestLock.lock();
-        stopped = true;
-        for (Request request : openRequests) {
-            request.reject(new SendException(getClass().getSimpleName() + ".stop() was called"));
-        }
-        requestLock.unlock();
+
     }
 
     public Long getConnectedId() {
@@ -153,33 +145,19 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
-    private void closeRequest(Request request) {
-        requestLock.lock();
-        openRequests.remove(request);
-        requestLock.unlock();
-    }
+
 
     public Request request(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
-        requestLock.lock();
         Request promise = new Request();
-        if (!stopped) {
-            openRequests.add(promise);
-            requestLock.unlock();
-        } else {
-            requestLock.unlock();
-            promise.reject(new SendException(getClass().getSimpleName() + ".request.socket.stopped"));
-        }
         MeinRequest request = new MeinRequest(serviceUuid, intent);
         if (payload != null) {
             request.setPayLoad(payload);
         }
         request.setRequestHandler(this).queue();
         request.getPromise().done(result -> {
-            closeRequest(promise);
             StateMsg response = (StateMsg) result;
             promise.resolve(response.getPayload());
         }).fail(result -> {
-            closeRequest(promise);
             if (validateFail(result)) {
                 if (!promise.isRejected())
                     promise.reject(result);
@@ -188,6 +166,7 @@ public class MeinValidationProcess extends MeinProcess {
                     promise.reject(result);
             }
         });
+        queueForResponse(request);
         send(request);
         return promise;
     }
