@@ -254,11 +254,15 @@ StageDao extends Dao.LockingDao {
                 System.out.println("StageDao.insert.debugnj34ßfg3w");
             if (stage.getStageSet() == 6 && stage.getName().equals("samesub"))
                 System.out.println("StageDao.insert.debugkjg093j0");
-            if (stage.getSynced() == null && stage.getIsDirectory())
+            if (stage.getName().equals("sub2.txt") && stage.getParentId() == null)
                 System.out.println("StageDao.insert.debug.1");
-            if (stage.getName().equals("same2.txt") && stage.getSynced() == null)
+            if (!stage.getName().equals("[root]") && stage.getParentId() == null)
                 System.out.println("StageDao.insert.debugnu4hg0");
             Long id = sqlQueries.insert(stage);
+            if (id == 63)
+                System.out.println("StageDao.insert.debugbtrgm0rg");
+            if (id==null)
+                System.out.println("StageDao.insert.debugfkß34");
             return stage.setId(id);
         } catch (Exception e) {
             e.printStackTrace();
@@ -350,8 +354,12 @@ StageDao extends Dao.LockingDao {
     }
 
     public void update(Stage stage) throws SqlQueriesException {
-        if (stage.getName().equals("sub2.txt")) //todo debug
-            System.err.println("StageDao.getFileByStage.debug h99g359");
+        if (!stage.getName().equals("[root]") && stage.getParentId() == null)
+            System.out.println("StageDao.update.debug.1");
+        if (stage.getId() ==null)
+            System.out.println("StageDao.update.debug.2");
+        if (stage.getId() == 63)
+            System.out.println("StageDao.update.debug.3");
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(stage.getId());
