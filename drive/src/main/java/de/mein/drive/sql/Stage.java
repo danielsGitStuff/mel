@@ -234,7 +234,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     public String toString() {
-        return "dir: " + isDirectory.v() + " name: " + name.v() + " id: " + id.v();
+        return "dir: " + isDirectory.v() + " name: " + name.v() + " id: " + id.v()+" stageSet: "+stageSet.v();
     }
 
     public Stage setSize(Long size) {

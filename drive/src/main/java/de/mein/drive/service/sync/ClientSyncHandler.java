@@ -351,6 +351,9 @@ public class ClientSyncHandler extends SyncHandler {
             @Override
             public void stuffFound(Stage left, Stage right, File lFile, File rFile) throws SqlQueriesException {
                 if (left != null) {
+                    //todo debug
+                    if (left.getId() == 64)
+                        System.out.println("ClientSyncHandler.stuffFound.debugfin30f");
                     if (right != null) {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
                         stage.mergeValuesFrom(right);
@@ -359,6 +362,7 @@ public class ClientSyncHandler extends SyncHandler {
                             stage.setParentId(idMapRight.get(right.getParentId()));
                         stageDao.insert(stage);
                         idMapRight.put(right.getId(), stage.getId());
+                        idMapLeft.put(left.getId(), stage.getId());
                         stageDao.flagMerged(right.getId(), true);
                     } else {
                         // only merge if file exists
@@ -401,6 +405,11 @@ public class ClientSyncHandler extends SyncHandler {
                                 }
                                 stageDao.insert(stage);
                             }
+                            //todo debug
+                            if (idMapRight.containsKey(right.getId()))
+                                System.out.println("ClientSyncHandler.stuffFound.debugj9f3jß");
+
+                            idMapRight.put(right.getId(), stage.getId());
                         }
                     }
                 }

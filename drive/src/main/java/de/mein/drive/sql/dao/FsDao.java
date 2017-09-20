@@ -94,6 +94,8 @@ public class FsDao extends Dao {
             System.out.println("FsDao.update.debug3");
         if (fsEntry.getName().v().equals("sub2.txt"))
             System.out.println("FsDao.update.debug3243");
+        if (!fsEntry.getName().v().equals("[root]") && fsEntry.getParentId().isNull())
+            System.out.println("FsDao.update.debug3");
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(fsEntry.getId().v());
         sqlQueries.update(fsEntry, fsEntry.getId().k() + "=?", whereArgs);
@@ -189,7 +191,7 @@ public class FsDao extends Dao {
             System.err.println("FsDao.insert.debug");
         if (fsEntry.getContentHash().notNull() && fsEntry.getContentHash().v().equals("51037a4a37730f52c8732586d3aaa316"))
             System.out.println("FsDao.insert.debugf934wt0ß4");
-        if (fsEntry.getName().equals("same1.txt") && !fsEntry.getSynced().v())
+        if (!fsEntry.getName().v().equals("[root]") && fsEntry.getParentId().isNull())
             System.out.println("FsDao.insert.debug3");
         if (fsEntry.getName().v().equals("samesub1.txt"))
             System.out.println("FsDao.insert.4");
