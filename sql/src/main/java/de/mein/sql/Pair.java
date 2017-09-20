@@ -1,5 +1,7 @@
 package de.mein.sql;
 
+import de.mein.sql.transform.NumberTransformer;
+
 /**
  * this is a simple key value db structure which can cast its value
  * automatically. it also holds the database table name as key. basically it is

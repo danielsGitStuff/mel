@@ -3,6 +3,7 @@ package de.mein.sql;
 
 import de.mein.sql.conn.JDBCConnection;
 import de.mein.sql.conn.SQLConnection;
+import de.mein.sql.transform.SqlResultTransformer;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -21,15 +22,18 @@ public class SQLQueries extends ISQLQueries {
     public static final boolean SYSOUT = false;
     private final JDBCConnection sqlConnection;
     private final Connection connection;
+    private final SqlResultTransformer resultTransformer;
 
 
-    public SQLQueries(JDBCConnection connection) {
+    public SQLQueries(JDBCConnection connection, SqlResultTransformer resultTransformer) {
         this.sqlConnection = connection;
+        this.resultTransformer = resultTransformer;
         this.connection = sqlConnection.getConnection();
     }
 
-    public SQLQueries(JDBCConnection connection, boolean reentrantLockOnWrite, RWLock lock) {
+    public SQLQueries(JDBCConnection connection, boolean reentrantLockOnWrite, RWLock lock, SqlResultTransformer resultTransformer) {
         this.sqlConnection = connection;
+        this.resultTransformer = resultTransformer;
         this.reentrantWriteLock = reentrantLockOnWrite ? new ReentrantLock(true) : null;
         this.connection = sqlConnection.getConnection();
         this.lock = lock;
@@ -316,7 +320,7 @@ public class SQLQueries extends ISQLQueries {
         } finally {
             unlockRead();
         }
-        return (T) result;
+        return resultTransformer.convert(clazz, result);
     }
 
     /**
@@ -488,7 +492,7 @@ public class SQLQueries extends ISQLQueries {
             resultSet.next();
             if (resultSet.getRow() > 0)
                 while (!resultSet.isAfterLast()) {
-                    return (C) resultSet.getObject(1);
+                    return resultTransformer.convert(resultClass, resultSet.getObject(1));
                 }
             resultSet.close();
             pstmt.close();

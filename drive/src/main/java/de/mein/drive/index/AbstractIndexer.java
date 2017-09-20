@@ -99,7 +99,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     protected void initStage(String stageSetType, Iterator<String> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
 //        stageDao.lockWrite();
-        stageSet = stageDao.createStageSet(stageSetType, null, null);
+        stageSet = stageDao.createStageSet(stageSetType, null, null,null);
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         String path = "none yet";
         this.stageSetId = stageSet.getId().v();
@@ -151,7 +151,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 //                            .setFsId(fsParent.getId().v())
 //                            .setFsParentId(fsParent.getParentId().v())
 //                            .setStageSet(stageSet.getId().v())
-//                            .setVersion(fsParent.getVersion().v())
+//                            .setOldVersion(fsParent.getOldVersion().v())
 //                            .setIsDirectory(fsParent.getIsDirectory().v());
 //                    File exists = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), fsParent);
 //                    stageParent.setDeleted(!exists.exists());

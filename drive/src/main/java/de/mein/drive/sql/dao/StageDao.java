@@ -287,13 +287,13 @@ StageDao extends Dao.LockingDao {
         return null;
     }
 
-    public StageSet createStageSet(String type, Long originCertId, String originServiceUuid) throws SqlQueriesException {
-        return createStageSet(type, DriveStrings.STAGESET_STATUS_STAGING, originCertId, originServiceUuid);
+    public StageSet createStageSet(String type, Long originCertId, String originServiceUuid, Long version) throws SqlQueriesException {
+        return createStageSet(type, DriveStrings.STAGESET_STATUS_STAGING, originCertId, originServiceUuid, version);
     }
 
-    public StageSet createStageSet(String type, String status, Long originCertId, String originServiceUuid) throws SqlQueriesException {
+    public StageSet createStageSet(String type, String status, Long originCertId, String originServiceUuid, Long version) throws SqlQueriesException {
         StageSet stageSet = new StageSet().setSource(type).setOriginCertId(originCertId)
-                .setOriginServiceUuid(originServiceUuid).setStatus(status);
+                .setOriginServiceUuid(originServiceUuid).setStatus(status).setVersion(version);
         Eva.eva((eva, count) -> {
             System.out.println("StageDao.createStageSet.eva." + count);
             if (count == 9)
@@ -454,5 +454,12 @@ StageDao extends Dao.LockingDao {
         Stage stage = new Stage();
         String stmt = "update " + stage.getTableName() + " set " + stage.getSyncedPair().k() + "=? where " + stage.getIdPair().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(synced, id));
+    }
+
+    public Long getLatestStageSetVersion() throws SqlQueriesException {
+        StageSet stageSet = new StageSet();
+        String query = "select max(" + stageSet.getVersion().k() + ") from " + stageSet.getTableName();
+        Long version = sqlQueries.queryValue(query, Long.class);
+        return version;
     }
 }

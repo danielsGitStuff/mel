@@ -7,11 +7,18 @@ import de.mein.core.serialize.SerializableEntity;
  * Created by xor on 5/23/17.
  */
 public class TooOldVersionException extends ResponseException implements SerializableEntity {
-    public TooOldVersionException(String msg) {
+    private Long newVersion;
+
+    public TooOldVersionException(String msg, long newVersion) {
         super(msg);
+        this.newVersion = newVersion;
     }
 
-    public TooOldVersionException() {
-        super();
+    public Long getNewVersion() {
+        return newVersion;
+    }
+
+    public TooOldVersionException(){
+
     }
 }

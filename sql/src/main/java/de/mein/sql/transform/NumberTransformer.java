@@ -1,4 +1,4 @@
-package de.mein.sql;
+package de.mein.sql.transform;
 
 import java.util.HashMap;
 import java.util.Map;

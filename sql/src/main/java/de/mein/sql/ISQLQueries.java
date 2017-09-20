@@ -113,6 +113,14 @@ public abstract class ISQLQueries {
     public abstract <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject,
                                                                   String selectString, List<Object> arguments) throws SqlQueriesException;
 
+    /**
+     *
+     * @param query
+     * @param clazz
+     * @param <T>
+     * @return a single value
+     * @throws SqlQueriesException
+     */
     public abstract <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException;
 
     public abstract <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException;

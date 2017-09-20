@@ -31,10 +31,10 @@ public class ServerSyncHandler extends SyncHandler {
         try {
             final long olderVersion = driveDatabaseManager.getLatestVersion();
             if (commit.getBasedOnVersion() != olderVersion) {
-                request.reject(new TooOldVersionException("server :" + driveDatabaseManager.getLatestVersion() + " vs " + commit.getBasedOnVersion()));
+                request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion(), driveDatabaseManager.getLatestVersion()));
                 return;
             }
-            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid());
+            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null);
             Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
             for (Stage stage : commit.getStages()) {
                 stage.setStageSet(stageSet.getId().v());

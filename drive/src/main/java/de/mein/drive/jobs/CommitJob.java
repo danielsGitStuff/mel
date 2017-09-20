@@ -7,7 +7,7 @@ import de.mein.auth.jobs.Job;
  */
 public class CommitJob extends Job {
 
-    private boolean syncAnyway;
+    private boolean syncAnyway = false;
 
     public CommitJob(boolean syncAnyway) {
         this.syncAnyway = syncAnyway;
@@ -15,5 +15,9 @@ public class CommitJob extends Job {
 
     public CommitJob() {
         System.out.println("CommitJob.CommitJob");
+    }
+
+    public boolean getSyncAnyway() {
+        return syncAnyway;
     }
 }

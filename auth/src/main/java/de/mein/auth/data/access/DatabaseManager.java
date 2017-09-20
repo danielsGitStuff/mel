@@ -9,6 +9,7 @@ import de.mein.auth.data.db.dao.ServiceTypeDao;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
+import de.mein.sql.transform.SqlResultTransformer;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +62,7 @@ public final class DatabaseManager extends FileRelatedManager {
 
     private static SQLConnectionCreator sqlConnectionCreator = databaseManager -> {
         File f = new File(databaseManager.createWorkingPath() + DB_FILENAME);
-        return new SQLQueries(SQLConnector.createSqliteConnection(f), true, new RWLock());
+        return new SQLQueries(SQLConnector.createSqliteConnection(f), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
     };
 
     public static void setSqlConnectionCreator(SQLConnectionCreator sqlConnectionCreator) {

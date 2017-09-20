@@ -46,7 +46,8 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         SyncTask task = (SyncTask) request.getPayload();
         driveDatabaseManager.getFsDao().lockRead();
         try {
-            List<GenericFSEntry> delta = driveDatabaseManager.getDelta(task.getVersion());
+            List<GenericFSEntry> delta = driveDatabaseManager.getDelta(task.getOldVersion());
+            task.setNewVersion(driveDatabaseManager.getLatestVersion());
             request.resolve(task.setResult(delta));
         } catch (Exception e) {
             e.printStackTrace();

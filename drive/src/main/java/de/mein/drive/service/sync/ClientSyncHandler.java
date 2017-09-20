@@ -4,7 +4,6 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.WaitLock;
@@ -14,21 +13,18 @@ import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.jobs.CommitJob;
+import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
-import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by xor on 10/27/16.
@@ -141,7 +137,16 @@ public class ClientSyncHandler extends SyncHandler {
                             if (result instanceof TooOldVersionException) {
                                 System.out.println("ClientSyncHandler.syncWithServer");
                                 N.r(() -> {
-                                    syncThisClient(true);
+                                    // check if the new server version is already present
+                                    TooOldVersionException tooOldVersionException = (TooOldVersionException) result;
+                                    Long latestVersion = driveDatabaseManager.getLatestVersion();
+                                    if (latestVersion < tooOldVersionException.getNewVersion()) {
+                                        latestVersion = stageDao.getLatestStageSetVersion();
+                                        if (latestVersion == null || latestVersion < tooOldVersionException.getNewVersion()) {
+                                            meinDriveService.addJob(new SyncClientJob(tooOldVersionException.getNewVersion()));
+                                            //syncThisClient(tooOldVersionException.getNewVersion());
+                                        }
+                                    }
                                     System.out.println("ClientSyncHandler.syncWithServer");
 //                                    meinDriveService.addJob(new SyncClientJob());
                                 });
@@ -170,8 +175,10 @@ public class ClientSyncHandler extends SyncHandler {
      * If conflicts are resolved, server StageSet is committed.
      * if a single staged StageSet from file system remains it is send to the server
      * and a new CommitJob added to the MeinDriveServices working queue.
+     *
+     * @param commitJob
      */
-    public void commitJob() {
+    public void commitJob(CommitJob commitJob) {
         System.out.println("ClientSyncHandler.commitJob");
         try {
             // first wait until every staging stuff is finished.
@@ -219,8 +226,10 @@ public class ClientSyncHandler extends SyncHandler {
                 // merge again
                 meinDriveService.addJob(new CommitJob());
                 return;
+            } else if (updateSets.size() == 0 && commitJob.getSyncAnyway()) {
+                syncThisClient(null);
+                return;
             }
-
             if (updateSets.size() > 1)
                 System.err.println("ClientSyncHandler.commitJob.something went seriously wrong");
 
@@ -332,7 +341,7 @@ public class ClientSyncHandler extends SyncHandler {
         StageSet lStageSet = stageSets.get(0);
         StageSet rStageSet = stageSets.get(1);
         System.out.println("ClientSyncHandler.mergeStageSets L: " + lStageSet.getId().v() + " R: " + rStageSet.getId().v());
-        StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, null, null);
+        StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, null, null, lStageSet.getVersion().v());
         final Long mStageSetId = mStageSet.getId().v();
         SyncStageMerger merger = new SyncStageMerger(lStageSet.getId().v(), rStageSet.getId().v()) {
             private Order order = new Order();
@@ -448,86 +457,46 @@ public class ClientSyncHandler extends SyncHandler {
         });
     }
 
-//    public class CountLock {
-//
-//        private AtomicInteger counter = new AtomicInteger(0);
-//        private Lock accessLock = new ReentrantLock();
-//        private RWLock lock = new RWLock().lockWrite();
-//
-//        public CountLock lock() {
-//            accessLock.lock();
-//            if (counter.incrementAndGet() > 1) {
-//                lock.lockWrite();
-//            }
-//            accessLock.unlock();
-//            return this;
-//        }
-//
-//        public CountLock unlock() {
-//            synchronized (counter) {
-//                counter.decrementAndGet();
-//                lock.unlockWrite();
-//            }
-//            return this;
-//        }
-//    }
-
-
     /**
      * pulls StageSet from the Server
      *
+     * @param newVersion
      * @throws SqlQueriesException
      * @throws InterruptedException
      */
-    public void syncThisClient(boolean block) throws SqlQueriesException, InterruptedException {
+    public void syncThisClient(Long newVersion) throws SqlQueriesException, InterruptedException {
         runner.runTry(() -> {
             stageDao.deleteServerStageSets();
         });
-        WaitLock lock = new WaitLock().lock();
         Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(driveSettings.getClientSettings().getServerCertId());
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v());
         connected.done(mvp -> runner.runTry(() -> {
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
-            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, null, null);
-            Request<SyncTask> request = mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, new SyncTask().setVersion(version));
+            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, null, null, newVersion);
+            Request<SyncTask> request = mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, new SyncTask().setOldVersion(version));
             request.done(syncTask -> runner.runTry(() -> {
                 syncTask.setStageSet(stageSet);
                 syncTask.setSourceCertId(driveSettings.getClientSettings().getServerCertId());
                 syncTask.setSourceServiceUuid(driveSettings.getClientSettings().getServerServiceUuid());
+                stageSet.setVersion(syncTask.getNewVersion());
+                stageDao.updateStageSet(stageSet);
                 Promise<Long, Void, Void> promise = this.sync2Stage(syncTask);
                 promise.done(nil -> runner.runTry(() -> {
                     meinDriveService.addJob(new CommitJob());
                     if (syncListener != null)
                         syncListener.onSyncDone();
-                    lock.unlock();
                 })).fail(result -> {
                             System.err.println("ClientSyncHandler.syncThisClient.j99f49459f54");
                             N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
-                            lock.unlock();
                         }
                 );
             })).fail(exc -> {
                 System.out.println("ClientSyncHandler.syncThisClient.EXCEPTION: " + exc);
-                lock.unlock();
             });
         })).fail(result -> {
             System.out.println("ClientSyncHandler.syncThisClient.debughv08e5hg");
-            lock.unlock();
         });
-        if (block)
-            lock.lock();
     }
-
-    /**
-     * pulls StageSet from the Server
-     *
-     * @throws SqlQueriesException
-     * @throws InterruptedException
-     */
-    public void syncThisClient() throws SqlQueriesException, InterruptedException {
-        syncThisClient(false);
-    }
-
 
     private void insertWithParentId(Map<Long, Long> entryIdStageIdMap, GenericFSEntry genericFSEntry, Stage stage) throws SqlQueriesException {
         if (entryIdStageIdMap.containsKey(genericFSEntry.getParentId().v())) {

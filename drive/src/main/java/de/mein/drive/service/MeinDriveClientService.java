@@ -94,18 +94,17 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                 }
             }
         } else if (unknownJob instanceof CommitJob) {
-            syncHandler.commitJob();
+            syncHandler.commitJob((CommitJob) unknownJob);
         } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
             Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
             if (authenticatedJob.getPartnerCertificate().getId().v().equals(driveSettings.getClientSettings().getServerCertId())) {
                 N.r(() -> addJob(new CommitJob(true)));
             }
         } else if (unknownJob instanceof SyncClientJob) {
-            N.r(() -> syncHandler.syncThisClient());
+            N.r(() -> syncHandler.syncThisClient(((SyncClientJob) unknownJob).getNewVersion()));
         }
         return false;
     }
-
 
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
@@ -146,7 +145,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
             @Override
             public void done(Long stageSetId) {
-                addJob(new CommitJob());
+                //addJob(new CommitJob(true));
             }
         };
     }
@@ -202,6 +201,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     public void start() {
         super.start();
-        addJob(new CommitJob());
+        addJob(new CommitJob(true));
     }
 }

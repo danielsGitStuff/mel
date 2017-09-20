@@ -13,6 +13,7 @@ import de.mein.drive.sql.dao.WasteDao;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
+import de.mein.sql.transform.SqlResultTransformer;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +22,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * does everything file (database) related
@@ -44,7 +44,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         ISQLQueries createConnection(DriveDatabaseManager driveDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
     }
 
-    private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME)), true,new RWLock());
+    private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME)), true,new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
 
     public static void setSqlqueriesCreator(SQLConnectionCreator sqlqueriesCreator) {
         DriveDatabaseManager.sqlqueriesCreator = sqlqueriesCreator;

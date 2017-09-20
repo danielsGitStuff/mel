@@ -44,7 +44,7 @@ public class FsDirectory extends FsEntry {
             hash += file.getName().calcHash();
         }
         for (FsDirectory subDirectory : subDirectories) {
-            hash += subDirectory.getName().calcHash(); //+ subDirectory.getVersion().calcHash();
+            hash += subDirectory.getName().calcHash(); //+ subDirectory.getOldVersion().calcHash();
         }
         return hash.toString();
     }

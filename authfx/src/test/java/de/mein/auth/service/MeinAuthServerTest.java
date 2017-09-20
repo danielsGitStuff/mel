@@ -78,7 +78,7 @@ public class MeinAuthServerTest {
                     standAloneAuth2.addRegisterHandler(allowRegisterHandler);
 
                     runner.r(() -> {
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(1l, "localhost", 8888, 8889, true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
                             System.out.println("MeinAuthServerTest.acceptRegistration.registered");
                             lock.unlockWrite();
@@ -127,7 +127,7 @@ public class MeinAuthServerTest {
                     standAloneAuth2.addRegisterHandler(allowRegisterHandler);
                     System.out.println("MeinAuthServerTest.gui.2.booted");
                     runner.r(() -> {
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
                             runner.r(() -> {
                                 System.out.println("MeinAuthServerTest.gui.booted");
@@ -165,7 +165,7 @@ public class MeinAuthServerTest {
         meinBoot2.boot().done(standAloneAuth2 -> {
             standAloneAuth2.addRegisterHandler(allowRegisterHandler);
             runner.r(() -> {
-                Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+                Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
                 connectPromise.done(integer -> {
                     System.out.println("MeinAuthServerTest.rejectRegistration.registered");
                     lock.unlockWrite();

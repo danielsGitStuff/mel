@@ -160,7 +160,7 @@ public class FsDao extends Dao {
 /*
     public List<FsFile> getByDirectorySync(Long id, Long syncId) throws SqlQueriesException {
         FsFile file = new FsFile();
-        String where = file.getParentId().k() + "=? and " + file.getVersion().k() + ">?";
+        String where = file.getParentId().k() + "=? and " + file.getOldVersion().k() + ">?";
         List<Object> whereArguments = new ArrayList<>();
         whereArguments.add(id);
         whereArguments.add(syncId);
@@ -313,7 +313,7 @@ public class FsDao extends Dao {
     public Long getLatestVersion() throws SqlQueriesException {
         FsDirectory directory = new FsDirectory();
         String sql = "select max(" + directory.getVersion().k() + ") from " + directory.getTableName();
-        Integer v = sqlQueries.queryValue(sql, Integer.class);
+        Long v = sqlQueries.querySingle(sql,null, Long.class);
         if (v == null)
             return 0L;
         else

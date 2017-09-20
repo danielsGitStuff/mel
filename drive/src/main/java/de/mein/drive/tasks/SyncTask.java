@@ -13,7 +13,8 @@ import java.util.List;
  * Created by xor on 10/27/16.
  */
 public class SyncTask implements IPayload {
-    private long version;
+    private long oldVersion;
+    private Long newVersion;
     private List<GenericFSEntry> result = new ArrayList<>();
     @JsonIgnore
     private Long sourceCertId;
@@ -34,9 +35,18 @@ public class SyncTask implements IPayload {
         return this;
     }
 
-    public SyncTask setVersion(long version) {
-        this.version = version;
+    public SyncTask setOldVersion(long oldVersion) {
+        this.oldVersion = oldVersion;
         return this;
+    }
+
+    public SyncTask setNewVersion(long newVersion) {
+        this.newVersion = newVersion;
+        return this;
+    }
+
+    public Long getNewVersion() {
+        return newVersion;
     }
 
     public SyncTask setRetrieveMissingInformation(boolean retrieveMissingInformation) {
@@ -48,8 +58,8 @@ public class SyncTask implements IPayload {
         return retrieveMissingInformation;
     }
 
-    public long getVersion() {
-        return version;
+    public long getOldVersion() {
+        return oldVersion;
     }
 
     public SyncTask setResult(List<GenericFSEntry> result) {

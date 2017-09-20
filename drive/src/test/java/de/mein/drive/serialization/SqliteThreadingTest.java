@@ -15,6 +15,7 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
+import de.mein.sql.transform.SqlResultTransformer;
 import org.junit.Test;
 
 import java.io.File;
@@ -41,7 +42,7 @@ public class SqliteThreadingTest {
                 .setRootDirectory(root)
                 .setTransferDirectoryPath(testDir.getPath() + File.separator + "transfer");
 
-        DriveDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir, "test.db")), true, new RWLock());
+        DriveDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir, "test.db")), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
         ISQLQueries sqlQueries = sqlqueriesCreator.createConnection(null, null);
         SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
         st.execute();
@@ -105,7 +106,7 @@ public class SqliteThreadingTest {
             n.r(() -> {
 //                FsDirectory fsDirectory = (FsDirectory) new FsDirectory()
 //                        .setName("dir")
-//                        .setVersion(1L);
+//                        .setOldVersion(1L);
 //                fsDao.insert(fsDirectory);
                 for (Integer i = 500; i < 1000; i++) {
 //                    Stage stage = new Stage()
@@ -161,7 +162,7 @@ public class SqliteThreadingTest {
     }
 
     private StageSet fillNewStageSet(StageDao stageDao, int from, int to) throws SqlQueriesException {
-        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_STARTUP_INDEX, null, null);
+        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_STARTUP_INDEX, null, null,null);
         for (Integer i = from; i < to; i++) {
             Stage stage = new Stage()
                     .setStageSet(stageSet.getId().v())

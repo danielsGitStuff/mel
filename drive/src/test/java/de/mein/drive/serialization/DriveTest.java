@@ -771,7 +771,7 @@ public class DriveTest {
                                                     .setTestdir1(testdir1)
                                                     .setTestdir2(testdir2);
                                             clientDriveService.setSyncListener(clientSyncListener);
-                                            clientDriveService.syncThisClient();
+                                            //clientDriveService.syncThisClient();
                                         }
                                 ));
                             });

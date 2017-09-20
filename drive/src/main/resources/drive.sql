@@ -57,7 +57,8 @@ CREATE TABLE stageset (
   origincert    INTEGER,
   originservice TEXT,
   status        TEXT,
-  created       DATETIME                     DEFAULT (strftime('%s', 'now'))
+  created       DATETIME                     DEFAULT (strftime('%s', 'now')),
+  version INTEGER
 );
 CREATE INDEX sid
   ON stage (id);
