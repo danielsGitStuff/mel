@@ -99,7 +99,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     protected void initStage(String stageSetType, Iterator<String> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
 //        stageDao.lockWrite();
-        stageSet = stageDao.createStageSet(stageSetType, null, null,null);
+        stageSet = stageDao.createStageSet(stageSetType, null, null, null);
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         String path = "none yet";
         this.stageSetId = stageSet.getId().v();
@@ -285,7 +285,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                         .setVersion(gen.getVersion().v())
                         .setiNode(gen.getiNode().v())
                         .setModified(gen.getModified().v())
-                        .setSynced(gen.getSynced().v());
+                        .setSynced(gen.getSynced().v())
+                        .setParentId(stage.getId());
                 stageDao.insert(delStage);
             } else {
                 alreadyOnStage.setContentHash(gen.getContentHash().v());
@@ -308,10 +309,14 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                             .setParentId(stage.getId())
                             .setFsParentId(stage.getFsId())
                             .setStageSet(stageSetId)
-                            .setDeleted(false);
+                            .setDeleted(false)
+                            .setOrder(order.ord());
+                    stageDao.insert(subStage);
+                    //todo debug
+                    if (subStage.getId() == null)
+                        System.out.println("AbstractIndexer.roamDirectoryStage.debugong04");
                     this.updateFileStage(subStage, subFile);
                     subStage.setOrder(order.ord());
-                    stageDao.insert(subStage);
                 }
             }
         }

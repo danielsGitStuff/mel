@@ -262,6 +262,6 @@ public class WasteBin {
         File movedTo = this.del(waste, target);
         //todo tell a worker to investigate the deferred directory
         //todo worker has to tell the drive service or transfermanager that a file has been found
-        meinDriveService.syncHandler.onFileTransferred(movedTo, hash);
+        //meinDriveService.syncHandler.onFileTransferred(movedTo, hash);
     }
 }

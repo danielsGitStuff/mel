@@ -321,23 +321,26 @@ public class ConflictSolver extends SyncStageMerger {
 
             File solvedFile = stageDao.getFileByStage(solvedStage);
             File solvedParent = solvedFile.getParentFile();
+            //todo debug
+            if (solvedParent.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir"))
+                System.out.println("ConflictSolver.solve.debugj0f2n4");
             Stage solvedParentStage = stageDao.getStageByPath(solvedStage.getStageSet(), solvedParent);
             if (solvedParentStage != null && right != null && right.getFsParentId() == null) {
                 solvedStage.setFsParentId(solvedParentStage.getFsId());
             }
-            if (deletedParents.containsKey(solvedFile.getAbsolutePath()) && (left != null && left.getDeleted())) {
-                solvedStage.setFsId(null);
-            }
-            if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
-                Conflict parentConflict = deletedParents.get(solvedParent.getAbsolutePath());
-                if (parentConflict.hasLeft() && parentConflict.getLeft().getDeleted())
-                    solvedStage.setFsParentId(null);
-            }
+//            if (deletedParents.containsKey(solvedFile.getAbsolutePath()) && (left != null && left.getDeleted())) {
+//                solvedStage.setFsId(null);
+//            }
+//            if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
+//                Conflict parentConflict = deletedParents.get(solvedParent.getAbsolutePath());
+//                if (parentConflict.hasLeft() && parentConflict.getLeft().getDeleted())
+//                    solvedStage.setFsParentId(null);
+//            }
             if (deletedParents.containsKey(solvedParent.getAbsolutePath()) || deletedParents.containsKey(solvedFile.getAbsolutePath())) {
-                solvedStage.setFsId(null);
-                if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
-                    solvedStage.setFsParentId(null);
-                }
+//                solvedStage.setFsId(null);
+//                if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
+//                    solvedStage.setFsParentId(null);
+//                }
                 if (!solvedStage.getIsDirectory())
                     solvedStage.setSynced(false);
             }
