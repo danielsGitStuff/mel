@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
-import android.net.wifi.WifiInfo;
 import android.os.Binder;
 import android.os.IBinder;
 
@@ -36,6 +35,7 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSyncListener;
 import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.sql.RWLock;
+import de.mein.sql.SqlQueriesException;
 
 
 /**
@@ -50,6 +50,24 @@ public class AndroidService extends Service {
     private MeinBoot meinBoot;
     private NetworkChangeReceiver networkChangeReceiver;
     private PowerChangeReceiver powerChangeReceiver;
+    private PowerManager.CommunicationsListener communicationsListener = new PowerManager.CommunicationsListener() {
+        @Override
+        public void onCommunicationsEnabled() {
+            try {
+                for (Certificate certificate : meinAuthService.getCertificateManager().getAllCertificateDetails()) {
+                    meinAuthService.connect(certificate.getId().v());
+                    meinAuthService.discoverNetworkEnvironment();
+                }
+            } catch (SqlQueriesException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onCommunicationsDisabled() {
+
+        }
+    };
 
     @Override
     public void onDestroy() {
@@ -89,6 +107,7 @@ public class AndroidService extends Service {
                 Promise<MeinAuthService, Exception, Void> bootedPromise = setup(null);
                 bootedPromise.done(result -> {
                     meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
+                    meinAuthService.getPowerManager().addCommunicationListener(communicationsListener);
                     EventBus.getDefault().postSticky(this);
                     // listen for connectivity changes
                     IntentFilter conIntentFilter = new IntentFilter();

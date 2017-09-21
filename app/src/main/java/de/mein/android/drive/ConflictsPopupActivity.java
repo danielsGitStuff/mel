@@ -42,7 +42,6 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
     private ConflictSolver conflictSolver;
 
 
-
     private void debugStuff() {
         runner.runTry(() -> {
             Stage left1 = new Stage().setName("1")
@@ -83,6 +82,7 @@ public class ConflictsPopupActivity extends PopupActivity<MeinDriveClientService
 
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
         conflictSolverMap = service.getConflictSolverMap();
         listView = findViewById(R.id.listView);
         //search for the first not solved ConflictSolver. There still might be solved ones that do not need our attention here.

@@ -332,10 +332,14 @@ public class MeinAuthService {
                 deferred.resolve(mvp);
             } else {
                 connectedEnvironment.currentlyConnecting(address, port, portCert, deferred);
-                ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
+                ConnectJob job = new ConnectJob( null, address, port, portCert, regOnUnkown);
                 job.getPromise().done(result -> {
+                    connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
                     deferred.resolve(result);
-                }).fail(result -> deferred.reject(result));
+                }).fail(result -> {
+                    connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
+                    deferred.reject(result);
+                });
                 meinAuthWorker.addJob(job);
             }
         } finally {

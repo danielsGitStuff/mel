@@ -34,4 +34,9 @@ public abstract class PopupActivity<T extends IMeinService> extends MeinActivity
             serviceUuid = extra.getString(MeinStrings.Notifications.SERVICE_UUID);
         }
     }
+
+    @Override
+    protected void onAndroidServiceAvailable(AndroidService androidService) {
+        service = (T) androidService.getMeinAuthService().getMeinService(serviceUuid);
+    }
 }
