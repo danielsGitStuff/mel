@@ -17,6 +17,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 
 import org.greenrobot.eventbus.EventBus;
@@ -304,6 +305,9 @@ public class MainActivity extends MeinActivity {
     public void showMenuServices() {
         if (androidService != null) {
             runOnUiThread(() -> N.r(() -> {
+                //hide keyboard
+                InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(this.content.getWindowToken(), 0);
                 MeinAuthService meinAuthService = androidService.getMeinAuthService();
                 Menu menu = navigationView.getMenu();
                 menu.clear();

@@ -90,17 +90,21 @@ public class ConflictSolver extends SyncStageMerger {
             }
             return;
         }
-        if (left != null && leftIdConflictsMap.containsKey(left.getParentId())) {
-            //conflictSearch(left, lFile, false);
-            Conflict conflict = createConflict(left, null);
-            Conflict parent = leftIdConflictsMap.get(left.getParentId());
-            conflict.dependOn(parent);
-        }
-        if (right != null && rightIdConflictsMap.containsKey(right.getParentId())) {
-            //conflictSearch(right, rFile, true);
-            Conflict conflict = createConflict(null, right);
-            Conflict parent = rightIdConflictsMap.get(right.getParentId());
-            conflict.dependOn(parent);
+        if (left != null && right != null && left.getContentHash().equals(right.getContentHash()) && !left.getIsDirectory() && !right.getIsDirectory()) {
+            System.out.println("ConflictSolver.stuffFound.no conflict between " + left.getId() + " and " + right.getId());
+        } else {
+            if (left != null && leftIdConflictsMap.containsKey(left.getParentId())) {
+                //conflictSearch(left, lFile, false);
+                Conflict conflict = createConflict(left, null);
+                Conflict parent = leftIdConflictsMap.get(left.getParentId());
+                conflict.dependOn(parent);
+            }
+            if (right != null && rightIdConflictsMap.containsKey(right.getParentId())) {
+                //conflictSearch(right, rFile, true);
+                Conflict conflict = createConflict(null, right);
+                Conflict parent = rightIdConflictsMap.get(right.getParentId());
+                conflict.dependOn(parent);
+            }
         }
     }
 
@@ -206,7 +210,7 @@ public class ConflictSolver extends SyncStageMerger {
         final long oldeMergedSetId = mergeStageSet.getId().v();
         Map<Long, Long> oldeIdNewIdMapForDirectories = new HashMap<>();
         order = new Order();
-        StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v(),mergeStageSet.getVersion().v());
+        StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v(), mergeStageSet.getVersion().v());
         N.sqlResource(stageDao.getStagesResource(oldeMergedSetId), stageSet -> {
             Stage rightStage = stageSet.getNext();
             while (rightStage != null) {
@@ -297,8 +301,13 @@ public class ConflictSolver extends SyncStageMerger {
             } else if (conflict.isLeft() && conflict.hasLeft()) {
                 solvedStage = left;
                 // left is server side, so it comes with the appropriate FsIds
-            } else
-                System.err.println(getClass().getSimpleName() + ".solve()... strange things happened");
+            } else {
+                System.err.println(getClass().getSimpleName() + ".solve()... strange things happened. but it is probably ok");
+                // it does not exist on the right side, so it must be deleted
+                solvedStage = left.setDeleted(true);
+//                if (left.getParentIdPair().notNull())
+//                    left.setParentId(oldeNewIdMap.get(left.getParentId()));
+            }
         } else if (left != null) {
             solvedStage = left;
             if (right != null) {
@@ -325,8 +334,11 @@ public class ConflictSolver extends SyncStageMerger {
             if (solvedParent.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir"))
                 System.out.println("ConflictSolver.solve.debugj0f2n4");
             Stage solvedParentStage = stageDao.getStageByPath(solvedStage.getStageSet(), solvedParent);
-            if (solvedParentStage != null && right != null && right.getFsParentId() == null) {
-                solvedStage.setFsParentId(solvedParentStage.getFsId());
+            if (solvedParentStage != null) {
+                if (right != null && right.getFsParentId() == null) {
+                    solvedStage.setFsParentId(solvedParentStage.getFsId());
+                }
+                solvedStage.setParentId(solvedParentStage.getId());
             }
 //            if (deletedParents.containsKey(solvedFile.getAbsolutePath()) && (left != null && left.getDeleted())) {
 //                solvedStage.setFsId(null);

@@ -118,6 +118,7 @@ public class AndroidService extends Service {
                     IntentFilter powIntentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
                     powerChangeReceiver = new PowerChangeReceiver(this);
                     this.registerReceiver(powerChangeReceiver, powIntentFilter);
+                    //debugStuff();
                 });
                 lock.lockWrite();
 
@@ -127,6 +128,25 @@ public class AndroidService extends Service {
             lock.unlockWrite();
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void debugStuff() {
+        try {
+            meinAuthService.addRegisterHandler(new IRegisterHandler() {
+                @Override
+                public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                    listener.onCertificateAccepted(request, certificate);
+                }
+
+                @Override
+                public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+                }
+            });
+            meinAuthService.connect("192.168.1.105", 8888, 8889, true);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean isRunning() {

@@ -20,6 +20,7 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -139,6 +140,7 @@ public class ClientSyncHandler extends SyncHandler {
                                 N.r(() -> {
                                     // check if the new server version is already present
                                     TooOldVersionException tooOldVersionException = (TooOldVersionException) result;
+                                    System.out.println("ClientSyncHandler.syncWithServer.TooOldVersionException");
                                     Long latestVersion = driveDatabaseManager.getLatestVersion();
                                     if (latestVersion < tooOldVersionException.getNewVersion()) {
                                         latestVersion = stageDao.getLatestStageSetVersion();
@@ -301,8 +303,8 @@ public class ClientSyncHandler extends SyncHandler {
                 conflictSolver.directoryStuff();
                 conflictSolver.cleanup();
                 this.commitStage(serverStageSet.getId().v());
-                setupTransfer();
-                transferManager.research();
+//                setupTransfer();
+//                transferManager.research();
                 Long mergedId = conflictSolver.getMergeStageSet().getId().v();
                 this.minimizeStage(mergedId);
                 if (stageDao.stageSetHasContent(mergedId))
@@ -318,9 +320,16 @@ public class ClientSyncHandler extends SyncHandler {
                 Long fsId = stage.getFsId();
                 if (fsId != null) {
                     FsEntry fsEntry = fsDao.getGenericById(fsId);
-                    if (stage.getDeleted() || (fsEntry != null && fsEntry.getContentHash().v().equals(stage.getContentHash()))) {
-                        stageDao.deleteStageById(stage.getId());
+                    boolean deleteStage = false;
+                    if (fsEntry != null) {
+                        if (!stage.getDeleted() && fsEntry.getContentHash().v().equals(stage.getContentHash()))
+                            deleteStage = true;
                     }
+                    if (deleteStage)
+                        stageDao.deleteStageById(stage.getId());
+//                    if (stage.getDeleted() && (fsEntry != null && fsEntry.getContentHash().v().equals(stage.getContentHash()))) {
+//                        stageDao.deleteStageById(stage.getId());
+//                    }
                 }
                 stage = stages.getNext();
             }
@@ -439,6 +448,9 @@ public class ClientSyncHandler extends SyncHandler {
         N.sqlResource(stageDao.getStagesResource(lStageSet.getId().v()), lStages -> {
             Stage lStage = lStages.getNext();
             while (lStage != null) {
+                //todo debug
+                if (lStage.getName().equals("same2.txt"))
+                    System.out.println("ClientSyncHandler.iterateStageSets.debugmf03nm");
                 File lFile = stageDao.getFileByStage(lStage);
                 Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
                 if (conflictSolver != null)

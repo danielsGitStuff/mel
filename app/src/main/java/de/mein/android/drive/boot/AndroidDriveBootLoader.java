@@ -44,7 +44,7 @@ public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBo
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedDrive().getUuid().v();
                     Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certId, serviceUuid);
-                    promise.done(meinDriveClientService -> N.r(() -> meinDriveClientService.syncThisClient()));
+                    //promise.done(meinDriveClientService -> N.r(() -> meinDriveClientService.syncThisClient()));
                 }
             });
     }
