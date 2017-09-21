@@ -3,15 +3,12 @@ package de.mein.auth.socket;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.socket.process.val.Request;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,10 +20,7 @@ public abstract class MeinProcess implements IRequestHandler {
     private static Logger logger = Logger.getLogger(MeinProcess.class.getName());
     protected MeinAuthSocket meinAuthSocket;
     protected Certificate partnerCertificate;
-    private ReentrantLock requestLock = new ReentrantLock();
-    protected Map<Long, MeinRequest> requestMap = new ConcurrentHashMap<>();
-    private boolean stopped = false;
-
+    protected Map<Long, Dobject> requestMap = new ConcurrentHashMap<>();
 
     public MeinProcess(MeinAuthSocket meinAuthSocket) {
         this.meinAuthSocket = meinAuthSocket;
@@ -56,16 +50,16 @@ public abstract class MeinProcess implements IRequestHandler {
         }
         if (answerId != null && this.requestMap.containsKey(answerId)) {
             StateMsg msg = (StateMsg) deserialized;
-            MeinRequest deferred = requestMap.get(answerId);
+            Dobject deferred = requestMap.get(answerId);
             this.requestMap.remove(answerId);
             if (!msg.getState().equals(MeinStrings.msg.STATE_OK)) {
                 if (msg.getPayload() != null)
-                    deferred.getDobject().reject((Exception) msg.getPayload());
+                    deferred.reject((Exception) msg.getPayload());
                 else
-                    deferred.getDobject().reject(new Exception("state was: " + msg.getState()));
+                    deferred.reject(new Exception("state was: " + msg.getState()));
                 return true;
             }
-            deferred.getDobject().check(deserialized);
+            deferred.check(deserialized);
             return true;
         }
         return false;
@@ -73,9 +67,7 @@ public abstract class MeinProcess implements IRequestHandler {
 
     @Override
     public void queueForResponse(MeinRequest request) {
-        requestLock.lock();
-        requestMap.put(request.getRequestId(), request);
-        requestLock.unlock();
+        requestMap.put(request.getRequestId(), request.getDobject());
     }
 
 
@@ -85,19 +77,7 @@ public abstract class MeinProcess implements IRequestHandler {
     }
 
     public void stop() {
-        requestLock.lock();
-        stopped = true;
-        for (MeinRequest request : requestMap.values()) {
-            request.getDobject().reject(new MeinValidationProcess.SendException(getClass().getSimpleName() + ".stop() was called"));
-        }
-        requestLock.unlock();
         meinAuthSocket.stop();
-    }
-
-    private void closeRequest(MeinRequest request) {
-        requestLock.lock();
-        requestMap.remove(request.getRequestId());
-        requestLock.unlock();
     }
 
     public abstract void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket);
