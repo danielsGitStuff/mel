@@ -26,7 +26,7 @@
                                 <Button fx:id="btnGeneral" maxWidth="Infinity" mnemonicParsing="false" text="Info" />
                                 <Button fx:id="btnOthers" maxWidth="Infinity" mnemonicParsing="false" text="Other Instances" />
                                 <Button fx:id="btnDiscover" maxWidth="Infinity" mnemonicParsing="false" text="Discover" />
-                                <Button fx:id="btnApprovals" maxWidth="Infinity" mnemonicParsing="false" text="Approvals" />
+                                <Button fx:id="btnApprovals" maxWidth="Infinity" mnemonicParsing="false" text="Access" />
                             </children>
                             <rotationAxis>
                                 <Point3D />

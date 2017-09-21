@@ -16,7 +16,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 
@@ -49,7 +48,7 @@ import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.android.controller.CreateServiceController;
-import de.mein.android.controller.ApprovalController;
+import de.mein.android.controller.AccessController;
 import de.mein.android.controller.GuiController;
 
 public class MainActivity extends MeinActivity {
@@ -111,6 +110,24 @@ public class MainActivity extends MeinActivity {
         navigationView.setNavigationItemSelectedListener(this);
         enableGuiController(new InfoController(this, content));
         startService();
+//      debugStuff2();
+    }
+
+    private void debugStuff2() {
+        annoyWithPermissions(Manifest.permission.WRITE_CONTACTS).done(nil -> {
+            System.out.println("MainActivity.debugStuff2");
+//            String[] PROJECTION =
+//                    {
+//                            ContactsContract.Contacts._ID,
+//                            ContactsContract.Contacts.LOOKUP_KEY,
+//                            Build.VERSION.SDK_INT
+//                                    >= Build.VERSION_CODES.HONEYCOMB ?
+//                                    Contacts.DISPLAY_NAME_PRIMARY :
+//                                    Contacts.DISPLAY_NAME
+//
+//                    };
+
+        });
     }
 
     @Override
@@ -155,7 +172,7 @@ public class MainActivity extends MeinActivity {
         } else if (id == R.id.nav_discover) {
             enableGuiController(new NetworkDiscoveryController(this, content));
         } else if (id == R.id.nav_approvals) {
-            enableGuiController(new ApprovalController(this, content));
+            enableGuiController(new AccessController(this, content));
         } else if (id == R.id.nav_new_service) {
             enableGuiController(new CreateServiceController(this, content));
         } else if (id == R.id.nav_others) {
@@ -321,8 +338,8 @@ public class MainActivity extends MeinActivity {
                 MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 2, "Discover");
                 mDiscover.setIcon(R.drawable.icon_wifi);
                 //approvals ic_menu_approval
-                MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 3, "Approvals");
-                mApprovals.setIcon(R.drawable.icon_share);
+                MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 3, "Access");
+                mApprovals.setIcon(R.drawable.icon_permissions);
                 //settings
                 MenuItem mSettings = subMeinAuth.add(5, R.id.nav_settings, 4, "Settings");
                 mSettings.setIcon(R.drawable.icon_settings);

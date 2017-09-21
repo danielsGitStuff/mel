@@ -53,6 +53,6 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
 
     @Override
     public int getMenuIcon() {
-        return R.drawable.icon_contact;
+        return R.drawable.icon_share;
     }
 }

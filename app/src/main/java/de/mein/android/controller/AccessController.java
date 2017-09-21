@@ -26,14 +26,14 @@ import de.mein.android.view.ApprovalCBListAdapter;
  * Created by xor on 2/20/17.
  */
 
-public class ApprovalController extends GuiController {
+public class AccessController extends GuiController {
     private final ListView listCertificates, listServices;
     private final KnownCertListAdapter knownCertListAdapter;
     private final ApprovalCBListAdapter serviceAdapter;
     private ApprovalMatrix matrix;
     private Long selectedCertId;
 
-    public ApprovalController(MeinActivity activity, LinearLayout content){
+    public AccessController(MeinActivity activity, LinearLayout content){
         super(activity, content, R.layout.content_approvals);
         this.listCertificates = rootView.findViewById(R.id.listCertificates);
         this.listServices = rootView.findViewById(R.id.listServices);
@@ -110,9 +110,9 @@ public class ApprovalController extends GuiController {
             listCertificates.setOnItemClickListener((parent, view, position, id) -> {
                 Certificate cert = knownCertListAdapter.getItemT(position);
                 selectedCertId = cert.getId().v();
-                System.out.println("ApprovalController.fillContent.CLICKED: " + cert.getName().v());
+                System.out.println("AccessController.fillContent.CLICKED: " + cert.getName().v());
                 serviceAdapter.clear();
-                System.out.println("ApprovalController.ApprovalController");
+                System.out.println("AccessController.AccessController");
                 serviceAdapter.setApprovalCheckedListener((serviceId, approved) -> matrix.setApproved(selectedCertId, serviceId, approved));
                 for (ServiceJoinServiceType s : services) {
                     // check if it is approved
@@ -123,7 +123,7 @@ public class ApprovalController extends GuiController {
             });
         }
         listServices.setOnItemClickListener((parent, view, position, id) -> {
-            System.out.println("ApprovalController.fillContent.CLICKED:S");
+            System.out.println("AccessController.fillContent.CLICKED:S");
             ServiceJoinServiceType service = serviceAdapter.getItemT(position);
             Long serviceId = service.getServiceId().v();
             if (serviceAdapter.isApproved(serviceId)) {
@@ -138,7 +138,7 @@ public class ApprovalController extends GuiController {
 
     @Override
     public String getTitle() {
-        return "Approvals";
+        return "Access";
     }
 
     @Override
