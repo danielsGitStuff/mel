@@ -17,6 +17,8 @@ import java.util.List;
 
 import de.mein.android.AndroidInjector;
 import de.mein.android.AndroidRegHandler;
+import de.mein.android.contacts.AndroidContactsBootloader;
+import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
@@ -33,9 +35,9 @@ import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSyncListener;
-import de.mein.android.drive.boot.AndroidDriveBootLoader;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
+import mein.de.contacts.ContactsBootloader;
 
 
 /**
@@ -243,7 +245,7 @@ public class AndroidService extends Service {
         lock.lockWrite();
 
         AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
-        meinBoot = new MeinBoot(meinAuthSettings, AndroidDriveBootLoader.class);
+        meinBoot = new MeinBoot(meinAuthSettings, AndroidDriveBootloader.class, AndroidContactsBootloader.class);
         meinBoot.addMeinAuthAdmin(admin);
         Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot().done(meinAuthService -> {
             N.r(() -> {
@@ -260,7 +262,7 @@ public class AndroidService extends Service {
     }
 
     private void android() throws IOException {
-        //meinBoot.addBootLoaderClass(AndroidDriveBootLoader.class);
+//        meinBoot.addBootLoaderClass(AndroidDriveBootloader.class);
 
         AndroidInjector.inject(this, getAssets());
     }

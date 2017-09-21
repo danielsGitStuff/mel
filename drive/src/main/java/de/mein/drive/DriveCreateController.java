@@ -10,8 +10,7 @@ import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.drive.data.DriveDetails;
-import de.mein.drive.data.DriveStrings;
+import de.mein.drive.data.*;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
@@ -48,7 +47,7 @@ public class DriveCreateController {
         return service;
     }
 
-    private void boot(Service service, DriveSettings driveSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException, InstantiationException {
+    private void boot(Service service, de.mein.drive.data.DriveSettings driveSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException, InstantiationException {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
         DriveBootLoader driveBootLoader = (DriveBootLoader) meinBoot.getBootLoader( new DriveBootLoader().getName());
         MeinDriveService meinDriveService = driveBootLoader.boot(meinAuthService, service, driveSettings);
@@ -66,8 +65,8 @@ public class DriveCreateController {
     public MeinDriveServerService createDriveServerService(String name, String path) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         RootDirectory rootDirectory = buildRootDirectory(path);
         Service service = createService(name);
-        DriveSettings driveSettings = new DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
-        driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + DriveSettings.TRANSFER_DIR);
+        de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
+        driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + de.mein.drive.data.DriveSettings.TRANSFER_DIR);
         boot(service, driveSettings);
         MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
         mdss.start();
@@ -78,8 +77,8 @@ public class DriveCreateController {
         DeferredObject<MeinDriveServerService, Exception, Void> deferred = new DeferredObject<>();
         RootDirectory rootDirectory = buildRootDirectory(path);
         Service service = createService(name);
-        DriveSettings driveSettings = new DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
-        driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + DriveSettings.TRANSFER_DIR);
+        de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
+        driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + de.mein.drive.data.DriveSettings.TRANSFER_DIR);
         boot(service, driveSettings);
         MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
         mdss.start();
@@ -94,11 +93,11 @@ public class DriveCreateController {
         //create Service
         RootDirectory rootDirectory = buildRootDirectory(path);
         Service service = createService(name);
-        DriveSettings driveSettingsCfg = new DriveSettings().setRole(DriveStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
-        driveSettingsCfg.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + DriveSettings.TRANSFER_DIR);
+        de.mein.drive.data.DriveSettings driveSettingsCfg = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
+        driveSettingsCfg.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + de.mein.drive.data.DriveSettings.TRANSFER_DIR);
         boot(service, driveSettingsCfg);
         MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinAuthService.getMeinService(service.getUuid().v());
-        DriveSettings driveSettings = meinDriveClientService.getDriveSettings();
+        de.mein.drive.data.DriveSettings driveSettings = meinDriveClientService.getDriveSettings();
 
         // approve server
         meinAuthService.getDatabaseManager().grant(service.getId().v(), certId);

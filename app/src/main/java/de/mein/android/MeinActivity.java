@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import de.mein.android.drive.boot.AndroidDriveBootLoader;
+import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.android.service.AndroidService;
 
 /**
@@ -102,6 +102,10 @@ public abstract class MeinActivity extends AppCompatActivity
         }
     }
 
+    public AndroidService getAndroidService() {
+        return androidService;
+    }
+
     protected abstract void onAndroidServiceAvailable(AndroidService androidService);
 
     @Override
@@ -143,7 +147,7 @@ public abstract class MeinActivity extends AppCompatActivity
             } else {
                 deferred.resolve(null);
             }
-            System.out.println(AndroidDriveBootLoader.class.getSimpleName() + ".askForPermission()?: " + request);
+            System.out.println(AndroidDriveBootloader.class.getSimpleName() + ".askForPermission()?: " + request);
         } else {
             deferred.resolve(null);
         }

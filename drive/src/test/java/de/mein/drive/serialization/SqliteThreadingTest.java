@@ -3,7 +3,7 @@ package de.mein.drive.serialization;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.DriveDatabaseManager;

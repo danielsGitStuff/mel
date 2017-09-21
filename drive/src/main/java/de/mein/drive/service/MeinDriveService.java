@@ -14,7 +14,7 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.IndexListener;

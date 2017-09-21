@@ -1,6 +1,7 @@
 package de.mein.android.controller;
 
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -42,7 +43,10 @@ public class CreateServiceController extends GuiController {
     private void showSelected() {
         N.r(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
-            currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
+            if (bootLoader != null) {
+                embedded.removeAllViews();
+                currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
+            }
             System.out.println("CreateServiceController.showSelected");
         });
 
@@ -72,6 +76,17 @@ public class CreateServiceController extends GuiController {
             // Specify the layout to use when the list of choices appears
             // Apply the adapter to the spinner
             spinner.setAdapter(adapter);
+            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    showSelected();
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
             showSelected();
             btnCreate.setOnClickListener(view -> {
                 if (bootLoader != null) {

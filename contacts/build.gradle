@@ -1,0 +1,10 @@
+apply plugin: 'java-library'
+
+dependencies {
+    compile project(path: ':auth')
+    testCompile project(path: ':auth')
+//    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"

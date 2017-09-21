@@ -1,5 +1,5 @@
-//include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx'
-include ':app', ':json', ':serialize', ':sql', ':auth', ':drive'//,':authfx', ':drivefx'
+//include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts'
+include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':contacts'//,':authfx', ':drivefx'
 
 project(':json').projectDir = new File('json')
 //project(':authfx').projectDir = new File('authfx')
@@ -9,3 +9,4 @@ project(':sql').projectDir = new File('sql')
 project(':auth').projectDir = new File('auth')
 project(':app').projectDir = new File('app')
 project(':drive').projectDir = new File('drive')
+project(':contacts').projectDir = new File('contacts')

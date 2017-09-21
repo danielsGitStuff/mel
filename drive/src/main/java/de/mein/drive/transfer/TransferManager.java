@@ -11,7 +11,7 @@ import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;

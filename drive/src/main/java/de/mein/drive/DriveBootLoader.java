@@ -11,7 +11,7 @@ import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.bash.BashTools;
-import de.mein.drive.data.DriveStrings;
+import de.mein.drive.data.*;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
@@ -56,7 +56,7 @@ public class DriveBootLoader extends BootLoader {
         for (Service service : services) {
             N.r(() -> {
                 File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v() + File.separator + "drive.settings.json");
-                DriveSettings driveSettings = (DriveSettings) JsonSettings.load(jsonFile);
+                de.mein.drive.data.DriveSettings driveSettings = (de.mein.drive.data.DriveSettings) JsonSettings.load(jsonFile);
                 MeinDriveService meinDriveService = boot(meinAuthService, service, driveSettings);
                 bootedPromises.add(meinDriveService.getStartedDeferred());
             });
@@ -65,7 +65,7 @@ public class DriveBootLoader extends BootLoader {
         return booted;
     }
 
-    public MeinDriveService boot(MeinAuthService meinAuthService, Service service, DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public MeinDriveService boot(MeinAuthService meinAuthService, Service service, de.mein.drive.data.DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
         Long serviceTypeId = service.getTypeId().v();
         String uuid = service.getUuid().v();
@@ -97,7 +97,7 @@ public class DriveBootLoader extends BootLoader {
     }
 
 
-    private DeferredObject<DeferredRunnable, Exception, Void> startIndexer(MeinDriveService meinDriveService, DriveSettings driveSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    private DeferredObject<DeferredRunnable, Exception, Void> startIndexer(MeinDriveService meinDriveService, de.mein.drive.data.DriveSettings driveSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         File workingDir = new File(bootLoaderDir.getAbsolutePath() + File.separator + meinDriveService.getUuid());
         workingDir.mkdirs();
         DriveDatabaseManager databaseManager = new DriveDatabaseManager(meinDriveService, workingDir, driveSettings);

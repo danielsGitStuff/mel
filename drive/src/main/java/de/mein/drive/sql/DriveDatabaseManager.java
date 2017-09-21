@@ -3,7 +3,7 @@ package de.mein.drive.sql;
 import de.mein.auth.data.access.FileRelatedManager;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.dao.FsDao;

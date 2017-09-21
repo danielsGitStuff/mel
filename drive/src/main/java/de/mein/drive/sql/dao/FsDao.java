@@ -2,7 +2,7 @@
 package de.mein.drive.sql.dao;
 
 import de.mein.auth.tools.RWSemaphore;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.*;
 import de.mein.sql.*;

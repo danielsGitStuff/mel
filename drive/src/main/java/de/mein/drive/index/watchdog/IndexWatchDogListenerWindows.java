@@ -3,7 +3,7 @@ package de.mein.drive.index.watchdog;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 
 import de.mein.auth.tools.N;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.service.MeinDriveService;

@@ -1,19 +1,14 @@
-package de.mein.drive;
+package de.mein.drive.data;
 
 import de.mein.auth.data.JsonSettings;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.drive.data.*;
-import de.mein.drive.data.DriveServerSettingsDetails;
 import de.mein.drive.data.fs.RootDirectory;
-import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Created by xor on 30.08.2016.

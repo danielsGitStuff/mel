@@ -3,7 +3,10 @@ package de.mein.android.controller;
 import android.app.Activity;
 import android.view.View;
 
+import org.greenrobot.eventbus.Subscribe;
+
 import de.mein.android.MeinActivity;
+import de.mein.android.service.AndroidService;
 
 /**
  * Created by xor on 3/9/17.

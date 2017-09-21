@@ -1,9 +1,8 @@
 package de.mein.drive.service.sync;
 
-import de.mein.auth.MeinNotification;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.fs.RootDirectory;

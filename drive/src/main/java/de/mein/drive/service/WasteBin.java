@@ -1,7 +1,7 @@
 package de.mein.drive.service;
 
 import de.mein.auth.tools.Hash;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveStrings;

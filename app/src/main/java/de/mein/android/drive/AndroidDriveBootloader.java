@@ -1,4 +1,4 @@
-package de.mein.android.drive.boot;
+package de.mein.android.drive;
 
 import android.Manifest;
 import android.app.Activity;
@@ -25,7 +25,7 @@ import de.mein.drive.service.MeinDriveClientService;
  * Created by xor on 2/25/17.
  */
 
-public class AndroidDriveBootLoader extends DriveBootLoader implements AndroidBootLoader {
+public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBootLoader {
     private static final int PERMISSION_WRITE = 666;
 
     @Override
