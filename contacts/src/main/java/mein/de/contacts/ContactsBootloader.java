@@ -28,10 +28,14 @@ import mein.de.contacts.service.ContactsService;
 
 public class ContactsBootloader extends BootLoader {
 
-    public ContactsService createService(String name, String role) throws SqlQueriesException, InstantiationException, IllegalAccessException {
+    public ContactsService createService(String name, String role) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException, IOException {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
         Service service = createService(name);
+        File serviceDir = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
+        serviceDir.mkdirs();
+        File jsonFile = new File(serviceDir, "contacts.settings.json");
         ContactsSettings contactsSettings = new ContactsSettings().setRole(role);
+        contactsSettings.setJsonFile(jsonFile).save();
         ContactsService contactsService = boot(meinAuthService, service, contactsSettings);
         return contactsService;
     }
