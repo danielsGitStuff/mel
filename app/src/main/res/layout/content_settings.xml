@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/content_main"
@@ -14,23 +15,119 @@
     tools:context="de.mein.android.MainActivity">
     <!--tools:showIn="@layout/app_bar_main"-->
 
+<TextView
+    android:id="@+id/txtConnection"
+    android:text="Connection Settings"
+    android:layout_width="match_parent"
+    android:background="@color/colorLabelBackground"
+    android:layout_height="wrap_content" />
+    <TableLayout
+        android:id="@+id/table"
+        android:layout_width="match_parent"
+        android:layout_below="@id/txtConnection"
+        android:layout_height="wrap_content">
 
+        <TableRow>
+
+            <TextView
+                android:id="@+id/lName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Name" />
+
+            <EditText
+                android:id="@+id/txtName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="text" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/lPort"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Port" />
+
+            <EditText
+                android:id="@+id/txtPort"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="textPersonName|number" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/lPortCert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cert-Port" />
+
+            <EditText
+                android:id="@+id/txtCertPort"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="textPersonName|number" />
+        </TableRow>
+    </TableLayout>
+
+    <View android:id="@+id/strut"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_centerHorizontal="true"/>
+    <Button
+        android:id="@+id/btnApply"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/table"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@id/strut"
+        android:text="Apply" />
+
+    <Button
+        android:id="@+id/btnStart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/table"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@id/strut"
+        android:text="Start/Stop" />
+    <TextView
+        android:id="@+id/txtPower"
+        android:text="Power Settings"
+        android:layout_width="match_parent"
+        android:background="@color/colorLabelBackground"
+        android:layout_below="@id/btnApply"
+        android:layout_height="wrap_content" />
     <CheckBox
         android:id="@+id/cbWorkWhenPlugged"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/txtPower"
         android:text="Always do heavy work when plugged" />
 
     <CheckBox
         android:id="@+id/cbWorkWhenOffline"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Allow heavy work when WiFi if off" />
+        android:layout_below="@id/cbWorkWhenPlugged"
+        android:text="Allow heavy work when WiFi is off" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="*Heavy work might drain your battery. It allows things like file indexing."/>
+        android:layout_below="@id/cbWorkWhenOffline"
+        android:text="*Heavy work might drain your battery. It allows things like file indexing." />
 
-</LinearLayout>
+
+</RelativeLayout>
 
