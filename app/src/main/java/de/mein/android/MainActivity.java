@@ -1,14 +1,9 @@
 package de.mein.android;
 
 import android.Manifest;
-import android.app.LoaderManager;
 import android.content.ContentResolver;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
@@ -59,8 +54,9 @@ import de.mein.drive.service.MeinDriveClientService;
 import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.AccessController;
 import de.mein.android.controller.GuiController;
-import mein.de.contacts.data.Contact;
-import mein.de.contacts.data.ContactPhone;
+import mein.de.contacts.data.db.Contact;
+import mein.de.contacts.data.db.ContactEmail;
+import mein.de.contacts.data.db.ContactPhone;
 
 public class MainActivity extends MeinActivity {
     private LinearLayout content;
@@ -121,7 +117,7 @@ public class MainActivity extends MeinActivity {
         navigationView.setNavigationItemSelectedListener(this);
         enableGuiController(new InfoController(this, content));
         startService();
-//        debugStuff2();
+        debugStuff2();
     }
 
     private void debugStuff2() {
@@ -240,7 +236,7 @@ public class MainActivity extends MeinActivity {
                 ContactsContract.Contacts.HAS_PHONE_NUMBER,
                 ContactsContract.Contacts.DISPLAY_NAME_ALTERNATIVE,
                 ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
-                ContactsContract.Contacts.DISPLAY_NAME_SOURCE
+                ContactsContract.Contacts.DISPLAY_NAME_SOURCE,
         };
         StringBuffer output;
         List<Contact> contacts = new ArrayList<>();
@@ -250,24 +246,69 @@ public class MainActivity extends MeinActivity {
         // Iterate every contact in the phone
         while (contactCursor.moveToNext()) {
             Contact contact = new Contact();
-            String contactId = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts._ID));
-            for (int i = 0; i < projContact.length; i++) {
-                contact.setValue(i, contactCursor.getString(i));
-            }
+            contacts.add(contact);
+            String contactId = readContact(contact, contactCursor);
+
             //String name = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
             int hasPhoneNumber = Integer.parseInt(contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
             if (hasPhoneNumber > 0) {
                 readPhone(contact, contactId);
-                // Read every email id associated with the contact
+            }
+            readEmail(contact, contactId);
+            // Read every email id associated with the contact
 //                    Cursor emailCursor = contentResolver.query(EmailCONTENT_URI, null, EmailCONTACT_ID + " = ?", new String[]{contactId}, null);
 //                    while (emailCursor.moveToNext()) {
 //                        email = emailCursor.getString(emailCursor.getColumnIndex(DATA));
 ////                        output.append("\n Email:" + email);
 //                    }
 //                    emailCursor.close();
-            }
+
             System.out.println("MainActivity.getContacts: ");
         }
+        contactCursor.close();
+    }
+
+    private void readEmail(Contact contact, String contactId) {
+        String[] projPhone = new String[]{
+                ContactsContract.CommonDataKinds.Email.DATA1,
+                ContactsContract.CommonDataKinds.Email.DATA2,
+                ContactsContract.CommonDataKinds.Email.DATA3,
+                ContactsContract.CommonDataKinds.Email.DATA4,
+                ContactsContract.CommonDataKinds.Email.DATA5,
+                ContactsContract.CommonDataKinds.Email.DATA6,
+                ContactsContract.CommonDataKinds.Email.DATA7,
+                ContactsContract.CommonDataKinds.Email.DATA8,
+                ContactsContract.CommonDataKinds.Email.DATA9,
+                ContactsContract.CommonDataKinds.Email.DATA10,
+                ContactsContract.CommonDataKinds.Email.DATA11,
+                ContactsContract.CommonDataKinds.Email.DATA12,
+                ContactsContract.CommonDataKinds.Email.DATA13,
+                ContactsContract.CommonDataKinds.Email.DATA14,
+                ContactsContract.CommonDataKinds.Email.DATA15,
+        };
+        ContentResolver contentResolver = getContentResolver();
+        Cursor emailCursor = contentResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, projPhone, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{contactId}, null);
+        while (emailCursor.moveToNext()) {
+            ContactEmail contactEmail = new ContactEmail();
+            for (int i = 0; i < projPhone.length; i++) {
+                contactEmail.setValue(i, emailCursor.getString(i));
+            }
+            contact.addEmail(contactEmail);
+        }
+        emailCursor.close();
+    }
+
+
+    private String readContact(Contact contact, Cursor cursor) {
+        contact.getDisplayName().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME));
+        contact.getDisplayNameAlternative().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME_ALTERNATIVE));
+        contact.getDisplayNamePrimary().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME_PRIMARY));
+        contact.getDisplayNameSource().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME_SOURCE));
+        return read(cursor, ContactsContract.Contacts._ID);
+    }
+
+    public String read(Cursor cursor, String col) {
+        return cursor.getString(cursor.getColumnIndex(col));
     }
 
     private void readPhone(Contact contact, String contactId) {
@@ -442,7 +483,7 @@ public class MainActivity extends MeinActivity {
 //                                                        .setContentHash(root.getContentHash().v())
 //                                                        .setFsId(root.getId().v())
 //                                                        .setIsDirectory(true)
-//                                                        .setName(root.getName().v())
+//                                                        .setName(root.getDisplayName().v())
 //                                                        .setOrder(order.ord())
 //                                                        .setVersion(root.getVersion().v())
 //                                                        .setDeleted(false);

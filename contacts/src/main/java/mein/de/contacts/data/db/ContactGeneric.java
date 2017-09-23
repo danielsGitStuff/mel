@@ -1,27 +1,16 @@
-package mein.de.contacts.data;
-
-import java.nio.channels.Pipe;
+package mein.de.contacts.data.db;
 
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 
 /**
- * Created by xor on 9/22/17.
+ * Created by xor on 9/23/17.
  */
 
-public class ContactPhone extends SQLTableObject implements SerializableEntity {
+public abstract  class ContactGeneric extends SQLTableObject implements SerializableEntity{
 
     private Pair<Long> id = new Pair<>(Long.class, "id");
-
-    public ContactPhone(){
-        init();
-    }
-
-    @Override
-    public String getTableName() {
-        return "contactPhone";
-    }
 
     @Override
     protected void init() {
@@ -33,8 +22,7 @@ public class ContactPhone extends SQLTableObject implements SerializableEntity {
         populateAll(id);
     }
 
-    public ContactPhone setValue(int index, String value){
+    public void setValue(int index, String value){
         insertAttributes.get(index).setValueUnsecure(value);
-        return this;
     }
 }

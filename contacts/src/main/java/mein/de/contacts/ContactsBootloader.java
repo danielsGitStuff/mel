@@ -19,6 +19,7 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 import mein.de.contacts.data.ContactsSettings;
 import mein.de.contacts.data.ContactsStrings;
+import mein.de.contacts.data.db.ContactsDatabaseManager;
 import mein.de.contacts.service.ContactsServerService;
 import mein.de.contacts.service.ContactsService;
 
@@ -42,6 +43,7 @@ public class ContactsBootloader extends BootLoader {
 
     public ContactsService boot(MeinAuthService meinAuthService, Service service, ContactsSettings contactsSettings) throws SqlQueriesException {
         File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
+        ContactsDatabaseManager contactsDatabaseManager = new ContactsDatabaseManager(workingDirectory);
         ContactsService contactsService = null;
         if (contactsSettings.isServer()) {
             contactsService = new ContactsServerService(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v());

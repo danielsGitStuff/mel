@@ -2,19 +2,52 @@ BEGIN TRANSACTION;
 DROP TABLE IF EXISTS contacts;
 DROP TABLE IF EXISTS delta;
 DROP TABLE IF EXISTS history;
-CREATE TABLE fsentry (
+CREATE TABLE contact (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  name        TEXT    NOT NULL,
-  parentid    INTEGER,
-  version     INTEGER NOT NULL,
-  contenthash TEXT    NOT NULL,
-  dir         INTEGER NOT NULL,
-  synced      INTEGER NOT NULL,
-  inode       INTEGER,
-  modified    INTEGER,
-  size        INTEGER,
-  FOREIGN KEY (parentid) REFERENCES fsentry (id)
-);
-CREATE INDEX eversion
-  ON fsentry (version);
+  displayname        TEXT    not null,
+  displaynamealternative        TEXT,
+    displaynameprimitive        TEXT,
+      displaynamesource        TEXT
+  );
+
+  CREATE TABLE phone (
+    id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    contactid integer not null,
+    data1        TEXT,
+    data2        TEXT,
+    data3        TEXT,
+    data4        TEXT,
+    data5        TEXT,
+    data6        TEXT,
+    data7        TEXT,
+    data8        TEXT,
+    data9        TEXT,
+    data10        TEXT,
+    data11        TEXT,
+    data12        TEXT,
+    data13        TEXT,
+    data14        TEXT,
+    data15        TEXT,
+    foreign key (contactid) references contact (id)
+    );
+    CREATE TABLE email (
+      id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      contactid integer not null,
+      data1        TEXT,
+      data2        TEXT,
+      data3        TEXT,
+      data4        TEXT,
+      data5        TEXT,
+      data6        TEXT,
+      data7        TEXT,
+      data8        TEXT,
+      data9        TEXT,
+      data10        TEXT,
+      data11        TEXT,
+      data12        TEXT,
+      data13        TEXT,
+      data14        TEXT,
+      data15        TEXT,
+      foreign key (contactid) references contact (id)
+      );
 COMMIT;

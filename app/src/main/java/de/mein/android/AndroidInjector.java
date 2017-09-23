@@ -22,6 +22,8 @@ import de.mein.android.sql.AndroidDBConnection;
 import de.mein.execute.SqliteExecutorInjection;
 import de.mein.android.sql.AndroidSQLQueries;
 import de.mein.sql.conn.SQLConnection;
+import mein.de.contacts.ContactsInjector;
+import mein.de.contacts.data.ContactStrings;
 
 /**
  * Created by xor on 3/8/17.
@@ -80,6 +82,7 @@ public class AndroidInjector {
         });
         MeinInjector.setBase64Encoder(bytes -> Base64.encode(bytes, Base64.NO_WRAP));
         MeinInjector.setBase64Decoder(string -> Base64.decode(string, Base64.NO_WRAP));
+        // drive
         DriveInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
                 @Override
@@ -106,5 +109,29 @@ public class AndroidInjector {
         BashTools.setInstance(bashTools);
         DriveInjector.setWatchDogRunner(RecursiveWatcher::new);
         DriveInjector.setBinPath("/system/bin/sh");
+
+        //contacts
+        ContactsInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
+            SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + ContactStrings.DB_FILENAME, null, ContactStrings.DB_VERSION) {
+                @Override
+                public void onCreate(SQLiteDatabase db) {
+                    System.out.println("AndroidDriveBootloader.onCreate");
+                }
+
+                @Override
+                public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+                    System.out.println("AndroidDriveBootloader.onUpgrade");
+                }
+            };
+            return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
+        });
+        ContactsInjector.setDriveSqlInputStreamInjector(() -> {
+            try {
+                return assetManager.open("contacts.sql");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
     }
 }
