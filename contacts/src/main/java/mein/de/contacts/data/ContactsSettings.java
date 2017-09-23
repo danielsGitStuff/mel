@@ -1,6 +1,12 @@
 package mein.de.contacts.data;
 
+import java.io.File;
+import java.io.IOException;
+
 import de.mein.auth.data.JsonSettings;
+import de.mein.core.serialize.exceptions.JsonDeserializationException;
+import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.sql.SqlQueriesException;
 import mein.de.contacts.service.ContactsServerService;
 
 /**
@@ -23,6 +29,23 @@ public class ContactsSettings extends JsonSettings {
         else if (role.equals(ContactsStrings.ROLE_SERVER) && serverSettings == null)
             serverSettings = new ContactsServerSettings();
         return this;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public static ContactsSettings load(File jsonFile, ContactsSettings settingsCfg) throws IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
+        ContactsSettings contactsSettings = (ContactsSettings) JsonSettings.load(jsonFile);
+        if (contactsSettings == null) {
+            contactsSettings = new ContactsSettings();
+            contactsSettings.setJsonFile(jsonFile);
+        }
+        if (settingsCfg != null) {
+            contactsSettings.setRole(settingsCfg.getRole());
+        }
+        contactsSettings.save();
+        return contactsSettings;
     }
 
 }

@@ -6,15 +6,19 @@ import java.io.InputStream;
 import java.sql.SQLException;
 
 import de.mein.auth.data.access.FileRelatedManager;
+import de.mein.core.serialize.exceptions.JsonDeserializationException;
+import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.RWLock;
 import de.mein.sql.SQLQueries;
 import de.mein.sql.SQLStatement;
+import de.mein.sql.SqlQueriesException;
 import de.mein.sql.conn.SQLConnector;
 import de.mein.sql.transform.SqlResultTransformer;
 import mein.de.contacts.data.ContactStrings;
 import mein.de.contacts.data.ContactsSettings;
+import mein.de.contacts.data.db.dao.ContactsDao;
 import mein.de.contacts.service.ContactsService;
 
 /**
@@ -25,8 +29,9 @@ public class ContactsDatabaseManager extends FileRelatedManager {
     private final ISQLQueries sqlQueries;
     private final ContactsService contactsService;
     private final ContactsSettings settings;
+    private final ContactsDao contactsDao;
 
-    public ContactsDatabaseManager(ContactsService contactsService, File workingDirectory) throws SQLException, ClassNotFoundException, IOException {
+    public ContactsDatabaseManager(ContactsService contactsService, File workingDirectory, ContactsSettings settingsCfg) throws SQLException, ClassNotFoundException, IOException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         super(workingDirectory);
 
         this.contactsService = contactsService;
@@ -51,19 +56,14 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
         st.execute();
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
-        if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
+        if (!sqliteExecutor.checkTablesExist("contacts", "phone", "email")) {
             //find sql file in workingdir
             sqliteExecutor.executeStream(contactsSqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
-
-        settings = new ContactsSettings();
+        contactsDao = new ContactsDao(sqlQueries);
         File settingsFile = new File(workingDirectory.getAbsolutePath() + File.separator + "contacts.settings.json");
-        settings = ContactsSettings.load(settingsFile, driveSettingsCfg).setRole(driveSettingsCfg.getRole()).setRootDirectory(driveSettingsCfg.getRootDirectory());
-        this.driveSettings.getRootDirectory().backup();
-        this.driveSettings.getRootDirectory().setOriginalFile(new File(this.driveSettings.getRootDirectory().getPath()));
-        this.driveSettings.setTransferDirectoryPath(driveSettingsCfg.getTransferDirectoryPath());
-
+        settings = ContactsSettings.load(settingsFile, settingsCfg);
     }
 
     public interface SQLConnectionCreator {
