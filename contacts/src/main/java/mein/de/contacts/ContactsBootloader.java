@@ -29,7 +29,7 @@ import mein.de.contacts.service.ContactsService;
 
 public class ContactsBootloader extends BootLoader {
 
-    public ContactsService createService(String name, String role) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException, IOException {
+    public ContactsService createService(String name, String role) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException, IOException, ClassNotFoundException, SQLException, JsonDeserializationException {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
         Service service = createService(name);
         File serviceDir = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
@@ -41,12 +41,11 @@ public class ContactsBootloader extends BootLoader {
         return contactsService;
     }
 
-    public ContactsService boot(MeinAuthService meinAuthService, Service service, ContactsSettings contactsSettings) throws SqlQueriesException {
+    public ContactsService boot(MeinAuthService meinAuthService, Service service, ContactsSettings contactsSettings) throws SqlQueriesException, JsonDeserializationException, JsonSerializationException, IOException, SQLException, IllegalAccessException, ClassNotFoundException {
         File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
-        ContactsDatabaseManager contactsDatabaseManager = new ContactsDatabaseManager(workingDirectory);
         ContactsService contactsService = null;
         if (contactsSettings.isServer()) {
-            contactsService = new ContactsServerService(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v());
+            contactsService = new ContactsServerService(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
             meinAuthService.registerMeinService(contactsService);
         } else
             System.out.println("ContactsBootloader.boot.NOT:IMPLEMENTED:YET");

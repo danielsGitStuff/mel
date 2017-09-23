@@ -1,6 +1,8 @@
 package mein.de.contacts.service;
 
 import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
 
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
@@ -10,6 +12,11 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinService;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.core.serialize.exceptions.JsonDeserializationException;
+import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.sql.SqlQueriesException;
+import mein.de.contacts.data.ContactsSettings;
+import mein.de.contacts.data.db.ContactsDatabaseManager;
 
 /**
  * Created by xor on 9/21/17.
@@ -18,8 +25,12 @@ import de.mein.auth.socket.process.val.Request;
 public abstract class ContactsService extends MeinService {
 
 
-    public ContactsService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid) {
+    protected final ContactsDatabaseManager contactsDatabaseManager;
+
+    public ContactsService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid);
+        contactsDatabaseManager = new ContactsDatabaseManager(this, serviceInstanceWorkingDirectory, settingsCfg);
+
     }
 
     @Override
