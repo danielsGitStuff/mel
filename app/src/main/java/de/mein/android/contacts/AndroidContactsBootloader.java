@@ -5,17 +5,26 @@ import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.contacts.controller.AndroidContactsCreateGuiController;
+import de.mein.android.contacts.service.AndroidContactsServerService;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.drive.controller.AndroidDriveCreateGuiController;
 import de.mein.android.drive.controller.AndroidDriveEditGuiController;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.core.serialize.exceptions.JsonDeserializationException;
+import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.sql.SqlQueriesException;
 import mein.de.contacts.ContactsBootloader;
+import mein.de.contacts.data.ContactsSettings;
 import mein.de.contacts.data.ContactsStrings;
 import mein.de.contacts.service.ContactsService;
 
@@ -24,6 +33,11 @@ import mein.de.contacts.service.ContactsService;
  */
 
 public class AndroidContactsBootloader extends ContactsBootloader implements AndroidBootLoader {
+    @Override
+    protected ContactsService createServerInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceId, String serviceTypeId, ContactsSettings contactsSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+        return new AndroidContactsServerService(meinAuthService,workingDirectory,serviceId, serviceTypeId,contactsSettings);
+    }
+
     @Override
     public void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceCreatorGuiController currentController) {
 
@@ -40,8 +54,10 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
 
     @Override
     public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, View rootView, IMeinService runningInstance) {
-        return null;
+        activity.annoyWithPermissions(Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS);
+        return new AndroidContactsCreateGuiController(activity, rootView);
     }
+
 
     @Override
     public AndroidServiceCreatorGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {

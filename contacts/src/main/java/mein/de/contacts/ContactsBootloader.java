@@ -45,11 +45,15 @@ public class ContactsBootloader extends BootLoader {
         File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
         ContactsService contactsService = null;
         if (contactsSettings.isServer()) {
-            contactsService = new ContactsServerService(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
+            contactsService = createServerInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
             meinAuthService.registerMeinService(contactsService);
         } else
             System.out.println("ContactsBootloader.boot.NOT:IMPLEMENTED:YET");
         return contactsService;
+    }
+
+    protected ContactsService createServerInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceId, String serviceTypeId, ContactsSettings contactsSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+        return new ContactsServerService(meinAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings);
     }
 
     private Service createService(String name) throws SqlQueriesException {

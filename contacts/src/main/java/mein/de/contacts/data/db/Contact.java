@@ -20,6 +20,8 @@ public class Contact extends SQLTableObject implements SerializableEntity {
     private Pair<String> displayNamePrimary = new Pair<>(String.class, "displaynameprimitive");
 
     private Pair<String> displayNameSource = new Pair<>(String.class, "displaynamesource");
+    private Pair<byte[]> image = new Pair<>(byte[].class, "image");
+
     private List<ContactPhone> phones = new ArrayList<>();
     private List<ContactEmail> emails = new ArrayList<>();
 
@@ -47,6 +49,11 @@ public class Contact extends SQLTableObject implements SerializableEntity {
         return displayNameSource;
     }
 
+
+    public Pair<byte[]> getImage() {
+        return image;
+    }
+
     @Override
     public String getTableName() {
         return "contacts";
@@ -54,7 +61,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(displayName, displayNameAlternative, displayNamePrimary, displayNameSource);
+        populateInsert(displayName, displayNameAlternative, displayNamePrimary, displayNameSource,image);
         populateAll(id);
     }
 
@@ -64,5 +71,13 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     public void addEmail(ContactEmail contactEmail) {
         emails.add(contactEmail);
+    }
+
+    public List<ContactPhone> getPhones() {
+        return phones;
+    }
+
+    public List<ContactEmail> getEmails() {
+        return emails;
     }
 }

@@ -2,8 +2,11 @@ package de.mein.android;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
@@ -25,7 +28,11 @@ import android.widget.LinearLayout;
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
 
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +63,7 @@ import de.mein.android.controller.AccessController;
 import de.mein.android.controller.GuiController;
 import mein.de.contacts.data.db.Contact;
 import mein.de.contacts.data.db.ContactEmail;
+import mein.de.contacts.data.db.ContactImage;
 import mein.de.contacts.data.db.ContactPhone;
 
 public class MainActivity extends MeinActivity {
@@ -78,7 +86,7 @@ public class MainActivity extends MeinActivity {
 
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
-
+        debugStuff2();
     }
 
 
@@ -87,6 +95,7 @@ public class MainActivity extends MeinActivity {
         super.onCreate(savedInstanceState);
         //use custom logger
         MeinLogger.redirectSysOut(200);
+        Tools.setApplicationContext(getApplicationContext());
         setContentView(R.layout.activity_main);
         content = findViewById(R.id.content);
         toolbar = findViewById(R.id.toolbar);
@@ -117,119 +126,17 @@ public class MainActivity extends MeinActivity {
         navigationView.setNavigationItemSelectedListener(this);
         enableGuiController(new InfoController(this, content));
         startService();
-        debugStuff2();
     }
 
     private void debugStuff2() {
         annoyWithPermissions(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS).done(result -> {
             getContacts();
-//            final String[] PROJECTION =
-//                    {
-//                            ContactsContract.Contacts._ID,
-//                            ContactsContract.Contacts.LOOKUP_KEY,
-//                            Build.VERSION.SDK_INT
-//                                    >= Build.VERSION_CODES.HONEYCOMB ?
-//                                    ContactsContract.Contacts.DISPLAY_NAME_PRIMARY :
-//                                    ContactsContract.Contacts.DISPLAY_NAME
-//
-//                    };
-//            Loader<Cursor> loader = getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
-//                @Override
-//                public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-//                    return new CursorLoader(
-//                            MainActivity.this,
-//                            ContactsContract.Contacts.CONTENT_URI,
-//                            PROJECTION,
-//                            null,
-//                            null,
-//                            null);
-//                }
-//
-//                @Override
-//                public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-//                    System.out.println("MainActivity.onLoadFinished");
-//                    while (cursor.moveToNext()) {
-//                        int columnCount = cursor.getColumnCount();
-//                        String s1 = cursor.getString(0);
-//                        String s2 = cursor.getString(1);
-//                        String s3 = cursor.getString(2);
-//
-//
-//                        String[] U =
-//                                new String[]{
-//                                        ContactsContract.Data._ID,
-//                                        ContactsContract.Data.MIMETYPE,
-//                                        ContactsContract.Data.DATA1,
-//                                        ContactsContract.Data.DATA2,
-//                                        ContactsContract.Data.DATA3,
-//                                        ContactsContract.Data.DATA4,
-//                                        ContactsContract.Data.DATA5,
-//                                        ContactsContract.Data.DATA6,
-//                                        ContactsContract.Data.DATA7,
-//                                        ContactsContract.Data.DATA8,
-//                                        ContactsContract.Data.DATA9,
-//                                        ContactsContract.Data.DATA10,
-//                                        ContactsContract.Data.DATA11,
-//                                        ContactsContract.Data.DATA12,
-//                                        ContactsContract.Data.DATA13,
-//                                        ContactsContract.Data.DATA14,
-//                                        ContactsContract.Data.DATA15
-//                                };
-//
-//                        getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
-//                            @Override
-//                            public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-//                                return new CursorLoader(MainActivity.this, ContactsContract.Data.CONTENT_URI, U, null, null, null);
-//                            }
-//
-//                            @Override
-//                            public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-//                                System.out.println("MainActivity.onLoadFinished///");
-//                                while (cursor.moveToNext()) {
-//                                    int colCount = cursor.getColumnCount();
-//                                    for (int i = 0; i < colCount; i++) {
-//                                        System.out.println("MainActivity.onLoadFinished: " + cursor.getColumnName(i) + " : " + cursor.getString(i));
-//                                    }
-//                                }
-//                                System.out.println("MainActivity.onLoadFinished");
-//
-//                            }
-//
-//                            @Override
-//                            public void onLoaderReset(Loader<Cursor> loader) {
-//
-//                            }
-//                        });
-//
-//                        System.out.println("MainActivity.onLoadFinished");
-//                    }
-//                }
-//
-//                @Override
-//                public void onLoaderReset(Loader<Cursor> loader) {
-//                    System.out.println("MainActivity.onLoaderReset");
-//                }
-//            });
-//            System.out.println("MainActivity.debugStuff2");
         });
 
     }
 
     public void getContacts() {
         List<String> contactList = new ArrayList<String>();
-        String phoneNumber = null;
-        String email = null;
-//        Uri CONTENT_URI = ContactsContract.Contacts.CONTENT_URI;
-//        String _ID = ContactsContract.Contacts._ID;
-//        String DISPLAY_NAME = ContactsContract.Contacts.DISPLAY_NAME;
-//        String HAS_PHONE_NUMBER = ContactsContract.Contacts.HAS_PHONE_NUMBER;
-//        Uri PhoneCONTENT_URI = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
-//        String Phone_CONTACT_ID = ContactsContract.CommonDataKinds.Phone.CONTACT_ID;
-//        String NUMBER = ContactsContract.CommonDataKinds.Phone.NUMBER;
-//        Uri EmailCONTENT_URI = ContactsContract.CommonDataKinds.Email.CONTENT_URI;
-//        String EmailCONTACT_ID = ContactsContract.CommonDataKinds.Email.CONTACT_ID;
-//        String DATA = ContactsContract.CommonDataKinds.Email.DATA;
-
         String[] projContact = new String[]{
                 ContactsContract.Contacts._ID,
                 ContactsContract.Contacts.DISPLAY_NAME,
@@ -255,17 +162,34 @@ public class MainActivity extends MeinActivity {
                 readPhone(contact, contactId);
             }
             readEmail(contact, contactId);
-            // Read every email id associated with the contact
-//                    Cursor emailCursor = contentResolver.query(EmailCONTENT_URI, null, EmailCONTACT_ID + " = ?", new String[]{contactId}, null);
-//                    while (emailCursor.moveToNext()) {
-//                        email = emailCursor.getString(emailCursor.getColumnIndex(DATA));
-////                        output.append("\n Email:" + email);
-//                    }
-//                    emailCursor.close();
-
+            readPhoto(contact, contactId);
             System.out.println("MainActivity.getContacts: ");
         }
         contactCursor.close();
+    }
+
+    private byte[] bitmapToBytes(Bitmap bitmap) {
+        int size = bitmap.getRowBytes() * bitmap.getHeight();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(size);
+        bitmap.copyPixelsToBuffer(byteBuffer);
+        return byteBuffer.array();
+    }
+
+    private void readPhoto(Contact contact, String contactId) {
+        InputStream inputStream = ContactsContract.Contacts.openContactPhotoInputStream(getContentResolver(),
+                ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.valueOf(contactId)));
+        try {
+            if (inputStream != null) {
+                Bitmap photo = BitmapFactory.decodeStream(inputStream);
+                contact.getImage().v(bitmapToBytes(photo));
+            }
+        } finally {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void readEmail(Contact contact, String contactId) {

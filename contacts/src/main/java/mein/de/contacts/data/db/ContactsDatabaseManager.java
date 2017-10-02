@@ -66,6 +66,10 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         settings = ContactsSettings.load(settingsFile, settingsCfg);
     }
 
+    public ContactsDao getContactsDao() {
+        return contactsDao;
+    }
+
     public interface SQLConnectionCreator {
         ISQLQueries createConnection(ContactsDatabaseManager contactsDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
     }
@@ -80,7 +84,7 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         InputStream createSqlFileInputStream();
     }
 
-    private static ContactsSqlInputStreamInjector contactsSqlInputStreamInjector = () -> String.class.getResourceAsStream("/drive.sql");
+    private static ContactsSqlInputStreamInjector contactsSqlInputStreamInjector = () -> String.class.getResourceAsStream("/contacts.sql");
 
     public static void setContactsSqlInputStreamInjector(ContactsSqlInputStreamInjector contactsSqlInputStreamInjector) {
         ContactsDatabaseManager.contactsSqlInputStreamInjector = contactsSqlInputStreamInjector;

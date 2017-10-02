@@ -59,9 +59,11 @@ android {
 task copyFiles(type: Copy) {
     def f = rootProject.file('auth/src/main/resources')
     def f2 = rootProject.file('drive/src/main/resources')
+    def f3 = rootProject.file('contacts/src/main/resources')
     def t = rootProject.file('app/src/main/assets')
     from(f)
     from(f2)
+    from(f3)
     into(t)
     include('*.sql')
     logger.error(f.getAbsolutePath())
