@@ -1,10 +1,13 @@
-package de.mein.android.contacts.service;
+package de.mein.android.contacts;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.Context;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.provider.ContactsContract;
 
 import java.io.File;
@@ -37,6 +40,26 @@ import mein.de.contacts.service.ContactsServerService;
 public class AndroidContactsServerService extends ContactsServerService {
     public AndroidContactsServerService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
+        Context context = Tools.getApplicationContext();
+        context.getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, new ContentObserver(null) {
+            @Override
+            public boolean deliverSelfNotifications() {
+                System.out.println("AndroidContactsServerService.deliverSelfNotifications");
+                return super.deliverSelfNotifications();
+            }
+
+            @Override
+            public void onChange(boolean selfChange) {
+                System.out.println("AndroidContactsServerService.onChange");
+                super.onChange(selfChange);
+            }
+
+            @Override
+            public void onChange(boolean selfChange, Uri uri) {
+                System.out.println("AndroidContactsServerService.onChange");
+                super.onChange(selfChange, uri);
+            }
+        });
     }
 
 
@@ -140,15 +163,18 @@ public class AndroidContactsServerService extends ContactsServerService {
                 ContactsContract.CommonDataKinds.Email.DATA13,
                 ContactsContract.CommonDataKinds.Email.DATA14,
                 ContactsContract.CommonDataKinds.Email.DATA15,
+                ContactsContract.CommonDataKinds.Email._ID
         };
         ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
         Cursor emailCursor = contentResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, projPhone, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{contactId}, null);
         while (emailCursor.moveToNext()) {
-            ContactEmail contactEmail = new ContactEmail();
-            for (int i = 0; i < projPhone.length; i++) {
-                contactEmail.setValue(i, emailCursor.getString(i));
+            ContactEmail email = new ContactEmail();
+            for (int i = 0; i < 15; i++) {
+                email.setValue(i, emailCursor.getString(i));
             }
-            contact.addEmail(contactEmail);
+            Long androidId = emailCursor.getLong(15);
+            email.setAndroidId(androidId);
+            contact.addEmail(email);
         }
         emailCursor.close();
     }
@@ -159,6 +185,7 @@ public class AndroidContactsServerService extends ContactsServerService {
         contact.getDisplayNameAlternative().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME_ALTERNATIVE));
         contact.getDisplayNamePrimary().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME_PRIMARY));
         contact.getDisplayNameSource().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME_SOURCE));
+        contact.getAndroidId().v(cursor.getLong(cursor.getColumnIndex(ContactsContract.Contacts._ID)));
         return read(cursor, ContactsContract.Contacts._ID);
     }
 

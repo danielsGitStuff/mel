@@ -24,6 +24,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     private List<ContactPhone> phones = new ArrayList<>();
     private List<ContactEmail> emails = new ArrayList<>();
+    private Pair<Long> androidId = new Pair<>(Long.class,"aid");
 
     public Contact() {
         init();
@@ -79,5 +80,9 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     public List<ContactEmail> getEmails() {
         return emails;
+    }
+
+    public Pair<Long> getAndroidId() {
+        return androidId;
     }
 }
