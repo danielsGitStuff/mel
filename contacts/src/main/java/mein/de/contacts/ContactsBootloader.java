@@ -18,8 +18,6 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 import mein.de.contacts.data.ContactsSettings;
-import mein.de.contacts.data.ContactsStrings;
-import mein.de.contacts.data.db.ContactsDatabaseManager;
 import mein.de.contacts.service.ContactsClientService;
 import mein.de.contacts.service.ContactsServerService;
 import mein.de.contacts.service.ContactsService;

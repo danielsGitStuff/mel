@@ -5,7 +5,8 @@ DROP TABLE IF EXISTS email;
 DROP TABLE IF EXISTS phonebook;
 create table phonebook(
 id integer not null primary key autoincrement,
-version integer not null,
+version integer,
+hash text,
 created integer
 );
 CREATE TRIGGER IF NOT EXISTS createdstamp
@@ -27,7 +28,7 @@ CREATE TABLE contacts (
       displaynamesource        TEXT,
       image blob,
       hash text,
-      foreign key (pid) references phonebook(id)
+      foreign key (pid) references phonebook(id) on delete cascade
   );
 
   CREATE TABLE phone (
@@ -49,7 +50,7 @@ CREATE TABLE contacts (
     data13        TEXT,
     data14        TEXT,
     data15        TEXT,
-    foreign key (contactid) references contacts (id)
+    foreign key (contactid) references contacts (id) on delete cascade
     );
     CREATE TABLE email (
       id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -70,6 +71,6 @@ CREATE TABLE contacts (
       data13        TEXT,
       data14        TEXT,
       data15        TEXT,
-      foreign key (contactid) references contacts (id)
+      foreign key (contactid) references contacts (id) on delete cascade
       );
 COMMIT;
