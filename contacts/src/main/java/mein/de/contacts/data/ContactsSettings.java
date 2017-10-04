@@ -17,6 +17,7 @@ public class ContactsSettings extends JsonSettings {
     private String role = ":(";
     private ContactsServerSettings serverSettings;
     private ContactsClientSettings clientSettings;
+    private Long version = 0L;
 
     public boolean isServer() {
         return role.equals(ContactsStrings.ROLE_SERVER);
@@ -29,6 +30,14 @@ public class ContactsSettings extends JsonSettings {
         else if (role.equals(ContactsStrings.ROLE_SERVER) && serverSettings == null)
             serverSettings = new ContactsServerSettings();
         return this;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public String getRole() {

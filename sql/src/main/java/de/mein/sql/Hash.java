@@ -1,4 +1,4 @@
-package de.mein.auth.tools;
+package de.mein.sql;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 

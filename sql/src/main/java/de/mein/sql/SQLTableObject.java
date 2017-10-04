@@ -6,16 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * basically represents a table in a database.
+ * basically represents a row in a database table.
  *
  * @author xor
  */
 public abstract class SQLTableObject {
 
     @JsonIgnore
-    protected transient ArrayList<Pair<?>> allAttributes;
+    protected transient List<Pair<?>> allAttributes;
     @JsonIgnore
-    protected transient ArrayList<Pair<?>> insertAttributes;
+    protected transient List<Pair<?>> insertAttributes;
 
     public abstract String getTableName();
 
@@ -23,7 +23,7 @@ public abstract class SQLTableObject {
         return allAttributes;
     }
 
-    protected void addToList(ArrayList<Pair<?>> list, Pair... pairs) {
+    protected void addToList(List<Pair<?>> list, Pair... pairs) {
         for (Pair pair : pairs) {
             list.add(pair);
         }

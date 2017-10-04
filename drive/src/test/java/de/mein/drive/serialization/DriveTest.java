@@ -13,7 +13,7 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.Hash;
+import de.mein.sql.Hash;
 import de.mein.auth.tools.Lok;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;

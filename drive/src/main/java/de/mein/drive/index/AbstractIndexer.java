@@ -1,7 +1,7 @@
 package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
-import de.mein.auth.tools.Hash;
+import de.mein.sql.Hash;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.bash.BashTools;

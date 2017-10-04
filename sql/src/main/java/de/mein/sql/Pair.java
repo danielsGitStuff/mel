@@ -1,5 +1,7 @@
 package de.mein.sql;
 
+import java.util.List;
+
 import de.mein.sql.transform.NumberTransformer;
 
 /**
@@ -167,6 +169,10 @@ public class Pair<V> {
     }
 
 
+    /**
+     * sets value to null
+     * @return
+     */
     public Pair<V> nul() {
         value = null;
         return this;
@@ -178,5 +184,43 @@ public class Pair<V> {
 
     public boolean notNull() {
         return value != null;
+    }
+
+    public static String hash(List<Pair<?>> pairs) {
+        return hash(pairs.toArray(new Pair[0]));
+    }
+
+    public static String hash(Pair<?>... pairs) {
+        MD5er md5er = new MD5er();
+        hash(md5er, pairs);
+        return md5er.digest();
+    }
+
+    /**
+     * feeds the MD5er with pairs but does not digest at the end.
+     *
+     * @param md5er
+     * @param pairs
+     */
+    public static MD5er hash(MD5er md5er, Pair<?>... pairs) {
+        for (Pair<?> pair : pairs) {
+            md5er.hash(pair.v());
+        }
+        return md5er;
+    }
+
+    public static MD5er hash(MD5er md5er, List<Pair<?>> pairs) {
+        return hash(md5er, pairs.toArray(new Pair[0]));
+    }
+
+    public boolean equalsValue(Object o) {
+        if (o != null && o instanceof Pair)
+            o = ((Pair) o).v();
+        if (value == null && o == null)
+            return true;
+        else if (value != null && o != null) {
+            return value.equals(o);
+        }
+        return false;
     }
 }

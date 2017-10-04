@@ -31,7 +31,12 @@ import mein.de.contacts.service.ContactsService;
 public class AndroidContactsBootloader extends ContactsBootloader implements AndroidBootLoader {
     @Override
     protected ContactsService createServerInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceId, String serviceTypeId, ContactsSettings contactsSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
-        return new AndroidContactsServerService(meinAuthService,workingDirectory,serviceId, serviceTypeId,contactsSettings);
+        return new AndroidContactsServerService(meinAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings);
+    }
+
+    @Override
+    protected ContactsService createClientInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String serviceUuid, ContactsSettings settings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+        return new AndroidContactsClientService(meinAuthService, workingDirectory, serviceTypeId, serviceUuid, settings);
     }
 
     @Override
@@ -41,8 +46,7 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
         try {
             AndroidContactsCreateGuiController controller = (AndroidContactsCreateGuiController) currentController;
             ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeByName(new ContactsBootloader().getName());
-            ContactsBootloader bootloader = (ContactsBootloader) meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
-            ContactsService contactsService = bootloader.createService(controller.getName(), controller.getRole());
+            ContactsService contactsService = createService(controller.getName(), controller.getRole());
         } catch (Exception e) {
             e.printStackTrace();
         }

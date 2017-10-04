@@ -20,6 +20,7 @@ import de.mein.sql.SqlQueriesException;
 import mein.de.contacts.data.ContactsSettings;
 import mein.de.contacts.data.ContactsStrings;
 import mein.de.contacts.data.db.ContactsDatabaseManager;
+import mein.de.contacts.service.ContactsClientService;
 import mein.de.contacts.service.ContactsServerService;
 import mein.de.contacts.service.ContactsService;
 
@@ -47,9 +48,15 @@ public class ContactsBootloader extends BootLoader {
         if (contactsSettings.isServer()) {
             contactsService = createServerInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
             meinAuthService.registerMeinService(contactsService);
-        } else
-            System.out.println("ContactsBootloader.boot.NOT:IMPLEMENTED:YET");
+        } else {
+            contactsService = createClientInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
+            meinAuthService.registerMeinService(contactsService);
+        }
         return contactsService;
+    }
+
+    protected ContactsService createClientInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String serviceUuid, ContactsSettings settings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+        return new ContactsClientService(meinAuthService, workingDirectory, serviceTypeId, serviceUuid, settings);
     }
 
     protected ContactsService createServerInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceId, String serviceTypeId, ContactsSettings contactsSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {

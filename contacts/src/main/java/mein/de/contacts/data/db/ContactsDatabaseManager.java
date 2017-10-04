@@ -66,6 +66,10 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         settings = ContactsSettings.load(settingsFile, settingsCfg);
     }
 
+    public ContactsSettings getSettings() {
+        return settings;
+    }
+
     public ContactsDao getContactsDao() {
         return contactsDao;
     }

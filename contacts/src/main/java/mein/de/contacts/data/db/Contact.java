@@ -1,9 +1,12 @@
 package mein.de.contacts.data.db;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
+import de.mein.sql.MD5er;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 
@@ -24,7 +27,10 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     private List<ContactPhone> phones = new ArrayList<>();
     private List<ContactEmail> emails = new ArrayList<>();
-    private Pair<Long> androidId = new Pair<>(Long.class,"aid");
+    @JsonIgnore
+    private Pair<Long> androidId = new Pair<>(Long.class, "aid");
+    private Pair<String> hash = new Pair<>(String.class, "hash");
+    private List<Pair<?>> hashPairs;
 
     public Contact() {
         init();
@@ -62,7 +68,9 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(displayName, displayNameAlternative, displayNamePrimary, displayNameSource,image);
+        populateInsert(displayName, displayNameAlternative, displayNamePrimary, displayNameSource, image);
+        hashPairs = new ArrayList<>(insertAttributes);
+        insertAttributes.add(hash);
         populateAll(id);
     }
 
@@ -84,5 +92,20 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     public Pair<Long> getAndroidId() {
         return androidId;
+    }
+
+    public Pair<String> getHash() {
+        return hash;
+    }
+
+    public String hash() {
+        MD5er md5er = Pair.hash(new MD5er(), insertAttributes);
+        for (ContactPhone phone : phones)
+            phone.hash(md5er);
+
+        for (ContactEmail email : emails)
+            email.hash(md5er);
+        hash.v(md5er.digest());
+        return hash.v();
     }
 }

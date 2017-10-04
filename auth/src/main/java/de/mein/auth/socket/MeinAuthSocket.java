@@ -10,7 +10,7 @@ import de.mein.auth.socket.process.imprt.MeinCertRetriever;
 import de.mein.auth.socket.process.reg.MeinRegisterProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.Hash;
+import de.mein.sql.Hash;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;

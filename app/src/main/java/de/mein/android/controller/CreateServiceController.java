@@ -17,6 +17,7 @@ import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.service.AndroidService;
+import de.mein.auth.service.MeinBoot;
 import de.mein.auth.tools.N;
 import de.mein.android.MainActivity;
 
@@ -65,7 +66,7 @@ public class CreateServiceController extends GuiController {
             List<BootLoader> bootLoaders = new ArrayList<>();
             for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
                 N.r(() -> {
-                    BootLoader bootLoader = bootloaderClass.newInstance();
+                    BootLoader bootLoader = MeinBoot.createBootLoader(meinAuthService,bootloaderClass);
                     bootLoaders.add(bootLoader);
                     //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
                     System.out.println("CreateServiceController.CreateServiceController");

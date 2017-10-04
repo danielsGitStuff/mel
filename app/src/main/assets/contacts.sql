@@ -4,16 +4,19 @@ DROP TABLE IF EXISTS delta;
 DROP TABLE IF EXISTS history;
 CREATE TABLE contacts (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+   aid integer,
   displayname        TEXT    not null,
   displaynamealternative        TEXT,
     displaynameprimitive        TEXT,
       displaynamesource        TEXT,
-      image blob
+      image blob,
+      hash text
   );
 
   CREATE TABLE phone (
     id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     contactid integer not null,
+    aid integer,
     data1        TEXT,
     data2        TEXT,
     data3        TEXT,
@@ -34,6 +37,7 @@ CREATE TABLE contacts (
     CREATE TABLE email (
       id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       contactid integer not null,
+       aid integer,
       data1        TEXT,
       data2        TEXT,
       data3        TEXT,

@@ -1,7 +1,11 @@
 package mein.de.contacts.data.db;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
+import de.mein.sql.MD5er;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 
@@ -10,6 +14,9 @@ import de.mein.sql.SQLTableObject;
  */
 
 public abstract class ContactAppendix extends SQLTableObject implements SerializableEntity {
+
+    @JsonIgnore
+    private List<Pair<?>> hashPairs;
 
     private Pair<Long> id = new Pair<>(Long.class, "id");
     private Pair<Long> contactId = new Pair<>(Long.class, "contactid");
@@ -31,6 +38,7 @@ public abstract class ContactAppendix extends SQLTableObject implements Serializ
             String col = "data" + i;
             insertAttributes.add(new Pair<>(String.class, col));
         }
+        hashPairs = new ArrayList<>(insertAttributes);
         insertAttributes.add(contactId);
         insertAttributes.add(androidId);
         populateAll(id);
@@ -46,5 +54,9 @@ public abstract class ContactAppendix extends SQLTableObject implements Serializ
 
     public void setAndroidId(Long androidId) {
         this.androidId.v(androidId);
+    }
+
+    public MD5er hash(MD5er md5er) {
+        return Pair.hash(md5er,hashPairs);
     }
 }

@@ -8,7 +8,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -19,7 +18,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mein.auth.tools.Hash;
+import de.mein.sql.Hash;
 import de.mein.drive.data.DriveStrings;
 
 /**
