@@ -12,10 +12,10 @@
 
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/lblChooseType"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/tbl"
+        android:layout_below="@id/chooserContent"
         android:layout_alignParentStart="true"
         android:text="Choose Type:" />
 
@@ -23,7 +23,7 @@
         android:id="@+id/rdgClient"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/textView4"
+        android:layout_below="@id/lblChooseType"
         android:orientation="horizontal">
 
         <RadioButton
@@ -56,7 +56,7 @@
         android:layout_height="0dp"
         android:layout_centerHorizontal="true"/>
     <TextView
-        android:id="@+id/lblDrives"
+        android:id="@+id/lblServices"
         android:layout_below="@id/rdgClient"
         android:layout_toEndOf="@id/lblKnownMA"
         android:layout_width="wrap_content"
@@ -74,7 +74,7 @@
 
     <ListView
         android:id="@+id/listDrives"
-        android:layout_below="@id/lblDrives"
+        android:layout_below="@id/lblServices"
         android:layout_toEndOf="@id/knownCertList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

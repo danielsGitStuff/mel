@@ -50,7 +50,7 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
     }
 
     @Override
-    public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, View rootView, IMeinService runningInstance) {
+    public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup rootView, IMeinService runningInstance) {
         // check for permission if necessary
         activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
@@ -58,14 +58,14 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
 
     @Override
     public AndroidServiceCreatorGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
-        View rootView;
+        ViewGroup rootView;
         activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (runningInstance == null) {
-            rootView = View.inflate(activity, R.layout.embedded_create_drive, embedded);
-            return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
+            //rootView = (ViewGroup) View.inflate(activity, R.layout.embedded_create_drive, embedded);
+            return new AndroidDriveCreateGuiController(meinAuthService, activity, embedded);
         } else {
-            rootView = View.inflate(activity, R.layout.embedded_edit_drive, embedded);
-            return new AndroidDriveEditGuiController(meinAuthService, activity, runningInstance, rootView);
+//            rootView = (ViewGroup) View.inflate(activity, R.layout.embedded_edit_drive, embedded);
+            return new AndroidDriveEditGuiController(meinAuthService, activity, runningInstance, embedded);
         }
 
     }

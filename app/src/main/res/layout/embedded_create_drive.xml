@@ -66,7 +66,7 @@
             android:layout_weight="1">
 
             <TextView
-                android:id="@+id/textView4"
+                android:id="@+id/lblChooseType"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Type" />
@@ -104,7 +104,7 @@
     </TableLayout>
 
     <LinearLayout
-        android:id="@+id/lDriveChooser"
+        android:id="@+id/serviceChooser"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tbl"
@@ -135,7 +135,7 @@
             android:layout_weight="1">
 
             <TextView
-                android:id="@+id/lblDrives"
+                android:id="@+id/lblServices"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Drive Instances" />

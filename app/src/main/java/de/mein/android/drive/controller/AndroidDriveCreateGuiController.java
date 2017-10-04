@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -45,8 +46,8 @@ public class AndroidDriveCreateGuiController extends ChooseServerServiceControll
 
     private Button btnPath;
 
-    public AndroidDriveCreateGuiController(MeinAuthService meinAuthService, MeinActivity activity, View rootView) {
-        super(meinAuthService, activity, rootView);
+    public AndroidDriveCreateGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup) {
+        super(meinAuthService, activity, viewGroup, R.layout.embedded_twice_drive);
     }
 
     @Override
@@ -54,9 +55,6 @@ public class AndroidDriveCreateGuiController extends ChooseServerServiceControll
         txtName = rootView.findViewById(R.id.txtName);
         txtPath = rootView.findViewById(R.id.txtPath);
         btnPath = rootView.findViewById(R.id.btnPath);
-
-
-
         txtPath.setText(createDrivePath());
         btnPath.setOnClickListener(view -> {
 
@@ -76,14 +74,15 @@ public class AndroidDriveCreateGuiController extends ChooseServerServiceControll
         });
     }
 
+    @Override
+    protected boolean showService(ServiceJoinServiceType service) {
+        return service.getType().v().equals(DriveStrings.NAME);
+    }
+
     private String createDrivePath() {
         File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         return new File(downloadDir, "drive").getAbsolutePath();
     }
-
-
-
-
 
     public String getName() {
         return txtName.getText().toString();
@@ -101,6 +100,4 @@ public class AndroidDriveCreateGuiController extends ChooseServerServiceControll
             return false;
         return true;
     }
-
-
 }

@@ -53,18 +53,18 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     }
 
     @Override
-    public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, View rootView, IMeinService runningInstance) {
+    public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup rootView, IMeinService runningInstance) {
         activity.annoyWithPermissions(Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS);
-        return new AndroidContactsCreateGuiController(activity, rootView);
+        return new AndroidContactsCreateGuiController(meinAuthService,activity, rootView);
     }
 
 
     @Override
     public AndroidServiceCreatorGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
-        View rootView;
+        ViewGroup rootView;
         activity.annoyWithPermissions(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS);
-        rootView = View.inflate(activity, R.layout.embedded_create_contacts, embedded);
-        return new AndroidContactsCreateGuiController(activity, rootView);
+        rootView = (ViewGroup) View.inflate(activity, R.layout.embedded_create_contacts, embedded);
+        return new AndroidContactsCreateGuiController(meinAuthService,activity, rootView);
     }
 
     @Override

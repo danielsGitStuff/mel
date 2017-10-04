@@ -12,4 +12,5 @@ public class ContactStrings {
 
     public static final String INTENT_QUERY = "query";
     public static final String INTENT_UPDATE = "update";
+    public static final String NAME = "Contact Sync";
 }

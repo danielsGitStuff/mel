@@ -88,7 +88,7 @@ public class CreateServiceController extends GuiController {
 
                 }
             });
-            showSelected();
+            //showSelected();
             btnCreate.setOnClickListener(view -> {
                 if (bootLoader != null) {
                     bootLoader.createService(activity, meinAuthService, currentController);

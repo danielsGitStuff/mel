@@ -2,10 +2,12 @@ package de.mein.android.controller;
 
 import android.support.v4.content.ContextCompat;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,33 +28,45 @@ import de.mein.drive.data.DriveStrings;
 
 public abstract class ChooseServerServiceController extends AndroidServiceCreatorGuiController {
 
+
     protected abstract void initEmbedded();
+
     private RadioButton rdServer, rdClient;
-    private LinearLayout lDriveChooser;
     private Long selectedCertId = null;
     private ServiceJoinServiceType selectedDrive;
     private KnownCertListAdapter knownCertListAdapter;
     private ServicesListAdapter drivesListAdapter;
-    protected final MeinAuthService meinAuthService;
-    private ListView knownCertList, drivesList;
+    protected MeinAuthService meinAuthService;
+    private ListView knownCertList, serviceList;
+    private LinearLayout chooserContent;
+    private TextView lblKnownMA,lblServices;
+
+    public ChooseServerServiceController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup, int embeddedResource) {
+        super(activity, View.inflate(activity, R.layout.embedded_create_service_chooser, viewGroup));
+        this.meinAuthService = meinAuthService;
+        chooserContent = rootView.findViewById(R.id.chooserContent);
+        View root = View.inflate(activity, embeddedResource, chooserContent);
+        initEmbedded();
+    }
 
     @Override
     protected void init() {
         rdServer = rootView.findViewById(R.id.rdServer);
         rdClient = rootView.findViewById(R.id.rdClient);
-        lDriveChooser = rootView.findViewById(R.id.lDriveChooser);
+        lblKnownMA = rootView.findViewById(R.id.lblKnownMA);
+        lblServices = rootView.findViewById(R.id.lblServices);
         knownCertList = rootView.findViewById(R.id.knownCertList);
         knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
         knownCertList.setOnItemClickListener((parent, view, position, id) -> {
             selectedCertId = knownCertListAdapter.getItemT(position).getId().v();
             System.out.println("AndroidDriveCreateGuiController.init.CLICKED");
-            showDrives(selectedCertId);
+            showServices(selectedCertId);
         });
         knownCertList.setAdapter(knownCertListAdapter);
-        drivesList = rootView.findViewById(R.id.listDrives);
+        serviceList = rootView.findViewById(R.id.listDrives);
         drivesListAdapter = new ServicesListAdapter(rootView.getContext());
-        drivesList.setAdapter(drivesListAdapter);
-        drivesList.setOnItemClickListener((parent, view, position, id) -> {
+        serviceList.setAdapter(drivesListAdapter);
+        serviceList.setOnItemClickListener((parent, view, position, id) -> {
             selectedDrive = drivesListAdapter.getItemT(position);
             int colour = ContextCompat.getColor(rootView.getContext(), R.color.colorListSelected);
             view.setBackgroundColor(colour);
@@ -62,15 +76,16 @@ public abstract class ChooseServerServiceController extends AndroidServiceCreato
             radioGroup.setOnCheckedChangeListener((group, checkedId) -> checkRadioButtons());
             checkRadioButtons();
         }
-        initEmbedded();
     }
 
-    private void showDrives(Long selectedCertId) {
+    protected abstract boolean showService(ServiceJoinServiceType service);
+
+    private void showServices(Long selectedCertId) {
         List<ServiceJoinServiceType> services = meinAuthService.getNetworkEnvironment().getServices(selectedCertId);
         List<ServiceJoinServiceType> filtered = new ArrayList<>();
         if (services != null) {
             for (ServiceJoinServiceType service : services) {
-                if (service.getType().v().equals(DriveStrings.NAME))
+                if (showService(service))
                     filtered.add(service);
             }
         }
@@ -79,17 +94,27 @@ public abstract class ChooseServerServiceController extends AndroidServiceCreato
         drivesListAdapter.notifyDataSetChanged();
     }
 
-    public ChooseServerServiceController(MeinAuthService meinAuthService, MeinActivity activity, View rootView) {
-        super(activity, rootView);
-        this.meinAuthService = meinAuthService;
+    private void hideServiceChooser() {
+        knownCertList.setVisibility(View.INVISIBLE);
+        serviceList.setVisibility(View.INVISIBLE);
+        lblServices.setVisibility(View.INVISIBLE);
+        lblKnownMA.setVisibility(View.INVISIBLE);
     }
+
+    private void showServiceChooser() {
+        knownCertList.setVisibility(View.VISIBLE);
+        serviceList.setVisibility(View.VISIBLE);
+        lblServices.setVisibility(View.VISIBLE);
+        lblKnownMA.setVisibility(View.VISIBLE);
+    }
+
 
     private void checkRadioButtons() {
         if (rdServer.isChecked()) {
-            lDriveChooser.setVisibility(View.INVISIBLE);
+            hideServiceChooser();
             selectedCertId = null;
         } else {
-            lDriveChooser.setVisibility(View.VISIBLE);
+            showServiceChooser();
             try {
                 selectedCertId = null;
                 selectedDrive = null;
@@ -98,7 +123,7 @@ public abstract class ChooseServerServiceController extends AndroidServiceCreato
                 NetworkEnvironment env = meinAuthService.getNetworkEnvironment();
                 env.addObserver((o, arg) -> {
                     if (selectedCertId != null) {
-                        showDrives(selectedCertId);
+                        showServices(selectedCertId);
                     }
                 });
                 for (Long certId : meinAuthService.getConnectedUserIds()) {

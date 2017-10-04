@@ -2,6 +2,7 @@ package de.mein.android.drive.controller;
 
 import android.app.Activity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -24,7 +25,7 @@ public class AndroidDriveEditGuiController extends AndroidServiceCreatorGuiContr
     private EditText txtPath;
     private Button btnPath;
 
-    public AndroidDriveEditGuiController(MeinAuthService meinAuthService, MeinActivity activity, IMeinService iMeinService, View rootView) {
+    public AndroidDriveEditGuiController(MeinAuthService meinAuthService, MeinActivity activity, IMeinService iMeinService, ViewGroup rootView) {
         super(activity, rootView);
         this.runningInstance = (MeinDriveService) iMeinService;
         try {
