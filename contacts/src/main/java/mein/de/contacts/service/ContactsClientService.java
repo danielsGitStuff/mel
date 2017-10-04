@@ -27,6 +27,11 @@ public class ContactsClientService extends ContactsService {
     }
 
     @Override
+    public void onContactsChanged() {
+
+    }
+
+    @Override
     public void handleRequest(Request request) throws Exception {
 
     }

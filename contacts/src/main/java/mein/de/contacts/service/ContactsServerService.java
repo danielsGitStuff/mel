@@ -31,6 +31,11 @@ public class ContactsServerService extends ContactsService {
     }
 
     @Override
+    public void onContactsChanged() {
+
+    }
+
+    @Override
     protected void workWork(Job job) throws Exception {
         System.out.println("ContactsServerService.workWork.nothing here yet");
     }

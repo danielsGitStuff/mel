@@ -81,6 +81,11 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         return contactsDao;
     }
 
+    /**
+     *
+     * @return Master {@link PhoneBook} that does not provide any {@link Contact}s or null if there is no Master {@link PhoneBook}
+     * @throws SqlQueriesException
+     */
     public PhoneBook getFlatMasterPhoneBook() throws SqlQueriesException {
         if (settings.getMasterPhoneBookId() != null)
             return phoneBookDao.loadFlatPhoneBook(settings.getMasterPhoneBookId());

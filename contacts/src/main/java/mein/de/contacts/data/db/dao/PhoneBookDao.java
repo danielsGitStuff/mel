@@ -28,6 +28,22 @@ public class PhoneBookDao extends Dao {
     }
 
     /**
+     * Inserts {@link PhoneBook} and all its {@link Contact}s.<br>
+     * Nothing more ;)
+     *
+     * @param phoneBook
+     */
+    public void insertDeep(PhoneBook phoneBook) throws SqlQueriesException {
+        Long phoneBookId = sqlQueries.insert(phoneBook);
+        phoneBook.getId().v(phoneBookId);
+        for (Contact contact : phoneBook.getContacts()) {
+            contact.getPhonebookId().v(phoneBookId);
+            contactsDao.insert(contact);
+        }
+    }
+
+
+    /**
      * @param id
      * @return PhoneBook that does not provide any {@link Contact}s.
      * @throws SqlQueriesException
@@ -53,5 +69,10 @@ public class PhoneBookDao extends Dao {
 
     public void updateFlat(PhoneBook phoneBook) throws SqlQueriesException {
         sqlQueries.update(phoneBook, phoneBook.getId().k() + "=?", ISQLQueries.whereArgs(phoneBook.getId().v()));
+    }
+
+    public void deletePhoneBook(Long id) throws SqlQueriesException {
+        PhoneBook phoneBook = new PhoneBook();
+        sqlQueries.delete(phoneBook, phoneBook.getId().k() + "=?", ISQLQueries.whereArgs(id));
     }
 }

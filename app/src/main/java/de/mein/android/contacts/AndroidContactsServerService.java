@@ -8,7 +8,6 @@ import android.provider.ContactsContract;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -22,11 +21,13 @@ import de.mein.auth.socket.process.val.Request;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
+import mein.de.contacts.data.ContactStrings;
 import mein.de.contacts.data.ContactsSettings;
 import mein.de.contacts.data.db.PhoneBook;
-import mein.de.contacts.data.db.Contact;
+import mein.de.contacts.data.db.dao.PhoneBookDao;
 import mein.de.contacts.jobs.ExamineJob;
 import mein.de.contacts.jobs.AnswerQueryJob;
+import mein.de.contacts.jobs.UpdatePhoneBookJob;
 import mein.de.contacts.service.ContactsServerService;
 
 /**
@@ -66,6 +67,8 @@ public class AndroidContactsServerService extends ContactsServerService {
     @Override
     protected void workWork(Job job) throws Exception {
         System.out.println("AndroidContactsServerService.workWork");
+        PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
+        ContactsSettings settings = databaseManager.getSettings();
         if (job instanceof ExamineJob) {
             PhoneBook phoneBook = serviceMethods.examineContacts();
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
@@ -75,20 +78,37 @@ public class AndroidContactsServerService extends ContactsServerService {
                 else {
                     phoneBook.getVersion().v(masterPhoneBook.getVersion().v() + 1);
                 }
-                databaseManager.getPhoneBookDao().updateFlat(phoneBook);
-                databaseManager.getSettings().setMasterPhoneBookId(phoneBook.getId().v());
-                databaseManager.getSettings().save();
+                phoneBookDao.updateFlat(phoneBook);
+                settings.setMasterPhoneBookId(phoneBook.getId().v());
+                settings.save();
             }
         } else if (job instanceof AnswerQueryJob) {
             AnswerQueryJob answerQueryJob = (AnswerQueryJob) job;
             PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadPhoneBook(databaseManager.getSettings().getMasterPhoneBookId());
             answerQueryJob.getRequest().resolve(phoneBook);
+        } else if (job instanceof UpdatePhoneBookJob) {
+            UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
+            PhoneBook phoneBook = updatePhoneBookJob.getPhoneBook();
+            PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
+            if (phoneBook.getVersion().v() == masterPhoneBook.getVersion().v() + 1) {
+                phoneBookDao.insertDeep(phoneBook);
+                settings.setMasterPhoneBookId(phoneBook.getId().v());
+                settings.save();
+                updatePhoneBookJob.getRequest().resolve(null);
+            } else {
+                updatePhoneBookJob.getRequest().reject(new Exception("master version was " + masterPhoneBook.getVersion().v() + " clients version was " + phoneBook.getVersion().v()));
+            }
+        }else {
+            super.workWork(job);
         }
     }
 
     @Override
     public void handleRequest(Request request) throws Exception {
-
+        if (request.hasIntent(ContactStrings.INTENT_UPDATE)) {
+            addJob(new UpdatePhoneBookJob(request));
+        }
+        super.handleRequest(request);
     }
 
     @Override

@@ -7,8 +7,7 @@ import android.widget.EditText;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
-import de.mein.auth.service.MeinAuthService;
-import mein.de.contacts.data.ContactsStrings;
+import mein.de.contacts.data.ContactStrings;
 
 /**
  * Created by xor on 9/21/17.
@@ -34,6 +33,6 @@ public class AndroidContactsCreateGuiController extends AndroidServiceCreatorGui
     }
 
     public String getRole() {
-        return ContactsStrings.ROLE_SERVER;
+        return ContactStrings.ROLE_SERVER;
     }
 }

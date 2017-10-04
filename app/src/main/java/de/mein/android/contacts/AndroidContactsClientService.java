@@ -10,11 +10,18 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.CountLock;
+import de.mein.auth.tools.CountdownLock;
+import de.mein.auth.tools.N;
+import de.mein.auth.tools.WaitLock;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
+import mein.de.contacts.data.ContactStrings;
+import mein.de.contacts.data.ContactsClientSettings;
 import mein.de.contacts.data.ContactsSettings;
 import mein.de.contacts.data.db.Contact;
+import mein.de.contacts.data.db.PhoneBook;
 import mein.de.contacts.jobs.ExamineJob;
 import mein.de.contacts.service.ContactsClientService;
 
@@ -45,8 +52,30 @@ public class AndroidContactsClientService extends ContactsClientService {
     @Override
     protected void workWork(Job job) throws Exception {
         if (job instanceof ExamineJob) {
-                List<Contact> changedContacts = serviceMethods.examineContacts(false);
+            PhoneBook phoneBook = serviceMethods.examineContacts();
+            PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
+            if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
+                CountdownLock waitLock = new CountdownLock(1).lock();
+                ContactsClientSettings clientSettings = databaseManager.getSettings().getClientSettings();
+                meinAuthService.connect(clientSettings.getServerCertId()).done(meinValidationProcess -> N.r(() -> meinValidationProcess.request(clientSettings.getServiceUuid(), ContactStrings.INTENT_UPDATE, phoneBook)
+                        .done(result -> N.r(() -> {
+                            System.out.println("AndroidContactsClientService.workWork. update succeeded");
+                            databaseManager.getSettings().setMasterPhoneBookId(phoneBook.getId().v());
+                            databaseManager.getSettings().save();
+                            waitLock.unlock();
+                        })).fail(result -> N.r(() -> {
+                    System.err.println(getClass().getSimpleName() + " updating server failed!");
+                    waitLock.unlock();
+                })))).fail(result -> {
+                    System.err.println(getClass().getSimpleName() + " updating server failed!!");
+                    waitLock.unlock();
+                });
+            } else {
+                databaseManager.getPhoneBookDao().deletePhoneBook(phoneBook.getId().v());
+            }
+            waitLock.lock();
+        } else {
+            super.workWork(job);
         }
-        super.workWork(job);
     }
 }

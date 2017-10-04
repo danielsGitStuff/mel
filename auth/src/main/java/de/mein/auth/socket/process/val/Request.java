@@ -2,6 +2,7 @@ package de.mein.auth.socket.process.val;
 
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
+
 import org.jdeferred.impl.DeferredObject;
 
 /**
@@ -38,5 +39,11 @@ public class Request<T extends IPayload> extends DeferredObject<T, Exception, Vo
 
     public String getIntent() {
         return intent;
+    }
+
+    public boolean hasIntent(String intent) {
+        if (this.intent == null)
+            return false;
+        return this.intent.equals(intent);
     }
 }

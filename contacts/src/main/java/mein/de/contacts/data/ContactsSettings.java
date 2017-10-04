@@ -19,16 +19,24 @@ public class ContactsSettings extends JsonSettings {
     private Long masterPhoneBookId;
 
     public boolean isServer() {
-        return role.equals(ContactsStrings.ROLE_SERVER);
+        return role.equals(ContactStrings.ROLE_SERVER);
     }
 
     public ContactsSettings setRole(String role) {
         this.role = role;
-        if (role.equals(ContactsStrings.ROLE_CLIENT) && clientSettings == null)
+        if (role.equals(ContactStrings.ROLE_CLIENT) && clientSettings == null)
             clientSettings = new ContactsClientSettings();
-        else if (role.equals(ContactsStrings.ROLE_SERVER) && serverSettings == null)
+        else if (role.equals(ContactStrings.ROLE_SERVER) && serverSettings == null)
             serverSettings = new ContactsServerSettings();
         return this;
+    }
+
+    public ContactsClientSettings getClientSettings() {
+        return clientSettings;
+    }
+
+    public ContactsServerSettings getServerSettings() {
+        return serverSettings;
     }
 
     public void setMasterPhoneBookId(Long masterPhoneBookId) {

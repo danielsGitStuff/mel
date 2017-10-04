@@ -15,6 +15,7 @@ import de.mein.sql.SQLTableObject;
 
 public abstract class ContactAppendix extends SQLTableObject implements SerializableEntity {
 
+    @JsonIgnore
     public static final String ID = "id";
     public static final String CONTACTID = "contactid";
     public static final String AID = "aid";

@@ -25,6 +25,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
     public static final String IMAGE = "image";
     public static final String AID = "aid";
     public static final String HASH = "deepHash";
+    @JsonIgnore
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> phonebookId = new Pair<>(Long.class, PID);
 
