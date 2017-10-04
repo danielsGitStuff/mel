@@ -3,6 +3,7 @@ package de.mein.android.contacts;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
@@ -13,6 +14,7 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 import mein.de.contacts.data.ContactsSettings;
+import mein.de.contacts.data.db.Contact;
 import mein.de.contacts.jobs.ExamineJob;
 import mein.de.contacts.service.ContactsClientService;
 
@@ -42,9 +44,9 @@ public class AndroidContactsClientService extends ContactsClientService {
 
     @Override
     protected void workWork(Job job) throws Exception {
-        if (job instanceof ExamineJob){
-
+        if (job instanceof ExamineJob) {
+                List<Contact> changedContacts = serviceMethods.examineContacts(false);
         }
-            super.workWork(job);
+        super.workWork(job);
     }
 }

@@ -1,16 +1,34 @@
 BEGIN TRANSACTION;
 DROP TABLE IF EXISTS contacts;
-DROP TABLE IF EXISTS delta;
-DROP TABLE IF EXISTS history;
+DROP TABLE IF EXISTS phone;
+DROP TABLE IF EXISTS email;
+DROP TABLE IF EXISTS phonebook;
+create table phonebook(
+id integer not null primary key autoincrement,
+version integer,
+hash text,
+created integer
+);
+CREATE TRIGGER IF NOT EXISTS createdstamp
+  AFTER
+  INSERT
+  ON phonebook
+BEGIN
+  UPDATE phonebook
+  SET created = current_timestamp
+  WHERE id = NEW.id;
+END;
 CREATE TABLE contacts (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    aid integer,
+   pid integer not null,
   displayname        TEXT    not null,
   displaynamealternative        TEXT,
     displaynameprimitive        TEXT,
       displaynamesource        TEXT,
       image blob,
-      hash text
+      hash text,
+      foreign key (pid) references phonebook(id)
   );
 
   CREATE TABLE phone (

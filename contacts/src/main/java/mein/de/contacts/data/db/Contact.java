@@ -16,20 +16,31 @@ import de.mein.sql.SQLTableObject;
 
 public class Contact extends SQLTableObject implements SerializableEntity {
 
-    private Pair<Long> id = new Pair<>(Long.class, "id");
-    private Pair<String> displayName = new Pair<>(String.class, "displayname");
-    private Pair<String> displayNameAlternative = new Pair<>(String.class, "displaynamealternative");
+    public static final String ID = "id";
+    public static final String PID = "pid";
+    public static final String DISPLAYNAME = "displayname";
+    public static final String DISPLAYNAMEALTERNATIVE = "displaynamealternative";
+    public static final String DISPLAYNAMEPRIMITIVE = "displaynameprimitive";
+    public static final String DISPLAYNAMESOURCE = "displaynamesource";
+    public static final String IMAGE = "image";
+    public static final String AID = "aid";
+    public static final String HASH = "deepHash";
+    private Pair<Long> id = new Pair<>(Long.class, ID);
+    private Pair<Long> phonebookId = new Pair<>(Long.class, PID);
 
-    private Pair<String> displayNamePrimary = new Pair<>(String.class, "displaynameprimitive");
+    private Pair<String> displayName = new Pair<>(String.class, DISPLAYNAME);
+    private Pair<String> displayNameAlternative = new Pair<>(String.class, DISPLAYNAMEALTERNATIVE);
 
-    private Pair<String> displayNameSource = new Pair<>(String.class, "displaynamesource");
-    private Pair<byte[]> image = new Pair<>(byte[].class, "image");
+    private Pair<String> displayNamePrimary = new Pair<>(String.class, DISPLAYNAMEPRIMITIVE);
+
+    private Pair<String> displayNameSource = new Pair<>(String.class, DISPLAYNAMESOURCE);
+    private Pair<byte[]> image = new Pair<>(byte[].class, IMAGE);
 
     private List<ContactPhone> phones = new ArrayList<>();
     private List<ContactEmail> emails = new ArrayList<>();
     @JsonIgnore
-    private Pair<Long> androidId = new Pair<>(Long.class, "aid");
-    private Pair<String> hash = new Pair<>(String.class, "hash");
+    private Pair<Long> androidId = new Pair<>(Long.class, AID);
+    private Pair<String> hash = new Pair<>(String.class, HASH);
     private List<Pair<?>> hashPairs;
 
     public Contact() {
@@ -56,6 +67,9 @@ public class Contact extends SQLTableObject implements SerializableEntity {
         return displayNameSource;
     }
 
+    public Pair<Long> getPhonebookId() {
+        return phonebookId;
+    }
 
     public Pair<byte[]> getImage() {
         return image;
@@ -96,6 +110,15 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     public Pair<String> getHash() {
         return hash;
+    }
+
+    /**
+     * hashes but does not digest md5er
+     * @param md5er
+     */
+    public void hash(MD5er md5er) {
+        hash();
+        Pair.hash(md5er, hash);
     }
 
     public String hash() {

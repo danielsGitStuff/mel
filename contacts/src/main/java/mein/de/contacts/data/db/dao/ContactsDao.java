@@ -5,7 +5,7 @@ import java.util.List;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
-import mein.de.contacts.data.PhoneBook;
+import mein.de.contacts.data.db.PhoneBook;
 import mein.de.contacts.data.db.Contact;
 import mein.de.contacts.data.db.ContactEmail;
 import mein.de.contacts.data.db.ContactPhone;
@@ -50,18 +50,14 @@ public class ContactsDao extends Dao {
         email.getId().v(id);
     }
 
-    public List<Contact> getContacts() throws SqlQueriesException {
+    public List<Contact> getContacts(Long phoneBookId) throws SqlQueriesException {
         List<Contact> contacts;
         Contact contact = new Contact();
-        contacts = sqlQueries.load(contact.getAllAttributes(), contact, null, null);
+        String where = contact.getPhonebookId().k() + "=?";
+        contacts = sqlQueries.load(contact.getAllAttributes(), contact, where, ISQLQueries.whereArgs(phoneBookId));
         return contacts;
     }
 
-    public PhoneBook getPhoneBook() throws SqlQueriesException {
-        PhoneBook phoneBook = new PhoneBook();
-        phoneBook.setContacts(getContacts());
-        return phoneBook;
-    }
 
     public Contact getContactByAndroidId(Long androidId) throws SqlQueriesException {
         Contact contact = new Contact();

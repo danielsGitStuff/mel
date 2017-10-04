@@ -252,6 +252,14 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     @Override
+    public <T> T loadFirstRow(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, Class<T> castClass) throws SqlQueriesException {
+        List<T> list = load(columns, sqlTableObject, where, whereArgs, "limit 1", castClass);
+        if (list.size() > 0)
+            return list.get(0);
+        return null;
+    }
+
+    @Override
     public <T> List<T> load(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse, Class<T> castClass) throws SqlQueriesException {
         System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
         System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");

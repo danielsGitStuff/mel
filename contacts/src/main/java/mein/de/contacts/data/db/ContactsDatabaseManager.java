@@ -19,6 +19,7 @@ import de.mein.sql.transform.SqlResultTransformer;
 import mein.de.contacts.data.ContactStrings;
 import mein.de.contacts.data.ContactsSettings;
 import mein.de.contacts.data.db.dao.ContactsDao;
+import mein.de.contacts.data.db.dao.PhoneBookDao;
 import mein.de.contacts.service.ContactsService;
 
 /**
@@ -30,6 +31,7 @@ public class ContactsDatabaseManager extends FileRelatedManager {
     private final ContactsService contactsService;
     private final ContactsSettings settings;
     private final ContactsDao contactsDao;
+    private final PhoneBookDao phoneBookDao;
 
     public ContactsDatabaseManager(ContactsService contactsService, File workingDirectory, ContactsSettings settingsCfg) throws SQLException, ClassNotFoundException, IOException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         super(workingDirectory);
@@ -56,14 +58,19 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
         st.execute();
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
-        if (!sqliteExecutor.checkTablesExist("contacts", "phone", "email")) {
+        if (!sqliteExecutor.checkTablesExist("contacts", "phone", "email", "phonebook")) {
             //find sql file in workingdir
             sqliteExecutor.executeStream(contactsSqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
         contactsDao = new ContactsDao(sqlQueries);
+        phoneBookDao = new PhoneBookDao(contactsDao, sqlQueries);
         File settingsFile = new File(workingDirectory.getAbsolutePath() + File.separator + "contacts.settings.json");
         settings = ContactsSettings.load(settingsFile, settingsCfg);
+    }
+
+    public PhoneBookDao getPhoneBookDao() {
+        return phoneBookDao;
     }
 
     public ContactsSettings getSettings() {
@@ -72,6 +79,12 @@ public class ContactsDatabaseManager extends FileRelatedManager {
 
     public ContactsDao getContactsDao() {
         return contactsDao;
+    }
+
+    public PhoneBook getFlatMasterPhoneBook() throws SqlQueriesException {
+        if (settings.getMasterPhoneBookId() != null)
+            return phoneBookDao.loadFlatPhoneBook(settings.getMasterPhoneBookId());
+        return null;
     }
 
     public interface SQLConnectionCreator {

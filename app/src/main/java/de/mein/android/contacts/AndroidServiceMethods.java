@@ -10,8 +10,6 @@ import android.provider.ContactsContract;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import de.mein.android.Tools;
 import de.mein.sql.SqlQueriesException;
@@ -19,7 +17,9 @@ import mein.de.contacts.data.db.Contact;
 import mein.de.contacts.data.db.ContactEmail;
 import mein.de.contacts.data.db.ContactPhone;
 import mein.de.contacts.data.db.ContactsDatabaseManager;
+import mein.de.contacts.data.db.PhoneBook;
 import mein.de.contacts.data.db.dao.ContactsDao;
+import mein.de.contacts.data.db.dao.PhoneBookDao;
 
 /**
  * Created by xor on 10/4/17.
@@ -34,12 +34,14 @@ public class AndroidServiceMethods {
     }
 
     /**
-     * @param persistImmediately
-     * @return changed contacts
+     * @return flat {@link PhoneBook}
      * @throws SqlQueriesException
      */
-    public List<Contact> examineContacts(boolean persistImmediately) throws SqlQueriesException {
+    public PhoneBook examineContacts() throws SqlQueriesException {
         ContactsDao contactsDao = databaseManager.getContactsDao();
+        PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
+        PhoneBook phoneBook = phoneBookDao.create();
+
         String[] projContact = new String[]{
                 ContactsContract.Contacts._ID,
                 ContactsContract.Contacts.DISPLAY_NAME,
@@ -48,7 +50,6 @@ public class AndroidServiceMethods {
                 ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
                 ContactsContract.Contacts.DISPLAY_NAME_SOURCE,
         };
-        List<Contact> changedContacts = new ArrayList<>();
         ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
         Cursor contactCursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, projContact, null, null, null);
         // Iterate every contact in the phone
@@ -63,24 +64,15 @@ public class AndroidServiceMethods {
             readEmail(contact, contactId);
             readPhoto(contact, contactId);
             contact.hash();
-            Contact dbContact = contactsDao.getContactByAndroidId(contact.getAndroidId().v());
-            if (dbContact != null) {
-                if (!dbContact.getHash().equalsValue(contact.getHash().v())) {
-                    changedContacts.add(contact);
-                    if (persistImmediately) {
-                        contact.getId().v(dbContact.getId());
-                        contactsDao.update(contact);
-                    }
-                }
-            } else {
-                if (persistImmediately)
-                    contactsDao.insert(contact);
-                changedContacts.add(contact);
-            }
+            contact.getPhonebookId().v(phoneBook.getId());
+            contactsDao.insert(contact);
+            phoneBook.hashContact(contact);
             System.out.println("MainActivity.examineContacts: ");
         }
+        phoneBook.digest();
+        phoneBookDao.updateFlat(phoneBook);
         contactCursor.close();
-        return changedContacts;
+        return phoneBook;
     }
 
     private byte[] bitmapToBytes(Bitmap bitmap) {

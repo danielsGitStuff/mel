@@ -7,7 +7,6 @@ import de.mein.auth.data.JsonSettings;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-import mein.de.contacts.service.ContactsServerService;
 
 /**
  * Created by xor on 9/21/17.
@@ -17,7 +16,7 @@ public class ContactsSettings extends JsonSettings {
     private String role = ":(";
     private ContactsServerSettings serverSettings;
     private ContactsClientSettings clientSettings;
-    private Long version = 0L;
+    private Long masterPhoneBookId;
 
     public boolean isServer() {
         return role.equals(ContactsStrings.ROLE_SERVER);
@@ -32,12 +31,12 @@ public class ContactsSettings extends JsonSettings {
         return this;
     }
 
-    public Long getVersion() {
-        return version;
+    public void setMasterPhoneBookId(Long masterPhoneBookId) {
+        this.masterPhoneBookId = masterPhoneBookId;
     }
 
-    public void setVersion(Long version) {
-        this.version = version;
+    public Long getMasterPhoneBookId() {
+        return masterPhoneBookId;
     }
 
     public String getRole() {

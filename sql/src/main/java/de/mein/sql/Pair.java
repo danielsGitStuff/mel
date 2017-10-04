@@ -223,4 +223,8 @@ public class Pair<V> {
         }
         return false;
     }
+
+    public boolean notEqualsValue(Object o) {
+          return !equalsValue(o);
+    }
 }

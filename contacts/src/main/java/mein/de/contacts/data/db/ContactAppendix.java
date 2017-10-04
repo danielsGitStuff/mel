@@ -15,13 +15,16 @@ import de.mein.sql.SQLTableObject;
 
 public abstract class ContactAppendix extends SQLTableObject implements SerializableEntity {
 
+    public static final String ID = "id";
+    public static final String CONTACTID = "contactid";
+    public static final String AID = "aid";
     @JsonIgnore
     private List<Pair<?>> hashPairs;
 
-    private Pair<Long> id = new Pair<>(Long.class, "id");
-    private Pair<Long> contactId = new Pair<>(Long.class, "contactid");
+    private Pair<Long> id = new Pair<>(Long.class, ID);
+    private Pair<Long> contactId = new Pair<>(Long.class, CONTACTID);
     @JsonIgnore
-    private Pair<Long> androidId = new Pair<>(Long.class, "aid");
+    private Pair<Long> androidId = new Pair<>(Long.class, AID);
 
     public Pair<Long> getId() {
         return id;

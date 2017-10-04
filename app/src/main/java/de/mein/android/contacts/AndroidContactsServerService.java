@@ -1,21 +1,13 @@
 package de.mein.android.contacts;
 
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.database.ContentObserver;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.ContactsContract;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,11 +23,8 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 import mein.de.contacts.data.ContactsSettings;
-import mein.de.contacts.data.PhoneBook;
+import mein.de.contacts.data.db.PhoneBook;
 import mein.de.contacts.data.db.Contact;
-import mein.de.contacts.data.db.ContactEmail;
-import mein.de.contacts.data.db.ContactPhone;
-import mein.de.contacts.data.db.dao.ContactsDao;
 import mein.de.contacts.jobs.ExamineJob;
 import mein.de.contacts.jobs.AnswerQueryJob;
 import mein.de.contacts.service.ContactsServerService;
@@ -78,14 +67,21 @@ public class AndroidContactsServerService extends ContactsServerService {
     protected void workWork(Job job) throws Exception {
         System.out.println("AndroidContactsServerService.workWork");
         if (job instanceof ExamineJob) {
-            List<Contact> changedContacts = serviceMethods.examineContacts(true);
-            if (changedContacts.size() > 0) {
-                databaseManager.getSettings().setVersion(databaseManager.getSettings().getVersion() + 1);
+            PhoneBook phoneBook = serviceMethods.examineContacts();
+            PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
+            if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
+                if (masterPhoneBook == null)
+                    phoneBook.getVersion().v(1L);
+                else {
+                    phoneBook.getVersion().v(masterPhoneBook.getVersion().v() + 1);
+                }
+                databaseManager.getPhoneBookDao().updateFlat(phoneBook);
+                databaseManager.getSettings().setMasterPhoneBookId(phoneBook.getId().v());
                 databaseManager.getSettings().save();
             }
         } else if (job instanceof AnswerQueryJob) {
             AnswerQueryJob answerQueryJob = (AnswerQueryJob) job;
-            PhoneBook phoneBook = databaseManager.getContactsDao().getPhoneBook();
+            PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadPhoneBook(databaseManager.getSettings().getMasterPhoneBookId());
             answerQueryJob.getRequest().resolve(phoneBook);
         }
     }
