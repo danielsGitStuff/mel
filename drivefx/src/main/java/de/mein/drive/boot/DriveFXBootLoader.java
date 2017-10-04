@@ -15,7 +15,12 @@ public class DriveFXBootLoader extends DriveBootLoader implements BootLoaderFX<M
 
     @Override
     public String getCreateFXML() {
-        return "de/mein/drive/create.fxml";
+        return "de/mein/drive/create.embedded.fxml";
+    }
+
+    @Override
+    public boolean embedCreateFXML() {
+        return true;
     }
 
 

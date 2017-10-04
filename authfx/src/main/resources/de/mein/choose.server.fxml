@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.RemoteServiceChooserFX">
+    <children>
+        <VBox fx:id="container">
+
+        </VBox>
+        <HBox GridPane.rowIndex="0">
+            <RadioButton fx:id="rdServer" text="Server" />
+            <RadioButton fx:id="rdClient" selected="true" text="Client" />
+        </HBox>
+        <Label text="Available MeinAuths &amp; Services:" />
+        <HBox>
+            <ListView fx:id="listCerts" HBox.hgrow="ALWAYS">
+                <HBox.margin>
+                    <Insets bottom="10.0" left="10.0" top="10.0" />
+                </HBox.margin>
+            </ListView>
+            <ListView fx:id="listServices" HBox.hgrow="ALWAYS">
+                <HBox.margin>
+                    <Insets bottom="10.0" right="10.0" top="10.0" />
+                </HBox.margin>
+            </ListView>
+        </HBox>
+
+    </children>
+</VBox>

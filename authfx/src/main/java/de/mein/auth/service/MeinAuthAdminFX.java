@@ -225,7 +225,15 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         Class<? extends BootLoader> bootLoaderClass = meinAuthService.getMeinBoot().getBootloaderMap().get(bootLoaderName);
         BootLoader bootLoader = MeinBoot.createBootLoader(meinAuthService, bootLoaderClass);
         if (bootLoader instanceof BootLoaderFX) {
-            loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML());
+            BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
+            if (bootLoaderFX.embedCreateFXML()) {
+                loadSettingsFX("de/mein/choose.server.fxml");
+                RemoteServiceChooserFX remoteServiceChooserFX = (RemoteServiceChooserFX) contentController;
+                remoteServiceChooserFX.createFXML(((BootLoaderFX) bootLoader).getCreateFXML());
+                lblTitle.setText(contentController.getTitle());
+            } else {
+                loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML());
+            }
         } else {
             System.out.println("MeinAuthAdminFX.onCreateMenuItemClicked.NO.FX.BOOTLOADER");
         }

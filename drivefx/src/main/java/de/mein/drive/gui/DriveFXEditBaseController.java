@@ -4,7 +4,7 @@ import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.ServiceSettingsFX;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.sql.SqlQueriesException;
 import javafx.fxml.FXML;

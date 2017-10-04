@@ -1,7 +1,7 @@
 package de.mein.drive.gui;
 
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.drive.DriveSettings;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.service.MeinDriveClientService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;

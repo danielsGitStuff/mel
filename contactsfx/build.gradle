@@ -1,0 +1,12 @@
+apply plugin: 'java-library'
+
+dependencies {
+    compile project(path: ':contacts')
+    compile project(path: ':authfx')
+    testCompile project(path: ':contacts')
+    testCompile project(path: ':authfx')
+//    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
