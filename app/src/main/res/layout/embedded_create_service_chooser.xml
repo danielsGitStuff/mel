@@ -66,8 +66,6 @@
     <ListView
         android:id="@+id/knownCertList"
         android:layout_below="@id/lblKnownMA"
-        android:layout_alignParentBottom="true"
-        android:background="@color/colorIcon"
         android:layout_alignParentStart="true"
         android:layout_alignEnd="@id/strut"
         android:layout_width="wrap_content"

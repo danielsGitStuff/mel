@@ -252,51 +252,53 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     @Override
-    public <T> T loadFirstRow(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, Class<T> castClass) throws SqlQueriesException {
-        List<T> list = load(columns, sqlTableObject, where, whereArgs, "limit 1", castClass);
+    public <T extends SQLTableObject> T loadFirstRow(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, Class<T> castClass) throws SqlQueriesException {
+        List<T> list = load(columns, sqlTableObject, where, whereArgs, "limit 1");
         if (list.size() > 0)
             return list.get(0);
         return null;
     }
 
-    @Override
-    public <T> List<T> load(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse, Class<T> castClass) throws SqlQueriesException {
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        //    load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> args, String whatElse) throws SqlQueriesException {
-        List<SQLTableObject> r = load(columns, sqlTableObject, where, whereArgs, whatElse);
-        String select = buildSelectQuery(columns, sqlTableObject.getTableName());
-        if (where != null) {
-            select += " where " + where;
-        }
-        if (whatElse != null) {
-            select += " " + whatElse;
-        }
-
-        Cursor cursor = db.rawQuery(select, argsToStringArgs(whereArgs));
-        List<T> result = new ArrayList<>(cursor.getCount());
-        try {
-            while (cursor.moveToNext()) {
-                T ins = (T) sqlTableObject.getClass().newInstance();
-                for (Pair<?> pair : ins.getAllAttributes()) {
-                    AndroidSQLQueries.readCursorToPair(cursor, pair);
-                }
-                result.add(ins);
-            }
-        } catch (Exception e) {
-            throw new SqlQueriesException(e);
-        }
-        return result;
-    }
+//    @Override
+//    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse, Class<T> castClass) throws SqlQueriesException {
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//        System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
+//
+//        //    load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> args, String whatElse) throws SqlQueriesException {
+//        load(columns,sqlTableObject,where,whereArgs,whatElse);
+//        List<SQLTableObject> r = load(columns, sqlTableObject, where, whereArgs, whatElse);
+//        String select = buildSelectQuery(columns, sqlTableObject.getTableName());
+//        if (where != null) {
+//            select += " where " + where;
+//        }
+//        if (whatElse != null) {
+//            select += " " + whatElse;
+//        }
+//
+//        Cursor cursor = db.rawQuery(select, argsToStringArgs(whereArgs));
+//        List<T> result = new ArrayList<>(cursor.getCount());
+//        try {
+//            while (cursor.moveToNext()) {
+//                T ins = (T) sqlTableObject.getClass().newInstance();
+//                for (Pair<?> pair : ins.getAllAttributes()) {
+//                    AndroidSQLQueries.readCursorToPair(cursor, pair);
+//                }
+//                result.add(ins);
+//            }
+//        } catch (Exception e) {
+//            throw new SqlQueriesException(e);
+//        }
+//        return result;
+//    }
 
     @Override
     public void onShutDown() {

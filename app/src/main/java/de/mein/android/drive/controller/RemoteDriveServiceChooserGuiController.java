@@ -1,52 +1,36 @@
 package de.mein.android.drive.controller;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Environment;
-import android.support.annotation.RequiresApi;
-import android.support.v4.content.ContextCompat;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 
 
 import net.rdrei.android.dirchooser.DirectoryChooserActivity;
 import net.rdrei.android.dirchooser.DirectoryChooserConfig;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import de.mein.R;
 import de.mein.android.MeinActivity;
-import de.mein.android.controller.AndroidServiceCreatorGuiController;
-import de.mein.android.controller.ChooseServerServiceController;
-import de.mein.auth.data.NetworkEnvironment;
-import de.mein.auth.data.db.Certificate;
+import de.mein.android.controller.RemoteServiceChooserController;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.data.DriveStrings;
-import de.mein.android.view.KnownCertListAdapter;
-import de.mein.android.view.ServicesListAdapter;
 
 /**
  * Created by xor on 2/25/17.
  */
 
-public class AndroidDriveCreateGuiController extends ChooseServerServiceController {
+public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooserController {
 
     private static final int REQUEST_DIRECTORY = 987;
     private EditText txtName, txtPath;
 
     private Button btnPath;
 
-    public AndroidDriveCreateGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup) {
+    public RemoteDriveServiceChooserGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup) {
         super(meinAuthService, activity, viewGroup, R.layout.embedded_twice_drive);
     }
 

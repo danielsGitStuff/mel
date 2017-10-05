@@ -2,7 +2,6 @@ package de.mein.android.drive;
 
 import android.Manifest;
 import android.app.Activity;
-import android.view.View;
 import android.view.ViewGroup;
 
 import org.jdeferred.Promise;
@@ -11,12 +10,11 @@ import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.Threadder;
-import de.mein.android.drive.controller.AndroidDriveCreateGuiController;
+import de.mein.android.drive.controller.RemoteDriveServiceChooserGuiController;
 import de.mein.android.drive.controller.AndroidDriveEditGuiController;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
-import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.service.MeinDriveClientService;
@@ -30,7 +28,7 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
 
     @Override
     public void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceCreatorGuiController currentController) {
-        AndroidDriveCreateGuiController driveCreateGuiController = (AndroidDriveCreateGuiController) currentController;
+        RemoteDriveServiceChooserGuiController driveCreateGuiController = (RemoteDriveServiceChooserGuiController) currentController;
 
         // create the actual MeinDrive service
         DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
@@ -53,18 +51,15 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
     public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup rootView, IMeinService runningInstance) {
         // check for permission if necessary
         activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        return new AndroidDriveCreateGuiController(meinAuthService, activity, rootView);
+        return new RemoteDriveServiceChooserGuiController(meinAuthService, activity, rootView);
     }
 
     @Override
     public AndroidServiceCreatorGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
-        ViewGroup rootView;
         activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (runningInstance == null) {
-            //rootView = (ViewGroup) View.inflate(activity, R.layout.embedded_create_drive, embedded);
-            return new AndroidDriveCreateGuiController(meinAuthService, activity, embedded);
+            return new RemoteDriveServiceChooserGuiController(meinAuthService, activity, embedded);
         } else {
-//            rootView = (ViewGroup) View.inflate(activity, R.layout.embedded_edit_drive, embedded);
             return new AndroidDriveEditGuiController(meinAuthService, activity, runningInstance, embedded);
         }
 

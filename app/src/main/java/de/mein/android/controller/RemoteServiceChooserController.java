@@ -26,7 +26,7 @@ import de.mein.drive.data.DriveStrings;
  * Created by xor on 10/4/17.
  */
 
-public abstract class ChooseServerServiceController extends AndroidServiceCreatorGuiController {
+public abstract class RemoteServiceChooserController extends AndroidServiceCreatorGuiController {
 
 
     protected abstract void initEmbedded();
@@ -38,10 +38,10 @@ public abstract class ChooseServerServiceController extends AndroidServiceCreato
     private ServicesListAdapter drivesListAdapter;
     protected MeinAuthService meinAuthService;
     private ListView knownCertList, serviceList;
-    private LinearLayout chooserContent;
+    private ViewGroup chooserContent;
     private TextView lblKnownMA,lblServices;
 
-    public ChooseServerServiceController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup, int embeddedResource) {
+    public RemoteServiceChooserController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup, int embeddedResource) {
         super(activity, View.inflate(activity, R.layout.embedded_create_service_chooser, viewGroup));
         this.meinAuthService = meinAuthService;
         chooserContent = rootView.findViewById(R.id.chooserContent);
@@ -59,7 +59,7 @@ public abstract class ChooseServerServiceController extends AndroidServiceCreato
         knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
         knownCertList.setOnItemClickListener((parent, view, position, id) -> {
             selectedCertId = knownCertListAdapter.getItemT(position).getId().v();
-            System.out.println("AndroidDriveCreateGuiController.init.CLICKED");
+            System.out.println("RemoteDriveServiceChooserGuiController.init.CLICKED");
             showServices(selectedCertId);
         });
         knownCertList.setAdapter(knownCertListAdapter);

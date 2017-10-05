@@ -2,7 +2,6 @@ package de.mein.android.contacts;
 
 import android.Manifest;
 import android.app.Activity;
-import android.view.View;
 import android.view.ViewGroup;
 
 import java.io.File;
@@ -12,7 +11,7 @@ import java.sql.SQLException;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.boot.AndroidBootLoader;
-import de.mein.android.contacts.controller.AndroidContactsCreateGuiController;
+import de.mein.android.contacts.controller.RemoteContactsServiceChooserGuiController;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.IMeinService;
@@ -44,7 +43,7 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
 
         System.out.println("AndroidContactsBootloader.createService");
         try {
-            AndroidContactsCreateGuiController controller = (AndroidContactsCreateGuiController) currentController;
+            RemoteContactsServiceChooserGuiController controller = (RemoteContactsServiceChooserGuiController) currentController;
             ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeByName(new ContactsBootloader().getName());
             ContactsService contactsService = createService(controller.getName(), controller.getRole());
         } catch (Exception e) {
@@ -55,16 +54,14 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     @Override
     public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup rootView, IMeinService runningInstance) {
         activity.annoyWithPermissions(Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS);
-        return new AndroidContactsCreateGuiController(meinAuthService,activity, rootView);
+        return new RemoteContactsServiceChooserGuiController(meinAuthService,activity, rootView);
     }
 
 
     @Override
     public AndroidServiceCreatorGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
-        ViewGroup rootView;
         activity.annoyWithPermissions(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS);
-        rootView = (ViewGroup) View.inflate(activity, R.layout.embedded_twice_contacts, embedded);
-        return new AndroidContactsCreateGuiController(meinAuthService,activity, rootView);
+        return new RemoteContactsServiceChooserGuiController(meinAuthService,activity, embedded);
     }
 
     @Override
