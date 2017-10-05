@@ -272,7 +272,30 @@ public class AndroidSQLQueries extends ISQLQueries {
         System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
         System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
         System.err.println("AndroidSQLQueries.load!!!!!!!!!!!!!!!!!!a");
-        return null;
+        //    load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> args, String whatElse) throws SqlQueriesException {
+        List<SQLTableObject> r = load(columns, sqlTableObject, where, whereArgs, whatElse);
+        String select = buildSelectQuery(columns, sqlTableObject.getTableName());
+        if (where != null) {
+            select += " where " + where;
+        }
+        if (whatElse != null) {
+            select += " " + whatElse;
+        }
+
+        Cursor cursor = db.rawQuery(select, argsToStringArgs(whereArgs));
+        List<T> result = new ArrayList<>(cursor.getCount());
+        try {
+            while (cursor.moveToNext()) {
+                T ins = (T) sqlTableObject.getClass().newInstance();
+                for (Pair<?> pair : ins.getAllAttributes()) {
+                    AndroidSQLQueries.readCursorToPair(cursor, pair);
+                }
+                result.add(ins);
+            }
+        } catch (Exception e) {
+            throw new SqlQueriesException(e);
+        }
+        return result;
     }
 
     @Override

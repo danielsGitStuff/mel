@@ -33,6 +33,7 @@ public class AndroidContactsCreateGuiController extends ChooseServerServiceContr
 
     @Override
     protected void init() {
+        super.init();
         cbStoreToPhoneBook = rootView.findViewById(R.id.cbStoreToPhoneBook);
         txtName = rootView.findViewById(R.id.txtName);
     }

@@ -63,7 +63,7 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     public AndroidServiceCreatorGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
         ViewGroup rootView;
         activity.annoyWithPermissions(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS);
-        rootView = (ViewGroup) View.inflate(activity, R.layout.embedded_create_contacts, embedded);
+        rootView = (ViewGroup) View.inflate(activity, R.layout.embedded_twice_contacts, embedded);
         return new AndroidContactsCreateGuiController(meinAuthService,activity, rootView);
     }
 
