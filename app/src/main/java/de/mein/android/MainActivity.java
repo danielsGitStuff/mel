@@ -269,7 +269,7 @@ public class MainActivity extends MeinActivity {
 //                                                        .setContentHash(root.getContentHash().v())
 //                                                        .setFsId(root.getId().v())
 //                                                        .setIsDirectory(true)
-//                                                        .setName(root.getDisplayName().v())
+//                                                        .setName(root.getAccountType().v())
 //                                                        .setOrder(order.ord())
 //                                                        .setVersion(root.getVersion().v())
 //                                                        .setDeleted(false);

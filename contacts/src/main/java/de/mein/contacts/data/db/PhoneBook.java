@@ -20,7 +20,7 @@ public class PhoneBook extends SQLTableObject implements IPayload {
     private Pair<Long> created = new Pair<>(Long.class, "created");
     @JsonIgnore
     private Pair<Long> id = new Pair<>(Long.class, "id");
-    private Pair<String> hash = new Pair<>(String.class, "deepHash");
+    private Pair<String> hash = new Pair<>(String.class, "deephash");
     private MD5er md5er = new MD5er();
 
     public PhoneBook() {

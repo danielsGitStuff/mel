@@ -17,18 +17,20 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     public static final String ID = "id";
     public static final String PID = "pid";
-    public static final String DISPLAYNAME = "displayname";
+    public static final String ACCOUNT_TYPE = "accounttype";
+    public static final String ACCOUNT_NAME = "accountname";
     public static final String DISPLAYNAMEALTERNATIVE = "displaynamealternative";
-    public static final String DISPLAYNAMEPRIMITIVE = "displaynameprimitive";
+    public static final String DISPLAYNAMEPRIMITIVE = "displaynameprimary";
     public static final String DISPLAYNAMESOURCE = "displaynamesource";
     public static final String IMAGE = "image";
     public static final String AID = "aid";
-    public static final String HASH = "deepHash";
+    public static final String HASH = "deephash";
     @JsonIgnore
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> phonebookId = new Pair<>(Long.class, PID);
 
-    private Pair<String> displayName = new Pair<>(String.class, DISPLAYNAME);
+    private Pair<String> accountType = new Pair<>(String.class, ACCOUNT_TYPE);
+    private Pair<String> accountName = new Pair<>(String.class, ACCOUNT_NAME);
     private Pair<String> displayNameAlternative = new Pair<>(String.class, DISPLAYNAMEALTERNATIVE);
 
     private Pair<String> displayNamePrimary = new Pair<>(String.class, DISPLAYNAMEPRIMITIVE);
@@ -47,8 +49,12 @@ public class Contact extends SQLTableObject implements SerializableEntity {
         init();
     }
 
-    public Pair<String> getDisplayName() {
-        return displayName;
+    public Pair<String> getAccountType() {
+        return accountType;
+    }
+
+    public Pair<String> getAccountName() {
+        return accountName;
     }
 
     public Pair<Long> getId() {
@@ -82,7 +88,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(displayName, displayNameAlternative, displayNamePrimary, displayNameSource, image);
+        populateInsert(phonebookId, accountType, accountName, displayNameAlternative, displayNamePrimary, displayNameSource, image);
         hashPairs = new ArrayList<>(insertAttributes);
         insertAttributes.add(hash);
         populateAll(id);
@@ -114,6 +120,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     /**
      * hashes but does not digest md5er
+     *
      * @param md5er
      */
     public void hash(MD5er md5er) {

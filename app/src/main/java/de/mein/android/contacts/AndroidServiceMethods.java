@@ -34,6 +34,23 @@ public class AndroidServiceMethods {
         this.databaseManager = databaseManager;
     }
 
+    public void debugStuff() {
+        try {
+//            List<ContentProviderOperation> ops =
+//                    new ArrayList<ContentProviderOperation>();
+//            ops.add(ContentProviderOperation.newInsert(ContactsContract.Contacts.Da.CONTENT_URI)
+//                    .withValue(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
+//                    .withValue(ContactsContract.Contacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+//                    .withValue(Phone.NUMBER, "1-800-GOOG-411")
+//                    .withValue(Phone.TYPE, Phone.TYPE_CUSTOM)
+//                    .withValue(Phone.LABEL, "free directory assistance")
+//                    .build());
+//            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * @return flat {@link PhoneBook}
      * @throws SqlQueriesException
@@ -44,36 +61,41 @@ public class AndroidServiceMethods {
         PhoneBook phoneBook = phoneBookDao.create();
 
         String[] projContact = new String[]{
-                ContactsContract.Contacts._ID,
-                ContactsContract.Contacts.DISPLAY_NAME,
-                ContactsContract.Contacts.HAS_PHONE_NUMBER,
-                ContactsContract.Contacts.DISPLAY_NAME_ALTERNATIVE,
-                ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
-                ContactsContract.Contacts.DISPLAY_NAME_SOURCE,
+                ContactsContract.RawContacts._ID,
+                ContactsContract.RawContacts.ACCOUNT_TYPE,
+                ContactsContract.RawContacts.ACCOUNT_NAME,
+                ContactsContract.RawContacts.DISPLAY_NAME_ALTERNATIVE,
+                ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY,
+                ContactsContract.RawContacts.DISPLAY_NAME_SOURCE,
         };
         ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
-        Cursor contactCursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, projContact, null, null, null);
+        Cursor contactCursor = contentResolver.query(ContactsContract.RawContacts.CONTENT_URI, projContact, null, null, null);
         // Iterate every contact in the phone
         while (contactCursor.moveToNext()) {
             Contact contact = new Contact();
-            String contactId = readContact(contact, contactCursor);
-
-            int hasPhoneNumber = Integer.parseInt(contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
-            if (hasPhoneNumber > 0) {
-                readPhone(contact, contactId);
-            }
+            readContact(contact, contactCursor);
+            String contactId = contact.getAndroidId().v().toString();
+            readPhone(contact, contactId);
             readEmail(contact, contactId);
             readPhoto(contact, contactId);
             contact.hash();
             contact.getPhonebookId().v(phoneBook.getId());
             contactsDao.insert(contact);
             phoneBook.hashContact(contact);
-            System.out.println("MainActivity.examineContacts: ");
         }
         phoneBook.digest();
         phoneBookDao.updateFlat(phoneBook);
         contactCursor.close();
         return phoneBook;
+    }
+
+    private void readContact(Contact contact, Cursor cursor) {
+        contact.getAccountType().v(read(cursor, ContactsContract.RawContacts.ACCOUNT_TYPE));
+        contact.getAccountName().v(read(cursor, ContactsContract.RawContacts.ACCOUNT_NAME));
+        contact.getDisplayNameAlternative().v(read(cursor, ContactsContract.RawContacts.DISPLAY_NAME_ALTERNATIVE));
+        contact.getDisplayNamePrimary().v(read(cursor, ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY));
+        contact.getDisplayNameSource().v(read(cursor, ContactsContract.RawContacts.DISPLAY_NAME_SOURCE));
+        contact.getAndroidId().v(cursor.getLong(cursor.getColumnIndex(ContactsContract.RawContacts._ID)));
     }
 
     private byte[] bitmapToBytes(Bitmap bitmap) {
@@ -133,15 +155,6 @@ public class AndroidServiceMethods {
         emailCursor.close();
     }
 
-
-    private String readContact(Contact contact, Cursor cursor) {
-        contact.getDisplayName().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME));
-        contact.getDisplayNameAlternative().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME_ALTERNATIVE));
-        contact.getDisplayNamePrimary().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME_PRIMARY));
-        contact.getDisplayNameSource().v(read(cursor, ContactsContract.Contacts.DISPLAY_NAME_SOURCE));
-        contact.getAndroidId().v(cursor.getLong(cursor.getColumnIndex(ContactsContract.Contacts._ID)));
-        return read(cursor, ContactsContract.Contacts._ID);
-    }
 
     public String read(Cursor cursor, String col) {
         return cursor.getString(cursor.getColumnIndex(col));

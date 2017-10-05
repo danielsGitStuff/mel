@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS phonebook;
 create table phonebook(
 id integer not null primary key autoincrement,
 version integer,
-hash text,
+deephash text,
 created integer
 );
 CREATE TRIGGER IF NOT EXISTS createdstamp
@@ -22,12 +22,13 @@ CREATE TABLE contacts (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    aid integer,
    pid integer not null,
-  displayname        TEXT    not null,
+  accounttype        TEXT    ,
+  accountname text,
   displaynamealternative        TEXT,
-    displaynameprimitive        TEXT,
+    displaynameprimary        TEXT,
       displaynamesource        TEXT,
       image blob,
-      hash text,
+      deephash text,
       foreign key (pid) references phonebook(id) on delete cascade
   );
 
