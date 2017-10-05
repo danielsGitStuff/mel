@@ -8,6 +8,7 @@ import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.service.MeinAuthFxLoader;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.tools.WaitLock;
+import de.mein.contacts.ContactsFXBootloader;
 import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
@@ -16,7 +17,6 @@ import de.mein.sql.RWLock;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import javafx.embed.swing.JFXPanel;
-import mein.de.contacts.ContactsFXBootloader;
 
 import java.io.IOException;
 
