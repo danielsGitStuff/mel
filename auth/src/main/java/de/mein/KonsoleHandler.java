@@ -37,7 +37,7 @@ public class KonsoleHandler {
     private Pair<String> deliveryPort = stringPair("-dp", "port used to deliver the certificate");
     private Pair<String> workingDirectory = stringPair("-d", "path of working directory\nmeinauth will store certificates there");
     private Pair<String> broadcastListenerPort = stringPair("-bclp", "listen for broadcasts on this port");
-    MeinAuthSettings meinAuthSettings = (MeinAuthSettings) new MeinAuthSettings();
+    MeinAuthSettings meinAuthSettings = MeinAuthSettings.createDefaultSettings();
     private String[] args;
 
     public MeinAuthSettings start(String[] args) throws Exception {
@@ -47,6 +47,7 @@ public class KonsoleHandler {
         else if (args.length > 0) {
             while (position < args.length)
                 read();
+            meinAuthSettings.setJsonFile(new File(jsonPath));
         } else {
             File jsonFile = new File(jsonPath);
             if (jsonFile.exists()) {
@@ -56,7 +57,6 @@ public class KonsoleHandler {
         }
         return meinAuthSettings;
     }
-
 
 
     private void read() {
