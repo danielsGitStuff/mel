@@ -14,16 +14,16 @@ import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
+import de.mein.contacts.data.ContactStrings;
+import de.mein.contacts.data.ContactsClientSettings;
+import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.data.db.PhoneBook;
+import de.mein.contacts.jobs.ExamineJob;
+import de.mein.contacts.service.ContactsClientService;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-import mein.de.contacts.data.ContactStrings;
-import mein.de.contacts.data.ContactsClientSettings;
-import mein.de.contacts.data.ContactsSettings;
-import mein.de.contacts.data.db.Contact;
-import mein.de.contacts.data.db.PhoneBook;
-import mein.de.contacts.jobs.ExamineJob;
-import mein.de.contacts.service.ContactsClientService;
+
 
 /**
  * Created by xor on 10/4/17.

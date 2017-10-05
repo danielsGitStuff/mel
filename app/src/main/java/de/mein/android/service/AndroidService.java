@@ -37,7 +37,6 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSyncListener;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
-import mein.de.contacts.ContactsBootloader;
 
 
 /**

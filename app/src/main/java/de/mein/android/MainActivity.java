@@ -61,10 +61,7 @@ import de.mein.drive.service.MeinDriveClientService;
 import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.AccessController;
 import de.mein.android.controller.GuiController;
-import mein.de.contacts.data.db.Contact;
-import mein.de.contacts.data.db.ContactEmail;
-import mein.de.contacts.data.db.ContactImage;
-import mein.de.contacts.data.db.ContactPhone;
+
 
 public class MainActivity extends MeinActivity {
     private LinearLayout content;

@@ -12,14 +12,15 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import de.mein.android.Tools;
+import de.mein.contacts.data.db.Contact;
+import de.mein.contacts.data.db.ContactEmail;
+import de.mein.contacts.data.db.ContactPhone;
+import de.mein.contacts.data.db.ContactsDatabaseManager;
+import de.mein.contacts.data.db.PhoneBook;
+import de.mein.contacts.data.db.dao.ContactsDao;
+import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.sql.SqlQueriesException;
-import mein.de.contacts.data.db.Contact;
-import mein.de.contacts.data.db.ContactEmail;
-import mein.de.contacts.data.db.ContactPhone;
-import mein.de.contacts.data.db.ContactsDatabaseManager;
-import mein.de.contacts.data.db.PhoneBook;
-import mein.de.contacts.data.db.dao.ContactsDao;
-import mein.de.contacts.data.db.dao.PhoneBookDao;
+
 
 /**
  * Created by xor on 10/4/17.

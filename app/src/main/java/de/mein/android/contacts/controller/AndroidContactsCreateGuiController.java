@@ -11,7 +11,7 @@ import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.controller.ChooseServerServiceController;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
-import mein.de.contacts.data.ContactStrings;
+import de.mein.contacts.data.ContactStrings;
 
 /**
  * Created by xor on 9/21/17.

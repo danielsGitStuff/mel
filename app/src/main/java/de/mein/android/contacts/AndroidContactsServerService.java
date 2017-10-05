@@ -18,17 +18,18 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.contacts.data.ContactStrings;
+import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.data.db.PhoneBook;
+import de.mein.contacts.data.db.dao.PhoneBookDao;
+import de.mein.contacts.jobs.AnswerQueryJob;
+import de.mein.contacts.jobs.ExamineJob;
+import de.mein.contacts.jobs.UpdatePhoneBookJob;
+import de.mein.contacts.service.ContactsServerService;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-import mein.de.contacts.data.ContactStrings;
-import mein.de.contacts.data.ContactsSettings;
-import mein.de.contacts.data.db.PhoneBook;
-import mein.de.contacts.data.db.dao.PhoneBookDao;
-import mein.de.contacts.jobs.ExamineJob;
-import mein.de.contacts.jobs.AnswerQueryJob;
-import mein.de.contacts.jobs.UpdatePhoneBookJob;
-import mein.de.contacts.service.ContactsServerService;
+
 
 /**
  * Created by xor on 10/3/17.

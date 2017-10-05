@@ -17,12 +17,12 @@ import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.contacts.ContactsBootloader;
+import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.service.ContactsService;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-import mein.de.contacts.ContactsBootloader;
-import mein.de.contacts.data.ContactsSettings;
-import mein.de.contacts.service.ContactsService;
 
 /**
  * Created by xor on 9/21/17.

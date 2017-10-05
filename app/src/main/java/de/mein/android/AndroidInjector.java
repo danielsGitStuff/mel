@@ -14,6 +14,8 @@ import de.mein.MeinInjector;
 import de.mein.android.drive.bash.BashToolsAndroid;
 import de.mein.android.drive.watchdog.RecursiveWatcher;
 import de.mein.auth.tools.N;
+import de.mein.contacts.ContactsInjector;
+import de.mein.contacts.data.ContactStrings;
 import de.mein.drive.DriveInjector;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsImpl;
@@ -22,8 +24,6 @@ import de.mein.android.sql.AndroidDBConnection;
 import de.mein.execute.SqliteExecutorInjection;
 import de.mein.android.sql.AndroidSQLQueries;
 import de.mein.sql.conn.SQLConnection;
-import mein.de.contacts.ContactsInjector;
-import mein.de.contacts.data.ContactStrings;
 
 /**
  * Created by xor on 3/8/17.
