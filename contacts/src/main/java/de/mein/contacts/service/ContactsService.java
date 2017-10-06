@@ -30,6 +30,10 @@ public abstract class ContactsService extends MeinService {
         meinAuthService.execute(this);
     }
 
+    public ContactsDatabaseManager getDatabaseManager() {
+        return databaseManager;
+    }
+
     @Override
     public void connectionAuthenticated(Certificate partnerCertificate) {
         System.out.println("ContactsService.connectionAuthenticated");
@@ -66,4 +70,5 @@ public abstract class ContactsService extends MeinService {
     }
 
     public abstract void onContactsChanged();
+
 }

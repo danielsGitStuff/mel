@@ -13,6 +13,10 @@ import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.contacts.data.ContactStrings;
+import de.mein.contacts.data.db.PhoneBook;
+import de.mein.contacts.data.db.dao.PhoneBookDao;
+import de.mein.contacts.jobs.ExamineJob;
+import de.mein.contacts.jobs.UpdatePhoneBookJob;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
@@ -38,6 +42,32 @@ public class ContactsServerService extends ContactsService {
     @Override
     protected void workWork(Job job) throws Exception {
         System.out.println("ContactsServerService.workWork.nothing here yet");
+        PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
+        ContactsSettings settings = databaseManager.getSettings();
+        if (job instanceof AnswerQueryJob) {
+            AnswerQueryJob answerQueryJob = (AnswerQueryJob) job;
+            PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadPhoneBook(databaseManager.getSettings().getMasterPhoneBookId());
+            answerQueryJob.getRequest().resolve(phoneBook);
+        } else if (job instanceof UpdatePhoneBookJob) {
+            try {
+                UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
+                PhoneBook phoneBook = updatePhoneBookJob.getPhoneBook();
+                PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
+                if (phoneBook.getVersion().v() == masterPhoneBook.getVersion().v() + 1) {
+                    phoneBookDao.insertDeep(phoneBook);
+                    settings.setMasterPhoneBookId(phoneBook.getId().v());
+                    settings.save();
+                    updatePhoneBookJob.getRequest().resolve(null);
+                    updatePhoneBookJob.getPromise().resolve(null);
+                } else {
+                    updatePhoneBookJob.getRequest().reject(new Exception("master version was " + masterPhoneBook.getVersion().v() + " clients version was " + phoneBook.getVersion().v()));
+                    updatePhoneBookJob.getPromise().reject(null);
+                }
+            } finally {
+                if (!job.getPromise().isPending())
+                    job.getPromise().reject(null);
+            }
+        }
     }
 
     @Override

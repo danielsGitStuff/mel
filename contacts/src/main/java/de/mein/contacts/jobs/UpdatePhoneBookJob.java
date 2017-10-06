@@ -8,7 +8,7 @@ import de.mein.contacts.data.db.PhoneBook;
  * Created by xor on 10/4/17.
  */
 
-public class UpdatePhoneBookJob extends Job {
+public class UpdatePhoneBookJob extends Job<Void,Void,Void> {
     private final Request request;
     private final PhoneBook phoneBook;
 

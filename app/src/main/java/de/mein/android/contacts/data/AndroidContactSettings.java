@@ -7,13 +7,14 @@ import de.mein.contacts.data.PlatformContactSettings;
  */
 
 public class AndroidContactSettings implements PlatformContactSettings {
-    private boolean saveToPhoneBook = true;
+    private boolean persistToPhoneBook = true;
 
-    public void setSaveToPhoneBook(boolean saveToPhoneBook) {
-        this.saveToPhoneBook = saveToPhoneBook;
+    public AndroidContactSettings setPersistToPhoneBook(boolean persistToPhoneBook) {
+        this.persistToPhoneBook = persistToPhoneBook;
+        return this;
     }
 
-    public boolean getSaveToPhoneBook() {
-        return saveToPhoneBook;
+    public boolean getPersistToPhoneBook() {
+        return persistToPhoneBook;
     }
 }

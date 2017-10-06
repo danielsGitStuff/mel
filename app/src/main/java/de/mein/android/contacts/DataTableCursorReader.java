@@ -18,15 +18,23 @@ public class DataTableCursorReader {
     }
 
     public static DataTableCursorReader query(Uri uri, String selection, String[] selectionArgs, String sortOrder) {
-        return new DataTableCursorReader(Tools.getApplicationContext().getContentResolver().query(uri, createDataColumnNames(), selection, selectionArgs, sortOrder));
+        return new DataTableCursorReader(Tools.getApplicationContext().getContentResolver().query(uri, createReadDataColumnNames(), selection, selectionArgs, sortOrder));
     }
 
-    public static String[] createDataColumnNames() {
+    public static String[] createReadDataColumnNames() {
         String[] columns = new String[16];
         for (int i = 0; i < 15; i++) {
             columns[i] = "data" + (i + 1);
         }
         columns[15] = BaseColumns._ID;
+        return columns;
+    }
+
+    public static String[] createWriteDataColumnNames() {
+        String[] columns = new String[15];
+        for (int i = 0; i < 15; i++) {
+            columns[i] = "data" + (i + 1);
+        }
         return columns;
     }
 

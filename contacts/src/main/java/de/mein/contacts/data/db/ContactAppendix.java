@@ -61,6 +61,10 @@ public abstract class ContactAppendix extends SQLTableObject implements Serializ
     }
 
     public MD5er hash(MD5er md5er) {
-        return Pair.hash(md5er,hashPairs);
+        return Pair.hash(md5er, hashPairs);
+    }
+
+    public Object getValue(int index) {
+        return insertAttributes.get(index).v();
     }
 }
