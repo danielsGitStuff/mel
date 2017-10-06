@@ -47,7 +47,7 @@ public class PhoneBook extends SQLTableObject implements IPayload {
         return hash;
     }
 
-    public void addContact(Contact contact){
+    public void addContact(Contact contact) {
         contacts.add(contact);
         md5er.hash(contact);
     }
@@ -63,7 +63,7 @@ public class PhoneBook extends SQLTableObject implements IPayload {
         populateAll(created, id);
     }
 
-    public void resetHash(){
+    public void resetHash() {
         md5er = new MD5er();
     }
 
@@ -79,20 +79,21 @@ public class PhoneBook extends SQLTableObject implements IPayload {
 
     /**
      * updates the current hash with
+     *
      * @param contact
      */
-    public void hashContact(Contact contact){
+    public void hashContact(Contact contact) {
         md5er.hash(contact.getHash().v());
     }
 
     /**
-     *
      * @return hash based on all {@link Contact}s thrown into hashContact(). <br>
-     *     Note: the hashing object will be reset afterwards.<br>
-     *         Call resetHash() and hashContact() if you want a new valid hash.
+     * Note: the hashing object will be reset afterwards.<br>
+     * Call resetHash() and hashContact() if you want a new valid hash.
      */
-    public String digest(){
-        return md5er.digest();
+    public String digest() {
+        hash.v(md5er.digest());
+        return hash.v();
     }
 
     public void setContacts(List<Contact> contacts) {

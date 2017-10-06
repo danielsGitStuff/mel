@@ -2,6 +2,8 @@ package de.mein.contacts.data.db.dao;
 
 import java.util.List;
 
+import de.mein.contacts.data.db.ContactAppendix;
+import de.mein.contacts.data.db.ContactStructuredName;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
@@ -29,24 +31,25 @@ public class ContactsDao extends Dao {
     public void insert(Contact contact) throws SqlQueriesException {
         final Long contactId = sqlQueries.insert(contact);
         contact.getId().v(contactId);
-        for (ContactEmail email : contact.getEmails()) {
-            email.getContactId().v(contactId);
-            insertEmail(email);
-        }
-        for (ContactPhone phone : contact.getPhones()) {
-            phone.getContactId().v(contactId);
-            insertPhone(phone);
+        insertAppendices(contact);
+    }
+
+    private void insertAppendices(Contact contact) throws SqlQueriesException {
+        insertAppendices(contact.getId().v(), contact.getEmails());
+        insertAppendices(contact.getId().v(), contact.getNames());
+        insertAppendices(contact.getId().v(), contact.getPhones());
+    }
+
+    private void insertAppendices(Long contactId, List<? extends ContactAppendix> appendices) throws SqlQueriesException {
+        for (ContactAppendix appendix : appendices) {
+            appendix.getContactId().v(contactId);
+            insertAppendix(appendix);
         }
     }
 
-    private void insertPhone(ContactPhone phone) throws SqlQueriesException {
-        Long id = sqlQueries.insert(phone);
-        phone.getId().v(id);
-    }
-
-    private void insertEmail(ContactEmail email) throws SqlQueriesException {
-        Long id = sqlQueries.insert(email);
-        email.getId().v(id);
+    private void insertAppendix(ContactAppendix appendix) throws SqlQueriesException {
+        Long id = sqlQueries.insert(appendix);
+        appendix.getId().v(id);
     }
 
     public List<Contact> getContacts(Long phoneBookId) throws SqlQueriesException {
@@ -75,12 +78,13 @@ public class ContactsDao extends Dao {
         for (ContactPhone phone : contact.getPhones()) {
             phone.getId().nul();
             phone.getContactId().v(contact.getId().v());
-            insertPhone(phone);
+            insertAppendix(phone);
         }
         for (ContactEmail email : contact.getEmails()) {
             email.getId().nul();
             email.getContactId().v(contact.getId().v());
-            insertEmail(email);
+            insertAppendix(email);
         }
+
     }
 }

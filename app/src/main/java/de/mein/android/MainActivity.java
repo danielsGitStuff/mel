@@ -1,6 +1,8 @@
 package de.mein.android;
 
 import android.Manifest;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -123,6 +125,48 @@ public class MainActivity extends MeinActivity {
         navigationView.setNavigationItemSelectedListener(this);
         enableGuiController(new InfoController(this, content));
         startService();
+        debugStuff3();
+    }
+
+    public static void debugStuff3() {
+        try {
+            ArrayList<ContentProviderOperation> operationList = new ArrayList<>();
+            operationList.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                    .build());
+
+
+            // first and last names
+            operationList.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, "SSSSSSS")
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, "FFFFFFF")
+                    .build());
+
+            operationList.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                    .withValue(ContactsContract.Data.MIMETYPE,ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, "09876543210")
+                    .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_HOME)
+                    .build());
+            operationList.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+
+                    .withValue(ContactsContract.Data.MIMETYPE,ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.Email.DATA, "abc@xyz.com")
+                    .withValue(ContactsContract.CommonDataKinds.Email.TYPE, ContactsContract.CommonDataKinds.Email.TYPE_WORK)
+                    .build());
+
+            try{
+               //ContentProviderResult[] results = Tools.getApplicationContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY, operationList);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void debugStuff2() {
@@ -130,9 +174,6 @@ public class MainActivity extends MeinActivity {
 //            getContacts();
 //        });
     }
-
-
-
 
 
     @Override

@@ -30,7 +30,8 @@ import de.mein.sql.SqlQueriesException;
 public class AndroidContactsBootloader extends ContactsBootloader implements AndroidBootLoader {
     @Override
     protected ContactsService createServerInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceId, String serviceTypeId, ContactsSettings contactsSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
-        return new AndroidContactsServerService(meinAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings);
+        AndroidContactsServerService service = new AndroidContactsServerService(meinAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings);
+        if (contactsSettings.getPl)
     }
 
     @Override

@@ -26,15 +26,10 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
 
     @Override
     protected void initEmbedded() {
-
-    }
-
-    @Override
-    protected void init() {
-        super.init();
         cbStoreToPhoneBook = rootView.findViewById(R.id.cbStoreToPhoneBook);
         txtName = rootView.findViewById(R.id.txtName);
     }
+
 
     @Override
     protected boolean showService(ServiceJoinServiceType service) {

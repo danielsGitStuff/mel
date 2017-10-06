@@ -12,11 +12,12 @@ import de.mein.sql.SqlQueriesException;
  * Created by xor on 9/21/17.
  */
 
-public class ContactsSettings extends JsonSettings {
+public class ContactsSettings <T extends PlatformContactSettings> extends JsonSettings {
     private String role = ":(";
     private ContactsServerSettings serverSettings;
     private ContactsClientSettings clientSettings;
     private Long masterPhoneBookId;
+    private T platformContactSettings;
 
     public boolean isServer() {
         return role.equals(ContactStrings.ROLE_SERVER);
@@ -29,6 +30,14 @@ public class ContactsSettings extends JsonSettings {
         else if (role.equals(ContactStrings.ROLE_SERVER) && serverSettings == null)
             serverSettings = new ContactsServerSettings();
         return this;
+    }
+
+    public T getPlatformContactSettings() {
+        return platformContactSettings;
+    }
+
+    public void setPlatformContactSettings(T platformContactSettings) {
+        this.platformContactSettings = platformContactSettings;
     }
 
     public ContactsClientSettings getClientSettings() {
