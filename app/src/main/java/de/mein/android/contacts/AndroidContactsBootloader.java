@@ -37,9 +37,9 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     }
 
     private void addExporter(ContactsService service, ContactsSettings settings) {
-        if (((AndroidContactSettings) settings.getPlatformContactSettings()).getPersistToPhoneBook()) {
-            service.setContactsToEnvironmentExporter(new ContactsToAndroidExporter(service.getDatabaseManager()));
-        }
+//        if (((AndroidContactSettings) settings.getPlatformContactSettings()).getPersistToPhoneBook()) {
+//            service.setContactsToEnvironmentExporter(new ContactsToAndroidExporter(service.getDatabaseManager()));
+//        }
     }
 
     @Override

@@ -60,12 +60,14 @@ public class AndroidServiceMethods {
         while (contactCursor.moveToNext()) {
             // read rawId first
             Contact contact = new Contact();
+            String contactId = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts._ID));
             contact.getAndroidId().v(contactCursor.getLong(contactCursor.getColumnIndex(ContactsContract.Contacts.NAME_RAW_CONTACT_ID)));
-            String contactId = contact.getAndroidId().v().toString();
+            String rawContactId = contact.getAndroidId().v().toString();
 
-            readName(contact, contactId);
-            readPhone(contact, contactId);
-            readEmail(contact, contactId);
+
+            readName(contact, rawContactId);
+            readPhone(contact, rawContactId);
+            readEmail(contact, rawContactId);
             readPhoto(contact, contactId);
             contact.hash();
             contact.getPhonebookId().v(phoneBook.getId());
@@ -78,8 +80,8 @@ public class AndroidServiceMethods {
         return phoneBook;
     }
 
-    private void readPhone(Contact contact, String contactId) {
-        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{contactId}, null);
+    private void readPhone(Contact contact, String rawContactId) {
+        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{rawContactId}, null);
         while (reader.moveToNext()) {
             ContactPhone phone = new ContactPhone();
             phone.getContactId().v(contact.getId());
@@ -90,9 +92,9 @@ public class AndroidServiceMethods {
     }
 
 
-    private void readName(Contact contact, String contactId) {
+    private void readName(Contact contact, String rawContactId) {
         String selection = ContactsContract.Data.RAW_CONTACT_ID + " = ? and " + ContactsContract.Data.MIMETYPE + "=?";
-        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{contactId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}, null);
+        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}, null);
         while (reader.moveToNext()) {
             ContactStructuredName name = new ContactStructuredName();
             name.getContactId().v(contact.getId());
@@ -128,8 +130,8 @@ public class AndroidServiceMethods {
         }
     }
 
-    private void readEmail(Contact contact, String contactId) {
-        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{contactId}, null);
+    private void readEmail(Contact contact, String rawContactId) {
+        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{rawContactId}, null);
         while (reader.moveToNext()) {
             ContactEmail email = new ContactEmail();
             email.getContactId().v(contact.getId());

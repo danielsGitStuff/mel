@@ -3,7 +3,6 @@ package de.mein.contacts.data.db.dao;
 import java.util.List;
 
 import de.mein.contacts.data.db.ContactAppendix;
-import de.mein.contacts.data.db.ContactStructuredName;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
@@ -86,5 +85,10 @@ public class ContactsDao extends Dao {
             insertAppendix(email);
         }
 
+    }
+
+    public <T extends ContactAppendix> List<T> getAppendix(Long contactId, Class<T> clazz) throws SqlQueriesException, IllegalAccessException, InstantiationException {
+        ContactAppendix appendix = clazz.newInstance();
+        return sqlQueries.load(appendix.getAllAttributes(), (T) appendix, appendix.getContactId().k() + "=?", ISQLQueries.whereArgs(contactId));
     }
 }
