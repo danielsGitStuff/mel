@@ -1,89 +1,80 @@
 package de.mein.auth.tools;
 
-import de.mein.sql.RWLock;
-
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.IntBinaryOperator;
-
-//public class CountLock {
-//
-//    private AtomicInteger counter = new AtomicInteger(0);
-//    private Lock accessLock = new ReentrantLock();
-//    private RWLock lock = new RWLock();
-//
-//    public CountLock lock() {
-//        accessLock.lock();
-//        if (counter.incrementAndGet() > 1) {
-//            lock.lockWrite();
-//        }
-//        accessLock.unlock();
-//        return this;
-//    }
-//
-//    public CountLock unlock() {
-//        synchronized (counter) {
-//            counter.decrementAndGet();
-//            lock.unlockWrite();
-//        }
-//        return this;
-//    }
-//}
-
-
 /**
  * Created by xor on 6/7/17.
  */
 public class CountLock {
 
-    private final AtomicInteger counter = new AtomicInteger(0);
-    private Lock accessLock = new ReentrantLock();
-    private RWLock lock = new RWLock().lockWrite();
-    //todo debug
-    private Thread lastLockedThread;
-    private StackTraceElement[] stacktrace;
+    class Counter {
 
-    public CountLock lock() {
-        accessLock.lock();
-//        if (counter.incrementAndGet() > 0) {
-//            lock.lockWrite();
-//        }
-        if (counter.accumulateAndGet(1,intBinaryOperator)>0) {
-            //todo debug
-            if (counter.get() == 2) {
-                System.out.println("CountLock.lock.debug");
-            }
-            lastLockedThread = Thread.currentThread();
-            try {
-                throw new Exception("");
-            } catch (Exception e) {
-                this.stacktrace = e.getStackTrace();
-            }
-            lock.lockWrite();
+        private int count = 0;
+
+        public synchronized int inc() {
+            count++;
+            return count;
         }
-        accessLock.unlock();
-        return this;
+
+        public synchronized int dec() {
+            count--;
+            return count;
+        }
+
+        public synchronized int getCount() {
+            return count;
+        }
+
+        public synchronized int incMax(int max) {
+            count++;
+            if (count > max)
+                count = max;
+            return count;
+        }
     }
 
-    private IntBinaryOperator intBinaryOperator = (left, right) -> {
-        if (left + right > 1)
-            return 1;
-        return left + right;
-    };
+    private final Counter counter = new Counter();
+    private SimpleLock lock = new SimpleLock();
+
+    public CountLock lock() {
+        if (counter.incMax(1) > 0) {
+            lock.lock();
+        }
+        return this;
+    }
 
     public CountLock unlock() {
         synchronized (counter) {
             //todo debug
-            if (counter.get() == 2) {
+            if (counter.getCount() == 2) {
                 System.out.println("CountLock.unlock.debug");
             }
-//            if (counter.accumulateAndGet(-1, intBinaryOperator) < 1)
-//                lock.unlockWrite();
-            if (counter.decrementAndGet() < 1)
-                lock.unlockWrite();
+            if (counter.dec() < 1)
+                lock.unlock();
         }
         return this;
     }
 
+
+    public static class SimpleLock {
+
+        private boolean isLocked = false;
+
+        public synchronized void lock() {
+            while (isLocked) {
+                try {
+                    this.wait();
+                } catch (InterruptedException e) {
+                }
+            }
+            isLocked = true;
+        }
+
+        public boolean isLocked() {
+            return isLocked;
+        }
+
+        public synchronized void unlock() {
+            isLocked = false;
+            this.notify();
+        }
+    }
 }
