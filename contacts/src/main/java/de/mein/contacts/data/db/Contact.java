@@ -98,15 +98,11 @@ public class Contact extends SQLTableObject implements SerializableEntity {
         Pair.hash(md5er, hash);
     }
 
+    private List<String> hashes = new ArrayList<>();
+
     public String hash() {
-        MD5er md5er = Pair.hash(new MD5er(), image);
-        List<String> hashes = new ArrayList<>();
-        for (ContactPhone phone : phones) {
-            phone.hash(md5er);
-            MD5er m = new MD5er();
-            phone.hash(m);
-            hashes.add(m.digest());
-        }
+        hashes = new ArrayList<>();
+        MD5er md5er = new MD5er();
         for (ContactEmail email : emails) {
             email.hash(md5er);
             MD5er m = new MD5er();
@@ -117,6 +113,12 @@ public class Contact extends SQLTableObject implements SerializableEntity {
             name.hash(md5er);
             MD5er m = new MD5er();
             name.hash(m);
+            hashes.add(m.digest());
+        }
+        for (ContactPhone phone : phones) {
+            phone.hash(md5er);
+            MD5er m = new MD5er();
+            phone.hash(m);
             hashes.add(m.digest());
         }
         md5er.hash(image.v());

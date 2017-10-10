@@ -91,4 +91,9 @@ public class ContactsDao extends Dao {
         ContactAppendix appendix = clazz.newInstance();
         return sqlQueries.load(appendix.getAllAttributes(), (T) appendix, appendix.getContactId().k() + "=?", ISQLQueries.whereArgs(contactId));
     }
+
+    public void updateHash(Contact contact) throws SqlQueriesException {
+        String stmt = "update " + contact.getTableName() + " set " + contact.getHash().k() + "=? where " + contact.getId().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(contact.getHash().v(), contact.getId().v()));
+    }
 }

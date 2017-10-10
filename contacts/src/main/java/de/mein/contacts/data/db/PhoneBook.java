@@ -49,7 +49,6 @@ public class PhoneBook extends SQLTableObject implements IPayload {
 
     public void addContact(Contact contact) {
         contacts.add(contact);
-        md5er.hash(contact);
     }
 
     @Override

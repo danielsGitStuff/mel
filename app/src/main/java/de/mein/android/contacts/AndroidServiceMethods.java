@@ -110,7 +110,7 @@ public class AndroidServiceMethods {
         return byteBuffer.array();
     }
 
-    private void readPhoto(Contact contact, String contactId ) {
+    public static void readPhoto(Contact contact, String contactId ) {
         InputStream inputStream = ContactsContract.Contacts.openContactPhotoInputStream(Tools.getApplicationContext().getContentResolver(),
                 ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.valueOf(contactId)),true);
         try {

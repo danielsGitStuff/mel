@@ -1,6 +1,7 @@
 package de.mein.android.contacts;
 
 import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentResolver;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
@@ -18,7 +19,9 @@ import de.mein.contacts.data.db.ContactEmail;
 import de.mein.contacts.data.db.ContactPhone;
 import de.mein.contacts.data.db.ContactStructuredName;
 import de.mein.contacts.data.db.ContactsDatabaseManager;
+import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
+import de.mein.sql.MD5er;
 import de.mein.sql.Pair;
 import de.mein.sql.SqlQueriesException;
 
@@ -43,6 +46,7 @@ public class ContactsToAndroidExporter {
 
     public void export(final Long phoneBookId) {
         try {
+
             ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
             // delete everything first
             Cursor cursor = contentResolver.query(ContactsContract.RawContacts.CONTENT_URI, new String[]{ContactsContract.RawContacts._ID}, null, null, null);
@@ -55,11 +59,16 @@ public class ContactsToAndroidExporter {
                 System.out.println("ContactsToAndroidExporter.export");
             }
 
+
+
+            // we have to rehash everything we insert because inserting a contact image will slightly alter it.
+            PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadFlatPhoneBook(phoneBookId);
+            phoneBook.resetHash();
             ContactsDao contactsDao = databaseManager.getContactsDao();
             List<Contact> contacts = contactsDao.getContacts(phoneBookId);
             for (Contact contact : contacts) {
                 try {
-
+                    MD5er contactMD5er = new MD5er();
                     // first create a raw contact
                     ArrayList<ContentProviderOperation> operationList = new ArrayList<>();
                     operationList.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
@@ -67,10 +76,10 @@ public class ContactsToAndroidExporter {
                             .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
                             .build());
 
-                    // then appendices in the according tables
-                    insertAppendices(operationList, contact.getId().v(), ContactStructuredName.class, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
-                    insertAppendices(operationList, contact.getId().v(), ContactPhone.class, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
-                    insertAppendices(operationList, contact.getId().v(), ContactEmail.class, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE);
+                    // then appendices in the according tables. note: order is the same as in Contact.hash()
+                    insertAppendices(operationList, contact.getId().v(), ContactEmail.class, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE, contactMD5er);
+                    insertAppendices(operationList, contact.getId().v(), ContactStructuredName.class, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, contactMD5er);
+                    insertAppendices(operationList, contact.getId().v(), ContactPhone.class, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, contactMD5er);
 
                     // save photo
                     if (contact.getImage().notNull()) {
@@ -80,24 +89,33 @@ public class ContactsToAndroidExporter {
                                 .withValue(ContactsContract.CommonDataKinds.Photo.PHOTO, contact.getImage().v())
                                 .build());
                     }
-                    contentResolver.applyBatch(ContactsContract.AUTHORITY, operationList);
+                    // read the inserted image. it probably has changed
+                    Contact dummy = new Contact();
+                    ContentProviderResult[] result = contentResolver.applyBatch(ContactsContract.AUTHORITY, operationList);
+                    AndroidServiceMethods.readPhoto(dummy, result[0].uri.getLastPathSegment());
+                    contactMD5er.hash(dummy.getImage().v());
+                    contact.getHash().v(contactMD5er.digest());
+                    contactsDao.updateHash(contact);
+                    phoneBook.hashContact(contact);
                 } catch (RemoteException | OperationApplicationException | IllegalAccessException | InstantiationException e) {
                     e.printStackTrace();
                 }
             }
+            phoneBook.digest();
+            databaseManager.getPhoneBookDao().updateFlat(phoneBook);
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         }
     }
 
-    private <T extends ContactAppendix> void insertAppendices(ArrayList<ContentProviderOperation> operationList, Long contactId, Class<T> appendixClass, String contentItemType) throws IllegalAccessException, SqlQueriesException, InstantiationException {
+    private <T extends ContactAppendix> void insertAppendices(ArrayList<ContentProviderOperation> operationList, Long contactId, Class<T> appendixClass, String contentItemType, MD5er md5er) throws IllegalAccessException, SqlQueriesException, InstantiationException {
         List<T> appendices = databaseManager.getContactsDao().getAppendix(contactId, appendixClass);
         for (ContactAppendix appendix : appendices) {
-            operationList.add(insertAppendix(appendix, contentItemType));
+            operationList.add(insertAppendix(appendix, contentItemType, md5er));
         }
     }
 
-    private ContentProviderOperation insertAppendix(ContactAppendix appendix, String contentItemType) {
+    private ContentProviderOperation insertAppendix(ContactAppendix appendix, String contentItemType, MD5er md5er) {
         // reverse the reading process
         ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                 .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
@@ -105,6 +123,7 @@ public class ContactsToAndroidExporter {
         String[] columns = DataTableCursorReader.createWriteDataColumnNames();
         for (int i = 0; i < columns.length; i++) {
             builder.withValue(columns[i], appendix.getValue(i));
+            md5er.hash(appendix.getValue(i));
         }
         return builder.build();
     }
