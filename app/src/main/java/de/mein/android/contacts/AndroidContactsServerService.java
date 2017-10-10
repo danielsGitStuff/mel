@@ -53,14 +53,14 @@ public class AndroidContactsServerService extends ContactsServerService {
 
             @Override
             public void onChange(boolean selfChange) {
-                System.out.println("AndroidContactsServerService.onChange");
+                System.out.println("AndroidContactsServerService.onChange." + selfChange);
                 super.onChange(selfChange);
                 addJob(new ExamineJob());
             }
 
             @Override
             public void onChange(boolean selfChange, Uri uri) {
-                System.out.println("AndroidContactsServerService.onChange");
+                System.out.println("AndroidContactsServerService.onChange.uri: "+uri);
                 super.onChange(selfChange, uri);
             }
         });
@@ -69,6 +69,8 @@ public class AndroidContactsServerService extends ContactsServerService {
         if (androidContactSettings.getPersistToPhoneBook()) {
             contactsToAndroidExporter = new ContactsToAndroidExporter(databaseManager);
         }
+        databaseManager.maintenance();
+        // examine when booted
         addJob(new ExamineJob());
     }
 
@@ -80,24 +82,25 @@ public class AndroidContactsServerService extends ContactsServerService {
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
         ContactsSettings settings = databaseManager.getSettings();
         if (job instanceof ExamineJob) {
-//            PhoneBook phoneBook = serviceMethods.examineContacts();
-//            PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
-//            if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
-//                if (masterPhoneBook == null)
-//                    phoneBook.getVersion().v(1L);
-//                else {
-//                    phoneBook.getVersion().v(masterPhoneBook.getVersion().v() + 1);
-//                }
-//                phoneBookDao.updateFlat(phoneBook);
-//                settings.setMasterPhoneBookId(phoneBook.getId().v());
-//                settings.save();
-//                contactsToAndroidExporter.export(phoneBook.getId().v());
-//            }
-            //todo debug
+            PhoneBook phoneBook = serviceMethods.examineContacts();
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
-            if (count < 1)
-                contactsToAndroidExporter.export(masterPhoneBook.getId().v());
-            count++;
+            if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
+                if (masterPhoneBook == null)
+                    phoneBook.getVersion().v(1L);
+                else {
+                    phoneBook.getVersion().v(masterPhoneBook.getVersion().v() + 1);
+                }
+                phoneBookDao.updateFlat(phoneBook);
+                settings.setMasterPhoneBookId(phoneBook.getId().v());
+                settings.save();
+                //todo debug
+                contactsToAndroidExporter.export(phoneBook.getId().v());
+            }
+            //todo debug
+//            PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
+//            if (count < 1)
+//                contactsToAndroidExporter.export(masterPhoneBook.getId().v());
+//            count++;
         } else if (job instanceof AnswerQueryJob) {
             super.workWork(job);
         } else if (job instanceof UpdatePhoneBookJob) {

@@ -82,7 +82,6 @@ public class ContactsDatabaseManager extends FileRelatedManager {
     }
 
     /**
-     *
      * @return Master {@link PhoneBook} that does not provide any {@link Contact}s or null if there is no Master {@link PhoneBook}
      * @throws SqlQueriesException
      */
@@ -90,6 +89,13 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         if (settings.getMasterPhoneBookId() != null)
             return phoneBookDao.loadFlatPhoneBook(settings.getMasterPhoneBookId());
         return null;
+    }
+
+    public void maintenance() throws SqlQueriesException {
+        // for now delete everything but the master phone book
+        PhoneBook master = getFlatMasterPhoneBook();
+        if (master != null)
+            sqlQueries.delete(master, master.getId().k() + "<>?", ISQLQueries.whereArgs(master.getId().v()));
     }
 
     public interface SQLConnectionCreator {

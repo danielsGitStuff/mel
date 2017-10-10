@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.provider.ContactsContract;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -47,12 +48,8 @@ public class AndroidServiceMethods {
 
         String[] projContact = new String[]{
                 ContactsContract.Contacts._ID,
-//                ContactsContract.Contacts.DISPLAY_NAME,
-//                ContactsContract.Contacts.HAS_PHONE_NUMBER,
-//                ContactsContract.Contacts.DISPLAY_NAME_ALTERNATIVE,
-//                ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
-//                ContactsContract.Contacts.DISPLAY_NAME_SOURCE,
-                ContactsContract.Contacts.NAME_RAW_CONTACT_ID
+                ContactsContract.Contacts.NAME_RAW_CONTACT_ID,
+                ContactsContract.Contacts.PHOTO_FILE_ID
         };
         ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
         Cursor contactCursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, projContact, null, null, null);
@@ -60,7 +57,8 @@ public class AndroidServiceMethods {
         while (contactCursor.moveToNext()) {
             // read rawId first
             Contact contact = new Contact();
-            String contactId = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts._ID));
+            final String contactId = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts._ID));
+            final String photoFileId = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_FILE_ID));
             contact.getAndroidId().v(contactCursor.getLong(contactCursor.getColumnIndex(ContactsContract.Contacts.NAME_RAW_CONTACT_ID)));
             String rawContactId = contact.getAndroidId().v().toString();
 
@@ -112,14 +110,22 @@ public class AndroidServiceMethods {
         return byteBuffer.array();
     }
 
-    private void readPhoto(Contact contact, String contactId) {
+    private void readPhoto(Contact contact, String contactId ) {
         InputStream inputStream = ContactsContract.Contacts.openContactPhotoInputStream(Tools.getApplicationContext().getContentResolver(),
-                ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.valueOf(contactId)));
+                ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.valueOf(contactId)),true);
         try {
             if (inputStream != null) {
-                Bitmap photo = BitmapFactory.decodeStream(inputStream);
-                contact.getImage().v(bitmapToBytes(photo));
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                int bytesRead;
+                byte[] data = new byte[16384];
+                while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
+                    buffer.write(data, 0, bytesRead);
+                }
+                buffer.flush();
+                contact.getImage().v(buffer.toByteArray());
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         } finally {
             try {
                 if (inputStream != null)

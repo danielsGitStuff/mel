@@ -11,6 +11,7 @@ import de.mein.auth.service.MeinService;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.db.ContactsDatabaseManager;
+import de.mein.contacts.data.db.PhoneBook;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
@@ -70,5 +71,4 @@ public abstract class ContactsService extends MeinService {
     }
 
     public abstract void onContactsChanged();
-
 }

@@ -45,33 +45,16 @@ public class ContactsToAndroidExporter {
         try {
             ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
             // delete everything first
-
             Cursor cursor = contentResolver.query(ContactsContract.RawContacts.CONTENT_URI, new String[]{ContactsContract.RawContacts._ID}, null, null, null);
             while (cursor.moveToNext()) {
                 String _id = cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts._ID));
                 List<Pair<String>> colNames = readCols(cursor);
-//                Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
-                Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, _id);
-                uri = ContactsContract.RawContacts.CONTENT_URI;
+                Uri uri = ContactsContract.RawContacts.CONTENT_URI;
 
                 int delrows = contentResolver.delete(uri, ContactsContract.RawContacts._ID + "=?", new String[]{_id});
                 System.out.println("ContactsToAndroidExporter.export");
             }
 
-
-//            Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
-//            while (cursor.moveToNext()) {
-//                String _id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
-//                List<Pair<String>> colNames = readCols(cursor);
-////                Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
-//                Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, _id);
-//                uri = ContactsContract.Contacts.CONTENT_URI;
-//
-//                int delrows = contentResolver.delete(uri, ContactsContract.Contacts._ID+"=?", new String[]{_id});
-//                System.out.println("ContactsToAndroidExporter.export");
-//            }
-            Uri deleteRawUri = ContactsContract.RawContacts.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
-            contentResolver.delete(deleteRawUri, null, null);
             ContactsDao contactsDao = databaseManager.getContactsDao();
             List<Contact> contacts = contactsDao.getContacts(phoneBookId);
             for (Contact contact : contacts) {
@@ -89,15 +72,6 @@ public class ContactsToAndroidExporter {
                     insertAppendices(operationList, contact.getId().v(), ContactPhone.class, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
                     insertAppendices(operationList, contact.getId().v(), ContactEmail.class, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE);
 
-//                    for (ContactStructuredName name : contactsDao.getAppendix(contact.getId().v(), ContactStructuredName.class)) {
-//                        operationList.add(insertAppendix(name, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE));
-//                    }
-//                    for (ContactPhone phone : contact.getPhones()) {
-//                        operationList.add(insertAppendix(phone, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE));
-//                    }
-//                    for (ContactEmail email : contact.getEmails()) {
-//                        operationList.add(insertAppendix(email, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE));
-//                    }
                     // save photo
                     if (contact.getImage().notNull()) {
                         operationList.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
