@@ -3,6 +3,7 @@ package de.mein.contacts.data.db.dao;
 import java.util.List;
 
 import de.mein.contacts.data.db.ContactAppendix;
+import de.mein.contacts.data.db.ContactStructuredName;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
@@ -57,6 +58,23 @@ public class ContactsDao extends Dao {
         String where = contact.getPhonebookId().k() + "=?";
         contacts = sqlQueries.load(contact.getAllAttributes(), contact, where, ISQLQueries.whereArgs(phoneBookId));
         return contacts;
+    }
+
+    public List<Contact> getDeepContacts(Long phoneBookId) throws SqlQueriesException {
+        List<Contact> contacts;
+        Contact dummy = new Contact();
+        String where = dummy.getPhonebookId().k() + "=?";
+        contacts = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(phoneBookId));
+        for (Contact contact : contacts) {
+            contact.setEmails(loadAppendices(contact.getId().v(), new ContactEmail()));
+            contact.setNames(loadAppendices(contact.getId().v(), new ContactStructuredName()));
+            contact.setPhones(loadAppendices(contact.getId().v(), new ContactPhone()));
+        }
+        return contacts;
+    }
+
+    private <T extends ContactAppendix> List<T> loadAppendices(Long contactId, T appendix) throws SqlQueriesException {
+        return sqlQueries.load(appendix.getAllAttributes(), appendix, appendix.getContactId().k() + "=?", ISQLQueries.whereArgs(contactId));
     }
 
 

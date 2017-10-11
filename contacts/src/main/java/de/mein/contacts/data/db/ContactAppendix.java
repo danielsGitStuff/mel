@@ -35,12 +35,16 @@ public abstract class ContactAppendix extends SQLTableObject implements Serializ
         return contactId;
     }
 
+    private List<Pair<String>> dataCols = new ArrayList<>(15);
+
     @Override
     protected void init() {
         populateInsert();
         for (int i = 1; i < 16; i++) {
             String col = "data" + i;
-            insertAttributes.add(new Pair<>(String.class, col));
+            Pair<String> pair = new Pair<>(String.class, col);
+            insertAttributes.add(pair);
+            dataCols.add(pair);
         }
         hashPairs = new ArrayList<>(insertAttributes);
         insertAttributes.add(contactId);
@@ -49,7 +53,7 @@ public abstract class ContactAppendix extends SQLTableObject implements Serializ
     }
 
     public void setValue(int index, String value) {
-        insertAttributes.get(index).setValueUnsecure(value);
+        dataCols.get(index).setValueUnsecure(value);
     }
 
     public Pair<Long> getAndroidId() {
@@ -65,6 +69,6 @@ public abstract class ContactAppendix extends SQLTableObject implements Serializ
     }
 
     public Object getValue(int index) {
-        return insertAttributes.get(index).v();
+        return dataCols.get(index).v();
     }
 }

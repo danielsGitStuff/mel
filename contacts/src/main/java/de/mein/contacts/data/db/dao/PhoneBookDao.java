@@ -67,6 +67,19 @@ public class PhoneBookDao extends Dao {
         return phoneBook;
     }
 
+    /**
+     * @param id
+     * @return PhoneBook with {@link Contact}s attached.
+     * @throws SqlQueriesException
+     */
+    public PhoneBook loadDeepPhoneBook(Long id) throws SqlQueriesException {
+        PhoneBook phoneBook = loadPhoneBook(id);
+        List<Contact> contacts = contactsDao.getDeepContacts(id);
+        phoneBook.setContacts(contacts);
+        phoneBook.deepHash();
+        return phoneBook;
+    }
+
     public void updateFlat(PhoneBook phoneBook) throws SqlQueriesException {
         sqlQueries.update(phoneBook, phoneBook.getId().k() + "=?", ISQLQueries.whereArgs(phoneBook.getId().v()));
     }

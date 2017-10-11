@@ -98,35 +98,32 @@ public class Contact extends SQLTableObject implements SerializableEntity {
         Pair.hash(md5er, hash);
     }
 
-    private List<String> hashes = new ArrayList<>();
-
     public String hash() {
-        hashes = new ArrayList<>();
         MD5er md5er = new MD5er();
         for (ContactEmail email : emails) {
             email.hash(md5er);
-            MD5er m = new MD5er();
-            email.hash(m);
-            hashes.add(m.digest());
         }
         for (ContactStructuredName name : names) {
             name.hash(md5er);
-            MD5er m = new MD5er();
-            name.hash(m);
-            hashes.add(m.digest());
         }
         for (ContactPhone phone : phones) {
             phone.hash(md5er);
-            MD5er m = new MD5er();
-            phone.hash(m);
-            hashes.add(m.digest());
         }
         md5er.hash(image.v());
         hash.v(md5er.digest());
-        MD5er m = new MD5er();
-        m.hash(image.v());
-        hashes.add(m.digest());
         return hash.v();
+    }
+
+    public void setEmails(List<ContactEmail> emails) {
+        this.emails = emails;
+    }
+
+    public void setNames(List<ContactStructuredName> names) {
+        this.names = names;
+    }
+
+    public void setPhones(List<ContactPhone> phones) {
+        this.phones = phones;
     }
 
     public void addName(ContactStructuredName name) {
