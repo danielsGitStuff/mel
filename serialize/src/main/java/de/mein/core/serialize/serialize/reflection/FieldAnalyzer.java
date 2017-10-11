@@ -8,6 +8,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -77,6 +78,7 @@ public class FieldAnalyzer {
         }
         return false;
     }
+
     public static boolean isEntitySerializableCollection(Field field) {
         boolean isCollection = Collection.class.isAssignableFrom(field.getType());
         if (isCollection) {
@@ -91,18 +93,25 @@ public class FieldAnalyzer {
         return false;
     }
 
-    public static boolean isCollectionOfClass(Class clazz, Field field) {
+    public static boolean isCollectionOfClass(Field field, Class clazz) {
         if (Collection.class.isAssignableFrom(field.getType())) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
-            Object whatEver = parameterizedType.getActualTypeArguments()[0];
-            if (whatEver instanceof ParameterizedType) {
-                return false;
+            Type[] types = parameterizedType.getActualTypeArguments();
+            //collections only have one type
+            Type type = types[0];
+            if (type instanceof ParameterizedType) {
+                Class genClass = (Class) ((ParameterizedType) type).getRawType();
+                if (clazz.isAssignableFrom(genClass))
+                    return true;
+            } else if (type instanceof TypeVariable) {
+                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
             }
-            if (whatEver instanceof TypeVariable) {
-                return false;
-            }
-            Class<?> genericType = (Class<?>) whatEver;
-            return clazz.isAssignableFrom(genericType);
         }
         return false;
     }
@@ -170,11 +179,11 @@ public class FieldAnalyzer {
     }
 
     public static Object readField(Object object, String fieldName) {
-        try{
+        try {
             Class clazz = object.getClass();
             Field field = clazz.getField(fieldName);
             return field.get(object);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
