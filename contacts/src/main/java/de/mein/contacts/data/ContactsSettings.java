@@ -48,8 +48,9 @@ public class ContactsSettings <T extends PlatformContactSettings> extends JsonSe
         return serverSettings;
     }
 
-    public void setMasterPhoneBookId(Long masterPhoneBookId) {
+    public ContactsSettings<T> setMasterPhoneBookId(Long masterPhoneBookId) {
         this.masterPhoneBookId = masterPhoneBookId;
+        return this;
     }
 
     public Long getMasterPhoneBookId() {

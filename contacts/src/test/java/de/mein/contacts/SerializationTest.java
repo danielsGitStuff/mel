@@ -30,13 +30,15 @@ public class SerializationTest {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairCollectionSerializerFactory.getInstance());
         Contact contact = new Contact();
         ContactPhone phone = new ContactPhone();
-        for (Integer i = 0; i < 15; i++)
-            phone.setValue(i, i.toString());
+        for (Integer i = 0; i < 15; i++) {
+            if (i != 5)
+                phone.setValue(i, i.toString());
+        }
         contact.addPhone(phone);
         contact.getHash().v("hurrdurr");
         String json = SerializableEntitySerializer.serialize(contact);
         System.out.println(json);
-        assertEquals("{\"$id\":1,\"__type\":\"de.mein.contacts.data.db.Contact\",\"phones\":[{\"$id\":2,\"__type\":\"de.mein.contacts.data.db.ContactPhone\",\"dataCols\":[\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\"]}],\"hash\":\"hurrdurr\"}", json);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mein.contacts.data.db.Contact\",\"phones\":[{\"$id\":2,\"__type\":\"de.mein.contacts.data.db.ContactPhone\",\"dataCols\":[\"0\",\"1\",\"2\",\"3\",\"4\",null,\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\"]}],\"hash\":\"hurrdurr\"}", json);
         return json;
     }
 
@@ -47,9 +49,11 @@ public class SerializationTest {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         Contact contact = (Contact) SerializableEntityDeserializer.deserialize(json);
         ContactPhone phone = contact.getPhones().get(0);
-        Pair<String> pair = phone.getDataCols().get(3);
-        assertEquals("data4", pair.k());
-        assertEquals("3", pair.v());
+        Pair<String> pair3 = phone.getDataCols().get(3);
+        Pair<String> pair5 = phone.getDataCols().get(5);
+        assertEquals("data4", pair3.k());
+        assertEquals("3", pair3.v());
+        assertNull(pair5.v());
         System.out.println("SerializationTest.deserialize");
     }
 

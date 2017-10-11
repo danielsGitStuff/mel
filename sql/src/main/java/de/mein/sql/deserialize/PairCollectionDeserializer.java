@@ -50,7 +50,10 @@ public class PairCollectionDeserializer implements FieldDeserializer {
                     System.err.println(getClass().getSimpleName() + ".deserialize() on entity: " + entity.getClass().getSimpleName() + ", field: " + field.getName() + " ... seems like the Collection you wanted de deserialize was not big enough to fit everything in the JSON");
                     System.err.println(getClass().getSimpleName() + ".deserialize() on entity: " + entity.getClass().getSimpleName() + ", field: " + field.getName() + " ... currently there is no way of constructing Pairs on the fly cause Pair.key gets lost in the serialization.");
                 } else {
-                    pair.v(value);
+                    if (value == null || value instanceof JSONObject.Null)
+                        pair.nul();
+                    else
+                        pair.v(value);
                 }
             }
             field.set(entity, pairs);
