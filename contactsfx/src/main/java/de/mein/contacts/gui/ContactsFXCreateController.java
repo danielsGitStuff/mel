@@ -6,6 +6,7 @@ import de.mein.auth.gui.EmbeddedServerServiceSettingsFX;
 import de.mein.auth.gui.RemoteServiceChooserFX;
 import de.mein.contacts.ContactsBootloader;
 import de.mein.contacts.data.ContactStrings;
+import de.mein.contacts.data.ContactsSettings;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
@@ -39,7 +40,9 @@ public class ContactsFXCreateController extends EmbeddedServerServiceSettingsFX 
         try {
             String name = txtName.getText();
             ContactsBootloader bootloader = (ContactsBootloader) meinAuthService.getMeinBoot().getBootLoader(ContactStrings.NAME);
-            bootloader.createService(name, isServerSelected() ? ContactStrings.ROLE_SERVER : ContactStrings.ROLE_CLIENT);
+            ContactsSettings contactsSettings = new ContactsSettings();
+            contactsSettings.setRole(isServerSelected()? ContactStrings.ROLE_SERVER : ContactStrings.ROLE_CLIENT);
+            bootloader.createService(name, contactsSettings);
         } catch (IllegalAccessException | InstantiationException | SqlQueriesException | IOException | SQLException | JsonSerializationException | ClassNotFoundException | JsonDeserializationException e) {
             e.printStackTrace();
         }

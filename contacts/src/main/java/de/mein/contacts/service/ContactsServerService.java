@@ -1,27 +1,26 @@
 package de.mein.contacts.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.contacts.data.ContactStrings;
+import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
-import de.mein.contacts.jobs.ExamineJob;
+import de.mein.contacts.jobs.AnswerQueryJob;
 import de.mein.contacts.jobs.UpdatePhoneBookJob;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-import de.mein.contacts.data.ContactsSettings;
-import de.mein.contacts.jobs.AnswerQueryJob;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by xor on 9/21/17.
@@ -46,7 +45,7 @@ public class ContactsServerService extends ContactsService {
         ContactsSettings settings = databaseManager.getSettings();
         if (job instanceof AnswerQueryJob) {
             AnswerQueryJob answerQueryJob = (AnswerQueryJob) job;
-            PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadPhoneBook(databaseManager.getSettings().getMasterPhoneBookId());
+            PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(databaseManager.getSettings().getMasterPhoneBookId());
             answerQueryJob.getRequest().resolve(phoneBook);
         } else if (job instanceof UpdatePhoneBookJob) {
             try {
@@ -64,7 +63,7 @@ public class ContactsServerService extends ContactsService {
                     updatePhoneBookJob.getPromise().reject(null);
                 }
             } finally {
-                if (!job.getPromise().isPending())
+                if (job.getPromise().isPending())
                     job.getPromise().reject(null);
             }
         }

@@ -513,56 +513,6 @@ public class SQLQueries extends ISQLQueries {
     }
 
 
-//    @Override
-//    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
-//        List<T> result = new ArrayList<>();
-//        out("load()");
-//        String fromTable = sqlTableObject.getTableName();
-//        String selectString = buildSelectQuery(columns, fromTable);
-//        if (where != null) {
-//            selectString += " where " + where;
-//        }
-//        if (whatElse != null) {
-//            selectString += " " + whatElse;
-//        }
-//        out(selectString);
-//        if (connection == null) {
-//            return null;
-//        }
-//        try {
-//            PreparedStatement pstmt = connection.prepareStatement(selectString);
-//            if (where != null && whereArgs != null) {
-//                insertArguments(pstmt, whereArgs);
-//            }
-//            pstmt.execute();
-//            ResultSet resultSet = pstmt.getResultSet();
-//            boolean hasResult = resultSet.next();
-//            if (hasResult && resultSet.getRow() > 0) {
-//                while (!resultSet.isAfterLast()) {
-//                    SQLTableObject sqlTable = sqlTableObject.getClass().newInstance();
-//                    List<Pair<?>> attributes = sqlTable.getAllAttributes();
-//                    for (Pair<?> pair : attributes) {
-//                        try {
-//                            Object res = resultSet.getObject(pair.k());
-//                            pair.setValueUnsecure(res);
-//                        } catch (Exception e) {
-//                            if (!e.getClass().equals(SQLException.class)) {
-//                                out("load().exception." + e.getClass().toString() + " " + e.getMessage());
-//                            }
-//                        }
-//                    }
-//                    result.add((T) sqlTable);
-//                    resultSet.next();
-//                }
-//            }
-//            resultSet.close();
-//            pstmt.close();
-//            return result;
-//        } catch (Exception e) {
-//            throw new SqlQueriesException(e);
-//        }
-//    }
-
     @Override
     public void onShutDown() {
         try {
