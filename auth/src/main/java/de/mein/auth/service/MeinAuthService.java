@@ -52,6 +52,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -97,6 +98,7 @@ public class MeinAuthService {
             this.dbCreatedListener.onDBcreated(this.databaseManager);
         addRegisteredHandler((meinAuthService, registered) -> notifyAdmins());
     }
+
 
     public MeinAuthSettings getSettings() {
         return settings;
@@ -537,5 +539,21 @@ public class MeinAuthService {
 
     public PowerManager getPowerManager() {
         return powerManager;
+    }
+
+    public static MeinAuthService createDevInstance() throws Exception {
+        MeinAuthSettings settings = new MeinAuthSettings();
+        settings.setName("dev");
+        settings.setWorkingDirectory(new File("bla"));
+        MeinAuthService meinAuthService = new MeinAuthService(settings);
+
+        meinAuthService.meinBoot = new MeinBoot(null);
+        meinAuthService.meinBoot.createExecutorService(new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                return new Thread(r);
+            }
+        });
+        return meinAuthService;
     }
 }

@@ -59,7 +59,7 @@ public class MeinSocket extends DeferredRunnable {
 
     @Override
     public String getRunnableName() {
-        return getClass().getSimpleName() + " for " + meinAuthService.getName();
+        return getClass().getSimpleName() + " for " + (meinAuthService == null ? "no service" : meinAuthService.getName());
     }
 
     public boolean isOpen() {
@@ -85,17 +85,25 @@ public class MeinSocket extends DeferredRunnable {
 
     public void start() {
         this.thread = new MeinThread(this);
-        String name = "THREAD." + meinAuthService.getName() + "." + "id=" + v + "." + getClass().getSimpleName();
+        String name = "THREAD." + (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + "id=" + v + "." + getClass().getSimpleName();
         this.thread.setName(name);
         System.out.println("MeinSocket.starting: " + name);
         this.thread.start();
     }
 
+    private static String TOO_LONG_APPENDIX = "?";
+    private static int MAX_CHARS = 64 * 1024 - 1 - TOO_LONG_APPENDIX.length();
+
     public void send(String json) {
         try {
-            System.out.println("   " + meinAuthService.getName() + ".MeinSocket.send: " + json);
+            System.out.println("   " + (meinAuthService == null ? "no service" : meinAuthService.getName()) + ".MeinSocket.send: " + json);
             if (socket.isClosed())
                 System.err.println(getClass().getSimpleName() + ".send(): Socket closed!");
+            while (json.length() > MAX_CHARS) {
+                String s = json.substring(0, MAX_CHARS) + TOO_LONG_APPENDIX;
+                json = json.substring(MAX_CHARS, json.length());
+                this.out.writeUTF(s);
+            }
             this.out.writeUTF(json);
             this.out.flush();
         } catch (IOException e) {
@@ -138,7 +146,8 @@ public class MeinSocket extends DeferredRunnable {
     public MeinSocket(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
         v = vv.getAndIncrement();
-        meinAuthService.addMeinSocket(this);
+        if (meinAuthService != null)
+            meinAuthService.addMeinSocket(this);
     }
 
 
@@ -179,7 +188,7 @@ public class MeinSocket extends DeferredRunnable {
 
         @Override
         public String getRunnableName() {
-            return getClass().getSimpleName() + " for " + socket.getMeinAuthService().getName();
+            return getClass().getSimpleName() + " for " + (socket.getMeinAuthService() == null ? "no service" : socket.getMeinAuthService().getName());
         }
 
         @Override
@@ -201,6 +210,8 @@ public class MeinSocket extends DeferredRunnable {
         N.r(() -> socket.close());
     }
 
+    StringBuffer msgBuffer = new StringBuffer();
+
     @Override
     public void runImpl() {
         Thread thread = Thread.currentThread();
@@ -220,6 +231,23 @@ public class MeinSocket extends DeferredRunnable {
                     socketWorker.addJob(new BlockReceivedJob().setBlock(bytes));
                 } else {
                     String s = in.readUTF();
+                    int l = s.length();
+                    if (s.length() > MAX_CHARS) {
+                        if (s.endsWith(TOO_LONG_APPENDIX)) {
+                            msgBuffer.append(s.substring(0, MAX_CHARS));
+                            continue;
+                        } else {
+                            System.err.println("strange stuff happened");
+                        }
+                        System.out.println("MeinSocket.runImpl");
+                    }else {
+                        if (msgBuffer.length()>0){
+                            msgBuffer.append(s);
+                            socketWorker.addJob(new ReceivedJob().setMessage(msgBuffer.toString()));
+                            msgBuffer = new StringBuffer();
+                            continue;
+                        }
+                    }
                     System.out.println("   " + meinAuthService.getName() + ".MeinSocket.runTry.got: " + s);
                     if (s.equals(MeinStrings.msg.MODE_ISOLATE) && allowIsolation) {
                         if (!isIsolated)
@@ -235,7 +263,7 @@ public class MeinSocket extends DeferredRunnable {
             listener.onClose(42, "don't know shit", true);
         } catch (Exception e) {
             if (!isInterrupted()) {
-                String line = meinAuthService.getName() + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
+                String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
                 //todo debug
                 if (line.startsWith("MA2.MeinAuthSocket.SSLSocketImpl.run") || line.startsWith("MA1.MeinAuthSocket.SSLSocketImpl.run"))
                     System.out.println("MeinSocket.runImpl.943f938fw0io34");
