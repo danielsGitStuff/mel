@@ -18,6 +18,7 @@ import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.contacts.ContactsBootloader;
+import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.service.ContactsService;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -59,8 +60,10 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
             AndroidContactSettings platformSettings = new AndroidContactSettings().setPersistToPhoneBook(controller.getPersistToPhoneBook());
             ContactsSettings<AndroidContactSettings> contactsSettings = new ContactsSettings<>();
             contactsSettings.setRole(controller.getRole());
-            contactsSettings.getClientSettings().setServerCertId(controller.getSelectedCertId());
-            contactsSettings.getClientSettings().setServiceUuid(controller.getSelectedService().getUuid().v());
+            if (contactsSettings.getRole().equals(ContactStrings.ROLE_CLIENT)) {
+                contactsSettings.getClientSettings().setServerCertId(controller.getSelectedCertId());
+                contactsSettings.getClientSettings().setServiceUuid(controller.getSelectedService().getUuid().v());
+            }
             contactsSettings.setPlatformContactSettings(platformSettings);
             ContactsService contactsService = createService(controller.getName(), contactsSettings);
         } catch (Exception e) {

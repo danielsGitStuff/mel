@@ -58,8 +58,8 @@ public class PhoneBook extends SQLTableObject implements IPayload {
 
     @Override
     protected void init() {
-        populateInsert(version, hash);
-        populateAll(created, id);
+        populateInsert(version, hash, created);
+        populateAll(id);
     }
 
     public void resetHash() {

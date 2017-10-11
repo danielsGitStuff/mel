@@ -22,6 +22,7 @@ public class PhoneBookDao extends Dao {
 
     public PhoneBook create() throws SqlQueriesException {
         PhoneBook phoneBook = new PhoneBook();
+        phoneBook.getCreated().v(System.currentTimeMillis());
         Long id = sqlQueries.insert(phoneBook);
         phoneBook.getId().v(id);
         return phoneBook;

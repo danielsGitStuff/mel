@@ -7,17 +7,8 @@ create table phonebook(
 id integer not null primary key autoincrement,
 version integer,
 deephash text,
-created integer
+created integer not null
 );
-CREATE TRIGGER IF NOT EXISTS createdstamp
-  AFTER
-  INSERT
-  ON phonebook
-BEGIN
-  UPDATE phonebook
-  SET created = current_timestamp
-  WHERE id = NEW.id;
-END;
 CREATE TABLE contacts (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    aid integer,

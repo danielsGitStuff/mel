@@ -92,7 +92,7 @@ public class MeinSocket extends DeferredRunnable {
     }
 
     private static String TOO_LONG_APPENDIX = "?";
-    private static int MAX_CHARS = 64 * 1024 - 2 - TOO_LONG_APPENDIX.length();
+    private static int MAX_CHARS = 63 * 1024 - 2 - TOO_LONG_APPENDIX.length();
 
     public void send(String json) {
         try {
@@ -103,6 +103,7 @@ public class MeinSocket extends DeferredRunnable {
                 String s = json.substring(0, MAX_CHARS) + TOO_LONG_APPENDIX;
                 json = json.substring(MAX_CHARS, json.length());
                 this.out.writeUTF(s);
+                this.out.flush();
             }
             this.out.writeUTF(json);
             this.out.flush();

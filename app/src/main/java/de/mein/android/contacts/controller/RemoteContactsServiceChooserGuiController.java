@@ -20,7 +20,7 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
     private EditText txtName;
 
     public RemoteContactsServiceChooserGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup) {
-        super(meinAuthService, activity, viewGroup,R.layout.embedded_twice_contacts);
+        super(meinAuthService, activity, viewGroup, R.layout.embedded_twice_contacts);
     }
 
 
@@ -41,7 +41,8 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
     }
 
     public String getRole() {
-        return ContactStrings.ROLE_CLIENT;
+
+        return isServer() ? ContactStrings.ROLE_SERVER : ContactStrings.ROLE_CLIENT;
     }
 
     public boolean getPersistToPhoneBook() {
