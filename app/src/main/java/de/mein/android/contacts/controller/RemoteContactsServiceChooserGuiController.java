@@ -41,7 +41,7 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
     }
 
     public String getRole() {
-        return ContactStrings.ROLE_SERVER;
+        return ContactStrings.ROLE_CLIENT;
     }
 
     public boolean getPersistToPhoneBook() {

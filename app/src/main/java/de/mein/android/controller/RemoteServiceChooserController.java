@@ -3,7 +3,6 @@ package de.mein.android.controller;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -20,7 +19,6 @@ import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.drive.data.DriveStrings;
 
 /**
  * Created by xor on 10/4/17.
@@ -33,7 +31,7 @@ public abstract class RemoteServiceChooserController extends AndroidServiceCreat
 
     private RadioButton rdServer, rdClient;
     private Long selectedCertId = null;
-    private ServiceJoinServiceType selectedDrive;
+    private ServiceJoinServiceType selectedService;
     private KnownCertListAdapter knownCertListAdapter;
     private ServicesListAdapter drivesListAdapter;
     protected MeinAuthService meinAuthService;
@@ -67,7 +65,7 @@ public abstract class RemoteServiceChooserController extends AndroidServiceCreat
         drivesListAdapter = new ServicesListAdapter(rootView.getContext());
         serviceList.setAdapter(drivesListAdapter);
         serviceList.setOnItemClickListener((parent, view, position, id) -> {
-            selectedDrive = drivesListAdapter.getItemT(position);
+            selectedService = drivesListAdapter.getItemT(position);
             int colour = ContextCompat.getColor(rootView.getContext(), R.color.colorListSelected);
             view.setBackgroundColor(colour);
         });
@@ -117,7 +115,7 @@ public abstract class RemoteServiceChooserController extends AndroidServiceCreat
             showServiceChooser();
             try {
                 selectedCertId = null;
-                selectedDrive = null;
+                selectedService = null;
                 knownCertListAdapter.clear();
                 drivesListAdapter.clear();
                 NetworkEnvironment env = meinAuthService.getNetworkEnvironment();
@@ -148,7 +146,7 @@ public abstract class RemoteServiceChooserController extends AndroidServiceCreat
         return selectedCertId;
     }
 
-    public ServiceJoinServiceType getSelectedDrive() {
-        return selectedDrive;
+    public ServiceJoinServiceType getSelectedService() {
+        return selectedService;
     }
 }

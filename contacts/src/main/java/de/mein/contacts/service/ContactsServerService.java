@@ -78,8 +78,10 @@ public class ContactsServerService extends ContactsService {
     @Override
     public void handleRequest(Request request) throws Exception {
         System.out.println(getClass().getSimpleName() + ".handleRequest");
-        if (request.getIntent().equals(ContactStrings.INTENT_QUERY)) {
+        if (request.hasIntent(ContactStrings.INTENT_QUERY)) {
             addJob(new AnswerQueryJob(request));
+        } else if (request.hasIntent(ContactStrings.INTENT_UPDATE)) {
+            addJob(new UpdatePhoneBookJob(request));
         }
     }
 

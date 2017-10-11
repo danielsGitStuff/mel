@@ -104,29 +104,16 @@ public class AndroidContactsServerService extends ContactsServerService {
         } else if (job instanceof AnswerQueryJob) {
             super.workWork(job);
         } else if (job instanceof UpdatePhoneBookJob) {
-            super.workWork(job);
             job.getPromise().done(result -> N.r(() -> {
                 UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
                 contactsToAndroidExporter.export(updatePhoneBookJob.getPhoneBook().getId().v());
             })).fail(result -> N.r(() -> {
                 System.out.println("AndroidContactsServerService.workWork.update failed :(");
             }));
+            super.workWork(job);
         } else {
             super.workWork(job);
         }
-    }
-
-    @Override
-    public void handleRequest(Request request) throws Exception {
-        if (request.hasIntent(ContactStrings.INTENT_UPDATE)) {
-            addJob(new UpdatePhoneBookJob(request));
-        }
-        super.handleRequest(request);
-    }
-
-    @Override
-    public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
-
     }
 
     @Override

@@ -59,6 +59,8 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
             AndroidContactSettings platformSettings = new AndroidContactSettings().setPersistToPhoneBook(controller.getPersistToPhoneBook());
             ContactsSettings<AndroidContactSettings> contactsSettings = new ContactsSettings<>();
             contactsSettings.setRole(controller.getRole());
+            contactsSettings.getClientSettings().setServerCertId(controller.getSelectedCertId());
+            contactsSettings.getClientSettings().setServiceUuid(controller.getSelectedService().getUuid().v());
             contactsSettings.setPlatformContactSettings(platformSettings);
             ContactsService contactsService = createService(controller.getName(), contactsSettings);
         } catch (Exception e) {

@@ -1,10 +1,12 @@
 package de.mein.contacts;
 
+import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.service.ContactsClientService;
 import de.mein.contacts.service.ContactsServerService;
 import de.mein.contacts.service.ContactsService;
+
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -46,6 +48,8 @@ public class ContactsBootloader extends BootLoader {
             contactsService = createServerInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
             meinAuthService.registerMeinService(contactsService);
         } else {
+            //allow the server to communicate with us
+            N.r(() -> meinAuthService.getDatabaseManager().grant(service.getId().v(), contactsSettings.getClientSettings().getServerCertId()));
             contactsService = createClientInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
             meinAuthService.registerMeinService(contactsService);
         }

@@ -234,6 +234,7 @@ public class AndroidService extends Service {
 
             }
         };
+        // todo debug
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
             List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
