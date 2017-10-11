@@ -44,8 +44,12 @@ public class AndroidServiceMethods {
     public PhoneBook examineContacts() throws SqlQueriesException {
         ContactsDao contactsDao = databaseManager.getContactsDao();
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
-        PhoneBook phoneBook = phoneBookDao.create();
-
+        PhoneBook phoneBook;
+        PhoneBook master = databaseManager.getFlatMasterPhoneBook();
+        if (master == null)
+            phoneBook = phoneBookDao.create(0L);
+        else
+            phoneBook = phoneBookDao.create(master.getVersion().v() + 1);
         String[] projContact = new String[]{
                 ContactsContract.Contacts._ID,
                 ContactsContract.Contacts.NAME_RAW_CONTACT_ID,
@@ -110,9 +114,9 @@ public class AndroidServiceMethods {
         return byteBuffer.array();
     }
 
-    public static void readPhoto(Contact contact, String contactId ) {
+    public static void readPhoto(Contact contact, String contactId) {
         InputStream inputStream = ContactsContract.Contacts.openContactPhotoInputStream(Tools.getApplicationContext().getContentResolver(),
-                ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.valueOf(contactId)),true);
+                ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.valueOf(contactId)), true);
         try {
             if (inputStream != null) {
                 ByteArrayOutputStream buffer = new ByteArrayOutputStream();

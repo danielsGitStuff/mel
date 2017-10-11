@@ -20,9 +20,10 @@ public class PhoneBookDao extends Dao {
         this.contactsDao = contactsDao;
     }
 
-    public PhoneBook create() throws SqlQueriesException {
+    public PhoneBook create(long version) throws SqlQueriesException {
         PhoneBook phoneBook = new PhoneBook();
         phoneBook.getCreated().v(System.currentTimeMillis());
+        phoneBook.getVersion().v(version);
         Long id = sqlQueries.insert(phoneBook);
         phoneBook.getId().v(id);
         return phoneBook;
