@@ -93,7 +93,7 @@ public class FieldAnalyzer {
         return false;
     }
 
-    public static boolean isCollectionOfClass(Field field, Class clazz) {
+    public static boolean isGenericCollectionOfClass(Field field, Class clazz) {
         if (Collection.class.isAssignableFrom(field.getType())) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
             Type[] types = parameterizedType.getActualTypeArguments();
@@ -104,13 +104,13 @@ public class FieldAnalyzer {
                 if (clazz.isAssignableFrom(genClass))
                     return true;
             } else if (type instanceof TypeVariable) {
-                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
-                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
-                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
-                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
-                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
-                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
-                System.out.println("FieldAnalyzer.isCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isGenericCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isGenericCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isGenericCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isGenericCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isGenericCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isGenericCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
+                System.out.println("FieldAnalyzer.isGenericCollectionOfClass().TypeVariable.NOT:IMPLEMENTED:YET");
             }
         }
         return false;

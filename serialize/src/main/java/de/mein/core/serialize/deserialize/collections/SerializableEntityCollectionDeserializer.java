@@ -5,6 +5,7 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.FieldDeserializer;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -32,12 +33,13 @@ public class SerializableEntityCollectionDeserializer implements FieldDeserializ
     @Override
     public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object jsonFieldValue) throws JsonDeserializationException, IllegalAccessException {
         if (jsonFieldValue != null) {
+            // !!!!! stuff commented out below might be unnecessary !!!!!
             // check if entity or just a string
-            ParameterizedType genericListType = (ParameterizedType) field.getGenericType();
-            Class<?> genericListClass = (Class<?>) genericListType.getActualTypeArguments()[0];
+//            ParameterizedType genericListType = (ParameterizedType) field.getGenericType();
+//            Class<?> genericListClass = (Class<?>) genericListType.getActualTypeArguments()[0];
             JSONArray jsonArray = (JSONArray) jsonFieldValue;
             int length = jsonArray.length();
-            if (SerializableEntity.class.isAssignableFrom(genericListClass)) {
+//            if (SerializableEntity.class.isAssignableFrom(genericListClass)) {
                 Collection entities = createCollection(field.getType());
                 for (int i = 0; i < length; i++) {
                     Object something = jsonArray.get(i);
@@ -50,8 +52,7 @@ public class SerializableEntityCollectionDeserializer implements FieldDeserializ
                 }
                 field.set(entity, entities);
                 return entities;
-                //serializableEntityDeserializer.setField(field, entity, entities);
-            }
+//            }
         }
         return null;
     }

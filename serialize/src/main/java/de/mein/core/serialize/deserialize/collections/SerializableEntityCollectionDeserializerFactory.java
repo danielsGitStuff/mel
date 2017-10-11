@@ -7,6 +7,7 @@ import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 
 /**
@@ -31,8 +32,12 @@ public class SerializableEntityCollectionDeserializerFactory implements FieldDes
         if (!Iterable.class.isAssignableFrom(field.getType()))
             return false;
         ParameterizedType genericListType = (ParameterizedType) field.getGenericType();
-        Class<?> genericListClass = (Class<?>) genericListType.getActualTypeArguments()[0];
-        return SerializableEntity.class.isAssignableFrom(genericListClass);
+        Type type = genericListType.getActualTypeArguments()[0];
+        if (type instanceof Class) {
+            Class<?> genericListClass = (Class<?>) type;
+            return SerializableEntity.class.isAssignableFrom(genericListClass);
+        }
+        return false;
     }
 
     @Override

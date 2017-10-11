@@ -32,7 +32,7 @@ public class PairCollectionSerializerFactory implements FieldSerializerFactory {
 
     @Override
     public boolean canSerialize(Field field) {
-        return FieldAnalyzer.isCollectionOfClass(field, Pair.class);
+        return FieldAnalyzer.isGenericCollectionOfClass(field, Pair.class);
     }
 
     @Override
