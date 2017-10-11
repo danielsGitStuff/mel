@@ -71,4 +71,8 @@ public abstract class ContactAppendix extends SQLTableObject implements Serializ
     public Object getValue(int index) {
         return dataCols.get(index).v();
     }
+
+    public List<Pair<String>> getDataCols() {
+        return dataCols;
+    }
 }

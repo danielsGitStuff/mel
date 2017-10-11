@@ -7,6 +7,7 @@ import de.mein.contacts.data.db.ContactPhone;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
+import de.mein.sql.Pair;
 import de.mein.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairCollectionSerializerFactory;
@@ -45,6 +46,10 @@ public class SerializationTest {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairCollectionDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         Contact contact = (Contact) SerializableEntityDeserializer.deserialize(json);
+        ContactPhone phone = contact.getPhones().get(0);
+        Pair<String> pair = phone.getDataCols().get(3);
+        assertEquals("data4", pair.k());
+        assertEquals("3", pair.v());
         System.out.println("SerializationTest.deserialize");
     }
 
