@@ -32,7 +32,9 @@ import de.mein.auth.tools.WaitLock;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.sql.SqlQueriesException;
+import de.mein.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mein.sql.deserialize.PairDeserializerFactory;
+import de.mein.sql.serialize.PairCollectionSerializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 
 import org.jdeferred.Promise;
@@ -82,6 +84,8 @@ public class MeinAuthService {
     MeinAuthService(MeinAuthSettings meinAuthSettings, IDBCreatedListener dbCreatedListener) throws Exception {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairCollectionSerializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairCollectionDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.printSerializers();
         this.powerManager = new PowerManager(meinAuthSettings);
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
