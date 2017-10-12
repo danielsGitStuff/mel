@@ -94,7 +94,7 @@ public class AndroidContactsServerService extends ContactsServerService {
                 settings.setMasterPhoneBookId(phoneBook.getId().v());
                 settings.save();
                 //todo debug
-                contactsToAndroidExporter.export(phoneBook.getId().v());
+                //contactsToAndroidExporter.export(phoneBook.getId().v());
             }
             //todo debug
 //            PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();

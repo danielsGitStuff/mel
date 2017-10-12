@@ -60,7 +60,6 @@ public class ContactsToAndroidExporter {
             }
 
 
-
             // we have to rehash everything we insert because inserting a contact image will slightly alter it.
             PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadFlatPhoneBook(phoneBookId);
             phoneBook.resetHash();
@@ -77,9 +76,9 @@ public class ContactsToAndroidExporter {
                             .build());
 
                     // then appendices in the according tables. note: order is the same as in Contact.hash()
-                    insertAppendices(operationList, contact.getId().v(), ContactEmail.class, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE, contactMD5er);
-                    insertAppendices(operationList, contact.getId().v(), ContactStructuredName.class, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, contactMD5er);
-                    insertAppendices(operationList, contact.getId().v(), ContactPhone.class, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, contactMD5er);
+                    insertAppendices(operationList, contact.getId().v(), ContactAppendix.class, ContactsContract.Data.CONTENT_TYPE, contactMD5er);
+//                    insertAppendices(operationList, contact.getId().v(), ContactStructuredName.class, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, contactMD5er);
+//                    insertAppendices(operationList, contact.getId().v(), ContactPhone.class, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, contactMD5er);
 
                     // save photo
                     if (contact.getImage().notNull()) {
@@ -125,6 +124,7 @@ public class ContactsToAndroidExporter {
             builder.withValue(columns[i], appendix.getValue(i));
             md5er.hash(appendix.getValue(i));
         }
+        builder.withValue(ContactsContract.Data.MIMETYPE, appendix.getMimeType().v());
         return builder.build();
     }
 }

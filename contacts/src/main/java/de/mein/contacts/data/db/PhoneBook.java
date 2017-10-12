@@ -1,7 +1,9 @@
 package de.mein.contacts.data.db;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import de.mein.auth.data.IPayload;
 import de.mein.core.serialize.JsonIgnore;
@@ -75,6 +77,7 @@ public class PhoneBook extends SQLTableObject implements IPayload {
         }
         hash.v(md5er.digest());
     }
+
 
     /**
      * updates the current hash with

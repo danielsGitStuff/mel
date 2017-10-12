@@ -15,7 +15,7 @@ import de.mein.sql.SQLTableObject;
 
 public class ContactAppendix extends SQLTableObject implements SerializableEntity {
 
-    public ContactAppendix(){
+    public ContactAppendix() {
         init();
     }
 
@@ -23,6 +23,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     public static final String ID = "id";
     public static final String CONTACTID = "contactid";
     public static final String AID = "aid";
+    public static final String MIMETYPE = "mime";
     @JsonIgnore
     private List<Pair<?>> hashPairs;
 
@@ -40,6 +41,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     }
 
     private List<Pair<String>> dataCols = new ArrayList<>(15);
+    private Pair<String> mimeType = new Pair<String>(String.class, MIMETYPE);
 
     @Override
     public String getTableName() {
@@ -55,6 +57,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
             insertAttributes.add(pair);
             dataCols.add(pair);
         }
+        insertAttributes.add(mimeType);
         hashPairs = new ArrayList<>(insertAttributes);
         insertAttributes.add(contactId);
         insertAttributes.add(androidId);
@@ -63,6 +66,10 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
 
     public void setValue(int index, String value) {
         dataCols.get(index).setValueUnsecure(value);
+    }
+
+    public Pair<String> getMimeType() {
+        return mimeType;
     }
 
     public Pair<Long> getAndroidId() {
@@ -83,5 +90,9 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
 
     public List<Pair<String>> getDataCols() {
         return dataCols;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType.v(mimeType);
     }
 }

@@ -11,6 +11,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import de.mein.android.Tools;
 import de.mein.contacts.data.db.Contact;
@@ -22,6 +24,7 @@ import de.mein.contacts.data.db.ContactsDatabaseManager;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
+import de.mein.sql.Pair;
 import de.mein.sql.SqlQueriesException;
 
 
@@ -56,6 +59,9 @@ public class AndroidServiceMethods {
                 ContactsContract.Contacts.NAME_RAW_CONTACT_ID,
                 ContactsContract.Contacts.PHOTO_FILE_ID
         };
+//        //read mime types first
+//        readMimeTypes(phoneBook);
+
         ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
         Cursor contactCursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, projContact, null, null, null);
         // Iterate every contact in the phone
@@ -77,6 +83,18 @@ public class AndroidServiceMethods {
         phoneBookDao.updateFlat(phoneBook);
         contactCursor.close();
         return phoneBook;
+    }
+
+    private void readMimeTypes(PhoneBook phoneBook) {
+        Cursor cursor = Tools.getApplicationContext().getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, null, null, null);
+        List<Pair<String>> list = new ArrayList<>();
+        if (cursor.moveToNext()) {
+            for (Integer i = 0; i < cursor.getColumnCount(); i++) {
+                Pair<String> pair = new Pair<>(String.class, cursor.getColumnName(i), cursor.getString(i));
+                list.add(pair);
+            }
+            System.out.println("AndroidServiceMethods.readMimeTypes");
+        }
     }
 
     private void readAppendices(Contact contact, String rawContactId) {

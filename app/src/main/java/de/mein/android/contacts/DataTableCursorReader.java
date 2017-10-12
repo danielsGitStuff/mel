@@ -3,6 +3,7 @@ package de.mein.android.contacts;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.provider.ContactsContract;
 
 import de.mein.android.Tools;
 import de.mein.contacts.data.db.ContactAppendix;
@@ -22,11 +23,12 @@ public class DataTableCursorReader {
     }
 
     public static String[] createReadDataColumnNames() {
-        String[] columns = new String[16];
+        String[] columns = new String[17];
         for (int i = 0; i < 15; i++) {
             columns[i] = "data" + (i + 1);
         }
         columns[15] = BaseColumns._ID;
+        columns[16] = ContactsContract.Data.MIMETYPE;
         return columns;
     }
 
@@ -43,6 +45,7 @@ public class DataTableCursorReader {
             appendix.setValue(i, cursor.getString(i));
         }
         appendix.setAndroidId(cursor.getLong(15));
+        appendix.setMimeType(cursor.getString(16));
         return this;
     }
 
