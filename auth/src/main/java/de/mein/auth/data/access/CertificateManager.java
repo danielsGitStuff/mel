@@ -378,4 +378,8 @@ public class CertificateManager extends FileRelatedManager {
     public List<Certificate> getAllCertificateDetails() throws SqlQueriesException {
         return certificateDao.getAllCertificateDetails();
     }
+
+    public void maintenance() throws SqlQueriesException {
+        certificateDao.maintenance();
+    }
 }

@@ -134,4 +134,10 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         List<Certificate> certificates = sqlQueries.load(ISQLQueries.columns(certificate.getId(), certificate.getPort(), certificate.getName(), certificate.getTrusted(), certificate.getHash()), certificate, null, null);
         return certificates;
     }
+
+    public void maintenance() throws SqlQueriesException {
+        Certificate certificate = new Certificate();
+        String where = certificate.getTrusted().k() + "=?";
+        sqlQueries.delete(certificate, where, ISQLQueries.whereArgs(false));
+    }
 }

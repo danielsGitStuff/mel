@@ -43,14 +43,14 @@ public class PairCollectionDeserializer implements FieldDeserializer {
             JSONArray jsonArray = (JSONArray) jsonFieldValue;
             int length = jsonArray.length();
             for (int i = 0; i < length; i++) {
-                Object something = jsonArray.get(i);
-                Object value = PrimitiveDeserializer.JSON2Primtive((Class<?>) pairGenericType, something);
                 Pair pair = iterator.next();
+                Object something = jsonArray.opt(i);
+                Object value = PrimitiveDeserializer.JSON2Primtive((Class<?>) pairGenericType, something);
                 if (pair == null) {
                     System.err.println(getClass().getSimpleName() + ".deserialize() on entity: " + entity.getClass().getSimpleName() + ", field: " + field.getName() + " ... seems like the Collection you wanted de deserialize was not big enough to fit everything in the JSON");
                     System.err.println(getClass().getSimpleName() + ".deserialize() on entity: " + entity.getClass().getSimpleName() + ", field: " + field.getName() + " ... currently there is no way of constructing Pairs on the fly cause Pair.key gets lost in the serialization.");
                 } else {
-                    if (value == null || value instanceof JSONObject.Null)
+                    if (jsonArray.isNull(i) || value == null || value instanceof JSONObject.Null)
                         pair.nul();
                     else
                         pair.v(value);

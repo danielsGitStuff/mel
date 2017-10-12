@@ -1,5 +1,7 @@
 package de.mein.sql.deserialize;
 
+import org.json.JSONObject;
+
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.binary.BinaryDeserializer;
 import de.mein.core.serialize.deserialize.FieldDeserializer;
@@ -14,6 +16,10 @@ import java.lang.reflect.Field;
  */
 public class PairDeserializer implements FieldDeserializer {
     public PairDeserializer(SerializableEntityDeserializer rootDeserializer, Field field) {
+
+    }
+
+    public static void deserialize(Pair pair, JSONObject jsonObject){
 
     }
 

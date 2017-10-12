@@ -92,6 +92,7 @@ public class MeinAuthService {
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
         this.databaseManager = new DatabaseManager(meinAuthSettings);
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 1024);
+        this.certificateManager.maintenance();
         this.settings = meinAuthSettings;
         this.dbCreatedListener = dbCreatedListener;
         if (this.databaseManager.hadToInitialize() && this.dbCreatedListener != null)

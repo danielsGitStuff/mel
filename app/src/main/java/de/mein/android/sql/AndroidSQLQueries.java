@@ -368,24 +368,28 @@ public class AndroidSQLQueries extends ISQLQueries {
     private ContentValues createContentValues(List<Pair<?>> pairs) {
         ContentValues contentValues = new ContentValues();
         for (Pair<?> pair : pairs) {
-            if (pair.getGenericClass().equals(Double.class))
-                contentValues.put(pair.k(), (Double) pair.v());
-            else if (pair.getGenericClass().equals(Float.class))
-                contentValues.put(pair.k(), (Float) pair.v());
-            else if (pair.getGenericClass().equals(Integer.class))
-                contentValues.put(pair.k(), (Integer) pair.v());
-            else if (pair.getGenericClass().equals(Short.class))
-                contentValues.put(pair.k(), (Short) pair.v());
-            else if (pair.getGenericClass().equals(Boolean.class))
-                contentValues.put(pair.k(), (Boolean) pair.v());
-            else if (pair.getGenericClass().equals(Long.class))
-                contentValues.put(pair.k(), (Long) pair.v());
-            else if (pair.getGenericClass().equals(byte[].class))
-                contentValues.put(pair.k(), (byte[]) pair.v());
-            else if (pair.getGenericClass().equals(String.class))
-                contentValues.put(pair.k(), (String) pair.v());
-            else {
-                System.err.println("AndroidSQLQueries.createContentValues.UNKOWN TYPE");
+            try {
+                if (pair.getGenericClass().equals(Double.class))
+                    contentValues.put(pair.k(), (Double) pair.v());
+                else if (pair.getGenericClass().equals(Float.class))
+                    contentValues.put(pair.k(), (Float) pair.v());
+                else if (pair.getGenericClass().equals(Integer.class))
+                    contentValues.put(pair.k(), (Integer) pair.v());
+                else if (pair.getGenericClass().equals(Short.class))
+                    contentValues.put(pair.k(), (Short) pair.v());
+                else if (pair.getGenericClass().equals(Boolean.class))
+                    contentValues.put(pair.k(), (Boolean) pair.v());
+                else if (pair.getGenericClass().equals(Long.class))
+                    contentValues.put(pair.k(), (Long) pair.v());
+                else if (pair.getGenericClass().equals(byte[].class))
+                    contentValues.put(pair.k(), (byte[]) pair.v());
+                else if (pair.getGenericClass().equals(String.class))
+                    contentValues.put(pair.k(), (String) pair.v());
+                else {
+                    System.err.println("AndroidSQLQueries.createContentValues.UNKOWN TYPE");
+                }
+            }catch (ClassCastException e){
+                e.printStackTrace();
             }
         }
         return contentValues;
