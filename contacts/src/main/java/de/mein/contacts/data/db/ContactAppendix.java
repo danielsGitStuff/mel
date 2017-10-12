@@ -15,6 +15,10 @@ import de.mein.sql.SQLTableObject;
 
 public class ContactAppendix extends SQLTableObject implements SerializableEntity {
 
+    public ContactAppendix(){
+        init();
+    }
+
 
     public static final String ID = "id";
     public static final String CONTACTID = "contactid";
