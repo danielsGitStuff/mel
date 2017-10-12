@@ -52,7 +52,8 @@ public class ContactsServerService extends ContactsService {
                 UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
                 PhoneBook phoneBook = updatePhoneBookJob.getPhoneBook();
                 PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
-                if (phoneBook.getVersion().v() == masterPhoneBook.getVersion().v() + 1) {
+                if (masterPhoneBook == null
+                        || phoneBook.getVersion().v() == masterPhoneBook.getVersion().v() + 1) {
                     phoneBookDao.insertDeep(phoneBook);
                     settings.setMasterPhoneBookId(phoneBook.getId().v());
                     settings.save();

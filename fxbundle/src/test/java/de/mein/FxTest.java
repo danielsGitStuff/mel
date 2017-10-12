@@ -281,7 +281,11 @@ public class FxTest {
         IRegisteredHandler allowRegisteredHandler = (meinAuthService, registered) -> {
             DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
             for (ServiceJoinServiceType service : databaseManager.getAllServices()) {
-                databaseManager.grant(service.getServiceId().v(), registered.getId().v());
+                try {
+                    databaseManager.grant(service.getServiceId().v(), registered.getId().v());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         };
         RWLock lock = new RWLock();
