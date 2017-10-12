@@ -13,9 +13,9 @@ import de.mein.sql.SQLTableObject;
  * Created by xor on 9/23/17.
  */
 
-public abstract class ContactAppendix extends SQLTableObject implements SerializableEntity {
+public class ContactAppendix extends SQLTableObject implements SerializableEntity {
 
-    @JsonIgnore
+
     public static final String ID = "id";
     public static final String CONTACTID = "contactid";
     public static final String AID = "aid";
@@ -36,6 +36,11 @@ public abstract class ContactAppendix extends SQLTableObject implements Serializ
     }
 
     private List<Pair<String>> dataCols = new ArrayList<>(15);
+
+    @Override
+    public String getTableName() {
+        return "appendix";
+    }
 
     @Override
     protected void init() {

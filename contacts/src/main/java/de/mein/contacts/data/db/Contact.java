@@ -26,9 +26,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     private Pair<byte[]> image = new Pair<>(byte[].class, IMAGE);
 
-    private List<ContactPhone> phones = new ArrayList<>();
-    private List<ContactEmail> emails = new ArrayList<>();
-    private List<ContactStructuredName> names = new ArrayList<>();
+    private List<ContactAppendix> appendices = new ArrayList<>();
 
     @JsonIgnore
     private Pair<Long> androidId = new Pair<>(Long.class, AID);
@@ -64,21 +62,6 @@ public class Contact extends SQLTableObject implements SerializableEntity {
         populateAll(id);
     }
 
-    public void addPhone(ContactPhone contactPhone) {
-        phones.add(contactPhone);
-    }
-
-    public void addEmail(ContactEmail contactEmail) {
-        emails.add(contactEmail);
-    }
-
-    public List<ContactPhone> getPhones() {
-        return phones;
-    }
-
-    public List<ContactEmail> getEmails() {
-        return emails;
-    }
 
     public Pair<Long> getAndroidId() {
         return androidId;
@@ -100,37 +83,23 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     public String hash() {
         MD5er md5er = new MD5er();
-        for (ContactEmail email : emails) {
+        for (ContactAppendix email : appendices) {
             email.hash(md5er);
-        }
-        for (ContactStructuredName name : names) {
-            name.hash(md5er);
-        }
-        for (ContactPhone phone : phones) {
-            phone.hash(md5er);
         }
         md5er.hash(image.v());
         hash.v(md5er.digest());
         return hash.v();
     }
 
-    public void setEmails(List<ContactEmail> emails) {
-        this.emails = emails;
+    public void setAppendices(List<ContactAppendix> appendices) {
+        this.appendices = appendices;
     }
 
-    public void setNames(List<ContactStructuredName> names) {
-        this.names = names;
+    public List<ContactAppendix> getAppendices() {
+        return appendices;
     }
 
-    public void setPhones(List<ContactPhone> phones) {
-        this.phones = phones;
-    }
-
-    public void addName(ContactStructuredName name) {
-        names.add(name);
-    }
-
-    public List<ContactStructuredName> getNames() {
-        return names;
+    public void addAppendix(ContactAppendix appendix) {
+        appendices.add(appendix);
     }
 }

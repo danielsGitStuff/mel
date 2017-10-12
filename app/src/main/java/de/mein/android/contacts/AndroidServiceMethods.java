@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 
 import de.mein.android.Tools;
 import de.mein.contacts.data.db.Contact;
+import de.mein.contacts.data.db.ContactAppendix;
 import de.mein.contacts.data.db.ContactEmail;
 import de.mein.contacts.data.db.ContactPhone;
 import de.mein.contacts.data.db.ContactStructuredName;
@@ -65,11 +66,7 @@ public class AndroidServiceMethods {
             final String photoFileId = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_FILE_ID));
             contact.getAndroidId().v(contactCursor.getLong(contactCursor.getColumnIndex(ContactsContract.Contacts.NAME_RAW_CONTACT_ID)));
             String rawContactId = contact.getAndroidId().v().toString();
-
-
-            readName(contact, rawContactId);
-            readPhone(contact, rawContactId);
-            readEmail(contact, rawContactId);
+            readAppendices(contact, rawContactId);
             readPhoto(contact, contactId);
             contact.hash();
             contact.getPhonebookId().v(phoneBook.getId());
@@ -82,36 +79,21 @@ public class AndroidServiceMethods {
         return phoneBook;
     }
 
-    private void readPhone(Contact contact, String rawContactId) {
-        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{rawContactId}, null);
+    private void readAppendices(Contact contact, String rawContactId) {
+        String selection = ContactsContract.Data.RAW_CONTACT_ID + " = ?";
+        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId}, null);
         while (reader.moveToNext()) {
-            ContactPhone phone = new ContactPhone();
-            phone.getContactId().v(contact.getId());
-            reader.readDataColumns(phone);
-            contact.addPhone(phone);
+            ContactAppendix appendix = new ContactAppendix();
+            reader.readDataColumns(appendix);
+            contact.addAppendix(appendix);
         }
         reader.close();
     }
 
-
-    private void readName(Contact contact, String rawContactId) {
+    private void readElse(Contact contact, String rawContactId) {
         String selection = ContactsContract.Data.RAW_CONTACT_ID + " = ? and " + ContactsContract.Data.MIMETYPE + "=?";
-        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE}, null);
-        while (reader.moveToNext()) {
-            ContactStructuredName name = new ContactStructuredName();
-            name.getContactId().v(contact.getId());
-            reader.readDataColumns(name);
-            contact.addName(name);
-        }
-        reader.close();
-    }
+        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId, ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE}, null);
 
-
-    private byte[] bitmapToBytes(Bitmap bitmap) {
-        int size = bitmap.getRowBytes() * bitmap.getHeight();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(size);
-        bitmap.copyPixelsToBuffer(byteBuffer);
-        return byteBuffer.array();
     }
 
     public static void readPhoto(Contact contact, String contactId) {
@@ -139,18 +121,6 @@ public class AndroidServiceMethods {
             }
         }
     }
-
-    private void readEmail(Contact contact, String rawContactId) {
-        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{rawContactId}, null);
-        while (reader.moveToNext()) {
-            ContactEmail email = new ContactEmail();
-            email.getContactId().v(contact.getId());
-            reader.readDataColumns(email);
-            contact.addEmail(email);
-        }
-        reader.close();
-    }
-
 
     public String read(Cursor cursor, String col) {
         return cursor.getString(cursor.getColumnIndex(col));

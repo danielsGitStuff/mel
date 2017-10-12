@@ -35,9 +35,7 @@ public class ContactsDao extends Dao {
     }
 
     private void insertAppendices(Contact contact) throws SqlQueriesException {
-        insertAppendices(contact.getId().v(), contact.getEmails());
-        insertAppendices(contact.getId().v(), contact.getNames());
-        insertAppendices(contact.getId().v(), contact.getPhones());
+        insertAppendices(contact.getId().v(), contact.getAppendices());
     }
 
     private void insertAppendices(Long contactId, List<? extends ContactAppendix> appendices) throws SqlQueriesException {
@@ -66,9 +64,7 @@ public class ContactsDao extends Dao {
         String where = dummy.getPhonebookId().k() + "=?";
         contacts = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(phoneBookId));
         for (Contact contact : contacts) {
-            contact.setEmails(loadAppendices(contact.getId().v(), new ContactEmail()));
-            contact.setNames(loadAppendices(contact.getId().v(), new ContactStructuredName()));
-            contact.setPhones(loadAppendices(contact.getId().v(), new ContactPhone()));
+            contact.setAppendices(loadAppendices(contact.getId().v(), new ContactAppendix()));
         }
         return contacts;
     }
@@ -92,15 +88,10 @@ public class ContactsDao extends Dao {
         ContactEmail emailDummy = new ContactEmail();
         sqlQueries.execute("delete from " + phoneDummy.getTableName() + " where " + phoneDummy.getContactId().k() + "=?", ISQLQueries.whereArgs(contact.getId().v()));
         sqlQueries.execute("delete from " + emailDummy.getTableName() + " where " + emailDummy.getContactId().k() + "=?", ISQLQueries.whereArgs(contact.getId().v()));
-        for (ContactPhone phone : contact.getPhones()) {
+        for (ContactAppendix phone : contact.getAppendices()) {
             phone.getId().nul();
             phone.getContactId().v(contact.getId().v());
             insertAppendix(phone);
-        }
-        for (ContactEmail email : contact.getEmails()) {
-            email.getId().nul();
-            email.getContactId().v(contact.getId().v());
-            insertAppendix(email);
         }
 
     }
