@@ -1,31 +1,32 @@
 package de.mein.android.contacts;
 
-import org.jdeferred.impl.DeferredObject;
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
 import de.mein.android.contacts.data.AndroidContactSettings;
+import de.mein.android.contacts.data.db.ContactName;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsClientSettings;
 import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.PhoneBook;
+import de.mein.contacts.data.db.dao.ContactsDao;
+import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.jobs.ExamineJob;
 import de.mein.contacts.jobs.QueryJob;
 import de.mein.contacts.service.ContactsClientService;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
 
@@ -94,10 +95,29 @@ public class AndroidContactsClientService extends ContactsClientService {
         }
     }
 
-    private void checkConflict(Long receivedPhoneBookId) throws SqlQueriesException {
-        PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
-        if (contactsToAndroidExporter != null) {
-            contactsToAndroidExporter.export(receivedPhoneBookId);
+    private void checkConflict(Long receivedPhoneBookId) throws SqlQueriesException, InstantiationException, IllegalAccessException {
+        PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
+        ContactsDao contactsDao = databaseManager.getContactsDao();
+        PhoneBook flatMaster = databaseManager.getFlatMasterPhoneBook();
+        PhoneBook flatReceived = phoneBookDao.loadFlatPhoneBook(receivedPhoneBookId);
+        if (flatMaster.getHash().notEqualsValue(flatReceived.getHash())) {
+            ISQLResource<Contact> masterResource = contactsDao.contactsResource(flatMaster.getId().v());
+            Contact masterContact = masterResource.getNext();
+            while (masterContact != null) {
+                List<ContactName> names = contactsDao.getAppendices(masterContact.getId().v(), ContactName.class);
+                if (names.size() == 1) {
+                    ContactName contactName = names.get(0);
+                    Contact receivedContact = contactsDao.getContactByName(contactName.getName());
+                } else if (names.size() > 0) {
+                    System.err.println("AndroidContactsClientService.checkConflict.TOO:MANY:NAMES");
+                }
+                masterContact = masterResource.getNext();
+            }
+
+            // store in android contacts application
+            if (contactsToAndroidExporter != null) {
+                contactsToAndroidExporter.export(receivedPhoneBookId);
+            }
         }
     }
 }

@@ -15,9 +15,6 @@ import java.util.List;
 import de.mein.android.Tools;
 import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.ContactAppendix;
-import de.mein.contacts.data.db.ContactEmail;
-import de.mein.contacts.data.db.ContactPhone;
-import de.mein.contacts.data.db.ContactStructuredName;
 import de.mein.contacts.data.db.ContactsDatabaseManager;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
@@ -76,7 +73,7 @@ public class ContactsToAndroidExporter {
                             .build());
 
                     // then appendices in the according tables. note: order is the same as in Contact.hash()
-                    insertAppendices(operationList, contact.getId().v(), ContactAppendix.class, ContactsContract.Data.CONTENT_TYPE, contactMD5er);
+                    insertAppendices(operationList, contact.getId().v(), ContactsContract.Data.CONTENT_TYPE, contactMD5er);
 //                    insertAppendices(operationList, contact.getId().v(), ContactStructuredName.class, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, contactMD5er);
 //                    insertAppendices(operationList, contact.getId().v(), ContactPhone.class, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, contactMD5er);
 
@@ -107,8 +104,8 @@ public class ContactsToAndroidExporter {
         }
     }
 
-    private <T extends ContactAppendix> void insertAppendices(ArrayList<ContentProviderOperation> operationList, Long contactId, Class<T> appendixClass, String contentItemType, MD5er md5er) throws IllegalAccessException, SqlQueriesException, InstantiationException {
-        List<T> appendices = databaseManager.getContactsDao().getAppendix(contactId, appendixClass);
+    private void insertAppendices(ArrayList<ContentProviderOperation> operationList, Long contactId,  String contentItemType, MD5er md5er) throws IllegalAccessException, SqlQueriesException, InstantiationException {
+        List<ContactAppendix> appendices = databaseManager.getContactsDao().getAppendices(contactId, ContactAppendix.class);
         for (ContactAppendix appendix : appendices) {
             operationList.add(insertAppendix(appendix, contentItemType, md5er));
         }

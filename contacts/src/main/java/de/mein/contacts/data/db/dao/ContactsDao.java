@@ -1,15 +1,16 @@
 package de.mein.contacts.data.db.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.contacts.data.db.AppendixWrapper;
 import de.mein.contacts.data.db.ContactAppendix;
-import de.mein.contacts.data.db.ContactStructuredName;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
+import de.mein.sql.ISQLResource;
+import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 import de.mein.contacts.data.db.Contact;
-import de.mein.contacts.data.db.ContactEmail;
-import de.mein.contacts.data.db.ContactPhone;
 
 /**
  * Created by xor on 9/23/17.
@@ -83,26 +84,32 @@ public class ContactsDao extends Dao {
         return null;
     }
 
-    public void update(Contact contact) throws SqlQueriesException {
-        ContactPhone phoneDummy = new ContactPhone();
-        ContactEmail emailDummy = new ContactEmail();
-        sqlQueries.execute("delete from " + phoneDummy.getTableName() + " where " + phoneDummy.getContactId().k() + "=?", ISQLQueries.whereArgs(contact.getId().v()));
-        sqlQueries.execute("delete from " + emailDummy.getTableName() + " where " + emailDummy.getContactId().k() + "=?", ISQLQueries.whereArgs(contact.getId().v()));
-        for (ContactAppendix phone : contact.getAppendices()) {
-            phone.getId().nul();
-            phone.getContactId().v(contact.getId().v());
-            insertAppendix(phone);
-        }
-
+    public List<ContactAppendix> getAppendices(Long contactId) throws SqlQueriesException, IllegalAccessException, InstantiationException {
+        ContactAppendix appendix = new ContactAppendix();
+        return sqlQueries.load(appendix.getAllAttributes(), appendix, appendix.getContactId().k() + "=?", ISQLQueries.whereArgs(contactId));
     }
 
-    public <T extends ContactAppendix> List<T> getAppendix(Long contactId, Class<T> clazz) throws SqlQueriesException, IllegalAccessException, InstantiationException {
-        ContactAppendix appendix = clazz.newInstance();
-        return sqlQueries.load(appendix.getAllAttributes(), (T) appendix, appendix.getContactId().k() + "=?", ISQLQueries.whereArgs(contactId));
+    public <T extends AppendixWrapper> List<T> getAppendices(Long contactId, Class<T> appendixClass) throws SqlQueriesException, IllegalAccessException, InstantiationException {
+        AppendixWrapper dummyWrapper = appendixClass.newInstance();
+        ContactAppendix dummy = new ContactAppendix();
+        String where = dummy.getContactId().k() + "=? and " + dummy.getMimeType().k() + "=?";
+        List<ContactAppendix> appendices = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(contactId, dummyWrapper.getMimeType()));
+        List<T> result = new ArrayList<>(appendices.size());
+        for (ContactAppendix appendix : appendices) {
+            T wrapper = (T) appendixClass.newInstance().setAppendix(appendix);
+            result.add(wrapper);
+        }
+        return result;
     }
 
     public void updateHash(Contact contact) throws SqlQueriesException {
         String stmt = "update " + contact.getTableName() + " set " + contact.getHash().k() + "=? where " + contact.getId().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(contact.getHash().v(), contact.getId().v()));
+    }
+
+    public ISQLResource<Contact> contactsResource(Long phoneBookId) throws SqlQueriesException {
+        Contact contact = new Contact();
+        String where = contact.getPhonebookId().k() + "=?";
+        return sqlQueries.loadResource(contact.getAllAttributes(), Contact.class, where, ISQLQueries.whereArgs(phoneBookId));
     }
 }

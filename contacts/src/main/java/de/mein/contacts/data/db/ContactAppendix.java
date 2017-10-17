@@ -1,7 +1,9 @@
 package de.mein.contacts.data.db;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
@@ -15,7 +17,14 @@ import de.mein.sql.SQLTableObject;
 
 public class ContactAppendix extends SQLTableObject implements SerializableEntity {
 
+    protected Contact contact;
+
     public ContactAppendix() {
+        init();
+    }
+
+    public ContactAppendix(Contact contact) {
+        this.contact = contact;
         init();
     }
 
@@ -41,6 +50,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     }
 
     private List<Pair<String>> dataCols = new ArrayList<>(15);
+    private Map<String, Pair<String>> dataColMap = new HashMap<>();
     private Pair<String> mimeType = new Pair<String>(String.class, MIMETYPE);
 
     @Override
@@ -56,6 +66,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
             Pair<String> pair = new Pair<>(String.class, col);
             insertAttributes.add(pair);
             dataCols.add(pair);
+            dataColMap.put(col, pair);
         }
         insertAttributes.add(mimeType);
         hashPairs = new ArrayList<>(insertAttributes);
@@ -94,5 +105,16 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
 
     public void setMimeType(String mimeType) {
         this.mimeType.v(mimeType);
+    }
+
+    /**
+     * returns values from 'data' columns
+     *
+     * @param columnName
+     * @return
+     */
+    public String getColumnValue(String columnName) {
+        Pair<String> pair = dataColMap.get(columnName);
+        return pair == null ? null : pair.v();
     }
 }
