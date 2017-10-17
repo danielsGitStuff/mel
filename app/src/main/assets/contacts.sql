@@ -15,6 +15,7 @@ CREATE TABLE contacts (
   pid      INTEGER NOT NULL,
   image    BLOB,
   deephash TEXT,
+  checked text,
   FOREIGN KEY (pid) REFERENCES phonebook (id)
     ON DELETE CASCADE
 );

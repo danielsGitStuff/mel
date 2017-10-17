@@ -20,9 +20,12 @@ public class Contact extends SQLTableObject implements SerializableEntity {
     public static final String IMAGE = "image";
     public static final String AID = "aid";
     public static final String HASH = "deephash";
+    public static final String FLAG_CHECKED = "checked";
     @JsonIgnore
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> phonebookId = new Pair<>(Long.class, PID);
+    @JsonIgnore
+    private Pair<Boolean> checked = new Pair<>(Boolean.class, FLAG_CHECKED, false);
 
     private Pair<byte[]> image = new Pair<>(byte[].class, IMAGE);
 
@@ -57,7 +60,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(phonebookId, image);
+        populateInsert(phonebookId, image, checked);
         insertAttributes.add(hash);
         populateAll(id);
     }
@@ -101,5 +104,9 @@ public class Contact extends SQLTableObject implements SerializableEntity {
 
     public void addAppendix(ContactAppendix appendix) {
         appendices.add(appendix);
+    }
+
+    public Pair<Boolean> getChecked() {
+        return checked;
     }
 }

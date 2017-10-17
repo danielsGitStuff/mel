@@ -126,4 +126,15 @@ public class ContactsDao extends Dao {
         Contact contact = sqlQueries.loadFirstRow(contactDummy.getAllAttributes(), contactDummy, where, ISQLQueries.whereArgs(contactId), Contact.class);
         return contact;
     }
+
+    public void updateChecked(Contact contact) throws SqlQueriesException {
+        String stmt = "update " + contact.getTableName() + " set " + contact.getChecked().k() + "=? where " + contact.getId().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(contact.getChecked().v(), contact.getId().v()));
+    }
+
+    public ISQLResource<Contact> contactsResource(Long phoneBookId, boolean flagChecked) throws SqlQueriesException {
+        Contact contact = new Contact();
+        String where = contact.getPhonebookId().k() + "=? and " + contact.getChecked().k() + "=?";
+        return sqlQueries.loadResource(contact.getAllAttributes(), Contact.class, where, ISQLQueries.whereArgs(phoneBookId, flagChecked));
+    }
 }
