@@ -24,10 +24,12 @@ public abstract class ContactsService extends MeinService {
 
 
     protected final ContactsDatabaseManager databaseManager;
+    protected final ContactsSettings settings;
 
     public ContactsService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid);
         databaseManager = new ContactsDatabaseManager(this, serviceInstanceWorkingDirectory, settingsCfg);
+        settings = databaseManager.getSettings();
         meinAuthService.execute(this);
     }
 

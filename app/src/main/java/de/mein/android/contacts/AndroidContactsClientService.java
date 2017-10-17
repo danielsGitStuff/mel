@@ -38,7 +38,6 @@ public class AndroidContactsClientService extends ContactsClientService {
     private final AndroidServiceMethods serviceMethods;
     private ContactsToAndroidExporter contactsToAndroidExporter;
 
-
     public AndroidContactsClientService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
         serviceMethods = new AndroidServiceMethods(databaseManager);
@@ -79,11 +78,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                         })).fail(result -> N.r(() -> {
                             System.err.println(getClass().getSimpleName() + " updating server failed!");
                             QueryJob queryJob = new QueryJob();
-                            queryJob.getPromise().done(receivedPhoneBookId -> {
-                                if (contactsToAndroidExporter != null) {
-                                    contactsToAndroidExporter.export(receivedPhoneBookId);
-                                }
-                            });
+                            queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> checkConflict(receivedPhoneBookId)));
                             addJob(queryJob);
                             waitLock.unlock();
                         })))).fail(result -> {
@@ -96,6 +91,13 @@ public class AndroidContactsClientService extends ContactsClientService {
             waitLock.lock();
         } else {
             super.workWork(job);
+        }
+    }
+
+    private void checkConflict(Long receivedPhoneBookId) throws SqlQueriesException {
+        PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
+        if (contactsToAndroidExporter != null) {
+            contactsToAndroidExporter.export(receivedPhoneBookId);
         }
     }
 }
