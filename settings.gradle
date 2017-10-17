@@ -1,5 +1,5 @@
-include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx' ,':fxbundle', ':app'
-//include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':contacts'//,':authfx', ':drivefx'
+//include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx' ,':fxbundle', ':app'
+include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':contacts'//,':authfx', ':drivefx'
 
 project(':json').projectDir = new File('json')
 project(':serialize').projectDir = new File('serialize')
@@ -10,7 +10,7 @@ project(':contacts').projectDir = new File('contacts')
 
 project(':app').projectDir = new File('app')
 
-project(':authfx').projectDir = new File('authfx')
-project(':drivefx').projectDir = new File('drivefx')
-project(':contactsfx').projectDir = new File('contactsfx')
-project(':fxbundle').projectDir = new File('fxbundle')
+//project(':authfx').projectDir = new File('authfx')
+//project(':drivefx').projectDir = new File('drivefx')
+//project(':contactsfx').projectDir = new File('contactsfx')
+//project(':fxbundle').projectDir = new File('fxbundle')

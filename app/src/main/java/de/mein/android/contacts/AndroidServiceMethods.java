@@ -10,16 +10,12 @@ import android.provider.ContactsContract;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.android.Tools;
 import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.ContactAppendix;
-import de.mein.contacts.data.db.ContactEmail;
-import de.mein.contacts.data.db.ContactPhone;
-import de.mein.contacts.data.db.ContactStructuredName;
 import de.mein.contacts.data.db.ContactsDatabaseManager;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;

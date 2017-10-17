@@ -84,12 +84,14 @@ public class ContactsDao extends Dao {
         return null;
     }
 
+
     public List<ContactAppendix> getAppendices(Long contactId) throws SqlQueriesException, IllegalAccessException, InstantiationException {
-        ContactAppendix appendix = new ContactAppendix();
-        return sqlQueries.load(appendix.getAllAttributes(), appendix, appendix.getContactId().k() + "=?", ISQLQueries.whereArgs(contactId));
+        ContactAppendix dummy = new ContactAppendix();
+        String where = dummy.getContactId().k() + "=?";
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(contactId));
     }
 
-    public <T extends AppendixWrapper> List<T> getAppendices(Long contactId, Class<T> appendixClass) throws SqlQueriesException, IllegalAccessException, InstantiationException {
+    public <T extends AppendixWrapper> List<T> getWrappedAppendices(Long contactId, Class<T> appendixClass) throws SqlQueriesException, IllegalAccessException, InstantiationException {
         AppendixWrapper dummyWrapper = appendixClass.newInstance();
         ContactAppendix dummy = new ContactAppendix();
         String where = dummy.getContactId().k() + "=? and " + dummy.getMimeType().k() + "=?";
@@ -111,5 +113,17 @@ public class ContactsDao extends Dao {
         Contact contact = new Contact();
         String where = contact.getPhonebookId().k() + "=?";
         return sqlQueries.loadResource(contact.getAllAttributes(), Contact.class, where, ISQLQueries.whereArgs(phoneBookId));
+    }
+
+    public Contact getContactByName(String name, String structuredNameMimeType, String nameColumnName) throws SqlQueriesException {
+        Contact contactDummy = new Contact();
+        ContactAppendix dummyAppendix = new ContactAppendix();
+        //select * from contacts c, appendix a on c.id=a.contactid where a.data1="tim müller";
+        String query = "select " + contactDummy.getId().k() + " from " + contactDummy.getTableName() + " c, " + dummyAppendix.getTableName() + " a on c."
+                + contactDummy.getId().k() + "=" + dummyAppendix.getContactId().k() + " where a." + nameColumnName + "=? and a." + dummyAppendix.getMimeType().k() + "=?";
+        Long contactId = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(name, structuredNameMimeType));
+        String where = contactDummy.getId().k() + "=?";
+        Contact contact = sqlQueries.loadFirstRow(contactDummy.getAllAttributes(), contactDummy, where, ISQLQueries.whereArgs(contactId), Contact.class);
+        return contact;
     }
 }

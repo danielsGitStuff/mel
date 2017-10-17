@@ -1,5 +1,7 @@
 package de.mein.android.contacts;
 
+import android.provider.ContactsContract;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -104,10 +106,10 @@ public class AndroidContactsClientService extends ContactsClientService {
             ISQLResource<Contact> masterResource = contactsDao.contactsResource(flatMaster.getId().v());
             Contact masterContact = masterResource.getNext();
             while (masterContact != null) {
-                List<ContactName> names = contactsDao.getAppendices(masterContact.getId().v(), ContactName.class);
+                List<ContactName> names = contactsDao.getWrappedAppendices(masterContact.getId().v(), ContactName.class);
                 if (names.size() == 1) {
                     ContactName contactName = names.get(0);
-                    Contact receivedContact = contactsDao.getContactByName(contactName.getName());
+                    Contact receivedContact = contactsDao.getContactByName(contactName.getName(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
                 } else if (names.size() > 0) {
                     System.err.println("AndroidContactsClientService.checkConflict.TOO:MANY:NAMES");
                 }
