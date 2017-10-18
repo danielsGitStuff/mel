@@ -3,6 +3,7 @@ package de.mein.contacts.data.db.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.contacts.data.ContactJoinDummy;
 import de.mein.contacts.data.db.AppendixWrapper;
 import de.mein.contacts.data.db.ContactAppendix;
 import de.mein.sql.Dao;
@@ -32,8 +33,9 @@ public class ContactsDao extends Dao {
     public void getIdsForConflict(Long localPhoneBookId, Long receivedPhoneBookId, String nameMimeColName, String nameColumnName) {
         Contact cd = new Contact();
         ContactAppendix ad = new ContactAppendix();
-        String query = "select case when (reid is null) then loid else reid end as " + cd.getId().k() + ", lo." + nameColumnName + " as  from (select cc." + cd.getId().k() + " as loid, aa." + nameColumnName + " from " + cd.getTableName() + " cc ,  " + ad.getTableName() + "  aa on  cc." + cd.getId().k() + " = aa." + ad.getContactId().k() + " where aa." + ad.getMimeType().k() + "=?  and cc." + cd.getPhonebookId().k() + "=?) lo left join\n" +
-                "(select cc.id as reid,aa." + nameColumnName + " from  " + cd.getTableName() + " cc ,  " + ad.getTableName() + "  aa on  cc." + cd.getId().k() + " = aa." + ad.getContactId().k() + " where aa." + ad.getMimeType().k() + "=?  and cc." + cd.getPhonebookId().k() + "=? )  re on lo." + nameColumnName + " = re." + nameColumnName + ";";
+        ContactJoinDummy jd = new ContactJoinDummy();
+        String query = "select case when (reid is null) then loid else reid end as " + cd.getId().k() + ", lo." + nameColumnName + " as "+jd.getName().k()+" from (select cc." + cd.getId().k() + " as loid, aa." + nameColumnName + " from " + cd.getTableName() + " cc ,  " + ad.getTableName() + "  aa on  cc." + cd.getId().k() + " = aa." + ad.getContactId().k() + " where aa." + ad.getMimeType().k() + "=?  and cc." + cd.getPhonebookId().k() + "=?) lo left join\n" +
+                "(select cc.id as reid,aa." + nameColumnName + " from " + cd.getTableName() + " cc ,  " + ad.getTableName() + "  aa on  cc." + cd.getId().k() + " = aa." + ad.getContactId().k() + " where aa." + ad.getMimeType().k() + "=?  and cc." + cd.getPhonebookId().k() + "=? )  re on lo." + nameColumnName + " = re." + nameColumnName + " order by "+jd.getName().k();
     }
 
     public void insert(Contact contact) throws SqlQueriesException {
