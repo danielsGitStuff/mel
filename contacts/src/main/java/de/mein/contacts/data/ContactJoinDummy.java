@@ -25,7 +25,7 @@ public class ContactJoinDummy extends SQLTableObject {
     @Override
     protected void init() {
         populateInsert();
-        populateAll(id);
+        populateAll(id,name);
     }
 
     public Pair<Long> getId() {
