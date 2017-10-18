@@ -22,6 +22,7 @@ public class MeinStrings {
 
         public static final String SERVICE_UUID = "n.uuid";
         public static final String INTENTION = "n.intention";
-        public static final String EXTRA = "n.extra";
+        public static final String EXTRA = "n.extra/";
+        public static final String REQUEST_CODE = "mein.notification.id";
     }
 }

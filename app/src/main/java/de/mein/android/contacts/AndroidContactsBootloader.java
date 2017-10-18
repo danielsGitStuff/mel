@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import de.mein.R;
-import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
 import de.mein.android.boot.AndroidBootLoader;
@@ -99,7 +98,7 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     @Override
     public NotificationCompat.Builder createNotificationBuilder(Context context, IMeinService meinService, MeinNotification meinNotification) {
         String intention = meinNotification.getIntention();
-        if (intention.equals(ContactStrings.INTENTION_CONFLICT)) {
+        if (intention.equals(ContactStrings.Notifications.INTENTION_CONFLICT)) {
             return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
         }
         return null;
@@ -108,8 +107,8 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     @Override
     public Class createNotificationActivityClass(IMeinService meinService, MeinNotification meinNotification) {
         String intention = meinNotification.getIntention();
-        if (intention.equals(ContactStrings.INTENTION_CONFLICT)) {
-            return MainActivity.class;
+        if (intention.equals(ContactStrings.Notifications.INTENTION_CONFLICT)) {
+            return ContactsConflictsPopupActivity.class;
         }
         return null;
     }

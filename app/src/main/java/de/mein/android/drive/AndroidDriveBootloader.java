@@ -91,7 +91,7 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
         if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS) || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
             return MainActivity.class;
         } else if (intention.equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED))
-            return ConflictsPopupActivity.class;
+            return DriveConflictsPopupActivity.class;
         return null;
     }
 

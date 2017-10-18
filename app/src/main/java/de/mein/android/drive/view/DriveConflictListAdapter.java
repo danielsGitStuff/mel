@@ -16,7 +16,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import de.mein.R;
 import de.mein.drive.data.conflict.Conflict;
@@ -27,7 +26,7 @@ import de.mein.drive.sql.Stage;
  * Created by xor on 8/11/17.
  */
 
-public class ConflictListAdapter extends BaseAdapter {
+public class DriveConflictListAdapter extends BaseAdapter {
 
     private final ListView listView;
     private final Collection<Conflict> rootConflicts;
@@ -43,23 +42,23 @@ public class ConflictListAdapter extends BaseAdapter {
     private final int red = Color.argb(120, 125, 0, 0);
     private final int green = Color.argb(120, 0, 120, 0);
 
-    public ConflictListAdapter(ListView listView, Activity activity, Collection<Conflict> rootConflicts) {
+    public DriveConflictListAdapter(ListView listView, Activity activity, Collection<Conflict> rootConflicts) {
         this.activity = activity;
         this.listView = listView;
         this.rootConflicts = rootConflicts;
         this.layoutInflator = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.onUpClickedListener = view -> {
-            if (ConflictListAdapter.this.upperConflict != null) {
+            if (DriveConflictListAdapter.this.upperConflict != null) {
                 Collection<Conflict> conflicts = null;
-                if (ConflictListAdapter.this.upperConflict.getDependsOn() != null)
-                    conflicts = ConflictListAdapter.this.upperConflict.getDependsOn().getDependents();
+                if (DriveConflictListAdapter.this.upperConflict.getDependsOn() != null)
+                    conflicts = DriveConflictListAdapter.this.upperConflict.getDependsOn().getDependents();
                 if (conflicts == null)
                     conflicts = rootConflicts;
-                init(ConflictListAdapter.this.upperConflict.getDependsOn(), conflicts);
+                init(DriveConflictListAdapter.this.upperConflict.getDependsOn(), conflicts);
             } else {
                 init(null, rootConflicts);
             }
-            ConflictListAdapter.this.notifyDataSetChanged();
+            DriveConflictListAdapter.this.notifyDataSetChanged();
         };
         init(null, rootConflicts);
     }
@@ -118,7 +117,7 @@ public class ConflictListAdapter extends BaseAdapter {
         }
         if (!isRoot)
             i--;
-        View view = layoutInflator.inflate(R.layout.listitem_conflict, null);
+        View view = layoutInflator.inflate(R.layout.listitem_drive_conflict, null);
         TextView txtLeft = view.findViewById(R.id.txtLeft);
         TextView txtRight = view.findViewById(R.id.txtRight);
         TextView txtAddLeft = view.findViewById(R.id.txtAdditionalLeft);
@@ -159,7 +158,7 @@ public class ConflictListAdapter extends BaseAdapter {
         view.setOnClickListener(vv -> {
             if (conflict.getDependents().size() > 0) {
                 init(conflict, conflict.getDependents());
-                ConflictListAdapter.this.notifyDataSetChanged();
+                DriveConflictListAdapter.this.notifyDataSetChanged();
             }
         });
         rdLeft.setOnClickListener(vv -> {

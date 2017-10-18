@@ -1,11 +1,19 @@
 package de.mein.android.contacts.service;
 
+import android.provider.ContactsContract;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import de.mein.android.contacts.data.AndroidContactSettings;
-import de.mein.android.contacts.data.Conflict;
+import de.mein.android.contacts.data.ConflictIntentExtra;
+import de.mein.android.contacts.data.db.ContactName;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
@@ -17,6 +25,7 @@ import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsClientSettings;
 import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
@@ -25,6 +34,7 @@ import de.mein.contacts.jobs.QueryJob;
 import de.mein.contacts.service.ContactsClientService;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
 
@@ -62,6 +72,8 @@ public class AndroidContactsClientService extends ContactsClientService {
     protected void workWork(Job job) throws Exception {
         if (job instanceof ExamineJob) {
             PhoneBook phoneBook = serviceMethods.examineContacts();
+            settings.getClientSettings().setUncommitedHead(phoneBook.getId().v());
+            settings.save();
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
             if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
                 CountdownLock waitLock = new CountdownLock(1).lock();
@@ -93,44 +105,46 @@ public class AndroidContactsClientService extends ContactsClientService {
         }
     }
 
-    private void checkConflict(Long localPhoneBookId, Long receivedPhoneBookId) throws SqlQueriesException, InstantiationException, IllegalAccessException {
+    private void checkConflict(Long localPhoneBookId, Long receivedPhoneBookId) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException {
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
         ContactsDao contactsDao = databaseManager.getContactsDao();
         PhoneBook flatLocalPhoneBook = phoneBookDao.loadFlatPhoneBook(localPhoneBookId);
         PhoneBook flatReceived = phoneBookDao.loadFlatPhoneBook(receivedPhoneBookId);
         if (flatLocalPhoneBook != null && flatLocalPhoneBook.getHash().notEqualsValue(flatReceived.getHash())) {
-//            Set<Long> deletedLocalContactIds = new HashSet<>();
-//            Map<Long, Long> conflictingContactIds = new HashMap<>();
-//            Set<Long> newReceivedContactIds = new HashSet<>();
-//            ISQLResource<Contact> localResource = contactsDao.contactsResource(flatLocalPhoneBook.getId().v());
-//            Contact localContact = localResource.getNext();
-//            while (localContact != null) {
-//                List<ContactName> names = contactsDao.getWrappedAppendices(localContact.getId().v(), ContactName.class);
-//                if (names.size() == 1) {
-//                    ContactName contactName = names.get(0);
-//                    Contact receivedContact = contactsDao.getContactByName(contactName.getName(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
-//                    if (receivedContact == null) {
-//                        deletedLocalContactIds.add(localContact.getId().v());
-//                    } else {
-//                        receivedContact.getChecked().v(true);
-//                        contactsDao.updateChecked(receivedContact);
-//                        if (receivedContact.getHash().notEqualsValue(localContact.getHash())) {
-//                            conflictingContactIds.put(localContact.getId().v(), receivedContact.getId().v());
-//                        }
-//                    }
-//                } else if (names.size() > 0) {
-//                    System.err.println("AndroidContactsClientService.checkConflict.TOO:MANY:NAMES");
-//                }
-//                localContact = localResource.getNext();
-//            }
-//            ISQLResource<Contact> receivedResource = contactsDao.contactsResource(receivedPhoneBookId, false);
-//            Contact receivedContact = receivedResource.getNext();
-//            while (receivedContact != null) {
-//                newReceivedContactIds.add(receivedContact.getId().v());
-//                receivedContact = receivedResource.getNext();
-//            }
-            Conflict conflict = new Conflict(localPhoneBookId, receivedPhoneBookId);
-            MeinNotification notification = new MeinNotification(getUuid(), ContactStrings.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text", conflict);
+            Set<Long> deletedLocalContactIds = new HashSet<>();
+            Map<Long, Long> conflictingContactIds = new HashMap<>();
+            Set<Long> newReceivedContactIds = new HashSet<>();
+            ISQLResource<Contact> localResource = contactsDao.contactsResource(flatLocalPhoneBook.getId().v());
+            Contact localContact = localResource.getNext();
+            while (localContact != null) {
+                List<ContactName> names = contactsDao.getWrappedAppendices(localContact.getId().v(), ContactName.class);
+                if (names.size() == 1) {
+                    ContactName contactName = names.get(0);
+                    Contact receivedContact = contactsDao.getContactByName(contactName.getName(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
+                    if (receivedContact == null) {
+                        deletedLocalContactIds.add(localContact.getId().v());
+                    } else {
+                        receivedContact.getChecked().v(true);
+                        contactsDao.updateChecked(receivedContact);
+                        if (receivedContact.getHash().notEqualsValue(localContact.getHash())) {
+                            conflictingContactIds.put(localContact.getId().v(), receivedContact.getId().v());
+                        }
+                    }
+                } else if (names.size() > 0) {
+                    System.err.println("AndroidContactsClientService.checkConflict.TOO:MANY:NAMES");
+                }
+                localContact = localResource.getNext();
+            }
+            ISQLResource<Contact> receivedResource = contactsDao.contactsResource(receivedPhoneBookId, false);
+            Contact receivedContact = receivedResource.getNext();
+            while (receivedContact != null) {
+                newReceivedContactIds.add(receivedContact.getId().v());
+                receivedContact = receivedResource.getNext();
+            }
+
+            ConflictIntentExtra conflict = new ConflictIntentExtra(localPhoneBookId, receivedPhoneBookId);
+            MeinNotification notification = new MeinNotification(getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text", conflict);
+            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT,conflict);
             meinAuthService.onNotificationFromService(this, notification);
 //            // store in android contacts application
 //            if (contactsToAndroidExporter != null) {

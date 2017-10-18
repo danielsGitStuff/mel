@@ -3,12 +3,10 @@ package de.mein.android;
 import android.content.Context;
 import android.os.Bundle;
 
-import de.mein.R;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.tools.N;
-import de.mein.drive.data.DriveStrings;
 
 public abstract class PopupActivity<T extends IMeinService> extends MeinActivity {
 
@@ -23,14 +21,16 @@ public abstract class PopupActivity<T extends IMeinService> extends MeinActivity
         e.printStackTrace();
     });
 
+    protected abstract int layout();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_conflict_popup);
+        setContentView(layout());
         Bundle extra = getIntent().getExtras();
         if (extra != null) {
-            requestCode = extra.getInt(DriveStrings.Notifications.REQUEST_CODE);
+            requestCode = extra.getInt(MeinStrings.Notifications.REQUEST_CODE);
             serviceUuid = extra.getString(MeinStrings.Notifications.SERVICE_UUID);
         }
     }

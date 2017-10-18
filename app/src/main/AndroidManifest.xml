@@ -47,7 +47,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".android.drive.ConflictsPopupActivity" />
+        <activity android:name=".android.drive.DriveConflictsPopupActivity" />
         <activity android:name="net.rdrei.android.dirchooser.DirectoryChooserActivity" />
 
         <service

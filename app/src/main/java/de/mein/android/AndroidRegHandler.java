@@ -13,13 +13,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import de.mein.R;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.sql.Hash;
-import de.mein.drive.data.DriveStrings;
 
 /**
  * Created by xor on 3/6/17.
@@ -66,7 +66,7 @@ public class AndroidRegHandler implements IRegisterHandler {
         int requestCode = Tools.generateIntentRequestCode();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
         Intent intent = new Intent(context, CertActivity.class);
-        intent.putExtra(DriveStrings.Notifications.REQUEST_CODE, requestCode);
+        intent.putExtra(MeinStrings.Notifications.REQUEST_CODE, requestCode);
         intent.putExtra(REGBUNDLE_UUID, uuid);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = builder.setSmallIcon(R.drawable.ic_menu_add)

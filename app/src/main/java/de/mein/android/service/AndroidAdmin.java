@@ -10,7 +10,6 @@ import de.mein.R;
 import de.mein.android.Notifier;
 import de.mein.android.Tools;
 import de.mein.android.boot.AndroidBootLoader;
-import de.mein.android.drive.ConflictsPopupActivity;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
@@ -68,7 +67,10 @@ public class AndroidAdmin implements MeinAuthAdmin {
         Intent intent = new Intent(context, activityClass);
         intent.putExtra(MeinStrings.Notifications.SERVICE_UUID, meinNotification.getServiceUuid());
         intent.putExtra(MeinStrings.Notifications.INTENTION, intention);
-        intent.putExtra(DriveStrings.Notifications.REQUEST_CODE, requestCode);
+        intent.putExtra(MeinStrings.Notifications.REQUEST_CODE, requestCode);
+        for (String key : meinNotification.getSerializedExtraKeys()) {
+            intent.putExtra(MeinStrings.Notifications.EXTRA + key, meinNotification.getSerializedExtra(key));
+        }
         PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setSmallIcon(icon)
                 .setContentTitle(meinNotification.getTitle())

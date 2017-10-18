@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by xor on 08.08.2017.
@@ -20,7 +21,7 @@ public class MeinNotification {
     private Object content;
     private final String serviceUuid;
     private final String intention;
-    private Map<String, Object> extras = new HashMap<>();
+    private Map<String, String> extras = new HashMap<>();
     // progress related stuff
     private List<MeinProgressListener> progressListeners = new ArrayList<>();
     private boolean indeterminate = false;
@@ -129,18 +130,19 @@ public class MeinNotification {
         extras.put(key, json);
     }
 
-    public SerializableEntity getSerializedExtra(String key) throws JsonDeserializationException {
+    public Set<String> getSerializedExtraKeys(){
+        return extras.keySet();
+    }
+
+    public SerializableEntity getDeserializedExtra(String key) throws JsonDeserializationException {
         return SerializableEntityDeserializer.deserialize((String) extras.get(key));
     }
 
-    public Object getExtra(String key) {
+    public String getSerializedExtra(String key) {
         return extras.get(key);
     }
 
-    public MeinNotification addExtra(String key, Object value) {
-        extras.put(key, value);
-        return this;
-    }
+
 
     public void addProgressListener(MeinProgressListener progressListener) {
         progressListeners.add(progressListener);

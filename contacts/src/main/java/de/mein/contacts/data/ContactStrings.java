@@ -13,5 +13,10 @@ public class ContactStrings {
     public static final String INTENT_QUERY = "query";
     public static final String INTENT_UPDATE = "update";
     public static final String NAME = "Contact Sync";
-    public static final String INTENTION_CONFLICT = "conflict";
+
+    public class Notifications {
+
+        public static final String INTENTION_CONFLICT = "conflict";
+        public static final String INTENT_EXTRA_CONFLICT = "cnflct";
+    }
 }
