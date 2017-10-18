@@ -1,4 +1,4 @@
-package de.mein.android.contacts;
+package de.mein.android.contacts.service;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;

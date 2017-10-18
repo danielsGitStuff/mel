@@ -1,4 +1,4 @@
-package de.mein.android.contacts;
+package de.mein.android.contacts.service;
 
 import android.database.Cursor;
 import android.net.Uri;

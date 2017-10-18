@@ -1,4 +1,4 @@
-package de.mein.android.contacts;
+package de.mein.android.contacts.service;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.android.Tools;
+import de.mein.android.contacts.service.AndroidServiceMethods;
+import de.mein.android.contacts.service.DataTableCursorReader;
 import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.ContactAppendix;
 import de.mein.contacts.data.db.ContactsDatabaseManager;

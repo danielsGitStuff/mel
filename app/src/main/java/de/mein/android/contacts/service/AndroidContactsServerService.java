@@ -1,4 +1,4 @@
-package de.mein.android.contacts;
+package de.mein.android.contacts.service;
 
 import android.content.Context;
 import android.database.ContentObserver;
@@ -14,13 +14,9 @@ import java.util.concurrent.ThreadFactory;
 
 import de.mein.android.Tools;
 import de.mein.android.contacts.data.AndroidContactSettings;
-import de.mein.auth.data.IPayload;
-import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
-import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.PhoneBookDao;

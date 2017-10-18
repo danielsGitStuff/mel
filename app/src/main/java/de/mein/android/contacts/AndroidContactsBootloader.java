@@ -2,6 +2,8 @@ package de.mein.android.contacts;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
+import android.support.v4.app.NotificationCompat;
 import android.view.ViewGroup;
 
 import java.io.File;
@@ -9,11 +11,16 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
+import de.mein.android.Notifier;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.contacts.controller.RemoteContactsServiceChooserGuiController;
 import de.mein.android.contacts.data.AndroidContactSettings;
+import de.mein.android.contacts.service.AndroidContactsClientService;
+import de.mein.android.contacts.service.AndroidContactsServerService;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
@@ -87,5 +94,23 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     @Override
     public int getMenuIcon() {
         return R.drawable.icon_share;
+    }
+
+    @Override
+    public NotificationCompat.Builder createNotificationBuilder(Context context, IMeinService meinService, MeinNotification meinNotification) {
+        String intention = meinNotification.getIntention();
+        if (intention.equals(ContactStrings.INTENTION_CONFLICT)) {
+            return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
+        }
+        return null;
+    }
+
+    @Override
+    public Class createNotificationActivityClass(IMeinService meinService, MeinNotification meinNotification) {
+        String intention = meinNotification.getIntention();
+        if (intention.equals(ContactStrings.INTENTION_CONFLICT)) {
+            return MainActivity.class;
+        }
+        return null;
     }
 }

@@ -85,7 +85,7 @@ public class MainActivity extends MeinActivity {
 
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
-        debugStuff2();
+//        debugStuff2();
     }
 
 
@@ -125,7 +125,7 @@ public class MainActivity extends MeinActivity {
         navigationView.setNavigationItemSelectedListener(this);
         enableGuiController(new InfoController(this, content));
         startService();
-        debugStuff3();
+//        debugStuff3();
     }
 
     public static void debugStuff3() {

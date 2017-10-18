@@ -39,7 +39,7 @@ public abstract class MeinActivity extends AppCompatActivity
     private SparseArray<Deferred<Void, Void, Void>> permissionPromises = new SparseArray<>();
     private Map<Integer, MeinActivityLaunchResult> launchResultMap = new HashMap<>();
 
-    public void launchActifityForResult(Intent launchIntent, MeinActivityLaunchResult meinActivityLaunchResult) {
+    public void launchActivityForResult(Intent launchIntent, MeinActivityLaunchResult meinActivityLaunchResult) {
         final int id = Tools.generateIntentRequestCode();
         launchResultMap.put(id, meinActivityLaunchResult);
         startActivityForResult(launchIntent, id);

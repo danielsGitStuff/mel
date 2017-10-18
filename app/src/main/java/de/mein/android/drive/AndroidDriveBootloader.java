@@ -2,21 +2,27 @@ package de.mein.android.drive;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
+import android.support.v4.app.NotificationCompat;
 import android.view.ViewGroup;
 
 import org.jdeferred.Promise;
 
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
+import de.mein.android.Notifier;
 import de.mein.android.controller.AndroidServiceCreatorGuiController;
 import de.mein.android.Threadder;
 import de.mein.android.drive.controller.RemoteDriveServiceChooserGuiController;
 import de.mein.android.drive.controller.AndroidDriveEditGuiController;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveClientService;
 
 /**
@@ -69,5 +75,25 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
     public int getMenuIcon() {
         return R.drawable.icon_folder;
     }
+
+    @Override
+    public NotificationCompat.Builder createNotificationBuilder(Context context, IMeinService meinService, MeinNotification meinNotification) {
+        String intention = meinNotification.getIntention();
+        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS) || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
+            return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SILENT);
+        }
+        return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
+    }
+
+    @Override
+    public Class createNotificationActivityClass(IMeinService meinService, MeinNotification meinNotification) {
+        String intention = meinNotification.getIntention();
+        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS) || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
+            return MainActivity.class;
+        } else if (intention.equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED))
+            return ConflictsPopupActivity.class;
+        return null;
+    }
+
 
 }
