@@ -12,6 +12,7 @@ public class ContactJoinDummy extends SQLTableObject {
     private Contact dummy = new Contact();
     private Pair<Long> id = dummy.getId();
     private Pair<String> name = new Pair<String>(String.class,"name");
+    private Pair<Long> phoneBookId = dummy.getPhonebookId();
 
     public ContactJoinDummy() {
         init();
@@ -25,7 +26,7 @@ public class ContactJoinDummy extends SQLTableObject {
     @Override
     protected void init() {
         populateInsert();
-        populateAll(id,name);
+        populateAll(id,phoneBookId,name);
     }
 
     public Pair<Long> getId() {
@@ -36,4 +37,7 @@ public class ContactJoinDummy extends SQLTableObject {
         return name;
     }
 
+    public Pair<Long> getPhoneBookId() {
+        return phoneBookId;
+    }
 }

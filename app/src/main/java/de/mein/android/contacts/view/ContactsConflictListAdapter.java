@@ -20,8 +20,8 @@ import java.util.Set;
 import de.mein.R;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.android.contacts.service.AndroidContactsClientService;
+import de.mein.contacts.data.ContactJoinDummy;
 import de.mein.contacts.data.db.Contact;
-import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.sql.ISQLResource;
@@ -55,6 +55,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
     private void init() {
         try {
             contactsDao.contactsResource(localPhoneBookId);
+            ISQLResource<ContactJoinDummy> resource = contactsDao.getDummiesForConflict(localPhoneBookId,receivedPhoneBookId,ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
 
             Set<Long> deletedLocalContactIds = new HashSet<>();
             Map<Long, Long> conflictingContactIds = new HashMap<>();
