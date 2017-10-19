@@ -52,9 +52,6 @@ public class ContactsDao extends Dao {
                 + " union c." + cd.getId().k() + ", a." + nameColumnName + ", c.pid from " + cd.getTableName() + " c, " + ad.getTableName() + " a on c." + cd.getId().k() + "=a." + ad.getContactId().k()
                 + " where a." + ad.getMimeType().k() + "=?"
                 + " order by " + jd.getName().k();
-        //select c.id as reid, a.data1,c.pid as repb from contacts c,appendix a on c.id=a.contactid
-        // where a.mime="vnd.android.cursor.item/name"  and c.pid=2 order by name
-
         return sqlQueries.loadQueryResource(query, jd.getAllAttributes(), ContactJoinDummy.class, ISQLQueries.whereArgs(nameMimeType, localPhoneBookId, nameMimeType, receivedPhoneBookId, nameMimeType, receivedPhoneBookId));
     }
 

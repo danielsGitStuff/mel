@@ -31,6 +31,10 @@ public class N {
         void run(ISQLResource<T> sqlResource) throws Exception;
     }
 
+    public interface SqlTryReadRunnable<T extends SQLTableObject> {
+        void read(T obj) throws Exception;
+    }
+
     public interface NoTryExceptionConsumer {
         void accept(Exception e);
     }
@@ -49,13 +53,36 @@ public class N {
     /**
      * closes the Resource when failing or finishing
      *
-     * @param sqlResource is handed to the {@link INoTryRunnable}
+     * @param sqlResource   is handed to the {@link INoTryRunnable}
      * @param noTryRunnable
      */
     public static <T extends SQLTableObject> void sqlResource(ISQLResource<T> sqlResource, SqlTryRunnable<T> noTryRunnable) {
         try {
             noTryRunnable.run(sqlResource);
             sqlResource.close();
+        } catch (Exception e) {
+            try {
+                e.printStackTrace();
+                sqlResource.close();
+            } catch (SqlQueriesException e1) {
+                System.err.println("N.sqlResource.close() FAILED!");
+                e1.printStackTrace();
+            }
+        }
+    }
+
+    public static <T extends SQLTableObject> void readSqlResource(ISQLResource<T> sqlResource, SqlTryReadRunnable<T> noTryRunnable) {
+        try {
+            T obj = sqlResource.getNext();
+            try {
+                while (obj != null) {
+                    noTryRunnable.read(obj);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                sqlResource.close();
+            }
         } catch (Exception e) {
             try {
                 e.printStackTrace();

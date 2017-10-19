@@ -20,6 +20,7 @@ import java.util.Set;
 import de.mein.R;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.android.contacts.service.AndroidContactsClientService;
+import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactJoinDummy;
 import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.dao.ContactsDao;
@@ -55,8 +56,11 @@ public class ContactsConflictListAdapter extends BaseAdapter {
     private void init() {
         try {
             contactsDao.contactsResource(localPhoneBookId);
-            ISQLResource<ContactJoinDummy> resource = contactsDao.getDummiesForConflict(localPhoneBookId,receivedPhoneBookId,ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
+            ISQLResource<ContactJoinDummy> resource = contactsDao.getDummiesForConflict(localPhoneBookId, receivedPhoneBookId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
 
+            N.readSqlResource(resource, joinDummy -> {
+                contactIdList.add(joinDummy.getId().v());
+            });
             Set<Long> deletedLocalContactIds = new HashSet<>();
             Map<Long, Long> conflictingContactIds = new HashMap<>();
             Set<Long> newReceivedContactIds = new HashSet<>();
@@ -95,12 +99,12 @@ public class ContactsConflictListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return 0;
+        return contactIdList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return null;
+        return contactIdList.get(position);
     }
 
     @Override
