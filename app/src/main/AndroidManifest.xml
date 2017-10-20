@@ -49,6 +49,7 @@
 
         <activity android:name=".android.drive.DriveConflictsPopupActivity" />
         <activity android:name="net.rdrei.android.dirchooser.DirectoryChooserActivity" />
+        <activity android:name=".android.contacts.ContactsConflictsPopupActivity"/>
 
         <service
             android:name="de.mein.android.service.AndroidService"

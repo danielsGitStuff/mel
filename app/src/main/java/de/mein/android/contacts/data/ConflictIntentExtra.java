@@ -7,12 +7,16 @@ import de.mein.core.serialize.SerializableEntity;
  */
 
 public class ConflictIntentExtra implements SerializableEntity {
-    private final   Long localPhoneBookId;
-    private  final Long receivedPhoneBookId;
+    private Long localPhoneBookId;
+    private Long receivedPhoneBookId;
 
     public ConflictIntentExtra(Long localPhoneBookId, Long receivedPhoneBookId) {
         this.localPhoneBookId = localPhoneBookId;
         this.receivedPhoneBookId = receivedPhoneBookId;
+    }
+
+    public ConflictIntentExtra() {
+
     }
 
     public Long getLocalPhoneBookId() {
