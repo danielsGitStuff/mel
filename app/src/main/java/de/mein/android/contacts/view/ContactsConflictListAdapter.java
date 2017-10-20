@@ -70,7 +70,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
                 List<ContactName> names = contactsDao.getWrappedAppendices(localContact.getId().v(), ContactName.class);
                 if (names.size() == 1) {
                     ContactName contactName = names.get(0);
-                    Contact receivedContact = contactsDao.getContactByName(contactName.getName(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
+                    Contact receivedContact = contactsDao.getContactByName(receivedPhoneBookId, contactName.getName(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
                     if (receivedContact == null) {
                         deletedLocalContactIds.add(localContact.getId().v());
                     } else {

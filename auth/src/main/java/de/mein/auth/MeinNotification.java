@@ -18,7 +18,6 @@ import java.util.Set;
 public class MeinNotification {
     private String title;
     private String text;
-    private Object content;
     private final String serviceUuid;
     private final String intention;
     private Map<String, String> extras = new HashMap<>();
@@ -83,30 +82,12 @@ public class MeinNotification {
         this.title = title;
     }
 
-    public MeinNotification(String serviceUuid, String intention, String title, String text, Object content) {
-        this(serviceUuid, intention, title, text);
-        this.content = content;
-    }
-
     public String getText() {
         return text;
     }
 
     public String getTitle() {
         return title;
-    }
-
-    /**
-     * if you want consume a data object immediately(eg. fill a table with its content), this is where to put it.
-     *
-     * @param dataObject
-     */
-    public void setContent(Object dataObject) {
-        this.content = dataObject;
-    }
-
-    public Object getContent() {
-        return content;
     }
 
     public String getServiceUuid() {

@@ -42,7 +42,13 @@ public class DataTableCursorReader {
 
     public DataTableCursorReader readDataColumns(ContactAppendix appendix) {
         for (int i = 0; i < 15; i++) {
-            appendix.setValue(i, cursor.getString(i));
+            try {
+                appendix.setValue(i, cursor.getString(i));
+            }catch (Exception e){
+                System.err.println("i "+i+" mime "+appendix.getMimeType().v());
+                Object o = cursor.getBlob(i);
+                System.err.println("keks");
+            }
         }
         appendix.setAndroidId(cursor.getLong(15));
         appendix.setMimeType(cursor.getString(16));

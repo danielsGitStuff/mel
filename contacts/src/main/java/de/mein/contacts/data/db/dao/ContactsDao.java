@@ -29,7 +29,7 @@ public class ContactsDao extends Dao {
         sqlQueries.delete(new Contact(), null, null);
     }
 
-    public ISQLResource<ContactJoinDummy> getDummiesForConflict(Long localPhoneBookId, Long receivedPhoneBookId, String nameMimeType, String nameColumnName) {
+    public ISQLResource<ContactJoinDummy> getDummiesForConflict(Long localPhoneBookId, Long receivedPhoneBookId, String nameMimeType, String nameColumnName) throws SqlQueriesException {
 //        select case when (reid is null) then loid else reid end as id, lo.data1 as name , case when (repb is null) then lopb else repb end as pid
 //        from (select cc.id as loid, aa.data1,cc.pid as lopb from contacts cc, appendix aa  on cc.id=aa.contactid where aa.mime="vnd.android.cursor.item/name" and cc.pid=1) lo
 //        left join (select cc.id as reid,aa.data1,cc.pid as repb from contacts cc, appendix aa on cc.id=aa.contactid where aa.mime="vnd.android.cursor.item/name" and cc.pid=2) re
@@ -141,13 +141,14 @@ public class ContactsDao extends Dao {
         return sqlQueries.loadResource(contact.getAllAttributes(), Contact.class, where, ISQLQueries.whereArgs(phoneBookId));
     }
 
-    public Contact getContactByName(String name, String structuredNameMimeType, String nameColumnName) throws SqlQueriesException {
+    public Contact getContactByName(Long phoneBookId, String name, String structuredNameMimeType, String nameColumnName) throws SqlQueriesException {
         Contact contactDummy = new Contact();
         ContactAppendix dummyAppendix = new ContactAppendix();
         //select * from contacts c, appendix a on c.id=a.contactid where a.data1="tim müller";
-        String query = "select " + contactDummy.getId().k() + " from " + contactDummy.getTableName() + " c, " + dummyAppendix.getTableName() + " a on c."
-                + contactDummy.getId().k() + "=" + dummyAppendix.getContactId().k() + " where a." + nameColumnName + "=? and a." + dummyAppendix.getMimeType().k() + "=?";
-        Long contactId = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(name, structuredNameMimeType));
+        String query = "select c." + contactDummy.getId().k() + " from " + contactDummy.getTableName() + " c, " + dummyAppendix.getTableName() + " a on c."
+                + contactDummy.getId().k() + "=" + dummyAppendix.getContactId().k() + " where a." + nameColumnName + "=? and a." + dummyAppendix.getMimeType().k() + "=?"
+                + " and c." + contactDummy.getPhonebookId().k() + "=?";
+        Long contactId = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(name, structuredNameMimeType, phoneBookId));
         String where = contactDummy.getId().k() + "=?";
         Contact contact = sqlQueries.loadFirstRow(contactDummy.getAllAttributes(), contactDummy, where, ISQLQueries.whereArgs(contactId), Contact.class);
         return contact;

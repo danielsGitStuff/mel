@@ -65,7 +65,7 @@ public class PhoneBookDao extends Dao {
         PhoneBook phoneBook = loadFlatPhoneBook(id);
         List<Contact> contacts = contactsDao.getContacts(id);
         phoneBook.setContacts(contacts);
-        phoneBook.deepHash();
+        phoneBook.hash();
         return phoneBook;
     }
 
@@ -78,7 +78,7 @@ public class PhoneBookDao extends Dao {
         PhoneBook phoneBook = loadPhoneBook(id);
         List<Contact> contacts = contactsDao.getDeepContacts(id);
         phoneBook.setContacts(contacts);
-        phoneBook.deepHash();
+        phoneBook.hash();
         return phoneBook;
     }
 

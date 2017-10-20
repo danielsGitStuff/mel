@@ -147,5 +147,5 @@ public abstract class ISQLQueries {
 
     public abstract void onShutDown();
 
-    public abstract <T extends SQLTableObject> ISQLResource<T> loadQueryResource(String query, List<Pair<?>> allAttributes, Class<T> contactJoinDummyClass, List<Object> args);
+    public abstract <T extends SQLTableObject> ISQLResource<T> loadQueryResource(String query, List<Pair<?>> allAttributes, Class<T> clazz, List<Object> args) throws SqlQueriesException;
 }

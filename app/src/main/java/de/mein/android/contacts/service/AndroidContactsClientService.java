@@ -120,7 +120,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                 List<ContactName> names = contactsDao.getWrappedAppendices(localContact.getId().v(), ContactName.class);
                 if (names.size() == 1) {
                     ContactName contactName = names.get(0);
-                    Contact receivedContact = contactsDao.getContactByName(contactName.getName(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
+                    Contact receivedContact = contactsDao.getContactByName(receivedPhoneBookId, contactName.getName(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
                     if (receivedContact == null) {
                         deletedLocalContactIds.add(localContact.getId().v());
                     } else {
@@ -143,7 +143,7 @@ public class AndroidContactsClientService extends ContactsClientService {
             }
 
             ConflictIntentExtra conflict = new ConflictIntentExtra(localPhoneBookId, receivedPhoneBookId);
-            MeinNotification notification = new MeinNotification(getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text", conflict);
+            MeinNotification notification = new MeinNotification(getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text");
             notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT,conflict);
             meinAuthService.onNotificationFromService(this, notification);
 //            // store in android contacts application

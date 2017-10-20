@@ -522,4 +522,21 @@ public class SQLQueries extends ISQLQueries {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public <T extends SQLTableObject> ISQLResource<T> loadQueryResource(String query, List<Pair<?>> allAttributes, Class<T> clazz, List<Object> args) throws SqlQueriesException {
+        if (connection == null) {
+            return null;
+        }
+        try {
+            PreparedStatement pstmt = connection.prepareStatement(query);
+            if (args != null) {
+                insertArguments(pstmt, args);
+            }
+            pstmt.execute();
+            return new SQLResource<T>(pstmt, clazz);
+        } catch (Exception e) {
+            throw new SqlQueriesException(e);
+        }
+    }
 }

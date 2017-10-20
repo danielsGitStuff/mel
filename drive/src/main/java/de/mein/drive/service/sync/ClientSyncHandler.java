@@ -297,7 +297,7 @@ public class ClientSyncHandler extends SyncHandler {
                 System.err.println("conflicts!!!!1!");
                 conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
                 conflictSolver.setSolving(true);
-                meinDriveService.onConflicts(conflictSolver);
+                meinDriveService.onConflicts();
             } else {
                 // todo FsDir hash conflicts
                 conflictSolver.directoryStuff();

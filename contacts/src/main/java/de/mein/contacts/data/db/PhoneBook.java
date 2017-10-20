@@ -71,7 +71,7 @@ public class PhoneBook extends SQLTableObject implements IPayload {
     /**
      * calculates a hash based on all {@link Contact} hashes this {@link PhoneBook} contains.
      */
-    public void deepHash() {
+    public void hash() {
         for (Contact contact : contacts) {
             md5er.hash(contact.getHash().v());
         }

@@ -24,6 +24,10 @@ public class CertActivity extends PopupActivity {
     private RWLock lock = new RWLock();
 
 
+    @Override
+    protected int layout() {
+        return R.layout.activity_cert_incoming;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

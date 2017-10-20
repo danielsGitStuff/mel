@@ -17,4 +17,9 @@ public class ContactName extends AppendixWrapper {
     public String getName() {
         return appendix.getColumnValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }
