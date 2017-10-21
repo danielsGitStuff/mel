@@ -12,12 +12,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
         android:layout_alignParentTop="true" />
 
     <ImageView
         android:id="@+id/imageLeft"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
         android:layout_gravity="center_vertical"
         android:layout_toEndOf="@id/rbLeft"
         app:srcCompat="@android:drawable/btn_star_big_on" />
@@ -26,6 +28,7 @@
         android:id="@+id/txtNameLeft"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
         android:layout_toEndOf="@id/imageLeft"
         android:layout_alignEnd="@id/strut"
         android:text="name goes here" />
@@ -40,6 +43,7 @@
         android:id="@+id/txtNameRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
         android:layout_toEndOf="@id/strut"
         android:layout_toStartOf="@id/imageRight"
         android:text="lalalalalala" />
@@ -48,6 +52,7 @@
     <ImageView
         android:id="@+id/imageRight"
         android:layout_width="wrap_content"
+        android:layout_centerVertical="true"
         android:layout_height="wrap_content"
         android:layout_toStartOf="@id/rbRight"
         app:srcCompat="@android:drawable/btn_star_big_on" />
@@ -56,6 +61,7 @@
         android:id="@+id/rbRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true" />
 

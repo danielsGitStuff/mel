@@ -59,13 +59,13 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
             localPhoneBookId = conflictIntentExtra.getLocalPhoneBookId();
             receivedPhoneBookId = conflictIntentExtra.getReceivedPhoneBookId();
             Long uncommitedHead = service.getDatabaseManager().getSettings().getClientSettings().getUncommitedHead();
-            ISQLResource<ContactJoinDummy> dummiesForConflict = service.getDatabaseManager().getContactsDao().getDummiesForConflict(localPhoneBookId, receivedPhoneBookId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
-            List<Long> contactIds = new ArrayList<>();
-            ContactJoinDummy dummy = dummiesForConflict.getNext();
-            while (dummy != null) {
-                contactIds.add(dummy.getId().v());
-                dummy = dummiesForConflict.getNext();
-            }
+//            ISQLResource<ContactJoinDummy> dummiesForConflict = service.getDatabaseManager().getContactsDao().getDummiesForConflict(localPhoneBookId, receivedPhoneBookId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
+//            List<Long> contactIds = new ArrayList<>();
+//            ContactJoinDummy dummy = dummiesForConflict.getNext();
+//            while (dummy != null) {
+//                contactIds.add(dummy.getId().v());
+//                dummy = dummiesForConflict.getNext();
+//            }
             adapter = new ContactsConflictListAdapter(this, service, localPhoneBookId, receivedPhoneBookId);
             listView.setAdapter(adapter);
             runOnUiThread(() -> {

@@ -30,30 +30,33 @@ public class ContactsDao extends Dao {
     }
 
     public ISQLResource<ContactJoinDummy> getDummiesForConflict(Long localPhoneBookId, Long receivedPhoneBookId, String nameMimeType, String nameColumnName) throws SqlQueriesException {
-//        select case when (reid is null) then loid else reid end as id, lo.data1 as name , case when (repb is null) then lopb else repb end as pid
-//        from (select cc.id as loid, aa.data1,cc.pid as lopb from contacts cc, appendix aa  on cc.id=aa.contactid where aa.mime="vnd.android.cursor.item/name" and cc.pid=1) lo
-//        left join (select cc.id as reid,aa.data1,cc.pid as repb from contacts cc, appendix aa on cc.id=aa.contactid where aa.mime="vnd.android.cursor.item/name" and cc.pid=2) re
-//        on lo.data1=re.data1
+//        select case when(lo.name is null) then re.name else lo.name end as name, lo.id as loid, re.id as reid from
+//                (select c.id, a.data1 as name from contacts c, appendix a on c.id=a.contactid where a.mime="vnd.android.cursor.item/name" and c.pid=1) lo
+//        left join
+//        (select c.id, a.data1 as name from contacts c, appendix a on c.id=a.contactid where a.mime="vnd.android.cursor.item/name" and c.pid=2) re
+//        on re.name=lo.name
 //        union
-//        select c.id  as reid, a.data1,c.pid  from contacts c,appendix a on c.id=a.contactid where a.mime="vnd.android.cursor.item/name"  and c.pid=2 order by name
+//        select a.data1 as name, null as loid, c.id as reid from contacts c, appendix a on c.id=a.contactid
+//        where a.mime="vnd.android.cursor.item/name" and c.pid=2
+//        and not exists
+//                (select 1 from contacts c, appendix a on c.id=a.contactid where a.mime="vnd.android.cursor.item/name" and c.pid=1 and a.data1=name)
 
         Contact cd = new Contact();
         ContactAppendix ad = new ContactAppendix();
         ContactJoinDummy jd = new ContactJoinDummy();
-        String query = "select case when (reid is null) then loid else reid end as " + jd.getId().k() + ", lo."
-                + nameColumnName + " as " + jd.getName().k() + ", case when (repb is null) then lopb else repb end as " + jd.getPhoneBookId().k()
-                + " from (select cc." + cd.getId().k() + " as loid, aa." + nameColumnName
-                + ", cc." + cd.getPhonebookId().k() + " as lopb from " + cd.getTableName() + " cc, "
-                + ad.getTableName() + "  aa on  cc." + cd.getId().k() + " = aa." + ad.getContactId().k()
-                + " where aa." + ad.getMimeType().k() + "=?  and cc." + cd.getPhonebookId().k() + "=?) lo left join\n"
-                + "(select cc.id as reid,aa." + nameColumnName + ", cc." + cd.getPhonebookId().k() + " as repb from " + cd.getTableName() + " cc ,  " + ad.getTableName()
-                + " aa on  cc." + cd.getId().k() + " = aa." + ad.getContactId().k() + " where aa." + ad.getMimeType().k() + "=? and cc."
-                + cd.getPhonebookId().k() + "=? ) re on lo." + nameColumnName + " = re." + nameColumnName
-                + " union select c." + cd.getId().k() + ", a." + nameColumnName + ", c.pid from " + cd.getTableName() + " c, " + ad.getTableName() + " a on c." + cd.getId().k() + "=a." + ad.getContactId().k()
-                + " where a." + ad.getMimeType().k() + "=? and c." + cd.getPhonebookId().k() + "=?"
-                + " order by " + jd.getName().k();
-        return sqlQueries.loadQueryResource(query, jd.getAllAttributes(), ContactJoinDummy.class, ISQLQueries.whereArgs(nameMimeType, localPhoneBookId, nameMimeType, receivedPhoneBookId, nameMimeType, receivedPhoneBookId));
+        String query = "select case when(lo.name is null) then re.name else lo.name end as name, lo." + cd.getId().k() + " as loid, re." + cd.getId().k() + " as reid from \n" +
+                "(select c." + cd.getId().k() + ", a." + nameColumnName + " as name from " + cd.getTableName() + " c, " + ad.getTableName() + " a on c." + cd.getId().k() + "=a." + ad.getContactId().k() + " where a." + ad.getMimeType().k() + "=? and c." + cd.getPhonebookId().k() + "=?) lo\n" +
+                "left join\n" +
+                "(select c." + cd.getId().k() + ", a." + nameColumnName + " as name from " + cd.getTableName() + " c, " + ad.getTableName() + " a on c." + cd.getId().k() + "=a." + ad.getContactId().k() + " where a." + ad.getMimeType().k() + "=? and c." + cd.getPhonebookId().k() + "=?) re \n" +
+                "on re.name=lo.name\n" +
+                "union \n" +
+                "select a." + nameColumnName + " as name, null as loid, c." + cd.getId().k() + " as reid from " + cd.getTableName() + " c, " + ad.getTableName() + " a on c." + cd.getId().k() + "=a." + ad.getContactId().k() + " \n" +
+                "where a." + ad.getMimeType().k() + "=? and c." + cd.getPhonebookId().k() + "=?\n" +
+                "and not exists \n" +
+                "(select 1 from " + cd.getTableName() + " c, " + ad.getTableName() + " a on c." + cd.getId().k() + "=a." + ad.getContactId().k() + " where a." + ad.getMimeType().k() + "=? and c." + cd.getPhonebookId().k() + "=? and a." + nameColumnName + "=name)";
+        return sqlQueries.loadQueryResource(query, jd.getAllAttributes(), ContactJoinDummy.class, ISQLQueries.whereArgs(nameMimeType, localPhoneBookId, nameMimeType, receivedPhoneBookId, nameMimeType, receivedPhoneBookId,nameMimeType,localPhoneBookId));
     }
+
 
     public void insert(Contact contact) throws SqlQueriesException {
         final Long contactId = sqlQueries.insert(contact);

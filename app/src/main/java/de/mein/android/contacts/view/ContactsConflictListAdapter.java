@@ -40,7 +40,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
     private final AndroidContactsClientService service;
     private final ContactsDao contactsDao;
     private final PhoneBookDao phoneBookDao;
-    private List<Long> contactIdList = new ArrayList<>();
+    private List<ContactJoinDummy> contactDummies = new ArrayList<ContactJoinDummy>();
 
     public ContactsConflictListAdapter(Activity activity, AndroidContactsClientService service, Long localPhoneBookId, Long receivedPhoneBookId) {
         this.activity = activity;
@@ -59,7 +59,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
             ISQLResource<ContactJoinDummy> resource = contactsDao.getDummiesForConflict(localPhoneBookId, receivedPhoneBookId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
 
             N.readSqlResource(resource, joinDummy -> {
-                contactIdList.add(joinDummy.getId().v());
+                contactDummies.add(joinDummy);
             });
             Set<Long> deletedLocalContactIds = new HashSet<>();
             Map<Long, Long> conflictingContactIds = new HashMap<>();
@@ -99,12 +99,12 @@ public class ContactsConflictListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return contactIdList.size();
+        return contactDummies.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return contactIdList.get(position);
+        return contactDummies.get(position);
     }
 
     @Override
@@ -114,8 +114,13 @@ public class ContactsConflictListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
-        View view = layoutInflator.inflate(R.layout.listitem_drive_conflict, null);
+        ContactJoinDummy dummy = contactDummies.get(position);
+        View view = null;
+        if (dummy.both()) {
+            view = layoutInflator.inflate(R.layout.listitem_contacts_conflict_double, null);
+        } else {
+            view = layoutInflator.inflate(R.layout.listitem_contacts_conflict_left, null);
+        }
         TextView txtName = view.findViewById(R.id.txtName);
         ImageView imageView = view.findViewById(R.id.image);
         return view;

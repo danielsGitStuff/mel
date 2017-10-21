@@ -9,10 +9,9 @@ import de.mein.sql.SQLTableObject;
  */
 
 public class ContactJoinDummy extends SQLTableObject {
-    private Contact dummy = new Contact();
-    private Pair<Long> id = dummy.getId();
-    private Pair<String> name = new Pair<String>(String.class,"name");
-    private Pair<Long> phoneBookId = dummy.getPhonebookId();
+    private Pair<Long> leftId = new Pair<>(Long.class,"loid");
+    private Pair<Long> rightId = new Pair<>(Long.class,"reid");
+    private Pair<String> name = new Pair<>(String.class,"name");
 
     public ContactJoinDummy() {
         init();
@@ -20,24 +19,29 @@ public class ContactJoinDummy extends SQLTableObject {
 
     @Override
     public String getTableName() {
-        return dummy.getTableName();
+        return new Contact().getTableName();
     }
 
     @Override
     protected void init() {
         populateInsert();
-        populateAll(id,phoneBookId,name);
+        populateAll(name,leftId,rightId);
     }
 
-    public Pair<Long> getId() {
-        return id;
-    }
 
     public Pair<String> getName() {
         return name;
     }
 
-    public Pair<Long> getPhoneBookId() {
-        return phoneBookId;
+    public Pair<Long> getLeftId() {
+        return leftId;
+    }
+
+    public Pair<Long> getRightId() {
+        return rightId;
+    }
+
+    public boolean both() {
+        return leftId.notNull() && rightId.notNull();
     }
 }
