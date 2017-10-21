@@ -48,10 +48,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@id/rdgClient"
-        android:layout_alignEnd="@id/strut"
+        android:layout_alignEnd="@id/txtName"
         android:text="Known MeinAuths" />
 
-    <View android:id="@+id/strut"
+    <View android:id="@+id/txtName"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_centerHorizontal="true"/>
@@ -60,14 +60,14 @@
         android:layout_below="@id/rdgClient"
         android:layout_toEndOf="@id/lblKnownMA"
         android:layout_width="wrap_content"
-        android:layout_alignStart="@id/strut"
+        android:layout_alignStart="@id/txtName"
         android:layout_height="wrap_content"
         android:text="Drive Instances" />
     <ListView
         android:id="@+id/knownCertList"
         android:layout_below="@id/lblKnownMA"
         android:layout_alignParentStart="true"
-        android:layout_alignEnd="@id/strut"
+        android:layout_alignEnd="@id/txtName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

@@ -79,7 +79,7 @@
         </TableRow>
     </TableLayout>
 
-    <View android:id="@+id/strut"
+    <View android:id="@+id/txtName"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_centerHorizontal="true"/>
@@ -89,7 +89,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/table"
         android:layout_alignParentStart="true"
-        android:layout_toStartOf="@id/strut"
+        android:layout_toStartOf="@id/txtName"
         android:text="Apply" />
 
     <Button
@@ -98,7 +98,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/table"
         android:layout_alignParentEnd="true"
-        android:layout_toEndOf="@id/strut"
+        android:layout_toEndOf="@id/txtName"
         android:text="Start/Stop" />
     <TextView
         android:id="@+id/txtPower"

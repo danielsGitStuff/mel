@@ -122,6 +122,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
             view = layoutInflator.inflate(R.layout.listitem_contacts_conflict_left, null);
         }
         TextView txtName = view.findViewById(R.id.txtName);
+        txtName.setText(dummy.getName().v());
         ImageView imageView = view.findViewById(R.id.image);
         return view;
     }
