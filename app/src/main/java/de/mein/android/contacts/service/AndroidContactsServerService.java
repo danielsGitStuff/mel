@@ -121,7 +121,6 @@ public class AndroidContactsServerService extends ContactsServerService {
             debugBook.hash();
             phoneBookDao.insertDeep(debugBook);
             debugCheckConflict(phoneBook.getId().v(),debugBook.getId().v());
-
 //            PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
 //            if (count < 1)
 //                contactsToAndroidExporter.export(masterPhoneBook.getId().v());

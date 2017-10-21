@@ -40,17 +40,17 @@ public class ContactsDao extends Dao {
         Contact cd = new Contact();
         ContactAppendix ad = new ContactAppendix();
         ContactJoinDummy jd = new ContactJoinDummy();
-        String query = "select " + cd.getPhonebookId().k() + " case when (reid is null) then loid else reid end as " + jd.getId().k() + ", lo."
+        String query = "select case when (reid is null) then loid else reid end as " + jd.getId().k() + ", lo."
                 + nameColumnName + " as " + jd.getName().k() + ", case when (repb is null) then lopb else repb end as " + jd.getPhoneBookId().k()
                 + " from (select cc." + cd.getId().k() + " as loid, aa." + nameColumnName
                 + ", cc." + cd.getPhonebookId().k() + " as lopb from " + cd.getTableName() + " cc, "
                 + ad.getTableName() + "  aa on  cc." + cd.getId().k() + " = aa." + ad.getContactId().k()
                 + " where aa." + ad.getMimeType().k() + "=?  and cc." + cd.getPhonebookId().k() + "=?) lo left join\n"
-                + "(select cc.id as reid,aa." + nameColumnName + " from " + cd.getTableName() + " cc ,  " + ad.getTableName()
+                + "(select cc.id as reid,aa." + nameColumnName + ", cc." + cd.getPhonebookId().k() + " as repb from " + cd.getTableName() + " cc ,  " + ad.getTableName()
                 + " aa on  cc." + cd.getId().k() + " = aa." + ad.getContactId().k() + " where aa." + ad.getMimeType().k() + "=? and cc."
                 + cd.getPhonebookId().k() + "=? ) re on lo." + nameColumnName + " = re." + nameColumnName
-                + " union c." + cd.getId().k() + ", a." + nameColumnName + ", c.pid from " + cd.getTableName() + " c, " + ad.getTableName() + " a on c." + cd.getId().k() + "=a." + ad.getContactId().k()
-                + " where a." + ad.getMimeType().k() + "=?"
+                + " union select c." + cd.getId().k() + ", a." + nameColumnName + ", c.pid from " + cd.getTableName() + " c, " + ad.getTableName() + " a on c." + cd.getId().k() + "=a." + ad.getContactId().k()
+                + " where a." + ad.getMimeType().k() + "=? and c." + cd.getPhonebookId().k() + "=?"
                 + " order by " + jd.getName().k();
         return sqlQueries.loadQueryResource(query, jd.getAllAttributes(), ContactJoinDummy.class, ISQLQueries.whereArgs(nameMimeType, localPhoneBookId, nameMimeType, receivedPhoneBookId, nameMimeType, receivedPhoneBookId));
     }

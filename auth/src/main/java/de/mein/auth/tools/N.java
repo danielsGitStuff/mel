@@ -77,6 +77,7 @@ public class N {
             try {
                 while (obj != null) {
                     noTryRunnable.read(obj);
+                    obj = sqlResource.getNext();
                 }
             } catch (Exception e) {
                 e.printStackTrace();

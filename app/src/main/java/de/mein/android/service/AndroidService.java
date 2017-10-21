@@ -119,7 +119,8 @@ public class AndroidService extends Service {
                     IntentFilter powIntentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
                     powerChangeReceiver = new PowerChangeReceiver(this);
                     this.registerReceiver(powerChangeReceiver, powIntentFilter);
-                    //debugStuff();
+                    //todo debug
+                    debugStuff();
                 });
                 lock.lockWrite();
 
@@ -144,8 +145,13 @@ public class AndroidService extends Service {
 
                 }
             });
-            meinAuthService.connect("192.168.1.105", 8888, 8889, true);
-        } catch (InterruptedException e) {
+            meinAuthService.addRegisteredHandler((meinAuthService1, registered) -> N.r(() -> {
+                List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
+                for (ServiceJoinServiceType service : services)
+                    meinAuthService.getDatabaseManager().grant(service.getServiceId().v(), registered.getId().v());
+            }));
+            //meinAuthService.connect("192.168.1.105", 8888, 8889, true);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

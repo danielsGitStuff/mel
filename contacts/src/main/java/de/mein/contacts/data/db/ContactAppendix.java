@@ -50,6 +50,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     }
 
     private List<Pair<String>> dataCols = new ArrayList<>(15);
+    @JsonIgnore
     private Map<String, Pair<String>> dataColMap = new HashMap<>();
     private Pair<String> mimeType = new Pair<String>(String.class, MIMETYPE);
 
