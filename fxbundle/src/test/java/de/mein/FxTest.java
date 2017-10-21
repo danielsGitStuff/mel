@@ -18,7 +18,17 @@ import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.MeinLogger;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
+import de.mein.contacts.ContactsBootloader;
 import de.mein.contacts.ContactsFXBootloader;
+import de.mein.contacts.data.ContactStrings;
+import de.mein.contacts.data.ContactsServerSettings;
+import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.data.db.Contact;
+import de.mein.contacts.data.db.ContactAppendix;
+import de.mein.contacts.data.db.PhoneBook;
+import de.mein.contacts.data.db.dao.ContactsDao;
+import de.mein.contacts.data.db.dao.PhoneBookDao;
+import de.mein.contacts.service.ContactsService;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.boot.DriveFXBootLoader;
@@ -302,6 +312,37 @@ public class FxTest {
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
                 createController.createDriveServerService("testiServer", testdir.getAbsolutePath());
+                // create contacts server too
+
+                ContactsSettings settings = new ContactsSettings();
+                settings.setRole(ContactStrings.ROLE_SERVER);
+                settings.setMasterPhoneBookId(1L);
+                settings.setJsonFile(new File(MeinBoot.defaultWorkingDir1,"contactserversettings.json"));
+                ContactsBootloader contactsBootloader = (ContactsBootloader) meinAuthService.getMeinBoot().getBootLoader(ContactStrings.NAME);
+                ContactsService contactsService = contactsBootloader.createService("test contacts",settings);
+                ContactsDao cDao = contactsService.getDatabaseManager().getContactsDao();
+                PhoneBookDao phoneBookDao = contactsService.getDatabaseManager().getPhoneBookDao();
+
+
+                PhoneBook debugBook = new PhoneBook();
+                debugBook.getCreated().v(12L);
+                debugBook.getVersion().v(1L);
+                Contact contact = new Contact();
+                contact.getPhonebookId().v(debugBook.getId());
+                ContactAppendix name = new ContactAppendix(contact);
+                name.getMimeType().v("vnd.android.cursor.item/name");
+                name.setValue(0, "Adolf Bedolf");
+                name.getContactId().v(contact.getId());
+                contact.addAppendix(name);
+                ContactAppendix number = new ContactAppendix(contact);
+                number.getMimeType().v("vnd.android.cursor.item/phone_v2");
+                number.setValue(0,"6661234567");
+                number.getContactId().v(contact.getId());
+                contact.addAppendix(number);
+                contact.hash();
+                debugBook.addContact(contact);
+                debugBook.hash();
+                phoneBookDao.insertDeep(debugBook);
             });
         });
         lock.lockWrite();
