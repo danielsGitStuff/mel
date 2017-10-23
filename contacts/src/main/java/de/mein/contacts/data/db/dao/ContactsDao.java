@@ -54,7 +54,7 @@ public class ContactsDao extends Dao {
                 "where a." + ad.getMimeType().k() + "=? and c." + cd.getPhonebookId().k() + "=?\n" +
                 "and not exists \n" +
                 "(select 1 from " + cd.getTableName() + " c, " + ad.getTableName() + " a on c." + cd.getId().k() + "=a." + ad.getContactId().k() + " where a." + ad.getMimeType().k() + "=? and c." + cd.getPhonebookId().k() + "=? and a." + nameColumnName + "=name)";
-        return sqlQueries.loadQueryResource(query, jd.getAllAttributes(), ContactJoinDummy.class, ISQLQueries.whereArgs(nameMimeType, localPhoneBookId, nameMimeType, receivedPhoneBookId, nameMimeType, receivedPhoneBookId,nameMimeType,localPhoneBookId));
+        return sqlQueries.loadQueryResource(query, jd.getAllAttributes(), ContactJoinDummy.class, ISQLQueries.whereArgs(nameMimeType, localPhoneBookId, nameMimeType, receivedPhoneBookId, nameMimeType, receivedPhoneBookId, nameMimeType, localPhoneBookId));
     }
 
 
@@ -166,5 +166,16 @@ public class ContactsDao extends Dao {
         Contact contact = new Contact();
         String where = contact.getPhonebookId().k() + "=? and " + contact.getChecked().k() + "=?";
         return sqlQueries.loadResource(contact.getAllAttributes(), Contact.class, where, ISQLQueries.whereArgs(phoneBookId, flagChecked));
+    }
+
+    public Contact getContactById(Long id) throws SqlQueriesException {
+        Contact contact = new Contact();
+        return sqlQueries.loadFirstRow(contact.getAllAttributes(), contact, contact.getId().k() + "=?", ISQLQueries.whereArgs(id), Contact.class);
+    }
+
+    public List<ContactAppendix> getAppendicesExceptName(Long id, String nameMimeType) throws SqlQueriesException {
+        ContactAppendix appendix = new ContactAppendix();
+        String where = appendix.getContactId().k()+"=? and "+appendix.getMimeType().k()+"<>?";
+        return sqlQueries.load(appendix.getAllAttributes(),appendix,where,ISQLQueries.whereArgs(id,nameMimeType));
     }
 }

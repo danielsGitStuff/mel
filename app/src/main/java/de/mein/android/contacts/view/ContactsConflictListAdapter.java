@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import de.mein.android.contacts.service.AndroidContactsClientService;
 import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactJoinDummy;
 import de.mein.contacts.data.db.Contact;
+import de.mein.contacts.data.db.ContactAppendix;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.sql.ISQLResource;
@@ -115,11 +117,47 @@ public class ContactsConflictListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ContactJoinDummy dummy = contactDummies.get(position);
-        View view = null;
+        RelativeLayout view = null;
         if (dummy.both()) {
-            view = layoutInflator.inflate(R.layout.listitem_contacts_conflict_double, null);
+            view = (RelativeLayout) layoutInflator.inflate(R.layout.listitem_contacts_conflict_double, null);
+            try {
+                Integer lastIdLeft = R.id.txtName;
+                Integer lastIdRight = R.id.txtName;
+                List<ContactAppendix> appendices = contactsDao.getAppendicesExceptName(dummy.getLeftId().v(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
+                for (ContactAppendix appendix : appendices) {
+                    TextView leftText = new TextView(activity);
+                    leftText.setId(View.generateViewId());
+                    if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
+                        leftText.setText("phone: " + appendix.getColumnValue(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    }
+                    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                    params.addRule(RelativeLayout.BELOW, lastIdLeft);
+                    params.addRule(RelativeLayout.CENTER_VERTICAL);
+                    params.addRule(RelativeLayout.END_OF, R.id.imageLeft);
+                    lastIdLeft = leftText.getId();
+                    view.addView(leftText, params);
+                }
+                // right side
+                appendices = contactsDao.getAppendicesExceptName(dummy.getRightId().v(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
+                for (ContactAppendix appendix : appendices) {
+                    TextView righText = new TextView(activity);
+                    righText.setId(View.generateViewId());
+                    if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
+                        righText.setText("phone: " + appendix.getColumnValue(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    }
+                    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                    params.addRule(RelativeLayout.BELOW, lastIdRight);
+                    params.addRule(RelativeLayout.CENTER_VERTICAL);
+                    params.addRule(RelativeLayout.END_OF, R.id.strut);
+                    params.addRule(RelativeLayout.START_OF,R.id.imageRight);
+                    lastIdRight = righText.getId();
+                    view.addView(righText, params);
+                }
+            } catch (SqlQueriesException e) {
+                e.printStackTrace();
+            }
         } else {
-            view = layoutInflator.inflate(R.layout.listitem_contacts_conflict_left, null);
+            view = (RelativeLayout) layoutInflator.inflate(R.layout.listitem_contacts_conflict_left, null);
         }
         TextView txtName = view.findViewById(R.id.txtName);
         txtName.setText(dummy.getName().v());
