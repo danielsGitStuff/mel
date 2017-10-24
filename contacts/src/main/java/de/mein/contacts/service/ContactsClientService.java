@@ -11,10 +11,13 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;
+import de.mein.contacts.data.ContactsClientSettings;
 import de.mein.contacts.data.db.PhoneBook;
+import de.mein.contacts.jobs.CommitJob;
 import de.mein.contacts.jobs.QueryJob;
 import de.mein.contacts.jobs.UpdatePhoneBookJob;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -55,7 +58,7 @@ public class ContactsClientService extends ContactsService {
             final Long serverCertId = databaseManager.getSettings().getClientSettings().getServerCertId();
             final String serviceUuid = databaseManager.getSettings().getClientSettings().getServiceUuid();
             meinAuthService.connect(serverCertId).done(mvp -> N.r(() -> {
-                mvp.request(serviceUuid, ContactStrings.INTENT_QUERY,null).done(result -> N.r(() -> {
+                mvp.request(serviceUuid, ContactStrings.INTENT_QUERY, null).done(result -> N.r(() -> {
                     System.out.println("ContactsClientService.workWork.query.success");
                     PhoneBook receivedPhoneBook = (PhoneBook) result;
                     PhoneBook master = databaseManager.getFlatMasterPhoneBook();
@@ -77,6 +80,7 @@ public class ContactsClientService extends ContactsService {
             waitLock.lock();
         }
     }
+
 
     @Override
     protected ExecutorService createExecutorService(ThreadFactory threadFactory) {

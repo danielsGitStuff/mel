@@ -26,9 +26,12 @@ import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactJoinDummy;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.db.Contact;
+import de.mein.contacts.data.db.ContactAppendix;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
+import de.mein.contacts.jobs.CommitJob;
+import de.mein.contacts.jobs.UpdatePhoneBookJob;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -59,18 +62,33 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
             localPhoneBookId = conflictIntentExtra.getLocalPhoneBookId();
             receivedPhoneBookId = conflictIntentExtra.getReceivedPhoneBookId();
             Long uncommitedHead = service.getDatabaseManager().getSettings().getClientSettings().getUncommitedHead();
-//            ISQLResource<ContactJoinDummy> dummiesForConflict = service.getDatabaseManager().getContactsDao().getDummiesForConflict(localPhoneBookId, receivedPhoneBookId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
-//            List<Long> contactIds = new ArrayList<>();
-//            ContactJoinDummy dummy = dummiesForConflict.getNext();
-//            while (dummy != null) {
-//                contactIds.add(dummy.getId().v());
-//                dummy = dummiesForConflict.getNext();
-//            }
             adapter = new ContactsConflictListAdapter(this, service, localPhoneBookId, receivedPhoneBookId);
             listView.setAdapter(adapter);
             runOnUiThread(() -> {
                 adapter.notifyDataSetChanged();
             });
+            btnOk.setOnClickListener(v -> N.r(() -> {
+                PhoneBookDao phoneBookDao = service.getDatabaseManager().getPhoneBookDao();
+                ContactsDao contactsDao = service.getDatabaseManager().getContactsDao();
+                PhoneBook receivedPB = phoneBookDao.loadFlatPhoneBook(receivedPhoneBookId);
+                PhoneBook merged = service.getDatabaseManager().getPhoneBookDao().create(receivedPB.getVersion().v() + 1);
+                List<ContactJoinDummy> contactDummies = adapter.getContactDummies();
+                for (ContactJoinDummy dummy : contactDummies) {
+                    if (dummy.getChoice() != null) {
+                        Contact choice = contactsDao.getContactById(dummy.getChoice());
+                        List<ContactAppendix> appendices = contactsDao.getAppendices(dummy.getChoice());
+                        choice.setAppendices(appendices);
+                        choice.getId().nul();
+                        choice.getPhonebookId().v(merged.getId());
+                        contactsDao.insert(choice);
+                    }
+                }
+                System.out.println("ContactsConflictsPopupActivity: Conflict resolved!");
+                phoneBookDao.deletePhoneBook(receivedPhoneBookId);
+                phoneBookDao.deletePhoneBook(localPhoneBookId);
+                service.getDatabaseManager().getSettings().getClientSettings().setUncommitedHead(merged.getId().v());
+                service.addJob(new CommitJob());
+            }));
         });
     }
 

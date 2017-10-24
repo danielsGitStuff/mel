@@ -2,12 +2,14 @@ package de.mein.android.contacts.view;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -42,7 +44,10 @@ public class ContactsConflictListAdapter extends BaseAdapter {
     private final AndroidContactsClientService service;
     private final ContactsDao contactsDao;
     private final PhoneBookDao phoneBookDao;
-    private List<ContactJoinDummy> contactDummies = new ArrayList<ContactJoinDummy>();
+    private List<ContactJoinDummy> contactDummies = new ArrayList<>();
+    private final int red = Color.argb(120, 125, 0, 0);
+    private final int green = Color.argb(120, 0, 120, 0);
+    private final int normal = Color.argb(255,100,100,100);
 
     public ContactsConflictListAdapter(Activity activity, AndroidContactsClientService service, Long localPhoneBookId, Long receivedPhoneBookId) {
         this.activity = activity;
@@ -55,13 +60,20 @@ public class ContactsConflictListAdapter extends BaseAdapter {
         init();
     }
 
+    public List<ContactJoinDummy> getContactDummies() {
+        return contactDummies;
+    }
+
     private void init() {
         try {
             contactsDao.contactsResource(localPhoneBookId);
             ISQLResource<ContactJoinDummy> resource = contactsDao.getDummiesForConflict(localPhoneBookId, receivedPhoneBookId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
-
-            N.readSqlResource(resource, joinDummy -> {
-                contactDummies.add(joinDummy);
+            N.readSqlResource(resource, dummy -> {
+                contactDummies.add(dummy);
+                if (dummy.both())
+                    dummy.setChoice(dummy.getRightId().v());
+                else if (dummy.getRightId().isNull())
+                    dummy.setChoice(dummy.getLeftId().v());
             });
             Set<Long> deletedLocalContactIds = new HashSet<>();
             Map<Long, Long> conflictingContactIds = new HashMap<>();
@@ -120,6 +132,20 @@ public class ContactsConflictListAdapter extends BaseAdapter {
         RelativeLayout view = null;
         if (dummy.both()) {
             view = (RelativeLayout) layoutInflator.inflate(R.layout.listitem_contacts_conflict_double, null);
+            RadioButton rbLeft = view.findViewById(R.id.rbLeft);
+            RadioButton rbRight = view.findViewById(R.id.rbRight);
+            rbLeft.setOnClickListener(v -> {
+                if (rbLeft.isChecked()) {
+                    dummy.setChoice(dummy.getLeftId().v());
+                    rbRight.setChecked(false);
+                }
+            });
+            rbRight.setOnClickListener(v -> {
+                if (rbRight.isChecked()) {
+                    dummy.setChoice(dummy.getRightId().v());
+                    rbLeft.setChecked(false);
+                }
+            });
             try {
                 Integer lastIdLeft = R.id.txtName;
                 Integer lastIdRight = R.id.txtName;
@@ -134,6 +160,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
                     params.addRule(RelativeLayout.BELOW, lastIdLeft);
                     params.addRule(RelativeLayout.CENTER_VERTICAL);
                     params.addRule(RelativeLayout.END_OF, R.id.imageLeft);
+                    params.addRule(RelativeLayout.ALIGN_END, R.id.strut);
                     lastIdLeft = leftText.getId();
                     view.addView(leftText, params);
                 }
@@ -149,7 +176,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
                     params.addRule(RelativeLayout.BELOW, lastIdRight);
                     params.addRule(RelativeLayout.CENTER_VERTICAL);
                     params.addRule(RelativeLayout.END_OF, R.id.strut);
-                    params.addRule(RelativeLayout.START_OF,R.id.imageRight);
+                    params.addRule(RelativeLayout.START_OF, R.id.imageRight);
                     lastIdRight = righText.getId();
                     view.addView(righText, params);
                 }
@@ -158,6 +185,16 @@ public class ContactsConflictListAdapter extends BaseAdapter {
             }
         } else {
             view = (RelativeLayout) layoutInflator.inflate(R.layout.listitem_contacts_conflict_left, null);
+            RelativeLayout finalView = view;
+            view.setOnClickListener(v -> {
+                if (dummy.getChoice() != null) {
+                    dummy.setChoice(null);
+                    finalView.setBackgroundColor(normal);
+                } else {
+                    dummy.setChoice(dummy.getLeftId().notNull() ? dummy.getLeftId().v() : dummy.getRightId().v());
+                    finalView.setBackgroundColor(green);
+                }
+            });
         }
         TextView txtName = view.findViewById(R.id.txtName);
         txtName.setText(dummy.getName().v());

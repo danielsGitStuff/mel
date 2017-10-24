@@ -29,6 +29,7 @@ import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
+import de.mein.contacts.jobs.CommitJob;
 import de.mein.contacts.jobs.ExamineJob;
 import de.mein.contacts.jobs.QueryJob;
 import de.mein.contacts.service.ContactsClientService;
@@ -76,34 +77,41 @@ public class AndroidContactsClientService extends ContactsClientService {
             settings.save();
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
             if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
-                CountdownLock waitLock = new CountdownLock(1).lock();
-                ContactsClientSettings clientSettings = databaseManager.getSettings().getClientSettings();
-                //phone book has no contacts attached yet
-                PhoneBook deepPhoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(phoneBook.getId().v());
-                meinAuthService.connect(clientSettings.getServerCertId()).done(meinValidationProcess -> N.r(() -> meinValidationProcess.request(clientSettings.getServiceUuid(), ContactStrings.INTENT_UPDATE, deepPhoneBook)
-                        .done(result -> N.r(() -> {
-                            System.out.println("AndroidContactsClientService.workWork. update succeeded");
-                            databaseManager.getSettings().setMasterPhoneBookId(deepPhoneBook.getId().v());
-                            databaseManager.getSettings().save();
-                            waitLock.unlock();
-                        })).fail(result -> N.r(() -> {
-                            System.err.println(getClass().getSimpleName() + " updating server failed!");
-                            QueryJob queryJob = new QueryJob();
-                            queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> checkConflict(deepPhoneBook.getId().v(), receivedPhoneBookId)));
-                            addJob(queryJob);
-                            waitLock.unlock();
-                        })))).fail(result -> {
-                    System.err.println(getClass().getSimpleName() + " updating server failed!!");
-                    waitLock.unlock();
-                });
+                commitPhoneBook(phoneBook.getId().v());
             } else {
                 databaseManager.getPhoneBookDao().deletePhoneBook(phoneBook.getId().v());
             }
             waitLock.lock();
+        }else if (job instanceof CommitJob) {
+            commitPhoneBook(settings.getClientSettings().getUncommitedHead());
         } else {
             super.workWork(job);
         }
     }
+    protected void commitPhoneBook(Long phoneBookId) throws InterruptedException, SqlQueriesException {
+        CountdownLock waitLock = new CountdownLock(1).lock();
+        ContactsClientSettings clientSettings = databaseManager.getSettings().getClientSettings();
+        //phone book has no contacts attached yet
+        PhoneBook deepPhoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(phoneBookId);
+        meinAuthService.connect(clientSettings.getServerCertId()).done(meinValidationProcess -> N.r(() -> meinValidationProcess.request(clientSettings.getServiceUuid(), ContactStrings.INTENT_UPDATE, deepPhoneBook)
+                .done(result -> N.r(() -> {
+                    System.out.println("AndroidContactsClientService.workWork. update succeeded");
+                    databaseManager.getSettings().setMasterPhoneBookId(deepPhoneBook.getId().v());
+                    databaseManager.getSettings().save();
+                    waitLock.unlock();
+                })).fail(result -> N.r(() -> {
+                    System.err.println(getClass().getSimpleName() + " updating server failed!");
+                    QueryJob queryJob = new QueryJob();
+                    queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> checkConflict(deepPhoneBook.getId().v(), receivedPhoneBookId)));
+                    addJob(queryJob);
+                    waitLock.unlock();
+                })))).fail(result -> {
+            System.err.println(getClass().getSimpleName() + " updating server failed!!");
+            waitLock.unlock();
+        });
+    }
+
+
 
     private void checkConflict(Long localPhoneBookId, Long receivedPhoneBookId) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException {
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
@@ -144,7 +152,7 @@ public class AndroidContactsClientService extends ContactsClientService {
 
             ConflictIntentExtra conflict = new ConflictIntentExtra(localPhoneBookId, receivedPhoneBookId);
             MeinNotification notification = new MeinNotification(getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text");
-            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT,conflict);
+            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, conflict);
             meinAuthService.onNotificationFromService(this, notification);
 //            // store in android contacts application
 //            if (contactsToAndroidExporter != null) {
