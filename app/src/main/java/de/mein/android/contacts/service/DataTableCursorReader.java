@@ -46,8 +46,6 @@ public class DataTableCursorReader {
                 appendix.setValue(i, cursor.getString(i));
             } catch (Exception e) {
                 System.err.println("i " + i + " mime " + appendix.getMimeType().v());
-                Object o = cursor.getBlob(i);
-                System.err.println("keks");
             }
         }
         appendix.setBlob(cursor.getBlob(14));

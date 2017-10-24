@@ -38,7 +38,7 @@ CREATE TABLE appendix (
   data12    TEXT,
   data13    TEXT,
   data14    TEXT,
-  data15    TEXT,
+  data15    BLOB,
   FOREIGN KEY (contactid) REFERENCES contacts (id)
     ON DELETE CASCADE
 );
