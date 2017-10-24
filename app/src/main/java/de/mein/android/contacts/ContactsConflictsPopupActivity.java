@@ -14,6 +14,7 @@ import java.util.Set;
 
 import de.mein.R;
 import de.mein.android.ConflictsPopupActivity;
+import de.mein.android.Notifier;
 import de.mein.android.PopupActivity;
 import de.mein.android.contacts.data.ConflictIntentExtra;
 import de.mein.android.contacts.data.db.ContactName;
@@ -87,7 +88,9 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
                 phoneBookDao.deletePhoneBook(receivedPhoneBookId);
                 phoneBookDao.deletePhoneBook(localPhoneBookId);
                 service.getDatabaseManager().getSettings().getClientSettings().setUncommitedHead(merged.getId().v());
+                Notifier.cancel(this, getIntent(), requestCode);
                 service.addJob(new CommitJob());
+                finish();
             }));
         });
     }

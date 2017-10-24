@@ -99,6 +99,10 @@ public class AndroidContactsClientService extends ContactsClientService {
                     databaseManager.getSettings().setMasterPhoneBookId(deepPhoneBook.getId().v());
                     databaseManager.getSettings().getClientSettings().setUncommitedHead(null);
                     databaseManager.getSettings().save();
+                    AndroidContactSettings androidContactSettings = (AndroidContactSettings) databaseManager.getSettings().getPlatformContactSettings();
+                    if (androidContactSettings.getPersistToPhoneBook()){
+                        contactsToAndroidExporter.export(deepPhoneBook.getId().v());
+                    }
                     waitLock.unlock();
                 })).fail(result -> N.r(() -> {
                     System.err.println(getClass().getSimpleName() + " updating server failed!");
