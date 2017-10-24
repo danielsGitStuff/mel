@@ -21,6 +21,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
     public static final String AID = "aid";
     public static final String HASH = "deephash";
     public static final String FLAG_CHECKED = "checked";
+    private static final String MIME_PHOTO = "vnd.android.cursor.item/photo";
     @JsonIgnore
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> phonebookId = new Pair<>(Long.class, PID);
@@ -87,7 +88,8 @@ public class Contact extends SQLTableObject implements SerializableEntity {
     public String hash() {
         MD5er md5er = new MD5er();
         for (ContactAppendix appendix : appendices) {
-            appendix.hash(md5er);
+            if (appendix.getMimeType().equalsValue(MIME_PHOTO))
+                appendix.hash(md5er);
         }
         md5er.hash(image.v());
         hash.v(md5er.digest());

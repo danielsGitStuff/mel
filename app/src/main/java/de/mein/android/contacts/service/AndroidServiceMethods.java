@@ -99,8 +99,7 @@ public class AndroidServiceMethods {
         while (reader.moveToNext()) {
             ContactAppendix appendix = new ContactAppendix();
             reader.readDataColumns(appendix);
-            //if (appendix.getMimeType().notEqualsValue(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE))
-                contact.addAppendix(appendix);
+            contact.addAppendix(appendix);
         }
         reader.close();
     }
@@ -108,7 +107,6 @@ public class AndroidServiceMethods {
     private void readElse(Contact contact, String rawContactId) {
         String selection = ContactsContract.Data.RAW_CONTACT_ID + " = ? and " + ContactsContract.Data.MIMETYPE + "=?";
         DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId, ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE}, null);
-
     }
 
     public static void readPhoto(Contact contact, String contactId) {
