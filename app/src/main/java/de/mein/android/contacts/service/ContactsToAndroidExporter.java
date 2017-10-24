@@ -109,7 +109,9 @@ public class ContactsToAndroidExporter {
     private void insertAppendices(ArrayList<ContentProviderOperation> operationList, Long contactId, String contentItemType, MD5er md5er) throws IllegalAccessException, SqlQueriesException, InstantiationException {
         List<ContactAppendix> appendices = databaseManager.getContactsDao().getAppendices(contactId);
         for (ContactAppendix appendix : appendices) {
-            operationList.add(insertAppendix(appendix, contentItemType, md5er));
+            // images are inserted differently
+            if (appendix.getMimeType().notEqualsValue(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE))
+                operationList.add(insertAppendix(appendix, contentItemType, md5er));
         }
     }
 
