@@ -33,8 +33,8 @@ public class DataTableCursorReader {
     }
 
     public static String[] createWriteDataColumnNames() {
-        String[] columns = new String[15];
-        for (int i = 0; i < 15; i++) {
+        String[] columns = new String[14];
+        for (int i = 0; i < 14; i++) {
             columns[i] = "data" + (i + 1);
         }
         return columns;

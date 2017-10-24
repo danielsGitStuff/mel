@@ -106,7 +106,7 @@ public class ContactsToAndroidExporter {
         }
     }
 
-    private void insertAppendices(ArrayList<ContentProviderOperation> operationList, Long contactId,  String contentItemType, MD5er md5er) throws IllegalAccessException, SqlQueriesException, InstantiationException {
+    private void insertAppendices(ArrayList<ContentProviderOperation> operationList, Long contactId, String contentItemType, MD5er md5er) throws IllegalAccessException, SqlQueriesException, InstantiationException {
         List<ContactAppendix> appendices = databaseManager.getContactsDao().getAppendices(contactId);
         for (ContactAppendix appendix : appendices) {
             operationList.add(insertAppendix(appendix, contentItemType, md5er));
@@ -123,6 +123,7 @@ public class ContactsToAndroidExporter {
             builder.withValue(columns[i], appendix.getValue(i));
             md5er.hash(appendix.getValue(i));
         }
+        md5er.hash(appendix.getBlob().v());
         builder.withValue(ContactsContract.Data.MIMETYPE, appendix.getMimeType().v());
         return builder.build();
     }

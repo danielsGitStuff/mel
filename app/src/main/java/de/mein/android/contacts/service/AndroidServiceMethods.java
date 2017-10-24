@@ -99,7 +99,8 @@ public class AndroidServiceMethods {
         while (reader.moveToNext()) {
             ContactAppendix appendix = new ContactAppendix();
             reader.readDataColumns(appendix);
-            contact.addAppendix(appendix);
+            if (appendix.getMimeType().notEqualsValue(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE))
+                contact.addAppendix(appendix);
         }
         reader.close();
     }
