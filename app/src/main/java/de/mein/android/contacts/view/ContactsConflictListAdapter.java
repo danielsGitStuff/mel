@@ -47,7 +47,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
     private List<ContactJoinDummy> contactDummies = new ArrayList<>();
     private final int red = Color.argb(120, 125, 0, 0);
     private final int green = Color.argb(120, 0, 120, 0);
-    private final int normal = Color.argb(255,100,100,100);
+    private final int normal = Color.argb(255, 100, 100, 100);
 
     public ContactsConflictListAdapter(Activity activity, AndroidContactsClientService service, Long localPhoneBookId, Long receivedPhoneBookId) {
         this.activity = activity;
@@ -74,6 +74,8 @@ public class ContactsConflictListAdapter extends BaseAdapter {
                     dummy.setChoice(dummy.getRightId().v());
                 else if (dummy.getRightId().isNull())
                     dummy.setChoice(dummy.getLeftId().v());
+                else if (dummy.getRightId().notNull())
+                    dummy.setChoice(dummy.getRightId().v());
             });
             Set<Long> deletedLocalContactIds = new HashSet<>();
             Map<Long, Long> conflictingContactIds = new HashMap<>();
@@ -134,18 +136,43 @@ public class ContactsConflictListAdapter extends BaseAdapter {
             view = (RelativeLayout) layoutInflator.inflate(R.layout.listitem_contacts_conflict_double, null);
             RadioButton rbLeft = view.findViewById(R.id.rbLeft);
             RadioButton rbRight = view.findViewById(R.id.rbRight);
+            ImageView imageLeft = view.findViewById(R.id.imageLeft);
+            ImageView imageRight = view.findViewById(R.id.imageRight);
+            view.setOnClickListener(v -> {
+                //unselect if clicked
+                if (dummy.getChoice() != null) {
+                    dummy.setChoice(null);
+                    rbLeft.setChecked(false);
+                    rbRight.setChecked(false);
+                }
+                adjustSingle(v, dummy.getChoice() != null);
+            });
+
             rbLeft.setOnClickListener(v -> {
                 if (rbLeft.isChecked()) {
                     dummy.setChoice(dummy.getLeftId().v());
                     rbRight.setChecked(false);
                 }
+                adjustSingle(v, dummy.getChoice() != null);
+
             });
             rbRight.setOnClickListener(v -> {
                 if (rbRight.isChecked()) {
                     dummy.setChoice(dummy.getRightId().v());
                     rbLeft.setChecked(false);
                 }
+                adjustSingle(v, dummy.getChoice() != null);
             });
+            // adjust radio button
+            rbLeft.setChecked(false);
+            rbRight.setChecked(false);
+            if (dummy.getChoice() != null) {
+                if (dummy.getRightId().equalsValue(dummy.getChoice())) {
+                    rbRight.setChecked(true);
+                } else if (dummy.getLeftId().equalsValue(dummy.getChoice())) {
+                    rbLeft.setChecked(true);
+                }
+            }
             try {
                 Integer lastIdLeft = R.id.txtName;
                 Integer lastIdRight = R.id.txtName;
@@ -155,6 +182,10 @@ public class ContactsConflictListAdapter extends BaseAdapter {
                     leftText.setId(View.generateViewId());
                     if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
                         leftText.setText("phone: " + appendix.getColumnValue(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    }else if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)){
+                        String imageString = appendix.getColumnValue(ContactsContract.CommonDataKinds.Photo.PHOTO);
+                        System.out.println("ContactsConflictListAdapter.getView");
+
                     }
                     RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                     params.addRule(RelativeLayout.BELOW, lastIdLeft);
@@ -171,6 +202,10 @@ public class ContactsConflictListAdapter extends BaseAdapter {
                     righText.setId(View.generateViewId());
                     if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
                         righText.setText("phone: " + appendix.getColumnValue(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    }else if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)){
+                        String imageString = appendix.getColumnValue(ContactsContract.CommonDataKinds.Photo.PHOTO);
+                        System.out.println("ContactsConflictListAdapter.getView");
+
                     }
                     RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                     params.addRule(RelativeLayout.BELOW, lastIdRight);
@@ -189,16 +224,25 @@ public class ContactsConflictListAdapter extends BaseAdapter {
             view.setOnClickListener(v -> {
                 if (dummy.getChoice() != null) {
                     dummy.setChoice(null);
-                    finalView.setBackgroundColor(normal);
+                    adjustSingle(finalView, false);
                 } else {
                     dummy.setChoice(dummy.getLeftId().notNull() ? dummy.getLeftId().v() : dummy.getRightId().v());
-                    finalView.setBackgroundColor(green);
+                    adjustSingle(finalView, true);
                 }
             });
         }
+        adjustSingle(view, dummy.getChoice() != null);
         TextView txtName = view.findViewById(R.id.txtName);
         txtName.setText(dummy.getName().v());
         ImageView imageView = view.findViewById(R.id.image);
         return view;
+    }
+
+    private void adjustSingle(View view, boolean selected) {
+        if (selected) {
+            view.setBackgroundColor(green);
+        } else {
+            view.setBackgroundColor(normal);
+        }
     }
 }

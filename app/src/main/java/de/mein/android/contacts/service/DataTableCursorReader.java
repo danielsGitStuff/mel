@@ -41,15 +41,16 @@ public class DataTableCursorReader {
     }
 
     public DataTableCursorReader readDataColumns(ContactAppendix appendix) {
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 14; i++) {
             try {
                 appendix.setValue(i, cursor.getString(i));
-            }catch (Exception e){
-                System.err.println("i "+i+" mime "+appendix.getMimeType().v());
+            } catch (Exception e) {
+                System.err.println("i " + i + " mime " + appendix.getMimeType().v());
                 Object o = cursor.getBlob(i);
                 System.err.println("keks");
             }
         }
+        appendix.setBlob(cursor.getBlob(14));
         appendix.setAndroidId(cursor.getLong(15));
         appendix.setMimeType(cursor.getString(16));
         return this;

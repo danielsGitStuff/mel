@@ -53,6 +53,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     @JsonIgnore
     private Map<String, Pair<String>> dataColMap = new HashMap<>();
     private Pair<String> mimeType = new Pair<String>(String.class, MIMETYPE);
+    private Pair<byte[]> blob = new Pair<>(byte[].class, "data15");
 
     @Override
     public String getTableName() {
@@ -62,13 +63,14 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     @Override
     protected void init() {
         populateInsert();
-        for (int i = 1; i < 16; i++) {
+        for (int i = 1; i < 15; i++) {
             String col = "data" + i;
             Pair<String> pair = new Pair<>(String.class, col);
             insertAttributes.add(pair);
             dataCols.add(pair);
             dataColMap.put(col, pair);
         }
+        insertAttributes.add(blob);
         insertAttributes.add(mimeType);
         hashPairs = new ArrayList<>(insertAttributes);
         insertAttributes.add(contactId);
@@ -117,5 +119,13 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     public String getColumnValue(String columnName) {
         Pair<String> pair = dataColMap.get(columnName);
         return pair == null ? null : pair.v();
+    }
+
+    public void setBlob(byte[] blob) {
+        this.blob.v(blob);
+    }
+
+    public Pair<byte[]> getBlob() {
+        return blob;
     }
 }
