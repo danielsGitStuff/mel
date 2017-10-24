@@ -9,6 +9,7 @@ import android.widget.Spinner;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import de.mein.R;
@@ -66,13 +67,13 @@ public class CreateServiceController extends GuiController {
             List<BootLoader> bootLoaders = new ArrayList<>();
             for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
                 N.r(() -> {
-                    BootLoader bootLoader = MeinBoot.createBootLoader(meinAuthService,bootloaderClass);
+                    BootLoader bootLoader = MeinBoot.createBootLoader(meinAuthService, bootloaderClass);
                     bootLoaders.add(bootLoader);
                     //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
                     System.out.println("CreateServiceController.CreateServiceController");
                 });
             }
-
+            Collections.sort(bootLoaders, (b1, b2) -> b1.getName().compareToIgnoreCase(b2.getName()));
             BootloaderAdapter adapter = new BootloaderAdapter(rootView.getContext(), bootLoaders);
             // Specify the layout to use when the list of choices appears
             // Apply the adapter to the spinner

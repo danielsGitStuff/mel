@@ -91,7 +91,7 @@ public class AndroidContactsServerService extends ContactsServerService {
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
         ContactsSettings settings = databaseManager.getSettings();
         if (job instanceof ExamineJob) {
-            PhoneBook phoneBook = serviceMethods.examineContacts();
+            PhoneBook phoneBook = serviceMethods.examineContacts(null);
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
             if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
                 if (masterPhoneBook == null)

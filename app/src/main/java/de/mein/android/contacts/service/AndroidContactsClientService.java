@@ -72,7 +72,7 @@ public class AndroidContactsClientService extends ContactsClientService {
     @Override
     protected void workWork(Job job) throws Exception {
         if (job instanceof ExamineJob) {
-            PhoneBook phoneBook = serviceMethods.examineContacts();
+            PhoneBook phoneBook = serviceMethods.examineContacts(settings.getClientSettings().getUncommitedHead());
             settings.getClientSettings().setUncommitedHead(phoneBook.getId().v());
             settings.save();
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
@@ -97,6 +97,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                 .done(result -> N.r(() -> {
                     System.out.println("AndroidContactsClientService.workWork. update succeeded");
                     databaseManager.getSettings().setMasterPhoneBookId(deepPhoneBook.getId().v());
+                    databaseManager.getSettings().getClientSettings().setUncommitedHead(null);
                     databaseManager.getSettings().save();
                     waitLock.unlock();
                 })).fail(result -> N.r(() -> {

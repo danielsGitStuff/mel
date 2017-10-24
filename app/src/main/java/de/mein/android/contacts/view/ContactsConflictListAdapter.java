@@ -2,6 +2,8 @@ package de.mein.android.contacts.view;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
@@ -13,6 +15,10 @@ import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +36,7 @@ import de.mein.contacts.data.db.ContactAppendix;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.sql.ISQLResource;
+import de.mein.sql.Pair;
 import de.mein.sql.SqlQueriesException;
 
 /**
@@ -128,6 +135,12 @@ public class ContactsConflictListAdapter extends BaseAdapter {
         return position;
     }
 
+    private TextView createTextView() {
+        TextView textView = new TextView(activity);
+        textView.setId(View.generateViewId());
+        return textView;
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ContactJoinDummy dummy = contactDummies.get(position);
@@ -176,44 +189,71 @@ public class ContactsConflictListAdapter extends BaseAdapter {
             try {
                 Integer lastIdLeft = R.id.txtName;
                 Integer lastIdRight = R.id.txtName;
+                int leftCount = 0;
+                int rightCount = 0;
                 List<ContactAppendix> appendices = contactsDao.getAppendicesExceptName(dummy.getLeftId().v(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
                 for (ContactAppendix appendix : appendices) {
-                    TextView leftText = new TextView(activity);
-                    leftText.setId(View.generateViewId());
+                    TextView leftText = null;
                     if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
+                        leftText = createTextView();
                         leftText.setText("phone: " + appendix.getColumnValue(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                    }else if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)){
-                        String imageString = appendix.getColumnValue(ContactsContract.CommonDataKinds.Photo.PHOTO);
+                    } else if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
+                        leftText = createTextView();
+                        leftText.setText("EMail: " + appendix.getColumnValue(ContactsContract.CommonDataKinds.Email.ADDRESS));
+                    } else if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)) {
+                        byte[] bytes = appendix.getBlob().v();
+                        InputStream inputStream = new ByteArrayInputStream(bytes);
+                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                        imageLeft.setImageBitmap(bitmap);
                         System.out.println("ContactsConflictListAdapter.getView");
-
                     }
-                    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                    params.addRule(RelativeLayout.BELOW, lastIdLeft);
-                    params.addRule(RelativeLayout.CENTER_VERTICAL);
-                    params.addRule(RelativeLayout.END_OF, R.id.imageLeft);
-                    params.addRule(RelativeLayout.ALIGN_END, R.id.strut);
-                    lastIdLeft = leftText.getId();
-                    view.addView(leftText, params);
+                    if (leftText != null) {
+                        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                        params.addRule(RelativeLayout.BELOW, lastIdLeft);
+                        if (leftCount < 1) {
+                            params.addRule(RelativeLayout.CENTER_VERTICAL);
+                            params.addRule(RelativeLayout.END_OF, R.id.imageLeft);
+                        }else {
+                            params.addRule(RelativeLayout.END_OF, R.id.rbLeft);
+                        }
+                        params.addRule(RelativeLayout.ALIGN_END, R.id.strut);
+                        lastIdLeft = leftText.getId();
+                        view.addView(leftText, params);
+                        leftCount++;
+                    }
                 }
                 // right side
                 appendices = contactsDao.getAppendicesExceptName(dummy.getRightId().v(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
                 for (ContactAppendix appendix : appendices) {
-                    TextView righText = new TextView(activity);
-                    righText.setId(View.generateViewId());
+                    TextView rightText = null;
                     if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
-                        righText.setText("phone: " + appendix.getColumnValue(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                    }else if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)){
-                        String imageString = appendix.getColumnValue(ContactsContract.CommonDataKinds.Photo.PHOTO);
+                        rightText = createTextView();
+                        rightText.setText("phone: " + appendix.getColumnValue(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    } else if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
+                        rightText = createTextView();
+                        rightText.setText("EMail: " + appendix.getColumnValue(ContactsContract.CommonDataKinds.Email.ADDRESS));
+                    } else if (appendix.getMimeType().equalsValue(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)) {
+                        byte[] bytes = appendix.getBlob().v();
+                        InputStream inputStream = new ByteArrayInputStream(bytes);
+                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                        imageRight.setImageBitmap(bitmap);
                         System.out.println("ContactsConflictListAdapter.getView");
-
                     }
-                    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                    params.addRule(RelativeLayout.BELOW, lastIdRight);
-                    params.addRule(RelativeLayout.CENTER_VERTICAL);
-                    params.addRule(RelativeLayout.END_OF, R.id.strut);
-                    params.addRule(RelativeLayout.START_OF, R.id.imageRight);
-                    lastIdRight = righText.getId();
-                    view.addView(righText, params);
+                    if (rightText != null) {
+                        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                        params.addRule(RelativeLayout.BELOW, lastIdRight);
+                        if (rightCount < 1) {
+                            params.addRule(RelativeLayout.CENTER_VERTICAL);
+                            params.addRule(RelativeLayout.START_OF, R.id.imageRight);
+                        }else {
+                            params.addRule(RelativeLayout.ALIGN_PARENT_END);
+                        }
+                        params.addRule(RelativeLayout.END_OF,R.id.strut);
+//                        params.addRule(RelativeLayout.ALIGN_END, R.id.strut);
+                        lastIdRight = rightText.getId();
+                        view.addView(rightText, params);
+                        rightCount++;
+                    }
                 }
             } catch (SqlQueriesException e) {
                 e.printStackTrace();

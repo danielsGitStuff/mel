@@ -41,13 +41,15 @@ public class AndroidServiceMethods {
      * @return flat {@link PhoneBook}
      * @throws SqlQueriesException
      */
-    public PhoneBook examineContacts() throws SqlQueriesException {
+    public PhoneBook examineContacts(Long lastUncommitedHeadVersion) throws SqlQueriesException {
         ContactsDao contactsDao = databaseManager.getContactsDao();
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
         PhoneBook phoneBook;
         PhoneBook master = databaseManager.getFlatMasterPhoneBook();
         if (master == null)
             phoneBook = phoneBookDao.create(0L);
+        else if (lastUncommitedHeadVersion != null)
+            phoneBook = phoneBookDao.create(lastUncommitedHeadVersion);
         else
             phoneBook = phoneBookDao.create(master.getVersion().v() + 1);
         String[] projContact = new String[]{
@@ -55,8 +57,6 @@ public class AndroidServiceMethods {
                 ContactsContract.Contacts.NAME_RAW_CONTACT_ID,
                 ContactsContract.Contacts.PHOTO_FILE_ID
         };
-//        //read mime types first
-//        readMimeTypes(phoneBook);
 
         ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
         Cursor contactCursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, projContact, null, null, null);
