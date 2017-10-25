@@ -119,8 +119,8 @@ public class AndroidService extends Service {
                     IntentFilter powIntentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
                     powerChangeReceiver = new PowerChangeReceiver(this);
                     this.registerReceiver(powerChangeReceiver, powIntentFilter);
-                    //todo debug
-                    debugStuff();
+                    // todo debug
+                    //debugStuff();
                 });
                 lock.lockWrite();
 
@@ -257,7 +257,8 @@ public class AndroidService extends Service {
             N.r(() -> {
                 System.out.println("AndroidService.booted");
                 AndroidService.this.meinAuthService = meinAuthService;
-                meinAuthService.addRegisteredHandler(registeredHandler);
+                // todo debug
+                //meinAuthService.addRegisteredHandler(registeredHandler);
                 Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
                 System.out.println(t1);
             });
