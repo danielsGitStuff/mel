@@ -1,9 +1,9 @@
 package de.mein.contacts;
 
+import de.mein.contacts.data.db.ContactAppendix;
 import org.junit.Test;
 
 import de.mein.contacts.data.db.Contact;
-import de.mein.contacts.data.db.ContactPhone;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
@@ -29,16 +29,17 @@ public class SerializationTest {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairCollectionSerializerFactory.getInstance());
         Contact contact = new Contact();
-        ContactPhone phone = new ContactPhone();
-        for (Integer i = 0; i < 15; i++) {
+        ContactAppendix appendix = new ContactAppendix();
+        for (Integer i = 0; i < 14; i++) {
             if (i != 5)
-                phone.setValue(i, i.toString());
+                appendix.setValue(i, i.toString());
         }
-        contact.addPhone(phone);
+        appendix.getBlob().v(new byte[]{1,2,3,4});
+        contact.addAppendix(appendix);
         contact.getHash().v("hurrdurr");
         String json = SerializableEntitySerializer.serialize(contact);
         System.out.println(json);
-        assertEquals("{\"$id\":1,\"__type\":\"de.mein.contacts.data.db.Contact\",\"phones\":[{\"$id\":2,\"__type\":\"de.mein.contacts.data.db.ContactPhone\",\"dataCols\":[\"0\",\"1\",\"2\",\"3\",\"4\",null,\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\"]}],\"hash\":\"hurrdurr\"}", json);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mein.contacts.data.db.Contact\",\"appendices\":[{\"$id\":2,\"__type\":\"de.mein.contacts.data.db.ContactAppendix\",\"blob\":\"AQIDBA==\",\"dataCols\":[\"0\",\"1\",\"2\",\"3\",\"4\",null,\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\"]}],\"hash\":\"hurrdurr\"}", json);
         return json;
     }
 
@@ -48,7 +49,7 @@ public class SerializationTest {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairCollectionDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         Contact contact = (Contact) SerializableEntityDeserializer.deserialize(json);
-        ContactPhone phone = contact.getPhones().get(0);
+        ContactAppendix phone = contact.getAppendices().get(0);
         Pair<String> pair3 = phone.getDataCols().get(3);
         Pair<String> pair5 = phone.getDataCols().get(5);
         assertEquals("data4", pair3.k());
