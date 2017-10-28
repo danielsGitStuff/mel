@@ -66,7 +66,18 @@ public class AndroidContactsClientService extends ContactsClientService {
 
     @Override
     public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
-        super.handleMessage(payload, partnerCertificate, intent);
+        if (intent!= null && intent.equals(ContactStrings.INTENT_QUERY)) {
+            QueryJob queryJob = new QueryJob();
+            queryJob.getPromise().done(receivedPhoneBookId -> N.r(() ->{
+                AndroidContactSettings androidContactSettings = (AndroidContactSettings) settings.getPlatformContactSettings();
+                if (androidContactSettings.getPersistToPhoneBook()){
+                    contactsToAndroidExporter.export(receivedPhoneBookId);
+                }
+            }));
+            addJob(queryJob);
+        }else {
+            super.handleMessage(payload,partnerCertificate,intent);
+        }
     }
 
     @Override
