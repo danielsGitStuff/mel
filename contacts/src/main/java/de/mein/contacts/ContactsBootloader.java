@@ -47,6 +47,7 @@ public class ContactsBootloader extends BootLoader {
             N runner = new N(e -> {
                 meinAuthService.unregisterMeinService(service.getId().v());
                 N.r(() -> meinAuthService.getDatabaseManager().deleteService(service.getId().v()));
+                System.out.println("ContactsBootloader.createService.service.deleted:something.failed");
                 waitLock.unlock();
             });
             runner.runTry(() -> meinAuthService.connect(contactsSettings.getClientSettings().getServerCertId())

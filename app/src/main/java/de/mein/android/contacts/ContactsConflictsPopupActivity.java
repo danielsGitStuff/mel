@@ -62,7 +62,6 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
             ConflictIntentExtra conflictIntentExtra = (ConflictIntentExtra) SerializableEntityDeserializer.deserialize(json);
             localPhoneBookId = conflictIntentExtra.getLocalPhoneBookId();
             receivedPhoneBookId = conflictIntentExtra.getReceivedPhoneBookId();
-            Long uncommitedHead = service.getDatabaseManager().getSettings().getClientSettings().getUncommitedHead();
             adapter = new ContactsConflictListAdapter(this, service, localPhoneBookId, receivedPhoneBookId);
             listView.setAdapter(adapter);
             runOnUiThread(() -> {

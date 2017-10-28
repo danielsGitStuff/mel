@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
+import de.mein.android.Threadder;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.contacts.controller.RemoteContactsServiceChooserGuiController;
 import de.mein.android.contacts.data.AndroidContactSettings;
@@ -71,7 +72,7 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
                 contactsSettings.getClientSettings().setServiceUuid(controller.getSelectedService().getUuid().v());
             }
             contactsSettings.setPlatformContactSettings(platformSettings);
-            ContactsService contactsService = createService(controller.getName(), contactsSettings);
+            Threadder.runNoTryThread(() -> createService(controller.getName(),contactsSettings));
         } catch (Exception e) {
             e.printStackTrace();
         }
