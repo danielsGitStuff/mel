@@ -45,7 +45,7 @@ public class ContactsToAndroidExporter {
 
     public void export(final Long phoneBookId) {
         try {
-
+            System.out.println("ContactsToAndroidExporter.export.id." + phoneBookId);
             ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
             // delete everything first
             Cursor cursor = contentResolver.query(ContactsContract.RawContacts.CONTENT_URI, new String[]{ContactsContract.RawContacts._ID}, null, null, null);
@@ -55,7 +55,6 @@ public class ContactsToAndroidExporter {
                 Uri uri = ContactsContract.RawContacts.CONTENT_URI;
 
                 int delrows = contentResolver.delete(uri, ContactsContract.RawContacts._ID + "=?", new String[]{_id});
-                System.out.println("ContactsToAndroidExporter.export");
             }
 
 
