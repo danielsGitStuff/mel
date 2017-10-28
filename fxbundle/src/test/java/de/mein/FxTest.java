@@ -275,7 +275,7 @@ public class FxTest {
         TestDirCreator.createTestDir(testdir);
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
-                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
+                .setBrotcastListenerPort(9966).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("Test Server").setGreeting("greeting1");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
