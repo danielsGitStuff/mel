@@ -1,5 +1,6 @@
 package de.mein.drive.data;
 
+import de.mein.auth.data.ClientData;
 import de.mein.core.serialize.SerializableEntity;
 
 import java.util.HashSet;
@@ -17,41 +18,7 @@ public class DriveServerSettingsDetails implements SerializableEntity {
     }
 
     public void addClient(Long certId, String serviceUuid) {
-        clients.add(new ClientData().setCertId(certId).setServiceUuid(serviceUuid));
+        clients.add(new ClientData(certId,serviceUuid));
     }
 
-    public static class ClientData implements SerializableEntity {
-        private String serviceUuid;
-        private Long certId;
-
-        public ClientData setCertId(Long certId) {
-            this.certId = certId;
-            return this;
-        }
-
-        public ClientData setServiceUuid(String serviceUuid) {
-            this.serviceUuid = serviceUuid;
-            return this;
-        }
-
-        public String getServiceUuid() {
-            return serviceUuid;
-        }
-
-        public Long getCertId() {
-            return certId;
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 0;
-            if (certId != null)
-                hash += certId.hashCode();
-            if (serviceUuid != null)
-                hash += serviceUuid.hashCode();
-            if (hash != 0)
-                return hash;
-            return super.hashCode();
-        }
-    }
 }

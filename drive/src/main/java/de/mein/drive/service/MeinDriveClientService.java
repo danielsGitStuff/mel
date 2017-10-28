@@ -3,7 +3,7 @@ package de.mein.drive.service;
 import de.mein.DeferredRunnable;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.jobs.Job;
-import de.mein.auth.jobs.ServiceMessageHandlerJob;
+import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
@@ -67,8 +67,8 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     protected boolean workWorkWork(Job unknownJob) {
         System.out.println(meinAuthService.getName() + ".MeinDriveClientService.workWorkWork :)");
-        if (unknownJob instanceof ServiceMessageHandlerJob) {
-            ServiceMessageHandlerJob job = (ServiceMessageHandlerJob) unknownJob;
+        if (unknownJob instanceof ServiceRequestHandlerJob) {
+            ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
             if (job.isRequest()) {
                 Request request = job.getRequest();
 

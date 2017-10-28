@@ -1,8 +1,11 @@
 package de.mein.contacts;
 
+import de.mein.auth.data.ClientData;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.data.ServiceDetails;
 import de.mein.contacts.service.ContactsClientService;
 import de.mein.contacts.service.ContactsServerService;
 import de.mein.contacts.service.ContactsService;
@@ -38,6 +41,30 @@ public class ContactsBootloader extends BootLoader {
         File jsonFile = new File(serviceDir, "contacts.settings.json");
         contactsSettings.setJsonFile(jsonFile).save();
         ContactsService contactsService = boot(meinAuthService, service, contactsSettings);
+        if (!contactsSettings.isServer()) {
+            // tell server we are here. if it goes wrong: reverse everything
+            WaitLock waitLock = new WaitLock().lock();
+            N runner = new N(e -> {
+                meinAuthService.unregisterMeinService(service.getId().v());
+                N.r(() -> meinAuthService.getDatabaseManager().deleteService(service.getId().v()));
+                waitLock.unlock();
+            });
+            runner.runTry(() -> meinAuthService.connect(contactsSettings.getClientSettings().getServerCertId())
+                    .done(result -> {
+                        String serverServiceUuid = contactsSettings.getClientSettings().getServiceUuid();
+                        String serviceUuid = service.getUuid().v();
+                        runner.runTry(() -> {
+                            result.request(serverServiceUuid, ContactStrings.INTENT_REG_AS_CLIENT, new ServiceDetails(serviceUuid))
+                                    .done(result1 -> {
+                                        waitLock.unlock();
+                                    }).fail(result1 -> runner.abort());
+
+                        });
+                    }).fail(result -> {
+                        runner.abort();
+                    }));
+            waitLock.lock();
+        }
         return contactsService;
     }
 

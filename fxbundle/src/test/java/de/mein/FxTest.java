@@ -324,41 +324,41 @@ public class FxTest {
                 PhoneBookDao phoneBookDao = contactsService.getDatabaseManager().getPhoneBookDao();
 
 
-                PhoneBook debugBook = new PhoneBook();
-                debugBook.getCreated().v(12L);
-                debugBook.getVersion().v(1L);
-                Contact contact = new Contact();
-                contact.getPhonebookId().v(debugBook.getId());
-                ContactAppendix name = new ContactAppendix(contact);
-                name.getMimeType().v("vnd.android.cursor.item/name");
-                name.setValue(0, "Adolf Bedolf");
-                name.getContactId().v(contact.getId());
-                contact.addAppendix(name);
-                ContactAppendix number = new ContactAppendix(contact);
-                number.getMimeType().v("vnd.android.cursor.item/phone_v2");
-                number.setValue(0,"6661234567");
-                number.getContactId().v(contact.getId());
-                contact.addAppendix(number);
-                contact.hash();
-                debugBook.addContact(contact);
-                //second contact
-                contact = new Contact();
-                contact.getPhonebookId().v(debugBook.getId());
-                name = new ContactAppendix(contact);
-                name.getMimeType().v("vnd.android.cursor.item/name");
-                name.setValue(0, "Server Only");
-                name.getContactId().v(contact.getId());
-                contact.addAppendix(name);
-                number = new ContactAppendix(contact);
-                number.getMimeType().v("vnd.android.cursor.item/phone_v2");
-                number.setValue(0,"000000000000");
-                number.getContactId().v(contact.getId());
-                contact.addAppendix(number);
-                contact.hash();
-                debugBook.addContact(contact);
-
-                debugBook.hash();
-                phoneBookDao.insertDeep(debugBook);
+//                PhoneBook debugBook = new PhoneBook();
+//                debugBook.getCreated().v(12L);
+//                debugBook.getVersion().v(1L);
+//                Contact contact = new Contact();
+//                contact.getPhonebookId().v(debugBook.getId());
+//                ContactAppendix name = new ContactAppendix(contact);
+//                name.getMimeType().v("vnd.android.cursor.item/name");
+//                name.setValue(0, "Adolf Bedolf");
+//                name.getContactId().v(contact.getId());
+//                contact.addAppendix(name);
+//                ContactAppendix number = new ContactAppendix(contact);
+//                number.getMimeType().v("vnd.android.cursor.item/phone_v2");
+//                number.setValue(0,"6661234567");
+//                number.getContactId().v(contact.getId());
+//                contact.addAppendix(number);
+//                contact.hash();
+//                debugBook.addContact(contact);
+//                //second contact
+//                contact = new Contact();
+//                contact.getPhonebookId().v(debugBook.getId());
+//                name = new ContactAppendix(contact);
+//                name.getMimeType().v("vnd.android.cursor.item/name");
+//                name.setValue(0, "Server Only");
+//                name.getContactId().v(contact.getId());
+//                contact.addAppendix(name);
+//                number = new ContactAppendix(contact);
+//                number.getMimeType().v("vnd.android.cursor.item/phone_v2");
+//                number.setValue(0,"000000000000");
+//                number.getContactId().v(contact.getId());
+//                contact.addAppendix(number);
+//                contact.hash();
+//                debugBook.addContact(contact);
+//
+//                debugBook.hash();
+//                phoneBookDao.insertDeep(debugBook);
             });
         });
         lock.lockWrite();

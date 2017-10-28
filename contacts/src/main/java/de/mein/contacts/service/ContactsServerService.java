@@ -3,10 +3,12 @@ package de.mein.contacts.service;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
+import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.data.ServiceDetails;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.jobs.AnswerQueryJob;
@@ -57,6 +59,7 @@ public class ContactsServerService extends ContactsService {
                     phoneBookDao.insertDeep(phoneBook);
                     settings.setMasterPhoneBookId(phoneBook.getId().v());
                     settings.save();
+                    propagateNewVersion();
                     updatePhoneBookJob.getRequest().resolve(null);
                     updatePhoneBookJob.getPromise().resolve(null);
                 } else {
@@ -67,7 +70,21 @@ public class ContactsServerService extends ContactsService {
                 if (job.getPromise().isPending())
                     job.getPromise().reject(null);
             }
+        } else if (job instanceof ServiceRequestHandlerJob) {
+            ServiceRequestHandlerJob messageHandlerJob = (ServiceRequestHandlerJob) job;
+            if (messageHandlerJob.getRequest().hasIntent(ContactStrings.INTENT_REG_AS_CLIENT)) {
+                ServiceDetails serviceDetails = (ServiceDetails) messageHandlerJob.getPayLoad();
+                settings.getServerSettings().addClient(messageHandlerJob.getPartnerCertificate().getId().v(), serviceDetails.getServiceUuid());
+                settings.save();
+                messageHandlerJob.getRequest().resolve(null);
+            }else {
+                messageHandlerJob.getRequest().reject(null);
+            }
         }
+    }
+
+    private void propagateNewVersion() {
+
     }
 
     @Override
@@ -82,11 +99,12 @@ public class ContactsServerService extends ContactsService {
             addJob(new AnswerQueryJob(request));
         } else if (request.hasIntent(ContactStrings.INTENT_UPDATE)) {
             addJob(new UpdatePhoneBookJob(request));
-        }
+        } else if (request.hasIntent(ContactStrings.INTENT_REG_AS_CLIENT))
+            addJob(new ServiceRequestHandlerJob().setRequest(request));
     }
 
     @Override
     public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
-
+        addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(intent));
     }
 }

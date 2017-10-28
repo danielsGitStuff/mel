@@ -7,28 +7,28 @@ import de.mein.auth.socket.process.val.Request;
 /**
  * Created by xor on 9/25/16.
  */
-public class ServiceMessageHandlerJob extends Job {
+public class ServiceRequestHandlerJob extends Job {
     private Request request;
     private IPayload payload;
     private Certificate partnerCertificate;
     private String intent;
 
-    public ServiceMessageHandlerJob() {
+    public ServiceRequestHandlerJob() {
 
     }
 
-    public ServiceMessageHandlerJob setMessage(IPayload message) {
-        this.payload = message;
+    public ServiceRequestHandlerJob setPayload(IPayload payload) {
+        this.payload = payload;
         return this;
     }
 
-    public ServiceMessageHandlerJob setRequest(Request request) {
+    public ServiceRequestHandlerJob setRequest(Request request) {
         this.request = request;
         this.partnerCertificate = request.getPartnerCertificate();
         return this;
     }
 
-    public ServiceMessageHandlerJob setPartnerCertificate(Certificate partnerCertificate) {
+    public ServiceRequestHandlerJob setPartnerCertificate(Certificate partnerCertificate) {
         this.partnerCertificate = partnerCertificate;
         return this;
     }
@@ -53,7 +53,7 @@ public class ServiceMessageHandlerJob extends Job {
         return payload == null && request != null;
     }
 
-    public ServiceMessageHandlerJob setIntent(String intent) {
+    public ServiceRequestHandlerJob setIntent(String intent) {
         this.intent = intent;
         return this;
     }

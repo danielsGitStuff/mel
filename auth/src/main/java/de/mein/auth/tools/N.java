@@ -23,6 +23,10 @@ public class N {
     private static N silentRunner = new N(e -> {
     });
 
+    public void abort() {
+        consumer.accept(new Exception("aborted"));
+    }
+
     public interface INoTryRunnable {
         void run() throws Exception, ShamefulSelfConnectException;
     }

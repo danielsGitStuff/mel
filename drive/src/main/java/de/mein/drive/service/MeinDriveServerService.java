@@ -1,13 +1,13 @@
 package de.mein.drive.service;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.data.ClientData;
 import de.mein.auth.jobs.Job;
-import de.mein.auth.jobs.ServiceMessageHandlerJob;
+import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveDetails;
-import de.mein.drive.data.DriveServerSettingsDetails;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.service.sync.ServerSyncHandler;
@@ -61,8 +61,8 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     protected boolean workWorkWork(Job unknownJob) {
         logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveServerService.workWorkWork :)");
         try {
-            if (unknownJob instanceof ServiceMessageHandlerJob) {
-                ServiceMessageHandlerJob job = (ServiceMessageHandlerJob) unknownJob;
+            if (unknownJob instanceof ServiceRequestHandlerJob) {
+                ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
                 if (job.isRequest()) {
                     Request request = job.getRequest();
                     if (checkIntent(request, DriveStrings.INTENT_REG_AS_CLIENT)) {
@@ -104,7 +104,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     private void propagateNewVersion() {
         try {
             long version = driveDatabaseManager.getLatestVersion();
-            for (DriveServerSettingsDetails.ClientData client : driveDatabaseManager.getDriveSettings().getServerSettings().getClients()) {
+            for (ClientData client : driveDatabaseManager.getDriveSettings().getServerSettings().getClients()) {
                 meinAuthService.connect(client.getCertId()).done(mvp -> N.r(() -> {
                     mvp.message(client.getServiceUuid(), DriveStrings.INTENT_PROPAGATE_NEW_VERSION, new DriveDetails().setLastSyncVersion(version));
                 }));
@@ -187,7 +187,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         startIndexerDonePromise.done(result -> {
             System.out.println("MeinDriveServerService.onMeinAuthIsUp");
             // connect to every client that we know
-            for (DriveServerSettingsDetails.ClientData client : this.driveSettings.getServerSettings().getClients()) {
+            for (ClientData client : this.driveSettings.getServerSettings().getClients()) {
                 N.r(() -> meinAuthService.connect(client.getCertId()));
             }
         });

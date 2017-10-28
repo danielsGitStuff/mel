@@ -13,6 +13,7 @@ public class ContactStrings {
     public static final String INTENT_QUERY = "query";
     public static final String INTENT_UPDATE = "update";
     public static final String NAME = "Contact Sync";
+    public static final String INTENT_REG_AS_CLIENT = "reg_as_client";
 
     public class Notifications {
 

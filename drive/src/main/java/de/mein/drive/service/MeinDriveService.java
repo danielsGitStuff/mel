@@ -5,7 +5,7 @@ import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
-import de.mein.auth.jobs.ServiceMessageHandlerJob;
+import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinServiceWorker;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
@@ -62,7 +62,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     @Override
     public void handleRequest(Request request) throws Exception {
         logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.handleRequest");
-        addJob(new ServiceMessageHandlerJob().setRequest(request));
+        addJob(new ServiceRequestHandlerJob().setRequest(request));
     }
 
     @Override
@@ -77,7 +77,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     @Override
     public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
         logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.handleMessage");
-        addJob(new ServiceMessageHandlerJob().setMessage(payload).setPartnerCertificate(partnerCertificate).setIntent(intent));
+        addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(intent));
     }
 
     public DriveSettings getDriveSettings() {
@@ -100,8 +100,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected void workWork(Job unknownJob) throws Exception {
         logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork :)");
         if (!workWorkWork(unknownJob)) {
-            if (unknownJob instanceof ServiceMessageHandlerJob) {
-                ServiceMessageHandlerJob job = (ServiceMessageHandlerJob) unknownJob;
+            if (unknownJob instanceof ServiceRequestHandlerJob) {
+                ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
                 if (job.isRequest()) {
                     Request request = job.getRequest();
                     if (request.getIntent() != null && request.getIntent().equals(DriveStrings.INTENT_DRIVE_DETAILS)) {
