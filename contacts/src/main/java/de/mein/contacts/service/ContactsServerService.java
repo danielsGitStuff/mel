@@ -1,11 +1,13 @@
 package de.mein.contacts.service;
 
+import de.mein.auth.data.ClientData;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.ServiceDetails;
@@ -73,18 +75,25 @@ public class ContactsServerService extends ContactsService {
         } else if (job instanceof ServiceRequestHandlerJob) {
             ServiceRequestHandlerJob messageHandlerJob = (ServiceRequestHandlerJob) job;
             if (messageHandlerJob.getRequest().hasIntent(ContactStrings.INTENT_REG_AS_CLIENT)) {
-                ServiceDetails serviceDetails = (ServiceDetails) messageHandlerJob.getPayLoad();
+                ServiceDetails serviceDetails = (ServiceDetails) messageHandlerJob.getRequest().getPayload();
                 settings.getServerSettings().addClient(messageHandlerJob.getPartnerCertificate().getId().v(), serviceDetails.getServiceUuid());
                 settings.save();
                 messageHandlerJob.getRequest().resolve(null);
-            }else {
+            } else {
                 messageHandlerJob.getRequest().reject(null);
             }
         }
     }
 
     private void propagateNewVersion() {
-
+        try {
+            for (ClientData client : settings.getServerSettings().getClients()) {
+                meinAuthService.connect(client.getCertId()).done(mvp ->
+                        N.r(() -> mvp.message(client.getServiceUuid(), ContactStrings.INTENT_PROPAGATE_NEW_VERSION, null)));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.util.concurrent.ThreadFactory;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
+import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.CountdownLock;
@@ -47,7 +48,9 @@ public class ContactsClientService extends ContactsService {
 
     @Override
     public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
-
+        if (intent!= null && intent.equals(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)){
+            addJob(new QueryJob());
+        }
     }
 
     @Override
