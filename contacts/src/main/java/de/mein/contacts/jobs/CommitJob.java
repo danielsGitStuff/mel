@@ -7,4 +7,21 @@ import de.mein.auth.jobs.Job;
  */
 
 public class CommitJob extends Job {
+    private Long phoneBookId;
+
+    public Long getPhoneBookId() {
+        return phoneBookId;
+    }
+
+    public void setPhoneBookId(Long phoneBookId) {
+        this.phoneBookId = phoneBookId;
+    }
+
+    public CommitJob() {
+
+    }
+
+    public CommitJob(Long phoneBookId) {
+        this.phoneBookId = phoneBookId;
+    }
 }

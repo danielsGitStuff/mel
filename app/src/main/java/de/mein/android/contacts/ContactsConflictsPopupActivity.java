@@ -39,7 +39,7 @@ import de.mein.sql.SqlQueriesException;
  */
 
 public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<AndroidContactsClientService> {
-    private Long localPhoneBookId, receivedPhoneBookId;
+    private Long lastReadPhoneBookId, receivedPhoneBookId;
     private ContactsConflictListAdapter adapter;
 
     @Override
@@ -54,9 +54,9 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
         String json = extras.getString(MeinStrings.Notifications.EXTRA + ContactStrings.Notifications.INTENT_EXTRA_CONFLICT);
         N.r(() -> {
             ConflictIntentExtra conflictIntentExtra = (ConflictIntentExtra) SerializableEntityDeserializer.deserialize(json);
-            localPhoneBookId = conflictIntentExtra.getLocalPhoneBookId();
+            lastReadPhoneBookId = conflictIntentExtra.getLocalPhoneBookId();
             receivedPhoneBookId = conflictIntentExtra.getReceivedPhoneBookId();
-            adapter = new ContactsConflictListAdapter(this, service, localPhoneBookId, receivedPhoneBookId);
+            adapter = new ContactsConflictListAdapter(this, service, lastReadPhoneBookId, receivedPhoneBookId);
             listView.setAdapter(adapter);
             runOnUiThread(() -> {
                 adapter.notifyDataSetChanged();
@@ -75,14 +75,17 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
                         choice.getId().nul();
                         choice.getPhonebookId().v(merged.getId());
                         contactsDao.insert(choice);
+                        merged.hashContact(choice);
                     }
                 }
                 System.out.println("ContactsConflictsPopupActivity: Conflict resolved!");
+                merged.digest();
+                phoneBookDao.updateFlat(merged);
                 phoneBookDao.deletePhoneBook(receivedPhoneBookId);
-                phoneBookDao.deletePhoneBook(localPhoneBookId);
-                service.getDatabaseManager().getSettings().getClientSettings().setLastReadId(merged.getId().v());
+                //phoneBookDao.deletePhoneBook(lastReadPhoneBookId);
+                //service.getDatabaseManager().getSettings().getClientSettings().setLastReadId(merged.getId().v());
                 Notifier.cancel(this, getIntent(), requestCode);
-                service.addJob(new CommitJob());
+                service.addJob(new CommitJob(merged.getId().v()));
                 finish();
             }));
         });

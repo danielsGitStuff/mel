@@ -109,7 +109,8 @@ public class AndroidContactsClientService extends ContactsClientService {
             }
             //waitLock.lock();
         } else if (job instanceof CommitJob) {
-            commitPhoneBook(settings.getClientSettings().getLastReadId());
+            CommitJob commitJob = (CommitJob) job;
+            commitPhoneBook(commitJob.getPhoneBookId());
         } else if (job instanceof QueryJob) {
             QueryJob queryJob = (QueryJob) job;
             query(queryJob);
@@ -154,6 +155,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                 .done(result -> N.r(() -> {
                     System.out.println("AndroidContactsClientService.workWork. update succeeded");
                     updateLocalPhoneBook(deepPhoneBook.getId().v());
+                    //export(deepPhoneBook.getId().v());
                     waitLock.unlock();
                 })).fail(result -> N.r(() -> {
                     System.err.println(getClass().getSimpleName() + " updating server failed!");
@@ -176,20 +178,29 @@ public class AndroidContactsClientService extends ContactsClientService {
     private void updateLocalPhoneBook(Long newPhoneBookId) throws IllegalAccessException, IOException, JsonSerializationException {
         System.out.println("AndroidContactsClientService.workWork. update succeeded");
         databaseManager.getSettings().setMasterPhoneBookId(newPhoneBookId);
-        Long lastReadId = settings.getClientSettings().getLastReadId();
         //databaseManager.getSettings().getClientSettings().setLastReadId(null);
         databaseManager.getSettings().save();
-        AndroidContactSettings androidContactSettings = (AndroidContactSettings) databaseManager.getSettings().getPlatformContactSettings();
         try {
-            Pair<String> lastReadHash = databaseManager.getPhoneBookDao().loadFlatPhoneBook(lastReadId).getHash();
-            Pair<String> newHash = databaseManager.getPhoneBookDao().loadFlatPhoneBook(newPhoneBookId).getHash();
-            if (androidContactSettings.getPersistToPhoneBook() && lastReadHash.notEqualsValue(newHash)) {
-                contactsToAndroidExporter.export(newPhoneBookId);
-            }
+            export(newPhoneBookId);
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * exports to local android phonebook if hash from last reading differs
+     * @param newPhoneBookId
+     * @throws SqlQueriesException
+     */
+    private void export(Long newPhoneBookId) throws SqlQueriesException {
+        Long lastReadId = settings.getClientSettings().getLastReadId();
+        AndroidContactSettings androidContactSettings = (AndroidContactSettings) databaseManager.getSettings().getPlatformContactSettings();
+        Pair<String> lastReadHash = databaseManager.getPhoneBookDao().loadFlatPhoneBook(lastReadId).getHash();
+        Pair<String> newHash = databaseManager.getPhoneBookDao().loadFlatPhoneBook(newPhoneBookId).getHash();
+        if (androidContactSettings.getPersistToPhoneBook() && lastReadHash.notEqualsValue(newHash)) {
+            contactsToAndroidExporter.export(newPhoneBookId);
+        }
     }
 
     /**
