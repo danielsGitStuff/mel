@@ -10,6 +10,7 @@ import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.data.NewVersionDetails;
 import de.mein.contacts.data.ServiceDetails;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
@@ -61,9 +62,9 @@ public class ContactsServerService extends ContactsService {
                     phoneBookDao.insertDeep(phoneBook);
                     settings.setMasterPhoneBookId(phoneBook.getId().v());
                     settings.save();
-                    propagateNewVersion();
                     updatePhoneBookJob.getRequest().resolve(null);
                     updatePhoneBookJob.getPromise().resolve(null);
+                    propagateNewVersion(phoneBook.getVersion().v());
                 } else {
                     updatePhoneBookJob.getRequest().reject(new Exception("master version was " + masterPhoneBook.getVersion().v() + " clients version was " + phoneBook.getVersion().v()));
                     updatePhoneBookJob.getPromise().reject(null);
@@ -85,11 +86,11 @@ public class ContactsServerService extends ContactsService {
         }
     }
 
-    private void propagateNewVersion() {
+    private void propagateNewVersion(Long version) {
         try {
             for (ClientData client : settings.getServerSettings().getClients()) {
                 meinAuthService.connect(client.getCertId()).done(mvp ->
-                        N.r(() -> mvp.message(client.getServiceUuid(), ContactStrings.INTENT_PROPAGATE_NEW_VERSION, null)));
+                        N.r(() -> mvp.message(client.getServiceUuid(), ContactStrings.INTENT_PROPAGATE_NEW_VERSION, new NewVersionDetails(version))));
             }
         } catch (Exception e) {
             e.printStackTrace();

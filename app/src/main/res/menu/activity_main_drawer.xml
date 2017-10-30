@@ -17,7 +17,7 @@
                     android:title="Discover" />
                 <item
                     android:id="@+id/nav_approvals"
-                    android:icon="@drawable/icon_share"
+                    android:icon="@drawable/icon_permissions"
                     android:title="Access" />
                 <item
                     android:id="@+id/nav_settings"

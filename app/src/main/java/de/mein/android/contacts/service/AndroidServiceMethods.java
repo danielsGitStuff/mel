@@ -2,9 +2,12 @@ package de.mein.android.contacts.service;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.Context;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.provider.ContactsContract;
 
 import java.io.ByteArrayOutputStream;
@@ -14,12 +17,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.android.Tools;
+import de.mein.auth.service.MeinService;
 import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.ContactAppendix;
 import de.mein.contacts.data.db.ContactsDatabaseManager;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
+import de.mein.contacts.jobs.ExamineJob;
 import de.mein.sql.Pair;
 import de.mein.sql.SqlQueriesException;
 
@@ -31,9 +36,11 @@ import de.mein.sql.SqlQueriesException;
 public class AndroidServiceMethods {
 
     private final ContactsDatabaseManager databaseManager;
+    private final MeinService service;
 
-    public AndroidServiceMethods(ContactsDatabaseManager databaseManager) {
+    public AndroidServiceMethods(MeinService service, ContactsDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
+        this.service=service;
     }
 
 
@@ -139,5 +146,28 @@ public class AndroidServiceMethods {
         return cursor.getString(cursor.getColumnIndex(col));
     }
 
+    public void listenForContactsChanges(){
+        Context context = Tools.getApplicationContext();
+        context.getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, new ContentObserver(null) {
+            @Override
+            public boolean deliverSelfNotifications() {
+                System.out.println("AndroidContactsServerService.deliverSelfNotifications");
+                return super.deliverSelfNotifications();
+            }
+
+            @Override
+            public void onChange(boolean selfChange) {
+                System.out.println("AndroidContactsServerService.onChange." + selfChange);
+                super.onChange(selfChange);
+                service.addJob(new ExamineJob());
+            }
+
+            @Override
+            public void onChange(boolean selfChange, Uri uri) {
+                System.out.println("AndroidContactsServerService.onChange.uri: " + uri);
+                super.onChange(selfChange, uri);
+            }
+        });
+    }
 
 }

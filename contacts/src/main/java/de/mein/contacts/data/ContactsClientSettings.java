@@ -9,7 +9,7 @@ import de.mein.core.serialize.SerializableEntity;
 public class ContactsClientSettings implements SerializableEntity{
     private Long serverCertId;
     private String serviceUuid;
-    private Long uncommitedHead;
+    private Long lastReadId;
 
     public void setServerCertId(Long serverCertId) {
         this.serverCertId = serverCertId;
@@ -27,11 +27,11 @@ public class ContactsClientSettings implements SerializableEntity{
         return serviceUuid;
     }
 
-    public Long getUncommitedHead() {
-        return uncommitedHead;
+    public Long getLastReadId() {
+        return lastReadId;
     }
 
-    public void setUncommitedHead(Long uncommitedHead) {
-        this.uncommitedHead = uncommitedHead;
+    public void setLastReadId(Long lastReadId) {
+        this.lastReadId = lastReadId;
     }
 }

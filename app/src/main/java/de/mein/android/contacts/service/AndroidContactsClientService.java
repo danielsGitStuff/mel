@@ -22,9 +22,11 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsClientSettings;
 import de.mein.contacts.data.ContactsSettings;
+import de.mein.contacts.data.NewVersionDetails;
 import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
@@ -50,7 +52,8 @@ public class AndroidContactsClientService extends ContactsClientService {
 
     public AndroidContactsClientService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
-        serviceMethods = new AndroidServiceMethods(databaseManager);
+        serviceMethods = new AndroidServiceMethods(this, databaseManager);
+        serviceMethods.listenForContactsChanges();
         AndroidContactSettings androidContactSettings = (AndroidContactSettings) settingsCfg.getPlatformContactSettings();
         if (androidContactSettings.getPersistToPhoneBook()) {
             contactsToAndroidExporter = new ContactsToAndroidExporter(databaseManager);
@@ -66,25 +69,39 @@ public class AndroidContactsClientService extends ContactsClientService {
 
     @Override
     public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
-        if (intent!= null && intent.equals(ContactStrings.INTENT_QUERY)) {
-            QueryJob queryJob = new QueryJob();
-            queryJob.getPromise().done(receivedPhoneBookId -> N.r(() ->{
-                AndroidContactSettings androidContactSettings = (AndroidContactSettings) settings.getPlatformContactSettings();
-                if (androidContactSettings.getPersistToPhoneBook()){
-                    contactsToAndroidExporter.export(receivedPhoneBookId);
+        if (intent != null && intent.equals(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)) {
+            try {
+                NewVersionDetails newVersionDetails = (NewVersionDetails) payload;
+                Long lastReadId = settings.getClientSettings().getLastReadId();
+                Long headVersion = databaseManager.getPhoneBookDao().loadFlatPhoneBook(lastReadId).getVersion().v();
+                if (headVersion != lastReadId) {
+                    PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
+                    if (masterPhoneBook == null
+                            || masterPhoneBook.getVersion().notEqualsValue(newVersionDetails.getVersion())) {
+                        QueryJob queryJob = new QueryJob();
+                        queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> {
+                            AndroidContactSettings androidContactSettings = (AndroidContactSettings) settings.getPlatformContactSettings();
+                            if (androidContactSettings.getPersistToPhoneBook()) {
+                                contactsToAndroidExporter.export(receivedPhoneBookId);
+                            }
+                        }));
+                        addJob(queryJob);
+                    }
                 }
-            }));
-            addJob(queryJob);
-        }else {
-            super.handleMessage(payload,partnerCertificate,intent);
+            } catch (SqlQueriesException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            super.handleMessage(payload, partnerCertificate, intent);
         }
     }
 
     @Override
     protected void workWork(Job job) throws Exception {
         if (job instanceof ExamineJob) {
-            PhoneBook phoneBook = serviceMethods.examineContacts(settings.getClientSettings().getUncommitedHead());
-            settings.getClientSettings().setUncommitedHead(phoneBook.getId().v());
+            PhoneBook phoneBook = serviceMethods.examineContacts(settings.getClientSettings().getLastReadId());
+            settings.getClientSettings().setLastReadId(phoneBook.getId().v());
             settings.save();
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
             if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
@@ -93,12 +110,43 @@ public class AndroidContactsClientService extends ContactsClientService {
                 databaseManager.getPhoneBookDao().deletePhoneBook(phoneBook.getId().v());
             }
             waitLock.lock();
-        }else if (job instanceof CommitJob) {
-            commitPhoneBook(settings.getClientSettings().getUncommitedHead());
+        } else if (job instanceof CommitJob) {
+            commitPhoneBook(settings.getClientSettings().getLastReadId());
+        } else if (job instanceof QueryJob) {
+            QueryJob queryJob = (QueryJob) job;
+            query(queryJob);
         } else {
             super.workWork(job);
         }
     }
+
+    private void query(QueryJob queryJob) throws InterruptedException, SqlQueriesException {
+        WaitLock waitLock = new WaitLock().lock();
+        final Long serverCertId = databaseManager.getSettings().getClientSettings().getServerCertId();
+        final String serviceUuid = databaseManager.getSettings().getClientSettings().getServiceUuid();
+        meinAuthService.connect(serverCertId).done(mvp -> N.r(() -> {
+            mvp.request(serviceUuid, ContactStrings.INTENT_QUERY, null).done(result -> N.r(() -> {
+                System.out.println("ContactsClientService.workWork.query.success");
+                PhoneBook receivedPhoneBook = (PhoneBook) result;
+                PhoneBook master = databaseManager.getFlatMasterPhoneBook();
+                databaseManager.getPhoneBookDao().insertDeep(receivedPhoneBook);
+                databaseManager.getSettings().setMasterPhoneBookId(receivedPhoneBook.getId().v());
+                databaseManager.getSettings().save();
+                queryJob.getPromise().resolve(receivedPhoneBook.getId().v());
+                waitLock.unlock();
+            })).fail(result -> {
+                System.err.println("ContactsClientService.workWork");
+                queryJob.getPromise().reject(null);
+                waitLock.unlock();
+            }).always((state, resolved, rejected) -> waitLock.unlock());
+        })).fail(result -> {
+            System.err.println("ContactsClientService.workWork.query.fail");
+            queryJob.getPromise().reject(null);
+            waitLock.unlock();
+        });
+        waitLock.lock();
+    }
+
     protected void commitPhoneBook(Long phoneBookId) throws InterruptedException, SqlQueriesException {
         CountdownLock waitLock = new CountdownLock(1).lock();
         ContactsClientSettings clientSettings = databaseManager.getSettings().getClientSettings();
@@ -107,19 +155,19 @@ public class AndroidContactsClientService extends ContactsClientService {
         meinAuthService.connect(clientSettings.getServerCertId()).done(meinValidationProcess -> N.r(() -> meinValidationProcess.request(clientSettings.getServiceUuid(), ContactStrings.INTENT_UPDATE, deepPhoneBook)
                 .done(result -> N.r(() -> {
                     System.out.println("AndroidContactsClientService.workWork. update succeeded");
-                    databaseManager.getSettings().setMasterPhoneBookId(deepPhoneBook.getId().v());
-                    databaseManager.getSettings().getClientSettings().setUncommitedHead(null);
-                    databaseManager.getSettings().save();
-                    AndroidContactSettings androidContactSettings = (AndroidContactSettings) databaseManager.getSettings().getPlatformContactSettings();
-                    if (androidContactSettings.getPersistToPhoneBook()){
-                        contactsToAndroidExporter.export(deepPhoneBook.getId().v());
-                    }
+                    updateLocalPhoneBook(deepPhoneBook.getId().v());
                     waitLock.unlock();
                 })).fail(result -> N.r(() -> {
                     System.err.println(getClass().getSimpleName() + " updating server failed!");
                     QueryJob queryJob = new QueryJob();
-                    queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> checkConflict(deepPhoneBook.getId().v(), receivedPhoneBookId)));
-                    addJob(queryJob);
+                    queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> {
+                        Boolean conflictOccured = checkConflict(deepPhoneBook.getId().v(), receivedPhoneBookId);
+                        if (!conflictOccured) {
+                            System.out.println("AndroidContactsClientService.commitPhoneBook");
+                            updateLocalPhoneBook(receivedPhoneBookId);
+                        }
+                    }));
+                    workWork(queryJob);
                     waitLock.unlock();
                 })))).fail(result -> {
             System.err.println(getClass().getSimpleName() + " updating server failed!!");
@@ -127,9 +175,28 @@ public class AndroidContactsClientService extends ContactsClientService {
         });
     }
 
+    private void updateLocalPhoneBook(Long newPhoneBookId) throws IllegalAccessException, IOException, JsonSerializationException {
+        System.out.println("AndroidContactsClientService.workWork. update succeeded");
+        databaseManager.getSettings().setMasterPhoneBookId(newPhoneBookId);
+        Long lastReadId = settings.getClientSettings().getLastReadId();
+        //databaseManager.getSettings().getClientSettings().setLastReadId(null);
+        databaseManager.getSettings().save();
+        AndroidContactSettings androidContactSettings = (AndroidContactSettings) databaseManager.getSettings().getPlatformContactSettings();
+        if (androidContactSettings.getPersistToPhoneBook() && lastReadId != newPhoneBookId) {
+            contactsToAndroidExporter.export(newPhoneBookId);
+        }
+    }
 
-
-    private void checkConflict(Long localPhoneBookId, Long receivedPhoneBookId) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException {
+    /**
+     * @param localPhoneBookId
+     * @param receivedPhoneBookId
+     * @return true if conflict occurred
+     * @throws SqlQueriesException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws JsonSerializationException
+     */
+    private boolean checkConflict(Long localPhoneBookId, Long receivedPhoneBookId) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException {
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
         ContactsDao contactsDao = databaseManager.getContactsDao();
         PhoneBook flatLocalPhoneBook = phoneBookDao.loadFlatPhoneBook(localPhoneBookId);
@@ -174,6 +241,8 @@ public class AndroidContactsClientService extends ContactsClientService {
 //            if (contactsToAndroidExporter != null) {
 //                contactsToAndroidExporter.export(receivedPhoneBookId);
 //            }
-        }
+            return true;
+        } else
+            return false;
     }
 }

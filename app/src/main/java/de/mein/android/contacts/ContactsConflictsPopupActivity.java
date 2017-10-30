@@ -5,17 +5,14 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.view.MenuItem;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import de.mein.R;
 import de.mein.android.ConflictsPopupActivity;
 import de.mein.android.Notifier;
-import de.mein.android.PopupActivity;
 import de.mein.android.contacts.data.ConflictIntentExtra;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.android.contacts.service.AndroidContactsClientService;
@@ -32,10 +29,7 @@ import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.jobs.CommitJob;
-import de.mein.contacts.jobs.UpdatePhoneBookJob;
-import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
-import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
@@ -86,7 +80,7 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
                 System.out.println("ContactsConflictsPopupActivity: Conflict resolved!");
                 phoneBookDao.deletePhoneBook(receivedPhoneBookId);
                 phoneBookDao.deletePhoneBook(localPhoneBookId);
-                service.getDatabaseManager().getSettings().getClientSettings().setUncommitedHead(merged.getId().v());
+                service.getDatabaseManager().getSettings().getClientSettings().setLastReadId(merged.getId().v());
                 Notifier.cancel(this, getIntent(), requestCode);
                 service.addJob(new CommitJob());
                 finish();

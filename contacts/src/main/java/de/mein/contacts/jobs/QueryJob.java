@@ -8,4 +8,7 @@ import de.mein.auth.jobs.Job;
  */
 
 public class QueryJob extends Job<Long,Void,Void> {
+    public QueryJob(){
+        System.out.println("QueryJob.QueryJob");
+    }
 }

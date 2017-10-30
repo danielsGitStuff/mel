@@ -46,6 +46,8 @@ public class ContactsToAndroidExporter {
     public void export(final Long phoneBookId) {
         try {
             System.out.println("ContactsToAndroidExporter.export.id." + phoneBookId);
+            //check if phonebooks are different first
+
             ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();
             // delete everything first
             Cursor cursor = contentResolver.query(ContactsContract.RawContacts.CONTENT_URI, new String[]{ContactsContract.RawContacts._ID}, null, null, null);

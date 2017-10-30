@@ -52,28 +52,8 @@ public class AndroidContactsServerService extends ContactsServerService {
 
     public AndroidContactsServerService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
-        Context context = Tools.getApplicationContext();
-        context.getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, new ContentObserver(null) {
-            @Override
-            public boolean deliverSelfNotifications() {
-                System.out.println("AndroidContactsServerService.deliverSelfNotifications");
-                return super.deliverSelfNotifications();
-            }
-
-            @Override
-            public void onChange(boolean selfChange) {
-                System.out.println("AndroidContactsServerService.onChange." + selfChange);
-                super.onChange(selfChange);
-                addJob(new ExamineJob());
-            }
-
-            @Override
-            public void onChange(boolean selfChange, Uri uri) {
-                System.out.println("AndroidContactsServerService.onChange.uri: " + uri);
-                super.onChange(selfChange, uri);
-            }
-        });
-        serviceMethods = new AndroidServiceMethods(databaseManager);
+        serviceMethods = new AndroidServiceMethods(this, databaseManager);
+        serviceMethods.listenForContactsChanges();
         AndroidContactSettings androidContactSettings = (AndroidContactSettings) settingsCfg.getPlatformContactSettings();
         if (androidContactSettings.getPersistToPhoneBook()) {
             contactsToAndroidExporter = new ContactsToAndroidExporter(databaseManager);
@@ -180,7 +160,7 @@ public class AndroidContactsServerService extends ContactsServerService {
 
             ConflictIntentExtra conflict = new ConflictIntentExtra(localPhoneBookId, receivedPhoneBookId);
             MeinNotification notification = new MeinNotification(getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text");
-            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT,conflict);
+            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, conflict);
             meinAuthService.onNotificationFromService(this, notification);
 //            // store in android contacts application
 //            if (contactsToAndroidExporter != null) {

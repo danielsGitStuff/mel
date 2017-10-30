@@ -17,6 +17,7 @@ import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsClientSettings;
+import de.mein.contacts.data.NewVersionDetails;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.jobs.CommitJob;
 import de.mein.contacts.jobs.QueryJob;
@@ -48,40 +49,23 @@ public class ContactsClientService extends ContactsService {
 
     @Override
     public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
-        if (intent!= null && intent.equals(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)){
-            addJob(new QueryJob());
+        if (intent != null && intent.equals(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)) {
+            NewVersionDetails newVersionDetails = (NewVersionDetails) payload;
+            try {
+                PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
+                if (masterPhoneBook == null
+                        || masterPhoneBook.getVersion().notEqualsValue(newVersionDetails.getVersion())) {
+                    addJob(new QueryJob());
+                }
+            } catch (SqlQueriesException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     @Override
     protected void workWork(Job job) throws Exception {
-        if (job instanceof QueryJob) {
-            QueryJob queryJob = (QueryJob) job;
-            WaitLock waitLock = new WaitLock().lock();
-            final Long serverCertId = databaseManager.getSettings().getClientSettings().getServerCertId();
-            final String serviceUuid = databaseManager.getSettings().getClientSettings().getServiceUuid();
-            meinAuthService.connect(serverCertId).done(mvp -> N.r(() -> {
-                mvp.request(serviceUuid, ContactStrings.INTENT_QUERY, null).done(result -> N.r(() -> {
-                    System.out.println("ContactsClientService.workWork.query.success");
-                    PhoneBook receivedPhoneBook = (PhoneBook) result;
-                    PhoneBook master = databaseManager.getFlatMasterPhoneBook();
-                    databaseManager.getPhoneBookDao().insertDeep(receivedPhoneBook);
-                    databaseManager.getSettings().setMasterPhoneBookId(receivedPhoneBook.getId().v());
-                    databaseManager.getSettings().save();
-                    queryJob.getPromise().resolve(receivedPhoneBook.getId().v());
-                    waitLock.unlock();
-                })).fail(result -> {
-                    System.err.println("ContactsClientService.workWork");
-                    queryJob.getPromise().reject(null);
-                    waitLock.unlock();
-                }).always((state, resolved, rejected) -> waitLock.unlock());
-            })).fail(result -> {
-                System.err.println("ContactsClientService.workWork.query.fail");
-                queryJob.getPromise().reject(null);
-                waitLock.unlock();
-            });
-            waitLock.lock();
-        }
+
     }
 
 
