@@ -88,7 +88,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
     public String hash() {
         MD5er md5er = new MD5er();
         for (ContactAppendix appendix : appendices) {
-            if (appendix.getMimeType().equalsValue(MIME_PHOTO))
+            if (appendix.getMimeType().notEqualsValue(MIME_PHOTO))
                 appendix.hash(md5er);
         }
         md5er.hash(image.v());

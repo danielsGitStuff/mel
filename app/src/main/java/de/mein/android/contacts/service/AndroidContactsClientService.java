@@ -38,6 +38,7 @@ import de.mein.contacts.service.ContactsClientService;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.ISQLResource;
+import de.mein.sql.Pair;
 import de.mein.sql.SqlQueriesException;
 
 
@@ -72,22 +73,19 @@ public class AndroidContactsClientService extends ContactsClientService {
         if (intent != null && intent.equals(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)) {
             try {
                 NewVersionDetails newVersionDetails = (NewVersionDetails) payload;
-                Long lastReadId = settings.getClientSettings().getLastReadId();
-                Long headVersion = databaseManager.getPhoneBookDao().loadFlatPhoneBook(lastReadId).getVersion().v();
-                if (headVersion != lastReadId) {
-                    PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
-                    if (masterPhoneBook == null
-                            || masterPhoneBook.getVersion().notEqualsValue(newVersionDetails.getVersion())) {
-                        QueryJob queryJob = new QueryJob();
-                        queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> {
-                            AndroidContactSettings androidContactSettings = (AndroidContactSettings) settings.getPlatformContactSettings();
-                            if (androidContactSettings.getPersistToPhoneBook()) {
-                                contactsToAndroidExporter.export(receivedPhoneBookId);
-                            }
-                        }));
-                        addJob(queryJob);
-                    }
+                PhoneBook master = databaseManager.getFlatMasterPhoneBook();
+                if (master == null
+                        || master.getVersion().notEqualsValue(newVersionDetails.getVersion())) {
+                    QueryJob queryJob = new QueryJob();
+                    queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> {
+                        AndroidContactSettings androidContactSettings = (AndroidContactSettings) settings.getPlatformContactSettings();
+                        if (androidContactSettings.getPersistToPhoneBook()) {
+                            contactsToAndroidExporter.export(receivedPhoneBookId);
+                        }
+                    }));
+                    addJob(queryJob);
                 }
+
             } catch (SqlQueriesException e) {
                 e.printStackTrace();
             }
@@ -101,15 +99,15 @@ public class AndroidContactsClientService extends ContactsClientService {
     protected void workWork(Job job) throws Exception {
         if (job instanceof ExamineJob) {
             PhoneBook phoneBook = serviceMethods.examineContacts(settings.getClientSettings().getLastReadId());
-            settings.getClientSettings().setLastReadId(phoneBook.getId().v());
-            settings.save();
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
             if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
+                settings.getClientSettings().setLastReadId(phoneBook.getId().v());
+                settings.save();
                 commitPhoneBook(phoneBook.getId().v());
             } else {
                 databaseManager.getPhoneBookDao().deletePhoneBook(phoneBook.getId().v());
             }
-            waitLock.lock();
+            //waitLock.lock();
         } else if (job instanceof CommitJob) {
             commitPhoneBook(settings.getClientSettings().getLastReadId());
         } else if (job instanceof QueryJob) {
@@ -167,7 +165,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                             updateLocalPhoneBook(receivedPhoneBookId);
                         }
                     }));
-                    workWork(queryJob);
+                    addJob(queryJob);
                     waitLock.unlock();
                 })))).fail(result -> {
             System.err.println(getClass().getSimpleName() + " updating server failed!!");
@@ -182,9 +180,16 @@ public class AndroidContactsClientService extends ContactsClientService {
         //databaseManager.getSettings().getClientSettings().setLastReadId(null);
         databaseManager.getSettings().save();
         AndroidContactSettings androidContactSettings = (AndroidContactSettings) databaseManager.getSettings().getPlatformContactSettings();
-        if (androidContactSettings.getPersistToPhoneBook() && lastReadId != newPhoneBookId) {
-            contactsToAndroidExporter.export(newPhoneBookId);
+        try {
+            Pair<String> lastReadHash = databaseManager.getPhoneBookDao().loadFlatPhoneBook(lastReadId).getHash();
+            Pair<String> newHash = databaseManager.getPhoneBookDao().loadFlatPhoneBook(newPhoneBookId).getHash();
+            if (androidContactSettings.getPersistToPhoneBook() && lastReadHash.notEqualsValue(newHash)) {
+                contactsToAndroidExporter.export(newPhoneBookId);
+            }
+        } catch (SqlQueriesException e) {
+            e.printStackTrace();
         }
+
     }
 
     /**
