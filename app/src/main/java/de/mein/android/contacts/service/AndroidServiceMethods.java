@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.provider.Contacts;
 import android.provider.ContactsContract;
 
 import java.io.ByteArrayOutputStream;
@@ -41,7 +42,7 @@ public class AndroidServiceMethods {
 
     public AndroidServiceMethods(MeinService service, ContactsDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
-        this.service=service;
+        this.service = service;
     }
 
 
@@ -102,8 +103,8 @@ public class AndroidServiceMethods {
     }
 
     private void readAppendices(Contact contact, String rawContactId) {
-        String selection = ContactsContract.Data.RAW_CONTACT_ID + " = ?";
-        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId}, null);
+        String selection = ContactsContract.Data.RAW_CONTACT_ID + " = ? and " + ContactsContract.Data.MIMETYPE + "<>?";
+        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId,ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE}, null);
         while (reader.moveToNext()) {
             ContactAppendix appendix = new ContactAppendix();
             reader.readDataColumns(appendix);
@@ -149,7 +150,7 @@ public class AndroidServiceMethods {
 
     private WatchDogTimer watchDogTimer;
 
-    public void listenForContactsChanges(){
+    public void listenForContactsChanges() {
         watchDogTimer = new WatchDogTimer(() -> service.addJob(new ExamineJob()), 20, 100, 100);
         Context context = Tools.getApplicationContext();
         context.getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, new ContentObserver(null) {

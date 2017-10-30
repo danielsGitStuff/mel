@@ -161,10 +161,11 @@ public class AndroidContactsClientService extends ContactsClientService {
                     System.err.println(getClass().getSimpleName() + " updating server failed!");
                     QueryJob queryJob = new QueryJob();
                     queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> {
-                        Boolean conflictOccured = checkConflict(deepPhoneBook.getId().v(), receivedPhoneBookId);
-                        if (!conflictOccured) {
+                        Boolean conflictOccurred = checkConflict(deepPhoneBook.getId().v(), receivedPhoneBookId);
+                        if (!conflictOccurred) {
                             System.out.println("AndroidContactsClientService.commitPhoneBook");
                             updateLocalPhoneBook(receivedPhoneBookId);
+                            databaseManager.getPhoneBookDao().deletePhoneBook(phoneBookId);
                         }
                     }));
                     addJob(queryJob);
