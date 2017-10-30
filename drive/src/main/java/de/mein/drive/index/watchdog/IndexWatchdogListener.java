@@ -1,19 +1,15 @@
 package de.mein.drive.index.watchdog;
 
-import com.sun.nio.file.ExtendedWatchEventModifier;
-
 import de.mein.DeferredRunnable;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsFile;
-import de.mein.drive.index.watchdog.timer.WatchDogTimer;
+import de.mein.auth.tools.WatchDogTimer;
 
 import java.io.*;
 import java.nio.file.FileSystems;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
 import java.nio.file.WatchService;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

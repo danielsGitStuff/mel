@@ -18,6 +18,7 @@ import java.util.List;
 
 import de.mein.android.Tools;
 import de.mein.auth.service.MeinService;
+import de.mein.auth.tools.WatchDogTimer;
 import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.ContactAppendix;
 import de.mein.contacts.data.db.ContactsDatabaseManager;
@@ -146,7 +147,10 @@ public class AndroidServiceMethods {
         return cursor.getString(cursor.getColumnIndex(col));
     }
 
+    private WatchDogTimer watchDogTimer;
+
     public void listenForContactsChanges(){
+        watchDogTimer = new WatchDogTimer(() -> service.addJob(new ExamineJob()), 20, 100, 100);
         Context context = Tools.getApplicationContext();
         context.getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, new ContentObserver(null) {
             @Override
@@ -159,7 +163,11 @@ public class AndroidServiceMethods {
             public void onChange(boolean selfChange) {
                 System.out.println("AndroidContactsServerService.onChange." + selfChange);
                 super.onChange(selfChange);
-                service.addJob(new ExamineJob());
+                try {
+                    watchDogTimer.start();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override

@@ -1,4 +1,4 @@
-package de.mein.drive.index.watchdog.timer;
+package de.mein.auth.tools;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -20,7 +20,13 @@ public class WatchDogTimer extends Timer {
     private Semaphore lock = new Semaphore(1,true);
     private int waitCounter = 0;
 
-
+    /**
+     *
+     * @param watchDogTimerFinished
+     * @param repetitions repeat n times
+     * @param delay starts after n ms
+     * @param period wait for n ms after each period
+     */
     public WatchDogTimer(WatchDogTimerFinished watchDogTimerFinished, int repetitions, int delay, int period) {
         this.watchDogTimerFinished = watchDogTimerFinished;
         this.repetitions = repetitions;
