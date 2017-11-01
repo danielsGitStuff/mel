@@ -1,5 +1,7 @@
 package de.mein.android.service;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -7,6 +9,8 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
@@ -15,8 +19,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import de.mein.R;
 import de.mein.android.AndroidInjector;
 import de.mein.android.AndroidRegHandler;
+import de.mein.android.MainActivity;
+import de.mein.android.Notifier;
 import de.mein.android.contacts.AndroidContactsBootloader;
 import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.auth.data.JsonSettings;
@@ -129,7 +136,22 @@ public class AndroidService extends Service {
             }
             lock.unlockWrite();
         }
-        return super.onStartCommand(intent, flags, startId);
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent =
+                PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        Notification notification =
+                new NotificationCompat.Builder(this, Notifier.CHANNEL_ID_SILENT)
+                        .setContentTitle("title")
+                        .setContentText("text")
+                        .setSmallIcon(R.drawable.icon_addressbook)
+                        .setContentIntent(pendingIntent)
+                        .setTicker("ticker")
+                        .build();
+        startForeground(777, notification);
+
+        return Service.START_STICKY;
     }
 
     private void debugStuff() {
