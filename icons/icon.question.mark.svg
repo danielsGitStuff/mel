@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 16 16"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="icon.question.mark.svg"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)">
+  <metadata
+     id="metadata10">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10000"
+     gridtolerance="10000"
+     guidetolerance="10000"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     id="namedview8"
+     showgrid="false"
+     inkscape:zoom="41.7193"
+     inkscape:cx="11.05844"
+     inkscape:cy="10.305438"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg6"
+     inkscape:snap-bbox="true"
+     inkscape:snap-bbox-midpoints="true" />
+  <defs
+     id="defs3051">
+    <style
+       type="text/css"
+       id="current-color-scheme">
+      .ColorScheme-Text {
+        color:#4d4d4d;
+      }
+      </style>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath13">
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g9"
+         id="use15"
+         width="100%"
+         height="100%" />
+    </clipPath>
+  </defs>
+  <g
+     id="g11"
+     clip-path="url(#clipPath13)">
+    <g
+       inkscape:label="Clip"
+       id="g9">
+      <path
+         sodipodi:nodetypes="csssccssssc"
+         inkscape:connector-curvature="0"
+         id="path4"
+         class="ColorScheme-Text"
+         d="m 8.0084744,0.55932203 c -4.1801756,0 -7.56779646,3.38762087 -7.56779646,7.56779657 0,4.1801754 3.38762086,7.5677964 7.56779646,7.5677964 4.1801756,0 7.5677966,-3.387621 7.5677966,-7.5677964 0,-4.1801757 -3.387621,-7.56779657 -7.5677966,-7.56779657 m 0,1.37596307 c 3.4192676,0 6.1918346,2.7656855 6.1918346,6.1918335 0,1.3775987 -0.448934,2.6502234 -1.209122,3.6788444 -1.126637,1.524467 -2.936936,2.51299 -4.9827126,2.51299 -3.419268,0 -6.1918335,-2.765687 -6.1918335,-6.1918344 0,-3.4192681 2.7656856,-6.1918335 6.1918335,-6.1918335"
+         style="color:#4d4d4d;fill:currentColor;fill-opacity:1;stroke:none;stroke-width:1.37596297" />
+    </g>
+  </g>
+  <g
+     aria-label="?"
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+     id="text19">
+    <path
+       d="M 7.2044382,10.226728 Q 7.217459,9.4519886 7.3802194,9.0027699 7.5429798,8.5535511 8.0442819,8.0066762 L 8.8971464,7.1277699 q 0.546875,-0.6184895 0.546875,-1.3281249 0,-0.6835938 -0.3580729,-1.0677084 -0.3580729,-0.3906249 -1.0416666,-0.3906249 -0.6640625,0 -1.0677083,0.3515625 Q 6.5729278,5.0444366 6.5729278,5.6368845 H 5.3685007 Q 5.3815215,4.5821971 6.1171986,3.9376658 6.8593861,3.2866242 8.0442819,3.2866242 q 1.2304687,0 1.9140624,0.6640625 0.6901037,0.657552 0.6901037,1.8098958 0,1.1393228 -1.054687,2.2460937 L 8.8841256,8.7098011 Q 8.4088652,9.2371449 8.4088652,10.226728 Z m -0.052083,2.063802 q 0,-0.292969 0.1757813,-0.488281 0.1822916,-0.201823 0.5338541,-0.201823 0.3515625,0 0.5338542,0.201823 0.1822916,0.195312 0.1822916,0.488281 0,0.292969 -0.1822916,0.488281 -0.1822917,0.188803 -0.5338542,0.188803 -0.3515625,0 -0.5338541,-0.188803 Q 7.1523548,12.583499 7.1523548,12.29053 Z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:13.33333302px;font-family:Roboto;-inkscape-font-specification:Roboto"
+       id="path21" />
+  </g>
+</svg>
