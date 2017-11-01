@@ -1,0 +1,54 @@
+<resources>
+    <string name="app_name">Drive</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_cert_incoming">Kopplungsversuch!</string>
+
+
+
+    <string name="notificationCertTitle">Kopplungsversuch!</string>
+    <string name="notificationCertText">Eine andere Driveinstanz möchte diese hier kennenlernen.</string>
+    <string name="slogan">Wolkenfrei!</string>
+    <string name="permanentNotificationText">Die Notification soll das Beenden durch Android verhindern.</string>
+    <string name="btnOk">Ok</string>
+    <string name="titleHelp">Hilfe</string>
+    <string name="accessHelp">Linke Spalte: Alle anderen, dir bekannten Driveinstanzen. Wenn du drauf klickst zeigt dir rechte Spalte alle verfügbaren Dienste an. Wenn du ein Häckchen setzt, darf diese Instanz mit diesem Dienst \"reden\".</string>
+    <string name="createServiceHelp">Hier kannst du neue Dienste erstellen. Denk dran: Diensten ist es üblicherweise erstmal nicht erlabt mit anderen Driveinstanzen zu \"sprechen\". Du kannst es in der Zugriffansicht ändern.</string>
+    <string name="infoHelp" >Zeigt den aktuellen Status des Hintergunddienstes und ein paar Zusatzinfos. Im Navigator auf der linken Seite kannst du alle laufenden Dienste und Einstellungen sehen.</string>
+    <string name="logcatHelp">Das brauchst du für gewöhnlich nicht. Es sei denn irgendetwas geht schief und du liest gerne Logs.</string>
+    <string name="discoveryHelp">Sucht andere Instanzen von Drive im aktuellen W-Lan. Damit dies funktioniert, muss dein Netzwerk Broadcasting erlauben. Der Broadcast-Port ist 9966. Wenn du verkoppelt bist, kannst du Dienste erstellen und den anderen Instanzen erlauben mit ihnen zu \"reden\".</string>
+    <string name="connectedHelp">Liste aller aktuell verbundenen Instanzen</string>
+    <string name="settingsHelp">Hier kannst du den Namen dieser Instanz und Ports einstellen. Der Name wird auf anderen Geäten angezeigt, sobald diese gekoppelt sind. Die Ports sind für die direkte Verbindung nötig (sollte Broadcast nicht funktionieren). Der Broadcast-Port ist fest: 9966."</string>
+
+    <string name="editServiceHelp">Hier kannst du Einstellungen am laufenden Dienst vornehmen.</string>
+    <string name="settingsName">Name</string>
+    <string name="settingsConnectionSettings">Verbindungseinstellungen</string>
+    <string name="settingsPort">Port</string>
+    <string name="settingsCertPort">Zertifikats-Port</string>
+    <string name="settingsApply">Übernehmen</string>
+    <string name="settingsStartStop">Start/Stop</string>
+    <string name="settingsPowerSettings">Energieeinstellungen</string>
+    <string name="settingsHeavyWorkWhenPlugged">Immer Schwerarbeit verrichten wenn das Gerät lädt</string>
+    <string name="settingsHeavyWorkNoWifi">Schwerarbeit erlauben wenn nicht im W-Lan</string>
+    <string name="settingsHeavyWorkHint">*Schwerarbeit kann deinen Akku leeren. Es lässt dinge wie Dateiindizierung zu.</string>
+    <string name="infoNoOfServices">Anzahl der Dienste</string>
+    <string name="infoStopped">Läuft nicht</string>
+    <string name="infoStarted">Status</string>
+    <string name="accessKnownCerts">Bekannte Instanzen</string>
+    <string name="accessAvailableServices">Verfügbare Dienste  (auf diesem Gerät)</string>
+    <string name="connectedTitle">Verbundene Instanzen</string>
+    <string name="accessTitle">Zugriffsrechte</string>
+    <string name="createServiceTitle">Dienst erstellen</string>
+    <string name="infoTitle">Info</string>
+    <string name="logcatTitle">Logcat</string>
+    <string name="discoverTitle">Koppeln</string>
+    <string name="settingsTitle">Einstellungen</string>
+    <string name="editServiceTitle">Dienst editieren</string>
+    <string name="drawerTitle">Drive an sich</string>
+    <string name="drawerServices">Dienste</string>
+    <string name="drawerCreateNewService">Neuer Dienst</string>
+    <string name="discoverBtnCouple">Koppeln</string>
+    <string name="discoverUnknown">Unbekannt</string>
+    <string name="discoverKnown">Bekannt</string>
+</resources>
