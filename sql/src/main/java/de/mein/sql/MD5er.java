@@ -3,6 +3,8 @@ package de.mein.sql;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by xor on 10/3/17.
@@ -10,6 +12,10 @@ import java.security.NoSuchAlgorithmException;
 
 public class MD5er {
     private MessageDigest digest;
+    //todo debug
+//    private List<Object> hashed = new ArrayList<>();
+//    public static List<MD5er> usedMD5ers = new ArrayList<>();
+    private String hash;
 
     public MD5er() {
         try {
@@ -17,13 +23,18 @@ public class MD5er {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+        //todo debug
+        //usedMD5ers.add(this);
     }
 
     public String digest() {
-        return Hash.bytesToString(digest.digest());
+        hash = Hash.bytesToString(digest.digest());
+        return hash;
     }
 
     public MD5er hash(Object o) {
+        if (hash != null)
+            return this;
         if (o != null) {
             if (o instanceof String) {
                 String s = (String) o;
@@ -46,6 +57,7 @@ public class MD5er {
             }
         } else
             digest.update("null".getBytes());
+        //hashed.add(o);
         return this;
     }
 }

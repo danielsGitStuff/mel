@@ -44,7 +44,7 @@ public class WatchDogTimer extends Timer {
         if (task != null)
             task.reset();
         if (!runs) {
-            System.out.println("WatchDogTimer.start.NEWTASK");
+            //System.out.println("WatchDogTimer.start.NEWTASK");
             task = new WatchDogTimerTask(() -> {
                 System.out.println("WatchDogTimer.STOPPPPED");
                 lock.acquire();
@@ -114,10 +114,10 @@ public class WatchDogTimer extends Timer {
             int count = this.count.decrementAndGet();
             boolean wait = this.wait.get();
             if (wait) {
-                System.out.println("WatchDogTimerTask.runTry.wait");
+                //System.out.println("WatchDogTimerTask.runTry.wait");
                 reset();
             } else {
-                System.out.println("WatchDogTimerTask.runTry." + count);
+                //System.out.println("WatchDogTimerTask.runTry." + count);
                 if (count == 0) {
                     this.cancel();
                     try {
@@ -130,7 +130,7 @@ public class WatchDogTimer extends Timer {
         }
 
         public void reset() {
-            System.out.println("WatchDogTimerTask.reset");
+            //System.out.println("WatchDogTimerTask.reset");
             count.set(startValue);
         }
     }

@@ -60,7 +60,54 @@ public class AndroidContactsServerService extends ContactsServerService {
         }
         databaseManager.maintenance();
         // examine when booted
+        //todo debug
+        //debug();
         addJob(new ExamineJob());
+    }
+
+    private void debug() {
+        N.r(() -> {
+            PhoneBook read = serviceMethods.examineContacts(null);
+            read = databaseManager.getPhoneBookDao().loadDeepPhoneBook(read.getId().v());
+
+            PhoneBook debugBook = new PhoneBook();
+            debugBook.getCreated().v(12L);
+            debugBook.getVersion().v(0L);
+            Contact contact = new Contact();
+            contact.getPhonebookId().v(debugBook.getId());
+            ContactAppendix appendix = new ContactAppendix(contact);
+            appendix.getMimeType().v(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
+            appendix.setValue(0, "Adolf Bedolf");
+            appendix.setValue(1,"Adolf")
+            .setValue(2,"Bedolf")
+            .setValue(9,"1")
+            .setValue(10,"0");
+            appendix.getContactId().v(contact.getId());
+            contact.addAppendix(appendix);
+            contact.hash();
+            debugBook.addContact(contact);
+            debugBook.hash();
+            databaseManager.getPhoneBookDao().insertDeep(debugBook);
+
+            ConflictIntentExtra conflict = new ConflictIntentExtra(read.getId().v(), debugBook.getId().v());
+            MeinNotification notification = new MeinNotification(getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text");
+            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, conflict);
+            meinAuthService.onNotificationFromService(this, notification);
+        });
+    }
+
+    public void debugonConflictSolved(PhoneBook merged) {
+        N.r(() -> {
+            String oldeHash = merged.getHash().v();
+            PhoneBook before = databaseManager.getPhoneBookDao().loadDeepPhoneBook(merged.getId().v());
+            before.hash();
+            contactsToAndroidExporter.export(before.getId().v());
+            PhoneBook after = serviceMethods.examineContacts(0L);
+            PhoneBook afterDeep = databaseManager.getPhoneBookDao().loadDeepPhoneBook(after.getId().v());
+            afterDeep.hash();
+            System.out.println("AndroidContactsServerService.debugonConflictSolved");
+        });
+
     }
 
     private int count = 0;

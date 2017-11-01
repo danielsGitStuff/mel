@@ -78,8 +78,9 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         populateAll(id);
     }
 
-    public void setValue(int index, String value) {
+    public ContactAppendix setValue(int index, String value) {
         dataCols.get(index).setValueUnsecure(value);
+        return this;
     }
 
     public Pair<String> getMimeType() {

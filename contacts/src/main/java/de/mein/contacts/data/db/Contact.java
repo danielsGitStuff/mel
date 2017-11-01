@@ -24,6 +24,7 @@ public class Contact extends SQLTableObject implements SerializableEntity {
     private static final String MIME_PHOTO = "vnd.android.cursor.item/photo";
     @JsonIgnore
     private Pair<Long> id = new Pair<>(Long.class, ID);
+    @JsonIgnore
     private Pair<Long> phonebookId = new Pair<>(Long.class, PID);
     @JsonIgnore
     private Pair<Boolean> checked = new Pair<>(Boolean.class, FLAG_CHECKED, false);

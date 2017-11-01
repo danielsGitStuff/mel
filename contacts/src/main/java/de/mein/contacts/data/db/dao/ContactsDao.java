@@ -178,4 +178,8 @@ public class ContactsDao extends Dao {
         String where = appendix.getContactId().k()+"=? and "+appendix.getMimeType().k()+"<>?";
         return sqlQueries.load(appendix.getAllAttributes(),appendix,where,ISQLQueries.whereArgs(id,nameMimeType));
     }
+
+    public void update(Contact contact) throws SqlQueriesException {
+        sqlQueries.update(contact,contact.getId().k()+"=?",ISQLQueries.whereArgs(contact.getId().v()));
+    }
 }

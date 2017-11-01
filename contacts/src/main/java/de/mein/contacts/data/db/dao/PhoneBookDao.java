@@ -78,7 +78,7 @@ public class PhoneBookDao extends Dao {
         PhoneBook phoneBook = loadPhoneBook(id);
         List<Contact> contacts = contactsDao.getDeepContacts(id);
         phoneBook.setContacts(contacts);
-        phoneBook.hash();
+        //phoneBook.hash();
         return phoneBook;
     }
 

@@ -16,6 +16,7 @@ import de.mein.android.Notifier;
 import de.mein.android.contacts.data.ConflictIntentExtra;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.android.contacts.service.AndroidContactsClientService;
+import de.mein.android.contacts.service.AndroidContactsServerService;
 import de.mein.android.contacts.view.ContactsConflictListAdapter;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.MeinNotification;
@@ -56,7 +57,8 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
             ConflictIntentExtra conflictIntentExtra = (ConflictIntentExtra) SerializableEntityDeserializer.deserialize(json);
             lastReadPhoneBookId = conflictIntentExtra.getLocalPhoneBookId();
             receivedPhoneBookId = conflictIntentExtra.getReceivedPhoneBookId();
-            adapter = new ContactsConflictListAdapter(this, service, lastReadPhoneBookId, receivedPhoneBookId);
+            //todo debug
+            adapter = new ContactsConflictListAdapter(this,   service, lastReadPhoneBookId, receivedPhoneBookId);
             listView.setAdapter(adapter);
             runOnUiThread(() -> {
                 adapter.notifyDataSetChanged();
@@ -81,6 +83,7 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
                 System.out.println("ContactsConflictsPopupActivity: Conflict resolved!");
                 merged.digest();
                 phoneBookDao.updateFlat(merged);
+                //service.debugonConflictSolved(merged);
                 phoneBookDao.deletePhoneBook(receivedPhoneBookId);
                 //phoneBookDao.deletePhoneBook(lastReadPhoneBookId);
                 //service.getDatabaseManager().getSettings().getClientSettings().setLastReadId(merged.getId().v());

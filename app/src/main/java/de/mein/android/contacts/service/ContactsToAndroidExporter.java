@@ -93,6 +93,7 @@ public class ContactsToAndroidExporter {
                     ContentProviderResult[] result = contentResolver.applyBatch(ContactsContract.AUTHORITY, operationList);
                     AndroidServiceMethods.readPhoto(dummy, result[0].uri.getLastPathSegment());
                     contactMD5er.hash(dummy.getImage().v());
+                    //contactMD5er.hash(contact.getImage().v());
                     contact.getHash().v(contactMD5er.digest());
                     contactsDao.updateHash(contact);
                     phoneBook.hashContact(contact);
@@ -127,6 +128,7 @@ public class ContactsToAndroidExporter {
             md5er.hash(appendix.getValue(i));
         }
         md5er.hash(appendix.getBlob().v());
+        md5er.hash(appendix.getMimeType().v());
         builder.withValue(ContactsContract.Data.MIMETYPE, appendix.getMimeType().v());
         return builder.build();
     }

@@ -29,6 +29,7 @@ import java.util.Set;
 import de.mein.R;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.android.contacts.service.AndroidContactsClientService;
+import de.mein.android.contacts.service.AndroidContactsServerService;
 import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactJoinDummy;
 import de.mein.contacts.data.db.Contact;

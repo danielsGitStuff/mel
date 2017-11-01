@@ -162,7 +162,6 @@ public class AndroidServiceMethods {
 
             @Override
             public void onChange(boolean selfChange) {
-                System.out.println("AndroidContactsServerService.onChange." + selfChange);
                 super.onChange(selfChange);
                 try {
                     watchDogTimer.start();
@@ -173,7 +172,6 @@ public class AndroidServiceMethods {
 
             @Override
             public void onChange(boolean selfChange, Uri uri) {
-                System.out.println("AndroidContactsServerService.onChange.uri: " + uri);
                 super.onChange(selfChange, uri);
             }
         });
