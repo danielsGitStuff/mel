@@ -11,7 +11,6 @@ import de.mein.android.service.AndroidService;
 import de.mein.android.MeinActivity;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
 
@@ -26,7 +25,7 @@ public class OthersController extends GuiController {
     private Certificate selectedCert;
 
     public OthersController(MeinActivity activity, LinearLayout content) {
-        super(activity, content, R.layout.content_others);
+        super(activity, content, R.layout.content_connected);
         btnDelete = rootView.findViewById(R.id.btnDelete);
         listCertificates = rootView.findViewById(R.id.listCertificates);
         listCertAdapter = new KnownCertListAdapter(rootView.getContext());

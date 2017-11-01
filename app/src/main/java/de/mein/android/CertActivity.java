@@ -32,7 +32,6 @@ public class CertActivity extends PopupActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle(getString(R.string.REG_CERT_TITLE));
         setContentView(R.layout.activity_cert_incoming);
         txtRemote = findViewById(R.id.txtRemote);
         txtOwn = findViewById(R.id.txtOwn);

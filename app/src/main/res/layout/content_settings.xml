@@ -17,7 +17,7 @@
 
 <TextView
     android:id="@+id/txtConnection"
-    android:text="Connection Settings"
+    android:text="@string/settingsConnectionSettings"
     android:layout_width="match_parent"
     android:background="@color/colorLabelBackground"
     android:layout_height="wrap_content" />
@@ -33,7 +33,7 @@
                 android:id="@+id/lName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Name" />
+                android:text="@string/settingsName" />
 
             <EditText
                 android:id="@+id/txtName"
@@ -50,7 +50,7 @@
                 android:id="@+id/lPort"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Port" />
+                android:text="@string/settingsPort" />
 
             <EditText
                 android:id="@+id/txtPort"
@@ -67,7 +67,7 @@
                 android:id="@+id/lPortCert"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cert-Port" />
+                android:text="@string/settingsCertPort" />
 
             <EditText
                 android:id="@+id/txtCertPort"
@@ -79,7 +79,7 @@
         </TableRow>
     </TableLayout>
 
-    <View android:id="@+id/txtName"
+    <View android:id="@+id/dummyMiddle"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_centerHorizontal="true"/>
@@ -89,8 +89,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/table"
         android:layout_alignParentStart="true"
-        android:layout_toStartOf="@id/txtName"
-        android:text="Apply" />
+        android:layout_toStartOf="@id/dummyMiddle"
+        android:text="@string/settingsApply" />
 
     <Button
         android:id="@+id/btnStart"
@@ -98,11 +98,11 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/table"
         android:layout_alignParentEnd="true"
-        android:layout_toEndOf="@id/txtName"
-        android:text="Start/Stop" />
+        android:layout_toEndOf="@id/dummyMiddle"
+        android:text="@string/settingsStartStop" />
     <TextView
         android:id="@+id/txtPower"
-        android:text="Power Settings"
+        android:text="@string/settingsPowerSettings"
         android:layout_width="match_parent"
         android:background="@color/colorLabelBackground"
         android:layout_below="@id/btnApply"
@@ -113,20 +113,20 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/txtPower"
-        android:text="Always do heavy work when plugged" />
+        android:text="@string/settingsHeavyWorkWhenPlugged" />
 
     <CheckBox
         android:id="@+id/cbWorkWhenOffline"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/cbWorkWhenPlugged"
-        android:text="Allow heavy work when WiFi is off" />
+        android:text="@string/settingsHeavyWorkNoWifi" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/cbWorkWhenOffline"
-        android:text="*Heavy work might drain your battery. It allows things like file indexing." />
+        android:text="@string/settingsHeavyWorkHint" />
 
 
 </RelativeLayout>

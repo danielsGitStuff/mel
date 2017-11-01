@@ -70,8 +70,8 @@ public class AndroidRegHandler implements IRegisterHandler {
         intent.putExtra(REGBUNDLE_UUID, uuid);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = builder.setSmallIcon(R.drawable.ic_menu_add)
-                .setContentTitle(context.getString(R.string.REG_CERT_NOTITIFCATION_TITLE))
-                .setContentText(context.getString(R.string.REG_CERT_NOTIFICATION_TEXT))
+                .setContentTitle(context.getString(R.string.notificationCertTitle))
+                .setContentText(context.getString(R.string.notificationCertText))
                 .setContentIntent(pendingIntent)
                 .build();
         notificationManager.notify(requestCode, notification);
