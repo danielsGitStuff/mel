@@ -5,6 +5,8 @@ import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -13,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
+import android.text.Layout;
 import android.view.SubMenu;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -25,6 +28,7 @@ import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
@@ -124,14 +128,25 @@ public class MainActivity extends MeinActivity {
         // turn the help button into something useful
         btnHelp.setOnClickListener(v -> {
             if (guiController != null && guiController.getHelp() != null) {
-                showMessage(this,guiController.getHelp());
+                showMessage(this, guiController.getHelp());
             }
         });
+        // show current app version
+        try {
+            PackageInfo packageInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = packageInfo.versionName;
+            View navView = navigationView.getHeaderView(0);
+            TextView textTitle = navView.findViewById(R.id.textTitle);
+            String title = getText(R.string.app_name) + " " + version;
+            textTitle.setText(title);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
         startService();
 //        debugStuff3();
     }
 
-    public static void showMessage(Context context, int message){
+    public static void showMessage(Context context, int message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage(message)
                 .setTitle(R.string.titleHelp)
@@ -385,11 +400,11 @@ public class MainActivity extends MeinActivity {
         super.onResume();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         boolean previouslyStarted = prefs.getBoolean(getString(R.string.introShown), false);
-        if(!previouslyStarted) {
+        if (!previouslyStarted) {
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean(getString(R.string.introShown), Boolean.TRUE);
             editor.apply();
-            showMessage(this,R.string.introduction);
+            showMessage(this, R.string.introduction);
         }
     }
 

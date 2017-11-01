@@ -52,8 +52,10 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
             chooserIntent.putExtra(DirectoryChooserActivity.EXTRA_CONFIG, config);
             activity.launchActivityForResult(chooserIntent, (resultCode, result) -> {
                 //result is here
-                String path = result.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR);
-                txtPath.setText(path);
+                if (result != null) {
+                    String path = result.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR);
+                    txtPath.setText(path);
+                }
             });
         });
     }
