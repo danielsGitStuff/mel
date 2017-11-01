@@ -2,9 +2,12 @@ package de.mein.android;
 
 import android.Manifest;
 import android.content.ContentProviderOperation;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -121,17 +124,22 @@ public class MainActivity extends MeinActivity {
         // turn the help button into something useful
         btnHelp.setOnClickListener(v -> {
             if (guiController != null && guiController.getHelp() != null) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage(guiController.getHelp())
-                        .setTitle(R.string.titleHelp)
-                        .setPositiveButton(R.string.btnOk, null);
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
+                showMessage(this,guiController.getHelp());
             }
         });
         startService();
 //        debugStuff3();
     }
+
+    public static void showMessage(Context context, int message){
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(message)
+                .setTitle(R.string.titleHelp)
+                .setPositiveButton(R.string.btnOk, null);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
 
     public static void debugStuff3() {
         try {
@@ -370,6 +378,19 @@ public class MainActivity extends MeinActivity {
         })).fail(result -> {
             System.out.println("errrrr." + result);
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        boolean previouslyStarted = prefs.getBoolean(getString(R.string.introShown), false);
+        if(!previouslyStarted) {
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean(getString(R.string.introShown), Boolean.TRUE);
+            editor.apply();
+            showMessage(this,R.string.introduction);
+        }
     }
 
     public void showMenuServices() {

@@ -51,4 +51,5 @@
     <string name="discoverBtnCouple">Koppeln</string>
     <string name="discoverUnknown">Unbekannt</string>
     <string name="discoverKnown">Bekannt</string>
+    <string name="introduction">Willkommen zu Drive. Diese App kann sich mit anderen Instanzen in deinem Netzwerk koppeln. Wenn das getan ist, kannst du einen Dienst erstellen und den anderen Drive-Instanzen Zugriff darauf gewähren. Oben rechts befindet sich ein Hilfeknopf, der dir sagt welchen Zweck die verschienden Dinge hier erfüllen.</string>
 </resources>
