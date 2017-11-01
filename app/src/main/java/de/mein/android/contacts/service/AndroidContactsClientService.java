@@ -98,7 +98,9 @@ public class AndroidContactsClientService extends ContactsClientService {
     @Override
     protected void workWork(Job job) throws Exception {
         if (job instanceof ExamineJob) {
-            PhoneBook phoneBook = serviceMethods.examineContacts(settings.getClientSettings().getLastReadId());
+            final Long lastReadId = settings.getClientSettings().getLastReadId();
+            PhoneBook lastReadPhonebook = lastReadId == null ? null : databaseManager.getPhoneBookDao().loadFlatPhoneBook(lastReadId);
+            PhoneBook phoneBook = serviceMethods.examineContacts(lastReadPhonebook == null ? null : lastReadPhonebook.getVersion().v());
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
             if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
                 settings.getClientSettings().setLastReadId(phoneBook.getId().v());
@@ -176,6 +178,17 @@ public class AndroidContactsClientService extends ContactsClientService {
         });
     }
 
+    @Override
+    public void shutDown() {
+        super.shutDown();
+    }
+
+
+    @Override
+    public void onShutDown() {
+        super.onShutDown();
+    }
+
     private void updateLocalPhoneBook(Long newPhoneBookId) throws IllegalAccessException, IOException, JsonSerializationException {
         System.out.println("AndroidContactsClientService.workWork. update succeeded");
         databaseManager.getSettings().setMasterPhoneBookId(newPhoneBookId);
@@ -191,6 +204,7 @@ public class AndroidContactsClientService extends ContactsClientService {
 
     /**
      * exports to local android phonebook if hash from last reading differs
+     *
      * @param newPhoneBookId
      * @throws SqlQueriesException
      */

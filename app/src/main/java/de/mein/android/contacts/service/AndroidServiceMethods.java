@@ -57,9 +57,12 @@ public class AndroidServiceMethods {
         PhoneBook master = databaseManager.getFlatMasterPhoneBook();
         if (master == null)
             phoneBook = phoneBookDao.create(0L);
-        else if (lastUncommitedHeadVersion != null)
-            phoneBook = phoneBookDao.create(lastUncommitedHeadVersion);
-        else
+        else if (lastUncommitedHeadVersion != null) {
+            Long max = lastUncommitedHeadVersion;
+            if (master.getVersion().v() > max)
+                max = master.getVersion().v();
+            phoneBook = phoneBookDao.create(max + 1);
+        } else
             phoneBook = phoneBookDao.create(master.getVersion().v() + 1);
         String[] projContact = new String[]{
                 ContactsContract.Contacts._ID,
@@ -104,7 +107,7 @@ public class AndroidServiceMethods {
 
     private void readAppendices(Contact contact, String rawContactId) {
         String selection = ContactsContract.Data.RAW_CONTACT_ID + " = ? and " + ContactsContract.Data.MIMETYPE + "<>?";
-        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId,ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE}, null);
+        DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE}, null);
         while (reader.moveToNext()) {
             ContactAppendix appendix = new ContactAppendix();
             reader.readDataColumns(appendix);
