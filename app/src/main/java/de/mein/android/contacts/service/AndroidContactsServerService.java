@@ -226,5 +226,9 @@ public class AndroidContactsServerService extends ContactsServerService {
         return Executors.newSingleThreadExecutor(threadFactory);
     }
 
-
+    @Override
+    public void onShutDown() {
+        super.onShutDown();
+        serviceMethods.onShutDown();
+    }
 }

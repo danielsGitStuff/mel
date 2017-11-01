@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Mein Drive</string>
+    <string name="app_name">Drive</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_settings">Settings</string>
@@ -81,4 +81,5 @@
     <string name="REG_CERT_NOTIFICATION_TEXT">someome wants to connect to you</string>
     <string name="REG_CERT_TITLE">Look at it!</string>
     <string name="slogan">No Clouds included!</string>
+    <string name="permanentNotificationText">This notification prevents Drive from being shut down.</string>
 </resources>

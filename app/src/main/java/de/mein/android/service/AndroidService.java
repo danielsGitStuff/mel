@@ -137,15 +137,16 @@ public class AndroidService extends Service {
             lock.unlockWrite();
         }
 
+        // create notification so hopefully android won't kill our beloved service
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
         Notification notification =
                 new NotificationCompat.Builder(this, Notifier.CHANNEL_ID_SILENT)
-                        .setContentTitle("title")
-                        .setContentText("text")
-                        .setSmallIcon(R.drawable.icon_addressbook)
+                        .setContentTitle(getText(R.string.app_name))
+                        .setContentText(getText(R.string.permanentNotificationText))
+                        .setSmallIcon(R.drawable.notification_icon)
                         .setContentIntent(pendingIntent)
                         .setTicker("ticker")
                         .build();

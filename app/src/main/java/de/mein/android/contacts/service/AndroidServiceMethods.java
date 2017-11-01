@@ -39,6 +39,7 @@ public class AndroidServiceMethods {
 
     private final ContactsDatabaseManager databaseManager;
     private final MeinService service;
+    private ContentObserver observer;
 
     public AndroidServiceMethods(MeinService service, ContactsDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
@@ -156,7 +157,7 @@ public class AndroidServiceMethods {
     public void listenForContactsChanges() {
         watchDogTimer = new WatchDogTimer(() -> service.addJob(new ExamineJob()), 20, 100, 100);
         Context context = Tools.getApplicationContext();
-        context.getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, new ContentObserver(null) {
+        observer = new ContentObserver(null) {
             @Override
             public boolean deliverSelfNotifications() {
                 System.out.println("AndroidContactsServerService.deliverSelfNotifications");
@@ -177,7 +178,12 @@ public class AndroidServiceMethods {
             public void onChange(boolean selfChange, Uri uri) {
                 super.onChange(selfChange, uri);
             }
-        });
+        };
+        context.getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, observer);
+    }
+
+    public void onShutDown(){
+        Tools.getApplicationContext().getContentResolver().unregisterContentObserver(observer);
     }
 
 }
