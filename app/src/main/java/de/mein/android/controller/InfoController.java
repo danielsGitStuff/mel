@@ -52,5 +52,10 @@ public class InfoController extends GuiController {
         this.androidService = null;
     }
 
+    @Override
+    public Integer getHelp() {
+        return R.string.helpInfo;
+    }
+
 
 }

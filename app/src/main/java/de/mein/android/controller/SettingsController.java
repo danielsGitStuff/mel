@@ -94,6 +94,11 @@ public class SettingsController extends GuiController {
     }
 
     @Override
+    public Integer getHelp() {
+        return R.string.helpSettings;
+    }
+
+    @Override
     public void onDestroy() {
         powerManager = null;
     }

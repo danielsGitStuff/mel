@@ -17,6 +17,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.view.SubMenu;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -27,6 +28,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import org.greenrobot.eventbus.EventBus;
@@ -74,6 +76,7 @@ public class MainActivity extends MeinActivity {
     private GuiController guiController;
     private NavigationView navigationView;
     private File driveDir;
+    private ImageButton btnHelp;
 
     protected void startService() {
         if (androidService == null) {
@@ -100,6 +103,7 @@ public class MainActivity extends MeinActivity {
         setContentView(R.layout.activity_main);
         content = findViewById(R.id.content);
         toolbar = findViewById(R.id.toolbar);
+        btnHelp = toolbar.findViewById(R.id.btnHelp);
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -126,6 +130,17 @@ public class MainActivity extends MeinActivity {
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         enableGuiController(new InfoController(this, content));
+        // turn the help button into something useful
+        btnHelp.setOnClickListener(v -> {
+            if (guiController != null && guiController.getHelp() != null) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(guiController.getHelp())
+                        .setTitle(R.string.titleHelp)
+                        .setPositiveButton(R.string.btnOk, null);
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
+        });
         startService();
 //        debugStuff3();
     }
@@ -149,21 +164,21 @@ public class MainActivity extends MeinActivity {
 
             operationList.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                     .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-                    .withValue(ContactsContract.Data.MIMETYPE,ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
                     .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, "09876543210")
                     .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_HOME)
                     .build());
             operationList.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                     .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
 
-                    .withValue(ContactsContract.Data.MIMETYPE,ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
                     .withValue(ContactsContract.CommonDataKinds.Email.DATA, "abc@xyz.com")
                     .withValue(ContactsContract.CommonDataKinds.Email.TYPE, ContactsContract.CommonDataKinds.Email.TYPE_WORK)
                     .build());
 
-            try{
-               //ContentProviderResult[] results = Tools.getApplicationContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY, operationList);
-            }catch(Exception e){
+            try {
+                //ContentProviderResult[] results = Tools.getApplicationContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY, operationList);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         } catch (Exception e) {
@@ -253,6 +268,8 @@ public class MainActivity extends MeinActivity {
 //        content.removeAllViews();
         toolbar.setTitle(guiController.getTitle());
         this.guiController = guiController;
+        boolean offersHelp = guiController.getHelp() != null;
+        btnHelp.setVisibility(offersHelp ? View.VISIBLE : View.INVISIBLE);
         EventBus.getDefault().register(guiController);
     }
 

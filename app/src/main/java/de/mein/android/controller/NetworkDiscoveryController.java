@@ -130,4 +130,9 @@ public class NetworkDiscoveryController extends GuiController {
     public void onAndroidServiceUnbound(AndroidService androidService) {
 
     }
+
+    @Override
+    public Integer getHelp() {
+        return R.string.helpNetworkDiscovery;
+    }
 }

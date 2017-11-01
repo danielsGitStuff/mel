@@ -5,8 +5,6 @@ import android.widget.LinearLayout;
 
 import org.greenrobot.eventbus.Subscribe;
 
-import java.util.stream.Stream;
-
 import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidService;
 
@@ -49,4 +47,6 @@ public abstract class GuiController {
     public View getRootView() {
         return rootView;
     }
+
+    public abstract Integer getHelp();
 }

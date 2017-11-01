@@ -53,4 +53,9 @@ public class LogCatController extends GuiController {
     public void onAndroidServiceUnbound(AndroidService androidService) {
 
     }
+
+    @Override
+    public Integer getHelp() {
+        return R.string.helpLogcat;
+    }
 }

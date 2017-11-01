@@ -49,7 +49,6 @@ public abstract class MeinActivity extends AppCompatActivity
         void onResultReceived(int resultCode, Intent result);
     }
 
-
     protected AndroidService androidService;
 
     protected void bindService() {

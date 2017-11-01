@@ -1,6 +1,5 @@
 package de.mein.android.controller;
 
-import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -149,5 +148,10 @@ public class AccessController extends GuiController {
     @Override
     public void onAndroidServiceUnbound(AndroidService androidService) {
 
+    }
+
+    @Override
+    public Integer getHelp() {
+        return R.string.helpAccess;
     }
 }

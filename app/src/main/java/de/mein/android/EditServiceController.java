@@ -58,4 +58,9 @@ class EditServiceController extends GuiController {
     public void onAndroidServiceUnbound(AndroidService androidService) {
 
     }
+
+    @Override
+    public Integer getHelp() {
+        return R.string.helpEditService;
+    }
 }

@@ -82,4 +82,14 @@
     <string name="REG_CERT_TITLE">Look at it!</string>
     <string name="slogan">No Clouds included!</string>
     <string name="permanentNotificationText">This notification prevents Drive from being shut down.</string>
+    <string name="btnOk">Ok</string>
+    <string name="titleHelp">Help</string>
+    <string name="helpAccess">access help goes here</string>
+    <string name="helpCreateService">service goes here</string>
+    <string name="helpInfo" >info goes here</string>
+    <string name="helpLogcat">logcat goes here</string>
+    <string name="helpNetworkDiscovery">network discovery hoes here</string>
+    <string name="helpOthers">others goes here</string>
+    <string name="helpSettings">settings goes here</string>
+    <string name="helpEditService">edit service goes here</string>
 </resources>
