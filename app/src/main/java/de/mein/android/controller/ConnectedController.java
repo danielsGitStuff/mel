@@ -18,13 +18,13 @@ import de.mein.sql.SqlQueriesException;
  * Created by xor on 3/27/17.
  */
 
-public class OthersController extends GuiController {
+public class ConnectedController extends GuiController {
     private Button btnDelete;
     private ListView listCertificates;
     private KnownCertListAdapter listCertAdapter;
     private Certificate selectedCert;
 
-    public OthersController(MeinActivity activity, LinearLayout content) {
+    public ConnectedController(MeinActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_connected);
         btnDelete = rootView.findViewById(R.id.btnDelete);
         listCertificates = rootView.findViewById(R.id.listCertificates);
@@ -55,8 +55,8 @@ public class OthersController extends GuiController {
 
 
     @Override
-    public String getTitle() {
-        return "Connected instances";
+    public Integer getTitle() {
+        return R.string.connectedTitle;
     }
 
     @Override
@@ -73,6 +73,6 @@ public class OthersController extends GuiController {
 
     @Override
     public Integer getHelp() {
-        return R.string.helpOthers;
+        return R.string.connectedHelp;
     }
 }

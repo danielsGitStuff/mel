@@ -38,7 +38,7 @@ public abstract class GuiController {
 
     }
 
-    public abstract String getTitle();
+    public abstract Integer getTitle();
 
     public abstract void onAndroidServiceAvailable();
 

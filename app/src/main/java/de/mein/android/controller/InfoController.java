@@ -1,17 +1,11 @@
 package de.mein.android.controller;
 
-import android.content.ComponentName;
-import android.content.Intent;
 import android.graphics.Color;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import de.mein.R;
 import de.mein.android.MeinActivity;
-import de.mein.auth.data.MeinAuthSettings;
 import de.mein.android.service.AndroidService;
 
 /**
@@ -30,8 +24,8 @@ public class InfoController extends GuiController {
 
 
     @Override
-    public String getTitle() {
-        return "Info";
+    public Integer getTitle() {
+        return R.string.infoTitle;
     }
 
     @Override
@@ -54,7 +48,7 @@ public class InfoController extends GuiController {
 
     @Override
     public Integer getHelp() {
-        return R.string.helpInfo;
+        return R.string.infoHelp;
     }
 
 

@@ -1,8 +1,5 @@
 package de.mein.android;
 
-import android.app.Activity;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
@@ -35,8 +32,8 @@ class EditServiceController extends GuiController {
 
 
     @Override
-    public String getTitle() {
-        return "Edit Service";
+    public Integer getTitle() {
+        return R.string.editServiceTitle;
     }
 
     @Override
@@ -61,6 +58,6 @@ class EditServiceController extends GuiController {
 
     @Override
     public Integer getHelp() {
-        return R.string.helpEditService;
+        return R.string.editServiceHelp;
     }
 }

@@ -1,16 +1,8 @@
 package de.mein.android;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.content.ContentProviderOperation;
-import android.content.ContentProviderResult;
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
@@ -34,11 +26,7 @@ import android.widget.LinearLayout;
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
 
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +34,7 @@ import de.mein.R;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.controller.InfoController;
 import de.mein.android.controller.LogCatController;
-import de.mein.android.controller.OthersController;
+import de.mein.android.controller.ConnectedController;
 import de.mein.android.controller.SettingsController;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.CertificateManager;
@@ -234,12 +222,12 @@ public class MainActivity extends MeinActivity {
             enableGuiController(new InfoController(this, content));
         } else if (id == R.id.nav_discover) {
             enableGuiController(new NetworkDiscoveryController(this, content));
-        } else if (id == R.id.nav_approvals) {
+        } else if (id == R.id.nav_access) {
             enableGuiController(new AccessController(this, content));
         } else if (id == R.id.nav_new_service) {
             enableGuiController(new CreateServiceController(this, content));
-        } else if (id == R.id.nav_others) {
-            enableGuiController(new OthersController(this, content));
+        } else if (id == R.id.nav_connected) {
+            enableGuiController(new ConnectedController(this, content));
         } else if (id == R.id.nav_settings) {
             enableGuiController(new SettingsController(this, content));
         } else if (id == R.id.nav_logcat) {
@@ -393,26 +381,26 @@ public class MainActivity extends MeinActivity {
                 MeinAuthService meinAuthService = androidService.getMeinAuthService();
                 Menu menu = navigationView.getMenu();
                 menu.clear();
-                SubMenu subMeinAuth = menu.addSubMenu("MeinAuth");
+                SubMenu subMeinAuth = menu.addSubMenu(getText(R.string.drawerTitle));
                 //general
-                MenuItem mGeneral = subMeinAuth.add(5, R.id.nav_general, 0, "Info");
+                MenuItem mGeneral = subMeinAuth.add(5, R.id.nav_general, 0, getText(R.string.infoTitle));
                 mGeneral.setIcon(R.drawable.icon_info);
-                MenuItem mOthers = subMeinAuth.add(5, R.id.nav_others, 1, "Connected");
+                MenuItem mOthers = subMeinAuth.add(5, R.id.nav_connected, 1, getText(R.string.connectedTitle));
                 mOthers.setIcon(R.drawable.icon_connected);
                 //discover ic_menu_search
-                MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 2, "Discover");
+                MenuItem mDiscover = subMeinAuth.add(5, R.id.nav_discover, 2, getText(R.string.discoverTitle));
                 mDiscover.setIcon(R.drawable.icon_wifi);
                 //approvals ic_menu_approval
-                MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_approvals, 3, "Access");
+                MenuItem mApprovals = subMeinAuth.add(5, R.id.nav_access, 3, getText(R.string.accessTitle));
                 mApprovals.setIcon(R.drawable.icon_permissions);
                 //settings
-                MenuItem mSettings = subMeinAuth.add(5, R.id.nav_settings, 4, "Settings");
+                MenuItem mSettings = subMeinAuth.add(5, R.id.nav_settings, 4, R.string.settingsTitle);
                 mSettings.setIcon(R.drawable.icon_settings);
                 //logcat
-                MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 5, "LogCat");
+                MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 5, getText(R.string.logcatTitle));
                 mLogCat.setIcon(R.drawable.icon_fail);
 
-                SubMenu subServices = menu.addSubMenu("Services");
+                SubMenu subServices = menu.addSubMenu(getText(R.string.drawerServices));
                 if (meinAuthService != null) {
                     List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
                     for (ServiceJoinServiceType service : services) {
@@ -437,7 +425,7 @@ public class MainActivity extends MeinActivity {
                         }
                     }
                 }
-                MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, "create new Service");
+                MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, getText(R.string.drawerCreateNewService));
                 mNewService.setIcon(R.drawable.ic_menu_add);
                 navigationView.refreshDrawableState();
                 System.out.println();

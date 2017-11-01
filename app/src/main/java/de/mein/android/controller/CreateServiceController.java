@@ -2,7 +2,6 @@ package de.mein.android.controller;
 
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -56,8 +55,8 @@ public class CreateServiceController extends GuiController {
 
 
     @Override
-    public String getTitle() {
-        return "Create Service";
+    public Integer getTitle() {
+        return R.string.createServiceTitle;
     }
 
     @Override
@@ -106,6 +105,6 @@ public class CreateServiceController extends GuiController {
 
     @Override
     public Integer getHelp() {
-        return R.string.helpCreateService;
+        return R.string.createServiceHelp;
     }
 }

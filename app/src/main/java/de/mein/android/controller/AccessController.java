@@ -33,7 +33,7 @@ public class AccessController extends GuiController {
     private Long selectedCertId;
 
     public AccessController(MeinActivity activity, LinearLayout content){
-        super(activity, content, R.layout.content_approvals);
+        super(activity, content, R.layout.content_access);
         this.listCertificates = rootView.findViewById(R.id.listCertificates);
         this.listServices = rootView.findViewById(R.id.listServices);
         this.knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
@@ -136,8 +136,8 @@ public class AccessController extends GuiController {
 
 
     @Override
-    public String getTitle() {
-        return "Access";
+    public Integer getTitle() {
+        return R.string.accessTitle;
     }
 
     @Override
@@ -152,6 +152,6 @@ public class AccessController extends GuiController {
 
     @Override
     public Integer getHelp() {
-        return R.string.helpAccess;
+        return R.string.accessHelp;
     }
 }

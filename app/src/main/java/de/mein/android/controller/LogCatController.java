@@ -1,6 +1,5 @@
 package de.mein.android.controller;
 
-import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -9,7 +8,6 @@ import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidService;
 import de.mein.android.view.LogListAdapter;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.MeinLogger;
 
 /**
@@ -33,8 +31,8 @@ public class LogCatController extends GuiController {
     }
 
     @Override
-    public String getTitle() {
-        return "LogCat";
+    public Integer getTitle() {
+        return R.string.logcatTitle;
     }
 
     @Override
@@ -56,6 +54,6 @@ public class LogCatController extends GuiController {
 
     @Override
     public Integer getHelp() {
-        return R.string.helpLogcat;
+        return R.string.logcatHelp;
     }
 }

@@ -4,7 +4,6 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_cert_incoming">Connection Attempt!</string>
-    <string name="title_activity_popup">Settings</string>
 
 
 
@@ -14,14 +13,14 @@
     <string name="permanentNotificationText">This notification prevents Drive from being shut down.</string>
     <string name="btnOk">Ok</string>
     <string name="titleHelp">Help</string>
-    <string name="helpAccess">access help goes here</string>
-    <string name="helpCreateService">service goes here</string>
-    <string name="helpInfo" >info goes here</string>
-    <string name="helpLogcat">logcat goes here</string>
-    <string name="helpNetworkDiscovery">network discovery hoes here</string>
-    <string name="helpOthers">others goes here</string>
-    <string name="helpSettings">settings goes here</string>
-    <string name="helpEditService">edit service goes here</string>
+    <string name="accessHelp">Left column: all other Drive instances known to you. When clicking on one of them the right column will show all existing services. Ticking the boxes will allow the other instance to talk to this specific Service.</string>
+    <string name="createServiceHelp">You can create new Services here. Remember: Services are not allowed to "talk" to any other instances by default. You can change that in the Access view.</string>
+    <string name="infoHelp" >Shows the current status of the background service and some additional info. You can see all running services in the navigator on the left.</string>
+    <string name="logcatHelp">Usually you do not need this. If something goes wrong and you cannot currently debug this is the place to look at.</string>
+    <string name="discoveryHelp">Finds other instances of Drive in the current Wifi. This requires Broadcasting to be working on your network. Broadcast are sent on port 9966.</string>
+    <string name="connectedHelp">List of currently connected instances of Drive</string>
+    <string name="settingsHelp">You can adjust your ports here. These are used to connect. Broadcast port is fixed to 9966.</string>
+    <string name="editServiceHelp">Shows things that you can change on this currently running Service.</string>
     <string name="settingsName">Name</string>
     <string name="settingsConnectionSettings">Connection Settings</string>
     <string name="settingsPort">Port</string>
@@ -35,4 +34,17 @@
     <string name="infoNoOfServices">No of Services</string>
     <string name="infoStopped">Stopped</string>
     <string name="infoStarted">Status</string>
+    <string name="accessKnownCerts">Known Certificates</string>
+    <string name="accessAvailableServices">Available Services  (on this device)</string>
+    <string name="connectedTitle">Connected Instances</string>
+    <string name="accessTitle">Access</string>
+    <string name="createServiceTitle">Create Service</string>
+    <string name="infoTitle">Info</string>
+    <string name="logcatTitle">Logcat</string>
+    <string name="discoverTitle">Network Discovery</string>
+    <string name="settingsTitle">Settings</string>
+    <string name="editServiceTitle">Edit Service</string>
+    <string name="drawerTitle">Drive itself</string>
+    <string name="drawerServices">Services</string>
+    <string name="drawerCreateNewService">create new Service</string>
 </resources>

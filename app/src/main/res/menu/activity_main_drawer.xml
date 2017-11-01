@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:title="MeinAuth">
+    <item android:title="@string/drawerTitle">
         <menu>
             <group>
                 <item
                     android:id="@+id/nav_general"
                     android:icon="@drawable/icon_info"
-                    android:title="Info" />
+                    android:title="@string/infoTitle" />
                 <item
-                    android:id="@+id/nav_others"
+                    android:id="@+id/nav_connected"
                     android:icon="@drawable/icon_connected"
-                    android:title="Connected" />
+                    android:title="@string/connectedTitle" />
                 <item
                     android:id="@+id/nav_discover"
                     android:icon="@drawable/icon_wifi"
-                    android:title="Discover" />
+                    android:title="@string/discoverTitle" />
                 <item
-                    android:id="@+id/nav_approvals"
+                    android:id="@+id/nav_access"
                     android:icon="@drawable/icon_permissions"
-                    android:title="Access" />
+                    android:title="@string/accessTitle" />
                 <item
                     android:id="@+id/nav_settings"
                     android:icon="@drawable/icon_settings"
-                    android:title="Settings" />
+                    android:title="@string/settingsTitle" />
                 <item
                     android:id="@+id/nav_logcat"
                     android:icon="@drawable/icon_fail"
-                    android:title="LogCat" />
+                    android:title="@string/logcatTitle" />
             </group>
         </menu>
     </item>
     <item
         android:id="@+id/menu_services"
-        android:title="Services">
+        android:title="@string/drawerServices">
         <menu>
             <group
                 android:id="@+id/group_services"
@@ -40,7 +40,7 @@
                 <item
                     android:id="@+id/nav_new_service"
                     android:icon="@drawable/ic_menu_add"
-                    android:title="create new Service" />
+                    android:title="@string/drawerCreateNewService" />
             </group>
         </menu>
     </item>

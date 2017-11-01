@@ -2,13 +2,10 @@ package de.mein.android.controller;
 
 import android.content.ComponentName;
 import android.content.Intent;
-import android.graphics.Color;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import de.mein.R;
@@ -72,8 +69,8 @@ public class SettingsController extends GuiController {
     }
 
     @Override
-    public String getTitle() {
-        return "Settings";
+    public Integer getTitle() {
+        return R.string.settingsTitle;
     }
 
     @Override
@@ -95,7 +92,7 @@ public class SettingsController extends GuiController {
 
     @Override
     public Integer getHelp() {
-        return R.string.helpSettings;
+        return R.string.settingsHelp;
     }
 
     @Override
