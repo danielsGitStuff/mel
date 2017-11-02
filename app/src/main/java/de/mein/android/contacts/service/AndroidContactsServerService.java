@@ -132,21 +132,21 @@ public class AndroidContactsServerService extends ContactsServerService {
                 //todo debug
                 //contactsToAndroidExporter.export(phoneBook.getId().v());
             }
-            //todo debug
-            PhoneBook debugBook = new PhoneBook();
-            debugBook.getCreated().v(12L);
-            debugBook.getVersion().v(phoneBook.getVersion());
-            Contact contact = new Contact();
-            contact.getPhonebookId().v(debugBook.getId());
-            ContactAppendix appendix = new ContactAppendix(contact);
-            appendix.getMimeType().v(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
-            appendix.setValue(0, "Adolf Bedolf");
-            appendix.getContactId().v(contact.getId());
-            contact.addAppendix(appendix);
-            contact.hash();
-            debugBook.addContact(contact);
-            debugBook.hash();
-            phoneBookDao.insertDeep(debugBook);
+//            //todo debug
+//            PhoneBook debugBook = new PhoneBook();
+//            debugBook.getCreated().v(12L);
+//            debugBook.getVersion().v(phoneBook.getVersion());
+//            Contact contact = new Contact();
+//            contact.getPhonebookId().v(debugBook.getId());
+//            ContactAppendix appendix = new ContactAppendix(contact);
+//            appendix.getMimeType().v(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
+//            appendix.setValue(0, "Adolf Bedolf");
+//            appendix.getContactId().v(contact.getId());
+//            contact.addAppendix(appendix);
+//            contact.hash();
+//            debugBook.addContact(contact);
+//            debugBook.hash();
+//            phoneBookDao.insertDeep(debugBook);
             //todo debug
             //debugCheckConflict(phoneBook.getId().v(),debugBook.getId().v());
 //            PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();

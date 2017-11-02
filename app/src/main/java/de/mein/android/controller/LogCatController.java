@@ -30,7 +30,9 @@ public class LogCatController extends GuiController {
         listViewLines.setAdapter(listAdapter);
         showLog();
         txtLogCat.setOnLongClickListener(v -> {
-            activity.runOnUiThread(() -> listAdapter.clear());
+            activity.runOnUiThread(() -> {listAdapter.clear();
+            listAdapter.notifyDataSetChanged();
+            });
             return true;
         });
     }
