@@ -178,7 +178,8 @@ public class AndroidServiceMethods {
                     if (androidContactSettings.getPersistToPhoneBook()) {
                         if (!selfChange)
                             watchDogTimer.start();
-                        System.out.println("AndroidServiceMethods.onChange.selfchange");
+                        else
+                            System.out.println("AndroidServiceMethods.onChange.selfChange");
                     } else {
                         stopListening();
                     }
