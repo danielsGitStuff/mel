@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/content_main"
@@ -15,17 +14,18 @@
     tools:context="de.mein.android.MainActivity">
     <!--tools:showIn="@layout/app_bar_main"-->
 
-<TextView
-    android:id="@+id/txtConnection"
-    android:text="@string/settingsConnectionSettings"
-    android:layout_width="match_parent"
-    android:background="@color/colorLabelBackground"
-    android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/txtConnection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorLabelBackground"
+        android:text="@string/settingsConnectionSettings" />
+
     <TableLayout
         android:id="@+id/table"
         android:layout_width="match_parent"
-        android:layout_below="@id/txtConnection"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtConnection">
 
         <TableRow>
 
@@ -79,16 +79,18 @@
         </TableRow>
     </TableLayout>
 
-    <View android:id="@+id/dummyMiddle"
+    <View
+        android:id="@+id/dummyMiddle"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_centerHorizontal="true"/>
+        android:layout_centerHorizontal="true" />
+
     <Button
         android:id="@+id/btnApply"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/table"
         android:layout_alignParentStart="true"
+        android:layout_below="@id/table"
         android:layout_toStartOf="@id/dummyMiddle"
         android:text="@string/settingsApply" />
 
@@ -96,17 +98,19 @@
         android:id="@+id/btnStart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/table"
         android:layout_alignParentEnd="true"
+        android:layout_below="@id/table"
         android:layout_toEndOf="@id/dummyMiddle"
         android:text="@string/settingsStartStop" />
+
     <TextView
         android:id="@+id/txtPower"
-        android:text="@string/settingsPowerSettings"
         android:layout_width="match_parent"
-        android:background="@color/colorLabelBackground"
+        android:layout_height="wrap_content"
         android:layout_below="@id/btnApply"
-        android:layout_height="wrap_content" />
+        android:background="@color/colorLabelBackground"
+        android:text="@string/settingsPowerSettings" />
+
     <CheckBox
         android:id="@+id/cbWorkWhenPlugged"
         android:layout_width="match_parent"
@@ -123,11 +127,35 @@
         android:text="@string/settingsHeavyWorkNoWifi" />
 
     <TextView
+        android:id="@+id/txtHint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/cbWorkWhenOffline"
         android:text="@string/settingsHeavyWorkHint" />
 
+    <TextView
+        android:id="@+id/txtMisc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtHint"
+        android:background="@color/colorLabelBackground"
+        android:text="@string/settingsMisc" />
 
+    <CheckBox
+        android:id="@+id/cbShowFirstStartDialog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/btnShow"
+        android:layout_below="@id/txtMisc"
+        android:checked="false"
+        android:text="@string/settingsStartDialog" />
+
+    <Button
+        android:id="@+id/btnShow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtMisc"
+        android:layout_toEndOf="@id/cbShowFirstStartDialog"
+        android:text="@string/settingsShow" />
 </RelativeLayout>
 

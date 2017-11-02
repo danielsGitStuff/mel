@@ -2,6 +2,8 @@ package de.mein.android.controller;
 
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -9,7 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import de.mein.R;
-import de.mein.android.MeinActivity;
+import de.mein.android.MainActivity;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.power.PowerManager;
@@ -20,15 +22,17 @@ import de.mein.auth.service.power.PowerManager;
 
 public class SettingsController extends GuiController {
     private PowerManager powerManager;
-    private Button btnStartStop, btnApply;
+    private Button btnStartStop, btnApply, btnShow;
     private EditText txtPort, txtCertPort, txtName;
+    private CheckBox cbShowFirstStartDialog;
 
-
-    public SettingsController(MeinActivity activity, LinearLayout content) {
+    public SettingsController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_settings);
         txtCertPort = rootView.findViewById(R.id.txtCertPort);
         txtName = rootView.findViewById(R.id.txtName);
         txtPort = rootView.findViewById(R.id.txtPort);
+        cbShowFirstStartDialog = rootView.findViewById(R.id.cbShowFirstStartDialog);
+        btnShow = rootView.findViewById(R.id.btnShow);
         // action listeners
         btnStartStop = rootView.findViewById(R.id.btnStart);
         btnApply = rootView.findViewById(R.id.btnApply);
@@ -38,7 +42,16 @@ public class SettingsController extends GuiController {
             ComponentName name = rootView.getContext().startService(serviceIntent);
             System.out.println("InfoController.InfoController.service.started: " + name.getClassName());
         });
+        btnShow.setOnClickListener(v -> {
+            MainActivity.showMessage(activity, R.string.firstStart);
+        });
         btnApply.setOnClickListener(v1 -> applyInputs());
+        cbShowFirstStartDialog.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean(activity.getString(R.string.showIntro), cbShowFirstStartDialog.isChecked());
+            editor.apply();
+        });
     }
 
     private void showAll() {

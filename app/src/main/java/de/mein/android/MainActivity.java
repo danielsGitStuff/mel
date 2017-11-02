@@ -398,13 +398,17 @@ public class MainActivity extends MeinActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        showFirstStart();
+    }
+
+    public void showFirstStart() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        boolean previouslyStarted = prefs.getBoolean(getString(R.string.introShown), false);
-        if (!previouslyStarted) {
+        boolean showIntro = prefs.getBoolean(getString(R.string.showIntro), true);
+        if (showIntro) {
             SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean(getString(R.string.introShown), Boolean.TRUE);
+            editor.putBoolean(getString(R.string.showIntro), false);
             editor.apply();
-            showMessage(this, R.string.introduction);
+            showMessage(this, R.string.firstStart);
         }
     }
 

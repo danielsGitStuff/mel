@@ -50,11 +50,14 @@
     <string name="discoverBtnCouple">Couple</string>
     <string name="discoverUnknown">Unknown</string>
     <string name="discoverKnown">Known</string>
-    <string name="introShown">introShown</string>
-    <string name="introduction">Welcome to Drive. This app can couple with other instances running on your network. When you have done that you may create a Service and grant access to the other instances. You will find a Help button on the top right which explains what all the things are good for.</string>
+    <string name="showIntro">introShown</string>
+    <string name="firstStart">Welcome to Drive. This app can couple with other instances running on your network. When you have done that you may create a Service and grant access to the other instances. You will find a Help button on the top right which explains what all the things are good for.</string>
     <string name="editServiceApply">Apply</string>
     <string name="editServiceName">Name</string>
     <string name="createServiceName">Name</string>
     <string name="editServiceDrivePath">Path</string>
     <string name="editServiceDriveChoose">Choose</string>
+    <string name="settingsMisc">Miscellaneous</string>
+    <string name="settingsStartDialog">Show startup dialog again</string>
+    <string name="settingsShow">Show</string>
 </resources>
