@@ -53,9 +53,9 @@ public class AndroidContactsClientService extends ContactsClientService {
 
     public AndroidContactsClientService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
-        serviceMethods = new AndroidServiceMethods(this, databaseManager);
-        serviceMethods.listenForContactsChanges();
         AndroidContactSettings androidContactSettings = (AndroidContactSettings) settingsCfg.getPlatformContactSettings();
+        serviceMethods = new AndroidServiceMethods(this, databaseManager, androidContactSettings);
+        serviceMethods.listenForContactsChanges();
         if (androidContactSettings.getPersistToPhoneBook()) {
             contactsToAndroidExporter = new ContactsToAndroidExporter(databaseManager);
         }

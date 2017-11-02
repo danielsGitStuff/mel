@@ -88,6 +88,7 @@ public class PhoneBookDao extends Dao {
     }
 
     public void deletePhoneBook(Long id) throws SqlQueriesException {
+        System.out.println("PhoneBookDao.deletePhoneBook.id=" + id);
         PhoneBook phoneBook = new PhoneBook();
         sqlQueries.delete(phoneBook, phoneBook.getId().k() + "=?", ISQLQueries.whereArgs(id));
     }

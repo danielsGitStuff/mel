@@ -52,11 +52,11 @@ public class AndroidContactsServerService extends ContactsServerService {
 
     public AndroidContactsServerService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
-        serviceMethods = new AndroidServiceMethods(this, databaseManager);
-        serviceMethods.listenForContactsChanges();
         AndroidContactSettings androidContactSettings = (AndroidContactSettings) settingsCfg.getPlatformContactSettings();
+        serviceMethods = new AndroidServiceMethods(this, databaseManager, androidContactSettings);
         if (androidContactSettings.getPersistToPhoneBook()) {
             contactsToAndroidExporter = new ContactsToAndroidExporter(databaseManager);
+            serviceMethods.listenForContactsChanges();
         }
         databaseManager.maintenance();
         // examine when booted

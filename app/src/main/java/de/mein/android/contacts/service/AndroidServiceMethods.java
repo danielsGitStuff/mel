@@ -5,10 +5,7 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.provider.Contacts;
 import android.provider.ContactsContract;
 
 import java.io.ByteArrayOutputStream;
@@ -18,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.android.Tools;
+import de.mein.android.contacts.data.AndroidContactSettings;
 import de.mein.auth.service.MeinService;
 import de.mein.auth.tools.WatchDogTimer;
 import de.mein.contacts.data.db.Contact;
@@ -39,11 +37,13 @@ public class AndroidServiceMethods {
 
     private final ContactsDatabaseManager databaseManager;
     private final MeinService service;
+    private final AndroidContactSettings androidContactSettings;
     private ContentObserver observer;
 
-    public AndroidServiceMethods(MeinService service, ContactsDatabaseManager databaseManager) {
+    public AndroidServiceMethods(MeinService service, ContactsDatabaseManager databaseManager, AndroidContactSettings androidContactSettings) {
         this.databaseManager = databaseManager;
         this.service = service;
+        this.androidContactSettings = androidContactSettings;
     }
 
 
@@ -154,6 +154,13 @@ public class AndroidServiceMethods {
 
     private WatchDogTimer watchDogTimer;
 
+    public void stopListening() {
+        if (observer != null) {
+            Tools.getApplicationContext().getContentResolver().unregisterContentObserver(observer);
+            observer = null;
+        }
+    }
+
     public void listenForContactsChanges() {
         watchDogTimer = new WatchDogTimer(() -> service.addJob(new ExamineJob()), 20, 100, 100);
         Context context = Tools.getApplicationContext();
@@ -168,7 +175,13 @@ public class AndroidServiceMethods {
             public void onChange(boolean selfChange) {
                 super.onChange(selfChange);
                 try {
-                    watchDogTimer.start();
+                    if (androidContactSettings.getPersistToPhoneBook()) {
+                        if (!selfChange)
+                            watchDogTimer.start();
+                        System.out.println("AndroidServiceMethods.onChange.selfchange");
+                    } else {
+                        stopListening();
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -182,7 +195,7 @@ public class AndroidServiceMethods {
         context.getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, observer);
     }
 
-    public void onShutDown(){
+    public void onShutDown() {
         Tools.getApplicationContext().getContentResolver().unregisterContentObserver(observer);
     }
 
