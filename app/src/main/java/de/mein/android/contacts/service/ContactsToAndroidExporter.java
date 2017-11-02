@@ -77,7 +77,7 @@ public class ContactsToAndroidExporter {
 
                     // then appendices in the according tables. note: order is the same as in Contact.hash()
                     insertAppendices(operationList, contact.getId().v(), ContactsContract.Data.CONTENT_TYPE, contactMD5er);
-//                    insertAppendices(operationList, contact.getId().v(), ContactStructuredName.class, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, contactMD5er);
+//                    insertAppendices(operationList, contact.getId().v(), StructuredName.class, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, contactMD5er);
 //                    insertAppendices(operationList, contact.getId().v(), ContactPhone.class, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, contactMD5er);
 
                     // save photo

@@ -40,8 +40,10 @@ public class DataTableCursorReader {
         return columns;
     }
 
-    public DataTableCursorReader readDataColumns(ContactAppendix appendix) {
-        for (int i = 0; i < 14; i++) {
+    public ContactAppendix readDataColumns() {
+        String mimeType = cursor.getString(16);
+        ContactAppendix appendix = new ContactAppendix(mimeType);
+        for (int i = 0; i < appendix.getNoOfColumns(); i++) {
             try {
                 appendix.setValue(i, cursor.getString(i));
             } catch (Exception e) {
@@ -50,8 +52,7 @@ public class DataTableCursorReader {
         }
         appendix.setBlob(cursor.getBlob(14));
         appendix.setAndroidId(cursor.getLong(15));
-        appendix.setMimeType(cursor.getString(16));
-        return this;
+        return appendix;
     }
 
     public void close() {

@@ -18,8 +18,14 @@ import de.mein.sql.SQLTableObject;
 public class ContactAppendix extends SQLTableObject implements SerializableEntity {
 
     protected Contact contact;
+    private Integer noOfColumns = 15;
 
     public ContactAppendix() {
+        init();
+    }
+
+    public ContactAppendix(String mimeType) {
+        this.noOfColumns = ContactAppendix.getNoOfColumnsByMime(mimeType);
         init();
     }
 
@@ -28,6 +34,13 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         init();
     }
 
+    public Integer getNoOfColumns() {
+        return noOfColumns;
+    }
+
+    protected int noOfDataColumns() {
+        return noOfColumns;
+    }
 
     public static final String ID = "id";
     public static final String CONTACTID = "contactid";
@@ -60,21 +73,50 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         return "appendix";
     }
 
+    public static void main(String[] args) {
+        ContactAppendix c1 = new ContactAppendix();
+        ContactAppendix c2 = new ContactAppendix("vnd.android.cursor.item/im");
+        ContactAppendix c3 = new ContactAppendix();
+        c3.getMimeType().v("vnd.android.cursor.item/organization");
+        c3.setValue(3,"keks");
+        c3.setValue(4,"bla");
+        System.out.println("ContactAppendix.main");
+
+    }
+
     @Override
     protected void init() {
-        populateInsert();
-        for (int i = 1; i < 15; i++) {
-            String col = "data" + i;
-            Pair<String> pair = new Pair<>(String.class, col);
-            insertAttributes.add(pair);
-            dataCols.add(pair);
-            dataColMap.put(col, pair);
+        mimeType.setSetListener(mime -> {
+            noOfColumns = ContactAppendix.getNoOfColumnsByMime(mime);
+            init();
+            return mime;
+        });
+        if (insertAttributes != null) {
+            hashPairs = new ArrayList<>();
+            List<Pair<?>> newInserts = new ArrayList<>();
+            for (int i = 0; i < noOfColumns; i++) {
+                newInserts.add(insertAttributes.get(i));
+                hashPairs.add(insertAttributes.get(i));
+            }
+            insertAttributes = newInserts;
+        }else {
+            insertAttributes = new ArrayList<>();
+            allAttributes = new ArrayList<>();
+            hashPairs = new ArrayList<>();
+            for (int i = 1; i <= getNoOfColumns(); i++) {
+                String col = "data" + i;
+                Pair<String> pair = new Pair<>(String.class, col);
+                insertAttributes.add(pair);
+                hashPairs.add(pair);
+                dataCols.add(pair);
+                dataColMap.put(col, pair);
+            }
         }
         insertAttributes.add(blob);
         insertAttributes.add(mimeType);
-        hashPairs = new ArrayList<>(insertAttributes);
         insertAttributes.add(contactId);
         insertAttributes.add(androidId);
+        allAttributes = new ArrayList<>();
         populateAll(id);
     }
 
@@ -107,8 +149,44 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         return dataCols;
     }
 
-    public void setMimeType(String mimeType) {
+    /**
+     * resets data columns
+     *
+     * @param mimeType
+     */
+    public void adjustToMimeType(String mimeType) {
         this.mimeType.v(mimeType);
+        noOfColumns = ContactAppendix.getNoOfColumnsByMime(mimeType);
+        init();
+        hashPairs = new ArrayList<>();
+        for (int i = 1; i <= noOfColumns; i++) {
+
+        }
+
+    }
+
+    public static Integer getNoOfColumnsByMime(String mimeType) {
+        int noOfColumns = 0;
+        if (mimeType.equals("vnd.android.cursor.item/email_v2")
+                || mimeType.equals("vnd.android.cursor.item/contact_event")
+                || mimeType.equals("vnd.android.cursor.item/nickname")
+                || mimeType.equals("vnd.android.cursor.item/phone_v2")
+                || mimeType.equals("vnd.android.cursor.item/relation")
+                || mimeType.equals("vnd.android.cursor.item/sip_address")
+                || mimeType.equals("vnd.android.cursor.item/website"))
+            noOfColumns = 3;
+        else if (mimeType.equals("vnd.android.cursor.item/note"))
+            noOfColumns = 1;
+        else if (mimeType.equals("vnd.android.cursor.item/im"))
+            noOfColumns = 6;
+        else if (mimeType.equals("vnd.android.cursor.item/organization")
+                || mimeType.equals("vnd.android.cursor.item/postal-address_v2"))
+            noOfColumns = 10;
+        else if (mimeType.equals("vnd.android.cursor.item/name"))
+            noOfColumns = 9;
+        else
+            System.err.println(ContactAppendix.class.getSimpleName() + ".MIME.UNKNOWN: " + mimeType);
+        return noOfColumns;
     }
 
     /**
