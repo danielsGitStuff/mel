@@ -66,7 +66,7 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
 
     @Override
     public int getMenuIcon() {
-        return R.drawable.icon_folder;
+        return R.drawable.icon_notification_drive_legacy;
     }
 
     @Override

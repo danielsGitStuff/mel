@@ -91,7 +91,7 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
 
     @Override
     public int getMenuIcon() {
-        return R.drawable.icon_share;
+        return R.drawable.icon_notification_contacts_legacy;
     }
 
     @Override

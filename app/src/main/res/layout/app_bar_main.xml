@@ -25,7 +25,7 @@
                 android:layout_gravity="right"
                 android:id="@+id/btnHelp"
                 android:background="?android:selectableItemBackground"
-                android:src="@drawable/icon_question"/>
+                app:srcCompat="@drawable/icon_question"/>
         </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>
