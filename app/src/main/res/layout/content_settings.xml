@@ -157,5 +157,11 @@
         android:layout_below="@id/txtMisc"
         android:layout_toEndOf="@id/cbShowFirstStartDialog"
         android:text="@string/settingsShow" />
+    <CheckBox
+        android:id="@+id/cbRedirectSysOut"
+        android:text="@string/settingsRedirectSysOut"
+        android:layout_below="@id/btnShow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </RelativeLayout>
 

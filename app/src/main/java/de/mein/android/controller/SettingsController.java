@@ -15,6 +15,8 @@ import de.mein.android.MainActivity;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.power.PowerManager;
+import de.mein.auth.tools.MeinLogger;
+import de.mein.auth.tools.N;
 
 /**
  * Created by xor on 9/19/17.
@@ -24,7 +26,7 @@ public class SettingsController extends GuiController {
     private PowerManager powerManager;
     private Button btnStartStop, btnApply, btnShow;
     private EditText txtPort, txtCertPort, txtName;
-    private CheckBox cbShowFirstStartDialog;
+    private CheckBox cbShowFirstStartDialog, cbRedirectSysOut;
 
     public SettingsController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_settings);
@@ -32,6 +34,7 @@ public class SettingsController extends GuiController {
         txtName = rootView.findViewById(R.id.txtName);
         txtPort = rootView.findViewById(R.id.txtPort);
         cbShowFirstStartDialog = rootView.findViewById(R.id.cbShowFirstStartDialog);
+        cbRedirectSysOut = rootView.findViewById(R.id.cbRedirectSysOut);
         btnShow = rootView.findViewById(R.id.btnShow);
         // action listeners
         btnStartStop = rootView.findViewById(R.id.btnStart);
@@ -52,6 +55,7 @@ public class SettingsController extends GuiController {
             editor.putBoolean(activity.getString(R.string.showIntro), cbShowFirstStartDialog.isChecked());
             editor.apply();
         });
+
     }
 
     private void showAll() {
@@ -62,6 +66,15 @@ public class SettingsController extends GuiController {
                 txtPort.setText(meinAuthSettings.getPort().toString());
                 txtName.setText(meinAuthSettings.getName());
                 txtCertPort.setText(meinAuthSettings.getDeliveryPort().toString());
+                cbRedirectSysOut.setChecked(meinAuthSettings.getRedirectSysout());
+                cbRedirectSysOut.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    meinAuthSettings.setRedirectSysout(isChecked);
+                    if (isChecked)
+                        MeinLogger.redirectSysOut(200,true);
+                    else
+                        MeinLogger.resetSysOut();
+                    N.r(() -> meinAuthSettings.save());
+                });
             });
         }
     }

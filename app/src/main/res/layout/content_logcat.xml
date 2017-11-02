@@ -3,21 +3,35 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:weightSum="2"
-    android:paddingTop="?attr/actionBarSize">
+    android:paddingTop="?attr/actionBarSize"
+    android:weightSum="2">
 
-    <TextView
-        android:id="@+id/txtLogCat"
+    <View
+        android:id="@+id/dummy"
+        android:layout_width="0dp"
+        android:layout_centerVertical="true"
+        android:layout_height="0dp" />
+
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:text="sysout line goes here" />
+        android:layout_alignBottom="@id/dummy"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/txtLogCat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="..." />
+    </ScrollView>
+
 
     <ListView
         android:id="@+id/listViewLines"
-        android:layout_below="@+id/txtLogCat"
-        android:minHeight="@dimen/nav_header_height"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/scrollView"
+        android:minHeight="@dimen/nav_header_height" />
 
 </RelativeLayout>

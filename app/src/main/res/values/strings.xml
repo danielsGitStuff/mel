@@ -60,4 +60,5 @@
     <string name="settingsMisc">Miscellaneous</string>
     <string name="settingsStartDialog">Show startup dialog again</string>
     <string name="settingsShow">Show</string>
+    <string name="settingsRedirectSysOut">Show Sysout</string>
 </resources>

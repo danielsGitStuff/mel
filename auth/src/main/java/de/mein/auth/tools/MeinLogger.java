@@ -27,7 +27,7 @@ public class MeinLogger extends PrintStream {
         void onPrintLn(String line);
     }
 
-    public MeinLogger(int size, OutputStream out, boolean timeStamp) {
+    private MeinLogger(int size, OutputStream out, boolean timeStamp) {
         super(out);
         this.timeStamp = timeStamp;
         lines = new String[size];
@@ -139,10 +139,19 @@ public class MeinLogger extends PrintStream {
     }
 
     public static void redirectSysOut(int size, boolean timeStamp) {
-        if (logger == null)
+        if (logger == null) {
+            defaultOut = System.out;
             logger = new MeinLogger(size, System.out, timeStamp);
+        }
         System.setOut(logger);
         System.setErr(logger);
+    }
+
+    private static PrintStream defaultOut;
+
+    public static void resetSysOut() {
+        System.setOut(defaultOut);
+        logger = null;
     }
 
     public void toSysOut(String line) {

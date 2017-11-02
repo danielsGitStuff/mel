@@ -21,6 +21,7 @@ public class MeinAuthSettings extends JsonSettings {
     private Class<? extends MeinAuthService> meinAuthServiceClass;
     private IDBCreatedListener idbCreatedListener;
     private PowerManagerSettings powerManagerSettings = new PowerManagerSettings();
+    private Boolean redirectSysout = false;
 
     public static MeinAuthSettings createDefaultSettings() {
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings();
@@ -37,6 +38,18 @@ public class MeinAuthSettings extends JsonSettings {
 
     public PowerManagerSettings getPowerManagerSettings() {
         return powerManagerSettings;
+    }
+
+    public Boolean getRedirectSysout() {
+        //todo return redirectSysout only
+        if (redirectSysout == null)
+            return false;
+        return redirectSysout;
+    }
+
+    public MeinAuthSettings setRedirectSysout(Boolean redirectSysout) {
+        this.redirectSysout = redirectSysout;
+        return this;
     }
 
     private static String generateGreeting() {

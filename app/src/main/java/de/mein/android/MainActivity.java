@@ -85,15 +85,16 @@ public class MainActivity extends MeinActivity {
 
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
-//        debugStuff2();
+        System.out.println("MainActivity.onAndroidServiceAvailable");
+        if (androidService.getMeinAuthService().getSettings().getRedirectSysout()){
+            MeinLogger.redirectSysOut(200,true);
+        }
     }
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //use custom logger
-        MeinLogger.redirectSysOut(200);
         Tools.setApplicationContext(getApplicationContext());
         setContentView(R.layout.activity_main);
         content = findViewById(R.id.content);
@@ -256,7 +257,6 @@ public class MainActivity extends MeinActivity {
         } else if (id == R.id.nav_logcat) {
             enableGuiController(new LogCatController(this, content));
         }
-
         closeDrawer();
         return true;
     }
@@ -437,9 +437,10 @@ public class MainActivity extends MeinActivity {
                 MenuItem mSettings = subMeinAuth.add(5, R.id.nav_settings, 4, R.string.settingsTitle);
                 mSettings.setIcon(R.drawable.icon_settings);
                 //logcat
-                MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 5, getText(R.string.logcatTitle));
-                mLogCat.setIcon(R.drawable.icon_fail);
-
+                if (meinAuthService != null && meinAuthService.getSettings().getRedirectSysout()) {
+                    MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 5, getText(R.string.logcatTitle));
+                    mLogCat.setIcon(R.drawable.icon_fail);
+                }
                 SubMenu subServices = menu.addSubMenu(getText(R.string.drawerServices));
                 if (meinAuthService != null) {
                     List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
