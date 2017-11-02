@@ -1,5 +1,6 @@
 package de.mein.android.controller;
 
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -28,6 +29,10 @@ public class LogCatController extends GuiController {
         ListView listViewLines = rootView.findViewById(R.id.listViewLines);
         listViewLines.setAdapter(listAdapter);
         showLog();
+        txtLogCat.setOnLongClickListener(v -> {
+            activity.runOnUiThread(() -> listAdapter.clear());
+            return true;
+        });
     }
 
     @Override

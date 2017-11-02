@@ -26,6 +26,7 @@ public class PhoneBookDao extends Dao {
         phoneBook.getVersion().v(version);
         Long id = sqlQueries.insert(phoneBook);
         phoneBook.getId().v(id);
+        System.out.println("PhoneBookDao.create.id=" + id + ",version=" + version);
         return phoneBook;
     }
 
