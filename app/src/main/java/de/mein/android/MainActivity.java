@@ -15,7 +15,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.text.Layout;
 import android.view.SubMenu;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -39,6 +38,7 @@ import java.util.List;
 
 import de.mein.R;
 import de.mein.android.boot.AndroidBootLoader;
+import de.mein.android.controller.EditServiceController;
 import de.mein.android.controller.InfoController;
 import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.ConnectedController;
@@ -441,13 +441,12 @@ public class MainActivity extends MeinActivity {
                     List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
                     for (ServiceJoinServiceType service : services) {
                         IMeinService runningInstance = meinAuthService.getMeinService(service.getUuid().v());
-                        MenuItem mService = subServices.add(service.getType().v() + "/" + service.getName().v());
+                        MenuItem mService = subServices.add(service.getName().v());
                         mService.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
                                 content.removeAllViews();
                                 toolbar.setTitle("Edit Service: " + service.getName().v());
-//                                ViewGroup v = (ViewGroup) View.inflate(MainActivity.this, R.layout.content_create_service, content);
                                 enableGuiController(new EditServiceController(MainActivity.this, content, service, runningInstance));
                                 closeDrawer();
                                 return true;

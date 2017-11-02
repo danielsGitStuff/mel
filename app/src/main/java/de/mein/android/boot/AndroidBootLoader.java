@@ -6,7 +6,7 @@ import android.support.v4.app.NotificationCompat;
 import android.view.ViewGroup;
 
 import de.mein.android.MeinActivity;
-import de.mein.android.controller.AndroidServiceCreatorGuiController;
+import de.mein.android.controller.AndroidServiceGuiController;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
@@ -17,11 +17,9 @@ import de.mein.auth.service.MeinAuthService;
 
 public interface AndroidBootLoader<T extends IMeinService> {
 
-    void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceCreatorGuiController currentController);
+    void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceGuiController currentController);
 
-    AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup rootView, IMeinService runningInstance);
-
-    AndroidServiceCreatorGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance);
+    AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance);
 
     int getMenuIcon();
 

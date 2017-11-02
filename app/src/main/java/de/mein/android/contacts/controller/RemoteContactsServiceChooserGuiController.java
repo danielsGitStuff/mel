@@ -17,7 +17,6 @@ import de.mein.contacts.data.ContactStrings;
 
 public class RemoteContactsServiceChooserGuiController extends RemoteServiceChooserController {
     private CheckBox cbStoreToPhoneBook;
-    private EditText txtName;
 
     public RemoteContactsServiceChooserGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup) {
         super(meinAuthService, activity, viewGroup, R.layout.embedded_twice_contacts);
@@ -27,7 +26,6 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
     @Override
     protected void initEmbedded() {
         cbStoreToPhoneBook = rootView.findViewById(R.id.cbStoreToPhoneBook);
-        txtName = rootView.findViewById(R.id.txtName);
     }
 
 
@@ -36,16 +34,17 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
         return service.getType().equalsValue(ContactStrings.NAME);
     }
 
-    public String getName() {
-        return txtName.getText().toString();
-    }
-
-    public String getRole() {
+       public String getRole() {
 
         return isServer() ? ContactStrings.ROLE_SERVER : ContactStrings.ROLE_CLIENT;
     }
 
     public boolean getPersistToPhoneBook() {
         return cbStoreToPhoneBook.isChecked();
+    }
+
+    @Override
+    public void onOkClicked() {
+
     }
 }

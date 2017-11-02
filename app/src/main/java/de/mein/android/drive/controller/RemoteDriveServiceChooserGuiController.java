@@ -26,7 +26,7 @@ import de.mein.drive.data.DriveStrings;
 public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooserController {
 
     private static final int REQUEST_DIRECTORY = 987;
-    private EditText txtName, txtPath;
+    private EditText  txtPath;
 
     private Button btnPath;
 
@@ -36,7 +36,6 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 
     @Override
     protected void initEmbedded() {
-        txtName = rootView.findViewById(R.id.txtName);
         txtPath = rootView.findViewById(R.id.txtPath);
         btnPath = rootView.findViewById(R.id.btnPath);
         txtPath.setText(createDrivePath());
@@ -70,10 +69,6 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         return new File(downloadDir, "drive").getAbsolutePath();
     }
 
-    public String getName() {
-        return txtName.getText().toString();
-    }
-
     public String getPath() {
         return txtPath.getText().toString();
     }
@@ -81,9 +76,11 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     public boolean isValid() {
         File dir = new File(txtPath.getText().toString());
         dir.mkdirs();
-        if (!(dir.exists()
-                && txtName.getText().toString().trim().length() > 0))
-            return false;
-        return true;
+        return dir.exists();
+    }
+
+    @Override
+    public void onOkClicked() {
+
     }
 }

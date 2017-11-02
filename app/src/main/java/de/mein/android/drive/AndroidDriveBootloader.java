@@ -12,7 +12,7 @@ import de.mein.R;
 import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
-import de.mein.android.controller.AndroidServiceCreatorGuiController;
+import de.mein.android.controller.AndroidServiceGuiController;
 import de.mein.android.Threadder;
 import de.mein.android.drive.controller.RemoteDriveServiceChooserGuiController;
 import de.mein.android.drive.controller.AndroidDriveEditGuiController;
@@ -33,7 +33,7 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
     private static final int PERMISSION_WRITE = 666;
 
     @Override
-    public void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceCreatorGuiController currentController) {
+    public void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceGuiController currentController) {
         RemoteDriveServiceChooserGuiController driveCreateGuiController = (RemoteDriveServiceChooserGuiController) currentController;
 
         // create the actual MeinDrive service
@@ -53,15 +53,8 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
             });
     }
 
-    @Override
-    public AndroidServiceCreatorGuiController createGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup rootView, IMeinService runningInstance) {
-        // check for permission if necessary
-        activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        return new RemoteDriveServiceChooserGuiController(meinAuthService, activity, rootView);
-    }
-
-    @Override
-    public AndroidServiceCreatorGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
+       @Override
+    public AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
         activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (runningInstance == null) {
             return new RemoteDriveServiceChooserGuiController(meinAuthService, activity, embedded);

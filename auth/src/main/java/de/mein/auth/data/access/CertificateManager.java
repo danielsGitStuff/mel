@@ -6,6 +6,8 @@ import de.mein.auth.tools.Cryptor;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
 
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
@@ -194,6 +196,15 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public void generateCertificate() throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, CertificateException, KeyStoreException {
+//        new X509v3CertificateBuilder()
+//        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(issuer, serialNumber, startDate, expiryDate, subject, SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
+//        JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256withRSA");
+//        ContentSigner signer = builder.build(keyPair.getPrivate());
+//
+//        byte[] certBytes = certBuilder.build(signer).getEncoded();
+//        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+//        X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(certBytes));
+
         //todo get rid of this deprecated stuff
         X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
         certGen.setSerialNumber(BigInteger.valueOf(generateSecurePositiveRndInt()));

@@ -6,7 +6,6 @@
     <string name="title_activity_cert_incoming">Kopplungsversuch!</string>
 
 
-
     <string name="notificationCertTitle">Kopplungsversuch!</string>
     <string name="notificationCertText">Eine andere Driveinstanz möchte diese hier kennenlernen.</string>
     <string name="slogan">Wolkenfrei!</string>
@@ -15,7 +14,7 @@
     <string name="titleHelp">Hilfe</string>
     <string name="accessHelp">Linke Spalte: Alle anderen, dir bekannten Driveinstanzen. Wenn du drauf klickst zeigt dir rechte Spalte alle verfügbaren Dienste an. Wenn du ein Häckchen setzt, darf diese Instanz mit diesem Dienst \"reden\".</string>
     <string name="createServiceHelp">Hier kannst du neue Dienste erstellen. Denk dran: Diensten ist es üblicherweise erstmal nicht erlabt mit anderen Driveinstanzen zu \"sprechen\". Du kannst es in der Zugriffansicht ändern.</string>
-    <string name="infoHelp" >Zeigt den aktuellen Status des Hintergunddienstes und ein paar Zusatzinfos. Im Navigator auf der linken Seite kannst du alle laufenden Dienste und Einstellungen sehen.</string>
+    <string name="infoHelp">Zeigt den aktuellen Status des Hintergunddienstes und ein paar Zusatzinfos. Im Navigator auf der linken Seite kannst du alle laufenden Dienste und Einstellungen sehen.</string>
     <string name="logcatHelp">Das brauchst du für gewöhnlich nicht. Es sei denn irgendetwas geht schief und du liest gerne Logs.</string>
     <string name="discoveryHelp">Sucht andere Instanzen von Drive im aktuellen W-Lan. Damit dies funktioniert, muss dein Netzwerk Broadcasting erlauben. Der Broadcast-Port ist 9966. Wenn du verkoppelt bist, kannst du Dienste erstellen und den anderen Instanzen erlauben mit ihnen zu \"reden\".</string>
     <string name="connectedHelp">Liste aller aktuell verbundenen Instanzen</string>
@@ -52,4 +51,8 @@
     <string name="discoverUnknown">Unbekannt</string>
     <string name="discoverKnown">Bekannt</string>
     <string name="introduction">Willkommen zu Drive. Diese App kann sich mit anderen Instanzen in deinem Netzwerk koppeln. Wenn das getan ist, kannst du einen Dienst erstellen und den anderen Drive-Instanzen Zugriff darauf gewähren. Oben rechts befindet sich ein Hilfeknopf, der dir sagt welchen Zweck die verschienden Dinge hier erfüllen.</string>
+    <string name="editServiceApply">Übernehmen</string>
+    <string name="editServiceName">Name</string>
+    <string name="editServiceDrivePath">Pfad</string>
+    <string name="editServiceDriveChoose">Choose</string>
 </resources>

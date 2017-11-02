@@ -11,43 +11,43 @@
     android:paddingTop="?attr/actionBarSize"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="de.mein.android.MainActivity">
-    <!--tools:showIn="@layout/app_bar_main"-->
-
-    <Spinner
-        android:id="@+id/spin_bootloaders"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true" />
 
     <TextView
         android:id="@+id/lblName"
-        android:text="@string/createServiceName"
         android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/txtName"
-        android:layout_below="@id/spin_bootloaders"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/txtName"
+        android:text="@string/editServiceName" />
+
     <EditText
         android:id="@+id/txtName"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_toEndOf="@id/lblName"
-        android:layout_below="@id/spin_bootloaders"
-        android:layout_height="wrap_content" />
+        android:text="" />
 
     <LinearLayout
         android:id="@+id/embedded"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/txtName"
+        android:layout_below="@id/txtName"
         android:orientation="vertical" />
 
-    <Button
-        android:id="@+id/btnCreate"
+    <RelativeLayout
+        android:id="@+id/rr2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="Create"
+        android:layout_below="@id/embedded">
 
-        />
+        <Button
+            android:id="@+id/btnApply"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="@string/editServiceApply"
+
+            />
+    </RelativeLayout>
 
 
 </RelativeLayout>

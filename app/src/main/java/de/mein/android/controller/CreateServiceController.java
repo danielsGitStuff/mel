@@ -3,6 +3,7 @@ package de.mein.android.controller;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
@@ -26,10 +27,11 @@ import de.mein.android.MainActivity;
  */
 public class CreateServiceController extends GuiController {
     private final Spinner spinner;
+    private final EditText txtName;
     private LinearLayout embedded;
     private Button btnCreate;
     private AndroidBootLoader bootLoader;
-    private AndroidServiceCreatorGuiController currentController;
+    private AndroidServiceGuiController currentController;
     private MainActivity mainActivity;
 
     public CreateServiceController(MainActivity activity, LinearLayout content) {
@@ -38,6 +40,7 @@ public class CreateServiceController extends GuiController {
         this.spinner = rootView.findViewById(R.id.spin_bootloaders);
         this.embedded = rootView.findViewById(R.id.embedded);
         this.btnCreate = rootView.findViewById(R.id.btnCreate);
+        this.txtName = rootView.findViewById(R.id.txtName);
 
     }
 
@@ -47,6 +50,8 @@ public class CreateServiceController extends GuiController {
             if (bootLoader != null) {
                 embedded.removeAllViews();
                 currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
+                BootLoader bl = (BootLoader) bootLoader;
+                txtName.setText(bl.getName());
             }
             System.out.println("CreateServiceController.showSelected");
         });
@@ -91,6 +96,7 @@ public class CreateServiceController extends GuiController {
             //showSelected();
             btnCreate.setOnClickListener(view -> {
                 if (bootLoader != null) {
+                    currentController.setName(txtName.getText().toString());
                     bootLoader.createService(activity, meinAuthService, currentController);
                     mainActivity.showMenuServices();
                 }

@@ -33,6 +33,10 @@ public abstract class ContactsService extends MeinService {
         meinAuthService.execute(this);
     }
 
+    public ContactsSettings getSettings() {
+        return settings;
+    }
+
     public ContactsDatabaseManager getDatabaseManager() {
         return databaseManager;
     }

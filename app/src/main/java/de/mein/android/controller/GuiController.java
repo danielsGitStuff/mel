@@ -1,6 +1,7 @@
 package de.mein.android.controller;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -19,9 +20,9 @@ public abstract class GuiController {
 
     protected AndroidService androidService;
 
-    protected GuiController(MeinActivity activity, LinearLayout content, int resourceId) {
-        this.activity = activity;
+    protected GuiController(MeinActivity activity, ViewGroup content, int resourceId) {
         content.removeAllViews();
+        this.activity = activity;
         this.rootView = View.inflate(activity, resourceId, content);
     }
 

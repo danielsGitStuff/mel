@@ -24,7 +24,7 @@ import de.mein.auth.service.MeinAuthService;
  * Created by xor on 10/4/17.
  */
 
-public abstract class RemoteServiceChooserController extends AndroidServiceCreatorGuiController {
+public abstract class RemoteServiceChooserController extends AndroidServiceGuiController {
 
 
     protected abstract void initEmbedded();
@@ -40,7 +40,7 @@ public abstract class RemoteServiceChooserController extends AndroidServiceCreat
     private TextView lblKnownMA,lblServices;
 
     public RemoteServiceChooserController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup, int embeddedResource) {
-        super(activity, View.inflate(activity, R.layout.embedded_create_service_chooser, viewGroup));
+        super(activity,viewGroup, R.layout.embedded_create_service_chooser);
         this.meinAuthService = meinAuthService;
         chooserContent = rootView.findViewById(R.id.chooserContent);
         View root = View.inflate(activity, embeddedResource, chooserContent);
