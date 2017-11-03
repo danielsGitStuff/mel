@@ -78,10 +78,10 @@ public class AndroidContactsServerService extends ContactsServerService {
             ContactAppendix appendix = new ContactAppendix(contact);
             appendix.getMimeType().v(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
             appendix.setValue(0, "Adolf Bedolf");
-            appendix.setValue(1,"Adolf")
-            .setValue(2,"Bedolf")
-            .setValue(9,"1")
-            .setValue(10,"0");
+            appendix.setValue(1, "Adolf")
+                    .setValue(2, "Bedolf")
+                    .setValue(9, "1")
+                    .setValue(10, "0");
             appendix.getContactId().v(contact.getId());
             contact.addAppendix(appendix);
             contact.hash();
@@ -121,16 +121,21 @@ public class AndroidContactsServerService extends ContactsServerService {
             PhoneBook phoneBook = serviceMethods.examineContacts(null);
             PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
             if (masterPhoneBook == null || masterPhoneBook.getHash().notEqualsValue(phoneBook.getHash())) {
-                if (masterPhoneBook == null)
+                if (masterPhoneBook == null) {
                     phoneBook.getVersion().v(1L);
-                else {
-                    phoneBook.getVersion().v(masterPhoneBook.getVersion().v() + 1);
+                } else {
+                    Long newVersion = masterPhoneBook.getVersion().v() + 1;
+                    System.out.println("AndroidContactsServerService: setting new version to: " + newVersion);
+                    phoneBook.getVersion().v(newVersion);
                 }
                 phoneBookDao.updateFlat(phoneBook);
                 settings.setMasterPhoneBookId(phoneBook.getId().v());
                 settings.save();
                 //todo debug
                 //contactsToAndroidExporter.export(phoneBook.getId().v());
+            } else {
+                System.out.println("AndroidContactsServerService: phonebook did not change, id=" + phoneBook.getId().v() + ", version=" + phoneBook.getVersion().v());
+                phoneBookDao.deletePhoneBook(phoneBook.getId().v());
             }
 //            //todo debug
 //            PhoneBook debugBook = new PhoneBook();
