@@ -86,7 +86,7 @@ public class ContactsServerService extends ContactsService {
         }
     }
 
-    private void propagateNewVersion(Long version) {
+    protected void propagateNewVersion(Long version) {
         try {
             for (ClientData client : settings.getServerSettings().getClients()) {
                 meinAuthService.connect(client.getCertId()).done(mvp ->
