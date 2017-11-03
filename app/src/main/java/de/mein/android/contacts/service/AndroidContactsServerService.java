@@ -131,6 +131,7 @@ public class AndroidContactsServerService extends ContactsServerService {
                 phoneBookDao.updateFlat(phoneBook);
                 settings.setMasterPhoneBookId(phoneBook.getId().v());
                 settings.save();
+                propagateNewVersion(phoneBook.getVersion().v());
                 //todo debug
                 //contactsToAndroidExporter.export(phoneBook.getId().v());
             } else {
