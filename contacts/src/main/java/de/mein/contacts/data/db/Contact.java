@@ -105,8 +105,9 @@ public class Contact extends SQLTableObject implements SerializableEntity {
         return appendices;
     }
 
-    public void addAppendix(ContactAppendix appendix) {
+    public Contact addAppendix(ContactAppendix appendix) {
         appendices.add(appendix);
+        return this;
     }
 
     public Pair<Boolean> getChecked() {

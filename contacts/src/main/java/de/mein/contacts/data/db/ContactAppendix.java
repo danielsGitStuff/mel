@@ -33,8 +33,8 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         init();
     }
 
-    public ContactAppendix(String mimeType) {
-        this.noOfColumns = ContactAppendix.getNoOfColumnsByMime(mimeType);
+    public ContactAppendix(int noOfColumns) {
+        this.noOfColumns = noOfColumns;
         this.mimeType.v(mimeType);
         init();
     }
@@ -90,11 +90,11 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairCollectionDeserializerFactory.getInstance());
 
         ContactAppendix c1 = new ContactAppendix();
-        ContactAppendix c2 = new ContactAppendix("vnd.android.cursor.item/im");
+        ContactAppendix c2 = new ContactAppendix(ContactAppendix.getNoOfColumnsByMime("vnd.android.cursor.item/im"));
         ContactAppendix c3 = new ContactAppendix();
         c3.getMimeType().v("vnd.android.cursor.item/organization");
-        c3.setValue(3,"keks");
-        c3.setValue(4,"bla");
+        c3.setValue(3, "keks");
+        c3.setValue(4, "bla");
         String json1 = SerializableEntitySerializer.serialize(c1);
         String json2 = SerializableEntitySerializer.serialize(c2);
         String json3 = SerializableEntitySerializer.serialize(c3);
@@ -104,6 +104,45 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         ContactAppendix cc1 = (ContactAppendix) SerializableEntityDeserializer.deserialize(json1);
         ContactAppendix cc2 = (ContactAppendix) SerializableEntityDeserializer.deserialize(json2);
         ContactAppendix cc3 = (ContactAppendix) SerializableEntityDeserializer.deserialize(json3);
+
+
+        Contact contact = new Contact();
+        ContactAppendix name = new ContactAppendix(getNoOfColumnsByMime("vnd.android.cursor.item/name"))
+                .setValue(0, "Andreas Deibel").setValue(1, "Andreas").setValue(2, "Deibel");
+        name.getMimeType().v("vnd.android.cursor.item/name");
+        ContactAppendix phone1 = new ContactAppendix(getNoOfColumnsByMime("vnd.android.cursor.item/phone_v2"))
+                .setValue(0, "015-208-775497").setValue(1, "2");
+        phone1.getMimeType().v("vnd.android.cursor.item/phone_v2");
+        ContactAppendix phone2 = new ContactAppendix(getNoOfColumnsByMime("vnd.android.cursor.item/phone_v2")).setValue(0, "015-208-775497").setValue(1, "2");
+        phone2.getMimeType().v("vnd.android.cursor.item/phone_v2");
+//        contact.hash();
+
+//        ContactAppendix w1 = new ContactAppendix();
+//        w1.getMimeType().v("vnd.android.cursor.item/vnd.com.whatsapp.profile");
+//        w1.setValue(0, "4915208775497@s.whatsapp.net").setValue(1, "WhatsApp").setValue(2, "Message +49 1520 8775497");
+//        ContactAppendix w2 = new ContactAppendix();
+//        w2.getMimeType().ignoreSetListener().v("vnd.android.cursor.item/vnd.com.whatsapp.voip.call");
+//        w2.setValue(0, "4915208775497@s.whatsapp.net").setValue(1, "WhatsApp").setValue(2, "Voice call +49 1520 8775497");
+//        ContactAppendix w3 = new ContactAppendix();
+//        w3.getMimeType().ignoreSetListener().v("vnd.android.cursor.item/vnd.com.whatsapp.video.call");
+//        w3.setValue(0, "4915208775497@s.whatsapp.net").setValue(1, "WhatsApp").setValue(2, "Video call +49 1520 8775497");
+
+        contact.addAppendix(name).addAppendix(phone1).addAppendix(phone2);
+//        contact.addAppendix(name);
+//        contact.addAppendix(w1).addAppendix(w2).addAppendix(w3);
+//        contact.addAppendix(phone1);
+//        Contact contact = new Contact();
+//        ContactAppendix name = new ContactAppendix();
+//        name.getMimeType().ignoreSetListener().v("vnd.android.cursor.item/name");
+//        name.setValue(0, "Andreas Deibel").setValue(1, "Andreas").setValue(2, "Deibel");
+//        ContactAppendix phone1 = new ContactAppendix();
+//        phone1.getMimeType().ignoreSetListener().v("vnd.android.cursor.item/phone_v2");
+//        phone1.setValue(0, "015-208-775497").setValue(1, "2");
+//        ContactAppendix phone2 = new ContactAppendix();
+//        phone2.getMimeType().ignoreSetListener().v("vnd.android.cursor.item/phone_v2");
+//        phone2.setValue(0, "015-208-775497").setValue(1, "2");
+//        contact.addAppendix(name).addAppendix(phone1).addAppendix(phone2);
+        contact.hash();
         System.out.println("ContactAppendix.main");
 
     }
@@ -111,7 +150,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     @Override
     protected void init() {
         mimeType.setSetListener(mime -> {
-            if (mime!=null) {
+            if (mime != null) {
                 noOfColumns = ContactAppendix.getNoOfColumnsByMime(mime);
                 init();
             }
@@ -129,10 +168,10 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
                 insertAttributes.add(pair);
                 hashPairs.add(pair);
                 dataCols.add(pair);
-                dataColMap.put("data"+i, pair);
+                dataColMap.put("data" + i, pair);
             }
             insertAttributes = newInserts;
-        }else {
+        } else {
             insertAttributes = new ArrayList<>();
             allAttributes = new ArrayList<>();
             hashPairs = new ArrayList<>();
@@ -147,6 +186,9 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
                 dataColMap.put(col, pair);
             }
         }
+        if (noOfColumns < 15)
+            hashPairs.add(blob);
+        hashPairs.add(mimeType);
         insertAttributes.add(blob);
         insertAttributes.add(mimeType);
         insertAttributes.add(contactId);
@@ -201,7 +243,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     }
 
     public static Integer getNoOfColumnsByMime(String mimeType) {
-        int noOfColumns = 0;
+        Integer noOfColumns = null;
         if (mimeType.equals("vnd.android.cursor.item/email_v2")
                 || mimeType.equals("vnd.android.cursor.item/contact_event")
                 || mimeType.equals("vnd.android.cursor.item/nickname")

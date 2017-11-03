@@ -13,8 +13,8 @@ import java.util.List;
 public class MD5er {
     private MessageDigest digest;
     //todo debug
-//    private List<Object> hashed = new ArrayList<>();
-//    public static List<MD5er> usedMD5ers = new ArrayList<>();
+    private List<Object> hashed = new ArrayList<>();
+    public static List<MD5er> usedMD5ers = new ArrayList<>();
     private String hash;
 
     public MD5er() {
@@ -24,7 +24,7 @@ public class MD5er {
             e.printStackTrace();
         }
         //todo debug
-        //usedMD5ers.add(this);
+        usedMD5ers.add(this);
     }
 
     public String digest() {
@@ -57,7 +57,7 @@ public class MD5er {
             }
         } else
             digest.update("null".getBytes());
-        //hashed.add(o);
+        hashed.add(o);
         return this;
     }
 }

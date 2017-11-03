@@ -50,6 +50,7 @@ public class Pair<V> {
             return null;
         }
     };
+    private IPairSetListener<V> hiddenSetListener;
 
     public static void setTypeConverter(PairTypeConverter typeConverter) {
         Pair.typeConverter = typeConverter;
@@ -104,6 +105,14 @@ public class Pair<V> {
         return this;
     }
 
+    public Pair<V> ignoreSetListener() {
+        if (hiddenSetListener == null) {
+            hiddenSetListener = setListener;
+            setListener = null;
+        }
+        return this;
+    }
+
     public String valueAsString() {
         if (value != null) {
             return value.toString();
@@ -114,6 +123,10 @@ public class Pair<V> {
     public Pair<V> v(V value) {
         if (setListener != null) {
             this.value = setListener.onSetCalled(value);
+            if (hiddenSetListener != null) {
+                setListener = hiddenSetListener;
+                hiddenSetListener = null;
+            }
         } else
             this.value = value;
 
@@ -171,6 +184,7 @@ public class Pair<V> {
 
     /**
      * sets value to null
+     *
      * @return
      */
     public Pair<V> nul() {
@@ -225,6 +239,6 @@ public class Pair<V> {
     }
 
     public boolean notEqualsValue(Object o) {
-          return !equalsValue(o);
+        return !equalsValue(o);
     }
 }

@@ -111,7 +111,8 @@ public class AndroidServiceMethods {
         DataTableCursorReader reader = DataTableCursorReader.query(ContactsContract.Data.CONTENT_URI, selection, new String[]{rawContactId, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE}, null);
         while (reader.moveToNext()) {
             ContactAppendix appendix = reader.readDataColumns();
-            contact.addAppendix(appendix);
+            if (appendix != null)
+                contact.addAppendix(appendix);
         }
         reader.close();
     }

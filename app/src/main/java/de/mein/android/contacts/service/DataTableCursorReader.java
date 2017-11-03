@@ -42,8 +42,12 @@ public class DataTableCursorReader {
 
     public ContactAppendix readDataColumns() {
         String mimeType = cursor.getString(16);
-        ContactAppendix appendix = new ContactAppendix(mimeType);
-        for (int i = 0; i < appendix.getNoOfColumns(); i++) {
+        Integer dataColumns = ContactAppendix.getNoOfColumnsByMime(mimeType);
+        if (dataColumns == null)
+            return null;
+        ContactAppendix appendix = new ContactAppendix(dataColumns);
+        appendix.getMimeType().v(mimeType);
+        for (int i = 0; i < dataColumns; i++) {
             try {
                 appendix.setValue(i, cursor.getString(i));
             } catch (Exception e) {
