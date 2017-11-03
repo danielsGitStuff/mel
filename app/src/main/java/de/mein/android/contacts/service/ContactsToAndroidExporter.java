@@ -123,7 +123,7 @@ public class ContactsToAndroidExporter {
                 .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
                 .withValue(ContactsContract.Data.MIMETYPE, contentItemType);
         String[] columns = DataTableCursorReader.createWriteDataColumnNames();
-        for (int i = 0; i < columns.length; i++) {
+        for (int i = 0; i < appendix.getNoOfColumns(); i++) {
             builder.withValue(columns[i], appendix.getValue(i));
             md5er.hash(appendix.getValue(i));
         }

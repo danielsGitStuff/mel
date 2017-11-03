@@ -61,4 +61,7 @@
     <string name="settingsStartDialog">Show startup dialog again</string>
     <string name="settingsShow">Show</string>
     <string name="settingsRedirectSysOut">Show Sysout</string>
+    <string name="infoSSID">Wifi</string>
+    <string name="infoNotConnected">not connected to Wifi</string>
+    <string name="infoIP">IP address</string>
 </resources>

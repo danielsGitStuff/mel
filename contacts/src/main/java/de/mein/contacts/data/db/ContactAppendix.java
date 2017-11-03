@@ -7,9 +7,17 @@ import java.util.Map;
 
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
+import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
+import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
+import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.sql.MD5er;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
+import de.mein.sql.deserialize.PairCollectionDeserializerFactory;
+import de.mein.sql.deserialize.PairDeserializerFactory;
+import de.mein.sql.serialize.PairCollectionSerializer;
+import de.mein.sql.serialize.PairCollectionSerializerFactory;
+import de.mein.sql.serialize.PairSerializerFactory;
 
 /**
  * Created by xor on 9/23/17.
@@ -18,6 +26,7 @@ import de.mein.sql.SQLTableObject;
 public class ContactAppendix extends SQLTableObject implements SerializableEntity {
 
     protected Contact contact;
+    @JsonIgnore
     private Integer noOfColumns = 15;
 
     public ContactAppendix() {
@@ -26,6 +35,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
 
     public ContactAppendix(String mimeType) {
         this.noOfColumns = ContactAppendix.getNoOfColumnsByMime(mimeType);
+        this.mimeType.v(mimeType);
         init();
     }
 
@@ -62,9 +72,9 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         return contactId;
     }
 
-    private List<Pair<String>> dataCols = new ArrayList<>(15);
+    private List<Pair<String>> dataCols;
     @JsonIgnore
-    private Map<String, Pair<String>> dataColMap = new HashMap<>();
+    private Map<String, Pair<String>> dataColMap;
     private Pair<String> mimeType = new Pair<String>(String.class, MIMETYPE);
     private Pair<byte[]> blob = new Pair<>(byte[].class, "data15");
 
@@ -73,13 +83,27 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         return "appendix";
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairCollectionSerializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairCollectionDeserializerFactory.getInstance());
+
         ContactAppendix c1 = new ContactAppendix();
         ContactAppendix c2 = new ContactAppendix("vnd.android.cursor.item/im");
         ContactAppendix c3 = new ContactAppendix();
         c3.getMimeType().v("vnd.android.cursor.item/organization");
         c3.setValue(3,"keks");
         c3.setValue(4,"bla");
+        String json1 = SerializableEntitySerializer.serialize(c1);
+        String json2 = SerializableEntitySerializer.serialize(c2);
+        String json3 = SerializableEntitySerializer.serialize(c3);
+        System.out.println(json1);
+        System.out.println(json2);
+        System.out.println(json3);
+        ContactAppendix cc1 = (ContactAppendix) SerializableEntityDeserializer.deserialize(json1);
+        ContactAppendix cc2 = (ContactAppendix) SerializableEntityDeserializer.deserialize(json2);
+        ContactAppendix cc3 = (ContactAppendix) SerializableEntityDeserializer.deserialize(json3);
         System.out.println("ContactAppendix.main");
 
     }
@@ -87,22 +111,33 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
     @Override
     protected void init() {
         mimeType.setSetListener(mime -> {
-            noOfColumns = ContactAppendix.getNoOfColumnsByMime(mime);
-            init();
+            if (mime!=null) {
+                noOfColumns = ContactAppendix.getNoOfColumnsByMime(mime);
+                init();
+            }
             return mime;
         });
         if (insertAttributes != null) {
+            allAttributes = new ArrayList<>();
             hashPairs = new ArrayList<>();
+            dataColMap = new HashMap<>();
+            dataCols = new ArrayList<>();
             List<Pair<?>> newInserts = new ArrayList<>();
             for (int i = 0; i < noOfColumns; i++) {
-                newInserts.add(insertAttributes.get(i));
-                hashPairs.add(insertAttributes.get(i));
+                Pair pair = insertAttributes.get(i);
+                newInserts.add(pair);
+                insertAttributes.add(pair);
+                hashPairs.add(pair);
+                dataCols.add(pair);
+                dataColMap.put("data"+i, pair);
             }
             insertAttributes = newInserts;
         }else {
             insertAttributes = new ArrayList<>();
             allAttributes = new ArrayList<>();
             hashPairs = new ArrayList<>();
+            dataColMap = new HashMap<>();
+            dataCols = new ArrayList<>();
             for (int i = 1; i <= getNoOfColumns(); i++) {
                 String col = "data" + i;
                 Pair<String> pair = new Pair<>(String.class, col);

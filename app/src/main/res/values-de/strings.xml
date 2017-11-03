@@ -59,4 +59,7 @@
     <string name="settingsStartDialog">Show startup dialog again</string>
     <string name="settingsShow">Zeig Her!</string>
     <string name="settingsRedirectSysOut">Konsolenausgabe anzeigen</string>
+    <string name="infoSSID">Wifi</string>
+    <string name="infoNotConnected">nicht verbunden</string>
+    <string name="infoIP">IP</string>
 </resources>

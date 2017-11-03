@@ -8,35 +8,68 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="?attr/actionBarSize">
     <!--tools:showIn="@layout/app_bar_main"-->
-<TableLayout
-    android:stretchColumns="1"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-    <TableRow>
-        <TextView android:text="@string/infoStarted"
-            android:id="@+id/lStatus"
-            android:padding="5dp"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content" />
-        <TextView
-            android:id="@+id/lblStatus"
-            android:layout_width="match_parent"
-            android:background="@android:color/holo_red_dark"
-            android:text="@string/infoStopped"
-            android:padding="5dp"
-            android:textAlignment="center"
-            android:layout_height="wrap_content" />
-    </TableRow>
-    <TableRow>
-        <TextView android:text="@string/infoNoOfServices" android:padding="5dp"/>
-        <TextView android:text="-" android:padding="5dp"
-            android:id="@+id/txtNoOfServices"
-            android:layout_gravity="end"/>
-    </TableRow>
-</TableLayout>
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stretchColumns="1">
 
+        <TableRow>
 
+            <TextView
+                android:id="@+id/lStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:text="@string/infoStarted" />
 
+            <TextView
+                android:id="@+id/lblStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_red_dark"
+                android:padding="5dp"
+                android:text="@string/infoStopped"
+                android:textAlignment="center" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:text="@string/infoSSID" />
+
+            <TextView
+                android:id="@+id/txtSSID"
+                android:layout_gravity="end"
+                android:padding="5dp" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:padding="5dp"
+                android:text="@string/infoIP" />
+
+            <TextView
+                android:id="@+id/txtIP"
+                android:layout_gravity="end"
+                android:padding="5dp" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:padding="5dp"
+                android:text="@string/infoNoOfServices" />
+
+            <TextView
+                android:id="@+id/txtNoOfServices"
+                android:layout_gravity="end"
+                android:padding="5dp" />
+        </TableRow>
+    </TableLayout>
 
 
 </RelativeLayout>

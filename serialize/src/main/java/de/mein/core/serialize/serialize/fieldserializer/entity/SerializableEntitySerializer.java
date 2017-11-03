@@ -32,7 +32,6 @@ import java.util.Map;
  */
 @SuppressWarnings({"rawtypes"})
 public class SerializableEntitySerializer extends FieldSerializer {
-    protected Logger logger = LoggerFactory.getLogger(getClass());
     public static final String ID = "$id";
     public static final String REF = "$ref";
 

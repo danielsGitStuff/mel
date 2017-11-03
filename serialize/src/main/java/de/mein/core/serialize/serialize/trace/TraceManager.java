@@ -24,7 +24,6 @@ import java.util.Set;
  */
 public class TraceManager {
 
-	protected static final Logger logger = LoggerFactory.getLogger(TraceManager.class);
 
 	private List<List<IPathPart>> forcedPaths = new ArrayList<>();
 
