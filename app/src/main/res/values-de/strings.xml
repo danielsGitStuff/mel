@@ -62,4 +62,9 @@
     <string name="infoSSID">Wifi</string>
     <string name="infoNotConnected">nicht verbunden</string>
     <string name="infoIP">IP</string>
+    <string name="coupleReject">Reject</string>
+    <string name="coupleAccept">Accept</string>
+    <string name="coupleRemoteRejectToast">Other side rejected the request :(</string>
+    <string name="coupleLocalRejectToast">You rejected the request.</string>
+    <string name="coupleProgressWaitForRemote">waiting for remote confirmation</string>
 </resources>

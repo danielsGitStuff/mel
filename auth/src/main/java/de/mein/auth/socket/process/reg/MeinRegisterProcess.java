@@ -38,6 +38,14 @@ public class MeinRegisterProcess extends MeinProcess {
     public MeinRegisterProcess(MeinAuthSocket meinAuthSocket) {
         super(meinAuthSocket);
         this.certificateManager = meinAuthSocket.getMeinAuthService().getCertificateManager();
+        confirmedPromise.done(result -> {
+            for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
+                registerHandler.onRemoteAccepted(partnerCertificate);
+        });
+        acceptedPromise.done(result -> {
+            for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
+                registerHandler.onLocallyAccepted(partnerCertificate);
+        });
         new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(results -> runner.runTry(() -> {
                     System.out.println(meinAuthSocket.getMeinAuthService().getName() + ".MeinRegisterProcess.MeinRegisterProcess");
                     MeinRegisterConfirm confirm = (MeinRegisterConfirm) results.get(0).getResult();
@@ -53,10 +61,16 @@ public class MeinRegisterProcess extends MeinProcess {
                     //todo send done, so the other side can connect!
                 })
         ).fail(results -> runner.runTry(() -> {
-            System.out.println("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
+            if (results.getReject()==confirmedPromise) {
+                System.out.println("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
+                for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
+                    registerHandler.onRemoteRejected(partnerCertificate);
+            }else if (results.getReject() == acceptedPromise){
+                for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
+                    registerHandler.onLocallyRejected(partnerCertificate);
+            }else
+                System.err.println("MeinRegisterProcess.MeinRegisterProcess.reject.UNKNOWN");
             certificateManager.deleteCertificate(partnerCertificate);
-            for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
-                registerHandler.onRegistrationCompleted(partnerCertificate);
             stop();
         }));
     }

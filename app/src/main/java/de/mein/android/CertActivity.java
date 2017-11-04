@@ -3,7 +3,9 @@ package de.mein.android;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TabHost;
 import android.widget.TextView;
 
@@ -21,6 +23,8 @@ public class CertActivity extends PopupActivity {
     private RegBundle regBundle;
     private TabHost tabHost;
     private RWLock lock = new RWLock();
+    private ProgressBar progressBar;
+    private TextView txtProgress;
 
 
     @Override
@@ -36,6 +40,8 @@ public class CertActivity extends PopupActivity {
         txtOwn = findViewById(R.id.txtOwn);
         btnAccept = findViewById(R.id.btnAccept);
         btnReject = findViewById(R.id.btnReject);
+        txtProgress = findViewById(R.id.txtProgress);
+        progressBar = findViewById(R.id.progress);
         String regUuid = getIntent().getExtras().getString(AndroidRegHandler.REGBUNDLE_UUID);
         regBundle = AndroidRegHandler.retrieveRegBundle(regUuid);
         regBundle.getAndroidRegHandler().addActivity(regBundle.getRemoteCert(), this);
@@ -43,7 +49,7 @@ public class CertActivity extends PopupActivity {
         showCert(txtOwn, regBundle.getMyCert());
         btnAccept.setOnClickListener(
                 view -> {
-                    regBundle.getAndroidRegHandler().onUserAccepted(regBundle);
+                    regBundle.getAndroidRegHandler().onLocallyAccepted(regBundle.getRemoteCert());
                     AndroidRegHandler.removeRegBundle(regUuid);
                     Notifier.cancel(this, getIntent(), requestCode);
                     showWaiting();
@@ -105,5 +111,23 @@ public class CertActivity extends PopupActivity {
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         return false;
+    }
+
+    public void onLocallyRejected() {
+        Notifier.toast(this, getText(R.string.coupleLocalRejectToast));
+        finish();
+    }
+
+    public void onRemoteRejected() {
+        Notifier.toast(this, getText(R.string.coupleRemoteRejectToast));
+        finish();
+    }
+
+    public void onRemoteAccepted() {
+        progressBar.setProgress(progressBar.getProgress()+1);
+    }
+
+    public void onLocallyAccepted() {
+        progressBar.setProgress(progressBar.getProgress()+1);
     }
 }

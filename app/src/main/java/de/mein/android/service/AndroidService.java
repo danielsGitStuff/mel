@@ -167,6 +167,26 @@ public class AndroidService extends Service {
                 public void onRegistrationCompleted(Certificate partnerCertificate) {
 
                 }
+
+                @Override
+                public void onRemoteRejected(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onLocallyRejected(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onRemoteAccepted(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onLocallyAccepted(Certificate partnerCertificate) {
+
+                }
             });
             meinAuthService.addRegisteredHandler((meinAuthService1, registered) -> N.r(() -> {
                 List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -260,6 +280,26 @@ public class AndroidService extends Service {
 
             @Override
             public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
 
             }
         };

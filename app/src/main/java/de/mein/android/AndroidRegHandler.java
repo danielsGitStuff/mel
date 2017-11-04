@@ -87,6 +87,50 @@ public class AndroidRegHandler implements IRegisterHandler {
         }
     }
 
+    @Override
+    public void onRemoteRejected(Certificate partnerCertificate) {
+        try {
+            String hash = Hash.sha256(partnerCertificate.getCertificate().v());
+            CertActivity certActivity = hashRegActivitiesMap.remove(hash);
+            certActivity.onRemoteRejected();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onLocallyRejected(Certificate partnerCertificate) {
+        try {
+            String hash = Hash.sha256(partnerCertificate.getCertificate().v());
+            CertActivity certActivity = hashRegActivitiesMap.remove(hash);
+            certActivity.onLocallyRejected();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onRemoteAccepted(Certificate partnerCertificate) {
+        try {
+            String hash = Hash.sha256(partnerCertificate.getCertificate().v());
+            CertActivity certActivity = hashRegActivitiesMap.remove(hash);
+            certActivity.onRemoteAccepted();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onLocallyAccepted(Certificate partnerCertificate) {
+        try {
+            String hash = Hash.sha256(partnerCertificate.getCertificate().v());
+            CertActivity certActivity = hashRegActivitiesMap.remove(hash);
+            certActivity.onLocallyAccepted();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void addActivity(Certificate certificate, CertActivity certActivity) {
         try {
             String hash = Hash.sha256(certificate.getCertificate().v());

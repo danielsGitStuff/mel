@@ -9,4 +9,12 @@ import de.mein.auth.data.db.Certificate;
 public interface IRegisterHandler {
     void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate);
     void onRegistrationCompleted(Certificate partnerCertificate);
+
+    void onRemoteRejected(Certificate partnerCertificate);
+
+    void onLocallyRejected(Certificate partnerCertificate);
+
+    void onRemoteAccepted(Certificate partnerCertificate);
+
+    void onLocallyAccepted(Certificate partnerCertificate);
 }

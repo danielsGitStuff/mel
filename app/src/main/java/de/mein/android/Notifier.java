@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.app.NotificationManagerCompat;
+import android.widget.Toast;
 
 import java.util.stream.Stream;
 
@@ -48,5 +49,10 @@ public class Notifier {
             pendingIntent.cancel();
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.cancel(requestCode);
+    }
+
+    public static void toast(Context context, CharSequence message) {
+        Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
+        toast.show();
     }
 }
