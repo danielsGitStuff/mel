@@ -13,7 +13,6 @@ import de.mein.R;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.RWLock;
 
 public class CertActivity extends PopupActivity {
@@ -45,6 +44,7 @@ public class CertActivity extends PopupActivity {
         btnAccept.setOnClickListener(
                 view -> {
                     regBundle.getAndroidRegHandler().onUserAccepted(regBundle);
+                    AndroidRegHandler.removeRegBundle(regUuid);
                     Notifier.cancel(this, getIntent(), requestCode);
                     showWaiting();
                 }
@@ -52,6 +52,7 @@ public class CertActivity extends PopupActivity {
         btnReject.setOnClickListener(
                 view -> Threadder.runNoTryThread(() -> {
                     regBundle.getAndroidRegHandler().onUserRejected(regBundle);
+                    AndroidRegHandler.removeRegBundle(regUuid);
                     Notifier.cancel(this, getIntent(), requestCode);
                     showWaiting();
                 })
@@ -93,6 +94,12 @@ public class CertActivity extends PopupActivity {
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        regBundle.getAndroidRegHandler().removeActivityByBundle(regBundle);
+        super.onDestroy();
     }
 
     @Override

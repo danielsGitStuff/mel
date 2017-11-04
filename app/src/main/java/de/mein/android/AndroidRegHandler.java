@@ -43,7 +43,6 @@ public class AndroidRegHandler implements IRegisterHandler {
 
     public static RegBundle retrieveRegBundle(String uuid) {
         RegBundle bundle = regBundles.get(uuid);
-        regBundles.remove(uuid);
         return bundle;
     }
 
@@ -77,6 +76,7 @@ public class AndroidRegHandler implements IRegisterHandler {
         notificationManager.notify(requestCode, notification);
     }
 
+
     @Override
     public void onRegistrationCompleted(Certificate partnerCertificate) {
         try {
@@ -106,5 +106,18 @@ public class AndroidRegHandler implements IRegisterHandler {
         Threadder.runNoTryThread(() -> {
             regBundle.getListener().onCertificateRejected(regBundle.getRequest(), regBundle.getRemoteCert());
         });
+    }
+
+    public static void removeRegBundle(String uuid) {
+        regBundles.remove(uuid);
+    }
+
+    public void removeActivityByBundle(RegBundle regBundle) {
+        try {
+            String hash = Hash.sha256(regBundle.getRemoteCert().getCertificate().v());
+            hashRegActivitiesMap.remove(hash);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
