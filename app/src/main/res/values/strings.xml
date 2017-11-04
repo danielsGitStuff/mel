@@ -68,5 +68,5 @@
     <string name="coupleAccept">Accept</string>
     <string name="coupleRemoteRejectToast">Other side rejected the request :(</string>
     <string name="coupleLocalRejectToast">You rejected the request.</string>
-    <string name="coupleProgressWaitForRemote">waiting for remote confirmation</string>
+    <string name="coupleProgressWaitForRemote">Status of remote confirmation:</string>
 </resources>

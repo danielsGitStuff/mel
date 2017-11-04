@@ -7,19 +7,31 @@
     android:orientation="vertical"
     tools:context="de.mein.android.CertActivity">
 
+    <TextView
+        android:id="@+id/txtProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:padding="12dp"
+        android:text="@string/coupleProgressWaitForRemote" />
+
     <ProgressBar
         android:id="@+id/progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@id/txtProgress"
         android:max="2"
-        android:layout_alignParentTop="true" />
-    <TextView
-        android:id="@+id/txtProgress"
-        android:layout_toEndOf="@id/progress"
-        android:padding="12dp"
-        android:text="@string/coupleProgressWaitForRemote"
+        android:progress="1" />
+
+    <ImageView
+        android:id="@+id/imgProgress"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="40dp"
+        android:visibility="invisible"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@id/txtProgress"
+        app:srcCompat="@drawable/icon_checkbox" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -102,4 +114,6 @@
         android:layout_alignParentEnd="true"
         android:layout_toEndOf="@id/horizontalMiddle"
         android:text="@string/coupleAccept" />
+
+
 </RelativeLayout>

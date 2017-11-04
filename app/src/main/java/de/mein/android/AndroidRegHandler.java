@@ -10,7 +10,6 @@ import android.support.v4.app.NotificationManagerCompat;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import de.mein.R;
 import de.mein.auth.MeinStrings;
@@ -25,7 +24,7 @@ import de.mein.sql.Hash;
  * Created by xor on 3/6/17.
  */
 public class AndroidRegHandler implements IRegisterHandler {
-    public static final String REGBUNDLE_UUID = "r";
+    public static final String REGBUNDLE_CERT_HASH = "r";
     // these are necessary to couple handler-activity without letting the android
     // gui thread execute network related stuff
     private static final Map<String, RegBundle> regBundles = new HashMap<>();
@@ -48,25 +47,24 @@ public class AndroidRegHandler implements IRegisterHandler {
 
     @Override
     public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
-        String uuid = UUID.randomUUID().toString();
         RegBundle regBundle = new RegBundle()
                 .setListener(listener)
                 .setRequest(request)
                 .setMyCert(myCertificate)
                 .setRemoteCert(certificate)
                 .setAndroidRegHandler(this);
-        regBundles.put(uuid, regBundle);
+        regBundles.put(regBundle.getHash(), regBundle);
 //        Intent i = new Intent();
 //        i.setClass(context, CertActivity.class);
 //        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        i.putExtra(REGBUNDLE_UUID, uuid);
+//        i.putExtra(REGBUNDLE_CERT_HASH, uuid);
 //        context.startActivity(i);
 
         int requestCode = Tools.generateIntentRequestCode();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
         Intent intent = new Intent(context, CertActivity.class);
         intent.putExtra(MeinStrings.Notifications.REQUEST_CODE, requestCode);
-        intent.putExtra(REGBUNDLE_UUID, uuid);
+        intent.putExtra(REGBUNDLE_CERT_HASH, regBundle.getHash());
         PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = builder.setSmallIcon(R.drawable.icon_notification_2)
                 .setContentTitle(context.getString(R.string.notificationCertTitle))
@@ -82,6 +80,7 @@ public class AndroidRegHandler implements IRegisterHandler {
         try {
             String hash = Hash.sha256(partnerCertificate.getCertificate().v());
             hashRegActivitiesMap.remove(hash).onRegistrationFinished();
+            regBundles.remove(hash);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -92,7 +91,8 @@ public class AndroidRegHandler implements IRegisterHandler {
         try {
             String hash = Hash.sha256(partnerCertificate.getCertificate().v());
             CertActivity certActivity = hashRegActivitiesMap.remove(hash);
-            certActivity.onRemoteRejected();
+            if (certActivity != null)
+                certActivity.onRemoteRejected();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -113,8 +113,10 @@ public class AndroidRegHandler implements IRegisterHandler {
     public void onRemoteAccepted(Certificate partnerCertificate) {
         try {
             String hash = Hash.sha256(partnerCertificate.getCertificate().v());
-            CertActivity certActivity = hashRegActivitiesMap.remove(hash);
-            certActivity.onRemoteAccepted();
+            CertActivity certActivity = hashRegActivitiesMap.get(hash);
+            if (certActivity != null)
+                certActivity.onRemoteAccepted();
+            regBundles.get(hash).flagRemoteAccepted();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -124,20 +126,15 @@ public class AndroidRegHandler implements IRegisterHandler {
     public void onLocallyAccepted(Certificate partnerCertificate) {
         try {
             String hash = Hash.sha256(partnerCertificate.getCertificate().v());
-            CertActivity certActivity = hashRegActivitiesMap.remove(hash);
+            CertActivity certActivity = hashRegActivitiesMap.get(hash);
             certActivity.onLocallyAccepted();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void addActivity(Certificate certificate, CertActivity certActivity) {
-        try {
-            String hash = Hash.sha256(certificate.getCertificate().v());
-            hashRegActivitiesMap.put(hash, certActivity);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void addActivity(String certHash, CertActivity certActivity) {
+        hashRegActivitiesMap.put(certHash, certActivity);
     }
 
     public void onUserAccepted(RegBundle regBundle) {

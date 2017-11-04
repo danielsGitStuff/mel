@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TabHost;
 import android.widget.TextView;
@@ -25,6 +26,7 @@ public class CertActivity extends PopupActivity {
     private RWLock lock = new RWLock();
     private ProgressBar progressBar;
     private TextView txtProgress;
+    private ImageView imgProgress;
 
 
     @Override
@@ -42,17 +44,20 @@ public class CertActivity extends PopupActivity {
         btnReject = findViewById(R.id.btnReject);
         txtProgress = findViewById(R.id.txtProgress);
         progressBar = findViewById(R.id.progress);
-        String regUuid = getIntent().getExtras().getString(AndroidRegHandler.REGBUNDLE_UUID);
+        imgProgress = findViewById(R.id.imgProgress);
+        String regUuid = getIntent().getExtras().getString(AndroidRegHandler.REGBUNDLE_CERT_HASH);
         regBundle = AndroidRegHandler.retrieveRegBundle(regUuid);
-        regBundle.getAndroidRegHandler().addActivity(regBundle.getRemoteCert(), this);
+        regBundle.getAndroidRegHandler().addActivity(regBundle.getHash(), this);
+        if (regBundle.isFlaggedRemoteAccepted())
+            onRemoteAccepted();
         showCert(txtRemote, regBundle.getRemoteCert());
         showCert(txtOwn, regBundle.getMyCert());
         btnAccept.setOnClickListener(
                 view -> {
-                    regBundle.getAndroidRegHandler().onLocallyAccepted(regBundle.getRemoteCert());
+                    regBundle.getAndroidRegHandler().onUserAccepted(regBundle);
                     AndroidRegHandler.removeRegBundle(regUuid);
                     Notifier.cancel(this, getIntent(), requestCode);
-                    showWaiting();
+                    finish();
                 }
         );
         btnReject.setOnClickListener(
@@ -60,7 +65,7 @@ public class CertActivity extends PopupActivity {
                     regBundle.getAndroidRegHandler().onUserRejected(regBundle);
                     AndroidRegHandler.removeRegBundle(regUuid);
                     Notifier.cancel(this, getIntent(), requestCode);
-                    showWaiting();
+                    finish();
                 })
         );
         tabHost = (TabHost) findViewById(R.id.tabHost);
@@ -124,10 +129,13 @@ public class CertActivity extends PopupActivity {
     }
 
     public void onRemoteAccepted() {
-        progressBar.setProgress(progressBar.getProgress()+1);
+        runOnUiThread(() -> {
+            progressBar.setVisibility(View.INVISIBLE);
+            imgProgress.setVisibility(View.VISIBLE);
+        });
     }
 
     public void onLocallyAccepted() {
-        progressBar.setProgress(progressBar.getProgress()+1);
+
     }
 }

@@ -1,9 +1,12 @@
 package de.mein.android;
 
+import java.io.IOException;
+
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
+import de.mein.sql.Hash;
 
 /**
  * Created by xor on 3/6/17.
@@ -15,6 +18,8 @@ public class RegBundle {
     private Certificate myCert;
     private Certificate remoteCert;
     private AndroidRegHandler androidRegHandler;
+    private boolean remoteAccepted = false;
+    private String hash;
 
 
     public RegBundle setListener(IRegisterHandlerListener listener) {
@@ -34,7 +39,16 @@ public class RegBundle {
 
     public RegBundle setRemoteCert(Certificate remoteCert) {
         this.remoteCert = remoteCert;
+        try {
+            hash = Hash.sha256(remoteCert.getCertificate().v());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return this;
+    }
+
+    public String getHash() {
+        return hash;
     }
 
     public Certificate getMyCert() {
@@ -60,5 +74,13 @@ public class RegBundle {
 
     public AndroidRegHandler getAndroidRegHandler() {
         return androidRegHandler;
+    }
+
+    public void flagRemoteAccepted() {
+        this.remoteAccepted = true;
+    }
+
+    public boolean isFlaggedRemoteAccepted() {
+        return remoteAccepted;
     }
 }
