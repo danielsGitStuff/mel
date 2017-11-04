@@ -56,6 +56,7 @@ public class ContactsServerService extends ContactsService {
             try {
                 UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
                 PhoneBook phoneBook = updatePhoneBookJob.getPhoneBook();
+                phoneBook.getOriginal().v(false);
                 PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
                 if (masterPhoneBook == null
                         || phoneBook.getVersion().v() == masterPhoneBook.getVersion().v() + 1) {

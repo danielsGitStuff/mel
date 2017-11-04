@@ -20,13 +20,17 @@ import de.mein.contacts.service.ContactsService;
  */
 
 public class AndroidContactsEditController extends AndroidServiceGuiController {
+    private final AndroidContactSettings androidContactSettings;
     private CheckBox cbStoreToPhoneBook;
     private ContactsService contactsService;
 
     public AndroidContactsEditController(MeinAuthService meinAuthService, MeinActivity activity, IMeinService runningInstance, ViewGroup embedded) {
         super(activity, embedded, R.layout.embedded_twice_contacts);
         this.contactsService = (ContactsService) runningInstance;
+        androidContactSettings = (AndroidContactSettings) contactsService.getSettings().getPlatformContactSettings();
+        cbStoreToPhoneBook.setChecked(androidContactSettings.getPersistToPhoneBook());
     }
+
 
     @Override
     protected void init() {
@@ -36,7 +40,6 @@ public class AndroidContactsEditController extends AndroidServiceGuiController {
 
     @Override
     public void onOkClicked() {
-        AndroidContactSettings androidContactSettings = (AndroidContactSettings) contactsService.getSettings().getPlatformContactSettings();
         androidContactSettings.setPersistToPhoneBook(cbStoreToPhoneBook.isChecked());
         N.r(() -> contactsService.getSettings().save());
     }

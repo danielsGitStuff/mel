@@ -130,6 +130,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                 System.out.println("ContactsClientService.workWork.query.success");
                 PhoneBook receivedPhoneBook = (PhoneBook) result;
                 PhoneBook master = databaseManager.getFlatMasterPhoneBook();
+                receivedPhoneBook.getOriginal().v(false);
                 databaseManager.getPhoneBookDao().insertDeep(receivedPhoneBook);
                 databaseManager.getSettings().setMasterPhoneBookId(receivedPhoneBook.getId().v());
                 databaseManager.getSettings().save();
@@ -195,8 +196,14 @@ public class AndroidContactsClientService extends ContactsClientService {
         databaseManager.getSettings().setMasterPhoneBookId(newPhoneBookId);
         //databaseManager.getSettings().getClientSettings().setLastReadId(null);
         databaseManager.getSettings().save();
+
         try {
-            export(newPhoneBookId);
+            if (newPhoneBookId == settings.getClientSettings().getLastReadId()) {
+                PhoneBook newPhoneBook = databaseManager.getPhoneBookDao().loadFlatPhoneBook(newPhoneBookId);
+                if (!newPhoneBook.getOriginal().v()) {
+                    export(newPhoneBookId);
+                }
+            }
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         }

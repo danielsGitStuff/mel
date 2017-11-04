@@ -57,14 +57,14 @@ public class AndroidServiceMethods {
         PhoneBook phoneBook;
         PhoneBook master = databaseManager.getFlatMasterPhoneBook();
         if (master == null)
-            phoneBook = phoneBookDao.create(0L);
+            phoneBook = phoneBookDao.create(0L, true);
         else if (lastUncommitedHeadVersion != null) {
             Long max = lastUncommitedHeadVersion;
             if (master.getVersion().v() > max)
                 max = master.getVersion().v();
-            phoneBook = phoneBookDao.create(max + 1);
+            phoneBook = phoneBookDao.create(max + 1, true);
         } else
-            phoneBook = phoneBookDao.create(master.getVersion().v() + 1);
+            phoneBook = phoneBookDao.create(master.getVersion().v() + 1, true);
         String[] projContact = new String[]{
                 ContactsContract.Contacts._ID,
                 ContactsContract.Contacts.NAME_RAW_CONTACT_ID,

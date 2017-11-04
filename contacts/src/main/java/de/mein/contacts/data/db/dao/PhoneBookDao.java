@@ -20,10 +20,17 @@ public class PhoneBookDao extends Dao {
         this.contactsDao = contactsDao;
     }
 
-    public PhoneBook create(long version) throws SqlQueriesException {
+    /**
+     * @param version
+     * @param original true if PhoneBook is from local computer. So it won't be exported.
+     * @return
+     * @throws SqlQueriesException
+     */
+    public PhoneBook create(long version, boolean original) throws SqlQueriesException {
         PhoneBook phoneBook = new PhoneBook();
         phoneBook.getCreated().v(System.currentTimeMillis());
         phoneBook.getVersion().v(version);
+        phoneBook.getOriginal().v(original);
         Long id = sqlQueries.insert(phoneBook);
         phoneBook.getId().v(id);
         System.out.println("PhoneBookDao.create.id=" + id + ",version=" + version);

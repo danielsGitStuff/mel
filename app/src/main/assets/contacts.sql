@@ -7,7 +7,8 @@ CREATE TABLE phonebook (
   id       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   version  INTEGER,
   deephash TEXT,
-  created  INTEGER NOT NULL
+  created  INTEGER NOT NULL,
+  org integer not null
 );
 CREATE TABLE contacts (
   id       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
