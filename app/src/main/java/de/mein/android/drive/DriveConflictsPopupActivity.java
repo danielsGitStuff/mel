@@ -52,7 +52,7 @@ public class DriveConflictsPopupActivity extends ConflictsPopupActivity<MeinDriv
         }
         btnOk.setOnClickListener(view -> {
             if (conflictSolver.isSolved()) {
-                Notifier.cancel(this, getIntent(), requestCode);
+                Notifier.cancel( getIntent(), requestCode);
                 service.addJob(new CommitJob());
                 finish();
             } else {

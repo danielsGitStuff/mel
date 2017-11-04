@@ -1,10 +1,11 @@
 package de.mein.android;
 
+import android.content.Intent;
+
 import java.io.IOException;
 
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.sql.Hash;
 
@@ -20,6 +21,8 @@ public class RegBundle {
     private AndroidRegHandler androidRegHandler;
     private boolean remoteAccepted = false;
     private String hash;
+    private Integer notificationRequestCode;
+    private Intent notificationIntent;
 
 
     public RegBundle setListener(IRegisterHandlerListener listener) {
@@ -27,9 +30,27 @@ public class RegBundle {
         return this;
     }
 
+    public RegBundle setNotificationIntent(Intent notificationIntent) {
+        this.notificationIntent = notificationIntent;
+        return this;
+    }
+
+    public Intent getNotificationIntent() {
+        return notificationIntent;
+    }
+
     public RegBundle setRequest(MeinRequest request) {
         this.request = request;
         return this;
+    }
+
+    public RegBundle setNotificationRequestCode(Integer notificationRequestCode) {
+        this.notificationRequestCode = notificationRequestCode;
+        return this;
+    }
+
+    public Integer getNotificationRequestCode() {
+        return notificationRequestCode;
     }
 
     public RegBundle setMyCert(Certificate myCert) {
@@ -82,5 +103,10 @@ public class RegBundle {
 
     public boolean isFlaggedRemoteAccepted() {
         return remoteAccepted;
+    }
+
+    public RegBundle setHash(String hash) {
+        this.hash = hash;
+        return this;
     }
 }

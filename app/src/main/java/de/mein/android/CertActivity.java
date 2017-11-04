@@ -55,16 +55,14 @@ public class CertActivity extends PopupActivity {
         btnAccept.setOnClickListener(
                 view -> {
                     regBundle.getAndroidRegHandler().onUserAccepted(regBundle);
-                    AndroidRegHandler.removeRegBundle(regUuid);
-                    Notifier.cancel(this, getIntent(), requestCode);
+                    Notifier.cancel( getIntent(), requestCode);
                     finish();
                 }
         );
         btnReject.setOnClickListener(
                 view -> Threadder.runNoTryThread(() -> {
                     regBundle.getAndroidRegHandler().onUserRejected(regBundle);
-                    AndroidRegHandler.removeRegBundle(regUuid);
-                    Notifier.cancel(this, getIntent(), requestCode);
+                    Notifier.cancel( getIntent(), requestCode);
                     finish();
                 })
         );
@@ -119,12 +117,10 @@ public class CertActivity extends PopupActivity {
     }
 
     public void onLocallyRejected() {
-        Notifier.toast(this, getText(R.string.coupleLocalRejectToast));
         finish();
     }
 
     public void onRemoteRejected() {
-        Notifier.toast(this, getText(R.string.coupleRemoteRejectToast));
         finish();
     }
 

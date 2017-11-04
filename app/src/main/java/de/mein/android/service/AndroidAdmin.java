@@ -88,7 +88,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
 
                 @Override
                 public void cancel() {
-                    Notifier.cancel(context, intent, requestCode);
+                    Notifier.cancel( intent, requestCode);
                 }
 
                 @Override

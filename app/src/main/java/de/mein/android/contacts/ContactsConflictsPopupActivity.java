@@ -91,7 +91,7 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
                 phoneBookDao.deletePhoneBook(receivedPhoneBookId);
                 //phoneBookDao.deletePhoneBook(lastReadPhoneBookId);
                 //service.getDatabaseManager().getSettings().getClientSettings().setLastReadId(merged.getId().v());
-                Notifier.cancel(this, getIntent(), requestCode);
+                Notifier.cancel( getIntent(), requestCode);
                 service.addJob(new CommitJob(merged.getId().v()));
                 finish();
             }));

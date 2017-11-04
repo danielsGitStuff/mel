@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.reg;
 
+import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.access.CertificateManager;
@@ -11,13 +12,16 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
+import org.jdeferred.multiple.OneReject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
@@ -61,16 +65,22 @@ public class MeinRegisterProcess extends MeinProcess {
                     //todo send done, so the other side can connect!
                 })
         ).fail(results -> runner.runTry(() -> {
-            if (results.getReject()==confirmedPromise) {
-                System.out.println("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
-                for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
-                    registerHandler.onRemoteRejected(partnerCertificate);
-            }else if (results.getReject() == acceptedPromise){
-                for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
-                    registerHandler.onLocallyRejected(partnerCertificate);
-            }else
-                System.err.println("MeinRegisterProcess.MeinRegisterProcess.reject.UNKNOWN");
-            certificateManager.deleteCertificate(partnerCertificate);
+            if (results instanceof OneReject) {
+                if (results.getReject() instanceof PartnerDidNotTrustException) {
+                    System.out.println("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
+                    for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
+                        registerHandler.onRemoteRejected(partnerCertificate);
+                }else if (results.getReject() instanceof UserDidNotTrustException){
+                    System.out.println("MeinRegisterProcess.MeinRegisterProcess.user.did.not.trust");
+                    for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
+                        registerHandler.onLocallyRejected(partnerCertificate);
+                }
+                certificateManager.deleteCertificate(partnerCertificate);
+            } else {
+                System.err.println("MeinRegisterProcess.MeinRegisterProcess.reject.UNKNOWN.2");
+                certificateManager.deleteCertificate(partnerCertificate);
+            }
+
             stop();
         }));
     }
@@ -107,7 +117,7 @@ public class MeinRegisterProcess extends MeinProcess {
                 public void onCertificateRejected(MeinRequest request, Certificate certificate) {
                     runner.runTry(() -> {
                         MeinRegisterProcess.this.sendConfirmation(false);
-                        acceptedPromise.reject(new PartnerDidNotTrustException());
+                        acceptedPromise.reject(new UserDidNotTrustException());
                     });
                 }
             }, request, meinAuthSocket.getMeinAuthService().getMyCertificate(), partnerCertificate);
@@ -122,7 +132,7 @@ public class MeinRegisterProcess extends MeinProcess {
                 response.setState(MeinStrings.msg.STATE_OK);
                 send(response);
                 MeinRegisterProcess.this.removeThyself();
-                for (IRegisteredHandler registeredHandler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()){
+                for (IRegisteredHandler registeredHandler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()) {
                     try {
                         registeredHandler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), partnerCertificate);
                     } catch (SqlQueriesException e) {
