@@ -1,16 +1,12 @@
 package de.mein.android;
 
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import de.mein.R;
 import de.mein.auth.MeinStrings;
@@ -25,7 +21,7 @@ import de.mein.sql.Hash;
  * Created by xor on 3/6/17.
  */
 public class AndroidRegHandler implements IRegisterHandler {
-    public static final String REGBUNDLE_UUID = "r";
+    public static final String REGBUNDLE_CERT_HASH = "r";
     // these are necessary to couple handler-activity without letting the android
     // gui thread execute network related stuff
     private static final Map<String, RegBundle> regBundles = new HashMap<>();
@@ -33,67 +29,124 @@ public class AndroidRegHandler implements IRegisterHandler {
 
     private final MeinAuthService meinAuthService;
     private final Context context;
-    private final NotificationManagerCompat notificationManager;
+    private NotificationManagerCompat notificationManager;
 
     public AndroidRegHandler(Context context, MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
         this.context = context;
-        notificationManager = Notifier.createNotificationManager(context);
+        notificationManager = Notifier.createNotificationManager(Tools.getApplicationContext());
     }
 
     public static RegBundle retrieveRegBundle(String uuid) {
         RegBundle bundle = regBundles.get(uuid);
-        regBundles.remove(uuid);
         return bundle;
     }
 
     @Override
     public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
-        String uuid = UUID.randomUUID().toString();
-        RegBundle regBundle = new RegBundle()
-                .setListener(listener)
-                .setRequest(request)
-                .setMyCert(myCertificate)
-                .setRemoteCert(certificate)
-                .setAndroidRegHandler(this);
-        regBundles.put(uuid, regBundle);
-//        Intent i = new Intent();
-//        i.setClass(context, CertActivity.class);
-//        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        i.putExtra(REGBUNDLE_UUID, uuid);
-//        context.startActivity(i);
 
-        int requestCode = Tools.generateIntentRequestCode();
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
-        Intent intent = new Intent(context, CertActivity.class);
-        intent.putExtra(MeinStrings.Notifications.REQUEST_CODE, requestCode);
-        intent.putExtra(REGBUNDLE_UUID, uuid);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = builder.setSmallIcon(R.drawable.icon_notification_2)
-                .setContentTitle(context.getString(R.string.notificationCertTitle))
-                .setContentText(context.getString(R.string.notificationCertText))
-                .setContentIntent(pendingIntent)
-                .build();
-        notificationManager.notify(requestCode, notification);
+        try {
+            String hash = Hash.sha256(certificate.getCertificate().v());
+            final int requestCode = Tools.generateIntentRequestCode();
+            RegBundle regBundle = new RegBundle()
+                    .setListener(listener)
+                    .setRequest(request)
+                    .setMyCert(myCertificate)
+                    .setRemoteCert(certificate)
+                    .setAndroidRegHandler(this)
+                    .setNotificationRequestCode(requestCode)
+                    .setHash(hash);
+            regBundles.put(regBundle.getHash(), regBundle);
+            Intent intent = new Intent(context, CertActivity.class);
+            intent.putExtra(MeinStrings.Notifications.REQUEST_CODE, requestCode);
+            intent.putExtra(REGBUNDLE_CERT_HASH, regBundle.getHash());
+            regBundle.setNotificationIntent(intent);
+            CharSequence title = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTitle);
+            CharSequence text = Tools.getApplicationContext().getText(R.string.coupleNotificationCertText);
+            Notifier.pendingNotification(requestCode, intent, Notifier.CHANNEL_ID_SOUND, title, text, ":)");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 
     @Override
     public void onRegistrationCompleted(Certificate partnerCertificate) {
         try {
             String hash = Hash.sha256(partnerCertificate.getCertificate().v());
-            hashRegActivitiesMap.remove(hash).onRegistrationFinished();
+            CertActivity activity = hashRegActivitiesMap.remove(hash);
+            if (activity != null)
+                activity.onRegistrationFinished();
+            RegBundle bundle = regBundles.remove(hash);
+            CharSequence title = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTitleCompleted);
+            CharSequence text = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTextCompleted);
+            Notifier.notification(bundle.getNotificationRequestCode(), R.drawable.icon_notification_2, Notifier.CHANNEL_ID_SILENT, title, text, ":)");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void addActivity(Certificate certificate, CertActivity certActivity) {
+    @Override
+    public void onRemoteRejected(Certificate partnerCertificate) {
         try {
-            String hash = Hash.sha256(certificate.getCertificate().v());
-            hashRegActivitiesMap.put(hash, certActivity);
+            Notifier.toast(Tools.getApplicationContext(), Tools.getApplicationContext().getText(R.string.coupleRemoteRejectToast));
+            String hash = Hash.sha256(partnerCertificate.getCertificate().v());
+            CertActivity certActivity = hashRegActivitiesMap.remove(hash);
+            RegBundle bundle = regBundles.remove(hash);
+            CharSequence title = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTitleRemoteRejected);
+            CharSequence text = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTextRemoteRejected);
+            Notifier.notification(bundle.getNotificationRequestCode(), R.drawable.icon_notification_2, Notifier.CHANNEL_ID_SILENT, title, text, ":)");
+            if (certActivity != null)
+                certActivity.onRemoteRejected();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onLocallyRejected(Certificate partnerCertificate) {
+        try {
+            Notifier.toast(Tools.getApplicationContext(), Tools.getApplicationContext().getText(R.string.coupleLocalRejectToast));
+            String hash = Hash.sha256(partnerCertificate.getCertificate().v());
+            CertActivity certActivity = hashRegActivitiesMap.remove(hash);
+            certActivity.onLocallyRejected();
+            RegBundle bundle = regBundles.remove(hash);
+            Notifier.cancel(bundle.getNotificationIntent(), bundle.getNotificationRequestCode());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onRemoteAccepted(Certificate partnerCertificate) {
+        try {
+            String hash = Hash.sha256(partnerCertificate.getCertificate().v());
+            CertActivity certActivity = hashRegActivitiesMap.get(hash);
+            if (certActivity != null)
+                certActivity.onRemoteAccepted();
+            regBundles.get(hash).flagRemoteAccepted();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onLocallyAccepted(Certificate partnerCertificate) {
+        try {
+            String hash = Hash.sha256(partnerCertificate.getCertificate().v());
+            CertActivity certActivity = hashRegActivitiesMap.get(hash);
+            certActivity.onLocallyAccepted();
+            RegBundle bundle = regBundles.get(hash);
+            CharSequence title = Tools.getApplicationContext().getText(R.string.coupleNotificationRemotePendingTitle);
+            CharSequence text = Tools.getApplicationContext().getText(R.string.coupleNotificationRemotePendingText);
+            Notifier.pendingNotification(bundle.getNotificationRequestCode(), bundle.getNotificationIntent(), Notifier.CHANNEL_ID_SOUND, title, text, ":)");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addActivity(String certHash, CertActivity certActivity) {
+        hashRegActivitiesMap.put(certHash, certActivity);
     }
 
     public void onUserAccepted(RegBundle regBundle) {
@@ -106,5 +159,15 @@ public class AndroidRegHandler implements IRegisterHandler {
         Threadder.runNoTryThread(() -> {
             regBundle.getListener().onCertificateRejected(regBundle.getRequest(), regBundle.getRemoteCert());
         });
+    }
+
+
+    public void removeActivityByBundle(RegBundle regBundle) {
+        try {
+            String hash = Hash.sha256(regBundle.getRemoteCert().getCertificate().v());
+            hashRegActivitiesMap.remove(hash);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -7,8 +7,8 @@
 
 
 
-    <string name="notificationCertTitle">Pairing Attempt!</string>
-    <string name="notificationCertText">Your Drive instance wants to get to know another one.</string>
+    <string name="coupleNotificationCertTitle">Pairing Attempt!</string>
+    <string name="coupleNotificationCertText">Your Drive instance wants to get to know another one.</string>
     <string name="slogan">No Clouds included!</string>
     <string name="permanentNotificationText">This notification prevents Drive from being shut down.</string>
     <string name="btnOk">Ok</string>
@@ -41,13 +41,13 @@
     <string name="createServiceTitle">Create Service</string>
     <string name="infoTitle">Info</string>
     <string name="logcatTitle">Logcat</string>
-    <string name="discoverTitle">Coupling</string>
+    <string name="discoverTitle">Pairing</string>
     <string name="settingsTitle">Settings</string>
     <string name="editServiceTitle">Edit Service</string>
     <string name="drawerTitle">Drive itself</string>
     <string name="drawerServices">Services</string>
     <string name="drawerCreateNewService">Create New Service</string>
-    <string name="discoverBtnCouple">Couple</string>
+    <string name="discoverBtnCouple">Pair</string>
     <string name="discoverUnknown">Unknown</string>
     <string name="discoverKnown">Known</string>
     <string name="showIntro">introShown</string>
@@ -64,4 +64,15 @@
     <string name="infoSSID">Wifi</string>
     <string name="infoNotConnected">not connected to Wifi</string>
     <string name="infoIP">IP address</string>
+    <string name="coupleReject">Reject</string>
+    <string name="coupleAccept">Accept</string>
+    <string name="coupleRemoteRejectToast">Other side rejected the request :(</string>
+    <string name="coupleLocalRejectToast">You rejected the request.</string>
+    <string name="coupleProgressWaitForRemote">Status of remote confirmation:</string>
+    <string name="coupleNotificationCertTitleCompleted">Pairing successful</string>
+    <string name="coupleNotificationCertTextCompleted">You can setup services now.</string>
+    <string name="coupleNotificationCertTextRemoteRejected">Your pairing request was rejected.</string>
+    <string name="coupleNotificationCertTitleRemoteRejected">Pairing rejected remotely</string>
+    <string name="coupleNotificationRemotePendingText">Waiting for the other side to accept.</string>
+    <string name="coupleNotificationRemotePendingTitle">Pending answer</string>
 </resources>

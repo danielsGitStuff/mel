@@ -1,9 +1,7 @@
 package de.mein.contacts.data.db;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import de.mein.auth.data.IPayload;
 import de.mein.core.serialize.JsonIgnore;
@@ -23,6 +21,11 @@ public class PhoneBook extends SQLTableObject implements IPayload {
     @JsonIgnore
     private Pair<Long> id = new Pair<>(Long.class, "id");
     private Pair<String> hash = new Pair<>(String.class, "deephash");
+    /**
+     * true if PhoneBook is read from the local computer
+     */
+    @JsonIgnore
+    private Pair<Boolean> original = new Pair<Boolean>(Boolean.class, "org");
     private MD5er md5er = new MD5er();
 
     public PhoneBook() {
@@ -35,6 +38,10 @@ public class PhoneBook extends SQLTableObject implements IPayload {
 
     public Pair<Long> getVersion() {
         return version;
+    }
+
+    public Pair<Boolean> getOriginal() {
+        return original;
     }
 
     public Pair<Long> getCreated() {
@@ -60,7 +67,7 @@ public class PhoneBook extends SQLTableObject implements IPayload {
 
     @Override
     protected void init() {
-        populateInsert(version, hash, created);
+        populateInsert(version, hash, created, original);
         populateAll(id);
     }
 

@@ -9,7 +9,6 @@ import java.util.Map;
 
 import de.mein.R;
 import de.mein.android.ConflictsPopupActivity;
-import de.mein.android.MeinToast;
 import de.mein.android.Notifier;
 import de.mein.android.drive.view.DriveConflictListAdapter;
 import de.mein.android.service.AndroidService;
@@ -53,11 +52,11 @@ public class DriveConflictsPopupActivity extends ConflictsPopupActivity<MeinDriv
         }
         btnOk.setOnClickListener(view -> {
             if (conflictSolver.isSolved()) {
-                Notifier.cancel(this, getIntent(), requestCode);
+                Notifier.cancel( getIntent(), requestCode);
                 service.addJob(new CommitJob());
                 finish();
             } else {
-                MeinToast.toast(this, "not all conflicts were resolved");
+                Notifier.toast(this, "not all conflicts were resolved");
             }
         });
         btnChooseLeft.setOnClickListener(view -> {

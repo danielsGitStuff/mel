@@ -53,21 +53,23 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
         super.onAndroidServiceAvailable(androidService);
         Bundle extras = getIntent().getExtras();
         String json = extras.getString(MeinStrings.Notifications.EXTRA + ContactStrings.Notifications.INTENT_EXTRA_CONFLICT);
+        PhoneBookDao phoneBookDao = service.getDatabaseManager().getPhoneBookDao();
+        ContactsDao contactsDao = service.getDatabaseManager().getContactsDao();
         N.r(() -> {
             ConflictIntentExtra conflictIntentExtra = (ConflictIntentExtra) SerializableEntityDeserializer.deserialize(json);
             lastReadPhoneBookId = conflictIntentExtra.getLocalPhoneBookId();
             receivedPhoneBookId = conflictIntentExtra.getReceivedPhoneBookId();
+            PhoneBook flatLastreadPhoneBook = phoneBookDao.loadFlatPhoneBook(lastReadPhoneBookId);
             //todo debug
-            adapter = new ContactsConflictListAdapter(this,   service, lastReadPhoneBookId, receivedPhoneBookId);
+            adapter = new ContactsConflictListAdapter(this, service, lastReadPhoneBookId, receivedPhoneBookId);
             listView.setAdapter(adapter);
             runOnUiThread(() -> {
                 adapter.notifyDataSetChanged();
             });
             btnOk.setOnClickListener(v -> N.r(() -> {
-                PhoneBookDao phoneBookDao = service.getDatabaseManager().getPhoneBookDao();
-                ContactsDao contactsDao = service.getDatabaseManager().getContactsDao();
+
                 PhoneBook receivedPB = phoneBookDao.loadFlatPhoneBook(receivedPhoneBookId);
-                PhoneBook merged = service.getDatabaseManager().getPhoneBookDao().create(receivedPB.getVersion().v() + 1);
+                PhoneBook merged = service.getDatabaseManager().getPhoneBookDao().create(receivedPB.getVersion().v() + 1, false);
                 List<ContactJoinDummy> contactDummies = adapter.getContactDummies();
                 for (ContactJoinDummy dummy : contactDummies) {
                     if (dummy.getChoice() != null) {
@@ -82,12 +84,14 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
                 }
                 System.out.println("ContactsConflictsPopupActivity: Conflict resolved!");
                 merged.digest();
+                if (merged.getHash().equalsValue(flatLastreadPhoneBook.getHash()))
+                    merged.getOriginal().v(true);
                 phoneBookDao.updateFlat(merged);
                 //service.debugonConflictSolved(merged);
                 phoneBookDao.deletePhoneBook(receivedPhoneBookId);
                 //phoneBookDao.deletePhoneBook(lastReadPhoneBookId);
                 //service.getDatabaseManager().getSettings().getClientSettings().setLastReadId(merged.getId().v());
-                Notifier.cancel(this, getIntent(), requestCode);
+                Notifier.cancel( getIntent(), requestCode);
                 service.addJob(new CommitJob(merged.getId().v()));
                 finish();
             }));

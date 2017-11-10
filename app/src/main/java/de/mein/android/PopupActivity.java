@@ -16,7 +16,7 @@ public abstract class PopupActivity<T extends IMeinService> extends MeinActivity
     protected T service;
     protected N runner = new N(e -> {
         Context context = getApplicationContext();
-        MeinToast.toast(context,e.getMessage());
+        Notifier.toast(context,e.getMessage());
         System.err.println(PopupActivity.class.getSimpleName()+".runner.Exception: "+e.getMessage());
         e.printStackTrace();
     });

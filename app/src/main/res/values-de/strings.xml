@@ -6,8 +6,8 @@
     <string name="title_activity_cert_incoming">Kopplungsversuch!</string>
 
 
-    <string name="notificationCertTitle">Kopplungsversuch!</string>
-    <string name="notificationCertText">Eine andere Driveinstanz möchte diese hier kennenlernen.</string>
+    <string name="coupleNotificationCertTitle">Kopplungsversuch!</string>
+    <string name="coupleNotificationCertText">Eine andere Driveinstanz möchte diese hier kennenlernen.</string>
     <string name="slogan">Mit ohne Wolken!</string>
     <string name="permanentNotificationText">Die Notification soll das Beenden durch Android verhindern.</string>
     <string name="btnOk">Ok</string>
@@ -62,4 +62,14 @@
     <string name="infoSSID">Wifi</string>
     <string name="infoNotConnected">nicht verbunden</string>
     <string name="infoIP">IP</string>
+    <string name="coupleReject">Nein!</string>
+    <string name="coupleAccept">Aktzeptieren</string>
+    <string name="coupleRemoteRejectToast">Die andere Seite lehnte ab. :(</string>
+    <string name="coupleLocalRejectToast">Du lehntest entschieden ab. >:(</string>
+    <string name="coupleProgressWaitForRemote">warte auf Bestätigung der Gegenseite</string>
+    <string name="coupleNotificationCertTitleCompleted">Paarungsvorgang erfolgreich</string>
+    <string name="coupleNotificationCertTextCompleted">Du kannst ihm nun Zugriff auf Dienste erlauben.</string>
+    <string name="coupleNotificationCertTextRemoteRejected">Die andere Seite verspürte Abneigung.</string>
+    <string name="coupleNotificationRemotePendingText">…</string>
+    <string name="coupleNotificationRemotePendingTitle">Warte auf Antwort</string>
 </resources>

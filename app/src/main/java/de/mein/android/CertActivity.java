@@ -3,7 +3,10 @@ package de.mein.android;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TabHost;
 import android.widget.TextView;
 
@@ -13,7 +16,6 @@ import de.mein.R;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.RWLock;
 
 public class CertActivity extends PopupActivity {
@@ -22,6 +24,9 @@ public class CertActivity extends PopupActivity {
     private RegBundle regBundle;
     private TabHost tabHost;
     private RWLock lock = new RWLock();
+    private ProgressBar progressBar;
+    private TextView txtProgress;
+    private ImageView imgProgress;
 
 
     @Override
@@ -37,23 +42,28 @@ public class CertActivity extends PopupActivity {
         txtOwn = findViewById(R.id.txtOwn);
         btnAccept = findViewById(R.id.btnAccept);
         btnReject = findViewById(R.id.btnReject);
-        String regUuid = getIntent().getExtras().getString(AndroidRegHandler.REGBUNDLE_UUID);
+        txtProgress = findViewById(R.id.txtProgress);
+        progressBar = findViewById(R.id.progress);
+        imgProgress = findViewById(R.id.imgProgress);
+        String regUuid = getIntent().getExtras().getString(AndroidRegHandler.REGBUNDLE_CERT_HASH);
         regBundle = AndroidRegHandler.retrieveRegBundle(regUuid);
-        regBundle.getAndroidRegHandler().addActivity(regBundle.getRemoteCert(), this);
+        regBundle.getAndroidRegHandler().addActivity(regBundle.getHash(), this);
+        if (regBundle.isFlaggedRemoteAccepted())
+            onRemoteAccepted();
         showCert(txtRemote, regBundle.getRemoteCert());
         showCert(txtOwn, regBundle.getMyCert());
         btnAccept.setOnClickListener(
                 view -> {
                     regBundle.getAndroidRegHandler().onUserAccepted(regBundle);
-                    Notifier.cancel(this, getIntent(), requestCode);
-                    showWaiting();
+                    Notifier.cancel( getIntent(), requestCode);
+                    finish();
                 }
         );
         btnReject.setOnClickListener(
                 view -> Threadder.runNoTryThread(() -> {
                     regBundle.getAndroidRegHandler().onUserRejected(regBundle);
-                    Notifier.cancel(this, getIntent(), requestCode);
-                    showWaiting();
+                    Notifier.cancel( getIntent(), requestCode);
+                    finish();
                 })
         );
         tabHost = (TabHost) findViewById(R.id.tabHost);
@@ -96,7 +106,32 @@ public class CertActivity extends PopupActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        regBundle.getAndroidRegHandler().removeActivityByBundle(regBundle);
+        super.onDestroy();
+    }
+
+    @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         return false;
+    }
+
+    public void onLocallyRejected() {
+        finish();
+    }
+
+    public void onRemoteRejected() {
+        finish();
+    }
+
+    public void onRemoteAccepted() {
+        runOnUiThread(() -> {
+            progressBar.setVisibility(View.INVISIBLE);
+            imgProgress.setVisibility(View.VISIBLE);
+        });
+    }
+
+    public void onLocallyAccepted() {
+
     }
 }

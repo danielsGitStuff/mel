@@ -1,14 +1,22 @@
 package de.mein.android;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.widget.Toast;
 
 import java.util.stream.Stream;
+
+import de.mein.R;
 
 /**
  * Created by xor on 8/25/17.
@@ -35,18 +43,58 @@ public class Notifier {
                 channel = new NotificationChannel(CHANNEL_ID_SILENT, "blubb", NotificationManager.IMPORTANCE_DEFAULT);
                 channel.setDescription("mein description goes here");
                 channel.enableLights(false);
-                channel.setSound(null,null);
+                channel.setSound(null, null);
                 manager.createNotificationChannel(channel);
             }
         }
         return NotificationManagerCompat.from(context);
     }
 
-    public static void cancel(Context context, Intent intent, int requestCode) {
+
+    public static void cancel(Intent intent, int requestCode) {
+        Context context = Tools.getApplicationContext();
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         if (pendingIntent != null)
             pendingIntent.cancel();
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.cancel(requestCode);
     }
+
+    public static void toast(Context context, CharSequence message) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(() -> {
+            Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
+            toast.show();
+        });
+
+    }
+
+    public static void pendingNotificationWithIcon(int requestCode, int iconResource, Intent intent, @NonNull String channelId, CharSequence title, CharSequence text, CharSequence ticker) {
+        Context context = Tools.getApplicationContext();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = builder.setSmallIcon(iconResource)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setTicker(ticker)
+                .setContentIntent(pendingIntent)
+                .build();
+        Notifier.createNotificationManager(context).notify(requestCode, notification);
+    }
+
+    public static void notification(int requestCode, int iconResource, @NonNull String channelId, CharSequence title, CharSequence text, CharSequence ticker) {
+        Context context = Tools.getApplicationContext();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
+        Notification notification = builder.setSmallIcon(iconResource)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setTicker(ticker)
+                .build();
+        Notifier.createNotificationManager(context).notify(requestCode, notification);
+    }
+
+    public static void pendingNotification(int requestCode, Intent intent, @NonNull String channelId, CharSequence title, CharSequence text, CharSequence ticker) {
+        pendingNotificationWithIcon(requestCode, R.drawable.icon_notification_2, intent, channelId, title, text, ticker);
+    }
+
 }
