@@ -14,6 +14,7 @@ public class TransferDetails extends SQLTableObject {
     private static final String SERVICE_UUID = "serviceuuid";
     private static final String SIZE = "size";
     private static final String STARTED = "started";
+    private static final String TRANSFERRED = "transferred";
 
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<String> hash = new Pair<>(String.class, HASH);
@@ -21,6 +22,7 @@ public class TransferDetails extends SQLTableObject {
     private Pair<String> serviceUuid = new Pair<>(String.class, SERVICE_UUID);
     private Pair<Long> size = new Pair<>(Long.class, SIZE);
     private Pair<Boolean> started = new Pair<>(Boolean.class, STARTED, false);
+    private Pair<Long> transferred = new Pair<>(Long.class, TRANSFERRED, 0L);
 
     public TransferDetails() {
         init();
@@ -33,8 +35,12 @@ public class TransferDetails extends SQLTableObject {
 
     @Override
     protected void init() {
-        populateInsert(hash, certId, serviceUuid, size, started);
+        populateInsert(hash, certId, serviceUuid, size, started, transferred);
         populateAll(id);
+    }
+
+    public Pair<Long> getTransferred() {
+        return transferred;
     }
 
     public Pair<Long> getCertId() {

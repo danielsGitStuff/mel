@@ -85,6 +85,7 @@ CREATE TABLE transfer (
   serviceuuid TEXT    NOT NULL,
   size        INTEGER NOT NULL,
   started     INTEGER NOT NULL,
+  transferred INTEGER NOT NULL default 0,
   UNIQUE (certid, serviceuuid, hash)
 );
 CREATE TABLE waste (

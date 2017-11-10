@@ -48,4 +48,9 @@ public class AndroidSQLResource<T extends SQLTableObject> implements ISQLResourc
     public void close() throws SqlQueriesException {
         cursor.close();
     }
+
+    @Override
+    public boolean isClosed() throws SqlQueriesException {
+        return cursor.isClosed();
+    }
 }

@@ -10,4 +10,6 @@ public interface ISQLResource<T extends SQLTableObject> extends AutoCloseable {
 
     @Override
     void close() throws SqlQueriesException;
+
+    boolean isClosed() throws SqlQueriesException;
 }

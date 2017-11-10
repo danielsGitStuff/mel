@@ -5,7 +5,6 @@ import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 
-import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +35,7 @@ public class N {
     }
 
     public interface SqlTryReadRunnable<T extends SQLTableObject> {
-        void read(T obj) throws Exception;
+        void read(ISQLResource<T> sqlResource, T obj) throws Exception;
     }
 
     public interface NoTryExceptionConsumer {
@@ -79,8 +78,8 @@ public class N {
         try {
             T obj = sqlResource.getNext();
             try {
-                while (obj != null) {
-                    noTryRunnable.read(obj);
+                while (obj != null && !sqlResource.isClosed()) {
+                    noTryRunnable.read(sqlResource, obj);
                     obj = sqlResource.getNext();
                 }
             } catch (Exception e) {

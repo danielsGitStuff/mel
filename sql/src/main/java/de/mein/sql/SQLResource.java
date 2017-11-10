@@ -54,4 +54,14 @@ public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
             throw new SqlQueriesException(e);
         }
     }
+
+    @Override
+    public boolean isClosed() throws SqlQueriesException {
+        try {
+            return resultSet.isClosed();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SqlQueriesException(e);
+        }
+    }
 }

@@ -293,4 +293,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     public Pair<Long> getModifiedPair() {
         return modified;
     }
+
+    public Pair<String> getContentHashPair() {
+        return contentHash;
+    }
 }

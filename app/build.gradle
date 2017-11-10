@@ -85,6 +85,7 @@ dependencies {
     compile project(':sql')
     compile project(':auth')
     compile project(':drive')
+    testCompile project(':drive')
     compile project(':contacts')
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.gu:option:1.3'

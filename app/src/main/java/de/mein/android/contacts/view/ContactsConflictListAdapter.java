@@ -15,8 +15,6 @@ import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -29,7 +27,6 @@ import java.util.Set;
 import de.mein.R;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.android.contacts.service.AndroidContactsClientService;
-import de.mein.android.contacts.service.AndroidContactsServerService;
 import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactJoinDummy;
 import de.mein.contacts.data.db.Contact;
@@ -37,7 +34,6 @@ import de.mein.contacts.data.db.ContactAppendix;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.sql.ISQLResource;
-import de.mein.sql.Pair;
 import de.mein.sql.SqlQueriesException;
 
 /**
@@ -76,7 +72,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
         try {
             contactsDao.contactsResource(localPhoneBookId);
             ISQLResource<ContactJoinDummy> resource = contactsDao.getDummiesForConflict(localPhoneBookId, receivedPhoneBookId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
-            N.readSqlResource(resource, dummy -> {
+            N.readSqlResource(resource, (sqlResource, dummy)-> {
                 contactDummies.add(dummy);
                 if (dummy.both())
                     dummy.setChoice(dummy.getRightId().v());
