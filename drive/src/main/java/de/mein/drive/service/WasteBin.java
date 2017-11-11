@@ -1,5 +1,6 @@
 package de.mein.drive.service;
 
+import de.mein.auth.tools.N;
 import de.mein.sql.Hash;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.bash.BashTools;
@@ -55,8 +56,22 @@ public class WasteBin {
             if (genericFSEntry.getIsDirectory().v())
                 deleteDirectory((FsDirectory) genericFSEntry.ins());
             else
-                deleteFile((FsFile) genericFSEntry.ins());
+                deleteFsFile((FsFile) genericFSEntry.ins());
         }
+    }
+
+    /**
+     * scratches waste from disk
+     *
+     * @param wasteId
+     */
+    public void rm(Long wasteId) throws SqlQueriesException {
+        Waste waste = wasteDao.getWasteById(wasteId);
+        File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
+        target.delete();
+        if (target.exists())
+            N.r(() -> BashTools.rmRf(target));
+        wasteDao.delete(wasteId);
     }
 
     private void deleteDirectory(FsDirectory fsDirectory) throws SqlQueriesException, IOException {
@@ -81,7 +96,7 @@ public class WasteBin {
      * @param waste
      * @param file
      */
-    public File del(Waste waste, File file) throws SqlQueriesException {
+    public File moveToBin(Waste waste, File file) throws SqlQueriesException {
         try {
             File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
             file.renameTo(target);
@@ -94,7 +109,7 @@ public class WasteBin {
         return null;
     }
 
-    public void deleteFile(FsFile fsFile) {
+    public void deleteFsFile(FsFile fsFile) {
         try {
             File f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
             if (f.exists()) {
@@ -105,27 +120,27 @@ public class WasteBin {
                     if (waste != null) {
                         // we once wanted this file to be deleted. check if it did not change in the meantime
                         if (waste.getInode().v().equals(fsFile.getiNode().v()) && waste.getModified().v().equals(fsFile.getModified().v())) {
-                            del(waste, f);
+                            moveToBin(waste, f);
                         } else {
                             // it changed :(
                             System.err.println("WasteBin.deleteFilr5436t34e");
                         }
                     } else if (fsFile.getSynced().v()) {
                         waste = wasteDao.fsToWaste(fsFile);
-                        del(waste, f);
+                        moveToBin(waste, f);
                     }
 
                 } else {
                     //todo file might have been replaced by a directory
                     //we do not know about its contents and therefore will delete it
                     //might trigger the indexlistener
-                    System.err.println("Wastebin.deleteFile.FILE.REPLACED.BY.DIRECTORY: " + f.getAbsolutePath());
+                    System.err.println("Wastebin.deleteFsFile.FILE.REPLACED.BY.DIRECTORY: " + f.getAbsolutePath());
                     BashTools.rmRf(f);
                 }
             }
             driveDatabaseManager.getFsDao().deleteById(fsFile.getId().v());
         } catch (Exception e) {
-            System.err.println("WasteBin.deleteFile.failed");
+            System.err.println("WasteBin.deleteFsFile.failed");
             e.printStackTrace();
         }
     }
@@ -154,7 +169,7 @@ public class WasteBin {
         waste.getSize().v(file.length());
         wasteDao.insert(waste);
         indexer.ignorePath(file.getAbsolutePath(), 1);
-        del(waste, file);
+        moveToBin(waste, file);
     }
 
     private void recursiveDelete(File dir) throws SqlQueriesException, IOException {
@@ -259,7 +274,7 @@ public class WasteBin {
         waste.getSize().v(target.length());
         waste.getName().v(file.getName());
         wasteDao.insert(waste);
-        File movedTo = this.del(waste, target);
+        File movedTo = this.moveToBin(waste, target);
         //todo tell a worker to investigate the deferred directory
         //todo worker has to tell the drive service or transfermanager that a file has been found
         //meinDriveService.syncHandler.onFileTransferred(movedTo, hash);

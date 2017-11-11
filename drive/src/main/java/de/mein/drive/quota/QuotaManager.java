@@ -2,6 +2,7 @@ package de.mein.drive.quota;
 
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveSettings;
+import de.mein.drive.service.WasteBin;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.TransferDetails;
@@ -15,6 +16,7 @@ import de.mein.sql.SqlQueriesException;
 
 public class QuotaManager {
     private DriveSettings driveSettings;
+    private WasteBin wasteBin;
 
     public void getRequiredSpace(ISQLQueries sqlQueries, Long stageSetId) throws SqlQueriesException, OutOfSpaceException {
         Stage nStage = new Stage();
@@ -68,7 +70,9 @@ public class QuotaManager {
                     "where ss." + nStage.getStageSetPair().k() + "=? ) s on w." + nWaste.getHash().k() + "=s." + nStage.getContentHashPair().k() + " where s." + nStage.getIdPair().k() + " is null " +
                     "order by w." + nWaste.getDeleted().k();
             N.readSqlResource(sqlQueries.loadQueryResource(query,wasteDummy.getAllAttributes(),WasteDummy.class,ISQLQueries.whereArgs(stageSetId)),(sqlResource, wasteDum) -> {
+                //delete until the required space is freed
                 availableSpace[0] += wasteDum.getSize().v();
+                wasteBin.rm(wasteDum.getId().v());
                 if (requiredSpace < availableSpace[0])
                     sqlResource.close();
             });

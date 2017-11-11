@@ -74,6 +74,12 @@ public class N {
         }
     }
 
+    /**
+     * Iterates through the entire SQLResource and closes it after finish or when Exceptions occur.
+     * @param sqlResource
+     * @param noTryRunnable call close() on sqlResource if you do not want to iterate over the rest
+     * @param <T>
+     */
     public static <T extends SQLTableObject> void readSqlResource(ISQLResource<T> sqlResource, SqlTryReadRunnable<T> noTryRunnable) {
         try {
             T obj = sqlResource.getNext();

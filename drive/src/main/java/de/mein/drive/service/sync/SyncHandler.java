@@ -70,7 +70,7 @@ public abstract class SyncHandler {
                 if (target.isFile()) {
                     if (waste != null) {
                         if (waste.getModified().v().equals(modifiedAndInode.getModified())) {
-                            wasteBin.del(waste, target);
+                            wasteBin.moveToBin(waste, target);
                         } else {
                             System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
                             System.err.println("SyncHandler.moveFile: " + target.getAbsolutePath());
@@ -310,7 +310,7 @@ public abstract class SyncHandler {
                             if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
                                 FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
                                 if (oldeFsFile != null && !stageSet.fromFs() && !fsEntry.getSynced().v()) {
-                                    wasteBin.deleteFile(oldeFsFile);
+                                    wasteBin.deleteFsFile(oldeFsFile);
                                 }else {
                                     // delete file. consider that it might be in the same state as the stage
                                     File stageFile = stageDao.getFileByStage(stage);
