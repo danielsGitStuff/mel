@@ -7,6 +7,8 @@ import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
+import de.mein.drive.quota.OutOfSpaceException;
+import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.WasteBin;
 import de.mein.drive.sql.*;
@@ -37,6 +39,7 @@ public abstract class SyncHandler {
     protected DriveDatabaseManager driveDatabaseManager;
     protected Indexer indexer;
     protected WasteBin wasteBin;
+    protected QuotaManager quotaManager;
 
 
     public SyncHandler(MeinAuthService meinAuthService, MeinDriveService meinDriveService) {
@@ -50,6 +53,7 @@ public abstract class SyncHandler {
         this.wasteBin = meinDriveService.getWasteBin();
         this.transferManager = new TransferManager(meinAuthService, meinDriveService, meinDriveService.getDriveDatabaseManager().getTransferDao()
                 , wasteBin, this);
+        this.quotaManager = new QuotaManager(meinDriveService);
     }
 
     public File moveFile(File source, FsFile fsTarget) throws SqlQueriesException, IOException {
@@ -199,19 +203,19 @@ public abstract class SyncHandler {
     }
 
 
-    public void commitStage(Long stageSetId) {
+    public void commitStage(Long stageSetId) throws OutOfSpaceException {
         commitStage(stageSetId, true);
     }
 
 
-    public void commitStage(Long stageSetId, boolean lockFsEntry) {
+    public void commitStage(Long stageSetId, boolean lockFsEntry) throws OutOfSpaceException {
         commitStage(stageSetId, lockFsEntry, null);
     }
 
     /**
      * @param stageSetId
      */
-    public void commitStage(Long stageSetId, boolean lockFsEntry, Map<Long, Long> stageIdFsIdMap) {
+    public void commitStage(Long stageSetId, boolean lockFsEntry, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException {
         //todo debug
         if (stageSetId == 15 || stageSetId == 13)
             System.out.println("SyncHandler.commitStage.debugj9v0jaseß");
@@ -222,6 +226,9 @@ public abstract class SyncHandler {
                 fsDao.lockWrite();
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
             StageSet stageSet = stageDao.getStageSetById(stageSetId);
+            //check if sufficient space is available
+            if (!stageSet.fromFs())
+                quotaManager.freeSpaceForStageSet(stageSetId);
             N.sqlResource(stageDao.getStagesByStageSet(stageSetId), stages -> {
                 Stage stage = stages.getNext();
                 while (stage != null) {
@@ -311,13 +318,13 @@ public abstract class SyncHandler {
                                 FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
                                 if (oldeFsFile != null && !stageSet.fromFs() && !fsEntry.getSynced().v()) {
                                     wasteBin.deleteFsFile(oldeFsFile);
-                                }else {
+                                } else {
                                     // delete file. consider that it might be in the same state as the stage
                                     File stageFile = stageDao.getFileByStage(stage);
                                     if (stageFile.exists()) {
                                         ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
                                         if (stage.getiNode() == null || stage.getModified() == null ||
-                                                !(modifiedAndInode.getiNode().equals(stage.getiNode()) && modifiedAndInode.getModified().equals(stage.getModified()))){
+                                                !(modifiedAndInode.getiNode().equals(stage.getiNode()) && modifiedAndInode.getModified().equals(stage.getModified()))) {
                                             wasteBin.deleteUnknown(stageFile);
                                             stage.setSynced(false);
                                             // we could search more recent stagesets to find some clues here and prevent deleteUnknown().
@@ -344,7 +351,7 @@ public abstract class SyncHandler {
 
                 transferManager.research();
             });
-        } catch (Exception e) {
+        } catch (SqlQueriesException e) {
             e.printStackTrace();
         } finally {
             if (lockFsEntry)

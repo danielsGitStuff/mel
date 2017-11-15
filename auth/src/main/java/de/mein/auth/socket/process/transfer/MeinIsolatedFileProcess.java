@@ -87,7 +87,6 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
                 System.out.println("MeinIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
             }
             transferDetail.onReceived(offset, data);
-            assert c.equals('t') == transferDetail.transferred();
             if (transferDetail.transferred() || c.equals('t')) {
                 receivingSemaphore.acquire();
                 System.out.println("MeinIsolatedFileProcess.handleTransfer.remove.receiving.id: " + transferDetail.getStreamId());

@@ -25,6 +25,7 @@ public class FileTransferDetail implements SerializableEntity {
     private boolean transferred = false;
     private FileTransferDoneListener transferDoneListener;
     private FileTransferFailedListener transferFailedListener;
+    private FileTransferProgressListener transferProgressListener;
 
     private long start, end;
     private boolean e404 = false;
@@ -47,6 +48,10 @@ public class FileTransferDetail implements SerializableEntity {
         void onFileTransferDone(FileTransferDetail fileTransferDetail);
     }
 
+    public interface FileTransferProgressListener {
+        void onFileTransferProgress(FileTransferDetail fileTransferDetail);
+    }
+
     public interface FileTransferFailedListener {
         void onFileTransferFailed(FileTransferDetail fileTransferDetail);
     }
@@ -62,6 +67,11 @@ public class FileTransferDetail implements SerializableEntity {
 
     public FileTransferDetail setTransferFailedListener(FileTransferFailedListener transferFailedListener) {
         this.transferFailedListener = transferFailedListener;
+        return this;
+    }
+
+    public FileTransferDetail setTransferProgressListener(FileTransferProgressListener transferProgressListener) {
+        this.transferProgressListener = transferProgressListener;
         return this;
     }
 
@@ -145,6 +155,8 @@ public class FileTransferDetail implements SerializableEntity {
             transferred = true;
             if (transferDoneListener != null)
                 transferDoneListener.onFileTransferDone(this);
+        } else if (transferProgressListener != null) {
+            transferProgressListener.onFileTransferProgress(this);
         }
     }
 

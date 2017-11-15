@@ -40,7 +40,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     private DriveSyncListener syncListener;
 
     public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
-        super(meinAuthService, workingDirectory,serviceTypeId,uuid);
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid);
     }
 
     @Override
@@ -164,7 +164,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
 
-
     public void onSyncFailed() {
         if (syncListener != null)
             syncListener.onSyncFailed();
@@ -201,5 +200,10 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     public void start() {
         super.start();
         addJob(new CommitJob(true));
+    }
+
+    public void onInsufficientSpaceAvailable(Long stageSetId) {
+        MeinNotification meinNotification = new MeinNotification(getUuid(), DriveStrings.Notifications.INTENTION_OUT_OF_SPACE, "Out of (Disk) Space", "could not apply changes(" + stageSetId + ") from server");
+        meinAuthService.onNotificationFromService(this, meinNotification);
     }
 }

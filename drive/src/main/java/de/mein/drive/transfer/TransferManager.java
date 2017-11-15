@@ -291,7 +291,10 @@ public class TransferManager extends DeferredRunnable {
                                         transferDao.delete(transferDetails.getId().v());
                                         countDown(countDown);
                                         syncHandler.onFileTransferFailed(transferDetails.getHash().v());
-                                    }));
+                                    }))
+                                    .setTransferProgressListener(fileTransferDetail1 -> N.r(() ->
+                                            transferDao.updateTransferredBytes(transferDetails.getId().v(), transferDetails.getTransferred().v())
+                                    ));
                             System.out.println("TransferManager.retrieveFiles.add.transfer: " + fileTransferDetail.getStreamId());
                             fileProcess.addFilesReceiving(fileTransferDetail);
                             payLoad.add(fileTransferDetail);

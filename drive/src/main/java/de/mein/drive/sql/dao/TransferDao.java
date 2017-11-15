@@ -107,4 +107,10 @@ public class TransferDao extends Dao {
                 + details.getServiceUuid().k() + "=?";
         return sqlQueries.querySingle(query, ISQLQueries.whereArgs(true, certId, serviceUuid), Integer.class);
     }
+
+    public void updateTransferredBytes(Long id, Long transferred) throws SqlQueriesException {
+        TransferDetails t = new TransferDetails();
+        String stmt = "update " + t.getTableName() + " (" + t.getTransferred().k() + ") values (?) where " + t.getId().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(transferred, id));
+    }
 }

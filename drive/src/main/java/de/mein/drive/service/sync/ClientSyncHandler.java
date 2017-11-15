@@ -14,6 +14,7 @@ import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
+import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
@@ -239,9 +240,14 @@ public class ClientSyncHandler extends SyncHandler {
             boolean hasCommitted = false;
             for (StageSet stageSet : updateSets) {
                 if (stageDao.stageSetHasContent(stageSet.getId().v())) {
-                    commitStage(stageSet.getId().v(), false);
-                    setupTransfer();
-                    hasCommitted = true;
+                    try {
+                        commitStage(stageSet.getId().v(), false);
+                        setupTransfer();
+                        hasCommitted = true;
+                    } catch (OutOfSpaceException e) {
+                        e.printStackTrace();
+                        meinDriveService.onInsufficientSpaceAvailable(stageSet.getId().v());
+                    }
                 } else
                     stageDao.deleteStageSet(stageSet.getId().v());
             }
@@ -251,7 +257,7 @@ public class ClientSyncHandler extends SyncHandler {
                 meinDriveService.addJob(new CommitJob());
             // we are done here
             meinDriveService.onSyncDone();
-        } catch (Exception e) {
+        } catch (SqlQueriesException | InterruptedException e) {
             e.printStackTrace();
             meinDriveService.onSyncFailed();
         } finally {
@@ -262,7 +268,7 @@ public class ClientSyncHandler extends SyncHandler {
 
 
     /**
-     * check whether or not there are any conflicts between stuff that happend on this computer and stuff
+     * check whether or not there are any conflicts between stuff that happened on this computer and stuff
      * that happened on the server. this will block until all conflicts are resolved.
      *
      * @param serverStageSet
@@ -302,7 +308,12 @@ public class ClientSyncHandler extends SyncHandler {
                 // todo FsDir hash conflicts
                 conflictSolver.directoryStuff();
                 conflictSolver.cleanup();
-                this.commitStage(serverStageSet.getId().v());
+                try {
+                    this.commitStage(serverStageSet.getId().v());
+                } catch (OutOfSpaceException e) {
+                    e.printStackTrace();
+                    meinDriveService.onInsufficientSpaceAvailable(serverStageSet.getId().v());
+                }
 //                setupTransfer();
 //                transferManager.research();
                 Long mergedId = conflictSolver.getMergeStageSet().getId().v();
@@ -499,6 +510,7 @@ public class ClientSyncHandler extends SyncHandler {
                 syncTask.setStageSet(stageSet);
                 syncTask.setSourceCertId(driveSettings.getClientSettings().getServerCertId());
                 syncTask.setSourceServiceUuid(driveSettings.getClientSettings().getServerServiceUuid());
+                //server might have gotten a new version in the mean time and sent us that
                 stageSet.setVersion(syncTask.getNewVersion());
                 stageDao.updateStageSet(stageSet);
                 Promise<Long, Void, Void> promise = this.sync2Stage(syncTask);

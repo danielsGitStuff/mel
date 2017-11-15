@@ -21,6 +21,7 @@ import de.mein.drive.index.IndexListener;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.index.watchdog.StageIndexer;
+import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;

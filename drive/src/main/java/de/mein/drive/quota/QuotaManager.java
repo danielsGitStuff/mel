@@ -2,6 +2,7 @@ package de.mein.drive.quota;
 
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveSettings;
+import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.WasteBin;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.Stage;
@@ -15,10 +16,19 @@ import de.mein.sql.SqlQueriesException;
  */
 
 public class QuotaManager {
-    private DriveSettings driveSettings;
-    private WasteBin wasteBin;
+    private final ISQLQueries sqlQueries;
+    private final MeinDriveService meinDriveService;
+    private final DriveSettings driveSettings;
+    private final WasteBin wasteBin;
 
-    public void getRequiredSpace(ISQLQueries sqlQueries, Long stageSetId) throws SqlQueriesException, OutOfSpaceException {
+    public QuotaManager(MeinDriveService meinDriveService) {
+        this.meinDriveService = meinDriveService;
+        this.driveSettings = meinDriveService.getDriveSettings();
+        this.wasteBin = meinDriveService.getWasteBin();
+        this.sqlQueries = meinDriveService.getDriveDatabaseManager().getFsDao().getSqlQueries();
+    }
+
+    public void freeSpaceForStageSet(Long stageSetId) throws SqlQueriesException, OutOfSpaceException {
         Stage nStage = new Stage();
         TransferDetails nTransfer = new TransferDetails();
         FsFile nFsEntry = new FsFile();
@@ -62,23 +72,34 @@ public class QuotaManager {
                 0,//synced
                 1,//inplace
                 stageSetId));
-        final Long[] availableSpace = {driveSettings.getRootDirectory().getOriginalFile().getFreeSpace()};
+        final Long availableSpace = driveSettings.getRootDirectory().getOriginalFile().getFreeSpace();
         //try to clean up wastebin if that happens
-        if (requiredSpace > availableSpace[0]) {
-            WasteDummy wasteDummy = new WasteDummy();
-            query = "select w." + nWaste.getId().k() + ", w." + nWaste.getSize().k() + " from " + nWaste.getTableName() + " w left join (select ss." + nStage.getStageSetPair().k() + ", ss." + nStage.getIdPair().k() + ", ss." + nStage.getContentHashPair().k() + " from " + nStage.getTableName() + " ss " +
-                    "where ss." + nStage.getStageSetPair().k() + "=? ) s on w." + nWaste.getHash().k() + "=s." + nStage.getContentHashPair().k() + " where s." + nStage.getIdPair().k() + " is null " +
-                    "order by w." + nWaste.getDeleted().k();
-            N.readSqlResource(sqlQueries.loadQueryResource(query,wasteDummy.getAllAttributes(),WasteDummy.class,ISQLQueries.whereArgs(stageSetId)),(sqlResource, wasteDum) -> {
-                //delete until the required space is freed
-                availableSpace[0] += wasteDum.getSize().v();
-                wasteBin.rm(wasteDum.getId().v());
-                if (requiredSpace < availableSpace[0])
-                    sqlResource.close();
-            });
-            if (requiredSpace > availableSpace[0]){
-                throw new OutOfSpaceException();
-            }
+        if (requiredSpace > availableSpace) {
+            freeSpace(requiredSpace - availableSpace, stageSetId);
+        }
+    }
+
+    /**
+     * @param requiredSpace amount of bytes which shall be free
+     * @param stageSetId Files which are part of this StageSet won't be deleted
+     */
+    private void freeSpace(long requiredSpace, long stageSetId) throws SqlQueriesException, OutOfSpaceException {
+        Stage nStage = new Stage();
+        WasteDummy wasteDummy = new WasteDummy();
+        Waste nWaste = new Waste();
+        Long[] freed = new Long[]{0L};
+        String query = "select w." + nWaste.getId().k() + ", w." + nWaste.getSize().k() + " from " + nWaste.getTableName() + " w left join (select ss." + nStage.getStageSetPair().k() + ", ss." + nStage.getIdPair().k() + ", ss." + nStage.getContentHashPair().k() + " from " + nStage.getTableName() + " ss " +
+                "where ss." + nStage.getStageSetPair().k() + "=? ) s on w." + nWaste.getHash().k() + "=s." + nStage.getContentHashPair().k() + " where s." + nStage.getIdPair().k() + " is null " +
+                "order by w." + nWaste.getDeleted().k();
+        N.readSqlResource(sqlQueries.loadQueryResource(query, wasteDummy.getAllAttributes(), WasteDummy.class, ISQLQueries.whereArgs(stageSetId)), (sqlResource, wasteDum) -> {
+            //delete until the required space is freed
+            freed[0] += wasteDum.getSize().v();
+            wasteBin.rm(wasteDum.getId().v());
+            if (freed[0] > requiredSpace)
+                sqlResource.close();
+        });
+        if (requiredSpace > freed[0]) {
+            throw new OutOfSpaceException();
         }
     }
 }

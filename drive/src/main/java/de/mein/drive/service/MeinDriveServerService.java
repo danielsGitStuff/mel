@@ -19,6 +19,7 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     private static Logger logger = Logger.getLogger(MeinDriveServerService.class.getName());
 
     public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
-        super(meinAuthService, workingDirectory,serviceTypeId,uuid);
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid);
     }
 
 
@@ -127,7 +128,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             if (stageDao.stageSetHasContent(stageSetId)) {
                 fsDao.lockWrite();
                 //todo conflict checks
-                syncHandler.commitStage(stageSetId, false);
+                N.r(() -> syncHandler.commitStage(stageSetId, false));
                 fsDao.unlockWrite();
                 propagateNewVersion();
             } else {

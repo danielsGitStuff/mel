@@ -5,6 +5,7 @@ import de.mein.auth.socket.process.val.Request;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.Stage;
@@ -34,6 +35,7 @@ public class ServerSyncHandler extends SyncHandler {
                 request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion(), driveDatabaseManager.getLatestVersion()));
                 return;
             }
+            // stage everything
             StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null);
             Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
             for (Stage stage : commit.getStages()) {
@@ -58,7 +60,13 @@ public class ServerSyncHandler extends SyncHandler {
             //fsDao.lockWrite();
             Long oldVersion = fsDao.getLatestVersion();
             Map<Long, Long> stageIdFsIdMap = new HashMap<>();
-            this.commitStage(stageSet.getId().v(), false, stageIdFsIdMap);
+            try {
+                this.commitStage(stageSet.getId().v(), false, stageIdFsIdMap);
+            } catch (OutOfSpaceException e) {
+                e.printStackTrace();
+                request.reject(e);
+                return;
+            }
             Map<Long, Long> newIdMap = new HashMap<>();
             for (Long oldeStageId : oldStageIdStageIdMap.keySet()) {
                 Long newFsId = stageIdFsIdMap.get(oldStageIdStageIdMap.get(oldeStageId));
