@@ -81,7 +81,7 @@ public class QuotaManager {
 
     /**
      * @param requiredSpace amount of bytes which shall be free
-     * @param stageSetId Files which are part of this StageSet won't be deleted
+     * @param stageSetId    Files which are part of this StageSet won't be deleted
      */
     private void freeSpace(long requiredSpace, long stageSetId) throws SqlQueriesException, OutOfSpaceException {
         Stage nStage = new Stage();
@@ -101,5 +101,30 @@ public class QuotaManager {
         if (requiredSpace > freed[0]) {
             throw new OutOfSpaceException();
         }
+    }
+
+    private void estimateOccupiedSpace() {
+        Waste nWaste = new Waste();
+        FsFile nFsFile = new FsFile();
+        String query = "select sum(case when sedeleted\n" +
+                "then -ssize --substract stuff that is deleted\n" +
+                "else (case when ssize is null then --stage might have another size than fs\n" +
+                "           fsize\n" +
+                "       else\n" +
+                "           ssize\n" +
+                "       end\n" +
+                "   )\n" +
+                "end\n" +
+                ")+(\n" +
+                "--sum up everthing in the wastebin (might be null if nothing in waste table)\n" +
+                "case when(select count(*) from waste w where w.inplace=1)=0 then \n" +
+                "   0\n" +
+                "else\n" +
+                "   (select sum(w.size) from waste w where w.inplace=1)\n" +
+                "end\n" +
+                ") from ( select f.size as fsize, f.id, sedeleted,ssize from fsentry f left join (\n" +
+                "   --join fsentries with the latest stage entries which source from \"fs\"\n" +
+                "   select s.size as ssize, s.fsid, deleted as sedeleted from stage s, stageset ss on s.stageset=ss.id where ss.source=\"fs\" order by ss.created\n" +
+                ") s on f.id=s.fsid where f.dir=0 group by f.id)";
     }
 }

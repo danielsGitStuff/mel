@@ -653,6 +653,7 @@ public class DriveTest {
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
                 listener.onCertificateAccepted(request, certificate);
@@ -660,6 +661,26 @@ public class DriveTest {
 
             @Override
             public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
 
             }
         };
@@ -724,6 +745,26 @@ public class DriveTest {
 
             @Override
             public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
 
             }
         };

@@ -21,7 +21,6 @@ public class FreeSpaceTest {
         TransferManagerDummy transferManager = new TransferManagerDummy();
         WasteBinDummy wasteBin = new WasteBinDummy();
 
-        QuotaManager quotaManager = new QuotaManager();
         //fsDao.get
     }
 }

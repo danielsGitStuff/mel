@@ -10,7 +10,6 @@ import de.mein.auth.service.MeinWorker;
 import de.mein.auth.tools.N;
 
 import javax.net.SocketFactory;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -241,15 +240,15 @@ public class MeinSocket extends DeferredRunnable {
                             System.err.println("strange stuff happened");
                         }
                         System.out.println("MeinSocket.runImpl");
-                    }else {
-                        if (msgBuffer.length()>0){
+                    } else {
+                        if (msgBuffer.length() > 0) {
                             msgBuffer.append(s);
                             socketWorker.addJob(new ReceivedJob().setMessage(msgBuffer.toString()));
                             msgBuffer = new StringBuffer();
                             continue;
                         }
                     }
-                    System.out.println("   " + meinAuthService.getName() + ".MeinSocket.runTry.got: " + s);
+                    System.out.println("   " + meinAuthService.getName() + ".MeinSocket.runTry.got(" + socket.getInetAddress() + "): " + s);
                     if (s.equals(MeinStrings.msg.MODE_ISOLATE) && allowIsolation) {
                         if (!isIsolated)
                             send(MeinStrings.msg.MODE_ISOLATE);
