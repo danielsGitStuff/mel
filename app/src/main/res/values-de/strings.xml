@@ -64,18 +64,18 @@
     <string name="infoIP">IP</string>
     <string name="coupleReject">Nein!</string>
     <string name="coupleAccept">Aktzeptieren</string>
-    <string name="coupleRemoteRejectToast">Die andere Seite lehnte ab. :(</string>
-    <string name="coupleLocalRejectToast">Du lehntest entschieden ab. >:(</string>
-    <string name="coupleProgressWaitForRemote">warte auf Bestätigung der Gegenseite</string>
+    <string name="coupleRemoteRejectToast">Die andere Seite verweigerte die Paarung :(</string>
+    <string name="coupleLocalRejectToast">Du widersetztest dich der Paarung.</string>
+    <string name="coupleProgressWaitForRemote">Warte auf Bestätigung der Gegenseite</string>
     <string name="coupleNotificationCertTitleCompleted">Paarungsvorgang erfolgreich</string>
     <string name="coupleNotificationCertTextCompleted">Du kannst ihm nun Zugriff auf Dienste erlauben.</string>
     <string name="coupleNotificationCertTextRemoteRejected">Die andere Seite verspürte Abneigung.</string>
     <string name="coupleNotificationRemotePendingText">…</string>
     <string name="coupleNotificationRemotePendingTitle">Warte auf Antwort</string>
-    <string name="coupleNotificationCertTitleRemoteRejected">Pairing verweigert</string>
-    <string name="editServiceDriveMaxDays">Max age of items in wastebin</string>
-    <string name="editServiceDriveUnimportant">Optionale Einstellungen</string>
-    <string name="editServiceDriveMaxSize">max wastebin size</string>
+    <string name="coupleNotificationCertTitleRemoteRejected">Paarung verweigert</string>
+    <string name="editServiceDriveMaxDays">Max age of items in wastebin in Tagen</string>
+    <string name="editServiceDriveUnimportant">Optionale Einstellungen (für den Papierkorb)</string>
+    <string name="editServiceDriveMaxSize">Max Papierkorbgröße</string>
     <string name="createServiceName">Name</string>
     <string name="editServiceDriveToastOOS">Nicht genug Platz!</string>
 </resources>

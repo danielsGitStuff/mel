@@ -37,7 +37,7 @@
     <Space
         android:id="@+id/spacer"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="0dp"
         android:layout_below="@id/btnPath" />
 
     <Button
@@ -58,12 +58,12 @@
 
         <TextView
             android:id="@+id/lblMaxDays"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@id/txtMaxDays"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:padding="5dp"
+            android:background="@color/colorLabelBackground"
+            android:gravity="center_horizontal"
             android:text="@string/editServiceDriveMaxDays" />
 
         <EditText
@@ -71,8 +71,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentTop="true"
-            android:layout_toEndOf="@id/lblMaxDays"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/lblMaxDays"
             android:gravity="end"
             android:inputType="number"
             android:paddingBottom="8dp"
@@ -110,11 +110,11 @@
 
         <EditText
             android:id="@+id/txtMaxSize"
-            android:inputType="number"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/maxSizeSeekBar"
             android:layout_toStartOf="@id/lblMaxSizeUnit"
+            android:inputType="number"
             android:text="1" />
 
         <TextView

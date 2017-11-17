@@ -67,7 +67,7 @@
     <string name="coupleReject">Reject</string>
     <string name="coupleAccept">Accept</string>
     <string name="coupleRemoteRejectToast">Other side rejected the request :(</string>
-    <string name="coupleLocalRejectToast">You rejected the request.</string>
+    <string name="coupleLocalRejectToast">You rejected the pairing.</string>
     <string name="coupleProgressWaitForRemote">Status of remote confirmation:</string>
     <string name="coupleNotificationCertTitleCompleted">Pairing successful</string>
     <string name="coupleNotificationCertTextCompleted">You can setup services now.</string>
@@ -75,8 +75,8 @@
     <string name="coupleNotificationCertTitleRemoteRejected">Pairing rejected remotely</string>
     <string name="coupleNotificationRemotePendingText">Waiting for the other side to accept.</string>
     <string name="coupleNotificationRemotePendingTitle">Pending answer</string>
-    <string name="editServiceDriveMaxDays">Max age of items in wastebin</string>
-    <string name="editServiceDriveUnimportant">Optional Settings</string>
-    <string name="editServiceDriveMaxSize">Max Wastebin size</string>
+    <string name="editServiceDriveMaxDays">Max age of items in wastebin in days</string>
+    <string name="editServiceDriveUnimportant">Optional Settings for wastebin</string>
     <string name="editServiceDriveToastOOS">Not enough space!</string>
+    <string name="editServiceDriveMaxSize">max wastebin size</string>
 </resources>
