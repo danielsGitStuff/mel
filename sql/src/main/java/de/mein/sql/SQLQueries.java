@@ -15,7 +15,6 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author xor
  */
-@SuppressWarnings("Duplicates")
 public class SQLQueries extends ISQLQueries {
 
     private RWLock lock;
@@ -323,6 +322,9 @@ public class SQLQueries extends ISQLQueries {
         return resultTransformer.convert(clazz, result);
     }
 
+
+
+
     /**
      * see loadString... duplicate? nope
      *
@@ -464,45 +466,7 @@ public class SQLQueries extends ISQLQueries {
         connection.setAutoCommit(true);
     }
 
-    /**
-     * Queries a single value, not a row
-     *
-     * @param query
-     * @param arguments
-     * @param resultClass
-     * @param <C>
-     * @return
-     * @throws SqlQueriesException
-     */
-    @Override
-    public <C> C querySingle(String query, List<Object> arguments, Class<C> resultClass) throws SqlQueriesException {
-        lockRead();
-        try {
-            out("SQLQueries.query");
-            PreparedStatement pstmt = connection.prepareStatement(query);
-            if (arguments != null) {
-                int count = 1;
-                for (Object object : arguments) {
-                    pstmt.setObject(count, object);
-                    count++;
-                }
-            }
-            pstmt.execute();
-            ResultSet resultSet = pstmt.getResultSet();
-            resultSet.next();
-            if (resultSet.getRow() > 0)
-                while (!resultSet.isAfterLast()) {
-                    return resultTransformer.convert(resultClass, resultSet.getObject(1));
-                }
-            resultSet.close();
-            pstmt.close();
-        } catch (Exception e) {
-            throw new SqlQueriesException(e);
-        } finally {
-            unlockRead();
-        }
-        return null;
-    }
+
 
     @Override
     public <T extends SQLTableObject> T loadFirstRow(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, Class<T> castClass) throws SqlQueriesException {

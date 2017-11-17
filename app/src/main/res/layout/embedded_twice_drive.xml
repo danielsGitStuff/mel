@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/tbl"
-    android:layout_alignParentTop="true">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentTop="true"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin">
 
     <TextView
         android:id="@+id/lblPath"
@@ -16,11 +20,12 @@
 
     <EditText
         android:id="@+id/txtPath"
-        android:layout_toEndOf="@+id/lblPath"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/lblPath"
         android:ems="10"
         android:text="/storage/emulated/0/Download/drive" />
+
     <Button
         android:id="@+id/btnPath"
         android:layout_width="match_parent"
@@ -29,5 +34,77 @@
         android:text="@string/editServiceDriveChoose"
         android:textAlignment="center" />
 
+    <Space
+        android:id="@+id/spacer"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@id/btnPath" />
 
+    <TextView
+        android:id="@+id/lblUnimportant"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/spacer"
+        android:background="@color/colorLabelBackground"
+        android:gravity="center_horizontal"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp"
+        android:text="@string/editServiceDriveUnimportant" />
+
+    <TextView
+        android:id="@+id/lblMaxDays"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/maxDaysPicker"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/lblUnimportant"
+        android:padding="5dp"
+        android:text="@string/editServiceDriveMaxDays" />
+
+    <EditText
+        android:id="@+id/maxDaysPicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/lblUnimportant"
+        android:layout_toEndOf="@id/lblMaxDays"
+        android:gravity="end"
+        android:text="30" />
+
+    <TextView
+        android:id="@+id/lblMaxSize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lblMaxDays"
+        android:background="@color/colorLabelBackground"
+        android:gravity="center_horizontal"
+        android:text="@string/editServiceDriveMaxSize" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        style="@style/Widget.AppCompat.SeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lblMaxSize"
+        android:max="100"
+        android:padding="5dp"
+        android:progress="10" />
+
+    <EditText
+        android:id="@+id/txtMaxSize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/seekBar"
+        android:layout_toStartOf="@id/lblMaxSizeUnit"
+        android:text="1" />
+
+    <TextView
+        android:id="@+id/lblMaxSizeUnit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/txtMaxSize"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/seekBar"
+        android:text="GB" />
 </RelativeLayout>

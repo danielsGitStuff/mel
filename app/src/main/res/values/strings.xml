@@ -75,4 +75,7 @@
     <string name="coupleNotificationCertTitleRemoteRejected">Pairing rejected remotely</string>
     <string name="coupleNotificationRemotePendingText">Waiting for the other side to accept.</string>
     <string name="coupleNotificationRemotePendingTitle">Pending answer</string>
+    <string name="editServiceDriveMaxDays">Max age of items in wastebin</string>
+    <string name="editServiceDriveUnimportant">Settings below are obligatory</string>
+    <string name="editServiceDriveMaxSize">max wastebin size in %</string>
 </resources>

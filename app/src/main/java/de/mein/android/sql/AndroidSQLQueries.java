@@ -244,11 +244,7 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     }
 
-    @Override
-    public <C> C querySingle(String query, List<Object> arguments, Class<C> resultClass) throws SqlQueriesException {
-        Cursor cursor = db.rawQuery(query, argsToStringArgs(arguments));
-        return readValue(cursor, resultClass);
-    }
+
 
     @Override
     public <T extends SQLTableObject> T loadFirstRow(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, Class<T> castClass) throws SqlQueriesException {
