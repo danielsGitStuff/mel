@@ -22,6 +22,8 @@ public class DriveSettings extends JsonSettings {
     private de.mein.drive.data.DriveClientSettingsDetails clientSettings;
     private de.mein.drive.data.DriveServerSettingsDetails serverSettings;
     private String transferDirectoryPath;
+    private Long maxWastebinSize;
+    private Long maxAge = 30L;
 
     public boolean isServer() {
         return role.equals(DriveStrings.ROLE_SERVER);
@@ -37,6 +39,24 @@ public class DriveSettings extends JsonSettings {
 
     public File getTransferDirectoryFile() {
         return new File(transferDirectoryPath);
+    }
+
+    public Long getMaxWastebinSize() {
+        return maxWastebinSize;
+    }
+
+    public DriveSettings setMaxWastebinSize(Long maxWastebinSize) {
+        this.maxWastebinSize = maxWastebinSize;
+        return this;
+    }
+
+    public Long getMaxAge() {
+        return maxAge;
+    }
+
+    public DriveSettings setMaxAge(Long maxAge) {
+        this.maxAge = maxAge;
+        return this;
     }
 
     public interface DevRootDirInjector {

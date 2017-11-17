@@ -21,7 +21,6 @@ import de.mein.drive.index.IndexListener;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.index.watchdog.StageIndexer;
-import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
@@ -53,7 +52,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected Indexer indexer;
     protected StageIndexer stageIndexer;
     protected S syncHandler;
-    private WasteBin wasteBin;
+    private Wastebin wastebin;
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
 
     public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
@@ -142,7 +141,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             if (lockFsEntry)
                 fsDao.lockRead();
             for (FileTransferDetail detail : detailSet.getDetails()) {
-                File wasteFile = wasteBin.getByHash(detail.getHash());
+                File wasteFile = wastebin.getByHash(detail.getHash());
                 MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) getIsolatedProcess(partnerCertId, detailSet.getServiceUuid());
                 List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
                 if (wasteFile != null) {
@@ -153,7 +152,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                     FsFile fsFile = fsFiles.get(0);
                     File file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
                     if (!file.exists()) {
-                        file = wasteBin.getByHash(detail.getHash());
+                        file = wastebin.getByHash(detail.getHash());
                     }
                     if (file == null) {
                         fileProcess.sendError(detail);
@@ -214,7 +213,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         this.driveDatabaseManager = driveDatabaseManager;
         this.stageIndexer = new StageIndexer(driveDatabaseManager);
         this.indexer = new Indexer(driveDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());
-        this.wasteBin = new WasteBin(this);
+        this.wastebin = new Wastebin(this);
         this.syncHandler = initSyncHandler();
         this.syncHandler.start();
         indexer.setSyncHandler(syncHandler);
@@ -245,8 +244,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         return deferred;
     }
 
-    public WasteBin getWasteBin() {
-        return wasteBin;
+    public Wastebin getWastebin() {
+        return wastebin;
     }
 
     public StageIndexer getStageIndexer() {

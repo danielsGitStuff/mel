@@ -58,7 +58,7 @@ CREATE TABLE stageset (
   originservice TEXT,
   status        TEXT,
   created       DATETIME                     DEFAULT (strftime('%s', 'now')),
-  version INTEGER
+  version       INTEGER
 );
 CREATE INDEX sid
   ON stage (id);
@@ -85,7 +85,7 @@ CREATE TABLE transfer (
   serviceuuid TEXT    NOT NULL,
   size        INTEGER NOT NULL,
   started     INTEGER NOT NULL,
-  transferred INTEGER NOT NULL default 0,
+  transferred INTEGER NOT NULL             DEFAULT 0,
   UNIQUE (certid, serviceuuid, hash)
 );
 CREATE TABLE waste (
@@ -96,7 +96,8 @@ CREATE TABLE waste (
   modified INTEGER NOT NULL,
   size     INTEGER NOT NULL,
   inode    INTEGER NOT NULL UNIQUE,
-  inplace  INTEGER NOT NULL
+  inplace  INTEGER NOT NULL,
+  f_delete INTEGER NOT NULL
 );
 CREATE TRIGGER IF NOT EXISTS stamp1
   AFTER

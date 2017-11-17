@@ -315,7 +315,7 @@ public class FsDao extends Dao {
     public Long getLatestVersion() throws SqlQueriesException {
         FsDirectory directory = new FsDirectory();
         String sql = "select max(" + directory.getVersion().k() + ") from " + directory.getTableName();
-        Long v = sqlQueries.querySingle(sql,null, Long.class);
+        Long v = sqlQueries.queryValue(sql,Long.class,null);
         if (v == null)
             return 0L;
         else
@@ -573,7 +573,7 @@ public class FsDao extends Dao {
     public boolean desiresHash(String hash) throws SqlQueriesException {
         FsFile fsFile = new FsFile();
         String query = "select count(*)>0 from " + fsFile.getTableName() + " where " + fsFile.getSynced().k() + "=? and " + fsFile.getContentHash().k() + "=?";
-        Integer result = sqlQueries.querySingle(query, ISQLQueries.whereArgs(false, hash), Integer.class);
+        Integer result = sqlQueries.queryValue(query, Integer.class,ISQLQueries.whereArgs(false, hash));
         return SqliteConverter.intToBoolean(result);
     }
 }

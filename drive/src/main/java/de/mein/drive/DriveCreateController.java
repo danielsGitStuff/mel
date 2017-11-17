@@ -15,6 +15,7 @@ import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
+import de.mein.drive.service.Wastebin;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;

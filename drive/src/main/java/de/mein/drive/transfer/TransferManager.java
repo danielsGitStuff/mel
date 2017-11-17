@@ -15,7 +15,7 @@ import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.service.WasteBin;
+import de.mein.drive.service.Wastebin;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.TransferDetails;
@@ -49,7 +49,7 @@ public class TransferManager extends DeferredRunnable {
     private final MeinDriveService meinDriveService;
     private final Indexer indexer;
     private final SyncHandler syncHandler;
-    private final WasteBin wasteBin;
+    private final Wastebin wastebin;
     private final FsDao fsDao;
     private Future<?> future;
     private CountLock lock = new CountLock();
@@ -58,13 +58,13 @@ public class TransferManager extends DeferredRunnable {
     private Map<String, MeinNotification> activeTransfers;
     private ReentrantLock activeTransfersLock = new ReentrantLock();
 
-    public TransferManager(MeinAuthService meinAuthService, MeinDriveService meinDriveService, TransferDao transferDao, WasteBin wasteBin, SyncHandler syncHandler) {
+    public TransferManager(MeinAuthService meinAuthService, MeinDriveService meinDriveService, TransferDao transferDao, Wastebin wastebin, SyncHandler syncHandler) {
         this.transferDao = transferDao;
         this.meinDriveService = meinDriveService;
         this.meinAuthService = meinAuthService;
         this.indexer = meinDriveService.getIndexer();
         this.syncHandler = syncHandler;
-        this.wasteBin = wasteBin;
+        this.wastebin = wastebin;
         this.fsDao = meinDriveService.getDriveDatabaseManager().getFsDao();
     }
 
@@ -107,8 +107,8 @@ public class TransferManager extends DeferredRunnable {
                             continue;
                         }
                         activeTransfersLock.unlock();
-                        // todo ask WasteBin for files
-                        wasteBin.restoreFsFiles(syncHandler);
+                        // todo ask Wastebin for files
+                        wastebin.restoreFsFiles(syncHandler);
                         // todo ask FS for files
                         try {
                             fsDao.lockWrite();

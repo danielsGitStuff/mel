@@ -84,7 +84,7 @@ public class TransferDao extends Dao {
     public boolean hasNotStartedTransfers(Long certId, String serviceUuid) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
         String query = "select count(*)>0 from " + dummy.getTableName() + " where " + dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=?";
-        Integer result = sqlQueries.querySingle(query, ISQLQueries.whereArgs(certId, serviceUuid), Integer.class);
+        Integer result = sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(certId, serviceUuid));
         return SqliteConverter.intToBoolean(result);
     }
 
@@ -97,7 +97,7 @@ public class TransferDao extends Dao {
     public int count(Long certId, String serviceUuid) throws SqlQueriesException {
         TransferDetails details = new TransferDetails();
         String query = "select count (*) from " + details.getTableName() + " where " + details.getCertId().k() + "=? and " + details.getServiceUuid().k() + "=?";
-        return sqlQueries.querySingle(query, ISQLQueries.whereArgs(certId, serviceUuid), Integer.class);
+        return sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(certId, serviceUuid));
     }
 
     public int countStarted(Long certId, String serviceUuid) throws SqlQueriesException {
@@ -105,7 +105,7 @@ public class TransferDao extends Dao {
         String query = "select count (*) from " + details.getTableName() + " where " + details.getStarted().k() + "=? and "
                 + details.getCertId().k() + "=? and "
                 + details.getServiceUuid().k() + "=?";
-        return sqlQueries.querySingle(query, ISQLQueries.whereArgs(true, certId, serviceUuid), Integer.class);
+        return sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(true, certId, serviceUuid));
     }
 
     public void updateTransferredBytes(Long id, Long transferred) throws SqlQueriesException {

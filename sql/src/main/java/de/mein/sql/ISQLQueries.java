@@ -96,6 +96,16 @@ public abstract class ISQLQueries {
 
     public abstract void delete(SQLTableObject sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException;
 
+    /**
+     * loads a resource with where clause. if you need more fancy stuff look at loadQueryResource().
+     * @param columns
+     * @param clazz
+     * @param where
+     * @param whereArgs
+     * @param <T>
+     * @return
+     * @throws SqlQueriesException
+     */
     public abstract <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where,
                                                                             List<Object> whereArgs) throws SqlQueriesException;
 
@@ -123,6 +133,15 @@ public abstract class ISQLQueries {
      */
     public abstract <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException;
 
+    /**
+     *
+     * @param query
+     * @param clazz
+     * @param args
+     * @param <T>
+     * @return a single value
+     * @throws SqlQueriesException
+     */
     public abstract <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException;
 
     public abstract void execute(String statement, List<Object> whereArgs) throws SqlQueriesException;
@@ -142,10 +161,17 @@ public abstract class ISQLQueries {
 
     public abstract void commit() throws SQLException;
 
-    public abstract <C> C querySingle(String query, List<Object> arguments, Class<C> resultClass) throws SqlQueriesException;
-
-
     public abstract void onShutDown();
 
+    /**
+     * lets you load a custom query. no separation of where clause and stuff
+     * @param query
+     * @param allAttributes
+     * @param clazz
+     * @param args
+     * @param <T>
+     * @return
+     * @throws SqlQueriesException
+     */
     public abstract <T extends SQLTableObject> ISQLResource<T> loadQueryResource(String query, List<Pair<?>> allAttributes, Class<T> clazz, List<Object> args) throws SqlQueriesException;
 }

@@ -3,7 +3,6 @@ package de.mein.drive.sql;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 
-import java.io.File;
 import java.sql.Date;
 
 /**
@@ -18,6 +17,7 @@ public class Waste extends SQLTableObject {
     private static final String INODE = "inode";
     private static final String MODIFIED = "modified";
     private static final String ID = "id";
+    private static final String FLAG_DELETE = "f_delete";
     private Pair<String> hash = new Pair<>(String.class, HASH);
     private Pair<String> name = new Pair<>(String.class, NAME);
     private Pair<Date> deleted = new Pair<>(Date.class, DELETED);
@@ -26,6 +26,7 @@ public class Waste extends SQLTableObject {
     private Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
     private Pair<Boolean> inplace = new Pair<>(Boolean.class, INPLACE);
     private Pair<Long> id = new Pair<>(Long.class, ID);
+    private Pair<Boolean> flagDelete = new Pair<>(Boolean.class, FLAG_DELETE);
 
     public Waste() {
         init();
@@ -38,10 +39,13 @@ public class Waste extends SQLTableObject {
 
     @Override
     protected void init() {
-        populateInsert(hash, deleted, size, name, inplace, inode, modified);
+        populateInsert(hash, deleted, size, name, inplace, inode, modified, flagDelete);
         populateAll(id);
     }
 
+    public Pair<Boolean> getFlagDelete() {
+        return flagDelete;
+    }
 
     public Pair<Long> getId() {
         return id;

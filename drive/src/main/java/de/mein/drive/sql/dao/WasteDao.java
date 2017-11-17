@@ -5,6 +5,7 @@ import de.mein.drive.sql.TransferDetails;
 import de.mein.drive.sql.Waste;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.List;
@@ -84,5 +85,35 @@ public class WasteDao extends Dao.LockingDao {
     public Waste getWasteById(Long id) throws SqlQueriesException {
         Waste waste = new Waste();
         return sqlQueries.loadFirstRow(waste.getAllAttributes(), waste, waste.getId().k() + "=?", ISQLQueries.whereArgs(id), Waste.class);
+    }
+
+    public ISQLResource<Waste> getAgeSortedResource() throws SqlQueriesException {
+        Waste waste = new Waste();
+        String query = "select * from " + waste.getTableName() + " order by " + waste.getDeleted().k();
+        return sqlQueries.loadQueryResource(query, waste.getAllAttributes(), Waste.class, null);
+    }
+
+    public ISQLResource<Waste> getOlderThanResource(long days) throws SqlQueriesException {
+        Waste waste = new Waste();
+        String where = waste.getDeleted() + "< date('now','-? days')";
+        return sqlQueries.loadResource(waste.getAllAttributes(), Waste.class, where, ISQLQueries.whereArgs(days));
+    }
+
+    public void flagDeleted(Long id, boolean flag) throws SqlQueriesException {
+        Waste waste = new Waste();
+        String stmt = "update " + waste.getTableName() + " set " + waste.getFlagDelete().k() + "=? where " + waste.getId().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(flag, id));
+    }
+
+    public void deleteFlagged() throws SqlQueriesException {
+        Waste waste = new Waste();
+        String stmt = "delete from " + waste.getTableName() + " where " + waste.getFlagDelete().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true));
+    }
+
+    public Long getSize() throws SqlQueriesException {
+        Waste waste = new Waste();
+        String query = "select sum("+waste.getSize().k()+") from "+waste.getTableName()+" where "+waste.getInplace().k()+"=?";
+        return sqlQueries.queryValue(query,Long.class,ISQLQueries.whereArgs(true));
     }
 }

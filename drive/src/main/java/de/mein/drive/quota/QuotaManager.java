@@ -3,7 +3,7 @@ package de.mein.drive.quota;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.service.WasteBin;
+import de.mein.drive.service.Wastebin;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.TransferDetails;
@@ -19,12 +19,12 @@ public class QuotaManager {
     private final ISQLQueries sqlQueries;
     private final MeinDriveService meinDriveService;
     private final DriveSettings driveSettings;
-    private final WasteBin wasteBin;
+    private final Wastebin wastebin;
 
     public QuotaManager(MeinDriveService meinDriveService) {
         this.meinDriveService = meinDriveService;
         this.driveSettings = meinDriveService.getDriveSettings();
-        this.wasteBin = meinDriveService.getWasteBin();
+        this.wastebin = meinDriveService.getWastebin();
         this.sqlQueries = meinDriveService.getDriveDatabaseManager().getFsDao().getSqlQueries();
     }
 
@@ -37,7 +37,7 @@ public class QuotaManager {
          * sum up everything we have to transfer
          * - (literally MINUS) all would be canceled transfers
          * - all progress already made by required transfers
-         * - stuff that is required and in WasteBin
+         * - stuff that is required and in Wastebin
          */
         String query =
                 "select sum(n*" + nStage.getSizePair().k() + ") as bytestodownload, (sum(n*" + nStage.getSizePair().k() + ")-\n" +
@@ -94,10 +94,11 @@ public class QuotaManager {
         N.readSqlResource(sqlQueries.loadQueryResource(query, wasteDummy.getAllAttributes(), WasteDummy.class, ISQLQueries.whereArgs(stageSetId)), (sqlResource, wasteDum) -> {
             //delete until the required space is freed
             freed[0] += wasteDum.getSize().v();
-            wasteBin.rm(wasteDum.getId().v());
+            wastebin.rm(wasteDum.getId().v());
             if (freed[0] > requiredSpace)
                 sqlResource.close();
         });
+        wastebin.deleteFlagged();
         if (requiredSpace > freed[0]) {
             throw new OutOfSpaceException();
         }
@@ -106,25 +107,39 @@ public class QuotaManager {
     private void estimateOccupiedSpace() {
         Waste nWaste = new Waste();
         FsFile nFsFile = new FsFile();
-        String query = "select sum(case when sedeleted\n" +
-                "then -ssize --substract stuff that is deleted\n" +
-                "else (case when ssize is null then --stage might have another size than fs\n" +
-                "           fsize\n" +
-                "       else\n" +
-                "           ssize\n" +
-                "       end\n" +
-                "   )\n" +
-                "end\n" +
-                ")+(\n" +
-                "--sum up everthing in the wastebin (might be null if nothing in waste table)\n" +
-                "case when(select count(*) from waste w where w.inplace=1)=0 then \n" +
-                "   0\n" +
-                "else\n" +
-                "   (select sum(w.size) from waste w where w.inplace=1)\n" +
-                "end\n" +
-                ") from ( select f.size as fsize, f.id, sedeleted,ssize from fsentry f left join (\n" +
-                "   --join fsentries with the latest stage entries which source from \"fs\"\n" +
-                "   select s.size as ssize, s.fsid, deleted as sedeleted from stage s, stageset ss on s.stageset=ss.id where ss.source=\"fs\" order by ss.created\n" +
-                ") s on f.id=s.fsid where f.dir=0 group by f.id)";
+        String query = "select \n" +
+                "	sum(\n" +
+                "		case when sedeleted then \n" +
+                "			-ssize --substract stuff that is deleted \n" +
+                "		else (\n" +
+                "			case when ssize is null then --stage might have another size than fs \n" +
+                "				fsize \n" +
+                "			else \n" +
+                "				ssize \n" +
+                "			end \n" +
+                "		)\n" +
+                "		end \n" +
+                "	)\n" +
+                "	+\n" +
+                "	(--sum up everthing in the wastebin (might be null if nothing in waste table)\n" +
+                "	case when(select count(*) from waste w where w.inplace=1)=0 then  \n" +
+                "		0 \n" +
+                "	else \n" +
+                "		(select sum(w.size) from waste w where w.inplace=1)\n" +
+                "	end \n" +
+                "	)\n" +
+                "	+\n" +
+                "	(\n" +
+                "		select sum(transferred) from transfer\n" +
+                "	)\n" +
+                "	as summ \n" +
+                "from \n" +
+                "(\n" +
+                "	select f.size as fsize, f.id, sedeleted, ssize from fsentry f left join \n" +
+                "	(--join fsentries with the latest stage entries which source from \"fs\"\n" +
+                "		select s.size as ssize, s.fsid, deleted as sedeleted from stage s, stageset ss on s.stageset=ss.id where ss.source=\"fs\" order by ss.created \n" +
+                "	) \n" +
+                "	s on f.id=s.fsid \n" +
+                "where f.dir=0 group by f.id);";
     }
 }

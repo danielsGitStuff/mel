@@ -76,7 +76,7 @@ public class N {
 
     /**
      * Iterates through the entire SQLResource and closes it after finish or when Exceptions occur.
-     * @param sqlResource
+     * @param sqlResource is iterated over. its values are handed over to the noTryRunnable.
      * @param noTryRunnable call close() on sqlResource if you do not want to iterate over the rest
      * @param <T>
      */

@@ -10,7 +10,7 @@ import de.mein.drive.index.Indexer;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.service.WasteBin;
+import de.mein.drive.service.Wastebin;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -38,7 +38,7 @@ public abstract class SyncHandler {
     protected N runner = new N(Throwable::printStackTrace);
     protected DriveDatabaseManager driveDatabaseManager;
     protected Indexer indexer;
-    protected WasteBin wasteBin;
+    protected Wastebin wastebin;
     protected QuotaManager quotaManager;
 
 
@@ -50,9 +50,9 @@ public abstract class SyncHandler {
         this.meinDriveService = meinDriveService;
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
         this.indexer = meinDriveService.getIndexer();
-        this.wasteBin = meinDriveService.getWasteBin();
+        this.wastebin = meinDriveService.getWastebin();
         this.transferManager = new TransferManager(meinAuthService, meinDriveService, meinDriveService.getDriveDatabaseManager().getTransferDao()
-                , wasteBin, this);
+                , wastebin, this);
         this.quotaManager = new QuotaManager(meinDriveService);
     }
 
@@ -74,7 +74,7 @@ public abstract class SyncHandler {
                 if (target.isFile()) {
                     if (waste != null) {
                         if (waste.getModified().v().equals(modifiedAndInode.getModified())) {
-                            wasteBin.moveToBin(waste, target);
+                            wastebin.moveToBin(waste, target);
                         } else {
                             System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
                             System.err.println("SyncHandler.moveFile: " + target.getAbsolutePath());
@@ -82,10 +82,10 @@ public abstract class SyncHandler {
                     } else if ((fsTarget.getModified().isNull() || (fsTarget.getModified().notNull() && !fsTarget.getModified().v().equals(modifiedAndInode.getModified())))
                             || (fsTarget.getiNode().isNull() || fsTarget.getiNode().notNull() && !fsTarget.getiNode().v().equals(modifiedAndInode.getiNode()))) {
                         //file is not equal to the one in the fs table
-                        wasteBin.deleteUnknown(target);
+                        wastebin.deleteUnknown(target);
                     } else {
                         System.err.println(getClass().getSimpleName() + ".moveFile().errrr.files.identical? .. deleting anyway");
-                        wasteBin.deleteUnknown(target);
+                        wastebin.deleteUnknown(target);
                     }
                 }
             }
@@ -301,11 +301,11 @@ public abstract class SyncHandler {
                         if (stage.getSyncedPair().isNull())
                             System.out.println("SyncHandler.commitStage.debugebguse0");
 //                        if (stage.getDeleted() != null && stage.getDeleted() && stage.getIsDirectory())
-//                            wasteBin.delete(stage.getFsId()););
+//                            wastebin.delete(stage.getFsId()););
                         if ((stage.getDeleted() != null && stage.getDeleted() && stage.getSynced() != null && stage.getSynced()) || (stage.getIsDirectory() && stage.getDeleted())) {
                             //if (stage.getDeleted() != null && stage.getSynced() != null && (stage.getDeleted() && stage.getSynced())) {
                             //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
-                            wasteBin.delete(stage.getFsId());
+                            wastebin.deleteFsEntry(stage.getFsId());
                         } else {
                             FsEntry fsEntry = stageDao.stage2FsEntry(stage, version);
                             // TODO inode & co
@@ -317,7 +317,7 @@ public abstract class SyncHandler {
                             if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
                                 FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
                                 if (oldeFsFile != null && !stageSet.fromFs() && !fsEntry.getSynced().v()) {
-                                    wasteBin.deleteFsFile(oldeFsFile);
+                                    wastebin.deleteFsFile(oldeFsFile);
                                 } else {
                                     // delete file. consider that it might be in the same state as the stage
                                     File stageFile = stageDao.getFileByStage(stage);
@@ -325,7 +325,7 @@ public abstract class SyncHandler {
                                         ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
                                         if (stage.getiNode() == null || stage.getModified() == null ||
                                                 !(modifiedAndInode.getiNode().equals(stage.getiNode()) && modifiedAndInode.getModified().equals(stage.getModified()))) {
-                                            wasteBin.deleteUnknown(stageFile);
+                                            wastebin.deleteUnknown(stageFile);
                                             stage.setSynced(false);
                                             // we could search more recent stagesets to find some clues here and prevent deleteUnknown().
                                         }
@@ -410,6 +410,7 @@ public abstract class SyncHandler {
     }
 
     public void start() {
+        N.r(() -> wastebin.maintenance());
         transferManager.start();
     }
 

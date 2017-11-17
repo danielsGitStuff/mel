@@ -40,7 +40,7 @@ public final class DatabaseManager extends FileRelatedManager {
                 + " from " + service.getTableName() + " s left join " + serviceType.getTableName() + " t on s."
                 + service.getTypeId().k() + "=t." + serviceType.getId().k()
                 + " where " + service.getUuid().k() + "=?";
-        String name = getSqlQueries().querySingle(query, de.mein.sql.ISQLQueries.whereArgs(uuid), String.class);
+        String name = getSqlQueries().queryValue(query, String.class, de.mein.sql.ISQLQueries.whereArgs(uuid));
         return name;
     }
 
