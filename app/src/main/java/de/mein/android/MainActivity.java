@@ -58,6 +58,7 @@ import de.mein.auth.tools.N;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.AccessController;
@@ -312,7 +313,7 @@ public class MainActivity extends MeinActivity {
                     //TestDirCreator.createTestDir(driveDir, " kek");
                     Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
                             driveDir.getAbsolutePath(),
-                            meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v());
+                            meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v(), DriveSettings.DEFAULT_WASTEBIN_RATIO,DriveSettings.DEFAULT_WASTEBIN_MAXDAYS);
                     serviceCreated.done(meinDriveClientService -> {
                                 N.r(() -> {
                                     System.out.println("successssss");

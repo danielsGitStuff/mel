@@ -72,7 +72,10 @@
     <string name="coupleNotificationCertTextRemoteRejected">Die andere Seite verspürte Abneigung.</string>
     <string name="coupleNotificationRemotePendingText">…</string>
     <string name="coupleNotificationRemotePendingTitle">Warte auf Antwort</string>
+    <string name="coupleNotificationCertTitleRemoteRejected">Pairing verweigert</string>
     <string name="editServiceDriveMaxDays">Max age of items in wastebin</string>
-    <string name="editServiceDriveUnimportant">Settings below are obligatory</string>
+    <string name="editServiceDriveUnimportant">Optionale Einstellungen</string>
     <string name="editServiceDriveMaxSize">max wastebin size</string>
+    <string name="createServiceName">Name</string>
+    <string name="editServiceDriveToastOOS">Nicht genug Platz!</string>
 </resources>

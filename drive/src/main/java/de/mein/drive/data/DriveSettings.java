@@ -16,6 +16,8 @@ import java.io.IOException;
 @SuppressWarnings("Duplicates")
 public class DriveSettings extends JsonSettings {
     public static final String TRANSFER_DIR = "leTransfer";
+    public static final float DEFAULT_WASTEBIN_RATIO = 0.1f;
+    public static final int DEFAULT_WASTEBIN_MAXDAYS = 30;
     private RootDirectory rootDirectory;
     private String role = ":(";
     private Long lastSyncedVersion = 0l;
@@ -24,6 +26,13 @@ public class DriveSettings extends JsonSettings {
     private String transferDirectoryPath;
     private Long maxWastebinSize;
     private Long maxAge = 30L;
+
+    public static RootDirectory buildRootDirectory(String path) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
+        RootDirectory rootDirectory = new RootDirectory().setPath(path);
+        rootDirectory.setOriginalFile(new File(path));
+        rootDirectory.backup();
+        return rootDirectory;
+    }
 
     public boolean isServer() {
         return role.equals(DriveStrings.ROLE_SERVER);

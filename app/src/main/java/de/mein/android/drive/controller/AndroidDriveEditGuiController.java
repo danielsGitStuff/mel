@@ -19,11 +19,12 @@ import de.mein.sql.SqlQueriesException;
 
 public class AndroidDriveEditGuiController extends AndroidServiceGuiController {
     private final MeinDriveService runningInstance;
-    private EditText txtPath;
+    private EditText txtPath, txtMaxSize, txtMaxDays;
     private Button btnPath;
 
+
     public AndroidDriveEditGuiController(MeinAuthService meinAuthService, MeinActivity activity, IMeinService iMeinService, ViewGroup rootView) {
-        super(activity, rootView,R.layout.embedded_twice_drive);
+        super(activity, rootView, R.layout.embedded_twice_drive);
         this.runningInstance = (MeinDriveService) iMeinService;
         txtPath.setText(this.runningInstance.getDriveSettings().getRootDirectory().getPath());
         btnPath.setEnabled(false);
@@ -33,6 +34,8 @@ public class AndroidDriveEditGuiController extends AndroidServiceGuiController {
     protected void init() {
         txtPath = rootView.findViewById(R.id.txtPath);
         btnPath = rootView.findViewById(R.id.btnPath);
+        txtMaxDays = rootView.findViewById(R.id.txtMaxDays);
+        txtMaxSize = rootView.findViewById(R.id.txtMaxSize);
     }
 
     @Override

@@ -66,7 +66,14 @@ public class Notifier {
             Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
             toast.show();
         });
+    }
 
+    public static void shortToast(Context context, CharSequence message) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(() -> {
+            Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
+            toast.show();
+        });
     }
 
     public static void pendingNotificationWithIcon(int requestCode, int iconResource, Intent intent, @NonNull String channelId, CharSequence title, CharSequence text, CharSequence ticker) {

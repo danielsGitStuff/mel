@@ -22,6 +22,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveClientService;
 
@@ -43,17 +44,17 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
                 String name = driveCreateGuiController.getName();
                 String path = driveCreateGuiController.getPath();
                 if (driveCreateGuiController.isServer()) {
-                    driveCreateController.createDriveServerService(name, path);
+                    driveCreateController.createDriveServerService(name, path, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays());
                 } else {
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedService().getUuid().v();
-                    Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certId, serviceUuid);
+                    Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays());
                     //promise.done(meinDriveClientService -> N.r(() -> meinDriveClientService.syncThisClient()));
                 }
             });
     }
 
-       @Override
+    @Override
     public AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
         activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (runningInstance == null) {
