@@ -415,7 +415,7 @@ public class DriveTest {
         promise.done(result -> N.r(() -> {
             mas[0] = result;
             Promise<MeinDriveServerService, Exception, Void> driveBootedPromise = new DriveCreateController(result)
-                    .createDriveServerServiceDeferred("server test", testdir1.getAbsolutePath());
+                    .createDriveServerServiceDeferred("server test", testdir1.getAbsolutePath(),0.01f,30);
             driveBootedPromise.done(result1 -> N.r(() -> {
                 result1.getIndexer().getIndexerStartedDeferred().done(result2 -> N.r(() -> {
                     result.shutDown();
@@ -701,7 +701,7 @@ public class DriveTest {
                 meinAuthService1.addRegisterHandler(allowRegisterHandler);
                 meinAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath());
+                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath(),0.01f,30);
                 System.out.println("DriveTest.startServer.booted");
             });
         });
@@ -790,7 +790,7 @@ public class DriveTest {
                 meinAuthService1.addRegisterHandler(allowRegisterHandler);
                 meinAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath());
+                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath(),0.01f,30);
                 boot2.boot().done(ma2 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
                     meinAuthService2 = ma2;
@@ -802,7 +802,7 @@ public class DriveTest {
                             runner.runTry(() -> {
                                 System.out.println("DriveFXTest.driveGui.connected");
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid());
+                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(),0.01f,30);
                                 promise.done(clientDriveService -> runner.runTry(() -> {
                                             System.out.println("DriveFXTest attempting first syncThisClient");
                                             clientSyncListener.testStructure.setMaClient(meinAuthService2)
