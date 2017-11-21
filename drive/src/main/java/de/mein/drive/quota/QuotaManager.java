@@ -61,7 +61,7 @@ public class QuotaManager {
                         ")\n" +
                         ") as requiredspace from (\n" +
                         "	select (sum(not " + nStage.getDeletedPair().k() + ") - sum(" + nStage.getDeletedPair().k() + ") + (select count(*) from " + nFsEntry.getTableName() + " f where f." + nStage.getContentHashPair().k() + "=s." + nStage.getContentHashPair().k() + " and f." + nFsEntry.getSynced().k() + "=?) - (select count(*) from " + nWaste.getTableName() + " w where w." + nTransfer.getHash().k() + " = s." + nStage.getContentHashPair().k() + " and " + nWaste.getInplace().k() + "=?)) as n, " + nStage.getContentHashPair().k() + ", " + nStage.getSizePair().k() + " from " + nStage.getTableName() + " s " +
-                        "   s." + nStage.getStageSetPair().k() + "=?" +
+                        "   where s." + nStage.getStageSetPair().k() + "=?" +
                         "   group by " + nStage.getContentHashPair().k() + "\n" +
                         ")";
         Long requiredSpace = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(
