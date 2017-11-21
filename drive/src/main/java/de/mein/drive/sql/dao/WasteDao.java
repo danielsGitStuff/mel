@@ -95,7 +95,7 @@ public class WasteDao extends Dao.LockingDao {
 
     public ISQLResource<Waste> getOlderThanResource(long days) throws SqlQueriesException {
         Waste waste = new Waste();
-        String where = waste.getDeleted() + "< date('now','-? days')";
+        String where = waste.getDeleted().k() + "< date('now','-? days')";
         return sqlQueries.loadResource(waste.getAllAttributes(), Waste.class, where, ISQLQueries.whereArgs(days));
     }
 
