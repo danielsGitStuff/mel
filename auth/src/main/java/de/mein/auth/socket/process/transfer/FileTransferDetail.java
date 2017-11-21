@@ -9,6 +9,8 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
 /**
+ * Container to tell the other side which file you want to receive. Files are identified by their hashes.
+ * So you don't ask for a particular file but more for "send me a file like ..."
  * Created by xor on 1/5/17.
  */
 public class FileTransferDetail implements SerializableEntity {
@@ -19,7 +21,6 @@ public class FileTransferDetail implements SerializableEntity {
     private int streamId;
     private FileInputStream in;
     private FileOutputStream out;
-    private Long fsId;
     private String hash;
     @JsonIgnore
     private boolean transferred = false;
@@ -94,15 +95,6 @@ public class FileTransferDetail implements SerializableEntity {
 
     public String getHash() {
         return hash;
-    }
-
-    public Long getFsId() {
-        return fsId;
-    }
-
-    public FileTransferDetail setFsId(Long fsId) {
-        this.fsId = fsId;
-        return this;
     }
 
     public FileTransferDetail setFile(File file) {

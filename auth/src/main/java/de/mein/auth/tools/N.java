@@ -27,7 +27,7 @@ public class N {
     }
 
     public interface INoTryRunnable {
-        void run() throws Exception, ShamefulSelfConnectException;
+        void run() throws Exception;
     }
 
     public interface SqlTryRunnable<T extends SQLTableObject> {
@@ -49,6 +49,11 @@ public class N {
         }
     });
 
+    /**
+     * prints stacktrace when failing
+     *
+     * @param noTryRunnable
+     */
     public static void r(N.INoTryRunnable noTryRunnable) {
         N.runner.runTry(noTryRunnable);
     }
@@ -75,8 +80,44 @@ public class N {
     }
 
     /**
+     * Iterates through the entire SQLResource and closes it after finish. Continues after Exception.
+     *
+     * @param sqlResource   is iterated over. its values are handed over to the noTryRunnable.
+     * @param noTryRunnable call close() on sqlResource if you do not want to iterate over the rest
+     * @param <T>
+     */
+    public static <T extends SQLTableObject> void readSqlResourceIgnorantly(ISQLResource<T> sqlResource, SqlTryReadRunnable<T> noTryRunnable) {
+        try {
+            T obj = sqlResource.getNext();
+            while (obj != null && !sqlResource.isClosed()) {
+                try {
+                    noTryRunnable.read(sqlResource, obj);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                obj = sqlResource.getNext();
+            }
+        } catch (Exception e) {
+            try {
+                e.printStackTrace();
+                sqlResource.close();
+            } catch (SqlQueriesException e1) {
+                System.err.println("N.sqlResource.close() FAILED!");
+                e1.printStackTrace();
+            }
+        } finally {
+            try {
+                sqlResource.close();
+            } catch (SqlQueriesException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
      * Iterates through the entire SQLResource and closes it after finish or when Exceptions occur.
-     * @param sqlResource is iterated over. its values are handed over to the noTryRunnable.
+     *
+     * @param sqlResource   is iterated over. its values are handed over to the noTryRunnable.
      * @param noTryRunnable call close() on sqlResource if you do not want to iterate over the rest
      * @param <T>
      */

@@ -1,9 +1,11 @@
 package de.mein.drive.sql.dao;
 
+import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.SqliteConverter;
 import de.mein.drive.sql.TransferDetails;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLResource;
 import de.mein.sql.SqlQueriesException;
 
@@ -64,9 +66,9 @@ public class TransferDao extends Dao {
 
     public List<TransferDetails> getNotStartedTransfers(Long certId, String serviceUuid, int limit) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
-        String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=? and " + dummy.getStarted().k() + "=?";
+        String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=? and " + dummy.getStarted().k() + "=? and " + dummy.getDeleted().k() + "=?";
         String whatElse = " limit ?";
-        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, false, limit), whatElse);
+        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, false, false, limit), whatElse);
         return result;
     }
 
@@ -110,7 +112,21 @@ public class TransferDao extends Dao {
 
     public void updateTransferredBytes(Long id, Long transferred) throws SqlQueriesException {
         TransferDetails t = new TransferDetails();
-        String stmt = "update " + t.getTableName() + " (" + t.getTransferred().k() + ") values (?) where " + t.getId().k() + "=?";
+        String stmt = "update " + t.getTableName() + " set " + t.getTransferred().k() + "=? where " + t.getId().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(transferred, id));
+    }
+
+    public ISQLResource<TransferDetails> getUnnecessaryTransfers() throws SqlQueriesException {
+        TransferDetails t = new TransferDetails();
+        FsFile f = new FsFile();
+        String query = "select * from " + t.getTableName() + " t where not exists (select * from " + f.getTableName()
+                + " f where f." + f.getContentHash().k() + "=t." + t.getHash().k() + ")";
+        return sqlQueries.loadQueryResource(query, t.getAllAttributes(), TransferDetails.class, null);
+    }
+
+    public void flagDeleted(Long transferId, boolean flag) throws SqlQueriesException {
+        TransferDetails t = new TransferDetails();
+        String stmt = "update " + t.getTableName() + " set " + t.getDeleted().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(flag));
     }
 }

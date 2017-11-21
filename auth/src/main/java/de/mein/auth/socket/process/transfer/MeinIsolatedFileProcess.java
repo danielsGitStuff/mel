@@ -17,23 +17,52 @@ import java.util.concurrent.Semaphore;
  * Created by xor on 1/5/17.
  */
 public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements MeinRunnable {
+    private Map<String, FileTransferDetail> hashFTDSendingMap = new HashMap<>();
+    private Map<String, FileTransferDetail> hashFTDReceivingMap = new HashMap<>();
+
+    private Queue<String> sendingDetails = new LinkedList();
     private Map<Integer, FileTransferDetail> streamIdFileMapReceiving = new TreeMap<>();
-    private Queue<FileTransferDetail> sendingDetails = new LinkedList();
+
     private Semaphore sendingSemaphore = new Semaphore(1, true);
     private Semaphore receivingSemaphore = new Semaphore(1, true);
     private RWLock sendWaitLock = new RWLock();
     private MeinNotification sendingNotification;
 
+    public void cancelByHash(String hash) throws InterruptedException {
+        try {
+            sendingSemaphore.acquire();
+            sendingDetails.remove(hash);
+            FileTransferDetail detail = hashFTDSendingMap.remove(hash);
+            if (detail != null) {
+            }
+        } finally {
+            sendingSemaphore.release();
+        }
+        try {
+            receivingSemaphore.acquire();
+            FileTransferDetail detail = hashFTDReceivingMap.remove(hash);
+            if (detail != null)
+                streamIdFileMapReceiving.remove(detail.getStreamId());
+        } finally {
+            receivingSemaphore.release();
+        }
+
+    }
+
 
     public void addFilesReceiving(Collection<FileTransferDetail> fileTransferDetails) throws InterruptedException {
         receivingSemaphore.acquire();
-        fileTransferDetails.forEach(d -> streamIdFileMapReceiving.put(d.getStreamId(), d));
+        for (FileTransferDetail fileTransferDetail : fileTransferDetails) {
+            hashFTDReceivingMap.put(fileTransferDetail.getHash(), fileTransferDetail);
+            streamIdFileMapReceiving.put(fileTransferDetail.getStreamId(), fileTransferDetail);
+        }
         receivingSemaphore.release();
     }
 
     public void addFilesReceiving(FileTransferDetail fileTransferDetail) throws InterruptedException {
         System.out.println("MeinIsolatedFileProcess.addFilesReceiving.ID: " + fileTransferDetail.getStreamId());
         receivingSemaphore.acquire();
+        hashFTDReceivingMap.put(fileTransferDetail.getHash(), fileTransferDetail);
         streamIdFileMapReceiving.put(fileTransferDetail.getStreamId(), fileTransferDetail);
         System.out.println("MeinIsolatedFileProcess.addFilesReceiving.stored.hash: " + streamIdFileMapReceiving.get(fileTransferDetail.getStreamId()).getHash());
         receivingSemaphore.release();
@@ -125,7 +154,8 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
 
     public void sendFile(FileTransferDetail transferDetail) throws IOException, JsonSerializationException, IllegalAccessException, InterruptedException {
         sendingSemaphore.acquire();
-        sendingDetails.add(transferDetail);
+        sendingDetails.add(transferDetail.getHash());
+        hashFTDSendingMap.put(transferDetail.getHash(), transferDetail);
         sendingSemaphore.release();
         sendWaitLock.unlockWrite();
     }
@@ -135,7 +165,8 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 sendingSemaphore.acquire();
-                FileTransferDetail details = sendingDetails.peek();
+                String hash = sendingDetails.peek();
+                FileTransferDetail details = hashFTDSendingMap.get(hash);
                 sendingSemaphore.release();
                 if (details != null && !Thread.currentThread().isInterrupted()) {
                     transfer();
@@ -162,7 +193,8 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
         int blockOffset = 0;
         int bytesLeft = MeinSocket.BLOCK_SIZE;
         byte[] block = new byte[MeinSocket.BLOCK_SIZE];
-        FileTransferDetail transferDetail = sendingDetails.peek();
+        String hash = sendingDetails.peek();
+        FileTransferDetail transferDetail = hashFTDSendingMap.get(hash);
         while (transferDetail != null) {
             //notification first
             if (sendingNotification == null) {
@@ -206,7 +238,8 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
             if (bytesLeft > 0) {
                 if (bytesLeft > META_LENGTH) {
                     sendingSemaphore.acquire();
-                    transferDetail = sendingDetails.peek();
+                    hash = sendingDetails.peek();
+                    transferDetail = hashFTDSendingMap.get(hash);
                     sendingSemaphore.release();
                     if (transferDetail == null)
                         meinAuthSocket.sendBlock(block);
@@ -231,7 +264,8 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
     public void sendError(FileTransferDetail detail) throws InterruptedException {
         detail.setError(true);
         sendingSemaphore.acquire();
-        sendingDetails.add(detail);
+        hashFTDSendingMap.put(detail.getHash(), detail);
+        sendingDetails.add(detail.getHash());
         sendingSemaphore.release();
         sendWaitLock.unlockWrite();
     }

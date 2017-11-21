@@ -189,7 +189,7 @@ public class TransferManager extends DeferredRunnable {
 
     private Map<String, MeinNotification> notActiveTransfers = new HashMap<>();
 
-    private void showProgress() {
+    public void showProgress() {
         activeTransfersLock.lock();
         try {
             List<TransferDetails> transferSets = transferDao.getTransferSets(null);
@@ -252,6 +252,7 @@ public class TransferManager extends DeferredRunnable {
      */
     private DeferredObject<TransferDetails, TransferDetails, Void> retrieveFiles(MeinIsolatedFileProcess fileProcess, TransferDetails strippedTransferDetails) throws SqlQueriesException, InterruptedException {
         DeferredObject<TransferDetails, TransferDetails, Void> deferred = new DeferredObject<>();
+        // TransferRetriever retriever = new TransferRetriever(meinAuthService,meinDriveService, this,transferDao, syncHandler);
         MeinRunnable runnable = new MeinRunnable() {
 
             private RWLock lock = new RWLock().lockWrite();
@@ -325,6 +326,15 @@ public class TransferManager extends DeferredRunnable {
     }
 
     public void research() {
+        N.r(() -> N.readSqlResourceIgnorantly(transferDao.getUnnecessaryTransfers(), (sqlResource, transferDetails) -> {
+            transferDao.flagDeleted(transferDetails.getId().v(), true);
+            MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
+            if (fileProcess != null) {
+                fileProcess.cancelByHash(transferDetails.getHash().v());
+            }
+            cancelActiveTransfer(transferDetails);
+
+        }));
         lock.unlock();
     }
 
