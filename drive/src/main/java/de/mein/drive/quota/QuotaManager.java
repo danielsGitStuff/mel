@@ -40,8 +40,8 @@ public class QuotaManager {
          * - stuff that is required and in Wastebin
          */
         String query =
-                "select sum(n*" + nStage.getSizePair().k() + ") as bytestodownload, (sum(n*" + nStage.getSizePair().k() + ")-\n" +
-                        "(\n" +
+                "select (sum(n*" + nStage.getSizePair().k() + ")-\n" +
+                        "coalesce((\n" +
                         "	select sum(t." + nTransfer.getStarted().k() + " * (t." + nTransfer.getTransferred().k() + ")) as deletablebytes from " + nTransfer.getTableName() + " t left join --transfers that cancel\n" +
                         "	(\n" +
                         "		select * from (\n" +
@@ -49,8 +49,8 @@ public class QuotaManager {
                         "		)\n" +
                         "		where exis=?\n" +
                         "	) ex on ex." + nStage.getContentHashPair().k() + " = t." + nTransfer.getHash().k() + " where ex." + nStage.getContentHashPair().k() + " not null group by ex." + nStage.getContentHashPair().k() + "\n" +
-                        ")-\n" +
-                        "(\n" +
+                        "),0)-\n" +
+                        "coalesce((\n" +
                         "	select sum(t." + nTransfer.getStarted().k() + " * (t." + nTransfer.getTransferred().k() + ")) as deletablebytes from " + nTransfer.getTableName() + " t left join --transfers which would remain and already made progress\n" +
                         "	(\n" +
                         "		select * from (\n" +
@@ -58,7 +58,7 @@ public class QuotaManager {
                         "		)\n" +
                         "		where exis=?\n" +
                         "	) ex on ex." + nStage.getContentHashPair().k() + " = t." + nTransfer.getHash().k() + " where ex." + nStage.getContentHashPair().k() + " is null group by ex." + nStage.getContentHashPair().k() + "\n" +
-                        ")\n" +
+                        "),0)\n" +
                         ") as requiredspace from (\n" +
                         "	select (sum(not " + nStage.getDeletedPair().k() + ") - sum(" + nStage.getDeletedPair().k() + ") + (select count(*) from " + nFsEntry.getTableName() + " f where f." + nStage.getContentHashPair().k() + "=s." + nStage.getContentHashPair().k() + " and f." + nFsEntry.getSynced().k() + "=?) - (select count(*) from " + nWaste.getTableName() + " w where w." + nTransfer.getHash().k() + " = s." + nStage.getContentHashPair().k() + " and " + nWaste.getInplace().k() + "=?)) as n, " + nStage.getContentHashPair().k() + ", " + nStage.getSizePair().k() + " from " + nStage.getTableName() + " s " +
                         "   where s." + nStage.getStageSetPair().k() + "=?" +
