@@ -57,6 +57,9 @@ public class Wastebin {
     public void maintenance() throws SqlQueriesException {
         final Long maxAge = driveSettings.getMaxAge();
         final Long maxSize = driveSettings.getMaxWastebinSize();
+        if (maxSize == null){
+            System.err.println("Wastebin.maintenance.ERROR: DriveSettings.maxwastebinsize not set!");
+        }
         N.readSqlResource(wasteDao.getOlderThanResource(maxAge), (sqlResource, waste) -> rm(waste));
         wasteDao.deleteFlagged();
         final Long[] size = {wasteDao.getSize()};

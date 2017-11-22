@@ -44,7 +44,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         ISQLQueries createConnection(DriveDatabaseManager driveDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
     }
 
-    private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME)), true,new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
+    private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME)), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
 
     public static void setSqlqueriesCreator(SQLConnectionCreator sqlqueriesCreator) {
         DriveDatabaseManager.sqlqueriesCreator = sqlqueriesCreator;
@@ -101,6 +101,8 @@ public class DriveDatabaseManager extends FileRelatedManager {
         this.driveSettings.getRootDirectory().backup();
         this.driveSettings.getRootDirectory().setOriginalFile(new File(this.driveSettings.getRootDirectory().getPath()));
         this.driveSettings.setTransferDirectoryPath(driveSettingsCfg.getTransferDirectoryPath());
+        this.driveSettings.setMaxWastebinSize(driveSettingsCfg.getMaxWastebinSize());
+        this.driveSettings.setMaxAge(driveSettingsCfg.getMaxAge());
 
         fsDao = new FsDao(this, sqlQueries);
         stageDao = new StageDao(driveSettings, sqlQueries, fsDao);

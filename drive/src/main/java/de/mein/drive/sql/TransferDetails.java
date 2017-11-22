@@ -17,7 +17,7 @@ public class TransferDetails extends SQLTableObject {
     private static final String SIZE = "size";
     private static final String STARTED = "started";
     private static final String TRANSFERRED = "transferred";
-    private static final String DELETED = "del";
+    private static final String DELETED = "f_delete";
 
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<String> hash = new Pair<>(String.class, HASH);

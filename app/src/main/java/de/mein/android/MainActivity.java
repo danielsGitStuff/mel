@@ -44,12 +44,16 @@ import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.ConnectedController;
 import de.mein.android.controller.SettingsController;
 import de.mein.android.service.AndroidService;
+import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.controller.NetworkDiscoveryController;
+import de.mein.auth.socket.process.reg.IRegisterHandler;
+import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
@@ -87,9 +91,10 @@ public class MainActivity extends MeinActivity {
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
         System.out.println("MainActivity.onAndroidServiceAvailable");
-        if (androidService.getMeinAuthService().getSettings().getRedirectSysout()){
-            MeinLogger.redirectSysOut(200,true);
+        if (androidService.getMeinAuthService().getSettings().getRedirectSysout()) {
+            MeinLogger.redirectSysOut(200, true);
         }
+        debugStuff2();
     }
 
 
@@ -145,7 +150,6 @@ public class MainActivity extends MeinActivity {
             e.printStackTrace();
         }
         startService();
-//        debugStuff3();
     }
 
     public static void showMessage(Context context, int message) {
@@ -200,9 +204,41 @@ public class MainActivity extends MeinActivity {
     }
 
     private void debugStuff2() {
-//        annoyWithPermissions(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS).done(result -> {
-//            getContacts();
-//        });
+        annoyWithPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE
+                , Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS).done(result -> {
+            androidService.getMeinAuthService().addRegisterHandler(new IRegisterHandler() {
+                @Override
+                public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                    listener.onCertificateAccepted(request, certificate);
+                }
+
+                @Override
+                public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onRemoteRejected(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onLocallyRejected(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onRemoteAccepted(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onLocallyAccepted(Certificate partnerCertificate) {
+
+                }
+            });
+            N.r(() -> androidService.getMeinAuthService().connect("10.0.2.2", 8888, 8889, true));
+        });
     }
 
 
@@ -273,7 +309,6 @@ public class MainActivity extends MeinActivity {
 
     }
 
-
     private void enableGuiController(GuiController guiController) {
         if (this.guiController != null)
             EventBus.getDefault().unregister(this.guiController);
@@ -313,7 +348,7 @@ public class MainActivity extends MeinActivity {
                     //TestDirCreator.createTestDir(driveDir, " kek");
                     Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
                             driveDir.getAbsolutePath(),
-                            meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v(), DriveSettings.DEFAULT_WASTEBIN_RATIO,DriveSettings.DEFAULT_WASTEBIN_MAXDAYS);
+                            meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v(), DriveSettings.DEFAULT_WASTEBIN_RATIO, DriveSettings.DEFAULT_WASTEBIN_MAXDAYS);
                     serviceCreated.done(meinDriveClientService -> {
                                 N.r(() -> {
                                     System.out.println("successssss");

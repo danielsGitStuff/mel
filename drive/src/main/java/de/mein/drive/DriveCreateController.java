@@ -63,6 +63,7 @@ public class DriveCreateController {
         Service service = createService(name);
         de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
         driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + de.mein.drive.data.DriveSettings.TRANSFER_DIR);
+        driveSettings.setMaxWastebinSize((long) (driveSettings.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         boot(service, driveSettings);
         MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
         mdss.start();
@@ -75,6 +76,7 @@ public class DriveCreateController {
         Service service = createService(name);
         de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
         driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + de.mein.drive.data.DriveSettings.TRANSFER_DIR);
+        driveSettings.setMaxWastebinSize((long) (driveSettings.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         boot(service, driveSettings);
         MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
         mdss.start();
@@ -91,6 +93,7 @@ public class DriveCreateController {
         Service service = createService(name);
         de.mein.drive.data.DriveSettings driveSettingsCfg = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
         driveSettingsCfg.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + de.mein.drive.data.DriveSettings.TRANSFER_DIR);
+        driveSettingsCfg.setMaxWastebinSize((long) (driveSettingsCfg.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         boot(service, driveSettingsCfg);
         MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinAuthService.getMeinService(service.getUuid().v());
         de.mein.drive.data.DriveSettings driveSettings = meinDriveClientService.getDriveSettings();

@@ -114,7 +114,8 @@ public class WasteDao extends Dao.LockingDao {
 
     public Long getSize() throws SqlQueriesException {
         Waste waste = new Waste();
-        String query = "select sum(" + waste.getSize().k() + ") from " + waste.getTableName() + " where " + waste.getInplace().k() + "=?";
-        return sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(true));
+        String query = "select coalesce(sum(" + waste.getSize().k() + "),0) from " + waste.getTableName() + " where " + waste.getInplace().k() + "=?";
+        Long size = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(true));
+        return size == null ? 0L : size;
     }
 }

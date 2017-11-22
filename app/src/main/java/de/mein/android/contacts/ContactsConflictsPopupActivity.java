@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.mein.R;
 import de.mein.android.ConflictsPopupActivity;
 import de.mein.android.Notifier;
 import de.mein.android.contacts.data.ConflictIntentExtra;
@@ -42,6 +43,11 @@ import de.mein.sql.SqlQueriesException;
 public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<AndroidContactsClientService> {
     private Long lastReadPhoneBookId, receivedPhoneBookId;
     private ContactsConflictListAdapter adapter;
+
+    @Override
+    protected int layout() {
+        return R.layout.activity_conflict_popup;
+    }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -91,7 +97,7 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
                 phoneBookDao.deletePhoneBook(receivedPhoneBookId);
                 //phoneBookDao.deletePhoneBook(lastReadPhoneBookId);
                 //service.getDatabaseManager().getSettings().getClientSettings().setLastReadId(merged.getId().v());
-                Notifier.cancel( getIntent(), requestCode);
+                Notifier.cancel(getIntent(), requestCode);
                 service.addJob(new CommitJob(merged.getId().v()));
                 finish();
             }));

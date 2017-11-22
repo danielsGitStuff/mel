@@ -28,7 +28,7 @@ public abstract class ConflictsPopupActivity <T extends IMeinService> extends Po
 
     @Override
     protected int layout() {
-        return R.layout.activity_contacts_popup;
+        return R.layout.activity_conflict_popup;
     }
 
     @Override

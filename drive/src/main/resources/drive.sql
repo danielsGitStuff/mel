@@ -86,7 +86,7 @@ CREATE TABLE transfer (
   size        INTEGER NOT NULL,
   started     INTEGER NOT NULL,
   transferred INTEGER NOT NULL             DEFAULT 0,
-  deleted integer,
+  f_delete integer,
   UNIQUE (certid, serviceuuid, hash)
 );
 CREATE TABLE waste (

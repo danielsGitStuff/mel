@@ -214,6 +214,12 @@ public class ClientSyncHandler extends SyncHandler {
             List<StageSet> updateSets = stageDao.getUpdateStageSetsFromServer();
             List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
             // List<StageSet> committedStageSets = stageDao.getCommittedStageSets();
+            if (updateSets.size() > 1) {
+                System.err.println("ClientSyncHandler.commitJob.something went seriously wrong");
+                stageDao.deleteServerStageSets();
+                meinDriveService.addJob(new SyncClientJob());
+                return;
+            }
             if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
                 // method should create a new CommitJob with conflict solving details
                 handleConflict(updateSets.get(0), stagedFromFs.get(0));
@@ -233,8 +239,7 @@ public class ClientSyncHandler extends SyncHandler {
                 syncThisClient(null);
                 return;
             }
-            if (updateSets.size() > 1)
-                System.err.println("ClientSyncHandler.commitJob.something went seriously wrong");
+
 
             // lets assume that everything went fine!
             boolean hasCommitted = false;
@@ -490,7 +495,7 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     /**
-     * pulls StageSet from the Server
+     * pulls StageSet from the Server.
      *
      * @param newVersion
      * @throws SqlQueriesException
@@ -529,6 +534,7 @@ public class ClientSyncHandler extends SyncHandler {
         })).fail(result -> {
             System.out.println("ClientSyncHandler.syncThisClient.debughv08e5hg");
         });
+        System.out.println("ClientSyncHandler.syncThisClient");
     }
 
     private void insertWithParentId(Map<Long, Long> entryIdStageIdMap, GenericFSEntry genericFSEntry, Stage stage) throws SqlQueriesException {

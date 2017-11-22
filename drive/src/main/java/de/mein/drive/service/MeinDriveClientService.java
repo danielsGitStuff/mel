@@ -106,6 +106,16 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         return false;
     }
 
+    @Override
+    public void addJob(Job job) {
+        //todo debug
+        if (job instanceof Job.ConnectionAuthenticatedJob)
+            System.out.println("MeinDriveClientService.addJob.debug123");
+        if (job instanceof SyncClientJob)
+            System.out.println("MeinDriveClientService.addJob.debug345");
+        super.addJob(job);
+    }
+
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
     }
