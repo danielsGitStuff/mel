@@ -95,8 +95,9 @@ public class WasteDao extends Dao.LockingDao {
 
     public ISQLResource<Waste> getOlderThanResource(long days) throws SqlQueriesException {
         Waste waste = new Waste();
-        String where = waste.getDeleted().k() + "< date('now','-? days')";
-        return sqlQueries.loadResource(waste.getAllAttributes(), Waste.class, where, ISQLQueries.whereArgs(days));
+        //todo escape properly. currently says "index 1 is out of range"
+        String where = waste.getDeleted().k() + "< date('now','-" + days + " days')";
+        return sqlQueries.loadResource(waste.getAllAttributes(), Waste.class, where, null);
     }
 
     public void flagDeleted(Long id, boolean flag) throws SqlQueriesException {
@@ -113,7 +114,7 @@ public class WasteDao extends Dao.LockingDao {
 
     public Long getSize() throws SqlQueriesException {
         Waste waste = new Waste();
-        String query = "select sum("+waste.getSize().k()+") from "+waste.getTableName()+" where "+waste.getInplace().k()+"=?";
-        return sqlQueries.queryValue(query,Long.class,ISQLQueries.whereArgs(true));
+        String query = "select sum(" + waste.getSize().k() + ") from " + waste.getTableName() + " where " + waste.getInplace().k() + "=?";
+        return sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(true));
     }
 }
