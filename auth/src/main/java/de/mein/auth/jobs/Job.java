@@ -1,6 +1,8 @@
 package de.mein.auth.jobs;
 
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.tools.CountWaitLock;
+
 import org.jdeferred.impl.DeferredObject;
 
 /**

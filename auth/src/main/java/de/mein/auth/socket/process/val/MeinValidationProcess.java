@@ -1,5 +1,7 @@
 package de.mein.auth.socket.process.val;
 
+import org.bouncycastle.cert.ocsp.Req;
+
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
@@ -146,6 +148,36 @@ public class MeinValidationProcess extends MeinProcess {
     }
 
 
+    /**
+     * locks until you received either a response or an error.<br>
+     *     useful if you do communications with a few more requests and want these to run on the same worker thread. <br>
+     *     lock on the {@link LockedRequest} to wait for a result.
+     * @param serviceUuid
+     * @param intent
+     * @param payload
+     * @return
+     * @throws JsonSerializationException
+     * @throws IllegalAccessException
+     */
+    public LockedRequest requestLocked(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
+        LockedRequest promise = new LockedRequest();
+        MeinRequest request = new MeinRequest(serviceUuid, intent);
+        if (payload != null) {
+            request.setPayLoad(payload);
+        }
+        request.setRequestHandler(this).queue();
+        request.getPromise().done(result -> {
+            StateMsg response = (StateMsg) result;
+            promise.setResponse(response.getPayload());
+            promise.unlock();
+        }).fail(result -> {
+            promise.setException(result);
+            promise.unlock();
+        });
+        queueForResponse(request);
+        send(request);
+        return promise;
+    }
 
     public Request request(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
         Request promise = new Request();
