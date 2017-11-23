@@ -14,8 +14,8 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
-import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveDetails;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.index.Indexer;
@@ -29,7 +29,6 @@ import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.tasks.DirectoriesContentTask;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -158,6 +157,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                         fileProcess.sendError(detail);
                     }
                     FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
+                    mDetail.setHash(detail.getHash());
                     mDetail.openRead();
                     fileProcess.sendFile(mDetail);
                 } else {

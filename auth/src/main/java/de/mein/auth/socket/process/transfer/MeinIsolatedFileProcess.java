@@ -233,6 +233,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
             if (transferDetail.transferred() || transferDetail.hasError() || readResult == null || (readResult != null && readResult.getNotFilledBytes() > 0)) {
                 sendingSemaphore.acquire();
                 sendingDetails.poll();
+                hashFTDSendingMap.remove(hash);
                 sendingSemaphore.release();
             }
             if (bytesLeft > 0) {
