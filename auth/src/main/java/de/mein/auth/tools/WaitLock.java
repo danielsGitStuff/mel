@@ -2,7 +2,9 @@ package de.mein.auth.tools;
 
 import java.util.concurrent.Semaphore;
 
+@Deprecated
 /**
+ * replaced by {@link CountWaitLock}
  * Created by xor on 5/3/17.
  */
 public class WaitLock {

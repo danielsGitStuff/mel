@@ -212,6 +212,26 @@ public class LotsOfTests {
             public void onRegistrationCompleted(Certificate partnerCertificate) {
 
             }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
+
+            }
         };
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
