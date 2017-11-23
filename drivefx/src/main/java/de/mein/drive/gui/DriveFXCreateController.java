@@ -34,13 +34,13 @@ public class DriveFXCreateController extends EmbeddedServerServiceSettingsFX {
             String role = isServer ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
             String path = txtPath.getText();
             if (isServer)
-                driveCreateController.createDriveServerService(name, path);
+                driveCreateController.createDriveServerService(name, path,0.1f,30);
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 //listCerts.getSelectionModel().getSelectedItem();
 //                listServices.getSelectionModel().getSelectedItem();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certificate.getId().v(), serviceJoinServiceType.getUuid().v());
+                Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certificate.getId().v(), serviceJoinServiceType.getUuid().v(),0.1f,30);
                 promise.done(meinDriveClientService -> N.r(() -> {
                     meinDriveClientService.syncThisClient();
                 }));
