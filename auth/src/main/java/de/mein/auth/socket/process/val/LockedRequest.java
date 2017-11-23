@@ -9,7 +9,7 @@ import de.mein.auth.tools.CountWaitLock;
 
 public class LockedRequest<T extends IPayload> extends Request<T> {
     private CountWaitLock lock = new CountWaitLock();
-    private IPayload response;
+    private T response;
     private Exception exception;
 
     public void lock() {
@@ -20,11 +20,11 @@ public class LockedRequest<T extends IPayload> extends Request<T> {
         lock.unlock();
     }
 
-    public void setResponse(IPayload response) {
+    public void setResponse(T response) {
         this.response = response;
     }
 
-    public IPayload getResponse() {
+    public T getResponse() {
         return response;
     }
 

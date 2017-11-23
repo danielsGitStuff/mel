@@ -43,7 +43,6 @@ import java.util.logging.Logger;
  */
 public class TransferManager extends DeferredRunnable {
     private static final int LIMIT_PER_ADDRESS = 2;
-    private static Logger logger = Logger.getLogger(TransferManager.class.getName());
     private final TransferDao transferDao;
     private final MeinAuthService meinAuthService;
     private final MeinDriveService meinDriveService;
@@ -89,17 +88,17 @@ public class TransferManager extends DeferredRunnable {
         activeTransfers = new HashMap<>();
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                logger.log(Level.FINER, "TransferManager.RUN");
+                System.out.println("TransferManager.RUN");
                 // these only contain certId and serviceUuid
                 List<TransferDetails> groupedTransferSets = transferDao.getTwoTransferSets();
                 // check if groupedTransferSets are active yet
                 if (groupedTransferSets.size() == 0 || allTransferSetsAreActive(groupedTransferSets)) {
-                    logger.log(Level.FINER, "TransferManager.WAIT");
+                    System.out.println("TransferManager.WAIT");
                     meinDriveService.onTransfersDone();
                     lock.lock();
                 } else {
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {
-                        logger.log(Level.FINER, "TransferManager.run.2222");
+                        System.out.println("TransferManager.run.2222");
                         // skip if already active
                         activeTransfersLock.lock();
                         if (activeTransfers.containsKey(activeTransferKey(groupedTransferSet))) {

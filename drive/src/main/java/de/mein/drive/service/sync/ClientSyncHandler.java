@@ -204,7 +204,7 @@ public class ClientSyncHandler extends SyncHandler {
                     LockedRequest<CommitAnswer> lockedRequest = mvp.requestLocked(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit);
                     if (lockedRequest.successful()) {
 //fsDao.lockWrite();
-                        CommitAnswer answer = lockedRequest.getPayload();
+                        CommitAnswer answer = lockedRequest.getResponse();
                         for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
                             Long fsId = answer.getStageIdFsIdMap().get(stageId);
                             Stage stage = stageDao.getStageById(stageId);
@@ -319,7 +319,7 @@ public class ClientSyncHandler extends SyncHandler {
                 return;
             } else if (stagedFromFs.size() == 1) {
                 //method should create a new CommitJob ? method blocks
-                syncWithServer(stagedFromFs.get(0).getId().v());
+                syncWithServerLocked(stagedFromFs.get(0).getId().v());
                 return;
             } else if (stagedFromFs.size() > 1) {
                 // merge again
@@ -604,7 +604,7 @@ public class ClientSyncHandler extends SyncHandler {
                 StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, null, null, newVersion);
                 LockedRequest<SyncTask> requestResult = mvp.requestLocked(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, new SyncTask().setOldVersion(version));
                 if (requestResult.successful()) runner.runTry(() -> {
-                    SyncTask syncTask = requestResult.getPayload();
+                    SyncTask syncTask = requestResult.getResponse();
                     syncTask.setStageSet(stageSet);
                     syncTask.setSourceCertId(driveSettings.getClientSettings().getServerCertId());
                     syncTask.setSourceServiceUuid(driveSettings.getClientSettings().getServerServiceUuid());
@@ -621,7 +621,8 @@ public class ClientSyncHandler extends SyncHandler {
                                 N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
                             }
                     );
-                }); else {
+                });
+                else {
                     System.out.println("ClientSyncHandler.syncThisClient.EXCEPTION: " + requestResult.getException());
                 }
             });

@@ -176,6 +176,7 @@ public class MeinValidationProcess extends MeinProcess {
         });
         queueForResponse(request);
         send(request);
+        promise.lock();
         return promise;
     }
 
