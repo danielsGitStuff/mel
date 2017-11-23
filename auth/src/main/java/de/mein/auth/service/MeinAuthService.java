@@ -27,6 +27,7 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -290,6 +291,21 @@ public class MeinAuthService {
         return job.getPromise();
     }
 
+    public ConnectResult connectLocked(Long certificateId) throws InterruptedException, SqlQueriesException {
+        Promise<MeinValidationProcess, Exception, Void> deferred = connect(certificateId);
+        CountWaitLock lock = new CountWaitLock();
+        ConnectResult connectResult = new ConnectResult();
+        deferred.done(validationProcess -> {
+            connectResult.setValidationProcess(validationProcess);
+            lock.unlock();
+        }).fail(exception -> {
+            connectResult.setException(exception);
+            lock.unlock();
+        });
+        lock.lock();
+        return connectResult;
+    }
+
     public synchronized Promise<MeinValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
@@ -339,7 +355,7 @@ public class MeinAuthService {
                 deferred.resolve(mvp);
             } else {
                 connectedEnvironment.currentlyConnecting(address, port, portCert, deferred);
-                ConnectJob job = new ConnectJob( null, address, port, portCert, regOnUnkown);
+                ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
                 job.getPromise().done(result -> {
                     connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
                     deferred.resolve(result);

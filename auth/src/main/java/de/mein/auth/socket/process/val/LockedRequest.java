@@ -36,7 +36,7 @@ public class LockedRequest<T extends IPayload> extends Request<T> {
         return exception;
     }
 
-    public boolean success() {
+    public boolean successful() {
         return response != null && exception == null;
     }
 }
