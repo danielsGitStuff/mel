@@ -22,6 +22,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -44,9 +45,9 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @FXML
     private TextField txtServiceFilter, txtCertificateFilter;
     @FXML
-    private Button btnRefresh, btnApply, btnApprovals, btnCreateService, btnRemoveService, btnOthers;
+    private Button btnRefresh, btnApply, btnAccess, btnCreateService, btnRemoveService, btnOthers;
     @FXML
-    private Button btnGeneral, btnDiscover;
+    private Button btnInfo, btnPairing;
     @FXML
     private AnchorPane paneContainer;
     private AuthSettingsFX contentController;
@@ -61,6 +62,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     private Label lblTitle;
     @FXML
     private HBox hBoxButtons;
+    @FXML
+    private WebView webInfo, webConnected, webPairing, webAccess;
 
 
     @Override
@@ -173,7 +176,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        btnGeneral.setOnAction(event -> loadSettingsFX("de/mein/auth/general.fxml"));
+        btnInfo.setOnAction(event -> loadSettingsFX("de/mein/auth/general.fxml"));
         btnRefresh.setOnAction(event -> onChanged());
         btnApply.setOnAction(event -> {
             if (contentController != null) {
@@ -185,7 +188,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         btnOthers.setOnAction(event -> {
             loadSettingsFX("de/mein/auth/others.fxml");
         });
-        btnApprovals.setOnAction(event -> loadSettingsFX("de/mein/auth/approvals.fxml"));
+        btnAccess.setOnAction(event -> loadSettingsFX("de/mein/auth/approvals.fxml"));
         btnCreateService.setOnAction(event -> {
             createServiceMenu.getItems().clear();
             int offset = -btnCreateService.heightProperty().intValue();
@@ -217,9 +220,15 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                                 serviceSettingsFX.feed(service);
                             }
                         }));
-        btnDiscover.setOnAction(event -> loadSettingsFX("de/mein/auth/discover.fxml"));
+        btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/discover.fxml"));
         tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showContent());
+        String url = MeinAuthAdmin.class.getResource("/de/mein/icon/access.n.png").toExternalForm();
+        btnAccess.setStyle("-fx-graphic: url("+url+")");
+        String z = btnAccess.getStyle();
+        System.out.println("MeinAuthAdminFX.initialize: z "+z);
     }
+
+
 
     private void onCreateMenuItemClicked(String bootLoaderName) throws IllegalAccessException, SqlQueriesException, InstantiationException {
         Class<? extends BootLoader> bootLoaderClass = meinAuthService.getMeinBoot().getBootloaderMap().get(bootLoaderName);

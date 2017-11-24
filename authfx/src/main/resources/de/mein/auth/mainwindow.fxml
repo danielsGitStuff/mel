@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox maxWidth="1.7976931348623157E308" prefHeight="524.0" prefWidth="755.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.service.MeinAuthAdminFX">
+<HBox maxWidth="1.7976931348623157E308" prefHeight="524.0" prefWidth="755.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.service.MeinAuthAdminFX">
     <VBox maxHeight="1.7976931348623157E308" style="-fx-background-color: grey;">
         <Accordion BorderPane.alignment="CENTER">
             <panes>
@@ -23,10 +23,15 @@
                     <content>
                         <VBox>
                             <children>
-                                <Button fx:id="btnGeneral" maxWidth="Infinity" mnemonicParsing="false" text="Info" />
-                                <Button fx:id="btnOthers" maxWidth="Infinity" mnemonicParsing="false" text="Other Instances" />
-                                <Button fx:id="btnDiscover" maxWidth="Infinity" mnemonicParsing="false" text="Discover" />
-                                <Button fx:id="btnApprovals" maxWidth="Infinity" mnemonicParsing="false" text="Access" />
+                                <Button fx:id="btnInfo" alignment="TOP_LEFT" maxWidth="Infinity" mnemonicParsing="false" text="Info" />
+
+                                <Button fx:id="btnOthers" alignment="TOP_LEFT" maxWidth="Infinity" mnemonicParsing="false" style="-fx-graphic: url('de/mein/icon/connected.svg')" text="Connected Instances" />
+
+                                <Button fx:id="btnPairing" alignment="CENTER" maxWidth="Infinity" mnemonicParsing="false" style="   -fx-background-image: url('/de/mein/icon/access.n.png');     -fx-background-size: 20deg;     -fx-background-repeat: no-repeat;     -fx-background-position: 0%;" text="Pairing" />
+
+
+                                <Button fx:id="btnAccess" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity" mnemonicParsing="false" prefHeight="20.0" text="Access" />
+
                             </children>
                             <rotationAxis>
                                 <Point3D />
