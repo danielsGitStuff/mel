@@ -31,10 +31,10 @@
                                     </graphic>
                                 </Button>
 
-                                <Button fx:id="btnPairing" alignment="CENTER" maxWidth="Infinity"
+                                <Button fx:id="btnPairing" alignment="TOP_LEFT" maxWidth="Infinity"
                                         mnemonicParsing="false" text="Pairing">
                                     <graphic>
-                                        <ImageView fx:id="imgPairing"/>
+                                        <ImageView fx:id="imgPairing" />
                                     </graphic>
                                 </Button>
 

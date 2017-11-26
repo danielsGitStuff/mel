@@ -252,7 +252,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         }
         // load images for buttons
         final int imageSize = 20;
-        imgAccess.setImage(new Image("/de/mein/icon/access.n.png", imageSize, imageSize, true, true));
+        Image im = new Image("/de/mein/icon/access.n.png", imageSize, imageSize, true, true);
+        imgAccess.setImage(im);
         imgInfo.setImage(new Image("/de/mein/icon/info.n.png", imageSize, imageSize, true, true));
         imgOthers.setImage(new Image("/de/mein/icon/connected.n.png", imageSize, imageSize, true, true));
         imgPairing.setImage(new Image("/de/mein/icon/pairing.n.png", imageSize, imageSize, true, true));
@@ -266,12 +267,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         //If the icon is a file
         URL url = MeinAuthAdmin.class.getResource("/de/mein/icon/tray.png");
         File f = new File(url.getFile());
-        byte[] bytes = Files.readAllBytes(Paths.get(f.getAbsolutePath()));
         BufferedImage img = ImageIO.read(f);
-        ImageLoader loader = Toolkit.getToolkit().loadImage("/de/mein/icon/tray.png", 20, 20, true, true);
-
         //Alternative (if the icon is on the classpath):
-        //Image image = Toolkit.getToolkit().createImage(getClass().getResource("icon.png"));
         TrayIcon trayIcon = new TrayIcon(img, "Tray Demo");
         //Let the system resizes the image if needed
         trayIcon.setImageAutoSize(true);
@@ -279,6 +276,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         trayIcon.setToolTip("System tray icon demo");
         tray.add(trayIcon);
         trayIcon.displayMessage("Hello, World", "notification demo", TrayIcon.MessageType.INFO);
+
     }
 
     private void onCreateMenuItemClicked(String bootLoaderName) throws IllegalAccessException, SqlQueriesException, InstantiationException {
@@ -347,11 +345,14 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                         meinAuthAdminFXES[0] = loader.getController();
                         meinAuthAdminFXES[0].start(meinAuthService);
                         Scene scene = new Scene(root);
+                        //apply theme
+                        scene.getStylesheets().add(MeinAuthAdmin.class.getResource("/de/mein/modena_dark.css").toExternalForm());
+                        //set app icon
+                        Image image = new Image("/de/mein/icon/tray.png");
                         Stage stage = new Stage();
+                        stage.getIcons().add(image);
                         stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");
                         stage.setScene(scene);
-                        Image image = new Image("/de/mein/icon/tray.png");
-                        stage.getIcons().add(image);
                         stage.show();
                         stage.setOnCloseRequest(event -> {
                             meinAuthAdminFXES[0].shutDown();
