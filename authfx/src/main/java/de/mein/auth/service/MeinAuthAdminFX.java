@@ -1,5 +1,7 @@
 package de.mein.auth.service;
 
+import com.sun.javafx.tk.ImageLoader;
+import com.sun.javafx.tk.Toolkit;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
@@ -18,7 +20,13 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Side;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -28,8 +36,14 @@ import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -65,6 +79,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @FXML
     private WebView webInfo, webConnected, webPairing, webAccess;
 
+    @FXML
+    private ImageView imgInfo, imgAccess, imgOthers, imgPairing;
 
     @Override
     public void start(MeinAuthService meinAuthService) {
@@ -222,13 +238,48 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                         }));
         btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/discover.fxml"));
         tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showContent());
+        //todo debug
         String url = MeinAuthAdmin.class.getResource("/de/mein/icon/access.n.png").toExternalForm();
-        btnAccess.setStyle("-fx-graphic: url("+url+")");
+        btnAccess.setStyle("-fx-graphic: url(" + url + ")");
         String z = btnAccess.getStyle();
-        System.out.println("MeinAuthAdminFX.initialize: z "+z);
+        System.out.println("MeinAuthAdminFX.initialize: z " + z);
+
+        //add system tray
+        if (SystemTray.isSupported()) {
+            N.r(this::displayTray);
+        } else {
+            System.err.println("System tray not supported!");
+        }
+        // load images for buttons
+        final int imageSize = 20;
+        imgAccess.setImage(new Image("/de/mein/icon/access.n.png", imageSize, imageSize, true, true));
+        imgInfo.setImage(new Image("/de/mein/icon/info.n.png", imageSize, imageSize, true, true));
+        imgOthers.setImage(new Image("/de/mein/icon/connected.n.png", imageSize, imageSize, true, true));
+        imgPairing.setImage(new Image("/de/mein/icon/pairing.n.png", imageSize, imageSize, true, true));
+
     }
 
+    public void displayTray() throws AWTException, IOException {
+        //Obtain only one instance of the SystemTray object
+        SystemTray tray = SystemTray.getSystemTray();
 
+        //If the icon is a file
+        URL url = MeinAuthAdmin.class.getResource("/de/mein/icon/tray.png");
+        File f = new File(url.getFile());
+        byte[] bytes = Files.readAllBytes(Paths.get(f.getAbsolutePath()));
+        BufferedImage img = ImageIO.read(f);
+        ImageLoader loader = Toolkit.getToolkit().loadImage("/de/mein/icon/tray.png", 20, 20, true, true);
+
+        //Alternative (if the icon is on the classpath):
+        //Image image = Toolkit.getToolkit().createImage(getClass().getResource("icon.png"));
+        TrayIcon trayIcon = new TrayIcon(img, "Tray Demo");
+        //Let the system resizes the image if needed
+        trayIcon.setImageAutoSize(true);
+        //Set tooltip text for the tray icon
+        trayIcon.setToolTip("System tray icon demo");
+        tray.add(trayIcon);
+        trayIcon.displayMessage("Hello, World", "notification demo", TrayIcon.MessageType.INFO);
+    }
 
     private void onCreateMenuItemClicked(String bootLoaderName) throws IllegalAccessException, SqlQueriesException, InstantiationException {
         Class<? extends BootLoader> bootLoaderClass = meinAuthService.getMeinBoot().getBootloaderMap().get(bootLoaderName);
@@ -299,6 +350,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                         Stage stage = new Stage();
                         stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");
                         stage.setScene(scene);
+                        Image image = new Image("/de/mein/icon/tray.png");
+                        stage.getIcons().add(image);
                         stage.show();
                         stage.setOnCloseRequest(event -> {
                             meinAuthAdminFXES[0].shutDown();
