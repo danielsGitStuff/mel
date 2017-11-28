@@ -1,7 +1,5 @@
 package de.mein.auth.service;
 
-import com.sun.javafx.tk.ImageLoader;
-import com.sun.javafx.tk.Toolkit;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
@@ -30,7 +28,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -42,8 +39,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -59,7 +54,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @FXML
     private TextField txtServiceFilter, txtCertificateFilter;
     @FXML
-    private Button btnRefresh, btnApply, btnAccess, btnCreateService, btnRemoveService, btnOthers;
+    private Button btnRefresh, btnApply, btnAccess, btnCreateService, btnRemoveService, btnOthers, btnSettings;
     @FXML
     private Button btnInfo, btnPairing;
     @FXML
@@ -76,11 +71,9 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     private Label lblTitle;
     @FXML
     private HBox hBoxButtons;
-    @FXML
-    private WebView webInfo, webConnected, webPairing, webAccess;
 
     @FXML
-    private ImageView imgInfo, imgAccess, imgOthers, imgPairing;
+    private ImageView imgInfo, imgAccess, imgOthers, imgPairing, imgSettings;
 
     @Override
     public void start(MeinAuthService meinAuthService) {
@@ -125,32 +118,6 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
             });
         });
         return deferred;
-        /*new JFXPanel();
-        Platform.setImplicitExit(false);
-        final MeinAuthAdminFX[] meinAuthFX = new MeinAuthAdminFX[1];
-        MeinAuthAdminFX m;
-        RWLock lock = new RWLock().lockWrite();
-        Platform.runLater(() -> {
-                    try {
-                        FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/popup.fxml"));
-                        HBox root = null;
-                        root = loader.load();
-                        meinAuthFX[0] = loader.getController();
-                        meinAuthFX[0].start(meinAuthService);
-                        Scene scene = new Scene(root);
-                        Stage stage = new Stage();
-                        stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");
-                        stage.setScene(scene);
-                        stage.show();
-                        meinAuthFX[0].setStage(stage);
-                        meinAuthFX[0].showContent();
-                        lock.unlockWrite();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-        );
-        lock.lockWrite().unlockWrite();*/
     }
 
 
@@ -192,7 +159,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        btnInfo.setOnAction(event -> loadSettingsFX("de/mein/auth/general.fxml"));
+        btnSettings.setOnAction(event -> loadSettingsFX("de/mein/auth/settings.fxml"));
+        btnInfo.setOnAction(event -> loadSettingsFX("de/mein/auth/info.fxml"));
         btnRefresh.setOnAction(event -> onChanged());
         btnApply.setOnAction(event -> {
             if (contentController != null) {
@@ -204,20 +172,24 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         btnOthers.setOnAction(event -> {
             loadSettingsFX("de/mein/auth/others.fxml");
         });
-        btnAccess.setOnAction(event -> loadSettingsFX("de/mein/auth/approvals.fxml"));
+        btnAccess.setOnAction(event -> loadSettingsFX("de/mein/auth/access.fxml"));
         btnCreateService.setOnAction(event -> {
             createServiceMenu.getItems().clear();
-            int offset = -btnCreateService.heightProperty().intValue();
+            int offset = btnCreateService.heightProperty().intValue();
             Set<String> names = meinAuthService.getMeinBoot().getBootloaderMap().keySet();
             for (String name : names) {
                 MenuItem menuItem = new MenuItem(name);
                 menuItem.setOnAction(e1 -> {
                     System.out.println("MeinAuthAdminFX.initialize.createmenu.clicked");
-                    runner.r(() -> onCreateMenuItemClicked(name));
+                    runner.r(() -> {
+                                onCreateMenuItemClicked(name);
+                                createServiceMenu.hide();
+                            }
+                    );
                 });
                 createServiceMenu.getItems().add(menuItem);
             }
-            createServiceMenu.show(btnCreateService, Side.TOP, 0, offset);
+            createServiceMenu.show(btnCreateService, Side.TOP, 0, 0);
         });
         btnRemoveService.setOnAction(event -> runner.r(() -> {
             ServiceJoinServiceType service = serviceList.getSelectionModel().getSelectedItem();
@@ -257,7 +229,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         imgInfo.setImage(new Image("/de/mein/icon/info.n.png", imageSize, imageSize, true, true));
         imgOthers.setImage(new Image("/de/mein/icon/connected.n.png", imageSize, imageSize, true, true));
         imgPairing.setImage(new Image("/de/mein/icon/pairing.n.png", imageSize, imageSize, true, true));
-
+        imgSettings.setImage(new Image("/de/mein/icon/settings.n.png", imageSize, imageSize, true, true));
     }
 
     public void displayTray() throws AWTException, IOException {
@@ -265,7 +237,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         SystemTray tray = SystemTray.getSystemTray();
 
         //If the icon is a file
-        URL url = MeinAuthAdmin.class.getResource("/de/mein/icon/tray.png");
+        URL url = MeinAuthAdmin.class.getResource("/de/mein/icon/app_square.png");
         File f = new File(url.getFile());
         BufferedImage img = ImageIO.read(f);
         //Alternative (if the icon is on the classpath):
@@ -348,7 +320,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                         //apply theme
                         scene.getStylesheets().add(MeinAuthAdmin.class.getResource("/de/mein/modena_dark.css").toExternalForm());
                         //set app icon
-                        Image image = new Image("/de/mein/icon/tray.png");
+                        Image image = new Image("/de/mein/icon/app_square.png");
                         Stage stage = new Stage();
                         stage.getIcons().add(image);
                         stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");

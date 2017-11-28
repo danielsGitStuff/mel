@@ -4,6 +4,7 @@ import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.gui.controls.CertListCell;
 import de.mein.auth.gui.controls.UnkownListCell;
+import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import javafx.fxml.FXML;
@@ -83,5 +84,10 @@ public class NetworkDiscoveryFX extends AuthSettingsFX implements Initializable 
             Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);
             promise.done(result -> discover());
         }));
+    }
+
+    @Override
+    public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
+        meinAuthAdminFX.hideBottomButtons();
     }
 }

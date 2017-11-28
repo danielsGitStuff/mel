@@ -6,7 +6,8 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<HBox maxWidth="1.7976931348623157E308" prefHeight="524.0" prefWidth="755.0" xmlns="http://javafx.com/javafx/8.0.121"
+<HBox maxWidth="1.7976931348623157E308" maxHeight="Infinity" prefHeight="400" prefWidth="755.0"
+      xmlns="http://javafx.com/javafx/8.0.121"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.service.MeinAuthAdminFX">
     <VBox maxHeight="1.7976931348623157E308" style="-fx-background-color: grey;">
         <Accordion BorderPane.alignment="CENTER">
@@ -34,7 +35,7 @@
                                 <Button fx:id="btnPairing" alignment="TOP_LEFT" maxWidth="Infinity"
                                         mnemonicParsing="false" text="Pairing">
                                     <graphic>
-                                        <ImageView fx:id="imgPairing" />
+                                        <ImageView fx:id="imgPairing"/>
                                     </graphic>
                                 </Button>
 
@@ -43,6 +44,12 @@
                                         mnemonicParsing="false" prefHeight="20.0" text="Access">
                                     <graphic>
                                         <ImageView fx:id="imgAccess"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="btnSettings" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity"
+                                        mnemonicParsing="false" prefHeight="20.0" text="Settings">
+                                    <graphic>
+                                        <ImageView fx:id="imgSettings"/>
                                     </graphic>
                                 </Button>
 
@@ -80,7 +87,7 @@
             <Insets/>
         </opaqueInsets>
     </VBox>
-    <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
+    <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" >
         <bottom>
             <HBox fx:id="hBoxButtons" alignment="CENTER" maxWidth="1.7976931348623157E308"
                   BorderPane.alignment="CENTER">
