@@ -76,5 +76,6 @@ public abstract class ContactsService extends MeinService {
 
     }
 
+
     public abstract void onContactsChanged();
 }

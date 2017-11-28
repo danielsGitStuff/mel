@@ -1,0 +1,16 @@
+.label {
+    -fx-padding: 5;
+}
+
+.prop {
+@extend label;
+    -fx-background-color: #7e7e7e;
+    -fx-background-radius: 5;
+}
+
+.propsection {
+@extend prop;
+    -fx-padding: 10 5 10 5;
+    -fx-background-color: #4f4f4f;
+    -fx-background-radius: 0;
+}

@@ -63,7 +63,6 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @FXML
     private ListView<ServiceJoinServiceType> serviceList;
     @FXML
-    private ContextMenu createServiceMenu;
     private N runner = new N(Throwable::printStackTrace);
     @FXML
     private TitledPane tpServices;
@@ -174,6 +173,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         });
         btnAccess.setOnAction(event -> loadSettingsFX("de/mein/auth/access.fxml"));
         btnCreateService.setOnAction(event -> {
+            ContextMenu createServiceMenu = new ContextMenu();
             createServiceMenu.getItems().clear();
             int offset = btnCreateService.heightProperty().intValue();
             Set<String> names = meinAuthService.getMeinBoot().getBootloaderMap().keySet();
@@ -223,8 +223,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
             System.err.println("System tray not supported!");
         }
         // load images for buttons
-        final int imageSize = 20;
-        Image im = new Image("/de/mein/icon/access.n.png", imageSize, imageSize, true, true);
+        final int imageSize = 24;
+        Image im = new Image("/de/mein/icon/access.n.png", imageSize, imageSize, true, false);
         imgAccess.setImage(im);
         imgInfo.setImage(new Image("/de/mein/icon/info.n.png", imageSize, imageSize, true, true));
         imgOthers.setImage(new Image("/de/mein/icon/connected.n.png", imageSize, imageSize, true, true));
@@ -273,6 +273,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     private void loadSettingsFX(String resource) {
         N runner = new N(e -> e.printStackTrace());
         runner.r(() -> {
+            contentController = null;
             showBottomButtons();
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
             Pane pane = lo.load();

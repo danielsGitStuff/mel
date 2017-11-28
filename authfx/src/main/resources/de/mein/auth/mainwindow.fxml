@@ -9,7 +9,7 @@
 <HBox maxWidth="1.7976931348623157E308" maxHeight="Infinity" prefHeight="400" prefWidth="755.0"
       xmlns="http://javafx.com/javafx/8.0.121"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.service.MeinAuthAdminFX">
-    <VBox maxHeight="1.7976931348623157E308" style="-fx-background-color: grey;">
+    <VBox maxHeight="1.7976931348623157E308" >
         <Accordion BorderPane.alignment="CENTER">
             <panes>
                 <TitledPane animated="true" text="MeinAuth">
@@ -69,13 +69,13 @@
                             <HBox alignment="TOP_RIGHT">
                                 <Button fx:id="btnRemoveService" text="-"/>
                                 <Button fx:id="btnCreateService" text="+">
-                                    <contextMenu>
-                                        <ContextMenu fx:id="createServiceMenu">
-                                            <items>
-                                                <MenuItem mnemonicParsing="false" text="Unspecified Action"/>
-                                            </items>
-                                        </ContextMenu>
-                                    </contextMenu>
+                                    <!--<contextMenu>-->
+                                        <!--<ContextMenu fx:id="createServiceMenu">-->
+                                            <!--<items>-->
+                                                <!--<MenuItem mnemonicParsing="false" text="Unspecified Action"/>-->
+                                            <!--</items>-->
+                                        <!--</ContextMenu>-->
+                                    <!--</contextMenu>-->
                                 </Button>
                             </HBox>
                         </VBox>

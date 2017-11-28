@@ -17,6 +17,11 @@ public class DriveFXEditClientController extends DriveFXEditBaseController {
     private Button btnSync;
 
     @Override
+    public void onApplyClicked() {
+        applyName();
+    }
+
+    @Override
     public void init() {
         System.out.println("DriveFXEditClientController.init");
         btnSync.setOnAction(event -> {
@@ -41,6 +46,6 @@ public class DriveFXEditClientController extends DriveFXEditBaseController {
     @Override
     public void feed(ServiceJoinServiceType serviceJoinServiceType) {
         super.feed(serviceJoinServiceType);
-        this.meinDriveService = (MeinDriveClientService) super.meinDriveService;
+        this.meinDriveService = (MeinDriveClientService) super.service;
     }
 }

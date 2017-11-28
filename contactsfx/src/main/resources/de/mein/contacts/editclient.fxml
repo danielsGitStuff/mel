@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.drive.gui.DriveFXEditClientController">
+<VBox xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.contacts.gui.ContactsFXEditClientController" fx:id="pane">
     <children>
 
 
@@ -22,22 +22,8 @@
             </font></Label>
             <Label text="Name" GridPane.columnIndex="0" GridPane.rowIndex="1" />
             <TextField fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-            <Label text="Path" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-            <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
-                <TextField fx:id="txtPath" text="/home/xor/Documents/seminar/" HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnChosePath" text="chose" />
-            </HBox>
+
             <Button fx:id="btnSync" maxWidth="1.7976931348623157E308" text="Sync" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
-            <columnConstraints>
-                <ColumnConstraints />
-                <ColumnConstraints />
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-            </rowConstraints>
         </GridPane>
     </children>
 </VBox>

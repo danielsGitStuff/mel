@@ -1,13 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<GridPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="de.mein.auth.gui.InfoController" stylesheets="@info.css">
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="de.mein.auth.gui.InfoController">
+    <children>
+        <Label text="Status:" GridPane.rowIndex="0" styleClass="prop"/>
+        <Label fx:id="lblStatus" text="status goes here" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <Label text="Name:" GridPane.rowIndex="1" styleClass="prop"/>
+        <Label fx:id="lblName" text="name goes here" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Your network interfaces and IP addresses: " GridPane.columnSpan="2" GridPane.rowIndex="2"
+               styleClass="propsection" GridPane.hgrow="ALWAYS">
+            <padding>
+                <Insets top="5"/>
+            </padding>
+        </Label>
+        <GridPane fx:id="table" GridPane.columnSpan="2" GridPane.rowIndex="3">
 
-</AnchorPane>
+        </GridPane>
+    </children>
+</GridPane>

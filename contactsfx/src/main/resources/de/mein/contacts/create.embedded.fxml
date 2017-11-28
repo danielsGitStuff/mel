@@ -12,16 +12,6 @@
         <GridPane maxWidth="1.7976931348623157E308">
             <Label text="Name" GridPane.columnIndex="0" GridPane.rowIndex="0" />
             <TextField fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" />
-         <columnConstraints>
-            <ColumnConstraints />
-            <ColumnConstraints />
-         </columnConstraints>
-         <rowConstraints>
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-         </rowConstraints>
         </GridPane>
     </children>
 </VBox>
