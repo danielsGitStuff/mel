@@ -60,10 +60,14 @@ public class InfoController extends AuthSettingsFX {
         N.r(() -> {
             if (meinAuthService != null) {
                 lblStatus.setText("working!");
+                lblStatus.getStyleClass().clear();
+                lblStatus.getStyleClass().add("label-positive");
                 lblName.setText(meinAuthService.getName());
             } else {
                 lblStatus.setText("not working!");
                 lblName.setText("-");
+                lblStatus.getStyleClass().clear();
+                lblStatus.getStyleClass().add("label-negative");
             }
         });
     }

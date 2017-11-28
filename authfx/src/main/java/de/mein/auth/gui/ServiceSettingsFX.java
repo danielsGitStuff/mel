@@ -38,6 +38,7 @@ public abstract class ServiceSettingsFX<T extends MeinService> extends AuthSetti
             Service service = databaseManager.getServiceByUuid(this.service.getUuid());
             service.setName(txtName.getText());
             databaseManager.updateService(service);
+            meinAuthService.onServicesChanged();
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         } finally {

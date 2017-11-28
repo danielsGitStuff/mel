@@ -31,6 +31,11 @@ public class ContactsFXBootloader extends ContactsBootloader implements BootLoad
         return null;
     }
 
+    @Override
+    public String getIconURL() {
+        return "de/mein/contacts/contacts.png";
+    }
+
 //    public ContactsService createService(String name, String role) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException, IOException, ClassNotFoundException, SQLException, JsonDeserializationException {
 //        MeinBoot meinBoot = meinAuthService.getMeinBoot();
 //        Service service = createService(name);

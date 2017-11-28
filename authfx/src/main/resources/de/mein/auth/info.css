@@ -2,6 +2,13 @@
     -fx-padding: 5;
 }
 
+.label-positive{
+    -fx-background-color: #57bf40;
+}
+.label-negative{
+    -fx-background-color: rgb(204, 0, 0);
+}
+
 .prop {
 @extend label;
     -fx-background-color: #7e7e7e;

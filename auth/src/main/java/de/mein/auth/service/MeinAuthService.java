@@ -573,4 +573,13 @@ public class MeinAuthService {
         });
         return meinAuthService;
     }
+
+    /**
+     * services changed names or something {@link MeinAuthService displays}
+     */
+    public void onServicesChanged() {
+        for (MeinAuthAdmin admin: meinAuthAdmins){
+            admin.onChanged();
+        }
+    }
 }

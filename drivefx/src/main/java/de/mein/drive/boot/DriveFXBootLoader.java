@@ -40,4 +40,9 @@ public class DriveFXBootLoader extends DriveBootLoader implements BootLoaderFX<M
         }
         return null;
     }
+
+    @Override
+    public String getIconURL() {
+        return "de/mein/drive/drive.png";
+    }
 }

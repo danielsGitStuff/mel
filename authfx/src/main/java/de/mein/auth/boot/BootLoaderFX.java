@@ -19,4 +19,5 @@ public interface BootLoaderFX<T extends IMeinService> {
 
     String getPopupFXML(IMeinService meinService, MeinNotification dataObject);
 
+    String getIconURL();
 }

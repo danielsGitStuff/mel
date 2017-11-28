@@ -81,6 +81,13 @@
                         </VBox>
                     </content>
                 </TitledPane>
+                <TitledPane fx:id="tpServices2" text="Services 2">
+                    <content>
+                        <VBox fx:id="vboxServices">
+
+                        </VBox>
+                    </content>
+                </TitledPane>
             </panes>
         </Accordion>
         <opaqueInsets>

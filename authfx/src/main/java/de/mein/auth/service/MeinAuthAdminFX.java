@@ -15,6 +15,7 @@ import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -28,6 +29,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -48,20 +50,19 @@ import java.util.Set;
  */
 public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
 
+    private static final int IMAGE_SIZE = 22;
     private MeinAuthService meinAuthService;
     private Stage stage;
 
     @FXML
     private TextField txtServiceFilter, txtCertificateFilter;
     @FXML
-    private Button btnRefresh, btnApply, btnAccess, btnCreateService, btnRemoveService, btnOthers, btnSettings;
+    private Button btnRefresh, btnApply, btnAccess, btnCreateService, btnOthers, btnSettings;
     @FXML
     private Button btnInfo, btnPairing;
     @FXML
     private AnchorPane paneContainer;
     private AuthSettingsFX contentController;
-    @FXML
-    private ListView<ServiceJoinServiceType> serviceList;
     @FXML
     private N runner = new N(Throwable::printStackTrace);
     @FXML
@@ -70,6 +71,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     private Label lblTitle;
     @FXML
     private HBox hBoxButtons;
+    @FXML
+    private VBox vboxServices;
 
     @FXML
     private ImageView imgInfo, imgAccess, imgOthers, imgPairing, imgSettings;
@@ -77,7 +80,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @Override
     public void start(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
-        showContent();
+        showServices();
     }
 
     @Override
@@ -127,7 +130,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @Override
     public void onChanged() {
         System.out.println("MeinAuthAdminFX.onChanged");
-        showContent();
+        showServices();
     }
 
     @Override
@@ -135,16 +138,33 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         stage.close();
     }
 
-    private void showContent() {
+    private void showServices() {
         Platform.runLater(() -> {
             try {
                 List<ServiceJoinServiceType> serviceJoinServiceTypes = meinAuthService.getDatabaseManager().getAllServices();
-                serviceList.getItems().clear();
+                vboxServices.getChildren().clear();
                 for (ServiceJoinServiceType serviceJoinServiceType : serviceJoinServiceTypes) {
                     IMeinService runningService = meinAuthService.getMeinService(serviceJoinServiceType.getUuid().v());
                     if (runningService != null)
                         serviceJoinServiceType.setRunning(true);
-                    serviceList.getItems().add(serviceJoinServiceType);
+                    // fill vboxServices with Buttons!
+                    Button button = new Button(serviceJoinServiceType.getName().v());
+                    button.setMaxWidth(Double.MAX_VALUE);
+                    button.setAlignment(Pos.TOP_LEFT);
+                    BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(serviceJoinServiceType.getType().v());
+                    if (bootloader instanceof BootLoaderFX) {
+                        BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
+                        ImageView image = new ImageView(new Image(bootLoaderFX.getIconURL(), IMAGE_SIZE, IMAGE_SIZE, true, true));
+                        button.setGraphic(image);
+                        button.setOnMouseClicked(event -> {
+                            IMeinService meinService = meinAuthService.getMeinService(serviceJoinServiceType.getUuid().v());
+                            loadSettingsFX(bootLoaderFX.getEditFXML(meinService));
+                            ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
+                            serviceSettingsFX.feed(serviceJoinServiceType);
+                        });
+                    }
+                    vboxServices.getChildren().add(button);
+
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -209,7 +229,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                             }
                         }));
         btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/discover.fxml"));
-        tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showContent());
+        tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showServices());
         //todo debug
         String url = MeinAuthAdmin.class.getResource("/de/mein/icon/access.n.png").toExternalForm();
         btnAccess.setStyle("-fx-graphic: url(" + url + ")");
@@ -223,13 +243,12 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
             System.err.println("System tray not supported!");
         }
         // load images for buttons
-        final int imageSize = 24;
-        Image im = new Image("/de/mein/icon/access.n.png", imageSize, imageSize, true, false);
+        Image im = new Image("/de/mein/icon/access.n.png", IMAGE_SIZE, IMAGE_SIZE, true, false);
         imgAccess.setImage(im);
-        imgInfo.setImage(new Image("/de/mein/icon/info.n.png", imageSize, imageSize, true, true));
-        imgOthers.setImage(new Image("/de/mein/icon/connected.n.png", imageSize, imageSize, true, true));
-        imgPairing.setImage(new Image("/de/mein/icon/pairing.n.png", imageSize, imageSize, true, true));
-        imgSettings.setImage(new Image("/de/mein/icon/settings.n.png", imageSize, imageSize, true, true));
+        imgInfo.setImage(new Image("/de/mein/icon/info.n.png", IMAGE_SIZE, IMAGE_SIZE, true, true));
+        imgOthers.setImage(new Image("/de/mein/icon/connected.n.png", IMAGE_SIZE, IMAGE_SIZE, true, true));
+        imgPairing.setImage(new Image("/de/mein/icon/pairing.n.png", IMAGE_SIZE, IMAGE_SIZE, true, true));
+        imgSettings.setImage(new Image("/de/mein/icon/settings.n.png", IMAGE_SIZE, IMAGE_SIZE, true, true));
     }
 
     public void displayTray() throws AWTException, IOException {
@@ -332,7 +351,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                             System.exit(0);
                         });
                         meinAuthAdminFXES[0].setStage(stage);
-                        meinAuthAdminFXES[0].showContent();
+                        meinAuthAdminFXES[0].showServices();
                         lock.unlock();
                     } catch (IOException e) {
                         e.printStackTrace();
