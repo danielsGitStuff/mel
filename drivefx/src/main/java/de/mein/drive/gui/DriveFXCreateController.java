@@ -14,13 +14,20 @@ import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveClientService;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.stage.DirectoryChooser;
 import org.jdeferred.Promise;
+
+import java.io.File;
 
 /**
  * Created by xor on 10/20/16.
  */
 public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
+
+    @FXML
+    private Button btnPath;
 
     @FXML
     private TextField txtName, txtPath;
@@ -35,11 +42,11 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             String role = isServer ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
             String path = txtPath.getText();
             if (isServer)
-                driveCreateController.createDriveServerService(name, path,0.1f,30);
+                driveCreateController.createDriveServerService(name, path, 0.1f, 30);
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certificate.getId().v(), serviceJoinServiceType.getUuid().v(),0.1f,30);
+                Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30);
                 promise.done(meinDriveClientService -> N.r(() -> {
                     meinDriveClientService.syncThisClient();
                 }));
@@ -50,7 +57,16 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     @Override
     public void init() {
         driveCreateController = new DriveCreateController(meinAuthService);
-
+        btnPath.setOnAction(event -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Choose Storage Directory");
+            File dir = directoryChooser.showDialog(stage);
+            if (dir != null) {
+                txtPath.setText(dir.getAbsolutePath());
+            } else {
+                txtPath.setText(null);
+            }
+        });
 
     }
 
@@ -58,7 +74,6 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     public String getTitle() {
         return "Create a new Drive instance";
     }
-
 
 
     @Override

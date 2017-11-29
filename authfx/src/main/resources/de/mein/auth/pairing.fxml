@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox maxHeight="Infinity" maxWidth="Infinity" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="de.mein.auth.gui.NetworkDiscoveryFX">
+      fx:controller="de.mein.auth.gui.PairingFX">
     <GridPane VBox.vgrow="ALWAYS">
         <children>
             <Label text="Unknown Reachable Instances" GridPane.columnIndex="0" GridPane.rowIndex="0" />

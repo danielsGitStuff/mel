@@ -104,7 +104,7 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
             controller.setListener(listener);
             controller.setRequest(request);
             Scene scene = new Scene(root);
-
+            scene.getStylesheets().add("de/mein/modena_dark.css");
             Stage stage = new Stage();
             stage.setTitle("UML");
             stage.setScene(scene);

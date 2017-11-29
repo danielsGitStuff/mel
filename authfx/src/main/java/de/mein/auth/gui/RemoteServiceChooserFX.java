@@ -10,8 +10,10 @@ import de.mein.auth.tools.N;
 import de.mein.sql.RWLock;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
@@ -27,6 +29,11 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
     private ListView<Certificate> listCerts;
     @FXML
     ListView<ServiceJoinServiceType> listServices;
+    @FXML
+    private Label lblAvailable;
+    @FXML
+    private HBox paneAvailable;
+
     private ServiceJoinServiceType selectedService;
     private Certificate selectedCertificate;
     private MeinAuthAdminFX meinAuthAdminFX;
@@ -76,19 +83,28 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
         }
     }
 
+    private void showServer(){
+        rdClient.selectedProperty().setValue(false);
+        rdServer.selectedProperty().setValue(true);
+        paneAvailable.setVisible(false);
+        paneAvailable.setManaged(false);
+    }
+
+    private void showClient(){
+        rdClient.selectedProperty().setValue(true);
+        rdServer.selectedProperty().setValue(false);
+        paneAvailable.setVisible(true);
+        paneAvailable.setManaged(true);
+    }
+
     @Override
     public void init() {
         System.out.println("RemoteServiceChooserFX.init");
         listCerts.setCellFactory(param -> new CertListCell());
         listServices.setCellFactory(param -> new ServiceListCell());
-        rdServer.setOnAction(event -> {
-            rdClient.selectedProperty().setValue(false);
-            rdServer.selectedProperty().setValue(true);
-        });
-
+        rdServer.setOnAction(event -> showServer());
         rdClient.setOnAction(event -> {
-            rdClient.selectedProperty().setValue(true);
-            rdServer.selectedProperty().setValue(false);
+            showClient();
             listCerts.getItems().clear();
             listServices.getItems().clear();
             NetworkEnvironment env = meinAuthService.getNetworkEnvironment();
@@ -137,6 +153,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
             embeddedServiceSettingsFX = lo.getController();
             embeddedServiceSettingsFX.setRemoteServiceChooserFX(this);
             embeddedServiceSettingsFX.configureParentGui(meinAuthAdminFX);
+            embeddedServiceSettingsFX.setStage(meinAuthAdminFX.getStage());
             embeddedServiceSettingsFX.setMeinAuthService(meinAuthService);
 //            lblTitle.setText(contentController.getTitle());
 //            setContentPane(pane);

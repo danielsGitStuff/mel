@@ -17,8 +17,8 @@
             <RadioButton fx:id="rdServer" text="Server" />
             <RadioButton fx:id="rdClient" selected="true" text="Client" />
         </HBox>
-        <Label text="Available MeinAuths &amp; Services:" />
-        <HBox>
+        <Label text="Available MeinAuths &amp; Services:" fx:id="lblAvailable"/>
+        <HBox fx:id="paneAvailable">
             <ListView fx:id="listCerts" HBox.hgrow="ALWAYS">
                 <HBox.margin>
                     <Insets bottom="10.0" left="10.0" top="10.0" />

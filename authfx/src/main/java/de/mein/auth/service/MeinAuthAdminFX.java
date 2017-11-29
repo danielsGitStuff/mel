@@ -15,7 +15,6 @@ import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Parent;
@@ -240,7 +239,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
             loadSettingsFX("de/mein/auth/others.fxml");
         });
         btnAccess.setOnAction(event -> loadSettingsFX("de/mein/auth/access.fxml"));
-        btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/discover.fxml"));
+        btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/pairing.fxml"));
         tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showServices());
         //todo debug
         String url = MeinAuthAdmin.class.getResource("/de/mein/icon/access.n.png").toExternalForm();
@@ -403,5 +402,9 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
 
     public void setSecondaryButtonText(String text) {
         btnSecondary.setText(text);
+    }
+
+    public Stage getStage() {
+        return stage;
     }
 }

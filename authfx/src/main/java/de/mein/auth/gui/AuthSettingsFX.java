@@ -2,6 +2,7 @@ package de.mein.auth.gui;
 
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.service.MeinAuthService;
+import javafx.stage.Stage;
 
 /**
  * Created by xor on 18.09.2016.
@@ -9,6 +10,7 @@ import de.mein.auth.service.MeinAuthService;
 public abstract class AuthSettingsFX {
 
     protected MeinAuthService meinAuthService;
+    protected Stage stage;
 
     /**
      * called when bottom right button is clicked (usually 'Apply')
@@ -40,5 +42,13 @@ public abstract class AuthSettingsFX {
      */
     public void onSecondaryClicked() {
 
+    }
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
+    }
+
+    public Stage getStage() {
+        return stage;
     }
 }

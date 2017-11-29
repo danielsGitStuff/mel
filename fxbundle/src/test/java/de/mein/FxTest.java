@@ -187,17 +187,17 @@ public class FxTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MeinBoot boot1 = new MeinBoot(json1, DriveFXBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(json1, DriveFXBootLoader.class, ContactsFXBootloader.class);
         boot1.addMeinAuthAdmin(new MeinAuthFxLoader());
         boot1.boot().done(meinAuthService -> {
             meinAuthService.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 System.out.println("FxTest.startEmptyServer.booted");
             });
-            N.r(() -> {
-                DriveCreateController createController = new DriveCreateController(meinAuthService);
-                createController.createDriveServerService("testiServer", testdir.getAbsolutePath(),0.1f,30);
-            });
+//            N.r(() -> {
+//                DriveCreateController createController = new DriveCreateController(meinAuthService);
+//                createController.createDriveServerService("testiServer", testdir.getAbsolutePath(),0.1f,30);
+//            });
         });
         lock.lockWrite();
         lock.unlockWrite();

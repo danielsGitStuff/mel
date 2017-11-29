@@ -19,8 +19,8 @@
     </right>
    <center>
        <HBox alignment="TOP_CENTER" prefHeight="100.0" prefWidth="300.0" BorderPane.alignment="CENTER">
-           <TextArea fx:id="txtMyCert" prefHeight="200.0"/>
-           <TextArea fx:id="txtCert" prefHeight="200.0"/>
+           <TextArea fx:id="txtMyCert" prefHeight="200.0" HBox.hgrow="ALWAYS"/>
+           <TextArea fx:id="txtCert" prefHeight="200.0" HBox.hgrow="ALWAYS"/>
        </HBox>
    </center>
    <top>

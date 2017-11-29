@@ -14,6 +14,6 @@
     <Label text="Path" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.hgrow="NEVER" />
     <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
         <TextField fx:id="txtPath" text="/home/xor/Documents/seminar/" HBox.hgrow="ALWAYS" />
-        <Button fx:id="btnChosePath" text="chose" />
+        <Button fx:id="btnPath" text="chose" />
     </HBox>
 </GridPane>
