@@ -32,7 +32,7 @@ public class DriveFXBootLoader extends DriveBootLoader implements BootLoaderFX<M
     @Override
     public String getPopupFXML(IMeinService meinService, MeinNotification meinNotification) {
         if (meinNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED)) {
-            return "de/mein/drive/popupconflict.olde.fxml";
+            return "de/mein/drive/popupconflict.fxml";
         }
         if (meinNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_PROGRESS)
                 || meinNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_BOOT)) {

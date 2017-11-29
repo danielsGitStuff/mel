@@ -83,9 +83,9 @@ public class FxTest {
     @Test
     public void complexConflict() throws Exception {
         DriveTest driveTest = new DriveTest();
-        MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
 
-        MeinBoot restartMeinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        MeinBoot restartMeinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
         driveTest.complexClientConflictImpl(meinBoot, null);
         new WaitLock().lock().lock();
     }
@@ -264,7 +264,7 @@ public class FxTest {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
                     DriveCreateController createController = new DriveCreateController(meinAuthService);
-                    Promise<MeinDriveClientService, Exception, Void> clientBooted = createController.createDriveClientService("drive client", testdir.getAbsolutePath(), 1L, tmp,0.1f,30);
+                    Promise<MeinDriveClientService, Exception, Void> clientBooted = createController.createDriveClientService("drive client", testdir.getAbsolutePath(), 1L, tmp, 0.1f, 30);
                     System.out.println("FxTest.connectAcceptingClient");
                     clientBooted.done(result1 -> System.out.println("FxTest.connectAcceptingClient.j89veaj4"));
                 }));
@@ -336,7 +336,7 @@ public class FxTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                MeinDriveServerService serverService = createController.createDriveServerService("testiServer", testdir.getAbsolutePath(),0.1f,30);
+                MeinDriveServerService serverService = createController.createDriveServerService("testiServer", testdir.getAbsolutePath(), 0.1f, 30);
                 FxTest.tmp = serverService.getUuid();
                 connectAcceptingClient();
             });
@@ -411,15 +411,15 @@ public class FxTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                createController.createDriveServerService("testiServer", testdir.getAbsolutePath(),0.1f,30);
+                createController.createDriveServerService("testiServer", testdir.getAbsolutePath(), 0.1f, 30);
                 // create contacts server too
 
                 ContactsSettings settings = new ContactsSettings();
                 settings.setRole(ContactStrings.ROLE_SERVER);
                 settings.setMasterPhoneBookId(1L);
-                settings.setJsonFile(new File(MeinBoot.defaultWorkingDir1,"contactserversettings.json"));
+                settings.setJsonFile(new File(MeinBoot.defaultWorkingDir1, "contactserversettings.json"));
                 ContactsBootloader contactsBootloader = (ContactsBootloader) meinAuthService.getMeinBoot().getBootLoader(ContactStrings.NAME);
-                ContactsService contactsService = contactsBootloader.createService("test contacts",settings);
+                ContactsService contactsService = contactsBootloader.createService("test contacts", settings);
                 ContactsDao cDao = contactsService.getDatabaseManager().getContactsDao();
                 PhoneBookDao phoneBookDao = contactsService.getDatabaseManager().getPhoneBookDao();
 
@@ -718,7 +718,7 @@ public class FxTest {
                 System.out.println("FxTest.driveGui.1.booted");
                 standAloneAuth1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath(),0.1f,30);
+                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath(), 0.1f, 30);
                 boot2.boot().done(standAloneAuth2 -> {
                     System.out.println("FxTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(allowRegisterHandler);
@@ -730,7 +730,7 @@ public class FxTest {
                             runner.r(() -> {
                                 System.out.println("FxTest.driveGui.connected");
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(),0.1f,30);
+                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(), 0.1f, 30);
                                 promise.done(clientDriveService -> runner.r(() -> {
                                             System.out.println("FxTest attempting first syncThisClient");
                                             clientSyncListener.testStructure.setMaClient(standAloneAuth2)

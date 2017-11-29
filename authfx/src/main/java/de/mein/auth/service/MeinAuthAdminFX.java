@@ -76,6 +76,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
 
     @FXML
     private ImageView imgInfo, imgAccess, imgOthers, imgPairing, imgSettings;
+    private TrayIcon trayIcon;
 
     @Override
     public void start(MeinAuthService meinAuthService) {
@@ -138,6 +139,9 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @Override
     public void shutDown() {
         stage.close();
+        if (trayIcon != null) {
+            SystemTray.getSystemTray().remove(trayIcon);
+        }
     }
 
     private void showServices() {
@@ -266,14 +270,13 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         File f = new File(url.getFile());
         BufferedImage img = ImageIO.read(f);
         //Alternative (if the icon is on the classpath):
-        TrayIcon trayIcon = new TrayIcon(img, "Tray Demo");
+        trayIcon = new TrayIcon(img, "Tray Demo");
         //Let the system resizes the image if needed
         trayIcon.setImageAutoSize(true);
         //Set tooltip text for the tray icon
         trayIcon.setToolTip("System tray icon demo");
         tray.add(trayIcon);
         trayIcon.displayMessage("Hello, World", "notification demo", TrayIcon.MessageType.INFO);
-
     }
 
     private void onCreateMenuItemClicked(String bootLoaderName) throws IllegalAccessException, SqlQueriesException, InstantiationException {
