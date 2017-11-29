@@ -12,7 +12,7 @@
     <VBox maxHeight="1.7976931348623157E308" >
         <Accordion BorderPane.alignment="CENTER">
             <panes>
-                <TitledPane animated="true" text="MeinAuth">
+                <TitledPane text="MeinAuth">
                     <content>
                         <VBox>
                             <children>
@@ -60,28 +60,7 @@
                         </VBox>
                     </content>
                 </TitledPane>
-                <TitledPane fx:id="tpServices" animated="true" text="Services">
-                    <content>
-                        <VBox>
-                            <ListView fx:id="serviceList" prefHeight="200.0" prefWidth="200.0">
-
-                            </ListView>
-                            <HBox alignment="TOP_RIGHT">
-                                <Button fx:id="btnRemoveService" text="-"/>
-                                <Button fx:id="btnCreateService" text="+">
-                                    <!--<contextMenu>-->
-                                        <!--<ContextMenu fx:id="createServiceMenu">-->
-                                            <!--<items>-->
-                                                <!--<MenuItem mnemonicParsing="false" text="Unspecified Action"/>-->
-                                            <!--</items>-->
-                                        <!--</ContextMenu>-->
-                                    <!--</contextMenu>-->
-                                </Button>
-                            </HBox>
-                        </VBox>
-                    </content>
-                </TitledPane>
-                <TitledPane fx:id="tpServices2" text="Services 2">
+                <TitledPane fx:id="tpServices" text="Services">
                     <content>
                         <VBox fx:id="vboxServices">
 
@@ -98,9 +77,9 @@
         <bottom>
             <HBox fx:id="hBoxButtons" alignment="CENTER" maxWidth="1.7976931348623157E308"
                   BorderPane.alignment="CENTER">
-                <Button fx:id="btnRefresh" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Refresh"
+                <Button fx:id="btnSecondary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Refresh"
                         HBox.hgrow="ALWAYS"/>
-                <Button fx:id="btnApply" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Apply"
+                <Button fx:id="btnPrimary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Apply"
                         HBox.hgrow="ALWAYS"/>
             </HBox>
         </bottom>

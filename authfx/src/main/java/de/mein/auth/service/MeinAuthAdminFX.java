@@ -15,6 +15,7 @@ import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Parent;
@@ -57,7 +58,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @FXML
     private TextField txtServiceFilter, txtCertificateFilter;
     @FXML
-    private Button btnRefresh, btnApply, btnAccess, btnCreateService, btnOthers, btnSettings;
+    private Button btnSecondary, btnPrimary, btnAccess, btnCreateService, btnOthers, btnSettings;
     @FXML
     private Button btnInfo, btnPairing;
     @FXML
@@ -82,6 +83,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         this.meinAuthService = meinAuthService;
         showServices();
     }
+
 
     @Override
     public void onNotificationFromService(IMeinService meinService, MeinNotification meinNotification) {
@@ -156,7 +158,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                         BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
                         ImageView image = new ImageView(new Image(bootLoaderFX.getIconURL(), IMAGE_SIZE, IMAGE_SIZE, true, true));
                         button.setGraphic(image);
-                        button.setOnMouseClicked(event -> {
+                        button.setOnAction(event -> {
                             IMeinService meinService = meinAuthService.getMeinService(serviceJoinServiceType.getUuid().v());
                             loadSettingsFX(bootLoaderFX.getEditFXML(meinService));
                             ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
@@ -164,8 +166,46 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                         });
                     }
                     vboxServices.getChildren().add(button);
-
                 }
+                //spacer
+                VBox spacer = new VBox();
+                spacer.setPrefHeight(15);
+
+                //create service button
+                ImageView imgCreate = new ImageView(new Image("de/mein/icon/add.png", IMAGE_SIZE * .8, IMAGE_SIZE * .8, true, true));
+                Button btnCreateService = new Button("Create Service");
+                btnCreateService.setGraphic(imgCreate);
+                btnCreateService.setMaxWidth(Double.MAX_VALUE);
+                btnCreateService.setAlignment(Pos.TOP_LEFT);
+                btnCreateService.setOnAction(event -> {
+                    ContextMenu createServiceMenu = new ContextMenu();
+                    createServiceMenu.getItems().clear();
+                    Set<String> names = meinAuthService.getMeinBoot().getBootloaderMap().keySet();
+                    for (String name : names) {
+
+                        MenuItem menuItem = new MenuItem(name);
+                        menuItem.setOnAction(e1 -> {
+                            System.out.println("MeinAuthAdminFX.initialize.createmenu.clicked");
+                            runner.r(() -> {
+                                        onCreateMenuItemClicked(name);
+                                        createServiceMenu.hide();
+                                    }
+                            );
+                        });
+                        N.r(() -> {
+                            BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(name);
+                            if (bootLoader instanceof BootLoaderFX) {
+                                BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
+                                ImageView imgService = new ImageView(new Image(bootLoaderFX.getIconURL(), IMAGE_SIZE, IMAGE_SIZE, true, true));
+                                menuItem.setGraphic(imgService);
+                            }
+                        });
+                        createServiceMenu.getItems().add(menuItem);
+                    }
+                    Object source = event.getSource();
+                    createServiceMenu.show(btnCreateService, Side.TOP, 0, 0);
+                });
+                vboxServices.getChildren().addAll(spacer, btnCreateService);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -176,14 +216,21 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         this.stage = stage;
     }
 
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         btnSettings.setOnAction(event -> loadSettingsFX("de/mein/auth/settings.fxml"));
         btnInfo.setOnAction(event -> loadSettingsFX("de/mein/auth/info.fxml"));
-        btnRefresh.setOnAction(event -> onChanged());
-        btnApply.setOnAction(event -> {
+        btnSecondary.setOnAction(event -> {
             if (contentController != null) {
-                contentController.onApplyClicked();
+                contentController.onSecondaryClicked();
+                contentController = null;
+                paneContainer.getChildren().clear();
+            }
+        });
+        btnPrimary.setOnAction(event -> {
+            if (contentController != null) {
+                contentController.onPrimaryClicked();
                 contentController = null;
                 paneContainer.getChildren().clear();
             }
@@ -192,42 +239,6 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
             loadSettingsFX("de/mein/auth/others.fxml");
         });
         btnAccess.setOnAction(event -> loadSettingsFX("de/mein/auth/access.fxml"));
-        btnCreateService.setOnAction(event -> {
-            ContextMenu createServiceMenu = new ContextMenu();
-            createServiceMenu.getItems().clear();
-            int offset = btnCreateService.heightProperty().intValue();
-            Set<String> names = meinAuthService.getMeinBoot().getBootloaderMap().keySet();
-            for (String name : names) {
-                MenuItem menuItem = new MenuItem(name);
-                menuItem.setOnAction(e1 -> {
-                    System.out.println("MeinAuthAdminFX.initialize.createmenu.clicked");
-                    runner.r(() -> {
-                                onCreateMenuItemClicked(name);
-                                createServiceMenu.hide();
-                            }
-                    );
-                });
-                createServiceMenu.getItems().add(menuItem);
-            }
-            createServiceMenu.show(btnCreateService, Side.TOP, 0, 0);
-        });
-        btnRemoveService.setOnAction(event -> runner.r(() -> {
-            ServiceJoinServiceType service = serviceList.getSelectionModel().getSelectedItem();
-            meinAuthService.unregisterMeinService(service.getServiceId().v());
-            meinAuthService.getDatabaseManager().deleteService(service.getServiceId().v());
-        }));
-        serviceList.setCellFactory(param -> new ServiceListItem());
-        serviceList.getSelectionModel().selectedItemProperty()
-                .addListener((observable, oldValue, service) ->
-                        runner.r(() -> {
-                            if (service != null) {
-                                BootLoaderFX bootloader = (BootLoaderFX) meinAuthService.getMeinBoot().getBootLoader(service.getType().v());
-                                IMeinService meinService = meinAuthService.getMeinService(service.getUuid().v());
-                                loadSettingsFX(bootloader.getEditFXML(meinService));
-                                ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
-                                serviceSettingsFX.feed(service);
-                            }
-                        }));
         btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/discover.fxml"));
         tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showServices());
         //todo debug
@@ -274,6 +285,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         Class<? extends BootLoader> bootLoaderClass = meinAuthService.getMeinBoot().getBootloaderMap().get(bootLoaderName);
         BootLoader bootLoader = MeinBoot.createBootLoader(meinAuthService, bootLoaderClass);
         if (bootLoader instanceof BootLoaderFX) {
+            showPrimaryButtonOnly();
             BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
             if (bootLoaderFX.embedCreateFXML()) {
                 loadSettingsFX("de/mein/choose.server.fxml");
@@ -293,7 +305,6 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         N runner = new N(e -> e.printStackTrace());
         runner.r(() -> {
             contentController = null;
-            showBottomButtons();
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
             Pane pane = lo.load();
             contentController = lo.getController();
@@ -367,8 +378,29 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         hBoxButtons.setManaged(false);
     }
 
-    private void showBottomButtons() {
+    public void showPrimaryButtonOnly() {
+        btnSecondary.setVisible(false);
+        btnSecondary.setManaged(false);
+        btnPrimary.setVisible(true);
+        btnPrimary.setManaged(true);
         hBoxButtons.setVisible(true);
         hBoxButtons.setManaged(true);
+    }
+
+    public void showBottomButtons() {
+        btnSecondary.setVisible(true);
+        btnSecondary.setManaged(true);
+        btnPrimary.setVisible(true);
+        btnPrimary.setManaged(true);
+        hBoxButtons.setVisible(true);
+        hBoxButtons.setManaged(true);
+    }
+
+    public void setPrimaryButtonText(String text) {
+        btnPrimary.setText(text);
+    }
+
+    public void setSecondaryButtonText(String text) {
+        btnSecondary.setText(text);
     }
 }

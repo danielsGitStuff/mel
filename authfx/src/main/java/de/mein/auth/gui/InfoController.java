@@ -19,7 +19,7 @@ public class InfoController extends AuthSettingsFX {
     private int rowCount = 0;
 
     @Override
-    public void onApplyClicked() {
+    public void onPrimaryClicked() {
 
     }
 

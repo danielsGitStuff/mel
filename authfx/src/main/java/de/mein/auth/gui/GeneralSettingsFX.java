@@ -1,6 +1,7 @@
 package de.mein.auth.gui;
 
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.service.MeinAuthAdminFX;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
@@ -21,8 +22,8 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
     private TextField txtName, txtPort, txtSslPort, txtGreeting;
 
     @Override
-    public void onApplyClicked() {
-        System.out.println("GeneralSettingsFX.onApplyClicked");
+    public void onPrimaryClicked() {
+        System.out.println("GeneralSettingsFX.onPrimaryClicked");
         MeinAuthSettings settings = meinAuthService.getSettings();
         settings.setName(txtName.getText());
         settings.setPort(Integer.parseInt(txtSslPort.getText()));
@@ -65,5 +66,11 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
     @Override
     public String getTitle() {
         return "General stuff";
+    }
+
+    @Override
+    public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
+        meinAuthAdminFX.setPrimaryButtonText("Apply");
+        meinAuthAdminFX.showPrimaryButtonOnly();
     }
 }

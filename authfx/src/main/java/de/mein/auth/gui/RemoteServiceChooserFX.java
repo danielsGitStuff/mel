@@ -18,7 +18,7 @@ import javafx.scene.layout.VBox;
 import java.util.*;
 
 public class RemoteServiceChooserFX extends AuthSettingsFX {
-    private EmbeddedServerServiceSettingsFX embeddedServerServiceSettingsFX;
+    private EmbeddedServiceSettingsFX embeddedServiceSettingsFX;
     @FXML
     private VBox container;
     @FXML
@@ -40,8 +40,8 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
     }
 
     @Override
-    public void onApplyClicked() {
-        embeddedServerServiceSettingsFX.onApplyClicked();
+    public void onPrimaryClicked() {
+        embeddedServiceSettingsFX.onPrimaryClicked();
     }
 
     public boolean isServerSelected() {
@@ -100,7 +100,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
                     Collection<ServiceJoinServiceType> services = env.getServices();
                     for (ServiceJoinServiceType service : services) {
                         Long certId = env.getCertificateId(service);
-                        embeddedServerServiceSettingsFX.onServiceSpotted(foundServices, certId, service);
+                        embeddedServiceSettingsFX.onServiceSpotted(foundServices, certId, service);
                     }
                 });
 
@@ -126,7 +126,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
 
     @Override
     public String getTitle() {
-        return embeddedServerServiceSettingsFX == null ? null : embeddedServerServiceSettingsFX.getTitle();
+        return embeddedServiceSettingsFX == null ? null : embeddedServiceSettingsFX.getTitle();
     }
 
     public void createFXML(String fxml) {
@@ -134,10 +134,10 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
 //            showBottomButtons();
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(fxml));
             Pane pane = lo.load();
-            embeddedServerServiceSettingsFX = lo.getController();
-            embeddedServerServiceSettingsFX.setRemoteServiceChooserFX(this);
-            embeddedServerServiceSettingsFX.configureParentGui(meinAuthAdminFX);
-            embeddedServerServiceSettingsFX.setMeinAuthService(meinAuthService);
+            embeddedServiceSettingsFX = lo.getController();
+            embeddedServiceSettingsFX.setRemoteServiceChooserFX(this);
+            embeddedServiceSettingsFX.configureParentGui(meinAuthAdminFX);
+            embeddedServiceSettingsFX.setMeinAuthService(meinAuthService);
 //            lblTitle.setText(contentController.getTitle());
 //            setContentPane(pane);
             container.getChildren().add(pane);

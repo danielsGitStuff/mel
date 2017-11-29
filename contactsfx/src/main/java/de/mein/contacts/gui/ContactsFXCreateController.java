@@ -2,7 +2,7 @@ package de.mein.contacts.gui;
 
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.gui.EmbeddedServerServiceSettingsFX;
+import de.mein.auth.gui.EmbeddedServiceSettingsFX;
 import de.mein.auth.gui.RemoteServiceChooserFX;
 import de.mein.contacts.ContactsBootloader;
 import de.mein.contacts.data.ContactStrings;
@@ -16,7 +16,7 @@ import javafx.scene.control.TextField;
 import java.io.IOException;
 import java.sql.SQLException;
 
-public class ContactsFXCreateController extends EmbeddedServerServiceSettingsFX {
+public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
 
     @FXML
     private TextField txtName;
@@ -36,7 +36,7 @@ public class ContactsFXCreateController extends EmbeddedServerServiceSettingsFX 
     }
 
     @Override
-    public void onApplyClicked() {
+    public void onPrimaryClicked() {
         try {
             String name = txtName.getText();
             ContactsBootloader bootloader = (ContactsBootloader) meinAuthService.getMeinBoot().getBootLoader(ContactStrings.NAME);

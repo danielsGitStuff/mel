@@ -35,8 +35,6 @@ public abstract class ContactsFXEditBaseController extends ServiceSettingsFX<Con
         return "Contacts";
     }
 
-    @Override
-    public void onApplyClicked() {
-        applyName();
-    }
+
+
 }

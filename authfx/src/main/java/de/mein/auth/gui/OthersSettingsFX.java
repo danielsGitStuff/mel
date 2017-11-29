@@ -20,7 +20,7 @@ public class OthersSettingsFX extends AuthSettingsFX {
     private Certificate selectedCert;
 
     @Override
-    public void onApplyClicked() {
+    public void onPrimaryClicked() {
 
     }
 
@@ -58,6 +58,7 @@ public class OthersSettingsFX extends AuthSettingsFX {
 
     @Override
     public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
-        meinAuthAdminFX.hideBottomButtons();
+        meinAuthAdminFX.setPrimaryButtonText("Delete");
+        meinAuthAdminFX.showPrimaryButtonOnly();
     }
 }

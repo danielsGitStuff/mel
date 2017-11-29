@@ -2,8 +2,9 @@ package de.mein.auth.gui;
 
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.service.MeinAuthAdminFX;
 
-public abstract class EmbeddedServerServiceSettingsFX extends AuthSettingsFX {
+public abstract class EmbeddedServiceSettingsFX extends AuthSettingsFX {
 
     private RemoteServiceChooserFX remoteServiceChooserFX;
 
@@ -23,5 +24,11 @@ public abstract class EmbeddedServerServiceSettingsFX extends AuthSettingsFX {
 
     public void setRemoteServiceChooserFX(RemoteServiceChooserFX remoteServiceChooserFX) {
         this.remoteServiceChooserFX = remoteServiceChooserFX;
+    }
+
+    @Override
+    public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
+        meinAuthAdminFX.setPrimaryButtonText("Apply");
+        meinAuthAdminFX.showPrimaryButtonOnly();
     }
 }

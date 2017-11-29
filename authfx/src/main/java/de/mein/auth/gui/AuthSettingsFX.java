@@ -10,7 +10,10 @@ public abstract class AuthSettingsFX {
 
     protected MeinAuthService meinAuthService;
 
-    public abstract void onApplyClicked();
+    /**
+     * called when bottom right button is clicked (usually 'Apply')
+     */
+    public abstract void onPrimaryClicked();
 
     public void setMeinAuthService(MeinAuthService meinAuthService){
         this.meinAuthService = meinAuthService;
@@ -30,7 +33,12 @@ public abstract class AuthSettingsFX {
      * override to hide buttons or something
      * @param meinAuthAdminFX
      */
-    public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX){
+    public abstract void configureParentGui(MeinAuthAdminFX meinAuthAdminFX);
+
+    /**
+     * called when bottom left button is clicked.
+     */
+    public void onSecondaryClicked() {
 
     }
 }

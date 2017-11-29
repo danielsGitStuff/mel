@@ -17,7 +17,7 @@ public class DriveFXEditClientController extends DriveFXEditBaseController {
     private Button btnSync;
 
     @Override
-    public void onApplyClicked() {
+    public void onPrimaryClicked() {
         applyName();
     }
 

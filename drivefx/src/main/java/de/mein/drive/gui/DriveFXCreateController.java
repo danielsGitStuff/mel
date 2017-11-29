@@ -3,7 +3,8 @@ package de.mein.drive.gui;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.RemoteServiceChooserFX;
-import de.mein.auth.gui.EmbeddedServerServiceSettingsFX;
+import de.mein.auth.gui.EmbeddedServiceSettingsFX;
+import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
@@ -19,7 +20,7 @@ import org.jdeferred.Promise;
 /**
  * Created by xor on 10/20/16.
  */
-public class DriveFXCreateController extends EmbeddedServerServiceSettingsFX {
+public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
 
     @FXML
     private TextField txtName, txtPath;
@@ -27,7 +28,7 @@ public class DriveFXCreateController extends EmbeddedServerServiceSettingsFX {
     private DriveCreateController driveCreateController;
 
     @Override
-    public void onApplyClicked() {
+    public void onPrimaryClicked() {
         N.r(() -> {
             String name = txtName.getText().trim();
             Boolean isServer = this.isServerSelected();
@@ -37,8 +38,6 @@ public class DriveFXCreateController extends EmbeddedServerServiceSettingsFX {
                 driveCreateController.createDriveServerService(name, path,0.1f,30);
             else {
                 Certificate certificate = this.getSelectedCertificate();
-                //listCerts.getSelectionModel().getSelectedItem();
-//                listServices.getSelectionModel().getSelectedItem();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
                 Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certificate.getId().v(), serviceJoinServiceType.getUuid().v(),0.1f,30);
                 promise.done(meinDriveClientService -> N.r(() -> {
@@ -59,6 +58,8 @@ public class DriveFXCreateController extends EmbeddedServerServiceSettingsFX {
     public String getTitle() {
         return "Create a new Drive instance";
     }
+
+
 
     @Override
     public void onServiceSpotted(RemoteServiceChooserFX.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {

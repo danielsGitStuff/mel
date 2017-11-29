@@ -6,7 +6,7 @@ public class ContactsFXEditClientController extends ContactsFXEditBaseController
 
 
     @Override
-    public void onApplyClicked() {
+    public void onPrimaryClicked() {
 
     }
 

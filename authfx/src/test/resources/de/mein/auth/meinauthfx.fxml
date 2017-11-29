@@ -6,9 +6,9 @@
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.service.MeinAuthAdminFX">
     <bottom>
         <HBox alignment="CENTER" prefHeight="23.0" prefWidth="755.0" BorderPane.alignment="CENTER">
-            <Button fx:id="btnApply" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Apply"
+            <Button fx:id="btnPrimary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Apply"
                     HBox.hgrow="ALWAYS"/>
-            <Button fx:id="btnRefresh" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Refresh"
+            <Button fx:id="btnSecondary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Refresh"
                     HBox.hgrow="ALWAYS"/>
         </HBox>
     </bottom>

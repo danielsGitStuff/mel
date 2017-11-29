@@ -5,6 +5,7 @@ import de.mein.auth.data.db.Approval;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.CheckCell;
+import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.sql.SqlQueriesException;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -27,8 +28,8 @@ public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable 
     private TableView<ServiceJoinServiceType> table;
 
     @Override
-    public void onApplyClicked() {
-        System.out.println("ApprovalSettingsFX.onApplyClicked");
+    public void onPrimaryClicked() {
+        System.out.println("ApprovalSettingsFX.onPrimaryClicked");
         try {
             meinAuthService.saveApprovals(approvalMatrix);
         } catch (SqlQueriesException e) {
@@ -76,6 +77,12 @@ public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable 
     @Override
     public String getTitle() {
         return "Which services shall speak to whom?";
+    }
+
+    @Override
+    public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
+        meinAuthAdminFX.setPrimaryButtonText("Apply");
+        meinAuthAdminFX.showPrimaryButtonOnly();
     }
 
     @Override

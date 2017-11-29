@@ -27,13 +27,14 @@ public class NetworkDiscoveryFX extends AuthSettingsFX implements Initializable 
     @FXML
     private ListView<Certificate> listKnown;
     @FXML
-    private Button btnRegister;
-    @FXML
     private TextField txtAddress, txtPort, txtCertDeliveryPort;
 
     @Override
-    public void onApplyClicked() {
-
+    public void onPrimaryClicked() {
+        N.r(() -> {
+            Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);
+            promise.done(result -> discover());
+        });
     }
 
     @Override
@@ -80,14 +81,11 @@ public class NetworkDiscoveryFX extends AuthSettingsFX implements Initializable 
                 txtPort.setText(Integer.toString(selected.getPort()));
             }
         });
-        btnRegister.setOnAction(event -> N.r(() -> {
-            Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);
-            promise.done(result -> discover());
-        }));
     }
 
     @Override
     public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
-        meinAuthAdminFX.hideBottomButtons();
+        meinAuthAdminFX.setPrimaryButtonText("Apply");
+        meinAuthAdminFX.showPrimaryButtonOnly();
     }
 }

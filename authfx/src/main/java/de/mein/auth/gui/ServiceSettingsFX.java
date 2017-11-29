@@ -3,7 +3,9 @@ package de.mein.auth.gui;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.service.MeinService;
+import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -43,5 +45,28 @@ public abstract class ServiceSettingsFX<T extends MeinService> extends AuthSetti
             e.printStackTrace();
         } finally {
         }
+    }
+
+    @Override
+    public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
+        meinAuthAdminFX.setPrimaryButtonText("Apply");
+        meinAuthAdminFX.setSecondaryButtonText("Delete");
+        meinAuthAdminFX.showBottomButtons();
+    }
+
+    @Override
+    public void onPrimaryClicked() {
+        applyName();
+    }
+
+    @Override
+    public void onSecondaryClicked() {
+        N.r(() -> service.onShutDown());
+        N.r(() -> {
+            Service dbService = meinAuthService.getDatabaseManager().getServiceByUuid(service.getUuid());
+            meinAuthService.unregisterMeinService(dbService.getId().v());
+            meinAuthService.getDatabaseManager().deleteService(dbService.getId().v());
+        });
+
     }
 }
