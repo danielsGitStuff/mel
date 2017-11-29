@@ -109,6 +109,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                 Parent root = null;
                 root = loader.load();
                 Scene scene = new Scene(root);
+                scene.getStylesheets().add("de/mein/modena_dark.css");
                 Stage stage = new Stage();
                 stage.setTitle("MeinAuthAdmin.Popup '" + meinAuthService.getName() + "'");
                 stage.setScene(scene);
