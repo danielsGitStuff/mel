@@ -242,11 +242,6 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/pairing.fxml"));
         tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showServices());
         //todo debug
-        String url = MeinAuthAdmin.class.getResource("/de/mein/icon/access.n.png").toExternalForm();
-        btnAccess.setStyle("-fx-graphic: url(" + url + ")");
-        String z = btnAccess.getStyle();
-        System.out.println("MeinAuthAdminFX.initialize: z " + z);
-
         //add system tray
         if (SystemTray.isSupported()) {
             N.r(this::displayTray);

@@ -14,14 +14,17 @@ import javafx.scene.control.ListView;
 public class OthersSettingsFX extends AuthSettingsFX {
     @FXML
     private ListView<Certificate> listCerts;
-    @FXML
-    private Button btnDelete;
 
     private Certificate selectedCert;
 
     @Override
     public void onPrimaryClicked() {
-
+        N.r(() -> {
+            if (selectedCert != null) {
+                meinAuthService.getCertificateManager().deleteCertificate(selectedCert);
+                showCerts();
+            }
+        });
     }
 
     @Override
@@ -36,12 +39,6 @@ public class OthersSettingsFX extends AuthSettingsFX {
                 selectedCert = null;
             }
         });
-        btnDelete.setOnAction(event -> N.r(() -> {
-            if (selectedCert != null) {
-                meinAuthService.getCertificateManager().deleteCertificate(selectedCert);
-                showCerts();
-            }
-        }));
     }
 
     private void showCerts() {
