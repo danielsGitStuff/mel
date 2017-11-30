@@ -43,6 +43,14 @@ public class ConflictSolver extends SyncStageMerger {
         identifier = createIdentifier(lStageSet.getId().v(), rStageSet.getId().v());
     }
 
+    public StageSet getlStageSet() {
+        return lStageSet;
+    }
+
+    public StageSet getrStageSet() {
+        return rStageSet;
+    }
+
     public static String createIdentifier(Long lStageSetId, Long rStageSetId) {
         return lStageSetId + ":" + rStageSetId;
     }

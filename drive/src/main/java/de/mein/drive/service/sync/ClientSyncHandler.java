@@ -1,6 +1,5 @@
 package de.mein.drive.service.sync;
 
-import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.ConnectResult;
 import de.mein.auth.service.MeinAuthService;
@@ -23,7 +22,6 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -33,11 +31,20 @@ import java.util.*;
 /**
  * Created by xor on 10/27/16.
  */
+@SuppressWarnings("Duplicates")
 public class ClientSyncHandler extends SyncHandler {
 
     private DriveSyncListener syncListener;
     private MeinDriveClientService meinDriveService;
-    private Map<String, ConflictSolver> conflictSolverMap = new HashMap<>();
+    private Map<String, ConflictSolver> conflictSolverMap = new keks<>();
+    private Map<Long, Set<ConflictSolver>> relatedSolvers = new HashMap<>();
+
+    private class keks<K,V> extends HashMap<K,V>{
+        @Override
+        public V put(K key, V value) {
+            return super.put(key, value);
+        }
+    }
 
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
@@ -396,7 +403,7 @@ public class ClientSyncHandler extends SyncHandler {
         if (!conflictSolver.isSolving()) {
             if (conflictSolver.hasConflicts()) {
                 System.err.println("conflicts!!!!1!");
-                conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
+                putConflictSolver(conflictSolver);
                 conflictSolver.setSolving(true);
                 meinDriveService.onConflicts();
             } else {
@@ -415,6 +422,34 @@ public class ClientSyncHandler extends SyncHandler {
                 this.minimizeStage(mergedId);
                 if (stageDao.stageSetHasContent(mergedId))
                     meinDriveService.addJob(new CommitJob());
+            }
+        }
+    }
+
+    private void putConflictSolver(ConflictSolver conflictSolver) {
+        // search for related ConflictSolvers before. they deprecate as we insert the new one.
+        deleteRelated(conflictSolver.getlStageSet().getId().v());
+        deleteRelated(conflictSolver.getrStageSet().getId().v());
+        addRelated(conflictSolver, conflictSolver.getrStageSet().getId().v());
+        addRelated(conflictSolver, conflictSolver.getlStageSet().getId().v());
+        conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
+    }
+
+    private void addRelated(ConflictSolver solver, Long stageSetId) {
+        if (relatedSolvers.containsKey(stageSetId)) {
+            relatedSolvers.get(stageSetId).add(solver);
+        } else {
+            Set<ConflictSolver> set = new HashSet<>();
+            set.add(solver);
+            relatedSolvers.put(stageSetId, set);
+        }
+    }
+
+    private void deleteRelated(Long stageSetId) {
+        if (relatedSolvers.containsKey(stageSetId)) {
+            Set<ConflictSolver> solvers = relatedSolvers.remove(stageSetId);
+            for (ConflictSolver solver : solvers) {
+                conflictSolverMap.remove(solver.getIdentifier());
             }
         }
     }

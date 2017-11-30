@@ -2,21 +2,17 @@ package de.mein.drive.gui;
 
 import de.mein.auth.MeinNotification;
 import de.mein.auth.gui.PopupContentFX;
-import de.mein.auth.service.IMeinService;
-import de.mein.auth.service.MeinService;
+import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.data.conflict.Conflict;
-import de.mein.drive.data.conflict.ConflictException;
 import de.mein.drive.data.conflict.ConflictSolver;
-import de.mein.drive.data.conflict.EmptyRowConflict;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.MeinDriveClientService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
+import javafx.stage.Stage;
 
-import java.net.URL;
-import java.util.*;
+import java.util.List;
 
 
 /**
@@ -35,22 +31,26 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
         if (conflictSolver.isSolved()) {
             CommitJob commitJob = new CommitJob();
             meinDriveClientService.addJob(commitJob);
-        }
-        else {
+        } else {
             System.err.println("not all conflicts were solved");
         }
         return null;
     }
 
     @Override
-    public void initImpl(IMeinService meinService, MeinNotification notification) {
-        this.meinDriveClientService = (MeinDriveClientService) meinService;
+    public void initImpl(Stage stage, MeinAuthService meinAuthService, MeinNotification notification) {
+        this.meinDriveClientService = (MeinDriveClientService) meinAuthService.getMeinService(notification.getServiceUuid());
         conflictSolver = (ConflictSolver) notification.getContent();
-        System.out.println("DriveFXConflictSolverController.init");
-        AbstractMergeListCell.setup(listLeft, listMerge, listRight);
-        List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
-        listLeft.getItems().addAll(conflicts);
-        conflictSolver.addListener(this);
+        for (ConflictSolver conflictSolver : meinDriveClientService.getConflictSolverMap().values()) {
+            this.conflictSolver = conflictSolver;
+            System.out.println("DriveFXConflictSolverController.init");
+            AbstractMergeListCell.setup(listLeft, listMerge, listRight);
+            List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
+            listLeft.getItems().addAll(conflicts);
+            conflictSolver.addListener(this);
+            break;
+        }
+
     }
 
 

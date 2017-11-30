@@ -2,12 +2,11 @@ package de.mein.auth.gui.notification;
 
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
-import de.mein.auth.data.db.Service;
-import de.mein.auth.data.db.ServiceType;
+import de.mein.auth.gui.Popup;
 import de.mein.auth.service.BootLoader;
+import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
-import de.mein.sql.SqlQueriesException;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -38,7 +37,6 @@ public class NotificationListCell extends ListCell<MeinNotification> {
         this.meinAuthService = meinAuthService;
         try {
             loader.load();
-            System.out.println("NotificationListCell.NotificationListCell");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -57,16 +55,17 @@ public class NotificationListCell extends ListCell<MeinNotification> {
             lblText.setText(notification.getText());
             lblTitle.setText(notification.getTitle());
             btnOpen.setOnAction(event -> {
-                System.out.println("NotificationListCell.updateItem " + notification.getContent());
                 N.r(() -> {
                     String name = meinAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
                     BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(name);
+                    IMeinService meinService = meinAuthService.getMeinService(notification.getServiceUuid());
                     if (bootloader instanceof BootLoaderFX) {
                         BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
-                        String containingPath = bootLoaderFX.getPopupFXML(meinService, meinNotification);
-                        loadPopup(containingPath).done(popupContentFX -> {
-                            popupContentFX.init(meinService, meinNotification);
-                        });
+                        String containingPath = bootLoaderFX.getPopupFXML(meinService, notification);
+                        Popup popup = new Popup(meinAuthService, notification, containingPath);
+//                        loadPopup(containingPath).done(popupContentFX -> {
+//                            popupContentFX.init(meinService, meinNotification);
+//                        });
                     }
                 });
             });

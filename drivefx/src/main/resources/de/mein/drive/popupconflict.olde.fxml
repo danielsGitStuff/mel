@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <GridPane xmlns="http://javafx.com/javafx"
           xmlns:fx="http://javafx.com/fxml"
@@ -9,11 +9,15 @@
           GridPane.hgrow="ALWAYS"
           GridPane.vgrow="ALWAYS">
     <children>
-        <ListView GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS"
+        <Label text="remote StageSet" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label text="merged Result" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Label text="local StageSet" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+
+        <ListView GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS"
                   fx:id="listLeft"/>
-        <ListView GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS"
+        <ListView GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS"
                   fx:id="listMerge"/>
-        <ListView GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS"
+        <ListView GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS"
                   fx:id="listRight"/>
     </children>
 </GridPane>

@@ -32,9 +32,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.jdeferred.Deferred;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -42,8 +39,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
 import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * Created by xor on 6/25/16.
@@ -83,34 +81,6 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         this.meinAuthService = meinAuthService;
         showServices();
     }
-
-
-
-
-    private Promise<PopupContentFX, Void, Void> loadPopup(String containingPath) {
-        Deferred<PopupContentFX, Void, Void> deferred = new DeferredObject<>();
-        Platform.runLater(() -> {
-            N.r(() -> {
-                FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/popup.fxml"));
-                Parent root = null;
-                root = loader.load();
-                Scene scene = new Scene(root);
-                scene.getStylesheets().add("de/mein/modena_dark.css");
-                Stage stage = new Stage();
-                stage.setTitle("MeinAuthAdmin.Popup '" + meinAuthService.getName() + "'");
-                stage.setScene(scene);
-                stage.show();
-
-                PopupContainerFX popupController = loader.getController();
-                popupController.load(containingPath).done(contentFX -> {
-                    contentFX.setStage(stage);
-                    deferred.resolve(contentFX);
-                });
-            });
-        });
-        return deferred;
-    }
-
 
     public MeinAuthAdminFX() {
 
@@ -253,7 +223,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     public void onNotificationFromService(IMeinService meinService, MeinNotification meinNotification) {
         N.r(() -> {
             notifications.add(meinNotification);
-            trayIcon.displayMessage(meinNotification.getTitle(),meinNotification.getText(),TrayIcon.MessageType.INFO);
+            trayIcon.displayMessage(meinNotification.getTitle(), meinNotification.getText(), TrayIcon.MessageType.INFO);
 //            Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
 //            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());
 //            BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
@@ -285,25 +255,28 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         trayIcon.setImageAutoSize(true);
         //Set tooltip text for the tray icon
         trayIcon.setToolTip("System tray icon demo");
-        trayIcon.addActionListener(e -> {
-            Platform.runLater(() -> {
-                N.r(() -> {
-                    FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("de/mein/auth/notificationcenter.fxml"));
-                    Parent root = loader.load();
-                    NotificationCenter notificationCenter = loader.getController();
-                    notificationCenter.setMeinAuthAdminFX(this);
-                    Scene scene = new Scene(root);
-                    scene.getStylesheets().add("de/mein/modena_dark.css");
-                    Stage stage = new Stage();
-                    stage.setTitle("Notification Center");
-                    stage.setScene(scene);
-                    stage.show();
-                    System.out.println("MeinAuthAdminFX.displayTray");
-                    notificationCenter.showNotifications();
-                });
-
-            });
-        });
+        //add menu. note: trayIcon.actionListener is not called on KDE Plasma 5. that's why
+        N.INoTryRunnable notificationCenterRunnable = () -> {
+            FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("de/mein/auth/notificationcenter.fxml"));
+            Parent root = loader.load();
+            NotificationCenter notificationCenter = loader.getController();
+            notificationCenter.setMeinAuthAdminFX(this);
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add("de/mein/modena_dark.css");
+            Stage stage = new Stage();
+            stage.setTitle("Notification Center");
+            stage.setScene(scene);
+            stage.show();
+            System.out.println("MeinAuthAdminFX.displayTray");
+            notificationCenter.showNotifications();
+        };
+        PopupMenu menu = new PopupMenu();
+        java.awt.MenuItem menuItem = new java.awt.MenuItem();
+        menuItem.setLabel("NotificationCenter");
+        menuItem.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
+        menu.add(menuItem);
+        trayIcon.setPopupMenu(menu);
+        trayIcon.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
         tray.add(trayIcon);
         //trayIcon.displayMessage("Hello, World", "notification demo", TrayIcon.MessageType.INFO);
     }
@@ -381,12 +354,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
                         Scene scene = new Scene(root);
                         //apply theme
                         scene.getStylesheets().add(MeinAuthAdmin.class.getResource("/de/mein/modena_dark.css").toExternalForm());
-                        //set app icon
-                        Image image = new Image("/de/mein/icon/app_square.png");
-                        Stage stage = new Stage();
-                        stage.getIcons().add(image);
+                        Stage stage = createStage(scene);
                         stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");
-                        stage.setScene(scene);
                         stage.show();
                         stage.setOnCloseRequest(event -> {
                             meinAuthAdminFXES[0].shutDown();
@@ -402,6 +371,15 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         );
         lock.lock();
         return meinAuthAdminFXES[0];
+    }
+
+    public static Stage createStage(Scene scene){
+        Image image = new Image("/de/mein/icon/app_square.png");
+        Stage stage = new Stage();
+        stage.getIcons().add(image);
+        scene.getStylesheets().add("de/mein/modena_dark.css");
+        stage.setScene(scene);
+        return stage;
     }
 
     public void hideBottomButtons() {
