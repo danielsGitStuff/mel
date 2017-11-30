@@ -1,10 +1,9 @@
 package de.mein.drive.service;
 
 import de.mein.auth.tools.N;
-import de.mein.sql.Hash;
-import de.mein.drive.data.DriveSettings;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.sync.SyncHandler;
@@ -12,14 +11,12 @@ import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.WasteDao;
-import de.mein.sql.ISQLResource;
+import de.mein.sql.Hash;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * erases files and directories. moves files to the wastebin folder and keeps track of the wastebin folders content.
@@ -57,7 +54,7 @@ public class Wastebin {
     public void maintenance() throws SqlQueriesException {
         final Long maxAge = driveSettings.getMaxAge();
         final Long maxSize = driveSettings.getMaxWastebinSize();
-        if (maxSize == null){
+        if (maxSize == null) {
             System.err.println("Wastebin.maintenance.ERROR: DriveSettings.maxwastebinsize not set!");
         }
         N.readSqlResource(wasteDao.getOlderThanResource(maxAge), (sqlResource, waste) -> rm(waste));
@@ -317,6 +314,7 @@ public class Wastebin {
         waste.getInplace().v(false);
         waste.getSize().v(target.length());
         waste.getName().v(file.getName());
+        waste.getFlagDelete().v(false);
         wasteDao.insert(waste);
         File movedTo = this.moveToBin(waste, target);
         //todo tell a worker to investigate the deferred directory

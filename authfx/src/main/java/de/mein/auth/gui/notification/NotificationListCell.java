@@ -7,6 +7,7 @@ import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -63,9 +64,6 @@ public class NotificationListCell extends ListCell<MeinNotification> {
                         BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
                         String containingPath = bootLoaderFX.getPopupFXML(meinService, notification);
                         Popup popup = new Popup(meinAuthService, notification, containingPath);
-//                        loadPopup(containingPath).done(popupContentFX -> {
-//                            popupContentFX.init(meinService, meinNotification);
-//                        });
                     }
                 });
             });
@@ -80,7 +78,7 @@ public class NotificationListCell extends ListCell<MeinNotification> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            setGraphic(box);
+            Platform.runLater(() -> setGraphic(box));
         }
     }
 }

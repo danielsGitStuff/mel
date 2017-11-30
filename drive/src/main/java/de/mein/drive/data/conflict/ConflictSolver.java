@@ -312,7 +312,10 @@ public class ConflictSolver extends SyncStageMerger {
             } else {
                 System.err.println(getClass().getSimpleName() + ".solve()... strange things happened. but it is probably ok");
                 // it does not exist on the right side, so it must be deleted
-                solvedStage = left.setDeleted(true);
+                if (conflict.hasLeft() && conflict.isRight())
+                    solvedStage = left.setDeleted(true);
+                else if (conflict.hasRight() && conflict.isLeft())
+                    solvedStage = right.setDeleted(true);
 //                if (left.getParentIdPair().notNull())
 //                    left.setParentId(oldeNewIdMap.get(left.getParentId()));
             }

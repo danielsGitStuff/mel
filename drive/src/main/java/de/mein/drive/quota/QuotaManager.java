@@ -74,6 +74,16 @@ public class QuotaManager {
                 stageSetId));
         final Long availableSpace = driveSettings.getRootDirectory().getOriginalFile().getFreeSpace();
         //try to clean up wastebin if that happens
+        if (requiredSpace == null) {
+            System.err.println("QuotaManager.freeSpaceForStageSet.FIX:THIS!!!");
+            System.err.println("QuotaManager.freeSpaceForStageSet.FIX:THIS!!!");
+            System.err.println("QuotaManager.freeSpaceForStageSet.FIX:THIS!!!");
+            System.err.println("QuotaManager.freeSpaceForStageSet.FIX:THIS!!!");
+            System.err.println("QuotaManager.freeSpaceForStageSet.FIX:THIS!!!");
+            System.err.println("QuotaManager.freeSpaceForStageSet.FIX:THIS!!!");
+            System.err.println("QuotaManager.freeSpaceForStageSet.FIX:THIS!!!");
+            requiredSpace = 0L;
+        }
         if (requiredSpace > availableSpace) {
             freeSpace(requiredSpace - availableSpace, stageSetId);
         }

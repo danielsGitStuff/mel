@@ -41,6 +41,7 @@ public class Popup {
                 if (resultMessage == null) {
                     container.getChildren().clear();
                     //dereference
+                    notification.cancel();
                     btnOk.setOnAction(event1 -> {
                     });
                     container.getScene().getWindow().hide();
