@@ -212,6 +212,7 @@ public class TransferManager extends DeferredRunnable {
                             notification.setProgress(max, current, false);
                         else {
                             notification.cancel();
+                            activeTransfers.remove(key);
                         }
                     }
                 } else {

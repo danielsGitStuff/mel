@@ -29,6 +29,26 @@ public class MeinAuthServerTest {
         public void onRegistrationCompleted(Certificate partnerCertificate) {
 
         }
+
+        @Override
+        public void onRemoteRejected(Certificate partnerCertificate) {
+
+        }
+
+        @Override
+        public void onLocallyRejected(Certificate partnerCertificate) {
+
+        }
+
+        @Override
+        public void onRemoteAccepted(Certificate partnerCertificate) {
+
+        }
+
+        @Override
+        public void onLocallyAccepted(Certificate partnerCertificate) {
+
+        }
     };
 
 
@@ -158,6 +178,26 @@ public class MeinAuthServerTest {
 
                 @Override
                 public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onRemoteRejected(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onLocallyRejected(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onRemoteAccepted(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void onLocallyAccepted(Certificate partnerCertificate) {
 
                 }
             });

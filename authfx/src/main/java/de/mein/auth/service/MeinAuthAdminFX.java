@@ -3,14 +3,15 @@ package de.mein.auth.service;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
-import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.gui.*;
+import de.mein.auth.gui.notification.NotificationCenter;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.sql.SqlQueriesException;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -41,9 +42,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.*;
 import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Set;
 
 /**
  * Created by xor on 6/25/16.
@@ -85,21 +85,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     }
 
 
-    @Override
-    public void onNotificationFromService(IMeinService meinService, MeinNotification meinNotification) {
-        N.r(() -> {
-            Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
-            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());
-            BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
-            if (bootloader instanceof BootLoaderFX) {
-                BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
-                String containingPath = bootLoaderFX.getPopupFXML(meinService, meinNotification);
-                loadPopup(containingPath).done(popupContentFX -> {
-                    popupContentFX.init(meinService, meinNotification);
-                });
-            }
-        });
-    }
+
 
     private Promise<PopupContentFX, Void, Void> loadPopup(String containingPath) {
         Deferred<PopupContentFX, Void, Void> deferred = new DeferredObject<>();
@@ -261,6 +247,30 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         imgSettings.setImage(new Image("/de/mein/icon/settings.n.png", IMAGE_SIZE, IMAGE_SIZE, true, true));
     }
 
+    private ObservableList<MeinNotification> notifications = FXCollections.observableArrayList();
+
+    @Override
+    public void onNotificationFromService(IMeinService meinService, MeinNotification meinNotification) {
+        N.r(() -> {
+            notifications.add(meinNotification);
+            trayIcon.displayMessage(meinNotification.getTitle(),meinNotification.getText(),TrayIcon.MessageType.INFO);
+//            Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
+//            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());
+//            BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
+//            if (bootloader instanceof BootLoaderFX) {
+//                BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
+//                String containingPath = bootLoaderFX.getPopupFXML(meinService, meinNotification);
+//                loadPopup(containingPath).done(popupContentFX -> {
+//                    popupContentFX.init(meinService, meinNotification);
+//                });
+//            }
+        });
+    }
+
+    public ObservableList<MeinNotification> getNotifications() {
+        return notifications;
+    }
+
     public void displayTray() throws AWTException, IOException {
         //Obtain only one instance of the SystemTray object
         SystemTray tray = SystemTray.getSystemTray();
@@ -275,8 +285,31 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         trayIcon.setImageAutoSize(true);
         //Set tooltip text for the tray icon
         trayIcon.setToolTip("System tray icon demo");
+        trayIcon.addActionListener(e -> {
+            Platform.runLater(() -> {
+                N.r(() -> {
+                    FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("de/mein/auth/notificationcenter.fxml"));
+                    Parent root = loader.load();
+                    NotificationCenter notificationCenter = loader.getController();
+                    notificationCenter.setMeinAuthAdminFX(this);
+                    Scene scene = new Scene(root);
+                    scene.getStylesheets().add("de/mein/modena_dark.css");
+                    Stage stage = new Stage();
+                    stage.setTitle("Notification Center");
+                    stage.setScene(scene);
+                    stage.show();
+                    System.out.println("MeinAuthAdminFX.displayTray");
+                    notificationCenter.showNotifications();
+                });
+
+            });
+        });
         tray.add(trayIcon);
-        trayIcon.displayMessage("Hello, World", "notification demo", TrayIcon.MessageType.INFO);
+        //trayIcon.displayMessage("Hello, World", "notification demo", TrayIcon.MessageType.INFO);
+    }
+
+    public MeinAuthService getMeinAuthService() {
+        return meinAuthService;
     }
 
     private void onCreateMenuItemClicked(String bootLoaderName) throws IllegalAccessException, SqlQueriesException, InstantiationException {

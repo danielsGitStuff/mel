@@ -97,6 +97,26 @@ public class DriveFXTest {
             public void onRegistrationCompleted(Certificate partnerCertificate) {
 
             }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
+
+            }
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
@@ -133,6 +153,26 @@ public class DriveFXTest {
             public void onRegistrationCompleted(Certificate partnerCertificate) {
 
             }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
+
+            }
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
@@ -145,7 +185,7 @@ public class DriveFXTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                createController.createDriveServerService("testiServer", testdir.getAbsolutePath());
+                createController.createDriveServerService("testiServer", testdir.getAbsolutePath(),.1f,30);
             });
         });
         lock.lockWrite();
@@ -171,6 +211,26 @@ public class DriveFXTest {
             public void onRegistrationCompleted(Certificate partnerCertificate) {
 
             }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
+
+            }
         };
         IRegisteredHandler allowRegisteredHandler = (meinAuthService, registered) -> {
             DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
@@ -193,7 +253,7 @@ public class DriveFXTest {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
                     DriveCreateController createController = new DriveCreateController(meinAuthService);
-                    Promise<MeinDriveClientService, Exception, Void> clientBooted = createController.createDriveClientService("drive client", testdir.getAbsolutePath(), 1L, tmp);
+                    Promise<MeinDriveClientService, Exception, Void> clientBooted = createController.createDriveClientService("drive client", testdir.getAbsolutePath(), 1L, tmp,.1f,30);
                     System.out.println("DriveFXTest.connectAcceptingClient");
                     clientBooted.done(result1 -> System.out.println("DriveFXTest.connectAcceptingClient.j89veaj4"));
                 }));
@@ -225,6 +285,26 @@ public class DriveFXTest {
             public void onRegistrationCompleted(Certificate partnerCertificate) {
 
             }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
+
+            }
         };
         IRegisteredHandler allowRegisteredHandler = (meinAuthService, registered) -> {
             DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
@@ -245,7 +325,7 @@ public class DriveFXTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                MeinDriveServerService serverService = createController.createDriveServerService("testiServer", testdir.getAbsolutePath());
+                MeinDriveServerService serverService = createController.createDriveServerService("testiServer", testdir.getAbsolutePath(),.1f,30);
                 DriveFXTest.tmp = serverService.getUuid();
                 connectAcceptingClient();
             });
@@ -276,6 +356,26 @@ public class DriveFXTest {
             public void onRegistrationCompleted(Certificate partnerCertificate) {
 
             }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
+
+            }
         };
         IRegisteredHandler allowRegisteredHandler = (meinAuthService, registered) -> {
             DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
@@ -296,7 +396,7 @@ public class DriveFXTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                createController.createDriveServerService("testiServer", testdir.getAbsolutePath());
+                createController.createDriveServerService("testiServer", testdir.getAbsolutePath(),.1f,30);
             });
         });
         lock.lockWrite();
@@ -327,6 +427,26 @@ public class DriveFXTest {
 
             @Override
             public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
 
             }
         };
@@ -397,6 +517,26 @@ public class DriveFXTest {
 
             @Override
             public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
 
             }
         };
@@ -479,6 +619,26 @@ public class DriveFXTest {
             public void onRegistrationCompleted(Certificate partnerCertificate) {
 
             }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
+
+            }
         };
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
@@ -496,7 +656,7 @@ public class DriveFXTest {
                 System.out.println("DriveFXTest.driveGui.1.booted");
                 standAloneAuth1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath());
+                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath(),.1f,30);
                 boot2.boot().done(standAloneAuth2 -> {
                     System.out.println("DriveFXTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(allowRegisterHandler);
@@ -508,7 +668,7 @@ public class DriveFXTest {
                             runner.r(() -> {
                                 System.out.println("DriveFXTest.driveGui.connected");
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid());
+                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(),.1f,30);
                                 promise.done(clientDriveService -> runner.r(() -> {
                                             System.out.println("DriveFXTest attempting first syncThisClient");
                                             clientSyncListener.testStructure.setMaClient(standAloneAuth2)

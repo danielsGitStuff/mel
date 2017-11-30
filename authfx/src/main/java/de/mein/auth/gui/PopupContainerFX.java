@@ -14,6 +14,7 @@ import org.jdeferred.impl.DeferredObject;
 /**
  * Created by xor on 5/30/17.
  */
+@Deprecated
 public class PopupContainerFX {
     @FXML
     private GridPane container;
@@ -24,6 +25,7 @@ public class PopupContainerFX {
         DeferredObject<PopupContentFX, Void, Void> deferred = new DeferredObject<>();
         Platform.runLater(() -> N.r(() -> {
             FXMLLoader contentLoader = new FXMLLoader(PopupContainerFX.class.getClassLoader().getResource(containingPath));
+
             Parent root = contentLoader.load();
             PopupContentFX contentController = contentLoader.getController();
             container.add(root, 0, 0);
