@@ -9,71 +9,81 @@
 <HBox maxWidth="1.7976931348623157E308" maxHeight="Infinity" prefHeight="400" prefWidth="755.0"
       xmlns="http://javafx.com/javafx/8.0.121"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.service.MeinAuthAdminFX">
-    <VBox maxHeight="1.7976931348623157E308" >
-        <Accordion BorderPane.alignment="CENTER">
-            <panes>
-                <TitledPane text="MeinAuth">
-                    <content>
-                        <VBox>
-                            <children>
+    <BorderPane maxHeight="1.7976931348623157E308" style="-fx-padding:0 1 0 0">
+        <top>
+            <Accordion BorderPane.alignment="CENTER">
+                <panes>
+                    <TitledPane text="MeinAuth">
+                        <content>
+                            <VBox>
+                                <children>
 
 
-                                <Button fx:id="btnInfo" alignment="TOP_LEFT" maxWidth="Infinity" mnemonicParsing="false"
-                                        text="Info">
-                                    <graphic>
-                                        <ImageView fx:id="imgInfo"/>
-                                    </graphic>
-                                </Button>
+                                    <Button fx:id="btnInfo" alignment="TOP_LEFT" maxWidth="Infinity"
+                                            mnemonicParsing="false"
+                                            text="Info">
+                                        <graphic>
+                                            <ImageView fx:id="imgInfo"/>
+                                        </graphic>
+                                    </Button>
 
-                                <Button fx:id="btnOthers" alignment="TOP_LEFT" maxWidth="Infinity"
-                                        mnemonicParsing="false" text="Connected Instances">
-                                    <graphic>
-                                        <ImageView fx:id="imgOthers"/>
-                                    </graphic>
-                                </Button>
+                                    <Button fx:id="btnOthers" alignment="TOP_LEFT" maxWidth="Infinity"
+                                            mnemonicParsing="false" text="Connected Instances">
+                                        <graphic>
+                                            <ImageView fx:id="imgOthers"/>
+                                        </graphic>
+                                    </Button>
 
-                                <Button fx:id="btnPairing" alignment="TOP_LEFT" maxWidth="Infinity"
-                                        mnemonicParsing="false" text="Pairing">
-                                    <graphic>
-                                        <ImageView fx:id="imgPairing"/>
-                                    </graphic>
-                                </Button>
+                                    <Button fx:id="btnPairing" alignment="TOP_LEFT" maxWidth="Infinity"
+                                            mnemonicParsing="false" text="Pairing">
+                                        <graphic>
+                                            <ImageView fx:id="imgPairing"/>
+                                        </graphic>
+                                    </Button>
 
 
-                                <Button fx:id="btnAccess" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity"
-                                        mnemonicParsing="false" prefHeight="20.0" text="Access">
-                                    <graphic>
-                                        <ImageView fx:id="imgAccess"/>
-                                    </graphic>
-                                </Button>
-                                <Button fx:id="btnSettings" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity"
-                                        mnemonicParsing="false" prefHeight="20.0" text="Settings">
-                                    <graphic>
-                                        <ImageView fx:id="imgSettings"/>
-                                    </graphic>
-                                </Button>
+                                    <Button fx:id="btnAccess" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity"
+                                            mnemonicParsing="false" prefHeight="20.0" text="Access">
+                                        <graphic>
+                                            <ImageView fx:id="imgAccess"/>
+                                        </graphic>
+                                    </Button>
+                                    <Button fx:id="btnSettings" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity"
+                                            mnemonicParsing="false" prefHeight="20.0" text="Settings">
+                                        <graphic>
+                                            <ImageView fx:id="imgSettings"/>
+                                        </graphic>
+                                    </Button>
 
-                            </children>
-                            <rotationAxis>
-                                <Point3D/>
-                            </rotationAxis>
-                        </VBox>
-                    </content>
-                </TitledPane>
-                <TitledPane fx:id="tpServices" text="Services">
-                    <content>
-                        <VBox fx:id="vboxServices">
+                                </children>
+                                <rotationAxis>
+                                    <Point3D/>
+                                </rotationAxis>
+                            </VBox>
+                        </content>
+                    </TitledPane>
+                    <TitledPane fx:id="tpServices" text="Services">
+                        <content>
+                            <VBox fx:id="vboxServices">
 
-                        </VBox>
-                    </content>
-                </TitledPane>
-            </panes>
-        </Accordion>
+                            </VBox>
+                        </content>
+                    </TitledPane>
+                </panes>
+            </Accordion>
+        </top>
+        <bottom>
+            <Button fx:id="btnNotifications" text="Notifications" maxWidth="Infinity">
+                <graphic>
+                    <ImageView fx:id="imgNotifications"/>
+                </graphic>
+            </Button>
+        </bottom>
         <opaqueInsets>
             <Insets/>
         </opaqueInsets>
-    </VBox>
-    <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" >
+    </BorderPane>
+    <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
         <bottom>
             <HBox fx:id="hBoxButtons" alignment="CENTER" maxWidth="1.7976931348623157E308"
                   BorderPane.alignment="CENTER">

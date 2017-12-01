@@ -51,4 +51,7 @@ public class NotificationCenter {
         });
     }
 
+    public void show() {
+        stage.show();
+    }
 }

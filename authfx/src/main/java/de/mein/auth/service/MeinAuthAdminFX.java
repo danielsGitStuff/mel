@@ -57,7 +57,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @FXML
     private Button btnSecondary, btnPrimary, btnAccess, btnCreateService, btnOthers, btnSettings;
     @FXML
-    private Button btnInfo, btnPairing;
+    private Button btnInfo, btnPairing, btnNotifications;
     @FXML
     private AnchorPane paneContainer;
     private AuthSettingsFX contentController;
@@ -75,6 +75,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     @FXML
     private ImageView imgInfo, imgAccess, imgOthers, imgPairing, imgSettings;
     private TrayIcon trayIcon;
+    private NotificationCenter notificationCenter;
 
     @Override
     public void start(MeinAuthService meinAuthService) {
@@ -198,6 +199,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         btnOthers.setOnAction(event -> {
             loadSettingsFX("de/mein/auth/others.fxml");
         });
+        btnNotifications.setOnAction(event -> Platform.runLater(() -> N.r(this::loadNotificationCenter)));
         btnAccess.setOnAction(event -> loadSettingsFX("de/mein/auth/access.fxml"));
         btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/pairing.fxml"));
         tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showServices());
@@ -257,6 +259,21 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         trayIcon.setToolTip("System tray icon demo");
         //add menu. note: trayIcon.actionListener is not called on KDE Plasma 5. that's why
         N.INoTryRunnable notificationCenterRunnable = () -> {
+            loadNotificationCenter();
+        };
+        PopupMenu menu = new PopupMenu();
+        java.awt.MenuItem menuItem = new java.awt.MenuItem();
+        menuItem.setLabel("NotificationCenter");
+        menuItem.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
+        menu.add(menuItem);
+        trayIcon.setPopupMenu(menu);
+        trayIcon.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
+        tray.add(trayIcon);
+        //trayIcon.displayMessage("Hello, World", "notification demo", TrayIcon.MessageType.INFO);
+    }
+
+    private NotificationCenter loadNotificationCenter() throws IOException {
+        if (notificationCenter == null) {
             FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("de/mein/auth/notificationcenter.fxml"));
             Parent root = loader.load();
             NotificationCenter notificationCenter = loader.getController();
@@ -269,16 +286,10 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
             stage.show();
             System.out.println("MeinAuthAdminFX.displayTray");
             notificationCenter.showNotifications();
-        };
-        PopupMenu menu = new PopupMenu();
-        java.awt.MenuItem menuItem = new java.awt.MenuItem();
-        menuItem.setLabel("NotificationCenter");
-        menuItem.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
-        menu.add(menuItem);
-        trayIcon.setPopupMenu(menu);
-        trayIcon.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
-        tray.add(trayIcon);
-        //trayIcon.displayMessage("Hello, World", "notification demo", TrayIcon.MessageType.INFO);
+        } else {
+            notificationCenter.show();
+        }
+        return notificationCenter;
     }
 
     public MeinAuthService getMeinAuthService() {
@@ -373,7 +384,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         return meinAuthAdminFXES[0];
     }
 
-    public static Stage createStage(Scene scene){
+    public static Stage createStage(Scene scene) {
         Image image = new Image("/de/mein/icon/app_square.png");
         Stage stage = new Stage();
         stage.getIcons().add(image);

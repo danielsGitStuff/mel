@@ -286,6 +286,9 @@ public class ConflictSolver extends SyncStageMerger {
         final String key = Conflict.createKey(left, right);
         if (conflicts.containsKey(key)) {
             Conflict conflict = conflicts.remove(key);
+            //todo debug
+            if (conflict.hasRight() && conflict.hasDecision() && conflict.getRight().getName().equals("samesub"))
+                System.out.println("ConflictSolver.solve.debug1231");
             if (conflict.isRight() && conflict.hasRight()) {
                 solvedStage = right;
                 if (left != null) {
@@ -312,12 +315,16 @@ public class ConflictSolver extends SyncStageMerger {
             } else {
                 System.err.println(getClass().getSimpleName() + ".solve()... strange things happened. but it is probably ok");
                 // it does not exist on the right side, so it must be deleted
-                if (conflict.hasLeft() && conflict.isRight())
+                if (conflict.hasLeft() && conflict.isRight()) {
                     solvedStage = left.setDeleted(true);
-                else if (conflict.hasRight() && conflict.isLeft())
+                }
+                else if (conflict.hasRight() && conflict.isLeft()) {
                     solvedStage = right.setDeleted(true);
+                }
+
 //                if (left.getParentIdPair().notNull())
 //                    left.setParentId(oldeNewIdMap.get(left.getParentId()));
+//                solvedStage = null;
             }
         } else if (left != null) {
             solvedStage = left;

@@ -233,7 +233,7 @@ public abstract class SyncHandler {
                 Stage stage = stages.getNext();
                 while (stage != null) {
                     //todo debug
-                    if (stage.getName().equals("sub2.txt"))
+                    if (stage.getName().equals("samedir"))
                         System.out.println("SyncHandler.commitStag.debugn3uivw34e");
                     if (stage.getName().equals("sub2.txt"))
                         System.out.println("SyncHandler.commitStag.debugl,b45ni");

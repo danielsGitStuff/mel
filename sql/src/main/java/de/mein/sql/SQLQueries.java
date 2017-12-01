@@ -298,6 +298,7 @@ public class SQLQueries extends ISQLQueries {
                 int count = 1;
                 for (Object arg : args) {
                     pstmt.setObject(count, arg);
+                    count++;
                 }
             }
             result = pstmt.execute();
@@ -321,8 +322,6 @@ public class SQLQueries extends ISQLQueries {
         }
         return resultTransformer.convert(clazz, result);
     }
-
-
 
 
     /**
@@ -465,7 +464,6 @@ public class SQLQueries extends ISQLQueries {
         connection.rollback();
         connection.setAutoCommit(true);
     }
-
 
 
     @Override

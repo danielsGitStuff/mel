@@ -65,6 +65,8 @@ public class Conflict {
     }
 
     public Stage getChoice() {
+        if (isRight == null)
+            return null;
         if (isRight) {
             if (rStage != null)
                 return rStage;

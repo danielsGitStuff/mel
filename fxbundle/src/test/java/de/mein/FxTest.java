@@ -85,7 +85,7 @@ public class FxTest {
         DriveTest driveTest = new DriveTest();
         MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
 
-        MeinBoot restartMeinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        MeinBoot restartMeinBoot = new MeinBoot(new DriveTest().createJson1(), DriveFXBootLoader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
         driveTest.complexClientConflictImpl(meinBoot, null);
         new WaitLock().lock().lock();
     }

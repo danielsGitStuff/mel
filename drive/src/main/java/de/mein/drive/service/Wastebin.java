@@ -208,6 +208,7 @@ public class Wastebin {
         waste.getInplace().v(false);
         waste.getName().v(file.getName());
         waste.getSize().v(file.length());
+        waste.getFlagDelete().v(false);
         wasteDao.insert(waste);
         indexer.ignorePath(file.getAbsolutePath(), 1);
         moveToBin(waste, file);
