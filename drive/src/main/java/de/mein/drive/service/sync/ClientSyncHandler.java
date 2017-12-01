@@ -117,7 +117,7 @@ public class ClientSyncHandler extends SyncHandler {
             Promise<MeinValidationProcess, Exception, Void> connectedPromise = meinAuthService.connect(driveSettings.getClientSettings().getServerCertId());
             connectedPromise.done(mvp -> N.r(() -> {
                 Commit commit = new Commit()
-                        .setStages(driveDatabaseManager.getStageDao().getStagesByStageSetAsList(stageSetId))
+                        .setStages(driveDatabaseManager.getStageDao().getStagesByStageSetForCommit(stageSetId))
                         .setServiceUuid(meinDriveService.getUuid())
                         .setBasedOnVersion(driveDatabaseManager.getLatestVersion());
                 mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> N.r(() -> {
