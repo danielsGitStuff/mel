@@ -478,4 +478,10 @@ StageDao extends Dao.LockingDao {
         Long version = sqlQueries.queryValue(query, Long.class);
         return version;
     }
+
+    public Long getMaxOrder(Long stageSetId) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String query = "select coalesce (max(" + stage.getOrderPair().k() + "),0) from " + stage.getTableName() + " where " + stage.getOrderPair().k() + "=?";
+        return sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(stageSetId));
+    }
 }

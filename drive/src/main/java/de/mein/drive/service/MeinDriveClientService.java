@@ -37,7 +37,6 @@ import java.util.logging.Logger;
 public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> {
 
     private static Logger logger = Logger.getLogger(MeinDriveClientService.class.getName());
-    private DriveSyncListener syncListener;
 
     public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
@@ -58,11 +57,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         }
     }
 
-    @Override
-    public void onTransfersDone() {
-        if (syncListener != null)
-            syncListener.onTransfersDone();
-    }
+
 
     @Override
     protected boolean workWorkWork(Job unknownJob) {
@@ -116,13 +111,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         super.addJob(job);
     }
 
-    public void setSyncListener(DriveSyncListener syncListener) {
-        this.syncListener = syncListener;
-    }
 
-    private DriveSyncListener getSyncListener() {
-        return syncListener;
-    }
 
     @Override
     protected ClientSyncHandler initSyncHandler() {
@@ -174,15 +163,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
 
-    public void onSyncFailed() {
-        if (syncListener != null)
-            syncListener.onSyncFailed();
-    }
 
-    public void onSyncDone() {
-        if (syncListener != null)
-            syncListener.onSyncDone();
-    }
 
     public void onConflicts() {
         System.out.println("MeinDriveClientService.onConflicts.oj9h034800");

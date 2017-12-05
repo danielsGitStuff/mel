@@ -21,11 +21,13 @@ import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -39,7 +41,7 @@ public class ClientSyncHandler extends SyncHandler {
     private Map<String, ConflictSolver> conflictSolverMap = new keks<>();
     private Map<Long, Set<ConflictSolver>> relatedSolvers = new HashMap<>();
 
-    private class keks<K,V> extends HashMap<K,V>{
+    private class keks<K, V> extends HashMap<K, V> {
         @Override
         public V put(K key, V value) {
             return super.put(key, value);
@@ -321,7 +323,7 @@ public class ClientSyncHandler extends SyncHandler {
                 // method should create a new CommitJob with conflict solving details
                 handleConflict(updateSets.get(0), stagedFromFs.get(0));
                 setupTransfer();
-                transferManager.research();
+                //transferManager.research();
                 System.out.println("ClientSyncHandler.commitJob.fwq3j0");
                 return;
             } else if (stagedFromFs.size() == 1) {
@@ -384,7 +386,7 @@ public class ClientSyncHandler extends SyncHandler {
             conflictSolver = conflictSolverMap.get(identifier);
             if (conflictSolver.isSolved()) {
                 //todo debug
-                if (serverStageSet.getId().v() == 8 && stagedFromFs.getId().v() == 11)
+                if (serverStageSet.getId().v() == 3 && stagedFromFs.getId().v() == 6)
                     System.out.println("ClientSyncHandler.handleConflict.debung0vbgiw435g");
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
                 conflictSolver.setSolving(false);
@@ -409,13 +411,16 @@ public class ClientSyncHandler extends SyncHandler {
             } else {
                 // todo FsDir hash conflicts
                 conflictSolver.directoryStuff();
-                conflictSolver.cleanup();
                 try {
                     this.commitStage(serverStageSet.getId().v());
+                    this.deleteObsolete(conflictSolver);
                 } catch (OutOfSpaceException e) {
                     e.printStackTrace();
                     meinDriveService.onInsufficientSpaceAvailable(serverStageSet.getId().v());
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+                conflictSolver.cleanup();
 //                setupTransfer();
 //                transferManager.research();
                 Long mergedId = conflictSolver.getMergeStageSet().getId().v();
@@ -424,6 +429,22 @@ public class ClientSyncHandler extends SyncHandler {
                     meinDriveService.addJob(new CommitJob());
             }
         }
+    }
+
+    private void deleteObsolete(ConflictSolver conflictSolver) throws SqlQueriesException, IOException {
+        for (File file : conflictSolver.getObsoleteFiles()) {
+            wastebin.deleteUnknown(file);
+        }
+        for (File dir : conflictSolver.getObsoleteDirs()) {
+            dir.delete();
+        }
+
+//        N.readSqlResource(stageDao.getStagesResource(obsoleteSetId), (sqlResource, stage) -> {
+//            File file = stageDao.getFileByStage(stage);
+//            if (file != null && file.exists()) {
+//                wastebin.deleteUnknown(file);
+//            }
+//        });
     }
 
     private void putConflictSolver(ConflictSolver conflictSolver) {

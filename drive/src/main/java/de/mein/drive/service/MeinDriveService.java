@@ -14,6 +14,7 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -53,6 +54,30 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected S syncHandler;
     private Wastebin wastebin;
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
+
+    private DriveSyncListener syncListener;
+    public void setSyncListener(DriveSyncListener syncListener) {
+        this.syncListener = syncListener;
+    }
+
+    private DriveSyncListener getSyncListener() {
+        return syncListener;
+    }
+    public void onSyncFailed() {
+        if (syncListener != null)
+            syncListener.onSyncFailed();
+    }
+
+    public void onSyncDone() {
+        if (syncListener != null)
+            syncListener.onSyncDone();
+    }
+
+
+    public void onTransfersDone() {
+        if (syncListener != null)
+            syncListener.onTransfersDone();
+    }
 
     public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
@@ -263,10 +288,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     public void start() {
         System.out.println("MeinDriveService.start");
         super.start();
-    }
-
-    public void onTransfersDone() {
-
     }
 
     @Override

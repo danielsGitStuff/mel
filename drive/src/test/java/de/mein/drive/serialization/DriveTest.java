@@ -75,10 +75,10 @@ public class DriveTest {
     public void complexClientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final DriveSyncListener syncListener = new DriveSyncListener() {
-            public File file2;
-            public File file1;
-            public String rootPath;
-            public MeinDriveClientService meinDriveClientService;
+            File file2;
+            File file1;
+            String rootPath;
+            MeinDriveClientService meinDriveClientService;
             private DriveSyncListener ins = this;
             int count = 0;
             int failCount = 0;
@@ -193,10 +193,10 @@ public class DriveTest {
     public void clientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final DriveSyncListener syncListener = new DriveSyncListener() {
-            public File file2;
-            public File file1;
-            public String rootPath;
-            public MeinDriveClientService meinDriveClientService;
+            File file2;
+            File file1;
+            String rootPath;
+            MeinDriveClientService meinDriveClientService;
             private DriveSyncListener ins = this;
             int count = 0;
             int failCount = 0;
@@ -352,10 +352,10 @@ public class DriveTest {
     public void clientMergeStages() throws Exception {
         // start both instances, shutdown server, change something in client directory
         setup(new DriveSyncListener() {
-            public File file2;
-            public File file1;
-            public String rootPath;
-            public MeinDriveClientService meinDriveClientService;
+            File file2;
+            File file1;
+            String rootPath;
+            MeinDriveClientService meinDriveClientService;
             private DriveSyncListener ins = this;
             int count = 0;
 
@@ -621,7 +621,7 @@ public class DriveTest {
         System.out.println("DriveTest.deleteFsEntry.END");
     }
 
-    public Map<Long, GenericFSEntry> genList2Map(List<GenericFSEntry> entries) {
+    private Map<Long, GenericFSEntry> genList2Map(List<GenericFSEntry> entries) {
         Map<Long, GenericFSEntry> map = new HashMap<>();
         for (GenericFSEntry entry : entries) {
             map.put(entry.getId().v(), entry);
@@ -629,12 +629,12 @@ public class DriveTest {
         return map;
     }
 
-    public void setup(DriveSyncListener clientSyncListener) throws Exception {
+    private void setup(DriveSyncListener clientSyncListener) throws Exception {
         setup(false, clientSyncListener, null);
     }
 
 
-    public void startServer() throws Exception {
+    private void startServer() throws Exception {
         //setup working directories & directories with test data
         File testdir1 = new File("testdir1");
         File testdir2 = new File("testdir2");
@@ -714,7 +714,7 @@ public class DriveTest {
      * @param clientMeinBoot
      * @throws Exception
      */
-    public void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot) throws Exception {
+    private void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot) throws Exception {
         //setup working directories & directories with test data
         File testdir1 = new File("testdir1");
         File testdir2 = new File("testdir2");

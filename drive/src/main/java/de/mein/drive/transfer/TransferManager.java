@@ -154,6 +154,7 @@ public class TransferManager extends DeferredRunnable {
                                         })
                                 ).fail(exc -> {
                                     processDone.reject(groupedTransferSet);
+                                    meinDriveService.onSyncFailed();
                                 });
                             }
                         }
