@@ -432,19 +432,18 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     private void deleteObsolete(ConflictSolver conflictSolver) throws SqlQueriesException, IOException {
-        for (File file : conflictSolver.getObsoleteFiles()) {
-            wastebin.deleteUnknown(file);
-        }
-        for (File dir : conflictSolver.getObsoleteDirs()) {
-            dir.delete();
-        }
-
-//        N.readSqlResource(stageDao.getStagesResource(obsoleteSetId), (sqlResource, stage) -> {
-//            File file = stageDao.getFileByStage(stage);
-//            if (file != null && file.exists()) {
-//                wastebin.deleteUnknown(file);
-//            }
-//        });
+        N.readSqlResource(stageDao.getObsoleteFileStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
+            File file = stageDao.getFileByStage(stage);
+            if (file != null && file.exists()) {
+                wastebin.deleteUnknown(file);
+            }
+        });
+        N.readSqlResource(stageDao.getObsoleteDirStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
+            File file = stageDao.getFileByStage(stage);
+            if (file != null && file.exists()) {
+                wastebin.deleteUnknown(file);
+            }
+        });
     }
 
     private void putConflictSolver(ConflictSolver conflictSolver) {

@@ -4,6 +4,7 @@ import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
+import de.mein.drive.nio.FileTools;
 import de.mein.drive.service.sync.SyncStageMerger;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
@@ -31,9 +32,7 @@ public class ConflictSolver extends SyncStageMerger {
      */
     private StageSet mergeStageSet, obsoleteStageSet;
     private final Order obsoleteOrder;
-    private Map<Long, Long> idToObsoleteMap = new HashMap<>();
-    private List<File> obsoleteFiles = new ArrayList<>();
-    private List<File> obsoleteDirs = new ArrayList<>();
+
 
     private FsDao fsDao;
     private List<ConflictSolverListener> listeners = new ArrayList<>();
@@ -63,14 +62,6 @@ public class ConflictSolver extends SyncStageMerger {
 
     public StageSet getObsoleteStageSet() {
         return obsoleteStageSet;
-    }
-
-    public List<File> getObsoleteFiles() {
-        return obsoleteFiles;
-    }
-
-    public List<File> getObsoleteDirs() {
-        return obsoleteDirs;
     }
 
     public static String createIdentifier(Long lStageSetId, Long rStageSetId) {
@@ -341,36 +332,65 @@ public class ConflictSolver extends SyncStageMerger {
                 // it must be deleted here, so it is guaranteed to be indexed.
                 // -> copy it to the left side
                 if (conflict.isLeft() && conflict.hasRight() && !conflict.hasLeft() && !conflict.getRight().getDeleted()) {
-                    Conflict parentConflict = conflict.getDependsOn();
-                    Stage parentLeft = parentConflict.getLeft();
-                    while (parentLeft == null) {
-                        parentConflict = parentConflict.getDependsOn();
-                        parentLeft = parentConflict.getLeft();
-                    }
+                    // Conflict parentConflict = conflict.getDependsOn();
+//                    Stage parentLeft = parentConflict.getLeft();
+//                    while (parentLeft == null) {
+//                        parentConflict = parentConflict.getDependsOn();
+//                        parentLeft = parentConflict.getLeft();
+//                    }
                     //connect to fs
-                    Long fsId = parentLeft.getFsId();
-                    while (fsId == null){
-
+//                    Long fsId = parentLeft.getFsId();
+                    File parentFile = stageDao.getFileByStage(conflict.getRight());
+                    Stack<File> fileStack = FileTools.getFileStack(rootDirectory, parentFile);
+                    FsEntry bottomFs = fsDao.getBottomFsEntry(fileStack);
+                    Stage bridgeStage = stageDao.getStageByFsId(bottomFs.getId().v(), obsoleteStageSet.getId().v());
+                    if (bridgeStage == null) {
+                        bridgeStage = new Stage();
+                        bridgeStage.setName(bottomFs.getName().v());
+                        bridgeStage.setFsId(bottomFs.getId().v());
+                        bridgeStage.setDeleted(false);
+                        bridgeStage.setFsParentId(bottomFs.getParentId().v());
+                        bridgeStage.setOrder(obsoleteOrder.ord());
+                        bridgeStage.setIsDirectory(bottomFs.getIsDirectory().v());
+                        bridgeStage.setStageSet(obsoleteStageSet.getId().v());
+                        stageDao.insert(bridgeStage);
+                    }
+                    Long lastBridgeId = bridgeStage.getId();
+                    // last one is our stage, so skip here
+                    while (!fileStack.empty() && fileStack.size() > 1) {
+                        File f = fileStack.pop();
+                        bridgeStage = stageDao.getSubStageByName(lastBridgeId, f.getName());
+                        if (bridgeStage == null) {
+                            bridgeStage = new Stage();
+                            bridgeStage.setName(f.getName());
+                            bridgeStage.setDeleted(false);
+                            bridgeStage.setOrder(obsoleteOrder.ord());
+                            bridgeStage.setIsDirectory(f.isDirectory());
+                            bridgeStage.setStageSet(obsoleteStageSet.getId().v());
+                            bridgeStage.setParentId(lastBridgeId);
+                            stageDao.insert(bridgeStage);
+                            lastBridgeId = bridgeStage.getId();
+                        }
                     }
 
                     Stage stage = conflict.getRight();
-                    File stageFile = stageDao.getFileByStage(stage);
-                    if (stageFile.isDirectory())
-                        obsoleteDirs.add(stageFile);
-                    else
-                        obsoleteFiles.add(stageFile);
-                    Long oldeId = stage.getId();
-                    Long oldeParentId = stage.getParentId();
-                    if (oldeParentId != null) {
-                        stage.setParentId(idToObsoleteMap.get(oldeParentId));
-                    }
-                    stage.setParentId(parentLeft.getId());
+//                    File stageFile = stageDao.getFileByStage(stage);
+//                    if (stageFile.isDirectory())
+//                        obsoleteDirs.add(stageFile);
+//                    else
+//                        obsoleteFiles.add(stageFile);
+//                    Long oldeId = stage.getId();
+//                    Long oldeParentId = stage.getParentId();
+//                    if (oldeParentId != null) {
+//                        stage.setParentId(idToObsoleteMap.get(oldeParentId));
+//                    }
+                    stage.setParentId(lastBridgeId);
                     stage.setStageSet(obsoleteStageSet.getId().v());
                     stage.setId(null);
                     stage.setOrder(obsoleteOrder.ord());
                     stage.setDeleted(true);
                     stageDao.insert(stage);
-                    idToObsoleteMap.put(oldeId, stage.getId());
+//                    idToObsoleteMap.put(oldeId, stage.getId());
                     solvedStage = null;
                 }
 

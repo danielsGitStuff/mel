@@ -306,6 +306,16 @@ public class Wastebin {
         ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
         File target = new File(deferredDir, modifiedAndInode.getiNode().toString());
         file.renameTo(target);
+
+        //if dir?!?!
+        if (target.isDirectory()) {
+            for (File f : target.listFiles()) {
+                deleteUnknown(f);
+            }
+            target.delete();
+            return;
+        }
+
         //todo hashing is blocking yet!
         String hash = Hash.md5(target);
         Waste waste = new Waste();

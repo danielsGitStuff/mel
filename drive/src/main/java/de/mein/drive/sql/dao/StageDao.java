@@ -5,6 +5,7 @@ import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.watchdog.StageIndexerRunnable;
+import de.mein.drive.nio.FileTools;
 import de.mein.drive.sql.*;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
@@ -47,12 +48,7 @@ StageDao extends Dao.LockingDao {
         if (f.getAbsolutePath().length() < rootPath.length())
             return null;
         File ff = new File(f.getAbsolutePath());
-        Stack<File> fileStack = new Stack<>();
-        while (ff.getAbsolutePath().length() > rootPath.length()) {
-            fileStack.push(ff);
-            ff = ff.getParentFile();
-        }
-
+        Stack<File> fileStack = FileTools.getFileStack(rootDirectory, ff);
         FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
         Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
         while (!fileStack.empty()) {
@@ -483,5 +479,25 @@ StageDao extends Dao.LockingDao {
         Stage stage = new Stage();
         String query = "select coalesce (max(" + stage.getOrderPair().k() + "),0) from " + stage.getTableName() + " where " + stage.getOrderPair().k() + "=?";
         return sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(stageSetId));
+    }
+
+    public Stage getSubStageByName(Long parentId, String name) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String where = stage.getParentIdPair().k() + "=? and " + stage.getNamePair().k() + "=?";
+        return sqlQueries.loadFirstRow(stage.getAllAttributes(), stage, where, ISQLQueries.whereArgs(parentId, name), Stage.class);
+    }
+
+    public ISQLResource<Stage> getObsoleteFileStagesResource(Long stageSetId) throws SqlQueriesException {
+        return obsoleteStagesResource(stageSetId, false);
+    }
+
+    public ISQLResource<Stage> getObsoleteDirStagesResource(Long stageSetId) throws SqlQueriesException {
+        return obsoleteStagesResource(stageSetId, true);
+    }
+
+    private ISQLResource<Stage> obsoleteStagesResource(Long stageSetId, boolean isDir) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String where = stage.getStageSetPair().k() + "=? and " + stage.getDeletedPair().k() + "=? and " + stage.getIsDirectoryPair().k() + "=? order by " + stage.getOrderPair().k();
+        return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId, true, isDir));
     }
 }
