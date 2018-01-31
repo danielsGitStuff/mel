@@ -2,7 +2,6 @@
   <artifact build-on-make="true" name="drive:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/drive_jar</output-path>
     <root id="root">
-      <element id="library" level="project" name="Gradle: org.bouncycastle:bcprov-jdk15on:1.54" />
       <element id="library" level="project" name="Gradle: org.hamcrest:hamcrest-core:1.3" />
       <element id="library" level="project" name="Gradle: org.xerial:sqlite-jdbc:3.18.0" />
       <element id="library" level="project" name="Gradle: junit:junit:4.12" />
@@ -28,6 +27,8 @@
         <element id="module-output" name="serialize_main" />
         <element id="module-output" name="sql_main" />
       </element>
+      <element id="library" level="project" name="Gradle: org.bouncycastle:bcpkix-jdk15on:1.58" />
+      <element id="library" level="project" name="Gradle: org.bouncycastle:bcprov-jdk15on:1.58" />
     </root>
   </artifact>
 </component>

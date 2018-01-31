@@ -10,5 +10,5 @@ dependencies {
     compile project(path: ':authfx')
     testCompile project(path: ':authfx')
     testCompile 'junit:junit:4.12'
-    compile 'org.jdeferred:jdeferred-core:1.2.4'
+    //compile 'org.jdeferred:jdeferred-core:1.2.4'
 }

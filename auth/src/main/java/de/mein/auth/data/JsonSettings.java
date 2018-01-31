@@ -26,6 +26,7 @@ public abstract class JsonSettings implements SerializableEntity {
             byte[] bytes = new byte[(int) file.length()];
             BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
             in.read(bytes);
+            in.close();
             String json = new String(bytes);
             JsonSettings jsonSettings = (JsonSettings) SerializableEntityDeserializer.deserialize(json);
             jsonSettings.setJsonFile(file);

@@ -3,15 +3,9 @@ package de.mein.core.serialize.serialize.reflection;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 
-
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 /**
  * collects Fields of any given Class. It also can examine classes for different
@@ -70,7 +64,7 @@ public class FieldAnalyzer {
         if (isCollection) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
             Object whatEver = parameterizedType.getActualTypeArguments()[0];
-            if (whatEver instanceof ParameterizedType) {
+            if (whatEver instanceof ParameterizedType || whatEver instanceof TypeVariable) {
                 return false;
             }
             Class<?> genericType = (Class<?>) whatEver;
@@ -84,7 +78,7 @@ public class FieldAnalyzer {
         if (isCollection) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
             Object whatEver = parameterizedType.getActualTypeArguments()[0];
-            if (whatEver instanceof ParameterizedType) {
+            if (whatEver instanceof ParameterizedType || whatEver instanceof TypeVariable) {
                 return false;
             }
             Class<?> genericType = (Class<?>) whatEver;

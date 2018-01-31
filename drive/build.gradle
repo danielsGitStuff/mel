@@ -14,7 +14,7 @@ dependencies {
     compile project(path: ':auth')
     testCompile project(path: ':auth')
     testCompile 'junit:junit:4.12'
-    compile 'org.jdeferred:jdeferred-core:1.2.4'
-    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.18.0'
-    testCompile group:  'org.xerial', name: 'sqlite-jdbc', version: '3.18.0'
+    //compile 'org.jdeferred:jdeferred-core:1.2.4'
+    //compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.18.0'
+    //testCompile group:  'org.xerial', name: 'sqlite-jdbc', version: '3.18.0'
 }

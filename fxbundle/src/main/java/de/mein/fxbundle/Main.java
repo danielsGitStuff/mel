@@ -1,10 +1,9 @@
-package de.mein;
+package de.mein.fxbundle;
 
 import de.mein.KonsoleHandler;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.gui.RegisterHandlerFX;
-import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.service.MeinAuthFxLoader;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.tools.WaitLock;

@@ -1,22 +1,28 @@
 package de.mein.core.serialize.data;
 
+import de.mein.core.serialize.SerializableEntity;
+import de.mein.core.serialize.classes.SimpleSerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Iterator;
 
 public class CachedIterableTest {
     private static File CACHE_DIR = new File("testcache");
-    private static CachedIterable<Integer> iterable;
+    private static CachedIterable iterable;
+
+
 
     @Before
     public void before() {
         CACHE_DIR.mkdirs();
-        iterable = new CachedIterable(CACHE_DIR, "test.name", 5);
+        iterable = new CachedIterable(CACHE_DIR, "test.name",5);
         System.out.println("CachedIterableTest.before.done: " + CACHE_DIR.getAbsolutePath());
     }
 
@@ -35,9 +41,23 @@ public class CachedIterableTest {
     }
 
     @Test
-    public void serialize() throws IllegalAccessException, IOException, JsonSerializationException {
-        for (Integer i = 0; i < 20; i++) {
-            iterable.add(i);
+    public void serialize() throws IllegalAccessException, IOException, JsonSerializationException, NoSuchMethodException, InvocationTargetException, InstantiationException {
+        for (Integer i = 1; i < 21; i++) {
+            iterable.add(new SimpleSerializableEntity().setPrimitive(i.toString()));
         }
+        System.out.println("CachedIterableTest.serialize.done");
     }
+
+    @Test
+    public void iterate() throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        serialize();
+        Iterator<SimpleSerializableEntity> iterator = iterable.iterator();
+        assertTrue(iterator.hasNext());
+        while (iterator.hasNext()){
+            System.out.println("CachedIterableTest.iterate: "+iterator.next().getPrimitive());
+        }
+        assertTrue(iterable.createCachedPartFile(1).exists());
+        iterable.cleanUp();
+        assertFalse(iterable.createCachedPartFile(1).exists());
+        System.out.println("CachedIterableTest.iterate.done");    }
 }

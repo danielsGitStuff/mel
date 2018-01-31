@@ -248,9 +248,9 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
         SystemTray tray = SystemTray.getSystemTray();
 
         //If the icon is a file
-        URL url = MeinAuthAdmin.class.getResource("/de/mein/icon/app_square.png");
-        File f = new File(url.getFile());
-        BufferedImage img = ImageIO.read(f);
+        //URL url = MeinAuthAdmin.class.getResource("de/mein/icon/app_square.png");
+        final String res = "/de/mein/icon/app_square.png";
+        BufferedImage img = ImageIO.read(getClass().getResourceAsStream(res));
         //Alternative (if the icon is on the classpath):
         trayIcon = new TrayIcon(img, "Tray Demo");
         //Let the system resizes the image if needed
