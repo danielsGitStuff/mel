@@ -6,13 +6,14 @@ import de.mein.core.serialize.SerializableEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CachedPart implements SerializableEntity {
+public class CachedPart implements CachedData {
     private List<SerializableEntity> elements = new ArrayList<>();
-    @JsonIgnore
-    private boolean serialized = false;
+    private int partNumber;
+    private String name;
 
-    CachedPart(int max) {
+    CachedPart(int partNumber,int max) {
         elements = new ArrayList<>(max);
+        this.partNumber = partNumber;
     }
 
     /**
@@ -25,15 +26,19 @@ public class CachedPart implements SerializableEntity {
         return elements.size();
     }
 
-     boolean isSerialized() {
-        return serialized;
-    }
-
     void add(SerializableEntity elem) {
         elements.add(elem);
     }
 
     public List<SerializableEntity> getElements() {
         return elements;
+    }
+
+    public int getPartNumber() {
+        return partNumber;
+    }
+
+    public String getName() {
+        return name;
     }
 }

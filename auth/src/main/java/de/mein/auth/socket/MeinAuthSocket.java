@@ -10,11 +10,11 @@ import de.mein.auth.socket.process.imprt.MeinCertRetriever;
 import de.mein.auth.socket.process.reg.MeinRegisterProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.sql.Hash;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.sql.Hash;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -85,7 +85,6 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     @Override
     public void onMessage(MeinSocket meinSocket, String msg) {
         try {
-            SerializableEntityDeserializer deserializer = new SerializableEntityDeserializer();
             SerializableEntity deserialized = SerializableEntityDeserializer.deserialize(msg);
             //todo debug
             if (deserialized instanceof MeinRequest) {

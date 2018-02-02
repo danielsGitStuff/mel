@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.val;
 
+import de.mein.core.serialize.data.CachedData;
 import org.bouncycastle.cert.ocsp.Req;
 
 import de.mein.auth.MeinStrings;

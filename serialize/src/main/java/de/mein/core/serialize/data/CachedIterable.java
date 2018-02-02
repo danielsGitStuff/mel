@@ -1,5 +1,6 @@
 package de.mein.core.serialize.data;
 
+import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
@@ -13,27 +14,23 @@ import java.util.Iterator;
 
 /**
  * Data structure which caches its elements to disk once it has reached its maximum size.
- *
  */
-public class CachedIterable<T extends SerializableEntity> implements SerializableEntity, Iterable<T> {
+public class CachedIterable<T extends SerializableEntity> implements Iterable<T> {
 
     private final File cacheDir;
     private final String name;
     private final int partSize;
     private int partCount = 1;
     private long size = 0;
-
-    public long getSize() {
-        return size;
-    }
-
-    protected CachedPart part;
+    private CachedPart part;
+    @JsonIgnore
+    private boolean stillInMemory = true;
 
     public CachedIterable(File cacheDir, String name, int partSize) {
         this.cacheDir = cacheDir;
         this.name = name;
         this.partSize = partSize;
-        this.part = new CachedPart(partSize);
+        this.part = new CachedPart(0, partSize);
     }
 
     public void add(SerializableEntity elem) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InstantiationException, InvocationTargetException {
@@ -54,11 +51,12 @@ public class CachedIterable<T extends SerializableEntity> implements Serializabl
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
             out.write(json.getBytes());
             out.close();
+            stillInMemory = false;
             //create a new part if still adding things
             if (serializeAnyway) {
                 part = null;
             } else {
-                part = new CachedPart(partSize);
+                part = new CachedPart(partCount, partSize);
                 partCount++;
             }
         }
@@ -80,8 +78,8 @@ public class CachedIterable<T extends SerializableEntity> implements Serializabl
     /**
      * removes all cached files from disk.
      */
-    public void cleanUp(){
-        for (Integer i = 1; i <= partCount; i++){
+    public void cleanUp() {
+        for (Integer i = 1; i <= partCount; i++) {
             File file = createCachedPartFile(i);
             file.delete();
         }
@@ -101,4 +99,11 @@ public class CachedIterable<T extends SerializableEntity> implements Serializabl
         return null;
     }
 
+    public long getSize() {
+        return size;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

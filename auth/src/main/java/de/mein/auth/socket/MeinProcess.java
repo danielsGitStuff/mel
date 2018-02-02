@@ -4,6 +4,7 @@ import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
 import de.mein.core.serialize.SerializableEntity;
+import de.mein.core.serialize.data.CachedData;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
@@ -49,6 +50,12 @@ public abstract class MeinProcess implements IRequestHandler {
             answerId = ((MeinResponse) deserialized).getResponseId();
         }
         if (answerId != null && this.requestMap.containsKey(answerId)) {
+
+            //todo go to bed for now
+            if (deserialized instanceof CachedData) {
+                //save to cache, when last part arrived, tell the process
+            }
+
             StateMsg msg = (StateMsg) deserialized;
             Dobject deferred = requestMap.get(answerId);
             this.requestMap.remove(answerId);
