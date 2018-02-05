@@ -1,11 +1,8 @@
 package de.mein.core.serialize.data;
 
 import de.mein.core.serialize.SerializableEntity;
-import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.Iterator;
 
 public class CachedIterator<T extends  SerializableEntity> implements Iterator<T> {
@@ -32,13 +29,7 @@ public class CachedIterator<T extends  SerializableEntity> implements Iterator<T
                 //read
                 File file = iterable.createCachedPartFile(partCount);
                 partCount++;
-                byte[] bytes = new byte[(int) file.length()];
-                BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
-                in.read(bytes);
-                in.close();
-                String json = new String(bytes);
-                //deserialize
-                CachedPart part = (CachedPart) SerializableEntityDeserializer.deserialize(json);
+                CachedListPart part = CachedListPart.read(file);
                 partIterator = part.getElements().iterator();
             }
             return (T) partIterator.next();

@@ -151,6 +151,10 @@ public class DriveDatabaseManager extends FileRelatedManager {
         return delta;
     }
 
+    public ISQLResource<GenericFSEntry> getDeltaResource(long version) throws SqlQueriesException {
+        return fsDao.getDeltaResource(version);
+    }
+
     public WasteDao getWasteDao() {
         return wasteDao;
     }

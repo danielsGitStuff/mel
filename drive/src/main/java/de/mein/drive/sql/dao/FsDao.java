@@ -335,6 +335,15 @@ public class FsDao extends Dao {
         return result;
     }
 
+    public ISQLResource<GenericFSEntry> getDeltaResource(long version) throws SqlQueriesException {
+        GenericFSEntry fsEntry = new GenericFSEntry();
+        String where = fsEntry.getVersion().k() + ">?";
+        List<Object> args = new ArrayList<>();
+        args.add(version);
+        ISQLResource<GenericFSEntry> result = sqlQueries.loadResource(fsEntry.getAllAttributes(),GenericFSEntry.class,where,args);
+        return result;
+    }
+
     public GenericFSEntry getGenericByINode(Long inode) throws SqlQueriesException {
         GenericFSEntry fsEntry = new GenericFSEntry();
         List<Object> args = new ArrayList<>();

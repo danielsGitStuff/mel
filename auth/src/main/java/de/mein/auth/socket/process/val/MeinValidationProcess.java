@@ -1,8 +1,5 @@
 package de.mein.auth.socket.process.val;
 
-import de.mein.core.serialize.data.CachedData;
-import org.bouncycastle.cert.ocsp.Req;
-
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
@@ -12,18 +9,27 @@ import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
 import de.mein.auth.socket.process.auth.MeinAuthProcess;
 import de.mein.core.serialize.SerializableEntity;
+import de.mein.core.serialize.data.CachedData;
+import de.mein.core.serialize.data.CachedIterable;
+import de.mein.core.serialize.data.CachedPart;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by xor on 4/27/16.
  */
 public class MeinValidationProcess extends MeinProcess {
     private final Long connectedId;
+    private final Map<String, CachedIterable> cachedAnsers = new HashMap<>();
+
+    public void registerForCachedAnswer(CachedIterable answerContainer) {
+        cachedAnsers.put(answerContainer.getName(), answerContainer);
+    }
 
 
     public static class SendException extends Exception {
@@ -56,7 +62,8 @@ public class MeinValidationProcess extends MeinProcess {
 
     @Override
     public synchronized void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) {
-        if (!handleAnswer(deserialized)) {
+
+        if (!handleCached(deserialized) && !handleAnswer(deserialized)) {
             // there is only GET_SERVICES yet
             try {
                 if (!handleGetServices(deserialized)) {
@@ -67,6 +74,35 @@ public class MeinValidationProcess extends MeinProcess {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private boolean handleCached(SerializableEntity deserialized) {
+        //todo go to bed for now
+        try {
+            if (deserialized instanceof CachedData) {
+                CachedData receivedData = (CachedData) deserialized;
+
+                CachedIterable cached = cachedAnsers.get(receivedData.getName());
+                cached.initPartsMissed(cached.getPartCount());
+                handleCachedPart(receivedData.getPart());
+                return true;
+            } else if (deserialized instanceof CachedPart) {
+                handleCachedPart((CachedPart) deserialized);
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void handleCachedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        //todo save to cache, when last part arrived, tell the process
+        CachedData cached = cachedAnsers.get(cachedPart.getName());
+        cached.onReceivedPart(cachedPart);
+        if (cached.isComplete()){
+
         }
     }
 
@@ -151,8 +187,9 @@ public class MeinValidationProcess extends MeinProcess {
 
     /**
      * locks until you received either a response or an error.<br>
-     *     useful if you do communications with a few more requests and want these to run on the same worker thread. <br>
-     *     lock on the {@link LockedRequest} to wait for a result.
+     * useful if you do communications with a few more requests and want these to run on the same worker thread. <br>
+     * lock on the {@link LockedRequest} to wait for a result.
+     *
      * @param serviceUuid
      * @param intent
      * @param payload

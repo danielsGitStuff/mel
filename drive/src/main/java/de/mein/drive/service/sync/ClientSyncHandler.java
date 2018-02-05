@@ -11,6 +11,7 @@ import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.jobs.CommitJob;
@@ -21,7 +22,6 @@ import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
-import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -657,7 +657,12 @@ public class ClientSyncHandler extends SyncHandler {
                 MeinValidationProcess mvp = connectResult.getValidationProcess();
                 long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
                 StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, null, null, newVersion);
-                LockedRequest<SyncTask> requestResult = mvp.requestLocked(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, new SyncTask().setOldVersion(version));
+                //prepare cached answer
+                String name = UUID.randomUUID().toString();
+                SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), name, DriveSettings.CACHE_LIST_SIZE)
+                        .setOldVersion(version);
+                mvp.registerForCachedAnswer(sentSyncTask);
+                LockedRequest<SyncTask> requestResult = mvp.requestLocked(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, sentSyncTask);
                 if (requestResult.successful()) runner.runTry(() -> {
                     SyncTask syncTask = requestResult.getResponse();
                     syncTask.setStageSet(stageSet);
@@ -709,15 +714,17 @@ public class ClientSyncHandler extends SyncHandler {
         DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
         Map<Long, Long> entryIdStageIdMap = new HashMap<>();
         Order order = new Order();
-        List<GenericFSEntry> entries = syncTask.getResult();
-        if (entries == null) {
+        syncTask.setCacheDirectory(meinDriveService.getCacheDirectory());
+        Iterator<GenericFSEntry> iterator = syncTask.iterator();
+        if (!iterator.hasNext()) {
             finished.resolve(null);
             return finished;
         }
         StageSet stageSet = syncTask.getStageSet();
         syncTask.setStageSetId(stageSet.getId().v());
         // stage first
-        for (GenericFSEntry genericFSEntry : entries) {
+        while (iterator.hasNext()) {
+            GenericFSEntry genericFSEntry = iterator.next();
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
             //todo duplicate

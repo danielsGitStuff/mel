@@ -46,6 +46,7 @@ import java.util.logging.Logger;
  */
 public abstract class MeinDriveService<S extends SyncHandler> extends MeinServiceWorker {
     private static Logger logger = Logger.getLogger(MeinDriveService.class.getName());
+    protected final File cacheDirectory;
     protected DriveDatabaseManager driveDatabaseManager;
     protected DriveSettings driveSettings;
     protected N runner = new N(Throwable::printStackTrace);
@@ -56,6 +57,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
 
     private DriveSyncListener syncListener;
+
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
     }
@@ -63,6 +65,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     private DriveSyncListener getSyncListener() {
         return syncListener;
     }
+
     public void onSyncFailed() {
         if (syncListener != null)
             syncListener.onSyncFailed();
@@ -81,6 +84,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
+        this.cacheDirectory = new File(serviceInstanceWorkingDirectory.getAbsolutePath() + File.separator + "cache");
     }
 
     @Override
@@ -298,5 +302,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     @Override
     public void onCommunicationsEnabled() {
 
+    }
+
+    public File getCacheDirectory() {
+        return cacheDirectory;
     }
 }

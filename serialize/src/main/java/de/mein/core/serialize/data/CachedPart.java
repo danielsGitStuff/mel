@@ -1,37 +1,21 @@
 package de.mein.core.serialize.data;
 
-import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class CachedPart implements CachedData {
-    private List<SerializableEntity> elements = new ArrayList<>();
+/**
+ * A single part which is serialized to disk.
+ */
+public abstract class CachedPart implements SerializableEntity {
     private int partNumber;
     private String name;
 
-    CachedPart(int partNumber,int max) {
-        elements = new ArrayList<>(max);
+    public CachedPart(String name, int partNumber) {
         this.partNumber = partNumber;
+        this.name = name;
     }
 
-    /**
-     * for deserialization purposes
-     */
-    public CachedPart(){
-    }
+    public CachedPart() {
 
-    int size() {
-        return elements.size();
-    }
-
-    void add(SerializableEntity elem) {
-        elements.add(elem);
-    }
-
-    public List<SerializableEntity> getElements() {
-        return elements;
     }
 
     public int getPartNumber() {
@@ -41,4 +25,9 @@ public class CachedPart implements CachedData {
     public String getName() {
         return name;
     }
+
+    public abstract <T extends SerializableEntity> void add(T elem);
+
+    public abstract int size();
+
 }

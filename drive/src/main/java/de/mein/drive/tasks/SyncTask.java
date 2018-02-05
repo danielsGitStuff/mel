@@ -3,19 +3,18 @@ package de.mein.drive.tasks;
 
 import de.mein.auth.data.IPayload;
 import de.mein.core.serialize.JsonIgnore;
+import de.mein.core.serialize.data.CachedIterable;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.StageSet;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 
 /**
  * Created by xor on 10/27/16.
  */
-public class SyncTask implements IPayload {
+public class SyncTask extends CachedIterable<GenericFSEntry> implements IPayload {
     private long oldVersion;
     private Long newVersion;
-    private List<GenericFSEntry> result = new ArrayList<>();
     @JsonIgnore
     private Long sourceCertId;
     @JsonIgnore
@@ -25,6 +24,14 @@ public class SyncTask implements IPayload {
     @JsonIgnore
     private boolean retrieveMissingInformation = true;
     private StageSet stageSet;
+
+    public SyncTask(File cacheDir, String name, int partSize) {
+        super(cacheDir, name, partSize);
+    }
+
+    public SyncTask() {
+
+    }
 
     public Long getStageSetId() {
         return stageSetId;
@@ -60,15 +67,6 @@ public class SyncTask implements IPayload {
 
     public long getOldVersion() {
         return oldVersion;
-    }
-
-    public SyncTask setResult(List<GenericFSEntry> result) {
-        this.result = result;
-        return this;
-    }
-
-    public List<GenericFSEntry> getResult() {
-        return result;
     }
 
     public void setSourceCertId(Long sourceCertId) {

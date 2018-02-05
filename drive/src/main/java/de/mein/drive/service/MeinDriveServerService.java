@@ -18,12 +18,11 @@ import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -47,9 +46,16 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         SyncTask task = (SyncTask) request.getPayload();
         driveDatabaseManager.getFsDao().lockRead();
         try {
-            List<GenericFSEntry> delta = driveDatabaseManager.getDelta(task.getOldVersion());
+            ISQLResource<GenericFSEntry> delta = driveDatabaseManager.getDeltaResource(task.getOldVersion());
+            task.setCacheDirectory(cacheDirectory);
+            GenericFSEntry next = delta.getNext();
+            while (next != null) {
+                task.add(next);
+                next = delta.getNext();
+            }
+            task.loadFirstCached();
             task.setNewVersion(driveDatabaseManager.getLatestVersion());
-            request.resolve(task.setResult(delta));
+            request.resolve(task);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
