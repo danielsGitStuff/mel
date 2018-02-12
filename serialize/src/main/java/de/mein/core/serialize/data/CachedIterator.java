@@ -29,7 +29,7 @@ public class CachedIterator<T extends  SerializableEntity> implements Iterator<T
                 //read
                 File file = iterable.createCachedPartFile(partCount);
                 partCount++;
-                CachedListPart part = CachedListPart.read(file);
+                CachedListPart part = (CachedListPart) CachedPart.read(file);
                 partIterator = part.getElements().iterator();
             }
             return (T) partIterator.next();

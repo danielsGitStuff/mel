@@ -670,7 +670,7 @@ public class DriveFXTest {
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
                                 Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(),.1f,30);
                                 promise.done(clientDriveService -> runner.r(() -> {
-                                            System.out.println("DriveFXTest attempting first syncThisClient");
+                                            System.out.println("DriveFXTest attempting first syncFromServer");
                                             clientSyncListener.testStructure.setMaClient(standAloneAuth2)
                                                     .setMaServer(standAloneAuth1)
                                                     .setClientDriveService(clientDriveService)

@@ -22,7 +22,8 @@ public class CachedIterableTest {
     @Before
     public void before() {
         CACHE_DIR.mkdirs();
-        iterable = new CachedIterable(CACHE_DIR, "test.name",5);
+        iterable = new CachedIterable(CACHE_DIR,5);
+        iterable.setCacheId(99999L);
         System.out.println("CachedIterableTest.before.done: " + CACHE_DIR.getAbsolutePath());
     }
 

@@ -15,20 +15,9 @@ public class CachedListPart extends CachedPart {
     private List<SerializableEntity> elements = new ArrayList<>();
 
 
-    public CachedListPart(String name, int partNumber, int max) {
-        super(name, partNumber);
+    public CachedListPart(Long cacheId, int partNumber, int max) {
+        super(cacheId, partNumber);
         elements = new ArrayList<>(max);
-    }
-
-    public static CachedListPart read(File file) throws IOException, JsonDeserializationException {
-        byte[] bytes = new byte[(int) file.length()];
-        BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
-        in.read(bytes);
-        in.close();
-        String json = new String(bytes);
-        //deserialize
-        CachedListPart part = (CachedListPart) SerializableEntityDeserializer.deserialize(json);
-        return part;
     }
 
     /**

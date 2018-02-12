@@ -1,6 +1,7 @@
 package de.mein.core.serialize.data;
 
 import de.mein.core.serialize.JsonIgnore;
+import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
@@ -16,24 +17,33 @@ import java.util.Set;
  * The overall class for anything which is cached. Its name is required to identify as a certain cached object.
  * Tells you how many parts the data is divided to.
  */
-public abstract class CachedData {
-    protected String name;
+public abstract class CachedData implements SerializableEntity {
+    protected Long cacheId;
     protected int partCount = 1;
     protected CachedPart part;
     protected File cacheDir;
+    protected int partSize;
+
     @JsonIgnore
     protected Set<Integer> partsMissed;
 
 
-    public CachedData(String name) {
-        this.name = name;
+    public CachedData(int partSize) {
+        this.partSize = partSize;
     }
 
     public CachedData() {
     }
 
-    public String getName() {
-        return name;
+    public Long getCacheId() {
+        return cacheId;
+    }
+
+    public CachedData setCacheId(Long cacheId) {
+        this.cacheId = cacheId;
+        if (part != null)
+            part.setCacheId(cacheId);
+        return this;
     }
 
     public boolean isStillInMemory() {
@@ -53,7 +63,7 @@ public abstract class CachedData {
 
 
     /**
-     * serializes to disk and sets part to null
+     * serializes to disk
      *
      * @throws JsonSerializationException
      * @throws IllegalAccessException
@@ -62,7 +72,7 @@ public abstract class CachedData {
      * @throws InvocationTargetException
      * @throws InstantiationException
      */
-    protected void serializePart(CachedPart part) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InvocationTargetException, InstantiationException {
+    protected void write(CachedPart part) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InvocationTargetException, InstantiationException {
         //serialize actual list, create a new one
         String json = SerializableEntitySerializer.serialize(part);
         //save to file
@@ -74,7 +84,7 @@ public abstract class CachedData {
 
 
     public File createCachedPartFile(int partCount) {
-        return new File(cacheDir.getAbsolutePath() + File.separator + name + "." + partCount + ".json");
+        return new File(cacheDir.getAbsolutePath() + File.separator + cacheId + "." + partCount + ".json");
     }
 
     public abstract void setCacheDirectory(File cacheDirectory);
@@ -84,11 +94,25 @@ public abstract class CachedData {
     }
 
     public void onReceivedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        serializePart(cachedPart);
+        write(cachedPart);
         partsMissed.remove(cachedPart.getPartNumber());
     }
 
     public boolean isComplete() {
         return partsMissed.size() == 0;
+    }
+
+    public void cleanUp() {
+        part = null;
+        partCount = 0;
+        for (int i = 0; i < partCount; i++) {
+            File f = createCachedPartFile(i);
+            try {
+                if (f.exists())
+                    f.delete();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

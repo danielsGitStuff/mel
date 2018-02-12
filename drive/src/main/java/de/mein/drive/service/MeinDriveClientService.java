@@ -7,7 +7,6 @@ import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
-import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.conflict.Conflict;
@@ -96,7 +95,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                 N.r(() -> addJob(new CommitJob(true)));
             }
         } else if (unknownJob instanceof SyncClientJob) {
-            N.r(() -> syncHandler.syncThisClient(((SyncClientJob) unknownJob).getNewVersion()));
+            N.r(() -> syncHandler.syncFromServer(((SyncClientJob) unknownJob).getNewVersion()));
         }
         return false;
     }

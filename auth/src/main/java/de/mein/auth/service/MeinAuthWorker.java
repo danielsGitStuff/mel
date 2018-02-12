@@ -4,6 +4,7 @@ import de.mein.DeferredRunnable;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.jobs.AConnectJob;
+import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.socket.MeinAuthSocket;
@@ -86,6 +87,9 @@ public class MeinAuthWorker extends MeinWorker {
 
     @Override
     public void addJob(Job job) {
+        if(job instanceof IsolatedConnectJob){
+            System.out.println("MeinAuthWorker.addJob.debugf0e4");
+        }
         super.addJob(job);
     }
 

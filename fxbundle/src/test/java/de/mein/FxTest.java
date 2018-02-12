@@ -68,7 +68,7 @@ public class FxTest {
         DriveTest driveTest = new DriveTest();
         MeinBoot meinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
         MeinBoot restartMeinBoot = new MeinBoot(new DriveTest().createJson2(), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
-        driveTest.clientConflictImpl(meinBoot, null);
+        driveTest.simpleClientConflictImpl(meinBoot, null);
         new WaitLock().lock().lock();
     }
 
@@ -732,7 +732,7 @@ public class FxTest {
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
                                 Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(), 0.1f, 30);
                                 promise.done(clientDriveService -> runner.r(() -> {
-                                            System.out.println("FxTest attempting first syncThisClient");
+                                            System.out.println("FxTest attempting first syncFromServer");
                                             clientSyncListener.testStructure.setMaClient(standAloneAuth2)
                                                     .setMaServer(standAloneAuth1)
                                                     .setClientDriveService(clientDriveService)

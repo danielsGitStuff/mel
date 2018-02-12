@@ -275,6 +275,91 @@ public class DriveTest {
         System.out.println("DriveTest.clientMergeStages.END");
     }
 
+    public void simpleClientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
+        // start both instances, shutdown server, change something in client directory
+        final DriveSyncListener syncListener = new DriveSyncListener() {
+            File file2;
+            File file1;
+            String rootPath;
+            MeinDriveClientService meinDriveClientService;
+            private DriveSyncListener ins = this;
+            int count = 0;
+            int failCount = 0;
+
+            @Override
+            public void onSyncFailed() {
+                System.out.println("DriveTest.onSyncFailed");
+                if (failCount == 0) {
+//                    N.r(() -> {
+//                        //if (!file2.exists())
+//                        System.out.println("DriveTest.onSyncFailed.creating new file...");
+//                        rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
+//                        File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
+//                        File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+//                        File f1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+//                        delFile.delete();
+//                        TestFileCreator.saveFile("same3.server".getBytes(), newFile);
+//                        TestFileCreator.saveFile("same1.server".getBytes(), f1);
+//                        String hash = Hash.md5(f1);
+//                        System.out.println("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
+//                        hash = Hash.md5(newFile);
+//                        System.out.println("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
+//                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
+//                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
+//                        rebooted.done(res -> N.r(() -> {
+//                            System.out.println("DriveTest.alles ok");
+////                            testStructure.setMaClient(meinAuthService2)
+////                                    .setMaServer(meinAuthService1)
+////                                    .setClientDriveService(clientDriveService)
+////                                    .setServerDriveService(serverService)
+////                                    .setTestdir1(testdir1)
+////                                    .setTestdir2(testdir2);
+////                            clientDriveService.setSyncListener(clientSyncListener);
+//                        }));
+//                    });
+                }
+                failCount++;
+            }
+
+            private int transferCount = 0;
+
+            @Override
+            public void onTransfersDone() {
+//                if (transferCount == 0) {
+//                    N.r(() -> {
+//                        meinAuthService1.shutDown();
+//                        meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
+//                        rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
+//                        file1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+//                        file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+//                        TestFileCreator.saveFile("same1.client".getBytes(), file1);
+//                        TestFileCreator.saveFile("same2.client".getBytes(), file2);
+//                        String hash = Hash.md5(file1);
+//                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
+//                        hash = Hash.md5(file2);
+//                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
+//                    });
+//
+//                }
+//                transferCount++;
+            }
+
+            @Override
+            public void onSyncDoneImpl() {
+                System.out.println("DriveTest.onSyncDoneImpl");
+                if (count == 1) {
+                    System.out.println("DriveTest.onSyncDoneImpl");
+                }
+                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                count++;
+            }
+        };
+        setup(false, syncListener, clientMeinBoot);
+        lock.lockWrite();
+        lock.unlockWrite();
+        System.out.println("DriveTest.clientMergeStages.END");
+    }
+
     @Test
     public void firstTransfer() throws Exception {
         System.setOut(new Lok(System.out).setPrint(false));
@@ -804,7 +889,7 @@ public class DriveTest {
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
                                 Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(),0.01f,30);
                                 promise.done(clientDriveService -> runner.runTry(() -> {
-                                            System.out.println("DriveFXTest attempting first syncThisClient");
+                                            System.out.println("DriveFXTest attempting first syncFromServer");
                                             clientSyncListener.testStructure.setMaClient(meinAuthService2)
                                                     .setMaServer(meinAuthService1)
                                                     .setClientDriveService(clientDriveService)
@@ -812,7 +897,7 @@ public class DriveTest {
                                                     .setTestdir1(testdir1)
                                                     .setTestdir2(testdir2);
                                             clientDriveService.setSyncListener(clientSyncListener);
-                                            //clientDriveService.syncThisClient();
+                                            //clientDriveService.syncFromServer();
                                         }
                                 ));
                             });

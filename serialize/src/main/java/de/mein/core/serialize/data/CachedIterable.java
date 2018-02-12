@@ -1,6 +1,5 @@
 package de.mein.core.serialize.data;
 
-import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -15,15 +14,13 @@ import java.util.Iterator;
  */
 public class CachedIterable<T extends SerializableEntity> extends CachedData implements Iterable<T> {
 
-    @JsonIgnore
     private long size = 0;
-    protected int partSize;
 
 
-    public CachedIterable(File cacheDir, String name, int partSize) {
-        super(name);
+    public CachedIterable(File cacheDir, int partSize) {
+        super(partSize);
         this.cacheDir = cacheDir;
-        this.part = new CachedListPart(name, 0, partSize);
+        this.part = new CachedListPart(cacheId, 1, partSize);
     }
 
     public CachedIterable() {
@@ -35,8 +32,9 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
     }
 
     public void add(T elem) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InstantiationException, InvocationTargetException {
-        if (part.size() > partSize) {
-            serializePart();
+        if (part.size() >= partSize) {
+            part.setSerialized();
+            write(part);
             createNewPart();
         }
         part.add(elem);
@@ -44,8 +42,8 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
     }
 
     protected void createNewPart() {
-        part = new CachedListPart(name, partCount, partSize);
         partCount++;
+        part = new CachedListPart(cacheId, partCount, partSize);
     }
 
     /**
@@ -53,7 +51,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
      * call this when done with adding all elements.
      */
     public void toDisk() throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        serializePart();
+        write(part);
     }
 
     /**
@@ -71,7 +69,8 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
     public Iterator<T> iterator() {
         try {
             // first check if there is a not serialized part in memory
-            serializePart();
+            if (!part.isSerialized())
+                write(part);
             return new CachedIterator(this);
         } catch (JsonSerializationException | IllegalAccessException | IOException | NoSuchMethodException
                 | InstantiationException | InvocationTargetException e) {
@@ -90,7 +89,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
     public void loadFirstCached() throws IOException, JsonDeserializationException {
         if (partCount > 1) {
             File file = createCachedPartFile(1);
-            part = CachedListPart.read(file);
+            part = CachedPart.read(file);
         }
     }
 }

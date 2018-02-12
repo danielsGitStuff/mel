@@ -25,8 +25,8 @@ public class SyncTask extends CachedIterable<GenericFSEntry> implements IPayload
     private boolean retrieveMissingInformation = true;
     private StageSet stageSet;
 
-    public SyncTask(File cacheDir, String name, int partSize) {
-        super(cacheDir, name, partSize);
+    public SyncTask(File cacheDir, int partSize) {
+        super(cacheDir, partSize);
     }
 
     public SyncTask() {

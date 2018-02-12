@@ -158,7 +158,7 @@ public class ClientSyncHandler extends SyncHandler {
                                         latestVersion = stageDao.getLatestStageSetVersion();
                                         if (latestVersion == null || latestVersion < tooOldVersionException.getNewVersion()) {
                                             meinDriveService.addJob(new SyncClientJob(tooOldVersionException.getNewVersion()));
-                                            //syncThisClient(tooOldVersionException.getNewVersion());
+                                            //syncFromServer(tooOldVersionException.getNewVersion());
                                         }
                                     }
                                     System.out.println("ClientSyncHandler.syncWithServer");
@@ -192,7 +192,7 @@ public class ClientSyncHandler extends SyncHandler {
      * @throws InterruptedException
      */
     @SuppressWarnings("unchecked")
-    public void syncWithServerLocked(Long stageSetId) throws SqlQueriesException, InterruptedException {
+    public void syncToServerLocked(Long stageSetId) throws SqlQueriesException, InterruptedException {
         // stage is complete. first lock on FS
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
@@ -246,7 +246,7 @@ public class ClientSyncHandler extends SyncHandler {
                                     latestVersion = stageDao.getLatestStageSetVersion();
                                     if (latestVersion == null || latestVersion < tooOldVersionException.getNewVersion()) {
                                         meinDriveService.addJob(new SyncClientJob(tooOldVersionException.getNewVersion()));
-                                        //syncThisClient(tooOldVersionException.getNewVersion());
+                                        //syncFromServer(tooOldVersionException.getNewVersion());
                                     }
                                 }
                                 System.out.println("ClientSyncHandler.syncWithServer");
@@ -328,14 +328,14 @@ public class ClientSyncHandler extends SyncHandler {
                 return;
             } else if (stagedFromFs.size() == 1) {
                 //method should create a new CommitJob ? method blocks
-                syncWithServerLocked(stagedFromFs.get(0).getId().v());
+                syncToServerLocked(stagedFromFs.get(0).getId().v());
                 return;
             } else if (stagedFromFs.size() > 1) {
                 // merge again
                 meinDriveService.addJob(new CommitJob());
                 return;
             } else if (updateSets.size() == 0 && commitJob.getSyncAnyway()) {
-                syncThisClient(null);
+                syncFromServer(null);
                 return;
             }
 
@@ -646,7 +646,7 @@ public class ClientSyncHandler extends SyncHandler {
      * @throws SqlQueriesException
      * @throws InterruptedException
      */
-    public void syncThisClient(Long newVersion) throws SqlQueriesException, InterruptedException {
+    public void syncFromServer(Long newVersion) throws SqlQueriesException, InterruptedException {
         runner.runTry(() -> {
             stageDao.deleteServerStageSets();
         });
@@ -658,10 +658,8 @@ public class ClientSyncHandler extends SyncHandler {
                 long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
                 StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, null, null, newVersion);
                 //prepare cached answer
-                String name = UUID.randomUUID().toString();
-                SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), name, DriveSettings.CACHE_LIST_SIZE)
+                SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE)
                         .setOldVersion(version);
-                mvp.registerForCachedAnswer(sentSyncTask);
                 LockedRequest<SyncTask> requestResult = mvp.requestLocked(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, sentSyncTask);
                 if (requestResult.successful()) runner.runTry(() -> {
                     SyncTask syncTask = requestResult.getResponse();
@@ -677,20 +675,20 @@ public class ClientSyncHandler extends SyncHandler {
                         if (syncListener != null)
                             syncListener.onSyncDone();
                     })).fail(result -> {
-                                System.err.println("ClientSyncHandler.syncThisClient.j99f49459f54");
+                                System.err.println("ClientSyncHandler.syncFromServer.j99f49459f54");
                                 N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
                             }
                     );
                 });
                 else {
-                    System.out.println("ClientSyncHandler.syncThisClient.EXCEPTION: " + requestResult.getException());
+                    System.out.println("ClientSyncHandler.syncFromServer.EXCEPTION: " + requestResult.getException());
                 }
             });
         } else {
-            System.out.println("ClientSyncHandler.syncThisClient.debughv08e5hg");
+            System.out.println("ClientSyncHandler.syncFromServer.debughv08e5hg");
 
         }
-        System.out.println("ClientSyncHandler.syncThisClient");
+        System.out.println("ClientSyncHandler.syncFromServer");
     }
 
     private void insertWithParentId(Map<Long, Long> entryIdStageIdMap, GenericFSEntry genericFSEntry, Stage stage) throws SqlQueriesException {
@@ -738,6 +736,7 @@ public class ClientSyncHandler extends SyncHandler {
 //                stage.setSynced(false);
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
+        syncTask.cleanUp();
         // check if something was deleted
         List<Stage> stages = stageDao.getDirectoriesByStageSet(stageSet.getId().v());
         Map<Long, FsDirectory> fsDirIdsToRetrieve = new HashMap<>();
@@ -791,7 +790,7 @@ public class ClientSyncHandler extends SyncHandler {
                 fsDirectory.calcContentHash();
                 String hash = fsDirectory.getContentHash().v();
                 if (!hash.equals(stage.getContentHash())) {
-                    System.out.println("ClientSyncHandler.syncThisClient.SOMETHING.DELETED?");
+                    System.out.println("ClientSyncHandler.syncFromServer.SOMETHING.DELETED?");
                     fsDirIdsToRetrieve.put(fsDirectory.getId().v(), fsDirectory);
                 }
             }

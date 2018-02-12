@@ -32,7 +32,7 @@ public class ServerSyncHandler extends SyncHandler {
         try {
             final long olderVersion = driveDatabaseManager.getLatestVersion();
             if (commit.getBasedOnVersion() != olderVersion) {
-                request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion(), driveDatabaseManager.getLatestVersion()));
+                request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion()+ " vs "+driveDatabaseManager.getLatestVersion(), driveDatabaseManager.getLatestVersion()));
                 return;
             }
             // stage everything

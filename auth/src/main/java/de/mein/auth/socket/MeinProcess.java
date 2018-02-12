@@ -52,12 +52,8 @@ public abstract class MeinProcess implements IRequestHandler {
             answerId = ((MeinResponse) deserialized).getResponseId();
         }
         if (answerId != null && this.requestMap.containsKey(answerId)) {
-
-
-
             StateMsg msg = (StateMsg) deserialized;
-            Dobject deferred = requestMap.get(answerId);
-            this.requestMap.remove(answerId);
+            Dobject deferred = requestMap.remove(answerId);
             if (!msg.getState().equals(MeinStrings.msg.STATE_OK)) {
                 if (msg.getPayload() != null)
                     deferred.reject((Exception) msg.getPayload());
