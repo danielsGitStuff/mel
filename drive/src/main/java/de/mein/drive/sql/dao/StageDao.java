@@ -274,10 +274,17 @@ StageDao extends Dao.LockingDao {
         return sqlQueries.loadResource(dummy.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId));
     }
 
+    @Deprecated
     public List<Stage> getStagesByStageSetForCommit(Long stageSetId) throws SqlQueriesException {
         Stage dummy = new Stage();
         String where = dummy.getStageSetPair().k() + "=? and not(" + dummy.getFsIdPair().k() + " is null and " + dummy.getDeletedPair().k() + "=?) order by " + dummy.getIdPair().k() + " asc";
         return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(true, stageSetId));
+    }
+
+    public ISQLResource<Stage> getStagesByStageSetForCommitResource(Long stageSetId) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        String where = dummy.getStageSetPair().k() + "=? and not(" + dummy.getFsIdPair().k() + " is null and " + dummy.getDeletedPair().k() + "=?) order by " + dummy.getIdPair().k() + " asc";
+        return sqlQueries.loadResource(dummy.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(true, stageSetId));
     }
 
     public List<Stage> getStagesByStageSetAsList(Long stageSetId) throws SqlQueriesException {

@@ -14,6 +14,7 @@ import de.mein.drive.sql.TransferDetails;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +39,9 @@ public class ServerSyncHandler extends SyncHandler {
             // stage everything
             StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null);
             Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
-            for (Stage stage : commit.getStages()) {
+            Iterator<Stage> iterator = commit.iterator();
+            while (iterator.hasNext()){
+                Stage stage = iterator.next();
                 stage.setStageSet(stageSet.getId().v());
                 if (!stage.getIsDirectory()) {
                     if (stage.getDeleted())
@@ -54,6 +57,7 @@ public class ServerSyncHandler extends SyncHandler {
                 stageDao.insert(stage);
                 oldStageIdStageIdMap.put(oldId, stage.getId());
             }
+            commit.cleanUp();
             //TODO check goes here
 
             //map old stage ids with new fs ids

@@ -87,8 +87,9 @@ public abstract class CachedData implements SerializableEntity {
         return new File(cacheDir.getAbsolutePath() + File.separator + cacheId + "." + partCount + ".json");
     }
 
-    public abstract void setCacheDirectory(File cacheDirectory);
-
+    public void setCacheDirectory(File cacheDirectory) {
+        this.cacheDir = cacheDirectory;
+    }
     public CachedPart getPart() {
         return part;
     }

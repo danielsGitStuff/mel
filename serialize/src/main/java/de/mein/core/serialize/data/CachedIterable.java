@@ -26,11 +26,6 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
     public CachedIterable() {
     }
 
-    @Override
-    public void setCacheDirectory(File cacheDirectory) {
-        this.cacheDir = cacheDirectory;
-    }
-
     public void add(T elem) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InstantiationException, InvocationTargetException {
         if (part.size() >= partSize) {
             part.setSerialized();

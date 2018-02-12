@@ -118,10 +118,11 @@ public class ClientSyncHandler extends SyncHandler {
 
             Promise<MeinValidationProcess, Exception, Void> connectedPromise = meinAuthService.connect(driveSettings.getClientSettings().getServerCertId());
             connectedPromise.done(mvp -> N.r(() -> {
-                Commit commit = new Commit()
-                        .setStages(driveDatabaseManager.getStageDao().getStagesByStageSetForCommit(stageSetId))
-                        .setServiceUuid(meinDriveService.getUuid())
-                        .setBasedOnVersion(driveDatabaseManager.getLatestVersion());
+                // load to cached data structure
+                Commit commit = new Commit();
+                N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
+                commit.setServiceUuid(meinDriveService.getUuid());
+                commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
                 mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> N.r(() -> {
                     //fsDao.lockWrite();
                     CommitAnswer answer = (CommitAnswer) result;
@@ -205,10 +206,11 @@ public class ClientSyncHandler extends SyncHandler {
                 //todo conflict checking goes here - has to block
                 ConnectResult connectResult = meinAuthService.connectLocked(driveSettings.getClientSettings().getServerCertId());
                 if (connectResult.successful()) N.r(() -> {
-                    Commit commit = new Commit()
-                            .setStages(driveDatabaseManager.getStageDao().getStagesByStageSetAsList(stageSetId))
-                            .setServiceUuid(meinDriveService.getUuid())
-                            .setBasedOnVersion(driveDatabaseManager.getLatestVersion());
+                    // load to cached data structure
+                    Commit commit = new Commit();
+                    N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
+                    commit.setServiceUuid(meinDriveService.getUuid());
+                    commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
                     MeinValidationProcess mvp = connectResult.getValidationProcess();
                     LockedRequest<CommitAnswer> lockedRequest = mvp.requestLocked(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit);
                     if (lockedRequest.successful()) {
@@ -254,6 +256,7 @@ public class ClientSyncHandler extends SyncHandler {
                             });
                         }
                     }
+                    commit.cleanUp();
                 });
                 else {
                     // todo server did not commit. it probably had a local change. have to solve it here

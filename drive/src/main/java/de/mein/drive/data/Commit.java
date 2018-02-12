@@ -1,16 +1,18 @@
 package de.mein.drive.data;
 
 import de.mein.auth.data.IPayload;
+import de.mein.core.serialize.data.CachedData;
+import de.mein.core.serialize.data.CachedIterable;
 import de.mein.drive.sql.Stage;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by xor on 1/14/17.
  */
-public class Commit implements IPayload {
-    private List<Stage> stages = new ArrayList<>();
+public class Commit extends CachedIterable<Stage> implements IPayload{
     private String serviceUuid;
     private Long basedOnVersion;
 
@@ -23,15 +25,6 @@ public class Commit implements IPayload {
         return basedOnVersion;
     }
 
-    public List<Stage> getStages() {
-        return stages;
-    }
-
-    public Commit setStages(List<Stage> stages) {
-        this.stages = stages;
-        return this;
-    }
-
     public Commit setServiceUuid(String serviceUuid) {
         this.serviceUuid = serviceUuid;
         return this;
@@ -40,4 +33,5 @@ public class Commit implements IPayload {
     public String getServiceUuid() {
         return serviceUuid;
     }
+
 }
