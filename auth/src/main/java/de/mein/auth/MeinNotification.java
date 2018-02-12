@@ -6,11 +6,7 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by xor on 08.08.2017.
@@ -30,10 +26,13 @@ public class MeinNotification {
     private boolean canceled = false;
     private boolean finished = false;
 
+    /**
+     * call if the matter of the notification is obsolete and shall not molest the user anymore
+     */
     public void cancel() {
         canceled = true;
         for (MeinProgressListener listener : progressListeners) {
-            listener.cancel();
+            listener.onCancel(this);
         }
     }
 
@@ -51,10 +50,13 @@ public class MeinNotification {
         return canceled;
     }
 
+    /**
+     * call when the matter of the notification is obsolete.
+     */
     public void finish() {
         finished = true;
         for (MeinProgressListener listener : progressListeners) {
-            listener.finish();
+            listener.onFinish(this);
         }
     }
 
@@ -63,11 +65,11 @@ public class MeinNotification {
     }
 
     public interface MeinProgressListener {
-        void onProgress(int max, int current, boolean indeterminate);
+        void onProgress(MeinNotification notification, int max, int current, boolean indeterminate);
 
-        void cancel();
+        void onCancel(MeinNotification notification);
 
-        void finish();
+        void onFinish(MeinNotification notification);
     }
 
     /**
@@ -130,7 +132,7 @@ public class MeinNotification {
         extras.put(key, json);
     }
 
-    public Set<String> getSerializedExtraKeys(){
+    public Set<String> getSerializedExtraKeys() {
         return extras.keySet();
     }
 
@@ -143,7 +145,6 @@ public class MeinNotification {
     }
 
 
-
     public void addProgressListener(MeinProgressListener progressListener) {
         progressListeners.add(progressListener);
     }
@@ -153,7 +154,7 @@ public class MeinNotification {
         this.current = current;
         this.indeterminate = indeterminate;
         for (MeinProgressListener listener : progressListeners)
-            listener.onProgress(max, current, indeterminate);
+            listener.onProgress(this, max, current, indeterminate);
         return this;
     }
 

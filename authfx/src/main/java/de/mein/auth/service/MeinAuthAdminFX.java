@@ -4,7 +4,9 @@ import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.gui.*;
+import de.mein.auth.gui.AuthSettingsFX;
+import de.mein.auth.gui.RemoteServiceChooserFX;
+import de.mein.auth.gui.ServiceSettingsFX;
 import de.mein.auth.gui.notification.NotificationCenter;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
@@ -36,7 +38,6 @@ import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -46,7 +47,7 @@ import java.util.Set;
 /**
  * Created by xor on 6/25/16.
  */
-public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
+public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotification.MeinProgressListener {
 
     private static final int IMAGE_SIZE = 22;
     private MeinAuthService meinAuthService;
@@ -225,6 +226,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
     public void onNotificationFromService(IMeinService meinService, MeinNotification meinNotification) {
         N.r(() -> {
             notifications.add(meinNotification);
+            meinNotification.addProgressListener(this);
             trayIcon.displayMessage(meinNotification.getTitle(), meinNotification.getText(), TrayIcon.MessageType.INFO);
 //            Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
 //            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());
@@ -426,5 +428,21 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin {
 
     public Stage getStage() {
         return stage;
+    }
+
+
+    @Override
+    public void onProgress(MeinNotification notification, int max, int current, boolean indeterminate) {
+
+    }
+
+    @Override
+    public void onCancel(MeinNotification notification) {
+        notifications.remove(notification);
+    }
+
+    @Override
+    public void onFinish(MeinNotification notification) {
+
     }
 }

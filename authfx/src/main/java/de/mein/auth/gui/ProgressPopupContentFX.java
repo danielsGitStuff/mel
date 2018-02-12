@@ -29,18 +29,18 @@ public class ProgressPopupContentFX extends PopupContentFX implements MeinNotifi
     }
 
     @Override
-    public void onProgress(int max, int current, boolean indeterminate) {
+    public void onProgress(MeinNotification notification,int max, int current, boolean indeterminate) {
         showProgress(max, current, indeterminate);
     }
 
     @Override
-    public void cancel() {
+    public void onCancel(MeinNotification notification) {
         System.out.println("ProgressPopupContentFX.cancel()");
         Platform.runLater(() -> stage.close());
     }
 
     @Override
-    public void finish() {
+    public void onFinish(MeinNotification notification) {
         System.out.println("ProgressPopupContentFX.finish()");
         progressBar.setProgress(1.0);
         stage.setTitle("Transfers done!");
