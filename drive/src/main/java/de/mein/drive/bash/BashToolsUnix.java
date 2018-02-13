@@ -1,7 +1,6 @@
 package de.mein.drive.bash;
 
 import de.mein.auth.tools.N;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -23,6 +22,7 @@ public class BashToolsUnix implements BashToolsImpl {
     protected String BIN_PATH = "/bin/bash";
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
+
     public static void main(String[] args) throws Exception {
         File f = new File("f");
         f.mkdirs();
@@ -34,7 +34,7 @@ public class BashToolsUnix implements BashToolsImpl {
 
 
     public ModifiedAndInode getModifiedAndInode(File file) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "stat -c %Y\" \"%i \"" + file.getAbsolutePath() + "\""};
+        String[] args = new String[]{BIN_PATH, "-c", "stat -c %Y\" \"%i " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line = reader.readLine();
@@ -61,15 +61,39 @@ public class BashToolsUnix implements BashToolsImpl {
         return iNodes;
     }
 
+    /**
+     * escapes this character: "
+     *
+     * @param file
+     * @return
+     */
+    protected String escapeAbsoluteFilePath(File file) {
+        return "\"" + file.getAbsolutePath()
+                .replaceAll("\"", "\\\\\"")
+                .replaceAll("`", "\\\\`") + "\"";
+    }
+
     @Override
-    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "stat -c %i\\ %Y \"" + file.getAbsolutePath() + "\""};
+    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException, InterruptedException {
+        String[] args = new String[]{BIN_PATH, "-c", "stat -c %i\\ %Y " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
+        proc.waitFor();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line = reader.readLine();
         //todo debug
-        if (line == null){
-            System.out.println("BashToolsUnix.getModifiedAndINodeOfFile.debugivn04g0");
+        if (line == null) {
+            System.out.println("BashToolsUnix.getModifiedAndINodeOfFile.lions.is.null");
+            System.out.println("BashToolsUnix.getModifiedAndINodeOfFile.reading error for: " + args[2]);
+            try {
+                BufferedReader r = new BufferedReader((new InputStreamReader(proc.getErrorStream())));
+                String l = r.readLine();
+                while (l != null) {
+                    System.out.println("BashToolsUnix.getModifiedAndINodeOfFile.err: " + l);
+                    l = r.readLine();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         String[] parts = line.split(" ");
         Long iNode = Long.parseLong(parts[0]);
@@ -84,16 +108,19 @@ public class BashToolsUnix implements BashToolsImpl {
      */
     @Override
     public void rmRf(File directory) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "rm -rf \"" + directory.getAbsolutePath() + "\""};
+        String[] args = new String[]{BIN_PATH, "-c", "rm -rf " + escapeAbsoluteFilePath(directory)};
         Process proc = new ProcessBuilder(args).start();
     }
 
     @Override
     public List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
         System.out.println("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
-        String cmd = "find \"" + directory.getAbsolutePath() + "\"  "
-                + " -path \"" + pruneDir + "\" -prune"
-                + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print";
+//        String cmd = "find \"" + directory.getAbsolutePath() + "\"  "
+//                + " -path \"" + pruneDir + "\" -prune"
+//                + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print";
+        String cmd = "find " + escapeAbsoluteFilePath(directory)
+                + " -path " + escapeAbsoluteFilePath(pruneDir) + " -prune"
+                + " -o -newer " + escapeAbsoluteFilePath(referenceFile) + " -print";
         System.out.println("BashTools.stuffModifiedAfter.cmd: " + cmd);
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
@@ -112,49 +139,6 @@ public class BashToolsUnix implements BashToolsImpl {
         return result;
     }
 
-    public List<String> stuffModifiedAfterJava8(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
-        System.out.println("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
-        String[] args = new String[]{BIN_PATH, "-c",
-                "find \"" + directory.getAbsolutePath() + "\" -mindepth 1"
-                        + " -path \"" + pruneDir + "\" -prune"
-                        + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print"};
-        ProcessBuilder processBuilder = new ProcessBuilder(args);
-        processBuilder.redirectErrorStream(true);
-        Process proc = processBuilder.start();
-        boolean hasFinished = false;
-        while (!hasFinished) {
-            try {
-                hasFinished = proc.waitFor(10, TimeUnit.SECONDS);
-                if (!hasFinished) {
-                    List<String> errors = new ArrayList<>();
-                    Iterator<String> iterator = BashTools.inputStreamToIterator(proc.getErrorStream());
-                    while (iterator.hasNext())
-                        errors.add(iterator.next());
-                    System.out.println("BashTools.stuffModifiedAfter.did not finish");
-                    for (String s : errors)
-                        System.out.println("BashTools.stuffModifiedAfter.ERROR: " + s);
-                }
-                int exitValue = proc.exitValue();
-                if (exitValue == 0) {
-                    System.out.println("BashTools.stuffModifiedAfter.collecting.result");
-                    List<String> result = new ArrayList<>();
-                    Iterator<String> iterator = BashTools.inputStreamToIterator(proc.getInputStream());
-                    while (iterator.hasNext())
-                        result.add(iterator.next());
-                    System.out.println("BashTools.stuffModifiedAfter.collecting.done");
-                    return result;
-                } else {
-                    throw new BashToolsException(BashTools.inputStreamToIterator(proc.getErrorStream()));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                proc.destroyForcibly();
-                continue;
-            }
-        }
-        return null;
-    }
-
     private Iterator<String> exec(String cmd) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
@@ -165,14 +149,14 @@ public class BashToolsUnix implements BashToolsImpl {
 
     @Override
     public Iterator<String> find(File directory, File pruneDir) throws IOException {
-        return exec("find \"" + directory.getAbsolutePath() + "\" -mindepth 1" + " -path \"" + pruneDir + "\" -prune -o -print");
+        return exec("find " + escapeAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeAbsoluteFilePath(pruneDir) + " -prune -o -print");
     }
 
     @Override
     public Promise<Long, Exception, Void> getInode(File f) {
         DeferredObject<Long, Exception, Void> deferred = new DeferredObject<>();
         executorService.execute(() -> N.r(() -> {
-            String ba = "ls -i -d '" + f.getAbsolutePath() + "'";
+            String ba = "ls -i -d " + escapeAbsoluteFilePath(f);
             String[] args = new String[]{BIN_PATH, "-c", ba};
             Long inode;
             List<String> lines;
@@ -219,7 +203,7 @@ public class BashToolsUnix implements BashToolsImpl {
     @Override
     public void mkdir(File dir) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c",
-                "mkdir \"" + dir.getAbsolutePath() + "\""};
+                "mkdir " + escapeAbsoluteFilePath(dir)};
         new ProcessBuilder(args).start();
     }
 }

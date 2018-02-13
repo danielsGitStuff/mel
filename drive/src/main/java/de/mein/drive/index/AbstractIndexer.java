@@ -105,7 +105,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         this.stageSetId = stageSet.getId().v();
         while (iterator.hasNext()) {
             path = iterator.next();
-            System.out.println("AbstractIndexer[" + stageSetId + "].initStage.fromBashTools: " + path);
+//            System.out.println("AbstractIndexer[" + stageSetId + "].initStage.fromBashTools: " + path);
             File f = new File(path);
             File parent = f.getParentFile();
             FsDirectory fsParent = null;
@@ -239,7 +239,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return getClass().getSimpleName() + " for " + serviceName;
     }
 
-    protected void roamDirectoryStage(Stage stage, File stageFile) throws SqlQueriesException, IOException {
+    protected void roamDirectoryStage(Stage stage, File stageFile) throws SqlQueriesException, IOException, InterruptedException {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
         //todo debug
@@ -391,7 +391,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         waitLock.lockWrite();
     }
 
-    protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException {
+    protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException, InterruptedException {
         if (stageFile.exists()) {
             ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
             stage.setContentHash(Hash.md5(stageFile));

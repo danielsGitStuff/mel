@@ -18,7 +18,7 @@ public interface BashToolsImpl {
 
     Set<Long> getINodesOfDirectory(File file) throws IOException;
 
-     ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException;
+     ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException, InterruptedException;
 
     /**
      * rm -rf

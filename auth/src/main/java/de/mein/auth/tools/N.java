@@ -1,6 +1,5 @@
 package de.mein.auth.tools;
 
-import de.mein.auth.socket.ShamefulSelfConnectException;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
@@ -24,6 +23,14 @@ public class N {
 
     public void abort() {
         consumer.accept(new Exception("aborted"));
+    }
+
+    /**
+     * runs noTryRunnable in a new Thread
+     * @param noTryRunnable
+     */
+    public static void thread(N.INoTryRunnable noTryRunnable) {
+        new Thread(() -> N.r(noTryRunnable)).start();
     }
 
     public interface INoTryRunnable {

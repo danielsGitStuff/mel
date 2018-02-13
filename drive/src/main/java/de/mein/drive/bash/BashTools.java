@@ -38,7 +38,7 @@ public abstract class BashTools {
     }
 
 
-    public static ModifiedAndInode getINodeOfFile(File file) throws IOException {
+    public static ModifiedAndInode getINodeOfFile(File file) throws IOException, InterruptedException {
         return instance.getModifiedAndINodeOfFile(file);
     }
 

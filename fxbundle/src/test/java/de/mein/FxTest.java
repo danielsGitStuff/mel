@@ -1,6 +1,7 @@
 package de.mein;
 
 
+import com.sun.deploy.util.SystemUtils;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
@@ -21,16 +22,14 @@ import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.ContactsBootloader;
 import de.mein.contacts.ContactsFXBootloader;
 import de.mein.contacts.data.ContactStrings;
-import de.mein.contacts.data.ContactsServerSettings;
 import de.mein.contacts.data.ContactsSettings;
-import de.mein.contacts.data.db.Contact;
-import de.mein.contacts.data.db.ContactAppendix;
-import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.service.ContactsService;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
+import de.mein.drive.bash.BashTools;
+import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.boot.DriveFXBootLoader;
 import de.mein.drive.serialization.DriveTest;
 import de.mein.drive.serialization.TestDirCreator;
@@ -47,6 +46,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +89,9 @@ public class FxTest {
         driveTest.complexClientConflictImpl(meinBoot, null);
         new WaitLock().lock().lock();
     }
+
+
+
 
     @Test
     public void startEmptyClient() throws Exception {

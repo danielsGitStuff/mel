@@ -48,7 +48,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
 
     @Override
     public void onPrimaryClicked() {
-        embeddedServiceSettingsFX.onPrimaryClicked();
+        N.thread(() -> embeddedServiceSettingsFX.onPrimaryClicked());
     }
 
     public boolean isServerSelected() {
@@ -83,14 +83,14 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
         }
     }
 
-    private void showServer(){
+    private void showServer() {
         rdClient.selectedProperty().setValue(false);
         rdServer.selectedProperty().setValue(true);
         paneAvailable.setVisible(false);
         paneAvailable.setManaged(false);
     }
 
-    private void showClient(){
+    private void showClient() {
         rdClient.selectedProperty().setValue(true);
         rdServer.selectedProperty().setValue(false);
         paneAvailable.setVisible(true);

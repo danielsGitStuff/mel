@@ -79,7 +79,7 @@ public class Wastebin {
 
     }
 
-    public void deleteFsEntry(Long fsId) throws SqlQueriesException, IOException {
+    public void deleteFsEntry(Long fsId) throws SqlQueriesException, IOException, InterruptedException {
         GenericFSEntry genericFSEntry = fsDao.getGenericById(fsId);
         //todo debug
         if (genericFSEntry == null)
@@ -115,7 +115,7 @@ public class Wastebin {
         wasteDao.flagDeleted(waste.getId().v(), true);
     }
 
-    private void deleteDirectory(FsDirectory fsDirectory) throws SqlQueriesException, IOException {
+    private void deleteDirectory(FsDirectory fsDirectory) throws SqlQueriesException, IOException, InterruptedException {
         File f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsDirectory);
         if (f.exists()) {
             indexer.ignorePath(f.getAbsolutePath(), 1);
@@ -214,7 +214,7 @@ public class Wastebin {
         moveToBin(waste, file);
     }
 
-    private void recursiveDelete(File dir) throws SqlQueriesException, IOException {
+    private void recursiveDelete(File dir) throws SqlQueriesException, IOException, InterruptedException {
         //todo debug
         if (dir.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir/samesub"))
             System.out.println("Wastebin.recursiveDelete.debugnfi34fa");
@@ -302,7 +302,7 @@ public class Wastebin {
      * @param file
      * @throws IOException
      */
-    public void deleteUnknown(File file) throws IOException, SqlQueriesException {
+    public void deleteUnknown(File file) throws IOException, SqlQueriesException, InterruptedException {
         ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
         File target = new File(deferredDir, modifiedAndInode.getiNode().toString());
         file.renameTo(target);

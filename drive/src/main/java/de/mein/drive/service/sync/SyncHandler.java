@@ -360,7 +360,7 @@ public abstract class SyncHandler {
     }
 
 
-    private void createDirs(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException, IOException {
+    private void createDirs(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException, IOException, InterruptedException {
         // assume that root directory already exists
         if (fsEntry.getParentId().v() == null)
             return;
@@ -402,7 +402,7 @@ public abstract class SyncHandler {
         }
     }
 
-    private void updateInodeModified(FsEntry entry, File f) throws SqlQueriesException, IOException {
+    private void updateInodeModified(FsEntry entry, File f) throws SqlQueriesException, IOException, InterruptedException {
         ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
         entry.getiNode().v(modifiedAndInode.getiNode());
         entry.getModified().v(modifiedAndInode.getModified());
