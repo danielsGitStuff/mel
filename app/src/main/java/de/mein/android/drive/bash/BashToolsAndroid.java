@@ -42,7 +42,7 @@ public class BashToolsAndroid extends BashToolsUnix {
             dir.mkdirs();
             prune.mkdirs();
             file.createNewFile();
-            cmd = "find \"" + dir.getAbsolutePath() + "\" -path \"" + prune + "\" -prune -o -print";
+            cmd = "find \"" + dir.getAbsolutePath() + "\" -path " + escapeAbsoluteFilePath(prune) + " -prune -o -print";
             Streams streams = testCommand(cmd);
             Iterator<String> iterator = streams.stdout;
             while (iterator.hasNext()) {
@@ -84,7 +84,7 @@ public class BashToolsAndroid extends BashToolsUnix {
 
     @Override
     public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "ls -id \"" + file.getAbsolutePath() + "\""};
+        String[] args = new String[]{BIN_PATH, "-c", "ls -id " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line = reader.readLine();

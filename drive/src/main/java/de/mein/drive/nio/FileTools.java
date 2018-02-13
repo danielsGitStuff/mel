@@ -1,6 +1,5 @@
 package de.mein.drive.nio;
 
-import com.sun.istack.internal.NotNull;
 import de.mein.drive.data.fs.RootDirectory;
 
 import java.io.File;
