@@ -1,7 +1,6 @@
 package de.mein;
 
 
-import com.sun.deploy.util.SystemUtils;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
