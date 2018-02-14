@@ -24,7 +24,9 @@ import java.util.Map;
  */
 public class MeinValidationProcess extends MeinProcess {
     private final Long connectedId;
-    private final Map<Long, CachedData> cachedAnsers = new HashMap<>();
+    private final Map<Long, CachedData> cachedForRetrieving = new HashMap<>();
+    private final Map<Long, CachedData> cachedForSending = new HashMap<>();
+
 
     public static class SendException extends Exception {
         public SendException(String msg) {
@@ -72,25 +74,42 @@ public class MeinValidationProcess extends MeinProcess {
     }
 
     private boolean handleCached(SerializableEntity deserialized) {
-        //todo go to bed for now
         try {
             if (deserialized instanceof CachedData) {
+                // first part of cached data arrives
                 CachedData receivedData = (CachedData) deserialized;
-                CachedData cached = cachedAnsers.get(receivedData.getCacheId());
+                CachedData cached = cachedForRetrieving.get(receivedData.getCacheId());
                 cached.initPartsMissed(cached.getPartCount());
-                handleCachedPart(receivedData.getPart());
+                handleReceiveCachedPart(receivedData.getPart());
                 return true;
             } else if (deserialized instanceof CachedPart) {
-                handleCachedPart((CachedPart) deserialized);
+                // a further part of cached data arrives
+                handleReceiveCachedPart((CachedPart) deserialized);
                 return true;
-            }else if (deserialized instanceof MeinResponse){
+            } else if (deserialized instanceof MeinResponse) {
                 // a cached request might fail. clean up everything and continue as usual
                 MeinResponse response = (MeinResponse) deserialized;
-                if (cachedAnsers.containsKey(response.getResponseId())){
-                    CachedData cachedData = cachedAnsers.remove(response.getResponseId());
+                if (cachedForRetrieving.containsKey(response.getResponseId())) {
+                    CachedData cachedData = cachedForRetrieving.remove(response.getResponseId());
                     cachedData.cleanUp();
+                    CachedDoneMessage cachedDoneMessage = new CachedDoneMessage()
+                            .setServiceUuid(cachedData.getServiceUuid())
+                            .setCacheId(cachedData.getCacheId());
+                    send(cachedDoneMessage);
                 }
                 return false;
+            } else if (deserialized instanceof CachedRequest) {
+                CachedRequest cachedRequest = (CachedRequest) deserialized;
+                if (isServiceAllowed(cachedRequest.getServiceUuid())) {
+                    CachedData cachedData = cachedForSending.get(cachedRequest.getCacheId());
+                    cachedData.getPart(cachedRequest.getPartNumber());
+                }
+            } else if (deserialized instanceof CachedDoneMessage) {
+                CachedDoneMessage cachedDoneMessage = (CachedDoneMessage) deserialized;
+                if (isServiceAllowed(cachedDoneMessage.getServiceUuid())) {
+                    CachedData cachedData = cachedForSending.remove(cachedDoneMessage.getCacheId());
+                    cachedData.cleanUp();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -98,12 +117,19 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
-    private void handleCachedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException, SqlQueriesException {
-        //todo save to cache, when last part arrived, tell the process
-        CachedData cached = cachedAnsers.remove(cachedPart.getCacheId());
+    private void handleReceiveCachedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException, SqlQueriesException {
+        CachedData cached = cachedForRetrieving.get(cachedPart.getCacheId());
         cached.onReceivedPart(cachedPart);
         if (cached.isComplete()) {
+            cachedForRetrieving.remove(cached.getCacheId());
             handleDriveOps(cached);
+        } else {
+            // retrieve the next part
+            CachedRequest cachedRequest = new CachedRequest()
+                    .setCacheId(cached.getCacheId())
+                    .setPartNumber(cached.getNextPartNumber())
+                    .setServiceUuid(cached.getServiceUuid());
+            send(cachedRequest);
         }
     }
 
@@ -123,6 +149,10 @@ public class MeinValidationProcess extends MeinProcess {
                     //wrap the answer and send it back
                     validatePromise.done(newPayload -> {
                         MeinResponse response = request.reponse().setPayLoad(newPayload);
+                        if (newPayload instanceof CachedData) {
+                            CachedData cachedData = (CachedData) newPayload;
+                            cachedForSending.put(cachedData.getCacheId(), cachedData);
+                        }
                         try {
                             send(response);
                         } catch (Exception e) {
@@ -185,6 +215,16 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
+    private void registerCached(MeinRequest request) {
+        IPayload payload = request.getPayload();
+        if (payload instanceof CachedData) {
+            System.out.println("MeinValidationProcess.requestLocked.cached");
+            CachedData cachedData = (CachedData) payload;
+            cachedData.setCacheId(request.getRequestId());
+            cachedData.setServiceUuid(request.getServiceUuid());
+            cachedForRetrieving.put(request.getRequestId(), cachedData);
+        }
+    }
 
     /**
      * locks until you received either a response or an error.<br>
@@ -204,12 +244,7 @@ public class MeinValidationProcess extends MeinProcess {
         if (payload != null) {
             request.setPayLoad(payload);
         }
-        if (payload instanceof CachedData) {
-            System.out.println("MeinValidationProcess.requestLocked.cached");
-            CachedData cachedData = (CachedData) payload;
-            cachedData.setCacheId(request.getRequestId());
-            cachedAnsers.put(request.getRequestId(), cachedData);
-        }
+        registerCached(request);
         request.setRequestHandler(this).queue();
         request.getPromise().done(result -> {
             StateMsg response = (StateMsg) result;
@@ -231,6 +266,7 @@ public class MeinValidationProcess extends MeinProcess {
         if (payload != null) {
             request.setPayLoad(payload);
         }
+        registerCached(request);
         request.setRequestHandler(this).queue();
         request.getPromise().done(result -> {
             StateMsg response = (StateMsg) result;

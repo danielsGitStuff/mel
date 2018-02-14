@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
+ * handles authentication of incoming and outgoing connections
  * Created by xor on 4/21/16.
  */
 @SuppressWarnings("Duplicates")

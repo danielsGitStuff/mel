@@ -2,6 +2,7 @@ package de.mein.core.serialize.data;
 
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
+import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
@@ -26,6 +27,8 @@ public abstract class CachedData implements SerializableEntity {
 
     @JsonIgnore
     protected Set<Integer> partsMissed;
+    @JsonIgnore
+    private String serviceUuid;
 
 
     public CachedData(int partSize) {
@@ -33,6 +36,15 @@ public abstract class CachedData implements SerializableEntity {
     }
 
     public CachedData() {
+    }
+
+    public CachedData setServiceUuid(String serviceUuid) {
+        this.serviceUuid = serviceUuid;
+        return this;
+    }
+
+    public String getServiceUuid() {
+        return serviceUuid;
     }
 
     public Long getCacheId() {
@@ -90,6 +102,7 @@ public abstract class CachedData implements SerializableEntity {
     public void setCacheDirectory(File cacheDirectory) {
         this.cacheDir = cacheDirectory;
     }
+
     public CachedPart getPart() {
         return part;
     }
@@ -115,5 +128,14 @@ public abstract class CachedData implements SerializableEntity {
                 e.printStackTrace();
             }
         }
+    }
+
+    public int getNextPartNumber() {
+        return partsMissed.iterator().next();
+    }
+
+    public CachedPart getPart(int partNumber) throws IOException, JsonDeserializationException {
+        CachedPart part = CachedPart.read(createCachedPartFile(partCount));
+        return part;
     }
 }

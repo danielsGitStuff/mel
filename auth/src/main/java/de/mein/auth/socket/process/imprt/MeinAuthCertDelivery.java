@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * delivers certificates
  * Created by xor on 2/14/16.
  */
 public class MeinAuthCertDelivery extends DeferredRunnable {

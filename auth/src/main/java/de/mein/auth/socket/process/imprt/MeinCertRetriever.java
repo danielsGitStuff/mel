@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * transfers certificates and imports them into the database
  * Created by xor on 4/18/16.
  */
 public class MeinCertRetriever extends DeferredRunnable {

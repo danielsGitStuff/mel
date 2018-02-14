@@ -14,7 +14,8 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 
 /**
- * Created by xor on 1/5/17.
+ * Transfers files.<br>
+ * see {@link MeinIsolatedProcess}
  */
 public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements MeinRunnable {
     private Map<String, FileTransferDetail> hashFTDSendingMap = new HashMap<>();

@@ -13,9 +13,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
 /**
- * Created by xor on 12/12/16.
+ * Process is exclusively bound a {@link IMeinService}. It does not interfere with other connections. Good for transferring large amounts of data.
  */
-public abstract class MeinIsolatedProcess extends MeinProcess{
+public abstract class MeinIsolatedProcess extends MeinProcess {
 
     private final String isolatedUuid;
     protected IMeinService service;
@@ -49,11 +49,11 @@ public abstract class MeinIsolatedProcess extends MeinProcess{
         this.partnerCertificateId = partnerCertificateId;
         this.partnerServiceUuid = partnerServiceUuid;
         this.service = meinService;
-        this.isolatedUuid=isolatedUuid;
+        this.isolatedUuid = isolatedUuid;
     }
 
     public static MeinIsolatedProcess instance(Class<? extends MeinIsolatedProcess> clazz, MeinAuthSocket meinAuthSocket, IMeinService meinService, Long partnerCertificateId, String partnerServiceUuid, String isolatedUuid) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        return clazz.getConstructor(MeinAuthSocket.class, IMeinService.class, Long.class, String.class,String.class).newInstance(meinAuthSocket, meinService, partnerCertificateId, partnerServiceUuid,isolatedUuid);
+        return clazz.getConstructor(MeinAuthSocket.class, IMeinService.class, Long.class, String.class, String.class).newInstance(meinAuthSocket, meinService, partnerCertificateId, partnerServiceUuid, isolatedUuid);
     }
 
 
@@ -72,7 +72,6 @@ public abstract class MeinIsolatedProcess extends MeinProcess{
         meinAuthSocket.setIsolated(true);
         return isolatedPromise;
     }
-
 
 
     public abstract void onBlockReceived(byte[] bytes);

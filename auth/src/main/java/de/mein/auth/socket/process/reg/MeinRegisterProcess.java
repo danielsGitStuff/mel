@@ -29,6 +29,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
+ * handles registration of incoming and outgoing connections
  * Created by xor on 4/20/16.
  */
 public class MeinRegisterProcess extends MeinProcess {
