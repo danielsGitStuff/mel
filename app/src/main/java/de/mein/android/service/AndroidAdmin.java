@@ -79,7 +79,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
             NotificationCompat.Builder finalBuilder = builder;
             meinNotification.addProgressListener(new MeinNotification.MeinProgressListener() {
                 @Override
-                public void onProgress(int max, int current, boolean indeterminate) {
+                public void onProgress(MeinNotification notification,int max, int current, boolean indeterminate) {
                     finalBuilder.setProgress(max, current, indeterminate);
                     finalBuilder.setContentTitle(meinNotification.getTitle())
                             .setContentText(meinNotification.getText());
@@ -87,12 +87,12 @@ public class AndroidAdmin implements MeinAuthAdmin {
                 }
 
                 @Override
-                public void cancel() {
+                public void onCancel(MeinNotification notification) {
                     Notifier.cancel( intent, requestCode);
                 }
 
                 @Override
-                public void finish() {
+                public void onFinish(MeinNotification notification) {
                     finalBuilder.setProgress(1, 1, false);
                     finalBuilder.setContentTitle(meinNotification.getTitle())
                             .setContentText(meinNotification.getText());
