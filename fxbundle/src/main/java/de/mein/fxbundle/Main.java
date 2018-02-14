@@ -26,7 +26,6 @@ import java.io.IOException;
 public class Main {
     private static void init() throws IOException {
         new JFXPanel();
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
