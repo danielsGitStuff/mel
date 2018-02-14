@@ -70,7 +70,9 @@ public class BashToolsUnix implements BashToolsImpl {
     protected String escapeAbsoluteFilePath(File file) {
         return "\"" + file.getAbsolutePath()
                 .replaceAll("\"", "\\\\\"")
-                .replaceAll("`", "\\\\`") + "\"";
+                .replaceAll("`", "\\\\`")
+                .replaceAll("\\$", "\\\\\\$")
+                + "\"";
     }
 
     @Override

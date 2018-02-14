@@ -21,7 +21,8 @@ public class BashToolsTest {
     private File esc1 = new File("'>fail.txt; echo '1 1");
     private File esc2 = new File("\">fail.txt; echo '2 2");
     private File esc3 = new File("acute`.txt");
-    private List<File> files = Arrays.asList(esc1, esc2, esc3);
+    private File esc4 = new File("photo-x-$7006232$180.jpg");
+    private List<File> files = Arrays.asList(esc1, esc2, esc3, esc4);
 
     @Before
     public void before() {
@@ -49,6 +50,6 @@ public class BashToolsTest {
             System.out.println("BashToolsTest.escapePaths: " + modifiedAndInode.getiNode().toString() + " " + modifiedAndInode.getModified().toString());
             count.getAndSet(count.get() + 1);
         }));
-        assertEquals(Integer.valueOf(3), Integer.valueOf(count.get()));
+        assertEquals(Integer.valueOf(files.size()), Integer.valueOf(count.get()));
     }
 }
