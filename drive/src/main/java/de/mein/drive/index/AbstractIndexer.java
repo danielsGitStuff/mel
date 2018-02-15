@@ -1,7 +1,6 @@
 package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
-import de.mein.sql.Hash;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.bash.BashTools;
@@ -11,6 +10,7 @@ import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
+import de.mein.sql.Hash;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 
@@ -30,6 +30,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     protected StageSet stageSet;
     protected Long stageSetId;
     private Order order = new Order();
+    protected Boolean fastBooting = true;
 
 
     protected AbstractIndexer(DriveDatabaseManager databaseManager) {
@@ -75,9 +76,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         N.sqlResource(stageDao.getStagesByStageSet(stageSetId), stages -> {
             Stage stage = stages.getNext();
             while (stage != null) {
-                //todo debug
-                if (stage.getName().equals("samedir") && stageSetId == 14)
-                    System.out.println("AbstractIndexer.examineStage.debug1");
                 // build a File
                 String path = buildPathFromStage(stage);
                 File f = new File(path);
@@ -86,7 +84,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 } else {
                     this.updateFileStage(stage, f);
                 }
-                System.out.println("StageIndexerRunnable.run: " + path);
                 stage = stages.getNext();
             }
         });
@@ -140,7 +137,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             // we found everything which already exists in das datenbank
             Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
-            stageParent = connectToFs(fsParent, stageParent, parent);
+            stageParent = connectToFs(parent);
 //            if (stageParent == null && parent.getAbsolutePath().length() >= rootPathLength) {
 //                stageParent = new Stage().setStageSet(stageSet.getId().v());
 //                if (fsParent == null) {
@@ -183,7 +180,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // done here. set the indexer to work
     }
 
-    private Stage connectToFs(FsDirectory fsDirectory, Stage stage, File directory) throws SqlQueriesException {
+    private Stage connectToFs(File directory) throws SqlQueriesException {
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         if (directory.getAbsolutePath().length() < rootPathLength)
             return null;
@@ -205,6 +202,23 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 .setOrder(order.ord());
         Stage alreadyStaged = stageDao.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
         if (alreadyStaged == null) {
+            // copy contenthash etc if the file had not been touch
+            if (fastBooting) {
+                try {
+                    ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(bottomFile);
+                    if (bottomFsEntry.getModified().equalsValue(modifiedAndInode.getModified())
+                            && bottomFsEntry.getiNode().equalsValue(modifiedAndInode.getiNode())
+                            && bottomFsEntry.getSize().equalsValue(bottomFile.length())) {
+                        bottomStage.setiNode(modifiedAndInode.getiNode());
+                        bottomStage.setModified(modifiedAndInode.getModified());
+                        bottomStage.setContentHash(bottomFsEntry.getContentHash().v());
+                        bottomStage.setSize(bottomFsEntry.getSize().v());
+                        bottomStage.setSynced(true);
+                    }
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             stageDao.insert(bottomStage);
         } else {
             bottomStage = alreadyStaged;
@@ -392,7 +406,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException, InterruptedException {
-        if (stageFile.exists()) {
+        // skip hashing if information is complete -> speeds up booting
+        if (stageFile.exists() && (stage.getModifiedPair().isNull() || stage.getiNodePair().isNull() || stage.getContentHashPair().isNull())) {
             ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
             stage.setContentHash(Hash.md5(stageFile));
             stage.setiNode(modifiedAndInode.getiNode());

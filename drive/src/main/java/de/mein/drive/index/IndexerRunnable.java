@@ -80,6 +80,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 Iterator<String> found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
                 examineStage();
+                fastBooting = false;
             } catch (Exception e) {
                 e.printStackTrace();
                 startedPromise.reject(e);

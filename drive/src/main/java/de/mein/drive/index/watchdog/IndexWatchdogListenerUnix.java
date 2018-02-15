@@ -39,7 +39,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
             Path path = Paths.get(dir.getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
             keyMap.put(dir.getAbsolutePath(), key);
-            System.out.println("IndexWatchdogListener.watchDirectory: " + path.toString());
+//            System.out.println("IndexWatchdogListener.watchDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

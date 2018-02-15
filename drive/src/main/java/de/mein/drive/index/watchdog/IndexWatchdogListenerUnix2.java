@@ -85,7 +85,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
         try {
             Path path = Paths.get(dir.getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
-            System.out.println("IndexWatchdogListener.watchDirectory: " + path.toString());
+//            System.out.println("IndexWatchdogListener.watchDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

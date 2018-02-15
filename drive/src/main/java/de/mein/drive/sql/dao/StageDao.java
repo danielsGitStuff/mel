@@ -243,24 +243,7 @@ StageDao extends Dao.LockingDao {
 
     public Stage insert(Stage stage) throws SqlQueriesException {
         try {
-            //todo debug
-            if (stage.getName() == null)
-                System.out.println("StageDao.insert.debugfj34ßf");
-            if (stage.getName().equals("samesub1.txt") && stage.getSynced() != null && stage.getSynced())
-                System.out.println("StageDao.insert.debugnj34ßfg3w");
-            if (stage.getStageSet() == 6 && stage.getName().equals("samesub"))
-                System.out.println("StageDao.insert.debugkjg093j0");
-            if (stage.getName().equals("same2.txt") && stage.getParentId() == null)
-                System.out.println("StageDao.insert.debug.1");
-            if (!stage.getName().equals("[root]") && stage.getParentId() == null && stage.getFsId() == null)
-                System.out.println("StageDao.insert.debugnu4hg0");
             Long id = sqlQueries.insert(stage);
-            if (id == 92)
-                System.out.println("StageDao.insert.debugbtrgm0rg");
-            if (id == 94)
-                System.out.println("StageDao.insert.debugfkß34");
-            if (id == 95)
-                System.out.println("StageDao.insert.debugjtu76uf");
             return stage.setId(id);
         } catch (Exception e) {
             e.printStackTrace();

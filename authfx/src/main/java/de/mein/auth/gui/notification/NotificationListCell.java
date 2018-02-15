@@ -48,37 +48,40 @@ public class NotificationListCell extends ListCell<MeinNotification> {
     protected void updateItem(MeinNotification notification, boolean empty) {
         super.updateItem(notification, empty);
         this.notification = notification;
-        if (empty || notification == null) {
-            lblTitle.setText(null);
-            lblText.setText(null);
-            setGraphic(null);
-        } else {
-            lblText.setText(notification.getText());
-            lblTitle.setText(notification.getTitle());
-            btnOpen.setOnAction(event -> {
-                N.r(() -> {
-                    String name = meinAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
-                    BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(name);
-                    IMeinService meinService = meinAuthService.getMeinService(notification.getServiceUuid());
-                    if (bootloader instanceof BootLoaderFX) {
-                        BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
-                        String containingPath = bootLoaderFX.getPopupFXML(meinService, notification);
-                        Popup popup = new Popup(meinAuthService, notification, containingPath);
-                    }
+        Platform.runLater(() -> {
+            if (empty || notification == null) {
+                lblTitle.setText(null);
+                lblText.setText(null);
+                setGraphic(null);
+            } else {
+                lblText.setText(notification.getText());
+                lblTitle.setText(notification.getTitle());
+                btnOpen.setOnAction(event -> {
+                    N.r(() -> {
+                        String name = meinAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
+                        BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(name);
+                        IMeinService meinService = meinAuthService.getMeinService(notification.getServiceUuid());
+                        if (bootloader instanceof BootLoaderFX) {
+                            BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
+                            String containingPath = bootLoaderFX.getPopupFXML(meinService, notification);
+                            Popup popup = new Popup(meinAuthService, notification, containingPath);
+                        }
+                    });
                 });
-            });
-            try {
-                String name = meinAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
-                BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(name);
-                if (bootLoader instanceof BootLoaderFX) {
-                    BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
-                    Image image = new Image(bootLoaderFX.getIconURL(), 40, 40, true, true);
-                    imgIcon.setImage(image);
+                try {
+                    String name = meinAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
+                    BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(name);
+                    if (bootLoader instanceof BootLoaderFX) {
+                        BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
+                        Image image = new Image(bootLoaderFX.getIconURL(), 40, 40, true, true);
+                        imgIcon.setImage(image);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+                setGraphic(box);
             }
-            Platform.runLater(() -> setGraphic(box));
-        }
+        });
+
     }
 }

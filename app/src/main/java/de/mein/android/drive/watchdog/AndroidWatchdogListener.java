@@ -28,7 +28,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
 
     @Override
     public void watchDirectory(File dir) {
-        System.out.println("AndroidWatchdogListener.watchDirectory");
+//        System.out.println("AndroidWatchdogListener.watchDirectory");
         if (!watchesRoot)
             try {
                 watchesRoot = true;

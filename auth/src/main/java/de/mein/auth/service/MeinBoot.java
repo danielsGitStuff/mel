@@ -113,8 +113,9 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
         }
     }
 
-    public static BootLoader createBootLoader(MeinAuthService meinAuthService, Class<? extends BootLoader> bootClass) throws SqlQueriesException, IllegalAccessException, InstantiationException {
+    public BootLoader createBootLoader(MeinAuthService meinAuthService, Class<? extends BootLoader> bootClass) throws SqlQueriesException, IllegalAccessException, InstantiationException {
         BootLoader bootLoader = bootClass.newInstance();
+        bootloaderMap.put(bootLoader.getName(),bootClass);
         bootLoader.setMeinAuthService(meinAuthService);
         DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
         MeinAuthSettings meinAuthSettings = meinAuthService.getSettings();

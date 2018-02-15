@@ -300,7 +300,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     private void onCreateMenuItemClicked(String bootLoaderName) throws IllegalAccessException, SqlQueriesException, InstantiationException {
         Class<? extends BootLoader> bootLoaderClass = meinAuthService.getMeinBoot().getBootloaderMap().get(bootLoaderName);
-        BootLoader bootLoader = MeinBoot.createBootLoader(meinAuthService, bootLoaderClass);
+        BootLoader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootLoaderClass);
         if (bootLoader instanceof BootLoaderFX) {
             showPrimaryButtonOnly();
             BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
