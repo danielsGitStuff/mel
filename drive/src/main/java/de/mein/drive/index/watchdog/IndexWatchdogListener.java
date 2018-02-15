@@ -76,6 +76,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
     public IndexWatchdogListener(MeinDriveService meinDriveService) {
         this.meinDriveService = meinDriveService;
+        this.meinDriveService.getMeinAuthService().getPowerManager().addPowerListener(this);
     }
 
     public StageIndexer getStageIndexer() {

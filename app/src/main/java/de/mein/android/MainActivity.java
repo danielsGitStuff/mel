@@ -94,7 +94,7 @@ public class MainActivity extends MeinActivity {
         if (androidService.getMeinAuthService().getSettings().getRedirectSysout()) {
             MeinLogger.redirectSysOut(200, true);
         }
-        debugStuff2();
+        //debugStuff2();
     }
 
 
@@ -162,8 +162,9 @@ public class MainActivity extends MeinActivity {
     }
 
 
-    public static void debugStuff3() {
+    public void debugStuff3() {
         try {
+            Notifier.toast(this, "WARNING: DEBUG");
             ArrayList<ContentProviderOperation> operationList = new ArrayList<>();
             operationList.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
                     .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
@@ -204,6 +205,15 @@ public class MainActivity extends MeinActivity {
     }
 
     private void debugStuff2() {
+        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        Notifier.toast(this, "WARNING: DEBUG");
         annoyWithPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE
                 , Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS).done(result -> {
             androidService.getMeinAuthService().addRegisterHandler(new IRegisterHandler() {
@@ -328,6 +338,7 @@ public class MainActivity extends MeinActivity {
     }
 
     private void debugStuff() throws InterruptedException {
+        Notifier.toast(this, "WARNING: DEBUG");
         MeinAuthService meinAuthService = androidService.getMeinAuthService();
         System.out.println(meinAuthService);
         Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect("10.0.2.2", 8888, 8889, true);

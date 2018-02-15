@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.bash.BashTools;
@@ -156,8 +157,11 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     }
 
     private void startTimer() throws InterruptedException {
-        if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed())
+        if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed()) {
             watchDogTimer.start();
+        } else {
+            surpressEvent();
+        }
     }
 
     public void analyze(int event, Watcher watcher, String path) {
