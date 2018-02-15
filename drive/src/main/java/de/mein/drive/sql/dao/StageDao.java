@@ -348,7 +348,8 @@ StageDao extends Dao.LockingDao {
     }
 
     public void update(Stage stage) throws SqlQueriesException {
-        if (!stage.getName().equals("[root]") && stage.getParentId() == null && stage.getFsId() == null)
+        //todo debug
+        if (stage.getDeletedPair().equalsValue(true))
             System.out.println("StageDao.update.debug.1");
         if (stage.getId() == null)
             System.out.println("StageDao.update.debug.2");

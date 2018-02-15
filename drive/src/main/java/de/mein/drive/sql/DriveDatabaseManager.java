@@ -40,6 +40,15 @@ public class DriveDatabaseManager extends FileRelatedManager {
         sqlQueries.onShutDown();
     }
 
+    public void cleanUp() throws SqlQueriesException {
+        Stage stage = new Stage();
+        StageSet stageSet = new StageSet();
+        String stmt1 = "delete from " + stage.getTableName();
+        String stmt2 = "delete from " + stageSet.getTableName();
+        stageDao.getSqlQueries().execute(stmt1, null);
+        stageDao.getSqlQueries().execute(stmt2, null);
+    }
+
     public interface SQLConnectionCreator {
         ISQLQueries createConnection(DriveDatabaseManager driveDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
     }

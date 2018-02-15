@@ -104,6 +104,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             path = iterator.next();
 //            System.out.println("AbstractIndexer[" + stageSetId + "].initStage.fromBashTools: " + path);
             File f = new File(path);
+            //todo debug
+            if (f.getName().equals("the better life")) {
+                System.out.println("AbstractIndexer.initStage.debughegßeg");
+            }
             File parent = f.getParentFile();
             FsDirectory fsParent = null;
             FsEntry fsEntry = null;
@@ -131,6 +135,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             stage = new Stage().setName(f.getName()).setIsDirectory(f.isDirectory());
             if (fsEntry != null) {
                 stage.setFsId(fsEntry.getId().v()).setFsParentId(fsEntry.getParentId().v());
+                //check for fastboot
+                fastBoot(f, fsEntry, stage);
             }
             if (fsParent != null) {
                 stage.setFsParentId(fsParent.getId().v());
@@ -180,6 +186,25 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // done here. set the indexer to work
     }
 
+    private void fastBoot(File file, FsEntry fsEntry, Stage stage) {
+        if (fastBooting) {
+            try {
+                ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
+                if (fsEntry.getModified().equalsValue(modifiedAndInode.getModified())
+                        && fsEntry.getiNode().equalsValue(modifiedAndInode.getiNode())
+                        && ((fsEntry.getIsDirectory().v() && file.isDirectory()) || fsEntry.getSize().equalsValue(file.length()))) {
+                    stage.setiNode(modifiedAndInode.getiNode());
+                    stage.setModified(modifiedAndInode.getModified());
+                    stage.setContentHash(fsEntry.getContentHash().v());
+                    stage.setSize(fsEntry.getSize().v());
+                    stage.setSynced(true);
+                }
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private Stage connectToFs(File directory) throws SqlQueriesException {
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         if (directory.getAbsolutePath().length() < rootPathLength)
@@ -202,23 +227,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 .setOrder(order.ord());
         Stage alreadyStaged = stageDao.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
         if (alreadyStaged == null) {
-            // copy contenthash etc if the file had not been touch
-            if (fastBooting) {
-                try {
-                    ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(bottomFile);
-                    if (bottomFsEntry.getModified().equalsValue(modifiedAndInode.getModified())
-                            && bottomFsEntry.getiNode().equalsValue(modifiedAndInode.getiNode())
-                            && bottomFsEntry.getSize().equalsValue(bottomFile.length())) {
-                        bottomStage.setiNode(modifiedAndInode.getiNode());
-                        bottomStage.setModified(modifiedAndInode.getModified());
-                        bottomStage.setContentHash(bottomFsEntry.getContentHash().v());
-                        bottomStage.setSize(bottomFsEntry.getSize().v());
-                        bottomStage.setSynced(true);
-                    }
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            // copy contenthash etc if the file had not been touched
+            fastBoot(bottomFile, bottomFsEntry, bottomStage);
             stageDao.insert(bottomStage);
         } else {
             bottomStage = alreadyStaged;
@@ -407,26 +417,28 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException, InterruptedException {
         // skip hashing if information is complete -> speeds up booting
-        if (stageFile.exists() && (stage.getModifiedPair().isNull() || stage.getiNodePair().isNull() || stage.getContentHashPair().isNull())) {
-            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
-            stage.setContentHash(Hash.md5(stageFile));
-            stage.setiNode(modifiedAndInode.getiNode());
-            stage.setModified(modifiedAndInode.getModified());
-            stage.setSize(stageFile.length());
-            stage.setSynced(true);
-            // stage can be deleted if nothing changed
-            if (stage.getFsId() != null) {
-                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
-                if (fsEntry.getContentHash().v().equals(stage.getContentHash()))
-                    stageDao.deleteStageById(stage.getId());
-                else
+        if ((stage.getModifiedPair().isNull() || stage.getiNodePair().isNull() || stage.getContentHashPair().isNull())) {
+            if (stageFile.exists()) {
+                ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
+                stage.setContentHash(Hash.md5(stageFile));
+                stage.setiNode(modifiedAndInode.getiNode());
+                stage.setModified(modifiedAndInode.getModified());
+                stage.setSize(stageFile.length());
+                stage.setSynced(true);
+                // stage can be deleted if nothing changed
+                if (stage.getFsId() != null) {
+                    FsEntry fsEntry = fsDao.getFile(stage.getFsId());
+                    if (fsEntry.getContentHash().v().equals(stage.getContentHash()))
+                        stageDao.deleteStageById(stage.getId());
+                    else
+                        stageDao.update(stage);
+                } else
                     stageDao.update(stage);
-            } else
-                stageDao.update(stage);
 
-        } else {
-            stage.setDeleted(true);
-            stageDao.update(stage);
+            } else {
+                stage.setDeleted(true);
+                stageDao.update(stage);
+            }
         }
     }
 }

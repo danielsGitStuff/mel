@@ -102,6 +102,7 @@ public class DriveBootLoader extends BootLoader {
         //create cache dir
         new File(workingDir.getAbsolutePath() + File.separator + "cache").mkdirs();
         DriveDatabaseManager databaseManager = new DriveDatabaseManager(meinDriveService, workingDir, driveSettings);
+        databaseManager.cleanUp();
         return meinDriveService.startIndexer(databaseManager);
     }
 
