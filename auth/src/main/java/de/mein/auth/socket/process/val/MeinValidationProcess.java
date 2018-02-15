@@ -104,12 +104,14 @@ public class MeinValidationProcess extends MeinProcess {
                     CachedData cachedData = cachedForSending.get(cachedRequest.getCacheId());
                     cachedData.getPart(cachedRequest.getPartNumber());
                 }
+                return true;
             } else if (deserialized instanceof CachedDoneMessage) {
                 CachedDoneMessage cachedDoneMessage = (CachedDoneMessage) deserialized;
                 if (isServiceAllowed(cachedDoneMessage.getServiceUuid())) {
                     CachedData cachedData = cachedForSending.remove(cachedDoneMessage.getCacheId());
                     cachedData.cleanUp();
                 }
+                return true;
             }
         } catch (Exception e) {
             e.printStackTrace();
