@@ -1,21 +1,19 @@
 package de.mein.sql;
 
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by xor on 7/10/16.
  */
 public class Hash {
 
-    public static String md5(File file) throws IOException {
+    public static String md5(File file) {
         MessageDigest messageDigest;
+        System.out.println("Hash.md5: " + file.getAbsolutePath());
         try {
             messageDigest = MessageDigest.getInstance("MD5");
 
@@ -37,7 +35,7 @@ public class Hash {
         }
     }
 
-    public static String bytesToString(byte[] bytes){
+    public static String bytesToString(byte[] bytes) {
         StringBuffer hexString = new StringBuffer();
         for (int i = 0; i < bytes.length; i++) {
             if ((0xff & bytes[i]) < 0x10) {
