@@ -281,8 +281,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
             NotificationCenter notificationCenter = loader.getController();
             notificationCenter.setMeinAuthAdminFX(this);
             Scene scene = new Scene(root);
-            scene.getStylesheets().add("de/mein/modena_dark.css");
-            Stage stage = new Stage();
+            Stage stage = createStage(scene);
             stage.setTitle("Notification Center");
             stage.setScene(scene);
             stage.show();
