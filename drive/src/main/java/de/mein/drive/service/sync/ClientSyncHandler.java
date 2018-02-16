@@ -207,7 +207,7 @@ public class ClientSyncHandler extends SyncHandler {
                 ConnectResult connectResult = meinAuthService.connectLocked(driveSettings.getClientSettings().getServerCertId());
                 if (connectResult.successful()) N.r(() -> {
                     // load to cached data structure
-                    Commit commit = new Commit();
+                    Commit commit = new Commit(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
                     N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
                     commit.setServiceUuid(meinDriveService.getUuid());
                     commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());

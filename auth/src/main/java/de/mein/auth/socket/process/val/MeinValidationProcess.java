@@ -92,10 +92,6 @@ public class MeinValidationProcess extends MeinProcess {
                 if (cachedForRetrieving.containsKey(response.getResponseId())) {
                     CachedData cachedData = cachedForRetrieving.remove(response.getResponseId());
                     cachedData.cleanUp();
-                    CachedDoneMessage cachedDoneMessage = new CachedDoneMessage()
-                            .setServiceUuid(cachedData.getServiceUuid())
-                            .setCacheId(cachedData.getCacheId());
-                    send(cachedDoneMessage);
                 }
                 return false;
             } else if (deserialized instanceof CachedRequest) {
@@ -109,6 +105,10 @@ public class MeinValidationProcess extends MeinProcess {
                 CachedDoneMessage cachedDoneMessage = (CachedDoneMessage) deserialized;
                 if (isServiceAllowed(cachedDoneMessage.getServiceUuid())) {
                     CachedData cachedData = cachedForSending.remove(cachedDoneMessage.getCacheId());
+                    //todo debug
+                    if (cachedData == null){
+                        System.out.println("MeinValidationProcess.handleCached.debug234");
+                    }
                     cachedData.cleanUp();
                 }
                 return true;

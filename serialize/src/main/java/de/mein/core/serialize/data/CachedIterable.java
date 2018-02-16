@@ -27,6 +27,10 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
     }
 
     public void add(T elem) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InstantiationException, InvocationTargetException {
+        //todo debug
+        if (part == null){
+            System.out.println("CachedIterable.add.debug");
+        }
         if (part.size() >= partSize) {
             part.setSerialized();
             write(part);
@@ -54,8 +58,13 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
      */
     public void cleanUp() {
         for (Integer i = 1; i <= partCount; i++) {
-            File file = createCachedPartFile(i);
-            file.delete();
+            try {
+                File file = createCachedPartFile(i);
+                file.delete();
+            } catch (Exception e) {
+                System.err.println("CachedIterable.cleanUp.err(cacheId= " + cacheId + " part= " + part + " cacheDir.null= " + (cacheDir == null)+")");
+                e.printStackTrace();
+            }
         }
     }
 
