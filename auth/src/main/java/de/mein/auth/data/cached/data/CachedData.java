@@ -123,8 +123,8 @@ public abstract class CachedData implements IPayload {
         for (int i = 0; i < partCount; i++) {
             File f = createCachedPartFile(i);
             try {
-                // if (f.exists())
-                //   f.delete();
+                 if (f.exists())
+                   f.delete();
             } catch (Exception e) {
                 e.printStackTrace();
             }
