@@ -71,7 +71,7 @@ public class CreateServiceController extends GuiController {
             List<BootLoader> bootLoaders = new ArrayList<>();
             for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
                 N.r(() -> {
-                    BootLoader bootLoader = MeinBoot.createBootLoader(meinAuthService, bootloaderClass);
+                    BootLoader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootloaderClass);
                     bootLoaders.add(bootLoader);
                     //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
                     System.out.println("CreateServiceController.CreateServiceController");
