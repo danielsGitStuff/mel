@@ -164,8 +164,8 @@ public class MeinValidationProcess extends MeinProcess {
                     .setPartNumber(cached.getNextPartNumber())
                     .setServiceUuid(cached.getServiceUuid());
             send(cachedRequest);
+            return true;
         }
-        return false;
     }
 
     private boolean handleDriveOps(SerializableEntity deserialized) throws SqlQueriesException {

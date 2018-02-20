@@ -69,7 +69,7 @@ public abstract class CachedData implements IPayload {
     public void initPartsMissed(int amount) {
         partsMissed = new HashSet<>();
         for (int i = 1; i <= amount; i++) {
-            partsMissed.add(amount);
+            partsMissed.add(i);
         }
     }
 
@@ -136,7 +136,7 @@ public abstract class CachedData implements IPayload {
     }
 
     public CachedPart getPart(int partNumber) throws IOException, JsonDeserializationException {
-        CachedPart part = CachedPart.read(createCachedPartFile(partCount));
+        CachedPart part = CachedPart.read(createCachedPartFile(partNumber));
         return part;
     }
 }
