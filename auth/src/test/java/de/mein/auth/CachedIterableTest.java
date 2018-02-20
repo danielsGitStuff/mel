@@ -1,26 +1,29 @@
 package de.mein.auth;
 
-import de.mein.core.serialize.classes.SimpleSerializableEntity;
+import de.mein.auth.data.cached.data.CachedIterable;
+import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class CachedIterableTest {
     private static File CACHE_DIR = new File("testcache");
     private static CachedIterable iterable;
 
 
-
     @Before
     public void before() {
         CACHE_DIR.mkdirs();
-        iterable = new CachedIterable(CACHE_DIR,5);
+        iterable = new CachedIterable(CACHE_DIR, 5);
         iterable.setCacheId(99999L);
         System.out.println("CachedIterableTest.before.done: " + CACHE_DIR.getAbsolutePath());
     }
@@ -52,11 +55,31 @@ public class CachedIterableTest {
         serialize();
         Iterator<SimpleSerializableEntity> iterator = iterable.iterator();
         assertTrue(iterator.hasNext());
-        while (iterator.hasNext()){
-            System.out.println("CachedIterableTest.iterate: "+iterator.next().getPrimitive());
+        while (iterator.hasNext()) {
+            System.out.println("CachedIterableTest.iterate: " + iterator.next().getPrimitive());
         }
         assertTrue(iterable.createCachedPartFile(1).exists());
         iterable.cleanUp();
         assertFalse(iterable.createCachedPartFile(1).exists());
-        System.out.println("CachedIterableTest.iterate.done");    }
+        System.out.println("CachedIterableTest.iterate.done");
+    }
+
+    /**
+     * Created by xor on 12/21/15.
+     */
+    public static class SimpleSerializableEntity implements SerializableEntity {
+        public SimpleSerializableEntity in;
+        public SimpleSerializableEntity out;
+        private String primitive;
+
+        public SimpleSerializableEntity setPrimitive(String primitive) {
+            this.primitive = primitive;
+            return this;
+        }
+
+        public String getPrimitive() {
+            return primitive;
+        }
+    }
+
 }
