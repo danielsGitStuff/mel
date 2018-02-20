@@ -1,4 +1,4 @@
-package de.mein.core.serialize.data;
+package de.mein.auth.data.cached.data;
 
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -20,7 +20,6 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
     public CachedIterable(File cacheDir, int partSize) {
         super(partSize);
         this.cacheDir = cacheDir;
-        this.part = new CachedListPart(cacheId, 1, partSize);
     }
 
     public CachedIterable() {
@@ -28,8 +27,8 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
 
     public void add(T elem) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InstantiationException, InvocationTargetException {
         //todo debug
-        if (part == null){
-            System.out.println("CachedIterable.add.debug");
+        if (part == null) {
+            this.part = new CachedListPart(cacheId, partCount, partSize);
         }
         if (part.size() >= partSize) {
             part.setSerialized();
@@ -62,7 +61,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
                 File file = createCachedPartFile(i);
                 file.delete();
             } catch (Exception e) {
-                System.err.println("CachedIterable.cleanUp.err(cacheId= " + cacheId + " part= " + part + " cacheDir.null= " + (cacheDir == null)+")");
+                System.err.println("CachedIterable.cleanUp.err(cacheId= " + cacheId + " part= " + part + " cacheDir.null= " + (cacheDir == null) + ")");
                 e.printStackTrace();
             }
         }
@@ -73,7 +72,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
     public Iterator<T> iterator() {
         try {
             // first check if there is a not serialized part in memory
-            if (!part.isSerialized())
+            if (part != null && !part.isSerialized())
                 write(part);
             return new CachedIterator(this);
         } catch (JsonSerializationException | IllegalAccessException | IOException | NoSuchMethodException
@@ -81,6 +80,12 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public void onReceivedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        super.onReceivedPart(cachedPart);
+        size += cachedPart.size();
     }
 
     public long getSize() {

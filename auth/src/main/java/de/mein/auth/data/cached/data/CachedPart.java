@@ -1,4 +1,4 @@
-package de.mein.core.serialize.data;
+package de.mein.auth.data.cached.data;
 
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;

@@ -4,9 +4,6 @@ import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
 import de.mein.core.serialize.SerializableEntity;
-import de.mein.core.serialize.data.CachedData;
-import de.mein.core.serialize.data.CachedPart;
-import de.mein.core.serialize.data.CachedIterable;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 

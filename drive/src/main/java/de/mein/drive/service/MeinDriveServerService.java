@@ -53,6 +53,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 task.add(next);
                 next = delta.getNext();
             }
+            task.toDisk();
             task.loadFirstCached();
             task.setNewVersion(driveDatabaseManager.getLatestVersion());
             request.resolve(task);

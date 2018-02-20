@@ -1,9 +1,7 @@
-package de.mein.core.serialize.data;
+package de.mein.auth;
 
-import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.classes.SimpleSerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -43,7 +41,7 @@ public class CachedIterableTest {
 
     @Test
     public void serialize() throws IllegalAccessException, IOException, JsonSerializationException, NoSuchMethodException, InvocationTargetException, InstantiationException {
-        for (Integer i = 1; i < 21; i++) {
+        for (Integer i = 1; i <= 21; i++) {
             iterable.add(new SimpleSerializableEntity().setPrimitive(i.toString()));
         }
         System.out.println("CachedIterableTest.serialize.done");

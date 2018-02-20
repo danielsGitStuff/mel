@@ -2,6 +2,8 @@ package de.mein.auth.socket.process.val;
 
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
+import de.mein.auth.data.cached.data.CachedData;
+import de.mein.auth.data.cached.data.CachedPart;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.IMeinService;
@@ -9,8 +11,6 @@ import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
 import de.mein.auth.socket.process.auth.MeinAuthProcess;
 import de.mein.core.serialize.SerializableEntity;
-import de.mein.core.serialize.data.CachedData;
-import de.mein.core.serialize.data.CachedPart;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 
@@ -22,9 +22,11 @@ import java.util.Map;
 /**
  * Created by xor on 4/27/16.
  */
+@SuppressWarnings("Duplicates")
 public class MeinValidationProcess extends MeinProcess {
     private final Long connectedId;
     private final Map<Long, CachedData> cachedForRetrieving = new HashMap<>();
+    private final Map<Long, StateMsg> cachedAnswers = new HashMap<>();
     private final Map<Long, CachedData> cachedForSending = new HashMap<>();
 
 
@@ -84,21 +86,35 @@ public class MeinValidationProcess extends MeinProcess {
                 return true;
             } else if (deserialized instanceof CachedPart) {
                 // a further part of cached data arrives
-                handleReceiveCachedPart((CachedPart) deserialized);
-                return true;
+                return handleReceiveCachedPart((CachedPart) deserialized);
             } else if (deserialized instanceof MeinResponse) {
                 // a cached request might fail. clean up everything and continue as usual
                 MeinResponse response = (MeinResponse) deserialized;
                 if (cachedForRetrieving.containsKey(response.getResponseId())) {
-                    CachedData cachedData = cachedForRetrieving.remove(response.getResponseId());
-                    cachedData.cleanUp();
+                    if (MeinStrings.msg.STATE_ERR.equals(response.getState())) {
+                        CachedData cachedData = cachedForRetrieving.remove(response.getResponseId());
+                        cachedData.cleanUp();
+                    } else if (MeinStrings.msg.STATE_OK.equals(response.getState())) {
+                        // first part of cached data arrives. save the answer for when all parts have arrived.
+                        // we will update its cached payload and put it in handleAnswer()
+                        CachedData receivedData = (CachedData) response.getPayload();
+                        CachedData cached = cachedForRetrieving.get(receivedData.getCacheId());
+                        cached.initPartsMissed(receivedData.getPartCount());
+                        cachedAnswers.put(cached.getCacheId(), response);
+                        handleReceiveCachedPart(receivedData.getPart());
+                        return true;
+                    }
                 }
+
+                // do not return true here cause other things might want to handle this.
+                // eg: errors go here
                 return false;
             } else if (deserialized instanceof CachedRequest) {
                 CachedRequest cachedRequest = (CachedRequest) deserialized;
                 if (isServiceAllowed(cachedRequest.getServiceUuid())) {
                     CachedData cachedData = cachedForSending.get(cachedRequest.getCacheId());
-                    cachedData.getPart(cachedRequest.getPartNumber());
+                    CachedPart part = cachedData.getPart(cachedRequest.getPartNumber());
+                    send(part);
                 }
                 return true;
             } else if (deserialized instanceof CachedDoneMessage) {
@@ -106,7 +122,7 @@ public class MeinValidationProcess extends MeinProcess {
                 if (isServiceAllowed(cachedDoneMessage.getServiceUuid())) {
                     CachedData cachedData = cachedForSending.remove(cachedDoneMessage.getCacheId());
                     //todo debug
-                    if (cachedData == null){
+                    if (cachedData == null) {
                         System.out.println("MeinValidationProcess.handleCached.debug234");
                     }
                     cachedData.cleanUp();
@@ -119,12 +135,28 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
-    private void handleReceiveCachedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException, SqlQueriesException {
+    /**
+     * reads a {@link CachedPart} and and removes the related {@link CachedData} object from the waiting "list".
+     * calls handleDriveOps() when done
+     *
+     * @param cachedPart
+     * @throws IllegalAccessException
+     * @throws JsonSerializationException
+     * @throws IOException
+     * @throws InstantiationException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     * @throws SqlQueriesException
+     */
+    private boolean handleReceiveCachedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException, SqlQueriesException {
         CachedData cached = cachedForRetrieving.get(cachedPart.getCacheId());
         cached.onReceivedPart(cachedPart);
         if (cached.isComplete()) {
             cachedForRetrieving.remove(cached.getCacheId());
-            handleDriveOps(cached);
+            // update the answer we got before and handle it
+            StateMsg stateMsg = cachedAnswers.get(cached.getCacheId());
+            stateMsg.setPayLoad(cached);
+            return handleAnswer(stateMsg);
         } else {
             // retrieve the next part
             CachedRequest cachedRequest = new CachedRequest()
@@ -133,6 +165,7 @@ public class MeinValidationProcess extends MeinProcess {
                     .setServiceUuid(cached.getServiceUuid());
             send(cachedRequest);
         }
+        return false;
     }
 
     private boolean handleDriveOps(SerializableEntity deserialized) throws SqlQueriesException {

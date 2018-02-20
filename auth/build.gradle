@@ -19,4 +19,5 @@ dependencies {
     compile 'org.jdeferred:jdeferred-core:1.2.4'
     compile project(path: ':serialize')
     testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
+    testCompile project (path: 'serialize_test')
 }

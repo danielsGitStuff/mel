@@ -1,13 +1,7 @@
-package de.mein.core.serialize.data;
+package de.mein.auth.data.cached.data;
 
 import de.mein.core.serialize.SerializableEntity;
-import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
-import de.mein.core.serialize.exceptions.JsonDeserializationException;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 

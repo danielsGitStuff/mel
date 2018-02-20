@@ -14,7 +14,6 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
-import de.mein.core.serialize.data.CachedData;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveSettings;
@@ -36,9 +35,7 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;

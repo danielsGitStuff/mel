@@ -18,7 +18,7 @@ public class DriveSettings extends JsonSettings {
     public static final String TRANSFER_DIR = "leTransfer";
     public static final float DEFAULT_WASTEBIN_RATIO = 0.1f;
     public static final int DEFAULT_WASTEBIN_MAXDAYS = 30;
-    public static final int CACHE_LIST_SIZE = 2000;
+    public static final int CACHE_LIST_SIZE = 20;
     private RootDirectory rootDirectory;
     private String role = ":(";
     private Long lastSyncedVersion = 0l;

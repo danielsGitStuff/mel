@@ -1,15 +1,14 @@
-package de.mein.core.serialize.data;
+package de.mein.auth.data.cached.data;
 
 import de.mein.core.serialize.SerializableEntity;
 
 import java.io.File;
 import java.util.Iterator;
 
-public class CachedIterator<T extends  SerializableEntity> implements Iterator<T> {
+public class CachedIterator<T extends  SerializableEntity> extends CachedData implements Iterator<T> {
 
     private CachedIterable iterable;
     private int pos = 0;
-    private int partCount = 1;
     private Iterator<SerializableEntity> partIterator;
 
     public CachedIterator(CachedIterable iterable) {

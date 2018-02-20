@@ -1,7 +1,7 @@
-package de.mein.core.serialize.data;
+package de.mein.auth.data.cached.data;
 
+import de.mein.auth.data.IPayload;
 import de.mein.core.serialize.JsonIgnore;
-import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
@@ -18,7 +18,7 @@ import java.util.Set;
  * The overall class for anything which is cached. Its name is required to identify as a certain cached object.
  * Tells you how many parts the data is divided to.
  */
-public abstract class CachedData implements SerializableEntity {
+public abstract class CachedData implements IPayload {
     protected Long cacheId;
     protected int partCount = 1;
     protected CachedPart part;
@@ -86,6 +86,7 @@ public abstract class CachedData implements SerializableEntity {
      */
     protected void write(CachedPart part) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InvocationTargetException, InstantiationException {
         //serialize actual list, create a new one
+        part.setSerialized();
         String json = SerializableEntitySerializer.serialize(part);
         //save to file
         File file = createCachedPartFile(part.getPartNumber());
@@ -122,8 +123,8 @@ public abstract class CachedData implements SerializableEntity {
         for (int i = 0; i < partCount; i++) {
             File f = createCachedPartFile(i);
             try {
-                if (f.exists())
-                    f.delete();
+                // if (f.exists())
+                //   f.delete();
             } catch (Exception e) {
                 e.printStackTrace();
             }
