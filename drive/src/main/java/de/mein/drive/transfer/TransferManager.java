@@ -310,14 +310,13 @@ public class TransferManager extends DeferredRunnable {
                         transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
                     }
                     deferred.resolve(strippedTransferDetails);
+                    meinAuthService.getPowerManager().releaseWakeLock(this);
                 } catch (Exception e) {
                     deferred.reject(strippedTransferDetails);
+                    meinAuthService.getPowerManager().releaseWakeLock(this);
                 }
             }
         };
-        Eva.eva((eva, count) -> {
-            eva.print("appendix");
-        });
         meinDriveService.execute(runnable);
         return deferred;
     }

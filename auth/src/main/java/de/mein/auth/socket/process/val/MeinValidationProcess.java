@@ -50,7 +50,6 @@ public class MeinValidationProcess extends MeinProcess {
     @Override
     public void stop() {
         super.stop();
-
     }
 
     public Long getConnectedId() {
@@ -296,6 +295,7 @@ public class MeinValidationProcess extends MeinProcess {
     }
 
     public Request request(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
+        meinAuthSocket.getMeinAuthService().getPowerManager().wakeLock(this);
         Request promise = new Request();
         MeinRequest request = new MeinRequest(serviceUuid, intent);
         if (payload != null) {
@@ -306,6 +306,7 @@ public class MeinValidationProcess extends MeinProcess {
         request.getPromise().done(result -> {
             StateMsg response = (StateMsg) result;
             promise.resolve(response.getPayload());
+            meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this);
         }).fail(result -> {
             if (validateFail(result)) {
                 if (!promise.isRejected())
@@ -314,6 +315,7 @@ public class MeinValidationProcess extends MeinProcess {
                 if (!promise.isRejected())
                     promise.reject(result);
             }
+            meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this);
         });
         queueForResponse(request);
         send(request);

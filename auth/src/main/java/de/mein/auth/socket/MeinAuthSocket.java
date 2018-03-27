@@ -16,6 +16,7 @@ import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.Hash;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -23,6 +24,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLSocket;
+
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
@@ -85,6 +87,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     @Override
     public void onMessage(MeinSocket meinSocket, String msg) {
         try {
+            meinAuthService.getPowerManager().wakeLock(this);
             SerializableEntity deserialized = SerializableEntityDeserializer.deserialize(msg);
             //todo debug
             if (deserialized instanceof MeinRequest) {
@@ -112,6 +115,9 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            meinAuthService.getPowerManager().releaseWakeLock(this);
+
         }
     }
 
@@ -148,19 +154,23 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         final boolean regOnUnknown = job.getRegOnUnknown();
 
         System.out.println("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
+        meinAuthService.getPowerManager().wakeLock(this);
         DeferredObject result = job.getPromise();
         N runner = new N(e -> {
             result.reject(e);
+            meinAuthService.getPowerManager().releaseWakeLock(this);
         });
         DeferredObject<Void, Exception, Void> firstAuth = this.auth(job);
         firstAuth.done(result1 -> {
             result.resolve(result1);
+            meinAuthService.getPowerManager().releaseWakeLock(this);
         }).fail(except -> runner.runTry(() -> {
             if (except instanceof ShamefulSelfConnectException) {
                 result.reject(except);
             } else if (except instanceof ConnectException) {
                 System.err.println(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
                 result.reject(except);
+                meinAuthService.getPowerManager().releaseWakeLock(this);
             } else if (regOnUnknown && remoteCertId == null) {
                 // try to register
                 DeferredObject<Certificate, Exception, Object> importPromise = new DeferredObject<>();
@@ -181,12 +191,14 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
                                     // compiler thinks exception is an Object instead of Exception
                                     ((Exception) exception).printStackTrace();
                                     result.reject(exception);
+                                    meinAuthService.getPowerManager().releaseWakeLock(this);
                                 }
                         );
                     });
                 }).fail(ee -> {
                     ee.printStackTrace();
                     result.reject(ee);
+                    meinAuthService.getPowerManager().releaseWakeLock(this);
                 });
             } else {
                 if (!(except instanceof ShamefulSelfConnectException)) {
@@ -194,6 +206,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
                 } else {
                     result.reject(except);
                 }
+                meinAuthService.getPowerManager().releaseWakeLock(this);
             }
         }));
 
@@ -220,12 +233,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     }*/
 
     private DeferredObject<Void, Exception, Void> auth(AConnectJob job) {
-        final Long remoteCertId = job.getCertificateId();
-        final String address = job.getAddress();
-        final Integer port = job.getPort();
-        final Integer portCert = job.getPortCert();
         DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
-
         N runner = new N(e -> {
             e.printStackTrace();
             deferred.reject(e);

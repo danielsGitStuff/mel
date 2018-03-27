@@ -77,6 +77,7 @@ public abstract class MeinProcess implements IRequestHandler {
 
     public void stop() {
         meinAuthSocket.stop();
+        meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this);
     }
 
     public abstract void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket);

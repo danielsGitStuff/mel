@@ -167,10 +167,6 @@ public class MeinAuthProcess extends MeinProcess {
                 e.printStackTrace();
                 deferred.reject(e);
             });
-        /*this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateById(id);*/
-//        if (partnerCertificate==null){
-//            partnerCertificate = meinAuthSocket.getTrustedPartnerCertificate();
-//        }
             this.mySecret = UUID.randomUUID().toString();
             byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
             MeinRequest request = new MeinRequest(MeinStrings.SERVICE_NAME, MeinStrings.msg.INTENT_AUTH)
