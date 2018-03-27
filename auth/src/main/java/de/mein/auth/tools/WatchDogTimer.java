@@ -17,15 +17,14 @@ public class WatchDogTimer extends Timer {
     private Timer timer = new Timer("WatchDogTimer");
     private WatchDogTimerTask task;
     private boolean runs = false;
-    private Semaphore lock = new Semaphore(1,true);
+    private Semaphore lock = new Semaphore(1, true);
     private int waitCounter = 0;
 
     /**
-     *
      * @param watchDogTimerFinished
-     * @param repetitions repeat n times
-     * @param delay starts after n ms
-     * @param period wait for n ms after each period
+     * @param repetitions           repeat n times
+     * @param delay                 starts after n ms
+     * @param period                wait for n ms after each period
      */
     public WatchDogTimer(WatchDogTimerFinished watchDogTimerFinished, int repetitions, int delay, int period) {
         this.watchDogTimerFinished = watchDogTimerFinished;
@@ -36,6 +35,7 @@ public class WatchDogTimer extends Timer {
 
     /**
      * Starts the Timer if not running. Otherwise it will be reset.
+     *
      * @return
      * @throws InterruptedException
      */
@@ -60,6 +60,18 @@ public class WatchDogTimer extends Timer {
         return this;
     }
 
+    /**
+     * stops the timer from counting.
+     */
+    public void stop() throws InterruptedException {
+        lock.acquire();
+        if (runs) {
+            runs = false;
+            timer.cancel();
+        }
+        lock.release();
+    }
+
     public void resume() throws InterruptedException {
         lock.acquire();
         waitCounter--;
@@ -81,6 +93,7 @@ public class WatchDogTimer extends Timer {
     public void finish() throws InterruptedException {
         watchDogTimerFinished.onTimerStopped();
     }
+
 
     public interface WatchDogTimerFinished {
         void onTimerStopped() throws InterruptedException;

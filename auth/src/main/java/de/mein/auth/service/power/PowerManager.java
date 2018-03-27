@@ -14,11 +14,11 @@ import de.mein.auth.tools.N;
 
 public class PowerManager {
     public void wakeLock(Object caller) {
-
+        //nothing to do here
     }
 
     public void releaseWakeLock(Object caller) {
-
+        //nothing to do here
     }
 
     public interface PowerManagerListener {
@@ -35,9 +35,9 @@ public class PowerManager {
 
     private final MeinAuthSettings meinAuthSettings;
     private final PowerManagerSettings settings;
-    private boolean online = true;
+    protected boolean online = true;
     private boolean plugged = true;
-    private ReentrantLock stateLock = new ReentrantLock(true);
+    protected ReentrantLock stateLock = new ReentrantLock(true);
     private ReentrantLock powerListenerLock = new ReentrantLock();
     private ReentrantLock comListenerLock = new ReentrantLock();
     private Set<PowerManagerListener> powerManagerListeners = new HashSet<>();
@@ -76,16 +76,35 @@ public class PowerManager {
         return this;
     }
 
-    private void propagatePossibleStateChanges(boolean workBefore, boolean workNow) {
+    /**
+     * useful for android only
+     */
+    protected void onHeavyWorkAllowed() {
+
+    }
+
+    /**
+     * useful for android only
+     */
+    protected void onHeavyWorkForbidden() {
+
+    }
+
+    protected void propagatePossibleStateChanges(boolean workBefore, boolean workNow) {
         try {
             powerListenerLock.lock();
             if ((workNow ^ workBefore)) {
-                if (workNow)
-                    for (PowerManagerListener listener : powerManagerListeners)
+                if (workNow) {
+                    for (PowerManagerListener listener : powerManagerListeners) {
                         listener.onHeavyWorkAllowed();
-                else
-                    for (PowerManagerListener listener : powerManagerListeners)
+                    }
+                    onHeavyWorkAllowed();
+                } else {
+                    for (PowerManagerListener listener : powerManagerListeners) {
                         listener.onHeavyWorkForbidden();
+                    }
+                    onHeavyWorkForbidden();
+                }
             }
         } finally {
             powerListenerLock.unlock();
@@ -160,7 +179,7 @@ public class PowerManager {
         stateLock.unlock();
     }
 
-    private boolean heavyWorkAllowedNoLock() {
+    protected boolean heavyWorkAllowedNoLock() {
         return (settings.doHeavyWorkWhenPlugged() && plugged) || (settings.doHeavyWorkWhenOffline() && !online);
     }
 
