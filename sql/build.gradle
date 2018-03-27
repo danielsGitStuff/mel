@@ -6,7 +6,7 @@ compileJava {
     targetCompatibility = '1.8'
 }
 dependencies {
-    compile project(path: ':serialize')
+    implementation project(path: ':serialize')
     testCompile project(path: ':serialize')
     testCompile 'junit:junit:4.12'
     //compile 'mysql:mysql-connector-java:5.1.6'

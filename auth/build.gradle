@@ -6,18 +6,18 @@ compileJava {
     targetCompatibility = '1.8'
 }
 dependencies {
-    compile project(path: ':sql')
-    compile project(path: ':serialize')
+    implementation project(path: ':sql')
+    implementation project(path: ':serialize')
     testCompile project(path: ':sql')
 //    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'org.bouncycastle:bcprov-jdk15on:1.58'
-    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.58'
-    compile project(path: ':sql')
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.58'
+    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.58'
+    implementation project(path: ':sql')
     testCompile 'org.jdeferred:jdeferred-core:1.2.4'
     testCompile 'junit:junit:4.12'
 //    compile 'net.sourceforge.streamsupport:streamsupport:1.5.2'
-    compile 'org.jdeferred:jdeferred-core:1.2.4'
-    compile project(path: ':serialize')
+    implementation 'org.jdeferred:jdeferred-core:1.2.4'
+    implementation project(path: ':serialize')
     testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
     testCompile project(path: ':serialize',configuration :'serializeTestOutput')
 }

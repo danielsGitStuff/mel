@@ -35,14 +35,12 @@ import java.util.Random;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by xor on 12/16/16.
  */
 public class TransferManager extends DeferredRunnable {
-    private static final int LIMIT_PER_ADDRESS = 2;
+    private static final int FILE_REQUEST_LIMIT_PER_CONNECTION = 30;
     private final TransferDao transferDao;
     private final MeinAuthService meinAuthService;
     private final MeinDriveService meinDriveService;
@@ -74,9 +72,6 @@ public class TransferManager extends DeferredRunnable {
 
     private String activeTransferKey(TransferDetails details) {
         String key = details.getCertId().v() + "." + details.getServiceUuid().v();
-        //todo debug
-        if (key.equals("1.d89e2ebc-032b-479c-ba90-b50d48fab01c"))
-            System.out.println("TransferManager.activeTransferKey.debugn0jv45jfh9awe");
         return key;
     }
 
@@ -274,7 +269,7 @@ public class TransferManager extends DeferredRunnable {
             public void run() {
                 try {
                     final String workingPath = meinDriveService.getDriveSettings().getTransferDirectoryPath() + File.separator;
-                    List<TransferDetails> transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), LIMIT_PER_ADDRESS);
+                    List<TransferDetails> transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
                     while (transfers.size() > 0) {
                         AtomicInteger countDown = new AtomicInteger(transfers.size());
                         FileTransferDetailSet payLoad = new FileTransferDetailSet().setServiceUuid(meinDriveService.getUuid());
@@ -311,7 +306,7 @@ public class TransferManager extends DeferredRunnable {
                         }));
                         //wait until current batch is transferred
                         lock.lockWrite();
-                        transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), LIMIT_PER_ADDRESS);
+                        transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
                     }
                     deferred.resolve(strippedTransferDetails);
                 } catch (Exception e) {

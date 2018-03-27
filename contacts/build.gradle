@@ -1,7 +1,7 @@
 apply plugin: 'java-library'
 
 dependencies {
-    compile project(path: ':auth')
+    implementation project(path: ':auth')
     testCompile project(path: ':auth')
     testCompile 'junit:junit:4.12'
 
