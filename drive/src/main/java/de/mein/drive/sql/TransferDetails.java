@@ -1,7 +1,4 @@
 package de.mein.drive.sql;
-
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 

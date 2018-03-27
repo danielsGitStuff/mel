@@ -7,6 +7,7 @@ import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.BackgroundExecutor;
 import de.mein.auth.tools.MeinDeferredManager;
 import de.mein.sql.SqlQueriesException;
@@ -15,7 +16,6 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,19 +30,21 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
     public static final String DEFAULT_WORKING_DIR_NAME = "mein.auth";
     public static final String DEFAULT_SETTINGS_FILE_NAME = "auth.settings";
     private static Logger logger = Logger.getLogger(MeinBoot.class.getName());
+    private final PowerManager powerManager;
     private Set<Class<? extends BootLoader>> bootloaderClasses = new HashSet<>();
     private Map<String, Class<? extends BootLoader>> bootloaderMap = new HashMap<>();
     public static final File defaultWorkingDir1 = new File("meinauth.workingdir.1");
     public static final File defaultWorkingDir2 = new File("meinauth.workingdir.2");
     private DeferredObject<MeinAuthService, Exception, Void> deferredObject;
-    private MeinAuthSettings meinAuthSettings;
+    private final MeinAuthSettings meinAuthSettings;
     private MeinAuthService meinAuthService;
     private List<MeinAuthAdmin> meinAuthAdmins = new ArrayList<>();
 
 
-    public MeinBoot(MeinAuthSettings settings, Class<? extends BootLoader>... bootloaderClasses) {
-        this.meinAuthSettings = settings;
+    public MeinBoot(MeinAuthSettings meinAuthSettings, PowerManager powerManager, Class<? extends BootLoader>... bootloaderClasses) {
+        this.meinAuthSettings = meinAuthSettings;
         this.deferredObject = new DeferredObject<>();
+        this.powerManager = powerManager;
         if (bootloaderClasses != null)
             this.bootloaderClasses.addAll(Arrays.asList(bootloaderClasses));
     }
@@ -79,7 +81,7 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
     @Override
     public void run() {
         try {
-            meinAuthService = new MeinAuthService(meinAuthSettings);
+            meinAuthService = new MeinAuthService(meinAuthSettings, powerManager);
             meinAuthService.setMeinBoot(this);
             meinAuthService.addAllMeinAuthAdmin(meinAuthAdmins);
             DeferredObject<DeferredRunnable, Exception, Void> promiseAuthIsUp = meinAuthService.prepareStart();
@@ -113,9 +115,10 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
         }
     }
 
+
     public BootLoader createBootLoader(MeinAuthService meinAuthService, Class<? extends BootLoader> bootClass) throws SqlQueriesException, IllegalAccessException, InstantiationException {
         BootLoader bootLoader = bootClass.newInstance();
-        bootloaderMap.put(bootLoader.getName(),bootClass);
+        bootloaderMap.put(bootLoader.getName(), bootClass);
         bootLoader.setMeinAuthService(meinAuthService);
         DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
         MeinAuthSettings meinAuthSettings = meinAuthService.getSettings();

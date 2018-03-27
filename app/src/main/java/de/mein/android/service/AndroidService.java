@@ -10,7 +10,6 @@ import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
@@ -314,7 +313,8 @@ public class AndroidService extends Service {
         lock.lockWrite();
 
         AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
-        meinBoot = new MeinBoot(meinAuthSettings, AndroidDriveBootloader.class, AndroidContactsBootloader.class);
+        AndroidPowerManager powerManager = new AndroidPowerManager(meinAuthSettings, (android.os.PowerManager) getSystemService(POWER_SERVICE));
+        meinBoot = new MeinBoot(meinAuthSettings, powerManager, AndroidDriveBootloader.class, AndroidContactsBootloader.class);
         meinBoot.addMeinAuthAdmin(admin);
         Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot().done(meinAuthService -> {
             N.r(() -> {

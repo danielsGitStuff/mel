@@ -186,11 +186,9 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
      * format first/standard block: [T][4 bytes, stream id][8 bytes, offset of PAYLOAD][4 bytes, length of PAYLOAD][PAYLOAD]<br>
      * format last block: [t][4 bytes, stream id][8bytes, offset of PAYLOAD][8 bytes, length of PAYLOAD]
      *
-     * @throws JsonSerializationException
-     * @throws IllegalAccessException
      * @throws IOException
      */
-    public void transfer() throws JsonSerializationException, IllegalAccessException, IOException, InterruptedException {
+    public void transfer() throws IOException, InterruptedException {
         int blockOffset = 0;
         int bytesLeft = MeinSocket.BLOCK_SIZE;
         byte[] block = new byte[MeinSocket.BLOCK_SIZE];

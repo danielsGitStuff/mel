@@ -241,8 +241,8 @@ public class LotsOfTests {
             }
         };
         lock.lockWrite();
-        MeinBoot boot1 = new MeinBoot(json1).addBootLoaderClass(MeinTestBootloader.class);
-        MeinBoot boot2 = new MeinBoot(json2).addBootLoaderClass(MeinTestBootloader.class);
+        MeinBoot boot1 = new MeinBoot(meinAuthSettings, powerManager).addBootLoaderClass(MeinTestBootloader.class);
+        MeinBoot boot2 = new MeinBoot(meinAuthSettings, powerManager).addBootLoaderClass(MeinTestBootloader.class);
         boot1.boot().done(ma1 -> {
             standAloneAuth1 = ma1;
             standAloneAuth1.addRegisterHandler(allowRegisterHandler);

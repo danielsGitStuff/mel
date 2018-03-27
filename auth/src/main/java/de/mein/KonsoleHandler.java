@@ -1,6 +1,7 @@
 package de.mein;
 
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.sql.Pair;
 
 import java.io.File;
@@ -15,6 +16,7 @@ public class KonsoleHandler {
 	private Pair<String> stringPair(String key, String value) {
 		return new Pair<String>(String.class, key, value);
 	}
+
 
 	protected void fillParameters(Pair... pairs) {
 		parameters = new ArrayList<>();

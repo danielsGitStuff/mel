@@ -67,7 +67,7 @@ public class TransferManager extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-
+        meinAuthService.getPowerManager().releaseWakeLock(this);
     }
 
     private String activeTransferKey(TransferDetails details) {
@@ -270,6 +270,7 @@ public class TransferManager extends DeferredRunnable {
                 try {
                     final String workingPath = meinDriveService.getDriveSettings().getTransferDirectoryPath() + File.separator;
                     List<TransferDetails> transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
+                    meinAuthService.getPowerManager().wakeLock(this);
                     while (transfers.size() > 0) {
                         AtomicInteger countDown = new AtomicInteger(transfers.size());
                         FileTransferDetailSet payLoad = new FileTransferDetailSet().setServiceUuid(meinDriveService.getUuid());

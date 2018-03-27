@@ -13,6 +13,14 @@ import de.mein.auth.tools.N;
  */
 
 public class PowerManager {
+    public void wakeLock(Object caller) {
+
+    }
+
+    public void releaseWakeLock(Object caller) {
+
+    }
+
     public interface PowerManagerListener {
         void onHeavyWorkAllowed();
 

@@ -80,16 +80,16 @@ public class MeinAuthService {
     private MeinAuthBrotCaster brotCaster;
     private MeinBoot meinBoot;
     private DeferredObject<DeferredRunnable, Exception, Void> startedPromise;
-    private final PowerManager powerManager;
+    private PowerManager powerManager;
 
 
-    MeinAuthService(MeinAuthSettings meinAuthSettings, IDBCreatedListener dbCreatedListener) throws Exception {
+    MeinAuthService(MeinAuthSettings meinAuthSettings, PowerManager powerManager, IDBCreatedListener dbCreatedListener) throws Exception {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairCollectionDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.printSerializers();
-        this.powerManager = new PowerManager(meinAuthSettings);
+        this.powerManager = powerManager;
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
         this.databaseManager = new DatabaseManager(meinAuthSettings);
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 1024);
@@ -127,8 +127,8 @@ public class MeinAuthService {
         }
     }
 
-    MeinAuthService(MeinAuthSettings meinAuthSettings) throws Exception {
-        this(meinAuthSettings, null);
+    MeinAuthService(MeinAuthSettings meinAuthSettings, PowerManager powerManager) throws Exception {
+        this(meinAuthSettings, powerManager, null);
     }
 
     public MeinAuthService addRegisteredHandler(IRegisteredHandler IRegisteredHandler) {
@@ -558,27 +558,11 @@ public class MeinAuthService {
         return powerManager;
     }
 
-    public static MeinAuthService createDevInstance() throws Exception {
-        MeinAuthSettings settings = new MeinAuthSettings();
-        settings.setName("dev");
-        settings.setWorkingDirectory(new File("bla"));
-        MeinAuthService meinAuthService = new MeinAuthService(settings);
-
-        meinAuthService.meinBoot = new MeinBoot(null);
-        meinAuthService.meinBoot.createExecutorService(new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r);
-            }
-        });
-        return meinAuthService;
-    }
-
-    /**
+      /**
      * services changed names or something {@link MeinAuthService displays}
      */
     public void onServicesChanged() {
-        for (MeinAuthAdmin admin: meinAuthAdmins){
+        for (MeinAuthAdmin admin : meinAuthAdmins) {
             admin.onChanged();
         }
     }

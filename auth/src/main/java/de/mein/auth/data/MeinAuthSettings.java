@@ -3,6 +3,7 @@ package de.mein.auth.data;
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
+import de.mein.auth.service.power.PowerManager;
 
 import java.io.File;
 import java.security.SecureRandom;

@@ -1,5 +1,6 @@
 package de.mein.auth.data;
 
+import de.mein.auth.service.power.PowerManager;
 import de.mein.core.serialize.SerializableEntity;
 
 /**
@@ -9,6 +10,7 @@ import de.mein.core.serialize.SerializableEntity;
 public class PowerManagerSettings implements SerializableEntity {
     private boolean heavyWorkWhenOffline = true;
     private boolean heavyWorkWhenPlugged = true;
+
 
     public PowerManagerSettings setHeavyWorkWhenOffline(boolean heavyWorkWhenOffline) {
         this.heavyWorkWhenOffline = heavyWorkWhenOffline;

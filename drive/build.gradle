@@ -11,7 +11,7 @@ configurations{
 }
 dependencies {
     driveTestOutput sourceSets.test.output
-    implementation project(path: ':auth')
+    compile project(path: ':auth')
     testCompile project(path: ':auth')
     testCompile 'junit:junit:4.12'
     //compile 'org.jdeferred:jdeferred-core:1.2.4'
