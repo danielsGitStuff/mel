@@ -51,7 +51,7 @@ public abstract class MeinServiceWorker extends MeinService implements IMeinServ
                 } else {
                     // wait here if no jobs are available
                     waitLock.lock();
-                    System.out.println(getRunnableName() + "...unlocked");
+                    //System.out.println(getRunnableName() + "...unlocked");
                 }
             }
         } catch (Exception e) {

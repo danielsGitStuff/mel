@@ -2,10 +2,10 @@ package de.mein.fxbundle;
 
 import de.mein.KonsoleHandler;
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.gui.RegisterHandlerFX;
 import de.mein.auth.service.MeinAuthFxLoader;
 import de.mein.auth.service.MeinBoot;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.ContactsFXBootloader;
 import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
@@ -38,7 +38,7 @@ public class Main {
         lock.lockWrite();
         MeinAuthSettings meinAuthSettings = new KonsoleHandler().start(args);
         meinAuthSettings.save();
-        MeinBoot meinBoot = new MeinBoot(meinAuthSettings, DriveFXBootLoader.class, ContactsFXBootloader.class);
+        MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootLoader.class, ContactsFXBootloader.class);
         meinBoot.addMeinAuthAdmin(new MeinAuthFxLoader());
         meinBoot.boot().done(meinAuthService -> {
             meinAuthService.addRegisterHandler(new RegisterHandlerFX());
