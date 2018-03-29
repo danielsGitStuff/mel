@@ -8,6 +8,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
@@ -93,7 +94,7 @@ public class DriveTest {
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
                         File delFile = new File(rootPath + File.separator + "samedir");
                         BashTools.rmRf(delFile);
-                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(meinAuthSettings, powerManager, DriveBootLoader.class);
+                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             System.out.println("DriveTest.alles ok");
@@ -219,7 +220,7 @@ public class DriveTest {
                         System.out.println("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
                         hash = Hash.md5(newFile);
                         System.out.println("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
-                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(meinAuthSettings, powerManager, DriveBootLoader.class);
+                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             System.out.println("DriveTest.alles ok");
@@ -493,7 +494,7 @@ public class DriveTest {
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
-        MeinBoot boot = new MeinBoot(meinAuthSettings, powerManager);
+        MeinBoot boot = new MeinBoot(json1, new PowerManager(json1));
         WaitLock waitLock = new WaitLock().lock();
         Promise<MeinAuthService, Exception, Void> promise = boot.boot();
         final MeinAuthService[] mas = new MeinAuthService[1];
@@ -516,7 +517,7 @@ public class DriveTest {
         File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
         delFile.delete();
         TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
-        boot = new MeinBoot(meinAuthSettings, powerManager);
+        boot = new MeinBoot(json1, new PowerManager(json1));
         promise = boot.boot();
         promise.done(result -> N.r(() -> {
             mas[0] = result;
@@ -778,7 +779,7 @@ public class DriveTest {
         };
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(meinAuthSettings, powerManager, DriveBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 System.out.println("DriveTest.driveGui.booted");
@@ -862,12 +863,12 @@ public class DriveTest {
         };
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(meinAuthSettings, powerManager, DriveBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
         MeinBoot boot2;
         if (clientMeinBoot != null)
             boot2 = clientMeinBoot;
         else
-            boot2 = new MeinBoot(meinAuthSettings, powerManager);
+            boot2 = new MeinBoot(json2, new PowerManager(json2));
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 System.out.println("DriveFXTest.driveGui.1.booted");

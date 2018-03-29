@@ -4,6 +4,7 @@ import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.ServiceType;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.N;
 
 /**
@@ -31,7 +32,7 @@ public class MeinStandAloneAuthFX {
             ServiceType type = databaseManager.createServiceType("type.name", "type.desc");
             databaseManager.createService(type.getId().v(), "test name");
         });
-        MeinBoot meinBoot = new MeinBoot(meinAuthSettings);
+        MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings));
         meinBoot.boot().done(mas -> N.r(() -> new MeinStandAloneAuthFX(mas))).fail(result -> System.err.println("dfh9430f"));
     }
 }
