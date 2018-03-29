@@ -21,6 +21,8 @@ public class PowerManager {
         //nothing to do here
     }
 
+
+
     public interface PowerManagerListener {
         void onHeavyWorkAllowed();
 

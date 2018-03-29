@@ -26,7 +26,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        System.out.println("NetworkChangeReceiver.onReceive");
         Bundle extras = intent.getExtras();
         NetworkInfo info = extras.getParcelable("networkInfo");
         if (info != null && androidService != null) {
@@ -41,9 +40,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
             } else if (state.equals(NetworkInfo.State.DISCONNECTING)) {
 
             }
-            System.out.println("NetworkChangeReceiver.onReceivesdfas");
         }
-        System.out.println("NetworkChangeReceiver.onReceive-");
-
     }
 }

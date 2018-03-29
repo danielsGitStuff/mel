@@ -12,18 +12,29 @@
         android:layout_centerVertical="true"
         android:layout_height="0dp" />
 
+
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_alignParentTop="true"
         android:layout_alignBottom="@id/dummy"
         android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/txtLogCat"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="..." />
+            android:orientation="vertical">
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/btnToggleWakeLock"
+                android:text="toggle"/>
+            <TextView
+                android:id="@+id/txtLogCat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="..." />
+        </LinearLayout>
+
     </ScrollView>
 
 
