@@ -6,7 +6,7 @@ import de.mein.auth.data.cached.data.CachedData;
 import de.mein.auth.data.cached.data.CachedPart;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
-import de.mein.auth.service.IMeinService;
+import de.mein.auth.service.MeinService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
 import de.mein.auth.socket.process.auth.MeinAuthProcess;
@@ -74,6 +74,12 @@ public class MeinValidationProcess extends MeinProcess {
         }
     }
 
+    /**
+     * handle if deserialized is cached data. data might be requested or come in spontaneously.
+     *
+     * @param deserialized
+     * @return
+     */
     private boolean handleCached(SerializableEntity deserialized) {
         try {
             if (deserialized instanceof CachedData) {
@@ -87,6 +93,7 @@ public class MeinValidationProcess extends MeinProcess {
                 // a further part of cached data arrives
                 return handleReceiveCachedPart((CachedPart) deserialized);
             } else if (deserialized instanceof MeinResponse) {
+                // this is requested data
                 // a cached request might fail. clean up everything and continue as usual
                 MeinResponse response = (MeinResponse) deserialized;
                 if (cachedForRetrieving.containsKey(response.getResponseId())) {
@@ -108,6 +115,35 @@ public class MeinValidationProcess extends MeinProcess {
                 // do not return true here cause other things might want to handle this.
                 // eg: errors go here
                 return false;
+            } else if (deserialized instanceof MeinRequest) {
+                // this might be requested data
+                MeinRequest meinRequest = (MeinRequest) deserialized;
+                if (meinRequest.getPayload() != null && meinRequest.getPayload() instanceof CachedData && isServiceAllowed(meinRequest.getServiceUuid())) {
+                    CachedData receivedData = (CachedData) meinRequest.getPayload();
+                    CachedData cached = cachedForRetrieving.get(receivedData.getCacheId());
+                    if (cached == null) {
+                        receivedData.initPartsMissed(receivedData.getPartCount());
+                        cachedForRetrieving.put(receivedData.getCacheId(), receivedData);
+                        MeinService service = meinAuthSocket.getMeinAuthService().getMeinService(meinRequest.getServiceUuid());
+                        receivedData.setCacheDirectory(service.getCacheDirectory());
+                    } else {
+                        cached.onReceivedPart(receivedData.getPart());
+                    }
+                    if (receivedData.getPart() == null) {
+                        boolean compl = receivedData.isComplete();
+                        System.out.println("MeinValidationProcess.handleCached.debughreg");
+                    }
+                    if (receivedData.isComplete()) {
+                        cachedForRetrieving.remove(receivedData.getCacheId());
+                        return false;
+                    } else {
+                        cached.onReceivedPart(receivedData.getPart());
+                        if (cached.isComplete()) {
+                            return false;
+                        }
+                        return true;
+                    }
+                }
             } else if (deserialized instanceof CachedRequest) {
                 CachedRequest cachedRequest = (CachedRequest) deserialized;
                 if (isServiceAllowed(cachedRequest.getServiceUuid())) {
@@ -175,11 +211,16 @@ public class MeinValidationProcess extends MeinProcess {
                 return handleAnswer(deserialized);
             }
             if (isServiceAllowed(serviceUuid)) {
-                IMeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
+                MeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
                 if (deserialized instanceof MeinRequest) {
                     //delegate request to service
                     MeinRequest request = (MeinRequest) deserialized;
                     Request<IPayload> validatePromise = new Request<>().setPayload(request.getPayload()).setPartnerCertificate(this.partnerCertificate).setIntent(request.getIntent());
+
+                    IPayload payload = request.getPayload();
+                    if (payload instanceof CachedData) {
+                        System.out.println("MeinValidationProcess.handleDriveOps");
+                    }
                     //wrap the answer and send it back
                     validatePromise.done(newPayload -> {
                         MeinResponse response = request.reponse().setPayLoad(newPayload);
@@ -232,6 +273,10 @@ public class MeinValidationProcess extends MeinProcess {
 
     private boolean isServiceAllowed(String serviceUuid) throws SqlQueriesException {
         Service service = meinAuthSocket.getMeinAuthService().getDatabaseManager().getServiceByUuid(serviceUuid);
+        if (service == null) {
+            //todo debug
+            System.out.println("MeinValidationProcess.isServiceAllowed.debug");
+        }
         return meinAuthSocket.getMeinAuthService().getDatabaseManager().isApproved(partnerCertificate.getId().v(), service.getId().v());
     }
 
@@ -252,7 +297,6 @@ public class MeinValidationProcess extends MeinProcess {
     private void registerCached(MeinRequest request) {
         IPayload payload = request.getPayload();
         if (payload instanceof CachedData) {
-            System.out.println("MeinValidationProcess.requestLocked.cached");
             CachedData cachedData = (CachedData) payload;
             cachedData.setCacheId(request.getRequestId());
             cachedData.setServiceUuid(request.getServiceUuid());

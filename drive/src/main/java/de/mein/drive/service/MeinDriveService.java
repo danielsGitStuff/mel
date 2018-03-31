@@ -56,8 +56,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
     private DriveSyncListener syncListener;
 
-    //cache stuff
-    protected final File cacheDirectory;
+
 
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
@@ -85,7 +84,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
-        this.cacheDirectory = new File(serviceInstanceWorkingDirectory.getAbsolutePath() + File.separator + "cache");
     }
 
     @Override
@@ -305,7 +303,5 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     }
 
-    public File getCacheDirectory() {
-        return cacheDirectory;
-    }
+
 }

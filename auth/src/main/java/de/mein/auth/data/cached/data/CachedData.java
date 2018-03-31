@@ -20,7 +20,7 @@ import java.util.Set;
  */
 public abstract class CachedData implements IPayload {
     protected Long cacheId;
-    protected int partCount = 1;
+    protected int partCount = 0;
     protected CachedPart part;
     protected File cacheDir;
     protected int partSize;
@@ -35,7 +35,19 @@ public abstract class CachedData implements IPayload {
         this.partSize = partSize;
     }
 
+    public CachedData(String serviceUuid, long cacheId, File cacheDir, int partSize) {
+        this.partSize = partSize;
+        this.serviceUuid = serviceUuid;
+        this.cacheDir = cacheDir;
+        this.cacheId = cacheId;
+    }
+
     public CachedData() {
+    }
+
+    public CachedData(File cacheDir, int partSize) {
+        this.cacheDir = cacheDir;
+        this.partSize = partSize;
     }
 
     public CachedData setServiceUuid(String serviceUuid) {
@@ -123,8 +135,8 @@ public abstract class CachedData implements IPayload {
         for (int i = 0; i < partCount; i++) {
             File f = createCachedPartFile(i);
             try {
-                 if (f.exists())
-                   f.delete();
+                if (f.exists())
+                    f.delete();
             } catch (Exception e) {
                 e.printStackTrace();
             }

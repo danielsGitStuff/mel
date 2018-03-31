@@ -9,6 +9,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinTestBootloader;
 import de.mein.auth.service.MeinTestService;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
@@ -241,8 +242,8 @@ public class LotsOfTests {
             }
         };
         lock.lockWrite();
-        MeinBoot boot1 = new MeinBoot(meinAuthSettings, powerManager).addBootLoaderClass(MeinTestBootloader.class);
-        MeinBoot boot2 = new MeinBoot(meinAuthSettings, powerManager).addBootLoaderClass(MeinTestBootloader.class);
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1)).addBootLoaderClass(MeinTestBootloader.class);
+        MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2)).addBootLoaderClass(MeinTestBootloader.class);
         boot1.boot().done(ma1 -> {
             standAloneAuth1 = ma1;
             standAloneAuth1.addRegisterHandler(allowRegisterHandler);

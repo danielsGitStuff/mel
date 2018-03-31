@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Created by xor on 9/25/16.
  */
-public abstract class MeinServiceWorker extends MeinService implements IMeinService {
+public abstract class MeinServiceWorker extends MeinService {
     protected LinkedList<Job> jobs = new LinkedList<>();
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
     private CountdownLock initLock = new CountdownLock(1).lock();

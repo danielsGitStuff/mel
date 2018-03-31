@@ -22,6 +22,8 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     private ExecutorService executorService;
     private final Semaphore threadSemaphore = new Semaphore(1, true);
     private final LinkedList<MeinThread> threadQueue = new LinkedList<>();
+    //cache stuff
+    protected final File cacheDirectory;
     private final ThreadFactory threadFactory = new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
@@ -44,6 +46,8 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         this.serviceTypeId = serviceTypeId;
         this.uuid = uuid;
         executorService = createExecutorService(threadFactory);
+        this.cacheDirectory = new File(serviceInstanceWorkingDirectory.getAbsolutePath() + File.separator + "cache");
+        cacheDirectory.mkdirs();
     }
 
     public MeinAuthService getMeinAuthService() {
@@ -100,4 +104,8 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
      * @return
      */
     protected abstract ExecutorService createExecutorService(ThreadFactory threadFactory);
+
+    public File getCacheDirectory() {
+        return cacheDirectory;
+    }
 }

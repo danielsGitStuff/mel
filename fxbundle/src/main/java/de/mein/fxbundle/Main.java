@@ -2,6 +2,7 @@ package de.mein.fxbundle;
 
 import de.mein.KonsoleHandler;
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.gui.RegisterHandlerFX;
 import de.mein.auth.service.MeinAuthFxLoader;
 import de.mein.auth.service.MeinBoot;
@@ -11,12 +12,14 @@ import de.mein.contacts.ContactsFXBootloader;
 import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.boot.DriveFXBootLoader;
 import de.mein.sql.RWLock;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import javafx.embed.swing.JFXPanel;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -30,10 +33,13 @@ public class Main {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
+        BashTools.init();
     }
 
     public static void main(String[] args) throws Exception {
         init();
+        BashTools.rmRf(MeinBoot.defaultWorkingDir1);
+        BashTools.rmRf(new File("meinAuth.settings.json"));
         RWLock lock = new RWLock();
         lock.lockWrite();
         MeinAuthSettings meinAuthSettings = new KonsoleHandler().start(args);

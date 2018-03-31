@@ -13,7 +13,7 @@
     <TextField fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" />
     <Label text="Path" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.hgrow="NEVER" />
     <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
-        <TextField fx:id="txtPath" text="/run/media/xor/3a626fc8-458b-462f-962b-58a5bfa0b977/home/Music/" HBox.hgrow="ALWAYS" />
+        <TextField fx:id="txtPath" text="/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/folder/" HBox.hgrow="ALWAYS" />
         <Button fx:id="btnPath" text="chose" />
     </HBox>
 </GridPane>

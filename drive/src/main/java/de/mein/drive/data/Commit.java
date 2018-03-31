@@ -14,7 +14,7 @@ public class Commit extends CachedIterable<Stage> implements IPayload{
     private Long basedOnVersion;
 
     public Commit(){
-
+        System.out.println("Commit.Commit");
     }
 
     public Commit(File cacheDir, int partSize) {

@@ -18,8 +18,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
 
 
     public CachedIterable(File cacheDir, int partSize) {
-        super(partSize);
-        this.cacheDir = cacheDir;
+        super(cacheDir,partSize);
     }
 
     public CachedIterable() {
@@ -49,6 +48,9 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
      * call this when done with adding all elements.
      */
     public void toDisk() throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        if (part == null) {
+            this.part = new CachedListPart(cacheId, partCount, partSize);
+        }
         write(part);
     }
 

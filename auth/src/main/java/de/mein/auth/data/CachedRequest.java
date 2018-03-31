@@ -2,6 +2,9 @@ package de.mein.auth.data;
 
 import de.mein.core.serialize.SerializableEntity;
 
+/**
+ * asks for more cached parts
+ */
 public class CachedRequest extends AbstractCachedMessage<CachedRequest> {
 
 

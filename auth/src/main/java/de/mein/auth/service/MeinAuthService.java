@@ -76,7 +76,7 @@ public class MeinAuthService {
     private Set<MeinSocket> sockets = new HashSet<>();
     private ConnectedEnvironment connectedEnvironment = new ConnectedEnvironment();
     private WaitLock uuidServiceMapSemaphore = new WaitLock();
-    private Map<String, IMeinService> uuidServiceMap = new HashMap<>();
+    private Map<String, MeinService> uuidServiceMap = new HashMap<>();
     private MeinAuthBrotCaster brotCaster;
     private MeinBoot meinBoot;
     private DeferredObject<DeferredRunnable, Exception, Void> startedPromise;
@@ -214,9 +214,9 @@ public class MeinAuthService {
     }
 
 
-    public IMeinService getMeinService(String serviceUuid) {
+    public MeinService getMeinService(String serviceUuid) {
         uuidServiceMapSemaphore.lock();
-        IMeinService service = uuidServiceMap.get(serviceUuid);
+        MeinService service = uuidServiceMap.get(serviceUuid);
         uuidServiceMapSemaphore.unlock();
         return service;
     }

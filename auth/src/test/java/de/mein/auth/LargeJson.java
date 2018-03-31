@@ -37,68 +37,68 @@ public class LargeJson {
         private List<StringList> stringList = new ArrayList<>();
     }
 
-    @Test
-    public void json() throws Exception {
-        final String largeJson = createLargeJson();
-        MeinAuthService ma1 = MeinAuthService.createDevInstance();
-        MeinSocket meinSocketListen = new MeinSocket(ma1);
-
-        ServerSocket socketListen = new ServerSocket();
-        socketListen.bind(new InetSocketAddress(6666));
-        WaitLock waitLock = new WaitLock();
-        Thread thread = new Thread(() -> N.r(() -> {
-            Socket acc = socketListen.accept();
-            meinSocketListen.setSocket(acc);
-            meinSocketListen.setListener(new MeinSocket.MeinSocketListener() {
-                @Override
-                public void onIsolated() {
-
-                }
-
-                @Override
-                public void onMessage(MeinSocket meinSocket, String msg) {
-                    System.out.println("LargeJson.onMessage: " + msg);
-                    assertEquals(largeJson, msg);
-                    waitLock.unlock().unlock();
-                }
-
-                @Override
-                public void onOpen() {
-                    System.out.println("LargeJson.onOpen");
-                }
-
-                @Override
-                public void onError(Exception ex) {
-
-                }
-
-                @Override
-                public void onClose(int code, String reason, boolean remote) {
-
-                }
-
-                @Override
-                public void onBlockReceived(byte[] block) {
-
-                }
-            });
-            meinSocketListen.start();
-            waitLock.unlock();
-        }));
-        waitLock.lock();
-        thread.start();
-        MeinSocket meinSocketSend = new MeinSocket(MeinAuthService.createDevInstance());
-        InetSocketAddress addr = new InetSocketAddress("localhost", 6666);
-        Socket socketSend = new Socket();
-        socketSend.connect(addr);
-        meinSocketSend.setSocket(socketSend);
-
-
-        String json = largeJson;
-        meinSocketSend.send(json);
-        System.out.println("LargeJson.json." + json.length());
-        new WaitLock().lock().lock();
-    }
+//    @Test
+//    public void json() throws Exception {
+//        final String largeJson = createLargeJson();
+//        MeinAuthService ma1 = MeinAuthService.createDevInstance();
+//        MeinSocket meinSocketListen = new MeinSocket(ma1);
+//
+//        ServerSocket socketListen = new ServerSocket();
+//        socketListen.bind(new InetSocketAddress(6666));
+//        WaitLock waitLock = new WaitLock();
+//        Thread thread = new Thread(() -> N.r(() -> {
+//            Socket acc = socketListen.accept();
+//            meinSocketListen.setSocket(acc);
+//            meinSocketListen.setListener(new MeinSocket.MeinSocketListener() {
+//                @Override
+//                public void onIsolated() {
+//
+//                }
+//
+//                @Override
+//                public void onMessage(MeinSocket meinSocket, String msg) {
+//                    System.out.println("LargeJson.onMessage: " + msg);
+//                    assertEquals(largeJson, msg);
+//                    waitLock.unlock().unlock();
+//                }
+//
+//                @Override
+//                public void onOpen() {
+//                    System.out.println("LargeJson.onOpen");
+//                }
+//
+//                @Override
+//                public void onError(Exception ex) {
+//
+//                }
+//
+//                @Override
+//                public void onClose(int code, String reason, boolean remote) {
+//
+//                }
+//
+//                @Override
+//                public void onBlockReceived(byte[] block) {
+//
+//                }
+//            });
+//            meinSocketListen.start();
+//            waitLock.unlock();
+//        }));
+//        waitLock.lock();
+//        thread.start();
+//        MeinSocket meinSocketSend = new MeinSocket(MeinAuthService.createDevInstance());
+//        InetSocketAddress addr = new InetSocketAddress("localhost", 6666);
+//        Socket socketSend = new Socket();
+//        socketSend.connect(addr);
+//        meinSocketSend.setSocket(socketSend);
+//
+//
+//        String json = largeJson;
+//        meinSocketSend.send(json);
+//        System.out.println("LargeJson.json." + json.length());
+//        new WaitLock().lock().lock();
+//    }
 
     private void bla() {
         String json = "abcdefghij";

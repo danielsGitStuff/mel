@@ -2,6 +2,7 @@ package de.mein.auth.socket;
 
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.N;
 import de.mein.sql.RWLock;
 import org.jdeferred.impl.DeferredObject;
@@ -33,8 +34,8 @@ public class SocketTest {
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
 
-        MeinBoot meinBoot1 = new MeinBoot(meinAuthSettings, powerManager);
-        MeinBoot meinBoot2 = new MeinBoot(meinAuthSettings, powerManager);
+        MeinBoot meinBoot1 = new MeinBoot(json1, new PowerManager(json1));
+        MeinBoot meinBoot2 = new MeinBoot(json2, new PowerManager(json2));
         meinBoot1.boot().done(ma1 -> N.r(() -> {
             meinBoot2.boot().done(ma2 -> N.r(() -> {
                 // init 2
