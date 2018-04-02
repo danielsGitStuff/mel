@@ -101,14 +101,22 @@ public class MeinValidationProcess extends MeinProcess {
                         CachedData cachedData = cachedForRetrieving.remove(response.getResponseId());
                         cachedData.cleanUp();
                     } else if (MeinStrings.msg.STATE_OK.equals(response.getState())) {
-                        // first part of cached data arrives. save the answer for when all parts have arrived.
-                        // we will update its cached payload and put it in handleAnswer()
-                        CachedData receivedData = (CachedData) response.getPayload();
-                        CachedData cached = cachedForRetrieving.get(receivedData.getCacheId());
-                        cached.initPartsMissed(receivedData.getPartCount());
-                        cachedAnswers.put(cached.getCacheId(), response);
-                        handleReceiveCachedPart(receivedData.getPart());
-                        return true;
+                        if (response.getPayload() != null && response.getPayload() instanceof CachedData) {
+                            // first part of cached data arrives. save the answer for when all parts have arrived.
+                            // we will update its cached payload and put it in handleAnswer()
+                            try {
+                                CachedData receivedData = (CachedData) response.getPayload();
+                                System.out.println(receivedData);
+                            } catch (ClassCastException e) {
+                                e.printStackTrace();
+                            }
+                            CachedData receivedData = (CachedData) response.getPayload();
+                            CachedData cached = cachedForRetrieving.get(receivedData.getCacheId());
+                            cached.initPartsMissed(receivedData.getPartCount());
+                            cachedAnswers.put(cached.getCacheId(), response);
+                            handleReceiveCachedPart(receivedData.getPart());
+                            return true;
+                        }
                     }
                 }
 

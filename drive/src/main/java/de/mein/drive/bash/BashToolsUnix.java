@@ -79,7 +79,7 @@ public class BashToolsUnix implements BashToolsImpl {
     public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException, InterruptedException {
         String[] args = new String[]{BIN_PATH, "-c", "stat -c %i\\ %Y " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
-        proc.waitFor();
+        //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line = reader.readLine();
         //todo debug

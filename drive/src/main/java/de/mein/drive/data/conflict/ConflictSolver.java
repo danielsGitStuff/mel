@@ -302,6 +302,76 @@ public class ConflictSolver extends SyncStageMerger {
     public void solve(Stage left, Stage right) throws SqlQueriesException {
         Stage solvedStage = null;
         final String key = Conflict.createKey(left, right);
+        final Conflict conflict = conflicts.remove(key);
+        final Long oldeRightId = right == null ? null : right.getId();
+        final Long oldeLeftId = left == null ? null : left.getId();
+        // if a conflict is present, apply its solution. if not, apply the left or right.
+        // they must have the same hashes.
+        if (conflict != null) {
+            if (conflict.isLeft()) {
+                solvedStage = left;
+                // entry exists locally, delete
+                if (right != null && !right.getDeleted() && solvedStage == null) {
+                    right.setDeleted(true)
+                            .setId(null)
+                            .setStageSet(mergeStageSet.getId().v())
+                            .setOrder(order.ord());
+                    stageDao.insert(right);
+                }
+            } else {
+                solvedStage = right;
+                // left always comes with fs ids. copy if available
+                if (left != null && solvedStage != null) {
+                    solvedStage.setFsId(left.getFsId());
+                    solvedStage.setFsParentId(left.getFsParentId());
+                }
+            }
+        } else if (left != null) {
+            solvedStage = left;
+        } else if (right != null) {
+            solvedStage = right;
+        } else {
+            System.err.println("ConflictSolver.solve:ERRRR");
+        }
+        if (solvedStage != null) {
+            // adapt parent stages
+            // assuming that Stage.id and Stage.parentId have not been changed yet
+            File f = stageDao.getFileByStage(solvedStage);
+
+            if (solvedStage.getParentId() != null) {
+                if (oldeNewIdMap.containsKey(solvedStage.getParentId())) {
+                    solvedStage.setParentId(oldeNewIdMap.get(solvedStage.getParentId()));
+                } else {
+                    solvedStage.setParentId(null);
+                }
+            }
+
+            solvedStage.setStageSet(mergeStageSet.getId().v());
+            solvedStage.setOrder(order.ord());
+            solvedStage.setId(null);
+            stageDao.insert(solvedStage);
+            // add these things. subsequent Conflicts might reference them.
+            if (oldeLeftId != null)
+                oldeNewIdMap.put(oldeLeftId, solvedStage.getId());
+            if (oldeRightId != null)
+                oldeNewIdMap.put(oldeRightId, solvedStage.getId());
+        }
+    }
+
+    private void addOldeId(Stage stage, Long newId) {
+
+    }
+
+    /**
+     * @param left  from server
+     * @param right from fs
+     * @throws SqlQueriesException
+     */
+    public void solveOlde(Stage left, Stage right) throws SqlQueriesException {
+        Stage solvedStage = null;
+        final String key = Conflict.createKey(left, right);
+
+
         if (conflicts.containsKey(key)) {
             Conflict conflict = conflicts.remove(key);
             //todo debug
@@ -336,14 +406,6 @@ public class ConflictSolver extends SyncStageMerger {
                 // it must be deleted here, so it is guaranteed to be indexed.
                 // -> copy it to the left side
                 if (conflict.isLeft() && conflict.hasRight() && !conflict.hasLeft() && !conflict.getRight().getDeleted()) {
-                    // Conflict parentConflict = conflict.getDependsOn();
-//                    Stage parentLeft = parentConflict.getLeft();
-//                    while (parentLeft == null) {
-//                        parentConflict = parentConflict.getDependsOn();
-//                        parentLeft = parentConflict.getLeft();
-//                    }
-                    //connect to fs
-//                    Long fsId = parentLeft.getFsId();
                     File parentFile = stageDao.getFileByStage(conflict.getRight());
                     Stack<File> fileStack = FileTools.getFileStack(rootDirectory, parentFile);
                     FsEntry bottomFs = fsDao.getBottomFsEntry(fileStack);
@@ -387,16 +449,6 @@ public class ConflictSolver extends SyncStageMerger {
 //                    idToObsoleteMap.put(oldeId, stage.getId());
                     solvedStage = null;
                 }
-
-
-                // it does not exist on the right side, so it must be deleted
-//                if (conflict.hasLeft() && conflict.isRight()) {
-//                    solvedStage = left.setDeleted(true);
-//                } else if (conflict.hasRight() && conflict.isLeft()) {
-//                    solvedStage = right.setDeleted(true);
-//                }
-//                if (conflict.hasLeft() && left.getParentIdPair().notNull())
-//                    left.setParentId(oldeNewIdMap.get(left.getParentId()));
             }
         } else if (left != null) {
             solvedStage = left;
