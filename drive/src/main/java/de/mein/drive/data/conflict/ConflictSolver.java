@@ -116,13 +116,13 @@ public class ConflictSolver extends SyncStageMerger {
         } else {
             if (left != null && leftIdConflictsMap.containsKey(left.getParentId())) {
                 //conflictSearch(left, lFile, false);
-                Conflict conflict = createConflict(left, null);
+                Conflict conflict = createConflict(left, right);
                 Conflict parent = leftIdConflictsMap.get(left.getParentId());
                 conflict.dependOn(parent);
             }
             if (right != null && rightIdConflictsMap.containsKey(right.getParentId())) {
                 //conflictSearch(right, rFile, true);
-                Conflict conflict = createConflict(null, right);
+                Conflict conflict = createConflict(left, right);
                 Conflict parent = rightIdConflictsMap.get(right.getParentId());
                 conflict.dependOn(parent);
             }
@@ -165,6 +165,10 @@ public class ConflictSolver extends SyncStageMerger {
     private Conflict createConflict(Stage left, Stage right) {
         String key = Conflict.createKey(left, right);
         Conflict conflict = new Conflict(stageDao, left, right);
+        //todo debug
+        if ((left != null && left.getName().equals("sub22")) || right != null && right.getName().equals("sub22")) {
+            System.out.println("ConflictSolver.createConflict.debugd23");
+        }
         conflicts.put(key, conflict);
         if (left != null)
             leftIdConflictsMap.put(left.getId(), conflict);
@@ -374,16 +378,6 @@ public class ConflictSolver extends SyncStageMerger {
                     }
 
                     Stage stage = conflict.getRight();
-//                    File stageFile = stageDao.getFileByStage(stage);
-//                    if (stageFile.isDirectory())
-//                        obsoleteDirs.add(stageFile);
-//                    else
-//                        obsoleteFiles.add(stageFile);
-//                    Long oldeId = stage.getId();
-//                    Long oldeParentId = stage.getParentId();
-//                    if (oldeParentId != null) {
-//                        stage.setParentId(idToObsoleteMap.get(oldeParentId));
-//                    }
                     stage.setParentId(lastBridgeId);
                     stage.setStageSet(obsoleteStageSet.getId().v());
                     stage.setId(null);
