@@ -2,8 +2,8 @@ apply plugin: 'java'
 //apply plugin: 'me.tatarka.retrolambda'
 
 compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    sourceCompatibility = '1.9'
+    targetCompatibility = '1.9'
 }
 dependencies {
     compile project(path: ':sql')

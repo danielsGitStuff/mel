@@ -312,6 +312,9 @@ public class ConflictSolver extends SyncStageMerger {
                 solvedStage = left;
                 // entry exists locally, delete
                 if (right != null && !right.getDeleted() && solvedStage == null) {
+                    if (right.getParentIdPair().notNull()) {
+                        right.setParentId(oldeNewIdMap.get(right.getParentId()));
+                    }
                     right.setDeleted(true)
                             .setId(null)
                             .setStageSet(mergeStageSet.getId().v())
@@ -325,6 +328,17 @@ public class ConflictSolver extends SyncStageMerger {
                     solvedStage.setFsId(left.getFsId());
                     solvedStage.setFsParentId(left.getFsParentId());
                 }
+                // if it does not exist locally and we rejected the remote file: copy left to delete it.
+                if (!left.getDeleted() && solvedStage == null) {
+                    if (left.getParentIdPair().notNull()) {
+                        left.setParentId(oldeNewIdMap.get(left.getParentId()));
+                    }
+                    left.setStageSet(mergeStageSet.getId().v())
+                            .setId(null)
+                            .setOrder(order.ord())
+                            .setDeleted(true);
+                    stageDao.insert(left);
+                }
             }
         } else if (left != null) {
             solvedStage = left;
@@ -336,7 +350,6 @@ public class ConflictSolver extends SyncStageMerger {
         if (solvedStage != null) {
             // adapt parent stages
             // assuming that Stage.id and Stage.parentId have not been changed yet
-            File f = stageDao.getFileByStage(solvedStage);
 
             if (solvedStage.getParentId() != null) {
                 if (oldeNewIdMap.containsKey(solvedStage.getParentId())) {

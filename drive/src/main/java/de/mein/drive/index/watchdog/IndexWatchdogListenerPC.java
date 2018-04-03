@@ -1,7 +1,7 @@
 package de.mein.drive.index.watchdog;
 
-import com.sun.nio.file.ExtendedWatchEventModifier;
 
+import com.sun.nio.file.ExtendedWatchEventModifier;
 import de.mein.auth.tools.N;
 import de.mein.drive.service.MeinDriveService;
 
