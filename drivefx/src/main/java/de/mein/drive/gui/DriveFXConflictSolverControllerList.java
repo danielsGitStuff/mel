@@ -33,6 +33,7 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
             meinDriveClientService.addJob(commitJob);
         } else {
             System.err.println("not all conflicts were solved");
+            meinDriveClientService.onConflicts();
         }
         return null;
     }

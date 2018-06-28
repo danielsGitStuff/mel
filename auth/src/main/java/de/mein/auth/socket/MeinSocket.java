@@ -206,7 +206,10 @@ public class MeinSocket extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-        N.r(() -> socketWorker.shutDown());
+        N.r(() -> {
+            System.err.println(getClass().getName()+".onShutDown()");
+            socketWorker.shutDown();
+        });
         N.r(() -> socket.close());
     }
 
