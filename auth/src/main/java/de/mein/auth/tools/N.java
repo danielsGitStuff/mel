@@ -5,6 +5,9 @@ import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -187,6 +190,113 @@ public class N {
             System.out.println(list);
         });
         System.out.println("NoTryRunner.main.end");
+    }
+
+    //####
+    /**
+     * call stop() on reader when you do not want to iterate further
+     *
+     * @param <T>
+     */
+    public interface CollectionReadRunnable<T> {
+        /**
+         * call stop() on reader when you do not want to iterate further
+         *
+         * @param reader
+         * @param obj
+         * @throws Exception
+         */
+        void iterate(CollectionReader<T> reader, T obj) throws Exception;
+    }
+
+    public static class CollectionReader<T> extends Stoppable {
+        private final Iterator<T> iterator;
+
+        public CollectionReader(Collection<T> collection) {
+            this.iterator = collection.iterator();
+        }
+
+
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        public T next() {
+            return iterator.next();
+        }
+    }
+
+    /**
+     * Iterates through the entire SQLResource and closes it after finish or when Exceptions occur.
+     *
+     * @param collection    is iterated over. its values are handed over to the noTryRunnable.
+     * @param noTryRunnable call close() on sqlResource if you do not want to iterate over the rest
+     * @param <T>
+     */
+    public static <T> void readCollection(Collection<T> collection, CollectionReadRunnable<T> noTryRunnable) {
+        try {
+            CollectionReader<T> reader = new CollectionReader(collection);
+            while (reader.hasNext() && !reader.isStopped()) {
+                noTryRunnable.iterate(reader, reader.next());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static class Stoppable {
+        private boolean stop = false;
+
+        public void stop() {
+            this.stop = true;
+        }
+
+        public boolean isStopped() {
+            return stop;
+        }
+    }
+
+
+    public interface ForLoop {
+        void forloop(Stoppable stoppable, int index) throws Exception;
+    }
+
+    public static void forLoop(int start, int stop, ForLoop forLoop) {
+        Stoppable stoppable = new Stoppable();
+        for (int index = start; index < stop; index++) {
+            try {
+                forLoop.forloop(stoppable, index);
+            } catch (Exception e) {
+                e.printStackTrace();
+                break;
+            }
+            if (stoppable.isStopped())
+                break;
+        }
+    }
+
+    public interface ForEachLoop<T> {
+        void foreach(Stoppable stoppable, int index, T t) throws Exception;
+    }
+
+    public static <T> void forEach(T[] arr, ForEachLoop<T> forEachLoop) {
+        forEach(Arrays.asList(arr), forEachLoop);
+    }
+
+    public static <T> void forEach(Collection<T> collection, ForEachLoop<T> forEachLoop) {
+        Stoppable stoppable = new Stoppable();
+        int index = 0;
+        for (T t : collection) {
+            try {
+                forEachLoop.foreach(stoppable, index, t);
+            } catch (Exception e) {
+                e.printStackTrace();
+                stoppable.stop();
+            }
+            index++;
+            if (stoppable.isStopped())
+                break;
+        }
     }
 }
 

@@ -33,8 +33,8 @@ public class MeinSocket extends DeferredRunnable {
         return this;
     }
 
-    // 64 * 4kb + meta
-    public static final int BLOCK_SIZE = 16 * 4096 + 21;
+    // 128 kb + meta = 32 * 4kb + meta
+    public static final int BLOCK_SIZE = 32 * 4096 + 21;
     protected MeinAuthService meinAuthService;
     private MeinThread thread;
     protected DataOutputStream out;
