@@ -6,6 +6,7 @@ import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.sql.SqlQueriesException;
 import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.junit.After;
 import org.junit.Before;
@@ -57,7 +58,7 @@ public class CertificateManagerTest {
         certificateManager = createCertificateManager(new MeinAuthSettings().setWorkingDirectory(new File("z_test")));
     }
 
-    public static CertificateManager createCertificateManager(MeinAuthSettings meinAuthSettings) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException {
+    public static CertificateManager createCertificateManager(MeinAuthSettings meinAuthSettings) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
         DatabaseManager databaseManager = new DatabaseManager(meinAuthSettings);
         return new CertificateManager(meinAuthSettings.getWorkingDirectory(), databaseManager.getSqlQueries(), 1024);
     }
@@ -89,11 +90,11 @@ public class CertificateManagerTest {
         assertEquals(Arrays.toString(byteCert), Arrays.toString(dbCertificate.getCertificate().v()));
     }
 
-    public static CertificateManager createCertificateManager(File wd) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException {
+    public static CertificateManager createCertificateManager(File wd) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
         return createCertificateManager(wd, true);
     }
 
-    private static CertificateManager createCertificateManager(File wd, boolean delete) throws SQLException, IOException, ClassNotFoundException, CertificateException, NoSuchAlgorithmException, KeyStoreException, SignatureException, SqlQueriesException, InvalidKeyException {
+    private static CertificateManager createCertificateManager(File wd, boolean delete) throws SQLException, IOException, ClassNotFoundException, CertificateException, NoSuchAlgorithmException, KeyStoreException, SignatureException, SqlQueriesException, InvalidKeyException, OperatorCreationException {
         if (delete)
             CertificateManager.deleteDirectory(wd);
         wd.mkdirs();

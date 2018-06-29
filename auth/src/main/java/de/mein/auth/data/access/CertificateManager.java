@@ -6,10 +6,17 @@ import de.mein.auth.tools.Cryptor;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
 
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 import javax.crypto.BadPaddingException;
@@ -28,6 +35,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -53,7 +61,7 @@ public class CertificateManager extends FileRelatedManager {
     private CertificateDao certificateDao;
 
 
-    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, int keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException {
+    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, int keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
         super(workingDirectory);
         System.out.println("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
         this.keysize = keysize;
@@ -195,35 +203,39 @@ public class CertificateManager extends FileRelatedManager {
         return false;
     }
 
-    public void generateCertificate() throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, CertificateException, KeyStoreException {
-//        new X509v3CertificateBuilder()
-//        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(issuer, serialNumber, startDate, expiryDate, subject, SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
-//        JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256withRSA");
-//        ContentSigner signer = builder.build(keyPair.getPrivate());
-//
-//        byte[] certBytes = certBuilder.build(signer).getEncoded();
-//        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-//        X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(certBytes));
-
-        //todo get rid of this deprecated stuff
-        X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
-        certGen.setSerialNumber(BigInteger.valueOf(generateSecurePositiveRndInt()));
-        certGen.setIssuerDN(new X509Principal("CN=" + "mein.auth." + workingDirectory + ", OU=None, O=None L=None, C=None"));
-        certGen.setNotBefore(new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30));
-        certGen.setNotAfter(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365 * 10)));
-        certGen.setSubjectDN(new X509Principal("CN=" + "mein.auth." + workingDirectory + ", OU=None, O=None L=None, C=None"));
-
+    public void generateCertificate() throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, CertificateException, KeyStoreException, OperatorCreationException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(keysize);
+        keyPairGenerator.initialize(keysize, new SecureRandom());
         KeyPair keyPair = keyPairGenerator.generateKeyPair(); // public/private key pair that we are creating certificate for
+
+        /**
+         * some slightly adjusted copy pasta from stackoverflow plus my basic understanding how to create a certificate.
+         * bouncy castle documentation is somewhat holey
+         */
+
+        Provider bcProvider = new BouncyCastleProvider();
+        Security.addProvider(bcProvider);
+        long now = System.currentTimeMillis();
+        Date startDate = new Date(now);
+        X500Name dnName = new X500Name("DName");
+        BigInteger certSerialNumber = new BigInteger(Long.toString(now)); // <-- Using the current timestamp as the certificate serial number
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+        calendar.add(Calendar.YEAR, 25); // <-- 1 Yr validity
+        Date endDate = calendar.getTime();
+        String signatureAlgorithm = "SHA256WithRSA"; // <-- Use appropriate signature algorithm based on your keyPair algorithm.
+        ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithm).build(keyPair.getPrivate());
+        JcaX509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(dnName, certSerialNumber, startDate, endDate, dnName, keyPair.getPublic());
+        // Extensions --------------------------
+        // Basic Constraints
+        BasicConstraints basicConstraints = new BasicConstraints(false); // <-- true for CA, false for EndEntity
+        certBuilder.addExtension(new ASN1ObjectIdentifier("2.5.29.19"), true, basicConstraints); // Basic Constraints is usually marked as critical.
+        // -------------------------------------
+        X509Certificate certificate = new JcaX509CertificateConverter().setProvider(bcProvider).getCertificate(certBuilder.build(contentSigner));
+
         this.privateKey = keyPair.getPrivate();
         this.publicKey = keyPair.getPublic();
 
-        certGen.setPublicKey(this.publicKey);
-        certGen.setSignatureAlgorithm("SHA512WITHRSA");
-
-        // create Cert
-        certificate = certGen.generateX509Certificate(this.privateKey);        // public key certificate of the certifying authority... It's me
 
         // save cert & PK
         saveFile(certificate.getEncoded(), CERT_FILENAME);
