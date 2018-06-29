@@ -92,7 +92,7 @@ public class MeinAuthService {
         this.powerManager = powerManager;
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
         this.databaseManager = new DatabaseManager(meinAuthSettings);
-        this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 1024);
+        this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 2048);
         this.certificateManager.maintenance();
         this.settings = meinAuthSettings;
         this.dbCreatedListener = dbCreatedListener;

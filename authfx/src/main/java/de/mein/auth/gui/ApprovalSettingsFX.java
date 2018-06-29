@@ -53,7 +53,7 @@ public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable 
                         .forEach(tableColumn -> table.getColumns().remove(tableColumn));
                 TableColumn<ServiceJoinServiceType, String> servicesColumn = new TableColumn<>("Services");
                 servicesColumn.setStyle("-fx-background-color:rgba(0, 0, 0, 0.05)");
-                servicesColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getType().v()));
+                servicesColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getName().v()));
                 table.getColumns().add(servicesColumn);
                 for (Certificate certificate : certificates) {
                     TableColumn<ServiceJoinServiceType, ServiceJoinServiceType> certColumn = new TableColumn<>(certificate.getName().v());

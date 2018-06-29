@@ -41,6 +41,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -77,6 +78,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     private ImageView imgInfo, imgAccess, imgOthers, imgPairing, imgSettings;
     private TrayIcon trayIcon;
     private NotificationCenter notificationCenter;
+    private ResourceBundle resourceBundle;
 
     @Override
     public void start(MeinAuthService meinAuthService) {
@@ -122,7 +124,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                         button.setGraphic(image);
                         button.setOnAction(event -> {
                             IMeinService meinService = meinAuthService.getMeinService(serviceJoinServiceType.getUuid().v());
-                            loadSettingsFX(bootLoaderFX.getEditFXML(meinService));
+                            loadSettingsFX(bootLoaderFX.getEditFXML(meinService), null);
                             ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
                             serviceSettingsFX.feed(serviceJoinServiceType);
                         });
@@ -309,7 +311,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                 remoteServiceChooserFX.createFXML(((BootLoaderFX) bootLoader).getCreateFXML());
                 lblTitle.setText(contentController.getTitle());
             } else {
-                loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML());
+                loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML(), null);
             }
         } else {
             System.out.println("MeinAuthAdminFX.onCreateMenuItemClicked.NO.FX.BOOTLOADER");
@@ -317,11 +319,26 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     }
 
+    /**
+     * loads with this instances resource bundle
+     * @param resource
+     */
     private void loadSettingsFX(String resource) {
+        loadSettingsFX(resource, this.resourceBundle);
+    }
+
+    /**
+     * loads with a given resource bundle
+     * @param resource
+     * @param resourceBundle
+     */
+    private void loadSettingsFX(String resource, ResourceBundle resourceBundle) {
         N runner = new N(e -> e.printStackTrace());
         runner.r(() -> {
             contentController = null;
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
+            if (resourceBundle != null)
+                lo.setResources(resourceBundle);
             Pane pane = lo.load();
             contentController = lo.getController();
             contentController.configureParentGui(this);
@@ -359,15 +376,18 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                     try {
                         System.out.println("MeinAuthAdminFX.load...");
                         FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
+                        ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/fxui", new Locale("en", "En"));
+                        loader.setResources(resourceBundle);
                         HBox root = null;
                         root = loader.load();
                         meinAuthAdminFXES[0] = loader.getController();
+                        meinAuthAdminFXES[0].resourceBundle = resourceBundle;
                         meinAuthAdminFXES[0].start(meinAuthService);
                         Scene scene = new Scene(root);
                         //apply theme
                         scene.getStylesheets().add(MeinAuthAdmin.class.getResource("/de/mein/modena_dark.css").toExternalForm());
                         Stage stage = createStage(scene);
-                        stage.setTitle("MeinAuthAdmin '" + meinAuthService.getName() + "'");
+                        stage.setTitle(resourceBundle.getString("window_title") + " '" + meinAuthService.getName() + "'");
                         stage.show();
                         stage.setOnCloseRequest(event -> {
                             meinAuthAdminFXES[0].shutDown();

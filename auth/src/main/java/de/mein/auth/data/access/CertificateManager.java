@@ -5,25 +5,20 @@ import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.tools.Cryptor;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
-
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.*;
-
 import java.io.*;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -53,7 +48,7 @@ public class CertificateManager extends FileRelatedManager {
     private final String KS_FILENAME = "keystore.bks";
     private final String PUB_FILENAME = "pub.key";
     private KeyStore keyStore;
-    private int keysize = 1024;
+    private int keysize = 2048;
     private File keyStoreFile;
     private PrivateKey privateKey;
     private PublicKey publicKey;
@@ -61,10 +56,11 @@ public class CertificateManager extends FileRelatedManager {
     private CertificateDao certificateDao;
 
 
-    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, int keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
+    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
         super(workingDirectory);
         System.out.println("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
-        this.keysize = keysize;
+        if (keysize != null)
+            this.keysize = keysize;
         //insertCertificate Bouncycastle Provider
         boolean providerSet = false;
         for (Provider p : Security.getProviders()) {
