@@ -1,10 +1,13 @@
 package de.mein.drive.sql;
 
 import de.mein.core.serialize.JsonIgnore;
+import de.mein.sql.Hash;
 import de.mein.sql.Pair;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 
@@ -24,12 +27,17 @@ public class FsDirectory extends FsEntry {
         return parentId.v() == null;
     }
 
-    public static Integer calcDirectoryContentHash(Collection<String> content) {
-        Integer hash = 0;
-        for (String name : content) {
-            hash += name.hashCode();
+    public static String calcDirectoryContentHash(Collection<String> content) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            for (String name : content) {
+                digest.update(name.getBytes());
+            }
+            return Hash.bytesToString(digest.digest());
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
-        return hash;
+        return "exception :(";
     }
 
 

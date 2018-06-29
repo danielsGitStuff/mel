@@ -217,7 +217,7 @@ public class CertificateManager extends FileRelatedManager {
         Security.addProvider(bcProvider);
         long now = System.currentTimeMillis();
         Date startDate = new Date(now);
-        X500Name dnName = new X500Name("DName");
+        X500Name dnName = new X500Name("CN=Auth");
         BigInteger certSerialNumber = new BigInteger(Long.toString(now)); // <-- Using the current timestamp as the certificate serial number
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(startDate);
@@ -231,7 +231,7 @@ public class CertificateManager extends FileRelatedManager {
         BasicConstraints basicConstraints = new BasicConstraints(false); // <-- true for CA, false for EndEntity
         certBuilder.addExtension(new ASN1ObjectIdentifier("2.5.29.19"), true, basicConstraints); // Basic Constraints is usually marked as critical.
         // -------------------------------------
-        X509Certificate certificate = new JcaX509CertificateConverter().setProvider(bcProvider).getCertificate(certBuilder.build(contentSigner));
+        this.certificate = new JcaX509CertificateConverter().setProvider(bcProvider).getCertificate(certBuilder.build(contentSigner));
 
         this.privateKey = keyPair.getPrivate();
         this.publicKey = keyPair.getPublic();

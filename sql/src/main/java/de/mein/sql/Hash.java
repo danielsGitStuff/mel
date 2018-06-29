@@ -52,7 +52,7 @@ public class Hash {
         MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance("MD5");
-            messageDigest.update(bytes, 0, bytes.length);
+            messageDigest.update(bytes);
             byte[] hash = messageDigest.digest();
             return bytesToString(hash);
         } catch (Exception e) {
