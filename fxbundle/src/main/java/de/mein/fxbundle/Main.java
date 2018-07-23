@@ -38,8 +38,8 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         init();
-        BashTools.rmRf(MeinBoot.defaultWorkingDir1);
-        BashTools.rmRf(new File("meinAuth.settings.json"));
+        //BashTools.rmRf(MeinBoot.defaultWorkingDir1);
+        //BashTools.rmRf(new File("meinAuth.settings.json"));
         RWLock lock = new RWLock();
         lock.lockWrite();
         MeinAuthSettings meinAuthSettings = new KonsoleHandler().start(args);

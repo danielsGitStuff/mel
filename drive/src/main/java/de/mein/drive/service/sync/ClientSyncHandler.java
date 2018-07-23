@@ -663,6 +663,7 @@ public class ClientSyncHandler extends SyncHandler {
                 //prepare cached answer
                 SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE)
                         .setOldVersion(version);
+                sentSyncTask.setServiceUuid(this.driveSettings.getClientSettings().getServerServiceUuid());
                 LockedRequest<SyncTask> requestResult = mvp.requestLocked(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, sentSyncTask);
                 if (requestResult.successful()) runner.runTry(() -> {
                     SyncTask syncTask = requestResult.getResponse();
