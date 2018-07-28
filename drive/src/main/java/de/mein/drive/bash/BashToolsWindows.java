@@ -3,6 +3,9 @@ package de.mein.drive.bash;
 import org.jdeferred.Promise;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +17,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("Duplicates")
 public class BashToolsWindows implements BashToolsImpl {
     private static final String BIN_PATH = "cmd";
+    private static final Charset CHARSET = StandardCharsets.ISO_8859_1;
 
     @Override
     public void setBinPath(String binPath) {
@@ -27,15 +31,17 @@ public class BashToolsWindows implements BashToolsImpl {
 
     @Override
     public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
-        String result = execLine("fsutil file queryfileid \"" + file.getAbsolutePath() + "\"");
-        result = result.substring(11);
-        Long iNode = Long.decode(result);
+        //reads something like "File ID is 0x0000000000000000000200000000063a"
+        String result = execLine("fsutil", "file", "queryfileid", file.getAbsolutePath());
+        String id = result.substring(11);
+        Long iNode = Long.decode(id);
         return new ModifiedAndInode(file.lastModified(), iNode);
     }
 
     @Override
     public void rmRf(File directory) throws IOException {
-        exec("rd /s /q \"" + directory.getAbsolutePath() + "\"");
+//        exec("rd /s /q \"" + directory.getAbsolutePath() + "\"");
+        exec("rd", "/s", "/q", directory.getAbsolutePath());
     }
 
     @Override
@@ -44,26 +50,30 @@ public class BashToolsWindows implements BashToolsImpl {
         return null;
     }
 
-    private Process exec(String command) throws IOException {
-        System.out.println("BashToolsWindows.exec: " + command);
-        String[] args = new String[]{BIN_PATH};
-        Process process = new ProcessBuilder(args).start();
-        PrintWriter stdin = new PrintWriter(process.getOutputStream());
-        stdin.println(command);
-        stdin.close();
-        return process;
+    private String[] buildArgs(String... commands) {
+        String[] result = new String[commands.length + 2];
+        result[0] = BIN_PATH;
+        result[1] = "/c";
+        int i = 2;
+        for (String command : commands) {
+            result[i] = command;
+            i++;
+        }
+        return result;
     }
 
-    private String execLine(String command) throws IOException {
+    private Process exec(String... commands) throws IOException {
+        System.out.println("BashToolsWindows.exec: " + Arrays.toString(commands));
+        String[] args = buildArgs(commands);
+        return new ProcessBuilder(args).start();
+    }
+
+    private String execLine(String... commands) throws IOException {
         try {
-            Process process = exec(command);
+            //todo debug
+            Process process = exec(commands);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            reader.readLine();
-            reader.readLine();
-            reader.readLine();
-            reader.readLine();
             String result = reader.readLine();
-            reader.lines();
             return result;
         } catch (Exception e) {
             e.printStackTrace();
@@ -71,15 +81,10 @@ public class BashToolsWindows implements BashToolsImpl {
         return null;
     }
 
-    private WindowsBashReader execReader(String command) throws IOException {
+    private WindowsBashReader execReader(String... commands) throws IOException {
         try {
-            Process process = exec(command);
-            WindowsBashReader reader = new WindowsBashReader(new InputStreamReader(process.getInputStream()));
-            String s = "--nix--";
-            s = reader.readLine();
-            s = reader.readLine();
-            s = reader.readLine();
-            s = reader.readLine();
+            Process process = exec(commands);
+            WindowsBashReader reader = new WindowsBashReader(new InputStreamReader(process.getInputStream(), CHARSET));
             return reader;
         } catch (Exception e) {
             e.printStackTrace();
@@ -91,7 +96,7 @@ public class BashToolsWindows implements BashToolsImpl {
     public Iterator<String> find(File directory, File pruneDir) throws IOException {
         String cmd = "dir /b/s \"" + directory.getAbsolutePath()
                 + "\" | findstr /v \"" + pruneDir.getAbsolutePath() + "\"";
-        return execReader(cmd).lines().iterator();
+        return execReader("dir", "/b/s", directory.getAbsolutePath(), "|", "findstr", "/v", pruneDir.getAbsolutePath()).lines().iterator();
     }
 
     @Override
@@ -128,6 +133,6 @@ public class BashToolsWindows implements BashToolsImpl {
 
     @Override
     public void mkdir(File dir) throws IOException {
-        exec("mkdir \"" + dir.getAbsolutePath() + "\"");
+        exec("mkdir", dir.getAbsolutePath());
     }
 }
