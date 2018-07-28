@@ -1,5 +1,8 @@
 package de.mein.drive.bash;
 
+import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.service.MeinBoot;
+import de.mein.auth.service.MeinService;
 import org.jdeferred.Promise;
 
 import java.io.*;
@@ -63,7 +66,7 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     private Process exec(String... commands) throws IOException {
-        System.out.println("BashToolsWindows.exec: " + Arrays.toString(commands));
+        //System.out.println("BashToolsWindows.exec: " + Arrays.toString(commands));
         String[] args = buildArgs(commands);
         return new ProcessBuilder(args).start();
     }
@@ -96,7 +99,7 @@ public class BashToolsWindows implements BashToolsImpl {
     public Iterator<String> find(File directory, File pruneDir) throws IOException {
         String cmd = "dir /b/s \"" + directory.getAbsolutePath()
                 + "\" | findstr /v \"" + pruneDir.getAbsolutePath() + "\"";
-        return execReader("dir", "/b/s", directory.getAbsolutePath(), "|", "findstr", "/v", pruneDir.getAbsolutePath()).lines().iterator();
+        return execReader("dir", "/b/s", directory.getAbsolutePath(), "|", "findstr", "/vc:\"" + pruneDir.getAbsolutePath() + "\"").lines().iterator();
     }
 
     @Override

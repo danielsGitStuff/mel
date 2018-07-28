@@ -13,7 +13,7 @@ public class Hash {
 
     public static String md5(File file) {
         MessageDigest messageDigest;
-        System.out.println("Hash.md5: " + file.getAbsolutePath());
+        //System.out.println("Hash.md5: " + file.getAbsolutePath());
         try {
             messageDigest = MessageDigest.getInstance("MD5");
 
