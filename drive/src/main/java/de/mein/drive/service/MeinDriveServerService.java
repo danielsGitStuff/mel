@@ -78,7 +78,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                         Long certId = request.getPartnerCertificate().getId().v();
                         driveSettings.getServerSettings().addClient(certId, driveDetails.getServiceUuid());
                         driveSettings.save();
-                        propagateNewVersion();
+                        //propagateNewVersion();
                         request.resolve(null);
                         return true;
                     } else if (checkIntent(request, DriveStrings.INTENT_COMMIT)) {

@@ -9,6 +9,7 @@ import java.io.FileFilter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.function.Function;
 
 
 public class FsDirectory extends FsEntry {
@@ -30,7 +31,12 @@ public class FsDirectory extends FsEntry {
     public static String calcDirectoryContentHash(Collection<String> content) {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
-            for (String name : content) {
+            //since there is no guarantee that hashCode() delivers the same hashes on different machines the order inside of a Collection/Set
+            //may vary. to work around this we sort the list before feeding the hash algorithm.
+            List<String> sorted = new ArrayList<>(content.size());
+            content.forEach(sorted::add);
+            Collections.sort(sorted);
+            for (String name : sorted) {
                 digest.update(name.getBytes());
             }
             return Hash.bytesToString(digest.digest());
