@@ -93,96 +93,96 @@ public class ClientSyncHandler extends SyncHandler {
         transferManager.research();
     }
 
-    /**
-     * Sends the StageSet to the server and updates it with the FsIds provided by the server.
-     * blocks until server has answered or the attempt failed.
-     *
-     * @param stageSetId
-     * @throws SqlQueriesException
-     * @throws InterruptedException
-     */
-    @SuppressWarnings("unchecked")
-    public void syncWithServer(Long stageSetId) throws SqlQueriesException, InterruptedException {
-        // stage is complete. first lock on FS
-        FsDao fsDao = driveDatabaseManager.getFsDao();
-        StageDao stageDao = driveDatabaseManager.getStageDao();
-        WaitLock waitLock = new WaitLock();
-//        fsDao.unlockRead();
-        //fsDao.lockWrite();
-        stageDao.lockRead();
-
-        if (stageDao.stageSetHasContent(stageSetId)) {
-            waitLock.lock();
-            //all other stages we can find at this point are complete/valid and wait at this point.
-            //todo conflict checking goes here - has to block
-
-            Promise<MeinValidationProcess, Exception, Void> connectedPromise = meinAuthService.connect(driveSettings.getClientSettings().getServerCertId());
-            connectedPromise.done(mvp -> N.r(() -> {
-                // load to cached data structure
-                Commit commit = new Commit();
-                N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
-                commit.setServiceUuid(meinDriveService.getUuid());
-                commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
-                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> N.r(() -> {
-                    //fsDao.lockWrite();
-                    CommitAnswer answer = (CommitAnswer) result;
-                    for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
-                        Long fsId = answer.getStageIdFsIdMap().get(stageId);
-                        Stage stage = stageDao.getStageById(stageId);
-                        stage.setFsId(fsId);
-                        if (stage.getParentId() != null && stage.getFsParentId() == null) {
-                            Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
-                            stage.setFsParentId(fsParentId);
-                        }
-                        stageDao.update(stage);
-                    }
-                    StageSet stageSet = stageDao.getStageSetById(stageSetId);
-                    stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
-                    stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
-//                    stageDao.updateStageSet(stageSet);
-//                    meinDriveService.addJob(new CommitJob());
-                    commitStage(stageSetId, false);
-                    setupTransfer();
-                    transferManager.research();
-                    waitLock.unlock();
-                    //fsDao.unlockWrite();
-                }))
-                        .fail(result -> {
-                            if (result instanceof TooOldVersionException) {
-                                System.out.println("ClientSyncHandler.syncWithServer");
-                                N.r(() -> {
-                                    // check if the new server version is already present
-                                    TooOldVersionException tooOldVersionException = (TooOldVersionException) result;
-                                    System.out.println("ClientSyncHandler.syncWithServer.TooOldVersionException");
-                                    Long latestVersion = driveDatabaseManager.getLatestVersion();
-                                    if (latestVersion < tooOldVersionException.getNewVersion()) {
-                                        latestVersion = stageDao.getLatestStageSetVersion();
-                                        if (latestVersion == null || latestVersion < tooOldVersionException.getNewVersion()) {
-                                            meinDriveService.addJob(new SyncClientJob(tooOldVersionException.getNewVersion()));
-                                            //syncFromServer(tooOldVersionException.getNewVersion());
-                                        }
-                                    }
-                                    System.out.println("ClientSyncHandler.syncWithServer");
-//                                    meinDriveService.addJob(new SyncClientJob());
-                                });
-                            }
-                            waitLock.unlock();
-                        });
-            }));
-            connectedPromise.fail(ex -> {
-                // todo server did not commit. it probably had a local change. have to solve it here
-                System.err.println("MeinDriveClientService.startIndexer.could not connect :( due to: " + ex.getMessage());
-                // fsDao.unlockWrite();
-                stageDao.unlockRead();
-                waitLock.unlock();
-                meinDriveService.onSyncFailed();
-            });
-        } else {
-            stageDao.deleteStageSet(stageSetId);
-            stageDao.unlockRead();
-        }
-        waitLock.lock();
-    }
+//    /**
+//     * Sends the StageSet to the server and updates it with the FsIds provided by the server.
+//     * blocks until server has answered or the attempt failed.
+//     *
+//     * @param stageSetId
+//     * @throws SqlQueriesException
+//     * @throws InterruptedException
+//     */
+//    @SuppressWarnings("unchecked")
+//    public void syncWithServer(Long stageSetId) throws SqlQueriesException, InterruptedException {
+//        // stage is complete. first lock on FS
+//        FsDao fsDao = driveDatabaseManager.getFsDao();
+//        StageDao stageDao = driveDatabaseManager.getStageDao();
+//        WaitLock waitLock = new WaitLock();
+////        fsDao.unlockRead();
+//        //fsDao.lockWrite();
+//        stageDao.lockRead();
+//
+//        if (stageDao.stageSetHasContent(stageSetId)) {
+//            waitLock.lock();
+//            //all other stages we can find at this point are complete/valid and wait at this point.
+//            //todo conflict checking goes here - has to block
+//
+//            Promise<MeinValidationProcess, Exception, Void> connectedPromise = meinAuthService.connect(driveSettings.getClientSettings().getServerCertId());
+//            connectedPromise.done(mvp -> N.r(() -> {
+//                // load to cached data structure
+//                Commit commit = new Commit();
+//                N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
+//                commit.setServiceUuid(meinDriveService.getUuid());
+//                commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
+//                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit).done(result -> N.r(() -> {
+//                    //fsDao.lockWrite();
+//                    CommitAnswer answer = (CommitAnswer) result;
+//                    for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
+//                        Long fsId = answer.getStageIdFsIdMap().get(stageId);
+//                        Stage stage = stageDao.getStageById(stageId);
+//                        stage.setFsId(fsId);
+//                        if (stage.getParentId() != null && stage.getFsParentId() == null) {
+//                            Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
+//                            stage.setFsParentId(fsParentId);
+//                        }
+//                        stageDao.update(stage);
+//                    }
+//                    StageSet stageSet = stageDao.getStageSetById(stageSetId);
+//                    stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+//                    stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
+////                    stageDao.updateStageSet(stageSet);
+////                    meinDriveService.addJob(new CommitJob());
+//                    commitStage(stageSetId, false);
+//                    setupTransfer();
+//                    transferManager.research();
+//                    waitLock.unlock();
+//                    //fsDao.unlockWrite();
+//                }))
+//                        .fail(result -> {
+//                            if (result instanceof TooOldVersionException) {
+//                                System.out.println("ClientSyncHandler.syncWithServer");
+//                                N.r(() -> {
+//                                    // check if the new server version is already present
+//                                    TooOldVersionException tooOldVersionException = (TooOldVersionException) result;
+//                                    System.out.println("ClientSyncHandler.syncWithServer.TooOldVersionException");
+//                                    Long latestVersion = driveDatabaseManager.getLatestVersion();
+//                                    if (latestVersion < tooOldVersionException.getNewVersion()) {
+//                                        latestVersion = stageDao.getLatestStageSetVersion();
+//                                        if (latestVersion == null || latestVersion < tooOldVersionException.getNewVersion()) {
+//                                            meinDriveService.addJob(new SyncClientJob(tooOldVersionException.getNewVersion()));
+//                                            //syncFromServer(tooOldVersionException.getNewVersion());
+//                                        }
+//                                    }
+//                                    System.out.println("ClientSyncHandler.syncWithServer");
+////                                    meinDriveService.addJob(new SyncClientJob());
+//                                });
+//                            }
+//                            waitLock.unlock();
+//                        });
+//            }));
+//            connectedPromise.fail(ex -> {
+//                // todo server did not commit. it probably had a local change. have to solve it here
+//                System.err.println("MeinDriveClientService.startIndexer.could not connect :( due to: " + ex.getMessage());
+//                // fsDao.unlockWrite();
+//                stageDao.unlockRead();
+//                waitLock.unlock();
+//                meinDriveService.onSyncFailed();
+//            });
+//        } else {
+//            stageDao.deleteStageSet(stageSetId);
+//            stageDao.unlockRead();
+//        }
+//        waitLock.lock();
+//    }
 
     /**
      * Sends the StageSet to the server and updates it with the FsIds provided by the server.
@@ -338,6 +338,16 @@ public class ClientSyncHandler extends SyncHandler {
                 meinDriveService.addJob(new CommitJob());
                 return;
             } else if (updateSets.size() == 0 && commitJob.getSyncAnyway()) {
+                syncFromServer(null);
+                return;
+            } else if (updateSets.size() == 1) {
+                StageSet stageSet = updateSets.get(0);
+                if (stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_SERVER)) {
+                    N.r(() -> commitStage(stageSet.getId().v()));
+                    setupTransfer();
+                    transferManager.research();
+                }
+            } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
                 syncFromServer(null);
                 return;
             }

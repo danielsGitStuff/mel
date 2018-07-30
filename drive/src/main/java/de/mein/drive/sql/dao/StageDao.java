@@ -313,7 +313,7 @@ StageDao extends Dao.LockingDao {
             System.out.println("StageDao.createStageSet.debug4");
         if (id.toString().equals("5") && Thread.currentThread().getName().toLowerCase().contains("client"))
             System.out.println("StageDao.createStageSet.debug5");
-        if (id == 2)
+        if (id == 4)
             System.out.println("StageDao.createStageSet.debug6");
         return stageSet.setId(id);
     }

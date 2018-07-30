@@ -1,6 +1,7 @@
 package de.mein.drive.jobs;
 
 import de.mein.auth.jobs.Job;
+import de.mein.drive.data.Commit;
 
 /**
  * Created by xor on 4/24/17.

@@ -117,7 +117,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         return new ClientSyncHandler(meinAuthService, this);
     }
 
-    public void syncThisClient() throws InterruptedException, SqlQueriesException {
+    public void syncThisClient(){
         addJob(new SyncClientJob());
     }
 

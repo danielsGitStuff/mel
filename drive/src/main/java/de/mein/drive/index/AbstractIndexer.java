@@ -71,6 +71,13 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return res;
     }
 
+    /**
+     * Compresses the {@link StageSet} to a delta of the current {@link FsEntry}s.
+     * If there is no difference and the {@link StageSet} is empty it is deleted.
+     *
+     * @throws SqlQueriesException
+     * @throws IOException
+     */
     protected void examineStage() throws SqlQueriesException, IOException {
         //todo problem
         N.sqlResource(stageDao.getStagesByStageSet(stageSetId), stages -> {
@@ -91,6 +98,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         System.out.println("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
         stageDao.updateStageSet(stageSet);
+        if (!stageDao.stageSetHasContent(stageSetId)) {
+            stageDao.deleteStageSet(stageSetId);
+            stageSetId = null;
+        }
     }
 
 
@@ -267,6 +278,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
         //todo debug
+        if (stage.getName().equalsIgnoreCase("dictionary"))
+            System.out.println("AbstractIndexer.examineStage.debug345");
         System.out.println("AbstractIndexer.roamDirectoryStage: " + stageFile.getAbsolutePath());
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
