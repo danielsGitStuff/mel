@@ -41,14 +41,15 @@ public class StageIndexerRunnable extends AbstractIndexer {
                 System.out.println("StageIndexerRunnable.runImpl.locked");
                 initStage(DriveStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener);
                 //todo debug
-                if (stageSetId == 14)
+                if (stageSetId == 4)
                     System.out.println("AbstractIndexer.initStage.debugjfg3jhgw0");
                 examineStage();
                 fsDao.unlockRead();
                 unlocked = true;
                 if (Thread.currentThread().getName().startsWith("StageIndexerRunnable[" + stageSetId + "] for MeinDriveClientService for MA2"))
                     System.out.println("StageIndexerRunnable[" + stageSetId + "].runImpl.debug8fh384");
-                stagingDoneListener.onStagingFsEventsDone(stageSetId);
+                if (stageSetId != null)
+                    stagingDoneListener.onStagingFsEventsDone(stageSetId);
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {

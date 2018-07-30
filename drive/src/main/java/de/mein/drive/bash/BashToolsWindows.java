@@ -116,7 +116,7 @@ public class BashToolsWindows implements BashToolsImpl {
         stdin.close();
         WindowsPowerReader reader = new WindowsPowerReader(new InputStreamReader(process.getInputStream()));
         reader.prependLine(prependLine);
-        process.waitFor();
+        //process.waitFor();
         return reader.lines();
     }
 

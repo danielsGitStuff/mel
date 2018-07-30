@@ -430,7 +430,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException, InterruptedException {
         // skip hashing if information is complete -> speeds up booting
-        if ((stage.getModifiedPair().isNull() || stage.getiNodePair().isNull() || stage.getContentHashPair().isNull())) {
+//        if ((stage.getModifiedPair().isNull() || stage.getiNodePair().isNull() || stage.getContentHashPair().isNull())) {
             if (stageFile.exists()) {
                 ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
                 stage.setContentHash(Hash.md5(stageFile));
@@ -452,6 +452,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage.setDeleted(true);
                 stageDao.update(stage);
             }
-        }
+//        }
     }
 }
