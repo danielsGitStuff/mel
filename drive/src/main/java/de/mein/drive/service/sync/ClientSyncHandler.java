@@ -729,7 +729,8 @@ public class ClientSyncHandler extends SyncHandler {
         syncTask.setCacheDirectory(meinDriveService.getCacheDirectory());
         Iterator<GenericFSEntry> iterator = syncTask.iterator();
         if (!iterator.hasNext()) {
-            finished.resolve(null);
+            syncTask.cleanUp();
+            finished.reject(null);
             return finished;
         }
         StageSet stageSet = syncTask.getStageSet();
