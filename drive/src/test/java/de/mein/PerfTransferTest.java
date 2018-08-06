@@ -13,6 +13,7 @@ import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
+import de.mein.auth.socket.MeinAuthSocketOpener;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
@@ -32,7 +33,13 @@ import org.jdeferred.impl.DeferredObject;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.List;
+import java.util.Random;
 
 /**
  * run on two different machines or limit the connection speed somehow and adjust code accordingly.
@@ -172,5 +179,32 @@ public class PerfTransferTest {
         }));
         lock.lockWrite().lockWrite();
 
+    }
+    @Test
+    public void netServer() throws Exception{
+        ServerSocket serverSocket = new ServerSocket();
+        serverSocket.bind(new InetSocketAddress(8888));
+        while (true){
+            Socket socket = serverSocket.accept();
+            N.r(() -> {
+                OutputStream out = socket.getOutputStream();
+                Random random = new Random(1);
+                while (true){
+                    byte[] bytes = new byte[1024*512];
+                    random.nextBytes(bytes);
+                    out.write(bytes);
+                }
+            });
+        }
+    }
+    @Test
+    public void netClient() throws Exception{
+        Socket socket = new Socket();
+        socket.connect(new InetSocketAddress("192.168.1.109",8888));
+        InputStream in = socket.getInputStream();
+        while (true){
+            byte[] bytes = new byte[1024*512];
+            in.read(bytes);
+        }
     }
 }
