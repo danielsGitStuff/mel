@@ -6,6 +6,7 @@ import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
@@ -93,6 +94,12 @@ public class PerfTransferTest {
                     public void onLocallyAccepted(Certificate partnerCertificate) {
 
                     }
+                });
+                mas.addRegisteredHandler((meinAuthService, registered) -> {
+                   meinAuthService.getMeinServices().forEach(iMeinService -> N.r(() -> {
+                       Service service = meinAuthService.getDatabaseManager().getServiceByUuid(iMeinService.getUuid());
+                       meinAuthService.getDatabaseManager().grant(service.getId().v(),registered.getId().v());
+                   }));
                 });
                 perfTransferTest.mas = mas;
             }
