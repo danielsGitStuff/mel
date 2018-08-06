@@ -246,14 +246,16 @@ public class PerfTransferTest {
     public void netClientEncrypted() throws Exception {
         Promise<PerfTransferTest, Void, Void> started = create();
         started.done(test -> N.r(() -> {
-            Socket socket = test.mas.getCertificateManager().createSocket();
-            socket.connect(new InetSocketAddress("192.168.1.109", 9999));
-            InputStream in = socket.getInputStream();
-            while (true) {
-                byte[] bytes = new byte[1024 * 512];
-                in.read(bytes);
-            }
-
+            Promise<MeinValidationProcess, Exception, Void> connected = test.mas.connect("192.168.1.109", 8888, 8889, true);
+            connected.done(mvp -> N.r(() -> {
+                Socket socket = test.mas.getCertificateManager().createSocket();
+                socket.connect(new InetSocketAddress("192.168.1.109", 9999));
+                InputStream in = socket.getInputStream();
+                while (true) {
+                    byte[] bytes = new byte[1024 * 512];
+                    in.read(bytes);
+                }
+            }));
         }));
         new RWLock().lockWrite().lockWrite();
     }
