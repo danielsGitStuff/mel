@@ -40,8 +40,8 @@ import java.util.List;
  */
 public class PerfTransferTest {
 
-    private static final String SOURCE_PATH = "drivesource.test";
-    private static final String TARGET_PATH = "drivetarget.test";
+    private static final String SOURCE_PATH = new File("drivesource.test").getAbsolutePath();
+    private static final String TARGET_PATH = new File("drivetarget.test").getAbsolutePath();
     private MeinAuthSettings settings;
     private MeinAuthService mas;
 
