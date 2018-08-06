@@ -204,20 +204,28 @@ public class PerfTransferTest {
     public void netServerEncrypted() throws Exception {
         Promise<PerfTransferTest, Void, Void> started = create();
         started.done(test -> N.r(() -> {
+            System.out.println("PerfTransferTest.netServerEncrypted() starting server socket");
             ServerSocket serverSocket = test.mas.getCertificateManager().createServerSocket();
             serverSocket.bind(new InetSocketAddress(9999));
-            while (true) {
-                Socket socket = serverSocket.accept();
+            new Thread(() -> {
                 N.r(() -> {
-                    OutputStream out = socket.getOutputStream();
-                    Random random = new Random(1);
                     while (true) {
-                        byte[] bytes = new byte[1024 * 512];
-                        random.nextBytes(bytes);
-                        out.write(bytes);
+                        System.out.println("PerfTransferTest.netServerEncrypted. waiting for connection");
+                        Socket socket = serverSocket.accept();
+                        System.out.println("PerfTransferTest.netServerEncrypted. got connection");
+                        N.r(() -> {
+                            OutputStream out = socket.getOutputStream();
+                            Random random = new Random(1);
+                            while (true) {
+                                byte[] bytes = new byte[1024 * 512];
+                                random.nextBytes(bytes);
+                                out.write(bytes);
+                            }
+                        });
                     }
                 });
-            }
+            }).start();
+
 
         }));
         new RWLock().lockWrite().lockWrite();
