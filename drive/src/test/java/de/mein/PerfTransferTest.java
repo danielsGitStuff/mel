@@ -4,6 +4,7 @@ import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
+import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
@@ -96,10 +97,10 @@ public class PerfTransferTest {
                     }
                 });
                 mas.addRegisteredHandler((meinAuthService, registered) -> {
-                   meinAuthService.getMeinServices().forEach(iMeinService -> N.r(() -> {
-                       Service service = meinAuthService.getDatabaseManager().getServiceByUuid(iMeinService.getUuid());
-                       meinAuthService.getDatabaseManager().grant(service.getId().v(),registered.getId().v());
-                   }));
+                    meinAuthService.getMeinServices().forEach(iMeinService -> N.r(() -> {
+                        Service service = meinAuthService.getDatabaseManager().getServiceByUuid(iMeinService.getUuid());
+                        meinAuthService.getDatabaseManager().grant(service.getId().v(), registered.getId().v());
+                    }));
                 });
                 perfTransferTest.mas = mas;
             }
@@ -119,7 +120,7 @@ public class PerfTransferTest {
 
             }
         });
-        N.r(() ->{
+        N.r(() -> {
             Promise<MeinAuthService, Exception, Void> booted = boot.boot();
             booted.done(result1 -> N.r(() -> {
                 result.resolve(perfTransferTest);
@@ -131,12 +132,13 @@ public class PerfTransferTest {
 
     @Test
     public void startSource() {
-        CertificateManager.deleteDirectory(new File(PerfTransferTest.SOURCE_PATH));
+        // put a really big file in this folder to test sync speed
+        //CertificateManager.deleteDirectory(new File(PerfTransferTest.SOURCE_PATH));
         RWLock lock = new RWLock();
         Promise<PerfTransferTest, Void, Void> promise = create();
         promise.done(test -> N.r(() -> {
             DriveCreateController createController = new DriveCreateController(test.mas);
-            createController.createDriveServerService("server",PerfTransferTest.SOURCE_PATH,0.1f,30);
+            createController.createDriveServerService("server", PerfTransferTest.SOURCE_PATH, 0.1f, 30);
             System.out.println("PerfTransferTest.startSource.done");
         }));
         lock.lockWrite().lockWrite();
@@ -151,13 +153,21 @@ public class PerfTransferTest {
             System.out.println("PerfTransferTest.startTarget.connecting");
             Promise<MeinValidationProcess, Exception, Void> connected = test.mas.connect("192.168.1.109", 8888, 8889, true);
             connected.done(mvp -> N.r(() -> {
-                mas.getNetworkEnvironment().clear();
-                List<ServiceJoinServiceType> services = mas.getNetworkEnvironment().getServices(mvp.getConnectedId());
-                DriveCreateController createController = new DriveCreateController(test.mas);
-                Promise<MeinDriveClientService, Exception, Void> allDone  = createController.createDriveClientService("client",PerfTransferTest.TARGET_PATH,mvp.getConnectedId(),services.get(0).getUuid().v(),0.1f,30);
-                allDone.done(meinDriveClientService -> N.r(() -> {
-                    System.out.println("PerfTransferTest.startTarget().done");
-                }));
+                NetworkEnvironment nve = test.mas.getNetworkEnvironment();
+                nve.clear();
+                nve.addObserver((o, arg) -> {
+                    N.r(() -> {
+                        List<ServiceJoinServiceType> services = nve.getServices(mvp.getConnectedId());
+                        if (services.size() > 0) {
+                            DriveCreateController createController = new DriveCreateController(test.mas);
+                            Promise<MeinDriveClientService, Exception, Void> allDone = createController.createDriveClientService("client", PerfTransferTest.TARGET_PATH, mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30);
+                            allDone.done(result -> {
+                                System.out.println("PerfTransferTest.startTarget.done");
+                            });
+                        }
+                    });
+                });
+                test.mas.discoverNetworkEnvironment();
             }));
         }));
         lock.lockWrite().lockWrite();
