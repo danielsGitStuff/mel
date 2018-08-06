@@ -35,7 +35,7 @@ public class MeinSocket extends DeferredRunnable {
 
     // 128 kb + meta = 32 * 4kb + meta
 //    public static final int BLOCK_SIZE = 32 * 4096 + 21;
-    public static final int BLOCK_SIZE = 128 * 4096 + 21; // performance increase with bigger blocks?
+    public static final int BLOCK_SIZE = 1024 * 4096 + 21; // performance increase with bigger blocks?
 
     protected MeinAuthService meinAuthService;
     private MeinThread thread;
