@@ -1,5 +1,6 @@
 package de.mein.auth.data;
 
+import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.sql.RWLock;
 
@@ -103,5 +104,33 @@ public class NetworkEnvironment extends Observable {
         setChanged();
         notifyObservers();
         return this;
+    }
+
+    public static class FoundServices extends RWLock {
+        private final CertAddedListener certAddedListener;
+
+        public List<ServiceJoinServiceType> get(Long certId) {
+            return foundServices.get(certId);
+        }
+
+        public static interface CertAddedListener {
+            void onCertAdded(Certificate certificate);
+        }
+
+        private Map<Long, List<ServiceJoinServiceType>> foundServices = new HashMap<>();
+
+        public FoundServices(CertAddedListener certAddedListener) {
+            this.certAddedListener = certAddedListener;
+        }
+
+        public void add(Certificate certificate, ServiceJoinServiceType service) {
+            Long certId = certificate.getId().v();
+            if (!foundServices.containsKey(certId)) {
+                foundServices.put(certId, new ArrayList<>());
+                if (certAddedListener != null)
+                    certAddedListener.onCertAdded(certificate);
+            }
+            foundServices.get(certId).add(service);
+        }
     }
 }

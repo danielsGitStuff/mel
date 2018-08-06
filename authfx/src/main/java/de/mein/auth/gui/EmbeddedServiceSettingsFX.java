@@ -1,5 +1,6 @@
 package de.mein.auth.gui;
 
+import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthAdminFX;
@@ -20,7 +21,7 @@ public abstract class EmbeddedServiceSettingsFX extends AuthSettingsFX {
         return remoteServiceChooserFX.getSelectedCertificate();
     }
 
-    public abstract void onServiceSpotted(RemoteServiceChooserFX.FoundServices foundServices, Long certId, ServiceJoinServiceType service);
+    public abstract void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service);
 
     public void setRemoteServiceChooserFX(RemoteServiceChooserFX remoteServiceChooserFX) {
         this.remoteServiceChooserFX = remoteServiceChooserFX;

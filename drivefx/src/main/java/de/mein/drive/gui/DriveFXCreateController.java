@@ -1,10 +1,9 @@
 package de.mein.drive.gui;
 
+import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.gui.RemoteServiceChooserFX;
 import de.mein.auth.gui.EmbeddedServiceSettingsFX;
-import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
@@ -77,7 +76,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
 
 
     @Override
-    public void onServiceSpotted(RemoteServiceChooserFX.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
+    public void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
         try {
             if (service.getType().v().equals(new DriveBootLoader().getName())) {
                 Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);

@@ -1,9 +1,9 @@
 package de.mein.contacts.gui;
 
+import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.EmbeddedServiceSettingsFX;
-import de.mein.auth.gui.RemoteServiceChooserFX;
 import de.mein.contacts.ContactsBootloader;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
@@ -22,7 +22,7 @@ public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
     private TextField txtName;
 
     @Override
-    public void onServiceSpotted(RemoteServiceChooserFX.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
+    public void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
         try {
             if (service.getType().equalsValue(ContactStrings.NAME)) {
                 Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);

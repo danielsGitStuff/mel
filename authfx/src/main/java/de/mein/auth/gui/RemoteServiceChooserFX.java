@@ -7,7 +7,6 @@ import de.mein.auth.gui.controls.CertListCell;
 import de.mein.auth.gui.controls.ServiceListCell;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.tools.N;
-import de.mein.sql.RWLock;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
@@ -55,34 +54,6 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
         return rdServer.isSelected();
     }
 
-    public static class FoundServices extends RWLock {
-        private final CertAddedListener certAddedListener;
-
-        public List<ServiceJoinServiceType> get(Long certId) {
-            return foundServices.get(certId);
-        }
-
-        public static interface CertAddedListener {
-            void onCertAdded(Certificate certificate);
-        }
-
-        private Map<Long, List<ServiceJoinServiceType>> foundServices = new HashMap<>();
-
-        public FoundServices(CertAddedListener certAddedListener) {
-            this.certAddedListener = certAddedListener;
-        }
-
-        public void add(Certificate certificate, ServiceJoinServiceType service) {
-            Long certId = certificate.getId().v();
-            if (!foundServices.containsKey(certId)) {
-                foundServices.put(certId, new ArrayList<>());
-                if (certAddedListener != null)
-                    certAddedListener.onCertAdded(certificate);
-            }
-            foundServices.get(certId).add(service);
-        }
-    }
-
     private void showServer() {
         rdClient.selectedProperty().setValue(false);
         rdServer.selectedProperty().setValue(true);
@@ -108,7 +79,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
             listCerts.getItems().clear();
             listServices.getItems().clear();
             NetworkEnvironment env = meinAuthService.getNetworkEnvironment();
-            FoundServices foundServices = new FoundServices(listCerts.getItems()::add);
+            NetworkEnvironment.FoundServices foundServices = new NetworkEnvironment.FoundServices(listCerts.getItems()::add);
             env.deleteObservers();
             env.addObserver((environment, arg) -> {
                 System.out.println("DriveFXCreateController.change");

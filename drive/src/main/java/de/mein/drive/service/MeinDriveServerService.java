@@ -172,8 +172,12 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             public void done(Long stageSetId) {
                 N.r(() -> {
                     driveDatabaseManager.updateVersion();
-                    if (driveDatabaseManager.getMeinDriveService() instanceof MeinDriveServerService)
-                        syncHandler.commitStage(stageSetId);
+                    if (stageSetId != null) {
+                        if (driveDatabaseManager.getMeinDriveService() instanceof MeinDriveServerService)
+                            syncHandler.commitStage(stageSetId);
+                    }else {
+                        System.out.println("MeinDriveServerService.done(). StageSet was empty");
+                    }
                 });
             }
         };
