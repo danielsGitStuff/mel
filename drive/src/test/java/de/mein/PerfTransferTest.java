@@ -45,6 +45,7 @@ import java.util.Random;
  * run on two different machines or limit the connection speed somehow and adjust code accordingly.
  * start source first.
  */
+@SuppressWarnings("ALL")
 public class PerfTransferTest {
 
     private static final String SOURCE_PATH = new File("drivesource.test").getAbsolutePath();
@@ -180,31 +181,72 @@ public class PerfTransferTest {
         lock.lockWrite().lockWrite();
 
     }
+
     @Test
-    public void netServer() throws Exception{
+    public void netServer() throws Exception {
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(new InetSocketAddress(8888));
-        while (true){
+        while (true) {
             Socket socket = serverSocket.accept();
             N.r(() -> {
                 OutputStream out = socket.getOutputStream();
                 Random random = new Random(1);
-                while (true){
-                    byte[] bytes = new byte[1024*512];
+                while (true) {
+                    byte[] bytes = new byte[1024 * 512];
                     random.nextBytes(bytes);
                     out.write(bytes);
                 }
             });
         }
     }
+
     @Test
-    public void netClient() throws Exception{
+    public void netServerEncrypted() throws Exception {
+        Promise<PerfTransferTest, Void, Void> started = create();
+        started.done(test -> N.r(() -> {
+            ServerSocket serverSocket = test.mas.getCertificateManager().createServerSocket();
+            serverSocket.bind(new InetSocketAddress(9999));
+            while (true) {
+                Socket socket = serverSocket.accept();
+                N.r(() -> {
+                    OutputStream out = socket.getOutputStream();
+                    Random random = new Random(1);
+                    while (true) {
+                        byte[] bytes = new byte[1024 * 512];
+                        random.nextBytes(bytes);
+                        out.write(bytes);
+                    }
+                });
+            }
+
+        }));
+        new RWLock().lockWrite().lockWrite();
+    }
+
+    @Test
+    public void netClient() throws Exception {
         Socket socket = new Socket();
-        socket.connect(new InetSocketAddress("192.168.1.109",8888));
+        socket.connect(new InetSocketAddress("192.168.1.109", 8888));
         InputStream in = socket.getInputStream();
-        while (true){
-            byte[] bytes = new byte[1024*512];
+        while (true) {
+            byte[] bytes = new byte[1024 * 512];
             in.read(bytes);
         }
+    }
+
+    @Test
+    public void netClientEncrypted() throws Exception {
+        Promise<PerfTransferTest, Void, Void> started = create();
+        started.done(test -> N.r(() -> {
+            Socket socket = test.mas.getCertificateManager().createSocket();
+            socket.connect(new InetSocketAddress("192.168.1.109", 9999));
+            InputStream in = socket.getInputStream();
+            while (true) {
+                byte[] bytes = new byte[1024 * 512];
+                in.read(bytes);
+            }
+
+        }));
+        new RWLock().lockWrite().lockWrite();
     }
 }
