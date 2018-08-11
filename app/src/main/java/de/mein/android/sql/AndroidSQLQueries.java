@@ -16,9 +16,9 @@ import de.mein.sql.SqlQueriesException;
 import de.mein.sql.conn.SQLConnection;
 
 /**
+ * does not implement {@link AutoCloseable} cause of compatibility with older android versions
  * Created by xor on 2/6/17.
  */
-
 public class AndroidSQLQueries extends ISQLQueries {
 
     private final SQLiteDatabase db;
@@ -77,15 +77,19 @@ public class AndroidSQLQueries extends ISQLQueries {
         if (tableReference != null)
             selectString += " " + tableReference;
         selectString += " where " + where;
+        List<T> result;
         Cursor cursor = db.rawQuery(selectString, argsToStringArgs(whereArgs));
-        List<T> result = new ArrayList<>(cursor.getCount());
         try {
+            result = new ArrayList<>(cursor.getCount());
             while (cursor.moveToNext()) {
                 AndroidSQLQueries.readCursorToPair(cursor, column);
                 result.add(column.v());
             }
         } catch (Exception e) {
             throw new SqlQueriesException(e);
+        } finally {
+            if (cursor != null)
+                cursor.close();
         }
         return result;
     }
@@ -104,9 +108,10 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject, String selectString, List<Object> arguments) throws SqlQueriesException {
+        List<T> result;
         Cursor cursor = db.rawQuery(selectString, argsToStringArgs(arguments));
-        List<T> result = new ArrayList<>(cursor.getCount());
         try {
+            result = new ArrayList<>(cursor.getCount());
             while (cursor.moveToNext()) {
                 T ins = (T) sqlTableObject.getClass().newInstance();
                 for (Pair<?> pair : ins.getAllAttributes()) {
@@ -116,6 +121,9 @@ public class AndroidSQLQueries extends ISQLQueries {
             }
         } catch (Exception e) {
             throw new SqlQueriesException(e);
+        } finally {
+            if (cursor != null)
+                cursor.close();
         }
         return result;
     }
@@ -157,8 +165,15 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException {
+        T value;
         Cursor cursor = db.rawQuery(query, argsToStringArgs(args));
-        return readValue(cursor, clazz);
+        try {
+            value = readValue(cursor, clazz);
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return value;
     }
 
     private <T> T readValue(Cursor cursor, Class<T> clazz) {
@@ -243,7 +258,6 @@ public class AndroidSQLQueries extends ISQLQueries {
     public void commit() throws SQLException {
 
     }
-
 
 
     @Override
@@ -349,7 +363,7 @@ public class AndroidSQLQueries extends ISQLQueries {
                 else {
                     System.err.println("AndroidSQLQueries.createContentValues.UNKOWN TYPE");
                 }
-            }catch (ClassCastException e){
+            } catch (ClassCastException e) {
                 e.printStackTrace();
             }
         }
