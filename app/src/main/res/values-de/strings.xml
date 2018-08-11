@@ -78,4 +78,6 @@
     <string name="editServiceDriveMaxSize">Max Papierkorbgröße</string>
     <string name="createServiceName">Name</string>
     <string name="editServiceDriveToastOOS">Nicht genug Platz!</string>
+    <string name="lblSideLeft">Vom Server</string>
+    <string name="lblSideRight">Lokale Dateien</string>
 </resources>

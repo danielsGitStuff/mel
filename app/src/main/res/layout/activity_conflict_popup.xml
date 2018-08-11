@@ -7,46 +7,77 @@
     android:weightSum="3"
     tools:context="de.mein.android.drive.DriveConflictsPopupActivity">
 
-    <LinearLayout
-        android:id="@+id/idLL"
-        android:layout_alignParentTop="true"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/lblSideLeft"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1">
+        android:layout_alignParentTop="true"
+        android:text="@string/lblSideLeft" />
 
-        <Button
-            android:id="@+id/btnChooseLeft"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Choose Left" />
+    <TextView
+        android:id="@+id/lblSideRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:text="@string/lblSideRight" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+    <Button
+        android:id="@+id/btnChooseLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/lblSideLeft"
+        android:text="Choose Left" />
 
-        <Button
-            android:id="@+id/btnChooseRight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Choose Right" />
-    </LinearLayout>
+    <Button
+        android:id="@+id/btnChooseRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/lblSideRight"
+        android:text="Choose Right" />
+
+    <!--<LinearLayout-->
+    <!--android:id="@+id/idLL"-->
+    <!--android:layout_alignParentTop="true"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_weight="1">-->
+
+    <!--<Button-->
+    <!--android:id="@+id/btnChooseLeft"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:text="Choose Left" />-->
+
+    <!--<LinearLayout-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_weight="1" />-->
+
+    <!--<Button-->
+    <!--android:id="@+id/btnChooseRight"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:text="Choose Right" />-->
+    <!--</LinearLayout>-->
 
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/idLL"
         android:layout_above="@id/btnOk"
+        android:layout_below="@id/btnChooseLeft"
         android:layout_weight="1">
 
     </ListView>
 
     <Button
-        android:layout_alignParentBottom="true"
         android:id="@+id/btnOk"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_weight="1"
         android:text="Ok" />
 

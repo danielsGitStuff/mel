@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -81,7 +82,12 @@ public class MainActivity extends MeinActivity {
     protected void startService() {
         if (androidService == null) {
             Intent intent = new Intent(getBaseContext(), AndroidService.class);
-            startService(intent);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent);
+            }else {
+                startService(intent);
+            }
+
         } else {
             System.out.println("MainActivity.startService(): AndroidService already running");
         }

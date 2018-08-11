@@ -79,4 +79,6 @@
     <string name="editServiceDriveUnimportant">Optional Settings for wastebin</string>
     <string name="editServiceDriveToastOOS">Not enough space!</string>
     <string name="editServiceDriveMaxSize">max wastebin size</string>
+    <string name="lblSideLeft">Remote Files</string>
+    <string name="lblSideRight">Local Files</string>
 </resources>

@@ -10,6 +10,7 @@ import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
@@ -136,20 +137,7 @@ public class AndroidService extends Service {
             lock.unlockWrite();
         }
 
-        // create notification so hopefully android won't kill our beloved service
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent =
-                PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-        Notification notification =
-                new NotificationCompat.Builder(this, Notifier.CHANNEL_ID_SILENT)
-                        .setContentTitle(getText(R.string.app_name))
-                        .setContentText(getText(R.string.permanentNotificationText))
-                        .setSmallIcon(R.drawable.icon_notification_2)
-                        .setContentIntent(pendingIntent)
-                        .setTicker("ticker")
-                        .build();
-        startForeground(777, notification);
 
         return Service.START_STICKY;
     }
@@ -210,6 +198,7 @@ public class AndroidService extends Service {
     public void onCreate() {
         super.onCreate();
         System.out.println("AndroidService.onCreate()");
+        createPermanentSticky();
         // configure MeinAuth
         File workingDir = new File(getAndroidPath() + File.separator + "meinauth.workingdir");
         workingDir.mkdirs();
@@ -227,7 +216,28 @@ public class AndroidService extends Service {
             System.err.println("loading existing meinauth.settings failed :(");
             e.printStackTrace();
         }
+
         System.out.println("AndroidService.onCreate");
+    }
+
+    /**
+     * create notification so hopefully android won't kill our beloved service
+     */
+    private void createPermanentSticky(){
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent =
+                PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        Notifier.createNotificationManager(this);
+        Notification notification =
+                new NotificationCompat.Builder(this, Notifier.CHANNEL_ID_SILENT)
+                        .setContentTitle(getText(R.string.app_name))
+                        .setContentText(getText(R.string.permanentNotificationText))
+                        .setSmallIcon(R.drawable.icon_notification_2)
+                        .setContentIntent(pendingIntent)
+                        .setTicker("ticker")
+                        .build();
+        startForeground(777, notification);
     }
 
     public MeinAuthSettings getMeinAuthSettings() {
