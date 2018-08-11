@@ -80,4 +80,8 @@
     <string name="editServiceDriveToastOOS">Nicht genug Platz!</string>
     <string name="lblSideLeft">Vom Server</string>
     <string name="lblSideRight">Lokale Dateien</string>
+    <string name="delete">Löschen</string>
+    <string name="state">Unbestimmter Status</string>
+    <string name="btnDeactivate">Deactivate</string>
+    <string name="requestLocationReason">Standort wird für detaillierte Informationen über das W-Lan benötigt. Der Name ist ab Android 8 sonst unbekannt. Standortdaten werden nicht verschickt.</string>
 </resources>

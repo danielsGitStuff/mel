@@ -113,14 +113,15 @@ public class MainActivity extends MeinActivity {
         toolbar = findViewById(R.id.toolbar);
         btnHelp = toolbar.findViewById(R.id.btnHelp);
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        // skip floating button stuff. it has no purpose for now
+//        FloatingActionButton fab = findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -155,7 +156,10 @@ public class MainActivity extends MeinActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+        annoyWithPermissions(Manifest.permission.ACCESS_COARSE_LOCATION);
+        Notifier.toast(this,this.getString(R.string.requestLocationReason));
         startService();
+
     }
 
     public static void showMessage(Context context, int message) {

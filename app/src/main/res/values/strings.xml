@@ -81,4 +81,8 @@
     <string name="editServiceDriveMaxSize">max wastebin size</string>
     <string name="lblSideLeft">Remote Files</string>
     <string name="lblSideRight">Local Files</string>
+    <string name="delete">Delete</string>
+    <string name="state">Undetermined State</string>
+    <string name="btnDeactivate">Deactivate</string>
+    <string name="requestLocationReason">The location permission ist needed to get proper Wifi information from Android. Eg: Android 8+ will not return an SSID if not granted. No location data is send anywhere.</string>
 </resources>

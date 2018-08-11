@@ -21,33 +21,53 @@
 
     <EditText
         android:id="@+id/txtName"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/lblName"
         android:text="" />
+
+    <TextView
+        android:id="@+id/lblState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/lblName"
+        android:background="@color/bright_blue"
+        android:text="@string/state"
+        android:textAlignment="center" />
+
 
     <LinearLayout
         android:id="@+id/embedded"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txtName"
+        android:layout_below="@id/lblState"
         android:orientation="vertical" />
 
-    <RelativeLayout
-        android:id="@+id/rr2"
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/btnApply"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/embedded">
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@id/btnDeleteService"
+        android:text="@string/editServiceApply" />
 
-        <Button
-            android:id="@+id/btnApply"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:text="@string/editServiceApply"
+    <Button
+        android:id="@+id/btnDeleteService"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@id/btnDeactivate"
+        android:text="@string/delete" />
 
-            />
-    </RelativeLayout>
-
+    <Button
+        android:id="@+id/btnDeactivate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:text="@string/btnDeactivate"/>
 
 </RelativeLayout>

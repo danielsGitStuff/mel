@@ -2,7 +2,9 @@ package de.mein.android.controller;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.net.wifi.ScanResult;
 import android.net.wifi.SupplicantState;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.support.v4.content.ContextCompat;
@@ -40,7 +42,7 @@ public class InfoController extends GuiController {
             WifiManager wifiManager = (WifiManager) Tools.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             WifiInfo wifiInfo;
             wifiInfo = wifiManager.getConnectionInfo();
-            if (wifiInfo.getSupplicantState() == SupplicantState.COMPLETED) {
+            if (wifiInfo!= null && wifiInfo.getSupplicantState() == SupplicantState.COMPLETED) {
                 String ssid = wifiInfo.getSSID();
                 txtSSID.setText(ssid);
             } else {
