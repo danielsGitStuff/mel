@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 import de.mein.R;
+import de.mein.android.Notifier;
 import de.mein.android.view.BootloaderAdapter;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
@@ -33,6 +34,16 @@ public class CreateServiceController extends GuiController {
     private AndroidBootLoader bootLoader;
     private AndroidServiceGuiController currentController;
     private MainActivity mainActivity;
+    private View.OnClickListener defaultBtnCreateListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (bootLoader != null) {
+                currentController.setName(txtName.getText().toString());
+                bootLoader.createService(activity, activity.getAndroidService().getMeinAuthService(), currentController);
+                mainActivity.showMenuServices();
+            }
+        }
+    };
 
     public CreateServiceController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_create_service);
@@ -50,6 +61,21 @@ public class CreateServiceController extends GuiController {
             if (bootLoader != null) {
                 embedded.removeAllViews();
                 currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
+                if (activity.hasPermissions(bootLoader.getPermissions())) {
+                    btnCreate.setOnClickListener(defaultBtnCreateListener);
+                } else {
+                    btnCreate.setOnClickListener(v -> {
+                        activity.annoyWithPermissions(bootLoader.getPermissions())
+                                .done(result -> {
+                                    Notifier.toast(activity, "granted");
+                                    btnCreate.setOnClickListener(defaultBtnCreateListener);
+                                    btnCreate.setText(R.string.btnCreate);
+                                })
+                                .fail(r -> Notifier.toast(mainActivity, mainActivity.getString(R.string.infufficientPermissions)));
+                    });
+                    btnCreate.setText(R.string.btnCreateRequestPerm);
+                }
+
                 BootLoader bl = (BootLoader) bootLoader;
                 txtName.setText(bl.getName());
             }
@@ -94,13 +120,7 @@ public class CreateServiceController extends GuiController {
                 }
             });
             //showSelected();
-            btnCreate.setOnClickListener(view -> {
-                if (bootLoader != null) {
-                    currentController.setName(txtName.getText().toString());
-                    bootLoader.createService(activity, meinAuthService, currentController);
-                    mainActivity.showMenuServices();
-                }
-            });
+            btnCreate.setOnClickListener(defaultBtnCreateListener);
         });
     }
 

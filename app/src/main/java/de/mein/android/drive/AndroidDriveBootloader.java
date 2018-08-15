@@ -56,13 +56,16 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
 
     @Override
     public AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
-        activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (runningInstance == null) {
             return new RemoteDriveServiceChooserGuiController(meinAuthService, activity, embedded);
         } else {
             return new AndroidDriveEditGuiController(meinAuthService, activity, runningInstance, embedded);
         }
+    }
 
+    @Override
+    public String[] getPermissions() {
+        return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
     }
 
     @Override

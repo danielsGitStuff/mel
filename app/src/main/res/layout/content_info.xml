@@ -9,6 +9,7 @@
     android:paddingTop="?attr/actionBarSize">
     <!--tools:showIn="@layout/app_bar_main"-->
     <TableLayout
+        android:id="@+id/table"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:stretchColumns="1">
@@ -70,6 +71,21 @@
                 android:padding="5dp" />
         </TableRow>
     </TableLayout>
+
+    <LinearLayout
+        android:visibility="gone"
+        android:layout_below="@id/table"
+        android:id="@+id/permissionReasonContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/lblLocationPermissionReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/requestLocationReason" />
+    </LinearLayout>
 
 
 </RelativeLayout>

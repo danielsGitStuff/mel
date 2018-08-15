@@ -1,9 +1,14 @@
 package de.mein.android.boot;
 
 import android.app.Activity;
+import android.app.ListActivity;
 import android.content.Context;
 import android.support.v4.app.NotificationCompat;
 import android.view.ViewGroup;
+
+import org.jdeferred.Promise;
+
+import java.util.List;
 
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceGuiController;
@@ -20,6 +25,8 @@ public interface AndroidBootLoader<T extends IMeinService> {
     void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceGuiController currentController);
 
     AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance);
+
+    String[] getPermissions();
 
     int getMenuIcon();
 

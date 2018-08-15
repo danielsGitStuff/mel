@@ -41,20 +41,13 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     @Override
     protected ContactsService createServerInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceId, String serviceTypeId, ContactsSettings contactsSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         AndroidContactsServerService service = new AndroidContactsServerService(meinAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings);
-        addExporter(service, contactsSettings);
         return service;
     }
 
-    private void addExporter(ContactsService service, ContactsSettings settings) {
-//        if (((AndroidContactSettings) settings.getPlatformContactSettings()).getPersistToPhoneBook()) {
-//            service.setContactsToEnvironmentExporter(new ContactsToAndroidExporter(service.getDatabaseManager()));
-//        }
-    }
 
     @Override
     protected ContactsService createClientInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String serviceUuid, ContactsSettings settings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         AndroidContactsClientService service = new AndroidContactsClientService(meinAuthService, workingDirectory, serviceTypeId, serviceUuid, settings);
-        addExporter(service, settings);
         return service;
     }
 
@@ -73,7 +66,7 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
                 contactsSettings.getClientSettings().setServiceUuid(controller.getSelectedService().getUuid().v());
             }
             contactsSettings.setPlatformContactSettings(platformSettings);
-            Threadder.runNoTryThread(() -> createService(controller.getName(),contactsSettings));
+            Threadder.runNoTryThread(() -> createService(controller.getName(), contactsSettings));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -81,12 +74,16 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
 
     @Override
     public AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
-        activity.annoyWithPermissions(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS);
         if (runningInstance == null)
-        return new RemoteContactsServiceChooserGuiController(meinAuthService, activity, embedded);
-        else{
+            return new RemoteContactsServiceChooserGuiController(meinAuthService, activity, embedded);
+        else {
             return new AndroidContactsEditController(meinAuthService, activity, runningInstance, embedded);
         }
+    }
+
+    @Override
+    public String[] getPermissions() {
+        return new String[]{Manifest.permission.READ_CONTACTS,Manifest.permission.WRITE_CONTACTS};
     }
 
     @Override

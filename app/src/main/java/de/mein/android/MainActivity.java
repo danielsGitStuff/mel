@@ -156,8 +156,6 @@ public class MainActivity extends MeinActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        annoyWithPermissions(Manifest.permission.ACCESS_COARSE_LOCATION);
-        Notifier.toast(this,this.getString(R.string.requestLocationReason));
         startService();
 
     }
@@ -355,7 +353,7 @@ public class MainActivity extends MeinActivity {
         promise.done(meinValidationProcess -> N.r(() -> {
             Request<MeinServicesPayload> gotAllowedServices = meinAuthService.getAllowedServices(meinValidationProcess.getConnectedId());
             gotAllowedServices.done(meinServicesPayload -> N.r(() -> {
-                Promise<Void, Void, Void> permissionsGranted = MainActivity.this.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
+                Promise<Void, List<String>, Void> permissionsGranted = MainActivity.this.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
                 permissionsGranted.done(nil -> Threadder.runNoTryThread(() -> {
                     BashTools.init();
                     Thread.sleep(1000);

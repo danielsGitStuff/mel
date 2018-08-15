@@ -23,6 +23,7 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ import de.mein.android.service.AndroidService;
 
 public abstract class MeinActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    private SparseArray<Deferred<Void, Void, Void>> permissionPromises = new SparseArray<>();
+    private SparseArray<Deferred<Void, List<String>, Void>> permissionPromises = new SparseArray<>();
     private Map<Integer, MeinActivityLaunchResult> launchResultMap = new HashMap<>();
 
     public void launchActivityForResult(Intent launchIntent, MeinActivityLaunchResult meinActivityLaunchResult) {
@@ -109,25 +110,42 @@ public abstract class MeinActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        List<String> requestAgain = new ArrayList<>();
+        List<String> deniedPermissions = new ArrayList<>();
         for (int i = 0; i < permissions.length; i++) {
             if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                requestAgain.add(permissions[i]);
+                deniedPermissions.add(permissions[i]);
             }
         }
-        Deferred<Void, Void, Void> deferred = permissionPromises.get(requestCode);
-        if (requestAgain.size() == 0) {
+        Deferred<Void, List<String>, Void> deferred = permissionPromises.get(requestCode);
+        if (deniedPermissions.size() == 0) {
             deferred.resolve(null);
         } else {
-            Promise<Void, Void, Void> promise = annoyWithPermissions(requestAgain.toArray(new String[0]));
-            promise.done(nil -> deferred.resolve(null));
+            deferred.reject(deniedPermissions);
         }
     }
 
-    public Promise<Void, Void, Void> annoyWithPermissions(@NonNull String... permissions) {
-        Deferred<Void, Void, Void> deferred = new DeferredObject<>();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+    public boolean hasPermission(String permission) {
+        int result = ContextCompat.checkSelfPermission(this, permission);
+        return result == PackageManager.PERMISSION_GRANTED;
+    }
 
+    public boolean hasPermissions(String... permissions) {
+        for (String permission : permissions){
+            if (!hasPermission(permission))
+                return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * annoys the user one time with each given permission.
+     * @param permissions
+     * @return Promise that resolves when all permission have been granted or will reject with all denied permissions.
+     */
+    public Promise<Void, List<String>, Void> annoyWithPermissions(@NonNull String... permissions) {
+        Deferred<Void, List<String>, Void> deferred = new DeferredObject<>();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             boolean request = false;
             for (String permission : permissions) {
                 int result = ContextCompat.checkSelfPermission(this, permission);
