@@ -22,3 +22,6 @@ dependencies {
     testCompile project(path: ':json')
     compile 'org.slf4j:slf4j-api:1.7.12'
 }
+
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
