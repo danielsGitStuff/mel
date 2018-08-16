@@ -1,18 +1,20 @@
 package de.mein.android.controller;
 
+import android.app.AlertDialog;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import de.mein.R;
+import de.mein.android.Notifier;
 import de.mein.android.service.AndroidService;
 import de.mein.android.MeinActivity;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.tools.N;
-import de.mein.sql.SqlQueriesException;
 
 /**
  * Created by xor on 3/27/17.
@@ -28,29 +30,28 @@ public class ConnectedController extends GuiController {
         super(activity, content, R.layout.content_connected);
         btnDelete = rootView.findViewById(R.id.btnDelete);
         listCertificates = rootView.findViewById(R.id.listCertificates);
+        listCertificates.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
         listCertAdapter = new KnownCertListAdapter(rootView.getContext());
         listCertificates.setAdapter(listCertAdapter);
-        btnDelete.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                try {
-                    if (selectedCert != null) {
-                        androidService.getMeinAuthService().getCertificateManager().deleteCertificate(selectedCert);
-                    }
-                    selectedCert = null;
-                } catch (SqlQueriesException e) {
-                    e.printStackTrace();
-                }
+        btnDelete.setOnClickListener(v -> {
+            if (selectedCert != null) {
+                activity.runOnUiThread(() -> N.r(() -> {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                    builder.setCancelable(true)
+                            .setTitle(R.string.confirmCertDeletionTitle)
+                            .setMessage(R.string.confirmCertDeletionMessage)
+                            .setPositiveButton(R.string.btnOk, (dialog, which) -> N.r(() -> {
+                                listCertAdapter.clear();
+                                listCertAdapter.addAll(androidService.getMeinAuthService().getTrustedCertificates());
+                                listCertificates.clearChoices();
+                                selectedCert = null;
+                                listCertAdapter.notifyDataSetChanged();
+                            })).setNegativeButton(R.string.btnCancel, (dialog, which) -> Notifier.toast(activity, R.string.notificationCertNotDeleted));
+                    builder.show();
+                }));
             }
         });
-        listCertificates.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectedCert = listCertAdapter.getItemT(position);
-            }
-        });
+        listCertificates.setOnItemClickListener((parent, view, position, id) -> selectedCert = listCertAdapter.getItemT(position));
     }
 
 
@@ -63,6 +64,7 @@ public class ConnectedController extends GuiController {
     public void onAndroidServiceAvailable() {
         activity.runOnUiThread(() -> N.r(() -> {
             listCertAdapter.addAll(androidService.getMeinAuthService().getTrustedCertificates());
+            listCertAdapter.notifyDataSetChanged();
         }));
     }
 

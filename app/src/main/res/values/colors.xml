@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#57bf40</color>
     <color name="colorAccent">#ffcc35</color>
     <color name="colorLabelBackground">#696969</color>
+    <color name="colorDecentHighlight">#3e3e3e</color>
     <color name="colorOptionalBackground">#3e3e3e</color>
     <color name="colorListSelected">#ff99cc00</color>
     <color name="colorIcon">#88c039</color>

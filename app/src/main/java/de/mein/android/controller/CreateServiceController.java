@@ -71,7 +71,7 @@ public class CreateServiceController extends GuiController {
                                     btnCreate.setOnClickListener(defaultBtnCreateListener);
                                     btnCreate.setText(R.string.btnCreate);
                                 })
-                                .fail(r -> Notifier.toast(mainActivity, mainActivity.getString(R.string.infufficientPermissions)));
+                                .fail(r -> Notifier.toast(mainActivity,R.string.infufficientPermissions));
                     });
                     btnCreate.setText(R.string.btnCreateRequestPerm);
                 }

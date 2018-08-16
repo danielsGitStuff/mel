@@ -89,7 +89,7 @@ public class AndroidRegHandler implements IRegisterHandler {
     @Override
     public void onRemoteRejected(Certificate partnerCertificate) {
         try {
-            Notifier.toast(Tools.getApplicationContext(), Tools.getApplicationContext().getText(R.string.coupleRemoteRejectToast));
+            Notifier.toast(Tools.getApplicationContext(), R.string.coupleRemoteRejectToast);
             String hash = Hash.sha256(partnerCertificate.getCertificate().v());
             CertActivity certActivity = hashRegActivitiesMap.remove(hash);
             RegBundle bundle = regBundles.remove(hash);
@@ -106,7 +106,7 @@ public class AndroidRegHandler implements IRegisterHandler {
     @Override
     public void onLocallyRejected(Certificate partnerCertificate) {
         try {
-            Notifier.toast(Tools.getApplicationContext(), Tools.getApplicationContext().getText(R.string.coupleLocalRejectToast));
+            Notifier.toast(Tools.getApplicationContext(), R.string.coupleLocalRejectToast);
             String hash = Hash.sha256(partnerCertificate.getCertificate().v());
             CertActivity certActivity = hashRegActivitiesMap.remove(hash);
             certActivity.onLocallyRejected();

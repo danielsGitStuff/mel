@@ -60,6 +60,9 @@ public class Notifier {
         notificationManager.cancel(requestCode);
     }
 
+    public static void toast(Context context, int msgId){
+        toast(context,context.getString(msgId));
+    }
     public static void toast(Context context, CharSequence message) {
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(() -> {

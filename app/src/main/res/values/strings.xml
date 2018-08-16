@@ -18,7 +18,7 @@
     <string name="infoHelp" >Shows the current status of the background service and some additional info. You can see all running services and settings in the navigator on the left.</string>
     <string name="logcatHelp">Usually you do not need this. If something goes wrong and you cannot currently debug this is the place to look at.</string>
     <string name="discoveryHelp">Finds other instances of Drive in the current Wifi. This requires Broadcasting to be working on your network. Broadcast are sent on port 9966.</string>
-    <string name="connectedHelp">List of currently connected instances of Drive</string>
+    <string name="connectedHelp">List of instances that your device already knows and can connect with. Currently connected instances are highlighted.</string>
     <string name="settingsHelp">You can adjust your name and ports here. Your name will appear on other devices once paired. The ports are used to connect (directly - if broadcasting does not work) and Broadcast port is fixed to 9966. When you are done with coupling you may create new Services and allow them to \"talk\" to the other instances. </string>
     <string name="editServiceHelp">Shows things that you can change on this currently running Service.</string>
     <string name="settingsName">Name</string>
@@ -88,4 +88,8 @@
     <string name="infufficientPermissions">You did not grant all necessary persmissions to run this service :(</string>
     <string name="btnCreate">Create</string>
     <string name="btnCreateRequestPerm">Request permissions</string>
+    <string name="confirmCertDeletionMessage">Do you really want to delete that certificate? You won\'t be able to communicate until you pair again.</string>
+    <string name="btnCancel">Cancel</string>
+    <string name="confirmCertDeletionTitle">AAACHTUNG!!!</string>
+    <string name="notificationCertNotDeleted">You sissy!</string>
 </resources>

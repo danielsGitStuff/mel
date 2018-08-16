@@ -34,7 +34,9 @@
         android:layout_height="wrap_content" />
 
     <LinearLayout
+        android:background="@color/colorDecentHighlight"
         android:id="@+id/embedded"
+        android:layout_above="@id/btnCreate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/txtName"

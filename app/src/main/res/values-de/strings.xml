@@ -17,7 +17,7 @@
     <string name="infoHelp">Zeigt den aktuellen Status des Hintergunddienstes und ein paar Zusatzinfos. Im Navigator auf der linken Seite kannst du alle laufenden Dienste und Einstellungen sehen.</string>
     <string name="logcatHelp">Das brauchst du für gewöhnlich nicht. Es sei denn irgendetwas geht schief und du liest gerne Logs.</string>
     <string name="discoveryHelp">Sucht andere Instanzen von Drive im aktuellen W-Lan. Damit dies funktioniert, muss dein Netzwerk Broadcasting erlauben. Der Broadcast-Port ist 9966. Wenn du verkoppelt bist, kannst du Dienste erstellen und den anderen Instanzen erlauben mit ihnen zu \"reden\".</string>
-    <string name="connectedHelp">Liste aller aktuell verbundenen Instanzen</string>
+    <string name="connectedHelp">Liste aller dir bekannten Instanzen. Gerade Verbundene sind hervorgehoben.</string>
     <string name="settingsHelp">Hier kannst du den Namen dieser Instanz und Ports einstellen. Der Name wird auf anderen Geäten angezeigt, sobald diese gekoppelt sind. Die Ports sind für die direkte Verbindung nötig (sollte Broadcast nicht funktionieren). Der Broadcast-Port ist fest: 9966."</string>
 
     <string name="editServiceHelp">Hier kannst du Einstellungen am laufenden Dienst vornehmen.</string>
@@ -87,4 +87,8 @@
     <string name="infufficientPermissions">Du hast der App nicht alle notwendigen Berechtigungen für diesen Service gegeben :(</string>
     <string name="btnCreate">Erstellen</string>
     <string name="btnCreateRequestPerm">Request permissions</string>
+    <string name="confirmCertDeletionMessage">Do you really want to delete that certificate? You won\'t be able to communicate until you pair again.</string>
+    <string name="btnCancel">Cancel</string>
+    <string name="confirmCertDeletionTitle">AAACHTUNG!!!</string>
+    <string name="notificationCertNotDeleted">Du Weichflöte!</string>
 </resources>
