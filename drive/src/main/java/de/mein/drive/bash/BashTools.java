@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -82,5 +84,14 @@ public abstract class BashTools {
             System.out.println("BashTools.mkdir(" + i + ") for " + dir.getAbsolutePath());
         }
         //instance.mkdir(dir);
+    }
+
+    public static File[] lsD(String path) {
+        File root = new File(path);
+        if (root.exists()) {
+            File[] dirs = root.listFiles((file, s) -> file.isDirectory());
+            return dirs;
+        }
+        return new File[0];
     }
 }

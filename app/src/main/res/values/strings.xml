@@ -92,4 +92,8 @@
     <string name="btnCancel">Cancel</string>
     <string name="confirmCertDeletionTitle">AAACHTUNG!!!</string>
     <string name="notificationCertNotDeleted">You sissy!</string>
+    <string name="dirChooserTitle">Choose a Directory</string>
+    <string name="chooseStorageTitle">Choose Storage Volume</string>
+    <string name="toastDrivePermissionsRequired">Cannot choose a working directory for the drive service unless you grant the required permission.</string>
+    <string name="driveChoosePath">Please choose a storage directory</string>
 </resources>

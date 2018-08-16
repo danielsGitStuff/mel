@@ -65,7 +65,7 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
 
     @Override
     public String[] getPermissions() {
-        return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE};
     }
 
     @Override

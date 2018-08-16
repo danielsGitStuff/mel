@@ -86,9 +86,13 @@
     <string name="requestLocationReason">Standort wird für detaillierte Informationen über das W-Lan benötigt. Der Name ist ab Android 8 sonst unbekannt. Standortdaten werden nicht verschickt. Tippe hier um die Erlaubnis zu geben.</string>
     <string name="infufficientPermissions">Du hast der App nicht alle notwendigen Berechtigungen für diesen Service gegeben :(</string>
     <string name="btnCreate">Erstellen</string>
-    <string name="btnCreateRequestPerm">Request permissions</string>
-    <string name="confirmCertDeletionMessage">Do you really want to delete that certificate? You won\'t be able to communicate until you pair again.</string>
-    <string name="btnCancel">Cancel</string>
+    <string name="btnCreateRequestPerm">Berechtigungsfrage</string>
+    <string name="confirmCertDeletionMessage">Möchtest du dieses Zertifikat wirklich löschen? Du kannst mit ihm nicht mehr kommunizieren, bis du dich nicht nochmal paarst ;)</string>
+    <string name="btnCancel">Abbruch</string>
     <string name="confirmCertDeletionTitle">AAACHTUNG!!!</string>
     <string name="notificationCertNotDeleted">Du Weichflöte!</string>
+    <string name="dirChooserTitle">Wähle ein Verzeichnis</string>
+    <string name="chooseStorageTitle">Speicherortwahl</string>
+    <string name="toastDrivePermissionsRequired">Ohne die nötige Berechtigung kannst du keinen Speicherort wählen.</string>
+    <string name="driveChoosePath">Bitte wähle einen Speicherort.</string>
 </resources>

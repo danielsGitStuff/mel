@@ -1,15 +1,31 @@
 package de.mein.android.drive.controller;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.ContentProvider;
+import android.content.ContentProviderClient;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
+import android.os.RemoteException;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
+import android.support.v4.provider.DocumentFile;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -18,15 +34,22 @@ import android.widget.TextView;
 import net.rdrei.android.dirchooser.DirectoryChooserActivity;
 import net.rdrei.android.dirchooser.DirectoryChooserConfig;
 
+import org.jdeferred.Promise;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.List;
 
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
 import de.mein.android.Tools;
 import de.mein.android.controller.RemoteServiceChooserController;
+import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 
@@ -68,22 +91,63 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         lblPercent = rootView.findViewById(R.id.lblPercent);
         setPath(createDrivePath());
         btnPath.setOnClickListener(view -> {
-
-            final Intent chooserIntent = new Intent(activity, DirectoryChooserActivity.class);
-            final DirectoryChooserConfig config = DirectoryChooserConfig.builder()
-                    .newDirectoryName("drive")
-                    .allowReadOnlyDirectory(false)
-                    .allowNewDirectoryNameModification(true)
-                    .initialDirectory(createDrivePath())
-                    .build();
-            chooserIntent.putExtra(DirectoryChooserActivity.EXTRA_CONFIG, config);
-            activity.launchActivityForResult(chooserIntent, (resultCode, result) -> {
-                //result is here
-                if (result != null) {
-                    String path = result.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR);
-                    setPath(path);
+            Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
+            permissionsPromise.done(nil -> {
+                /**
+                 * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
+                 * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
+                 * other option would (probably) be to adapt all the file handling and tools and workers and so on to work with SFA.
+                 * this works around it.
+                 *
+                 * list all storages found under '/storage' first.
+                 * then ask for permission to access external storage
+                 * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
+                 */
+                final String PATH_STORAGE = "/storage";
+                File[] storages = BashTools.lsD(PATH_STORAGE);
+                File[] ss = new File[storages.length + 1];
+                for (int i = 0; i < storages.length; i++) {
+                    ss[i] = storages[i];
                 }
+                ss[storages.length] = new File(createDrivePath());
+                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setTitle(R.string.chooseStorageTitle);
+                builder.setAdapter(new ArrayAdapter<File>(activity, android.R.layout.simple_list_item_1, storages), (dialog, which) -> {
+
+                    File root = storages[which];
+                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded: " + root.getAbsolutePath());
+                    final Intent chooserIntent = new Intent(activity, DirectoryChooserActivity.class);
+                    final DirectoryChooserConfig config = DirectoryChooserConfig.builder()
+                            .newDirectoryName("drive")
+                            .allowReadOnlyDirectory(false)
+                            .allowNewDirectoryNameModification(true)
+                            .initialDirectory(root.getAbsolutePath())
+                            .build();
+                    chooserIntent.putExtra(DirectoryChooserActivity.EXTRA_CONFIG, config);
+                    activity.launchActivityForResult(chooserIntent, (resultCode, result) -> {
+                        //result is here
+                        if (result != null) {
+                            String path = result.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR);
+                            File file = new File(path);
+                            if (file.canWrite())
+                            setPath(path);
+                            else {
+                                Notifier.toast(activity,"Cannot Write :(");
+                            }
+                        }
+                    });
+                });
+                builder.setCancelable(true);
+                builder.setNegativeButton("nope", (dialog, which) -> {
+                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                });
+                AlertDialog dialog = builder.show();
+                dialog.setCanceledOnTouchOutside(true);
+            }).fail(result -> {
+                Notifier.toast(activity, R.string.toastDrivePermissionsRequired);
             });
+
+
         });
         maxSizeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -191,6 +255,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     }
 
     private String createDrivePath() {
+        File debug = Environment.getExternalStorageDirectory();
         File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         return new File(downloadDir, "drive").getAbsolutePath();
     }

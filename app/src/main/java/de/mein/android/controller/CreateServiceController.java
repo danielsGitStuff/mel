@@ -63,6 +63,7 @@ public class CreateServiceController extends GuiController {
                 currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
                 if (activity.hasPermissions(bootLoader.getPermissions())) {
                     btnCreate.setOnClickListener(defaultBtnCreateListener);
+                    btnCreate.setText(R.string.btnCreate);
                 } else {
                     btnCreate.setOnClickListener(v -> {
                         activity.annoyWithPermissions(bootLoader.getPermissions())
