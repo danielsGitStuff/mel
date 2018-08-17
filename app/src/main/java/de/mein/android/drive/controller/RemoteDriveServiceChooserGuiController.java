@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
@@ -38,6 +39,7 @@ import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -133,6 +135,18 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                             setPath(path);
                             else {
                                 Notifier.toast(activity,"Cannot Write :(");
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                StorageManager storageManager = (StorageManager) activity.getSystemService(Context.STORAGE_SERVICE);
+                                    StorageVolume volume = storageManager.getStorageVolume(file);
+                                    Intent intent = volume.createAccessIntent(null);
+                                    activity.startActivityForResult(intent,666);
+                                }
+                                boolean canRead = activity.hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+                                boolean canWrite = activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                                File e = new File(file.getAbsolutePath()+ File.separator+"delme");
+                                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                                Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath());
+                                activity.startActivityForResult(intent,43);
                             }
                         }
                     });
