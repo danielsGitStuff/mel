@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.tools.CountdownLock;
@@ -17,7 +18,7 @@ public abstract class MeinServiceWorker extends MeinService {
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
     private CountdownLock initLock = new CountdownLock(1).lock();
 
-    public MeinServiceWorker(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
+    public MeinServiceWorker(MeinAuthService meinAuthService, AFile workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
     }
 

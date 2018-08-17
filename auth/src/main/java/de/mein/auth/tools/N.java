@@ -15,6 +15,24 @@ import java.util.List;
  */
 public class N {
     /**
+     * helps doing common things with arrays
+     */
+    public static class arr {
+        public interface Castor<T, R> {
+            R cast(T element);
+        }
+
+        public static <T, R> R[] cast(T[] source, Castor<T, R> castor) {
+            R[] result = (R[]) new Object[source.length];
+            for (int i = 0; i < source.length; i++) {
+                if (source[i] != null)
+                    result[i] = castor.cast(source[i]);
+            }
+            return result;
+        }
+    }
+
+    /**
      * fails silently
      */
     public static void s(N.INoTryRunnable noTryRunnable) {
@@ -30,6 +48,7 @@ public class N {
 
     /**
      * runs noTryRunnable in a new Thread
+     *
      * @param noTryRunnable
      */
     public static void thread(N.INoTryRunnable noTryRunnable) {
@@ -193,6 +212,7 @@ public class N {
     }
 
     //####
+
     /**
      * call stop() on reader when you do not want to iterate further
      *

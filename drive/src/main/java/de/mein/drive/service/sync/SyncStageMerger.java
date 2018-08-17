@@ -1,5 +1,6 @@
 package de.mein.drive.service.sync;
 
+import de.mein.auth.file.AFile;
 import de.mein.drive.sql.Stage;
 import de.mein.sql.SqlQueriesException;
 
@@ -22,7 +23,7 @@ public abstract class SyncStageMerger {
      * @param right
      * @throws SqlQueriesException
      */
-    public abstract void stuffFound(Stage left, Stage right, File lFile, File rFile) throws SqlQueriesException;
+    public abstract void stuffFound(Stage left, Stage right, AFile lFile, AFile rFile) throws SqlQueriesException;
 
     public SyncStageMerger(Long lStageSetId, Long rStageSetId) {
         this.lStageSetId = lStageSetId;

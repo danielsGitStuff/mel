@@ -4,6 +4,7 @@ import de.mein.auth.data.JsonSettings;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.fs.RootDirectory;
+import de.mein.auth.file.AFile;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.sql.SqlQueriesException;
 
@@ -30,7 +31,7 @@ public class DriveSettings extends JsonSettings {
 
     public static RootDirectory buildRootDirectory(String path) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
         RootDirectory rootDirectory = new RootDirectory().setPath(path);
-        rootDirectory.setOriginalFile(new File(path));
+        rootDirectory.setOriginalFile(AFile.instance(path));
         rootDirectory.backup();
         return rootDirectory;
     }
@@ -47,8 +48,8 @@ public class DriveSettings extends JsonSettings {
         return transferDirectoryPath;
     }
 
-    public File getTransferDirectoryFile() {
-        return new File(transferDirectoryPath);
+    public AFile getTransferDirectoryFile() {
+        return AFile.instance(transferDirectoryPath);
     }
 
     public Long getMaxWastebinSize() {
@@ -127,7 +128,7 @@ public class DriveSettings extends JsonSettings {
             driveSettings.setRootDirectory(new RootDirectory().setPath(driveSettingsCfg.getRootDirectory().getPath()).backup());
         }
         driveSettings.getRootDirectory().backup();
-        driveSettings.getRootDirectory().setOriginalFile(new File(driveSettings.getRootDirectory().getPath()));
+        driveSettings.getRootDirectory().setOriginalFile(AFile.instance(driveSettings.getRootDirectory().getPath()));
         driveSettings.save();
         return driveSettings;
     }

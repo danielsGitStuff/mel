@@ -3,6 +3,7 @@ package de.mein.contacts.service;
 import de.mein.auth.data.ClientData;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
@@ -34,7 +35,7 @@ import java.util.concurrent.ThreadFactory;
 public class ContactsServerService extends ContactsService {
 
 
-    public ContactsServerService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+    public ContactsServerService(MeinAuthService meinAuthService, AFile serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
     }
 

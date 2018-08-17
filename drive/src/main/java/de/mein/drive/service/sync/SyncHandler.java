@@ -7,6 +7,7 @@ import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
+import de.mein.auth.file.AFile;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.MeinDriveService;
@@ -56,8 +57,8 @@ public abstract class SyncHandler {
         this.quotaManager = new QuotaManager(meinDriveService);
     }
 
-    public File moveFile(File source, FsFile fsTarget) throws SqlQueriesException, IOException {
-        File target = null;
+    public AFile moveFile(AFile source, FsFile fsTarget) throws SqlQueriesException, IOException {
+        AFile target = null;
         try {
             //fsDao.lockWrite();
             target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
@@ -125,7 +126,7 @@ public abstract class SyncHandler {
      * @param v
      * @throws SqlQueriesException
      */
-    public void onFileTransferred(File file, String hash) throws SqlQueriesException, IOException {
+    public void onFileTransferred(AFile file, String hash) throws SqlQueriesException, IOException {
         try {
             fsDao.lockWrite();
             //todo debug
@@ -165,17 +166,17 @@ public abstract class SyncHandler {
 
     }
 
-    private void copyFile(File source, FsFile fsTarget) throws SqlQueriesException, IOException {
+    private void copyFile(AFile source, FsFile fsTarget) throws SqlQueriesException, IOException {
         fsDao.lockRead();
-        File target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
+        AFile target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
         fsDao.unlockRead();
         indexer.ignorePath(target.getAbsolutePath(), 2);
         //todo debug
         if (source == null)
             System.out.println("SyncHandler.copyFile.debug1");
-        InputStream in = new FileInputStream(source);
+        InputStream in = source.inputStream();
         try {
-            OutputStream out = new FileOutputStream(target);
+            OutputStream out =target.outputStream();
             try {
                 // Transfer bytes from in to out
                 byte[] buf = new byte[1024];
@@ -320,7 +321,7 @@ public abstract class SyncHandler {
                                     wastebin.deleteFsFile(oldeFsFile);
                                 } else {
                                     // delete file. consider that it might be in the same state as the stage
-                                    File stageFile = stageDao.getFileByStage(stage);
+                                    AFile stageFile = stageDao.getFileByStage(stage);
                                     if (stageFile.exists()) {
                                         ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
                                         if (stage.getiNode() == null || stage.getModified() == null ||
@@ -376,7 +377,7 @@ public abstract class SyncHandler {
             while (!stack.empty()) {
                 dbParent = stack.pop();
                 path += dbParent.getName().v();
-                File d = new File(path);
+                AFile d = AFile.instance(path);
                 if (!d.exists()) {
                     indexer.ignorePath(path, 1);
                     System.out.println("SyncHandler.createDirs: " + d.getAbsolutePath());
@@ -391,7 +392,7 @@ public abstract class SyncHandler {
         }
         if (fsEntry.getIsDirectory().v()) {
             path += fsEntry.getName().v();
-            File target = new File(path);
+            AFile target = AFile.instance(path);
             if (!target.exists()) {
                 indexer.ignorePath(path, 1);
                 System.out.println("SyncHandler.createDirs: " + target.getAbsolutePath());
@@ -402,7 +403,7 @@ public abstract class SyncHandler {
         }
     }
 
-    private void updateInodeModified(FsEntry entry, File f) throws SqlQueriesException, IOException, InterruptedException {
+    private void updateInodeModified(FsEntry entry, AFile f) throws SqlQueriesException, IOException, InterruptedException {
         ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
         entry.getiNode().v(modifiedAndInode.getiNode());
         entry.getModified().v(modifiedAndInode.getModified());

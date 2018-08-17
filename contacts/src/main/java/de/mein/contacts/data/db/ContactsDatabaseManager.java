@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 
 import de.mein.auth.data.access.FileRelatedManager;
+import de.mein.auth.file.AFile;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.db.dao.ContactsDao;
@@ -33,7 +34,7 @@ public class ContactsDatabaseManager extends FileRelatedManager {
     private final ContactsDao contactsDao;
     private final PhoneBookDao phoneBookDao;
 
-    public ContactsDatabaseManager(ContactsService contactsService, File workingDirectory, ContactsSettings settingsCfg) throws SQLException, ClassNotFoundException, IOException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public ContactsDatabaseManager(ContactsService contactsService, AFile workingDirectory, ContactsSettings settingsCfg) throws SQLException, ClassNotFoundException, IOException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         super(workingDirectory);
 
         this.contactsService = contactsService;

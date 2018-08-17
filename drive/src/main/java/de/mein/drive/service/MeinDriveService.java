@@ -22,6 +22,7 @@ import de.mein.drive.index.IndexListener;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.index.watchdog.StageIndexer;
+import de.mein.auth.file.AFile;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
@@ -82,7 +83,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             syncListener.onTransfersDone();
     }
 
-    public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
+    public MeinDriveService(MeinAuthService meinAuthService, AFile workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
     }
 
@@ -168,7 +169,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             if (lockFsEntry)
                 fsDao.lockRead();
             for (FileTransferDetail detail : detailSet.getDetails()) {
-                File wasteFile = wastebin.getByHash(detail.getHash());
+                AFile wasteFile = wastebin.getByHash(detail.getHash());
                 MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) getIsolatedProcess(partnerCertId, detailSet.getServiceUuid());
                 List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
                 if (wasteFile != null) {
@@ -177,7 +178,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                     fileProcess.sendFile(mDetail);
                 } else if (fsFiles.size() > 0) {
                     FsFile fsFile = fsFiles.get(0);
-                    File file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
+                    AFile file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
                     if (!file.exists()) {
                         file = wastebin.getByHash(detail.getHash());
                     }

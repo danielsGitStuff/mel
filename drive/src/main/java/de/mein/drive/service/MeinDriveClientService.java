@@ -2,6 +2,7 @@ package de.mein.drive.service;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.MeinNotification;
+import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
@@ -37,7 +38,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     private static Logger logger = Logger.getLogger(MeinDriveClientService.class.getName());
 
-    public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
+    public MeinDriveClientService(MeinAuthService meinAuthService, AFile workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
     }
 

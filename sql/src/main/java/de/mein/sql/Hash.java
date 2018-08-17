@@ -11,29 +11,56 @@ import java.security.MessageDigest;
  */
 public class Hash {
 
-    public static String md5(File file) {
+    public static String md5(InputStream inputStream){
         MessageDigest messageDigest;
-        //System.out.println("Hash.md5: " + file.getAbsolutePath());
         try {
             messageDigest = MessageDigest.getInstance("MD5");
 
-            InputStream fis = new FileInputStream(file);
             byte[] buffer = new byte[1024];
             int numRead;
             do {
-                numRead = fis.read(buffer);
+                numRead = inputStream.read(buffer);
                 if (numRead > 0) {
                     messageDigest.update(buffer, 0, numRead);
                 }
             } while (numRead != -1);
-            fis.close();
             byte[] bytes = messageDigest.digest();
             return bytesToString(bytes);
         } catch (Exception e) {
             e.printStackTrace();
             return "exception :(";
+        }finally {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
+
+//    public static String md5(File file) {
+//        MessageDigest messageDigest;
+//        //System.out.println("Hash.md5: " + file.getAbsolutePath());
+//        try {
+//            messageDigest = MessageDigest.getInstance("MD5");
+//
+//            InputStream fis = new FileInputStream(file);
+//            byte[] buffer = new byte[1024];
+//            int numRead;
+//            do {
+//                numRead = fis.read(buffer);
+//                if (numRead > 0) {
+//                    messageDigest.update(buffer, 0, numRead);
+//                }
+//            } while (numRead != -1);
+//            fis.close();
+//            byte[] bytes = messageDigest.digest();
+//            return bytesToString(bytes);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return "exception :(";
+//        }
+//    }
 
     public static String bytesToString(byte[] bytes) {
         StringBuffer hexString = new StringBuffer();

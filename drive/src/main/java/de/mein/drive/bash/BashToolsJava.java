@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import de.mein.auth.file.AFile;
+import de.mein.auth.file.FFile;
+
 /**
  * Created by xor on 7/24/17.
  */
@@ -17,22 +20,22 @@ public class BashToolsJava implements BashToolsImpl {
     }
 
     @Override
-    public Set<Long> getINodesOfDirectory(File file) throws IOException {
+    public Set<Long> getINodesOfDirectory(AFile file) throws IOException {
         return null;
     }
 
     @Override
-    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
+    public ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException {
         return null;
     }
 
     @Override
-    public void rmRf(File directory) throws IOException {
+    public void rmRf(AFile directory) throws IOException {
 
     }
 
     @Override
-    public List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+    public List<String> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         return null;
     }
 
@@ -40,8 +43,9 @@ public class BashToolsJava implements BashToolsImpl {
     //public static int depth = 0;
 
     public static void main(String[] args) throws Exception {
-        File dir = new File("bash.test");
-        File prune = new File(dir.getAbsolutePath() + File.separator + "prune");
+        AFile.setClass(FFile.class);
+        AFile dir = AFile.instance("bash.test");
+        AFile prune =AFile.instance(dir.getAbsolutePath() + File.separator + "prune");
         File file = new File(dir.getAbsolutePath() + File.separator + "file");
         dir.mkdirs();
         prune.mkdirs();
@@ -57,8 +61,8 @@ public class BashToolsJava implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<String> find(File directory, File pruneDir) throws IOException {
-        Stack<Iterator<File>> fileStack = new Stack<>();
+    public Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
+        Stack<Iterator<AFile>> fileStack = new Stack<>();
         String prunePath = pruneDir.getAbsolutePath();
         System.out.println("BashToolsJava.find.prune: " + prunePath);
         fileStack.push(Arrays.asList(directory.listFiles()).iterator());
@@ -66,10 +70,10 @@ public class BashToolsJava implements BashToolsImpl {
             String nextLine = null;
 
             private void fastForward() {
-                Iterator<File> iterator = fileStack.peek();
+                Iterator<AFile> iterator = fileStack.peek();
                 while (iterator != null) {
                     while (iterator.hasNext()) {
-                        File f = iterator.next();
+                        AFile f = iterator.next();
                         if (!f.getAbsolutePath().startsWith(prunePath)) {
                             nextLine = f.getAbsolutePath();
                             return;
@@ -96,9 +100,9 @@ public class BashToolsJava implements BashToolsImpl {
                     return true;
                 } else {
                     try {
-                        Iterator<File> iterator = fileStack.peek();
+                        Iterator<AFile> iterator = fileStack.peek();
                         if (iterator.hasNext()) {
-                            File nextFile = iterator.next();
+                            AFile nextFile = iterator.next();
                             if (nextFile.isDirectory())
                                 fileStack.push(Arrays.asList(nextFile.listFiles()).iterator());
                             nextLine = nextFile.getAbsolutePath();
@@ -146,17 +150,17 @@ public class BashToolsJava implements BashToolsImpl {
     }
 
     @Override
-    public Promise<Long, Exception, Void> getInode(File f) {
+    public Promise<Long, Exception, Void> getInode(AFile f) {
         return null;
     }
 
     @Override
-    public Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public Iterator<String> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return null;
     }
 
     @Override
-    public void mkdir(File dir) throws IOException {
+    public void mkdir(AFile dir) throws IOException {
         int i = 0;
         while (!dir.exists()) {
             dir.mkdirs();

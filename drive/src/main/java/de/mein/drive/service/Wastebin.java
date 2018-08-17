@@ -6,6 +6,7 @@ import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
+import de.mein.auth.file.AFile;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
@@ -23,7 +24,7 @@ import java.util.List;
  * Created by xor on 1/27/17.
  */
 public class Wastebin {
-    private final File wasteDir;
+    private final AFile wasteDir;
     private final MeinDriveService meinDriveService;
     private final DriveSettings driveSettings;
     private final FsDao fsDao;
@@ -31,7 +32,7 @@ public class Wastebin {
     private final DriveDatabaseManager driveDatabaseManager;
     private final WasteDao wasteDao;
     private final StageDao stageDao;
-    private final File deferredDir;
+    private final AFile deferredDir;
 
     public Wastebin(MeinDriveService meinDriveService) {
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
@@ -41,8 +42,8 @@ public class Wastebin {
         this.driveSettings = meinDriveService.getDriveSettings();
         this.indexer = meinDriveService.getIndexer();
         this.wasteDao = driveDatabaseManager.getWasteDao();
-        this.wasteDir = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN);
-        this.deferredDir = new File(wasteDir, "deferred");
+        this.wasteDir = AFile.instance(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN);
+        this.deferredDir =AFile.instance(wasteDir, "deferred");
         wasteDir.mkdirs();
         deferredDir.mkdirs();
     }
@@ -108,7 +109,7 @@ public class Wastebin {
      * @param waste
      */
     public void rm(Waste waste) throws SqlQueriesException {
-        File target = getWasteFile(waste);
+        AFile target = getWasteFile(waste);
         target.delete();
         if (target.exists())
             N.r(() -> BashTools.rmRf(target));
@@ -116,7 +117,7 @@ public class Wastebin {
     }
 
     private void deleteDirectory(FsDirectory fsDirectory) throws SqlQueriesException, IOException, InterruptedException {
-        File f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsDirectory);
+        AFile f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsDirectory);
         if (f.exists()) {
             indexer.ignorePath(f.getAbsolutePath(), 1);
             if (f.isDirectory()) {
@@ -137,9 +138,9 @@ public class Wastebin {
      * @param waste
      * @param file
      */
-    public File moveToBin(Waste waste, File file) throws SqlQueriesException {
+    public AFile moveToBin(Waste waste, AFile file) throws SqlQueriesException {
         try {
-            File target = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
+            AFile target = AFile.instance(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
             file.renameTo(target);
             waste.getInplace().v(true);
             wasteDao.update(waste);
@@ -152,7 +153,7 @@ public class Wastebin {
 
     public void deleteFsFile(FsFile fsFile) {
         try {
-            File f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
+            AFile f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
             if (f.exists()) {
                 indexer.ignorePath(f.getAbsolutePath(), 1);
                 if (f.isFile()) {
@@ -186,7 +187,7 @@ public class Wastebin {
         }
     }
 
-    private String findHashOfFile(File file, Long inode) throws IOException, SqlQueriesException {
+    private String findHashOfFile(AFile file, Long inode) throws IOException, SqlQueriesException {
         GenericFSEntry genFsFile = fsDao.getGenericByINode(inode);
         Stage stage = stageDao.getLatestStageFromFsByINode(inode);
         if (stage != null) {
@@ -197,7 +198,7 @@ public class Wastebin {
         return null;
     }
 
-    private void moveToBin(File file, String contentHash, ModifiedAndInode modifiedAndInode) throws SqlQueriesException {
+    private void moveToBin(AFile file, String contentHash, ModifiedAndInode modifiedAndInode) throws SqlQueriesException {
         //todo debug
         if (contentHash.equals("9471e9c1779a51bb6fcb5735127c0701"))
             System.out.println("Wastebin.moveToBin.debugjfc03jg0w");
@@ -214,13 +215,13 @@ public class Wastebin {
         moveToBin(waste, file);
     }
 
-    private void recursiveDelete(File dir) throws SqlQueriesException, IOException, InterruptedException {
+    private void recursiveDelete(AFile dir) throws SqlQueriesException, IOException, InterruptedException {
         //todo debug
         if (dir.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir/samesub"))
             System.out.println("Wastebin.recursiveDelete.debugnfi34fa");
         FsDirectory fsDirectory = fsDao.getFsDirectoryByPath(dir);
-        File[] files = dir.listFiles(File::isFile);
-        for (File f : files) {
+        AFile[] files = dir.listFiles();
+        for (AFile f : files) {
             ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
             String contentHash = findHashOfFile(f, modifiedAndInode.getiNode());
             if (contentHash != null) {
@@ -230,8 +231,8 @@ public class Wastebin {
                 f.delete();
             }
         }
-        File[] subDirs = dir.listFiles(File::isDirectory);
-        for (File subDir : subDirs) {
+        AFile[] subDirs = dir.listDirectories();
+        for (AFile subDir : subDirs) {
             indexer.ignorePath(subDir.getAbsolutePath(), 1);
             FsDirectory fsSubDir = fsDao.getSubDirectoryByName(fsDirectory.getId().v(), subDir.getName());
             recursiveDelete(subDir);
@@ -267,7 +268,7 @@ public class Wastebin {
             for (FsFile fsFile : fsFiles) {
                 Waste waste = wasteDao.getWasteByHash(fsFile.getContentHash().v());
                 if (waste != null) {
-                    File wasteFile = new File(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
+                    AFile wasteFile = AFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
                     wasteDao.delete(waste.getId().v());
                     fsDao.setSynced(fsFile.getId().v(), true);
                     syncHandler.moveFile(wasteFile, fsFile);
@@ -281,18 +282,18 @@ public class Wastebin {
     }
 
 
-    public File getByHash(String hash) throws SqlQueriesException {
+    public AFile getByHash(String hash) throws SqlQueriesException {
         Waste waste = wasteDao.getWasteByHash(hash);
         if (waste != null)
             return getWasteFile(waste);
         return null;
     }
 
-    private File getWasteFile(Waste waste) {
+    private AFile getWasteFile(Waste waste) {
         //todo debug
         if (waste == null || waste.getHash().isNull())
             System.out.println("Wastebin.getWasteFile.debug.1");
-        return new File(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
+        return AFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
     }
 
     /**
@@ -302,14 +303,14 @@ public class Wastebin {
      * @param file
      * @throws IOException
      */
-    public void deleteUnknown(File file) throws IOException, SqlQueriesException, InterruptedException {
+    public void deleteUnknown(AFile file) throws IOException, SqlQueriesException, InterruptedException {
         ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
-        File target = new File(deferredDir, modifiedAndInode.getiNode().toString());
+        AFile target = AFile.instance(deferredDir, modifiedAndInode.getiNode().toString());
         file.renameTo(target);
 
         //if dir?!?!
         if (target.isDirectory()) {
-            for (File f : target.listFiles()) {
+            for (AFile f : target.listFiles()) {
                 deleteUnknown(f);
             }
             target.delete();
@@ -317,7 +318,7 @@ public class Wastebin {
         }
 
         //todo hashing is blocking yet!
-        String hash = Hash.md5(target);
+        String hash = Hash.md5(target.inputStream());
         Waste waste = new Waste();
         waste.getHash().v(hash);
         waste.getInode().v(modifiedAndInode.getiNode());
@@ -327,7 +328,7 @@ public class Wastebin {
         waste.getName().v(file.getName());
         waste.getFlagDelete().v(false);
         wasteDao.insert(waste);
-        File movedTo = this.moveToBin(waste, target);
+        AFile movedTo = this.moveToBin(waste, target);
         //todo tell a worker to investigate the deferred directory
         //todo worker has to tell the drive service or transfermanager that a file has been found
         //meinDriveService.syncHandler.onFileTransferred(movedTo, hash);

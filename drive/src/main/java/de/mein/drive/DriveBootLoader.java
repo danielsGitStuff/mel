@@ -4,6 +4,7 @@ import de.mein.DeferredRunnable;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.db.Service;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.MeinDeferredManager;
@@ -79,7 +80,7 @@ public class DriveBootLoader extends BootLoader {
      * @throws IllegalAccessException
      */
     public MeinDriveService boot(MeinAuthService meinAuthService, Service service, de.mein.drive.data.DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
-        File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
+        AFile workingDirectory = AFile.instance(bootLoaderDir.getAbsolutePath() + AFile.separator() + service.getUuid().v());
         Long serviceTypeId = service.getTypeId().v();
         String uuid = service.getUuid().v();
         MeinDriveService meinDriveService = (driveSettings.isServer()) ?
@@ -111,7 +112,7 @@ public class DriveBootLoader extends BootLoader {
 
 
     private DeferredObject<DeferredRunnable, Exception, Void> startIndexer(MeinDriveService meinDriveService, de.mein.drive.data.DriveSettings driveSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
-        File workingDir = new File(bootLoaderDir.getAbsolutePath() + File.separator + meinDriveService.getUuid());
+        AFile workingDir = AFile.instance(bootLoaderDir.getAbsolutePath() + AFile.separator() + meinDriveService.getUuid());
         workingDir.mkdirs();
         //create cache dir
         new File(workingDir.getAbsolutePath() + File.separator + "cache").mkdirs();

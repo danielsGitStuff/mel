@@ -1,5 +1,7 @@
 package de.mein.drive.bash;
 
+import de.mein.auth.file.AFile;
+import de.mein.auth.file.FFile;
 import de.mein.auth.tools.N;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -24,7 +26,8 @@ public class BashToolsUnix implements BashToolsImpl {
 
 
     public static void main(String[] args) throws Exception {
-        File f = new File("f");
+        AFile.setClass(FFile.class);
+        AFile f = AFile.instance("f");
         f.mkdirs();
         BashToolsUnix bashToolsUnix = new BashToolsUnix();
         ModifiedAndInode modifiedAndInode = bashToolsUnix.getModifiedAndInode(f);
@@ -33,7 +36,7 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
 
-    public ModifiedAndInode getModifiedAndInode(File file) throws IOException {
+    public ModifiedAndInode getModifiedAndInode(AFile file) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c", "stat -c %Y\" \"%i " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -49,7 +52,7 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public Set<Long> getINodesOfDirectory(File file) throws IOException {
+    public Set<Long> getINodesOfDirectory(AFile file) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c", "find share/ -printf \"%p\\n\" | tail -n +2 | xargs -d '\\n' stat -c %i"};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -67,7 +70,7 @@ public class BashToolsUnix implements BashToolsImpl {
      * @param file
      * @return
      */
-    protected String escapeAbsoluteFilePath(File file) {
+    protected String escapeAbsoluteFilePath(AFile file) {
         return "\"" + file.getAbsolutePath()
                 .replaceAll("\"", "\\\\\"")
                 .replaceAll("`", "\\\\`")
@@ -76,7 +79,7 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException, InterruptedException {
+    public ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException, InterruptedException {
         String[] args = new String[]{BIN_PATH, "-c", "stat -c %i\\ %Y " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
@@ -109,13 +112,13 @@ public class BashToolsUnix implements BashToolsImpl {
      * @param directory
      */
     @Override
-    public void rmRf(File directory) throws IOException {
+    public void rmRf(AFile directory) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c", "rm -rf " + escapeAbsoluteFilePath(directory)};
         Process proc = new ProcessBuilder(args).start();
     }
 
     @Override
-    public List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+    public List<String> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         System.out.println("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
 //        String cmd = "find \"" + directory.getAbsolutePath() + "\"  "
 //                + " -path \"" + pruneDir + "\" -prune"
@@ -150,12 +153,12 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<String> find(File directory, File pruneDir) throws IOException {
+    public Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
         return exec("find " + escapeAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeAbsoluteFilePath(pruneDir) + " -prune -o -print");
     }
 
     @Override
-    public Promise<Long, Exception, Void> getInode(File f) {
+    public Promise<Long, Exception, Void> getInode(AFile f) {
         DeferredObject<Long, Exception, Void> deferred = new DeferredObject<>();
         executorService.execute(() -> N.r(() -> {
             String ba = "ls -i -d " + escapeAbsoluteFilePath(f);
@@ -197,13 +200,13 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) {
+    public Iterator<String> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) {
         System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(");
         return null;
     }
 
     @Override
-    public void mkdir(File dir) throws IOException {
+    public void mkdir(AFile dir) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c",
                 "mkdir " + escapeAbsoluteFilePath(dir)};
         new ProcessBuilder(args).start();

@@ -3,6 +3,7 @@ package de.mein.drive.transfer;
 import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
 import de.mein.auth.MeinNotification;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
@@ -111,7 +112,7 @@ public class TransferManager extends DeferredRunnable {
                                 List<FsFile> fsFiles = fsDao.getFilesByHash(hash);
                                 if (fsFiles != null && fsFiles.size() > 0) {
                                     FsFile fsFile = fsFiles.get(0);
-                                    File file = fsDao.getFileByFsFile(meinDriveService.getDriveSettings().getRootDirectory(), fsFile);
+                                    AFile file = fsDao.getFileByFsFile(meinDriveService.getDriveSettings().getRootDirectory(), fsFile);
                                     syncHandler.onFileTransferred(file, hash);
                                     transferDao.deleteByHash(hash);
                                 }
@@ -277,7 +278,7 @@ public class TransferManager extends DeferredRunnable {
                         for (TransferDetails transferDetails : transfers) {
                             transferDao.setStarted(transferDetails.getId().v(), true);
                             transferDetails.getStarted().v(true);
-                            File target = new File(workingPath + transferDetails.getHash().v());
+                            AFile target = AFile.instance(workingPath + transferDetails.getHash().v());
                             FileTransferDetail fileTransferDetail = new FileTransferDetail(target, new Random().nextInt(), 0L, transferDetails.getSize().v())
                                     .setHash(transferDetails.getHash().v())
                                     .setTransferDoneListener(fileTransferDetail1 -> N.r(() -> {

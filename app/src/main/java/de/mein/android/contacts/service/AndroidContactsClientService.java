@@ -17,6 +17,7 @@ import de.mein.android.contacts.data.db.ContactName;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
@@ -51,7 +52,7 @@ public class AndroidContactsClientService extends ContactsClientService {
     private final AndroidServiceMethods serviceMethods;
     private ContactsToAndroidExporter contactsToAndroidExporter;
 
-    public AndroidContactsClientService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+    public AndroidContactsClientService(MeinAuthService meinAuthService, AFile serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
         AndroidContactSettings androidContactSettings = (AndroidContactSettings) settingsCfg.getPlatformContactSettings();
         serviceMethods = new AndroidServiceMethods(this, databaseManager, androidContactSettings);

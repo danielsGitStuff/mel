@@ -6,6 +6,7 @@ import java.sql.SQLException;
 
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinService;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
@@ -26,7 +27,7 @@ public abstract class ContactsService extends MeinService {
     protected final ContactsDatabaseManager databaseManager;
     protected final ContactsSettings settings;
 
-    public ContactsService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+    public ContactsService(MeinAuthService meinAuthService, AFile serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid);
         databaseManager = new ContactsDatabaseManager(this, serviceInstanceWorkingDirectory, settingsCfg);
         settings = databaseManager.getSettings();

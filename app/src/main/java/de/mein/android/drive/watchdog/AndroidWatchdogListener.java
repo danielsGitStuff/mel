@@ -4,6 +4,7 @@ import android.os.FileObserver;
 
 import java.io.File;
 
+import de.mein.auth.file.AFile;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
@@ -27,7 +28,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
     }
 
     @Override
-    public void watchDirectory(File dir) {
+    public void watchDirectory(AFile dir) {
 //        System.out.println("AndroidWatchdogListener.watchDirectory");
         if (!watchesRoot)
             try {

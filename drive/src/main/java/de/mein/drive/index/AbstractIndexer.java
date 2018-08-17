@@ -1,6 +1,7 @@
 package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.bash.BashTools;
@@ -85,7 +86,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             while (stage != null) {
                 // build a File
                 String path = buildPathFromStage(stage);
-                File f = new File(path);
+                AFile f = AFile.instance(path);
                 if (stage.getIsDirectory()) {
                     roamDirectoryStage(stage, f);
                 } else {
@@ -114,12 +115,12 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         while (iterator.hasNext()) {
             path = iterator.next();
 //            System.out.println("AbstractIndexer[" + stageSetId + "].initStage.fromBashTools: " + path);
-            File f = new File(path);
+            AFile f = AFile.instance(path);
             //todo debug
             if (f.getName().equals("the better life")) {
                 System.out.println("AbstractIndexer.initStage.debughegßeg");
             }
-            File parent = f.getParentFile();
+            AFile parent = f.getParentFile();
             FsDirectory fsParent = null;
             FsEntry fsEntry = null;
             Stage stage;
@@ -197,7 +198,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // done here. set the indexer to work
     }
 
-    private void fastBoot(File file, FsEntry fsEntry, Stage stage) {
+    private void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
         if (fastBooting) {
             try {
                 ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
@@ -216,18 +217,18 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
     }
 
-    private Stage connectToFs(File directory) throws SqlQueriesException {
+    private Stage connectToFs(AFile directory) throws SqlQueriesException {
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         if (directory.getAbsolutePath().length() < rootPathLength)
             return null;
-        Stack<File> fileStack = new Stack<>();
-        File parent = directory;
+        Stack<AFile> fileStack = new Stack<>();
+        AFile parent = directory;
         while (parent.getAbsolutePath().length() > rootPathLength) {
             fileStack.push(parent);
             parent = parent.getParentFile();
         }
         FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
-        File bottomFile = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), bottomFsEntry);
+        AFile bottomFile = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), bottomFsEntry);
         Stage bottomStage = new Stage();
         bottomStage.setName(bottomFsEntry.getName().v())
                 .setFsParentId(bottomFsEntry.getParentId().v())
@@ -246,7 +247,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
         Stage oldeBottom = bottomStage;
         while (!fileStack.empty()) {
-            File file = fileStack.pop();
+            AFile file = fileStack.pop();
             bottomStage = new Stage()
                     .setName(file.getName())
                     .setIsDirectory(true)
@@ -274,7 +275,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return getClass().getSimpleName() + " for " + serviceName;
     }
 
-    protected void roamDirectoryStage(Stage stage, File stageFile) throws SqlQueriesException, IOException, InterruptedException {
+    protected void roamDirectoryStage(Stage stage, AFile stageFile) throws SqlQueriesException, IOException, InterruptedException {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
         //todo debug
@@ -283,8 +284,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         System.out.println("AbstractIndexer.roamDirectoryStage: " + stageFile.getAbsolutePath());
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
-        File[] files = stageFile.listFiles(File::isFile);
-        File[] subDirs = stageFile.listFiles(File::isDirectory);
+        AFile[] files = stageFile.listFiles();
+        AFile[] subDirs = stageFile.listDirectories();
         if (files == null || subDirs == null)
             System.out.println("AbstractIndexer[" + stageSetId + "].roamDirectoryStage.dbuer903tj");
         // map will contain all FsEntry that must be deleted
@@ -298,7 +299,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
         // remove deleted stuff first (because of the order)
         if (files != null) {
-            for (File subFile : files) {
+            for (AFile subFile : files) {
                 stuffToDelete.remove(subFile.getName());
                 // check if file is supposed to be here.
                 // it just might not be transferred yet.
@@ -308,7 +309,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
         }
         if (subDirs != null) {
-            for (File subDir : subDirs) {
+            for (AFile subDir : subDirs) {
                 stuffToDelete.remove(subDir.getName());
             }
         }
@@ -334,7 +335,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
         }
         if (files != null) {
-            for (File subFile : files) {
+            for (AFile subFile : files) {
                 newFsDirectory.addFile(new FsFile(subFile));
                 // check if which subFiles are on stage or fs. if not, index them
                 Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subFile.getName());
@@ -361,7 +362,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (subDirs == null)
             System.out.println("AbstractIndexer.roamDirectoryStage.debug.1");
         if (subDirs != null)
-            for (File subDir : subDirs) {
+            for (AFile subDir : subDirs) {
                 if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectoryPath()))
                     continue;
                 stuffToDelete.remove(subDir.getName());
@@ -428,12 +429,12 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         waitLock.lockWrite();
     }
 
-    protected void updateFileStage(Stage stage, File stageFile) throws IOException, SqlQueriesException, InterruptedException {
+    protected void updateFileStage(Stage stage, AFile stageFile) throws IOException, SqlQueriesException, InterruptedException {
         // skip hashing if information is complete -> speeds up booting
 //        if ((stage.getModifiedPair().isNull() || stage.getiNodePair().isNull() || stage.getContentHashPair().isNull())) {
             if (stageFile.exists()) {
                 ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
-                stage.setContentHash(Hash.md5(stageFile));
+                stage.setContentHash(Hash.md5(stageFile.inputStream()));
                 stage.setiNode(modifiedAndInode.getiNode());
                 stage.setModified(modifiedAndInode.getModified());
                 stage.setSize(stageFile.length());

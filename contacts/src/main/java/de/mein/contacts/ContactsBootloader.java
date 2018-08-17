@@ -1,6 +1,7 @@
 package de.mein.contacts;
 
 import de.mein.auth.data.ClientData;
+import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;
@@ -70,7 +71,7 @@ public class ContactsBootloader extends BootLoader {
     }
 
     public ContactsService boot(MeinAuthService meinAuthService, Service service, ContactsSettings contactsSettings) throws SqlQueriesException, JsonDeserializationException, JsonSerializationException, IOException, SQLException, IllegalAccessException, ClassNotFoundException {
-        File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
+        AFile workingDirectory = AFile.instance(bootLoaderDir.getAbsolutePath() + AFile.separator() + service.getUuid().v());
         ContactsService contactsService = null;
         if (contactsSettings.isServer()) {
             contactsService = createServerInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
@@ -84,11 +85,11 @@ public class ContactsBootloader extends BootLoader {
         return contactsService;
     }
 
-    protected ContactsService createClientInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String serviceUuid, ContactsSettings settings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+    protected ContactsService createClientInstance(MeinAuthService meinAuthService, AFile workingDirectory, Long serviceTypeId, String serviceUuid, ContactsSettings settings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         return new ContactsClientService(meinAuthService, workingDirectory, serviceTypeId, serviceUuid, settings);
     }
 
-    protected ContactsService createServerInstance(MeinAuthService meinAuthService, File workingDirectory, Long serviceId, String serviceTypeId, ContactsSettings contactsSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+    protected ContactsService createServerInstance(MeinAuthService meinAuthService, AFile workingDirectory, Long serviceId, String serviceTypeId, ContactsSettings contactsSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         return new ContactsServerService(meinAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings);
     }
 

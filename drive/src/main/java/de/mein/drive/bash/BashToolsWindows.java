@@ -1,6 +1,7 @@
 package de.mein.drive.bash;
 
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinService;
 import org.jdeferred.Promise;
@@ -28,12 +29,12 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public Set<Long> getINodesOfDirectory(File file) throws IOException {
+    public Set<Long> getINodesOfDirectory(AFile file) throws IOException {
         return null;
     }
 
     @Override
-    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
+    public ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException {
         //reads something like "File ID is 0x0000000000000000000200000000063a"
         String result = execLine("fsutil", "file", "queryfileid", file.getAbsolutePath());
         String id = result.substring(11);
@@ -42,13 +43,13 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public void rmRf(File directory) throws IOException {
+    public void rmRf(AFile directory) throws IOException {
 //        exec("rd /s /q \"" + directory.getAbsolutePath() + "\"");
         exec("rd", "/s", "/q", directory.getAbsolutePath());
     }
 
     @Override
-    public List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+    public List<String> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         System.err.println("BashToolsWindows.stuffModifiedAfter.I AM THE WINDOWS GUY!");
         return null;
     }
@@ -96,14 +97,14 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<String> find(File directory, File pruneDir) throws IOException {
+    public Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
         String cmd = "dir /b/s \"" + directory.getAbsolutePath()
                 + "\" | findstr /v \"" + pruneDir.getAbsolutePath() + "\"";
         return execReader("dir", "/b/s", directory.getAbsolutePath(), "|", "findstr", "/vc:\"" + pruneDir.getAbsolutePath() + "\"").lines().iterator();
     }
 
     @Override
-    public Promise<Long, Exception, Void> getInode(File f) {
+    public Promise<Long, Exception, Void> getInode(AFile f) {
         return null;
     }
 
@@ -121,7 +122,7 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<String> stuffModifiedAfter(File directory, File pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public Iterator<String> stuffModifiedAfter(AFile directory, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         Double winTimeStamp = timeStamp / 1000d;
         String prependLine = null;
         Object lm = directory.lastModified();
@@ -135,7 +136,7 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public void mkdir(File dir) throws IOException {
+    public void mkdir(AFile dir) throws IOException {
         exec("mkdir", dir.getAbsolutePath());
     }
 }

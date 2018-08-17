@@ -2,6 +2,8 @@ package de.mein.drive.index.watchdog;
 
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
+
+import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.drive.service.MeinDriveService;
 
@@ -30,7 +32,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
         this.transferDirectoryPath = meinDriveService.getDriveSettings().getTransferDirectoryPath();
     }
 
-    protected void analyze(WatchEvent<?> event, File file) {
+    protected void analyze(WatchEvent<?> event, AFile file) {
         try {
             if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed()) {
                 watchDogTimer.start();
@@ -41,7 +43,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
                 try {
                     double r = Math.random();
                     System.out.println("IndexWatchdogListener.analyze.attempt to open " + file.getAbsolutePath() + " " + r);
-                    InputStream is = new FileInputStream(file);
+                    InputStream is = file.inputStream();
                     is.close();
                     System.out.println("IndexWatchdogListener.analyze.success " + r);
                     watchDogTimer.resume();

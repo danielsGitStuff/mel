@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.transfer;
 
+import de.mein.auth.file.AFile;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 
@@ -17,7 +18,7 @@ public class FileTransferDetail implements SerializableEntity {
 
     @JsonIgnore
     private long position;
-    private File file;
+    private AFile file;
     private int streamId;
     private FileInputStream in;
     private FileOutputStream out;
@@ -32,7 +33,7 @@ public class FileTransferDetail implements SerializableEntity {
     private boolean e404 = false;
 
     public void openRead() throws FileNotFoundException {
-        in = new FileInputStream(file);
+        in = file.inputStream();
     }
 
     public FileTransferDetail setError(boolean hasError) {
@@ -76,7 +77,7 @@ public class FileTransferDetail implements SerializableEntity {
         return this;
     }
 
-    public FileTransferDetail(File file, int streamId, long start, long end) {
+    public FileTransferDetail(AFile file, int streamId, long start, long end) {
         this.file = file;
         this.streamId = streamId;
         this.start = start;
@@ -97,7 +98,7 @@ public class FileTransferDetail implements SerializableEntity {
         return hash;
     }
 
-    public FileTransferDetail setFile(File file) {
+    public FileTransferDetail setFile(AFile file) {
         this.file = file;
         assertCheck();
         return this;
@@ -120,7 +121,7 @@ public class FileTransferDetail implements SerializableEntity {
     }
 
 
-    public File getFile() {
+    public AFile getFile() {
         return file;
     }
 
@@ -130,7 +131,7 @@ public class FileTransferDetail implements SerializableEntity {
 
     public void onReceived(long offset, byte[] data) throws IOException {
         if (out == null)
-            out = new FileOutputStream(file);
+            out = file.outputStream();
         FileChannel ch = out.getChannel();
         ch.position(offset);
         ch.write(ByteBuffer.wrap(data));

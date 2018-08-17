@@ -1,5 +1,6 @@
 package de.mein.drive.sql;
 
+import de.mein.auth.file.AFile;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.sql.Hash;
 import de.mein.sql.Pair;
@@ -69,13 +70,13 @@ public class FsDirectory extends FsEntry {
     }
 
     @JsonIgnore
-    protected File original;
+    protected AFile original;
 
-    public File getOriginal() {
+    public AFile getOriginal() {
         return original;
     }
 
-    public FsDirectory setOriginalFile(File original) {
+    public FsDirectory setOriginalFile(AFile original) {
         this.original = original;
         return this;
     }
@@ -89,7 +90,7 @@ public class FsDirectory extends FsEntry {
         return subDirectories;
     }
 
-    public FsDirectory(java.io.File dir) {
+    public FsDirectory(AFile dir) {
         if (!dir.isFile()) {
             name.v(dir.getName());
             original = dir;
@@ -116,18 +117,20 @@ public class FsDirectory extends FsEntry {
         isDirectory.v(true);
     }
 
-    public File[] listFiles() {
+    public AFile[] listFiles() {
         if (original == null) {
             // ...
         }
         return original.listFiles();
     }
 
-    public File[] listFiles(FileFilter directoryFileFilter) {
+
+
+    public AFile[] listDirectories() {
         if (original == null) {
             // ...
         }
-        return original.listFiles(directoryFileFilter);
+        return original.listDirectories();
     }
 
 

@@ -1,5 +1,6 @@
 package de.mein.drive.data.conflict;
 
+import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
@@ -80,7 +81,7 @@ public class ConflictSolver extends SyncStageMerger {
      * @throws SqlQueriesException
      */
     @Override
-    public void stuffFound(Stage left, Stage right, File lFile, File rFile) throws SqlQueriesException {
+    public void stuffFound(Stage left, Stage right, AFile lFile, AFile rFile) throws SqlQueriesException {
         if (!(left == null && lFile == null || left != null && lFile != null)) {
             System.err.println("ConflictSolver.stuffFound.e1");
         }
@@ -190,13 +191,13 @@ public class ConflictSolver extends SyncStageMerger {
         List<Stage> leftDirs = stageDao.getDeletedDirectories(lStageSetId);
         List<Stage> rightDirs = stageDao.getDeletedDirectories(rStageSetId);
         for (Stage stage : leftDirs) {
-            File f = stageDao.getFileByStage(stage);
+            AFile f = stageDao.getFileByStage(stage);
             Stage rStage = stageDao.getStageByPath(rStageSetId, f);
             Conflict conflict = new Conflict(stageDao, stage, rStage);
             deletedParents.put(f.getAbsolutePath(), conflict);
         }
         for (Stage stage : rightDirs) {
-            File f = stageDao.getFileByStage(stage);
+            AFile f = stageDao.getFileByStage(stage);
             Stage lStage = stageDao.getStageByPath(lStageSetId, f);
             Conflict conflict = new Conflict(stageDao, lStage, stage);
             deletedParents.put(f.getAbsolutePath(), conflict);
@@ -419,8 +420,8 @@ public class ConflictSolver extends SyncStageMerger {
                 // it must be deleted here, so it is guaranteed to be indexed.
                 // -> copy it to the left side
                 if (conflict.isLeft() && conflict.hasRight() && !conflict.hasLeft() && !conflict.getRight().getDeleted()) {
-                    File parentFile = stageDao.getFileByStage(conflict.getRight());
-                    Stack<File> fileStack = FileTools.getFileStack(rootDirectory, parentFile);
+                    AFile parentFile = stageDao.getFileByStage(conflict.getRight());
+                    Stack<AFile> fileStack = FileTools.getFileStack(rootDirectory, parentFile);
                     FsEntry bottomFs = fsDao.getBottomFsEntry(fileStack);
                     Stage bridgeStage = stageDao.getStageByFsId(bottomFs.getId().v(), obsoleteStageSet.getId().v());
                     if (bridgeStage == null) {
@@ -437,7 +438,7 @@ public class ConflictSolver extends SyncStageMerger {
                     Long lastBridgeId = bridgeStage.getId();
                     // last one is our stage, so skip here
                     while (!fileStack.empty() && fileStack.size() > 1) {
-                        File f = fileStack.pop();
+                        AFile f = fileStack.pop();
                         bridgeStage = stageDao.getSubStageByName(lastBridgeId, f.getName());
                         if (bridgeStage == null) {
                             bridgeStage = new Stage();
@@ -483,8 +484,8 @@ public class ConflictSolver extends SyncStageMerger {
             solvedStage.setOrder(order.ord());
             solvedStage.setStageSet(mergeStageSet.getId().v());
 
-            File solvedFile = stageDao.getFileByStage(solvedStage);
-            File solvedParent = solvedFile.getParentFile();
+            AFile solvedFile = stageDao.getFileByStage(solvedStage);
+            AFile solvedParent = solvedFile.getParentFile();
             //todo debug
             if (solvedParent.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir"))
                 System.out.println("ConflictSolver.solve.debugj0f2n4");

@@ -14,6 +14,7 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
@@ -69,7 +70,7 @@ public class MeinAuthService {
     private final IDBCreatedListener dbCreatedListener;
     private List<MeinAuthAdmin> meinAuthAdmins = new ArrayList<>();
     private final DatabaseManager databaseManager;
-    private final File workingDirectory;
+    private final AFile workingDirectory;
     protected List<IRegisterHandler> registerHandlers = new ArrayList<>();
     private List<IRegisteredHandler> registeredHandlers = new ArrayList<>();
     private NetworkEnvironment networkEnvironment = new NetworkEnvironment();
@@ -136,7 +137,7 @@ public class MeinAuthService {
         return this;
     }
 
-    public File getWorkingDirectory() {
+    public AFile getWorkingDirectory() {
         return workingDirectory;
     }
 

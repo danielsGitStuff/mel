@@ -1,5 +1,6 @@
 package de.mein.drive.index.watchdog;
 
+import de.mein.auth.file.AFile;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
@@ -34,7 +35,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
 
 
     @Override
-    public void watchDirectory(File dir) {
+    public void watchDirectory(AFile dir) {
         try {
             Path path = Paths.get(dir.getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
@@ -57,7 +58,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
                     String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                     if (!ignoredMap.containsKey(absolutePath)) {
                         System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
-                        File object = new File(absolutePath);
+                        AFile object = AFile.instance(absolutePath);
                         analyze(event, object);
                     } else {
                         System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].IGN event[" + event.kind() + "] for: " + absolutePath);

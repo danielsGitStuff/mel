@@ -1,5 +1,6 @@
 package de.mein.drive.nio;
 
+import de.mein.auth.file.AFile;
 import de.mein.drive.data.fs.RootDirectory;
 
 import java.io.File;
@@ -13,9 +14,9 @@ public class FileTools {
      * @param f
      * @return
      */
-    public static Stack<File> getFileStack( RootDirectory rootDirectory, File f) {
-        File ff = new File(f.getAbsolutePath());
-        Stack<File> fileStack = new Stack<>();
+    public static Stack<AFile> getFileStack(RootDirectory rootDirectory, AFile f) {
+        AFile ff = AFile.instance(f.getAbsolutePath());
+        Stack<AFile> fileStack = new Stack<>();
         while (ff.getAbsolutePath().length() > rootDirectory.getPath().length()) {
             fileStack.push(ff);
             ff = ff.getParentFile();

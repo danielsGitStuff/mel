@@ -1,5 +1,6 @@
 package de.mein.drive.sql;
 
+import de.mein.auth.file.AFile;
 import de.mein.core.serialize.JsonIgnore;
 
 import java.io.File;
@@ -9,7 +10,7 @@ public class FsFile extends FsEntry {
 
 
     @JsonIgnore
-    protected File original;
+    protected AFile original;
 
     protected FsDirectory directory;
 
@@ -26,7 +27,7 @@ public class FsFile extends FsEntry {
 
     }
 
-    public FsFile(java.io.File f) {
+    public FsFile(AFile f) {
         name.v(f.getName());
         original = f;
         init();
@@ -51,7 +52,7 @@ public class FsFile extends FsEntry {
         return directory;
     }
 
-    public File getOriginal() {
+    public AFile getOriginal() {
         return original;
     }
 

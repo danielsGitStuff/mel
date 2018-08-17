@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import de.mein.auth.file.AFile;
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.PathCollection;
@@ -27,9 +28,9 @@ import de.mein.drive.sql.FsDirectory;
  */
 
 public class RecursiveWatcher extends IndexWatchdogListener {
-    private final File target;
+    private final AFile target;
     private final Map<String, Watcher> watchers = new HashMap<>();
-    private final File transferDirectory;
+    private final AFile transferDirectory;
     private final UnixReferenceFileHandler unixReferenceFileHandler;
 
     public RecursiveWatcher(MeinDriveService meinDriveService) {
@@ -40,7 +41,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         this.setStageIndexer(meinDriveService.getStageIndexer());
         this.transferDirectory = meinDriveService.getDriveSettings().getTransferDirectoryFile();
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
-        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), target, new File(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
+        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), target, AFile.instance(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
         unixReferenceFileHandler.onStart();
     }
 
@@ -66,7 +67,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     }
 
     @Override
-    public void watchDirectory(File dir) {
+    public void watchDirectory(AFile dir) {
         watch(dir);
     }
 
@@ -78,9 +79,9 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     private class Watcher extends FileObserver {
 
         private final RecursiveWatcher recursiveWatcher;
-        private final File target;
+        private final AFile target;
 
-        public Watcher(RecursiveWatcher recursiveWatcher, File target) {
+        public Watcher(RecursiveWatcher recursiveWatcher, AFile target) {
             super(target.getAbsolutePath());
             this.target = target;
             this.recursiveWatcher = recursiveWatcher;
@@ -91,12 +92,12 @@ public class RecursiveWatcher extends IndexWatchdogListener {
             recursiveWatcher.eve(this, event, path);
         }
 
-        public File getTarget() {
+        public AFile getTarget() {
             return target;
         }
     }
 
-    private void watch(File target) {
+    private void watch(AFile target) {
         if (!watchers.containsKey(target.getAbsolutePath())) {
             Watcher watcher = new Watcher(this, target);
             watchers.put(target.getAbsolutePath(), watcher);
@@ -105,7 +106,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     }
 
     private void eve(Watcher watcher, int event, String path) {
-        File f = path != null ? new File(watcher.getTarget() + File.separator + path) : watcher.getTarget();
+        AFile f = path != null ? AFile.instance(watcher.getTarget() + AFile.separator() + path) : watcher.getTarget();
         if (watcher.getTarget().equals(transferDirectory))
             return;
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
@@ -167,13 +168,13 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     public void analyze(int event, Watcher watcher, String path) {
         try {
             startTimer();
-            File file = new File(watcher.getTarget().getAbsoluteFile() + File.separator + path);
+            AFile file = AFile.instance(watcher.getTarget().getAbsolutePath() + AFile.separator() + path);
             if ((event & FileObserver.MODIFY) != 0 || (event & FileObserver.MOVE_SELF) != 0) {
                 // figure out whether or not writing to the file is still in progress
                 try {
                     double r = Math.random();
                     System.out.println("IndexWatchdogListener.analyze.attempt to open " + file.getAbsolutePath() + " " + r);
-                    InputStream is = new FileInputStream(file);
+                    InputStream is = file.inputStream();
                     is.close();
                     System.out.println("IndexWatchdogListener.analyze.success " + r);
                     watchDogTimer.resume();
@@ -200,7 +201,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
             List<String> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
             for (String p : paths) {
-                File f = new File(p);
+                AFile f = AFile.instance(p);
                 if (f.exists() && f.isDirectory()) {
                     watchDirectory(f);
                 }

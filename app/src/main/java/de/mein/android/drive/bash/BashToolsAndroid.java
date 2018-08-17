@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 
+import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsJava;
@@ -34,10 +35,10 @@ public class BashToolsAndroid extends BashToolsUnix {
     private void testCommands() {
         // find
         String cmd = "";
-        File cacheDir = context.getCacheDir();
-        File dir = new File(cacheDir + File.separator + "bash.test");
-        File prune = new File(dir.getAbsolutePath() + File.separator + "prune");
-        File file = new File(dir.getAbsolutePath() + File.separator + "file");
+        AFile cacheDir =AFile.instance(context.getCacheDir().getAbsolutePath());
+        AFile dir = AFile.instance(cacheDir + File.separator + "bash.test");
+        AFile prune = AFile.instance(dir.getAbsolutePath() + File.separator + "prune");
+        AFile file = AFile.instance(dir.getAbsolutePath() + File.separator + "file");
         try {
             dir.mkdirs();
             prune.mkdirs();
@@ -83,7 +84,7 @@ public class BashToolsAndroid extends BashToolsUnix {
     }
 
     @Override
-    public ModifiedAndInode getModifiedAndINodeOfFile(File file) throws IOException {
+    public ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c", "ls -id " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -95,7 +96,7 @@ public class BashToolsAndroid extends BashToolsUnix {
     }
 
     @Override
-    public Iterator<String> find(File directory, File pruneDir) throws IOException {
+    public Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
         if (findFallBack != null)
             return findFallBack.find(directory, pruneDir);
         return super.find(directory, pruneDir);

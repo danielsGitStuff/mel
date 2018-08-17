@@ -1,6 +1,7 @@
 package de.mein.drive.service.sync;
 
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.ConnectResult;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.LockedRequest;
@@ -446,13 +447,13 @@ public class ClientSyncHandler extends SyncHandler {
 
     private void deleteObsolete(ConflictSolver conflictSolver) throws SqlQueriesException, IOException {
         N.readSqlResource(stageDao.getObsoleteFileStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
-            File file = stageDao.getFileByStage(stage);
+            AFile file = stageDao.getFileByStage(stage);
             if (file != null && file.exists()) {
                 wastebin.deleteUnknown(file);
             }
         });
         N.readSqlResource(stageDao.getObsoleteDirStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
-            File file = stageDao.getFileByStage(stage);
+            AFile file = stageDao.getFileByStage(stage);
             if (file != null && file.exists()) {
                 wastebin.deleteUnknown(file);
             }
@@ -532,7 +533,7 @@ public class ClientSyncHandler extends SyncHandler {
             private Map<Long, Long> idMapLeft = new HashMap<>();
 
             @Override
-            public void stuffFound(Stage left, Stage right, File lFile, File rFile) throws SqlQueriesException {
+            public void stuffFound(Stage left, Stage right, AFile lFile, AFile rFile) throws SqlQueriesException {
                 if (left != null) {
                     //todo debug
                     if (left.getId() == 64)
@@ -549,7 +550,7 @@ public class ClientSyncHandler extends SyncHandler {
                         stageDao.flagMerged(right.getId(), true);
                     } else {
                         // only merge if file exists
-                        File fLeft = stageDao.getFileByStage(left);
+                        AFile fLeft = stageDao.getFileByStage(left);
 //                        if (fLeft.exists() || left.getSynced()) {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
                         stage.mergeValuesFrom(left);
@@ -579,7 +580,7 @@ public class ClientSyncHandler extends SyncHandler {
                                 stageDao.insert(stage);
                             } else {
                                 Stage rParent = stageDao.getStageById(right.getParentId());
-                                File rParentFile = stageDao.getFileByStage(rParent);
+                                AFile rParentFile = stageDao.getFileByStage(rParent);
                                 Stage lParent = stageDao.getStageByPath(mStageSetId, rParentFile);
                                 if (lParent != null) {
                                     stage.setParentId(lParent.getId());
@@ -625,12 +626,12 @@ public class ClientSyncHandler extends SyncHandler {
                 //todo debug
                 if (lStage.getName().equals("same2.txt"))
                     System.out.println("ClientSyncHandler.iterateStageSets.debugmf03nm");
-                File lFile = stageDao.getFileByStage(lStage);
+                AFile lFile = stageDao.getFileByStage(lStage);
                 Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
                 if (conflictSolver != null)
                     conflictSolver.solve(lStage, rStage);
                 else {
-                    File rFile = (rStage != null) ? new File(lFile.getAbsolutePath()) : null;
+                    AFile rFile = (rStage != null) ? AFile.instance(lFile.getAbsolutePath()) : null;
                     merger.stuffFound(lStage, rStage, lFile, rFile);
                 }
                 if (rStage != null)
@@ -644,7 +645,7 @@ public class ClientSyncHandler extends SyncHandler {
                 if (conflictSolver != null)
                     conflictSolver.solve(null, rStage);
                 else {
-                    File rFile = stageDao.getFileByStage(rStage);
+                    AFile rFile = stageDao.getFileByStage(rStage);
                     merger.stuffFound(null, rStage, null, rFile);
                 }
                 rStage = rStages.getNext();

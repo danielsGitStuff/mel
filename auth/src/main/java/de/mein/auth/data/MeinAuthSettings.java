@@ -1,5 +1,6 @@
 package de.mein.auth.data;
 
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
@@ -138,8 +139,8 @@ public class MeinAuthSettings extends JsonSettings {
         return this;
     }
 
-    public File getWorkingDirectory() {
-        return new File(workingDirectory);
+    public AFile getWorkingDirectory() {
+        return AFile.instance(workingDirectory);
     }
 
     public MeinAuthSettings setWorkingDirectory(File workingDirectory) {

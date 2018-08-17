@@ -12,7 +12,7 @@
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 
     <application
@@ -51,7 +51,7 @@
 
         <activity android:name=".android.drive.DriveConflictsPopupActivity" />
         <activity android:name="net.rdrei.android.dirchooser.DirectoryChooserActivity" />
-        <activity android:name=".android.contacts.ContactsConflictsPopupActivity"/>
+        <activity android:name=".android.contacts.ContactsConflictsPopupActivity" />
 
         <service
             android:name="de.mein.android.service.AndroidService"

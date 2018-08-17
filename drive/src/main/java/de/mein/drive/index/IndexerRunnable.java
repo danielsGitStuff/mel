@@ -1,5 +1,6 @@
 package de.mein.drive.index;
 
+import de.mein.auth.file.AFile;
 import de.mein.auth.tools.Order;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
@@ -65,19 +66,19 @@ public class IndexerRunnable extends AbstractIndexer {
             FsDirectory fsRoot; //= databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
             if (rootDirectory.getId() == null) {
                 fsRoot = (FsDirectory) new FsDirectory().setName("[root]").setVersion(0L);
-                fsRoot.setOriginalFile(new File(rootDirectory.getPath()));
+                fsRoot.setOriginalFile(AFile.instance(rootDirectory.getPath()));
                 fsRoot = (FsDirectory) databaseManager.getFsDao().insert(fsRoot);
                 databaseManager.getDriveSettings().getRootDirectory().setId(fsRoot.getId().v());
             } else {
                 fsRoot = databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
                 if (fsRoot.getOriginal() == null) {
-                    fsRoot.setOriginalFile(new File(rootDirectory.getPath()));
+                    fsRoot.setOriginalFile(AFile.instance(rootDirectory.getPath()));
                 }
             }
             indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
             try {
                 fsDao.lockRead();
-                Iterator<String> found = BashTools.find(rootDirectory.getOriginalFile(), new File(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
+                Iterator<String> found = BashTools.find(rootDirectory.getOriginalFile(), AFile.instance(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
                 examineStage();
                 fastBooting = false;

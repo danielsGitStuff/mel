@@ -1,6 +1,7 @@
 package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
+import de.mein.auth.file.AFile;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.sync.SyncHandler;
@@ -45,7 +46,7 @@ public class Indexer  {
         indexerRunnable.getIndexWatchdogListener().foundDirectory(fsDirectory);
     }
 
-    public void watchDirectory(File dir) {
+    public void watchDirectory(AFile dir) {
         indexerRunnable.getIndexWatchdogListener().watchDirectory(dir);
     }
 

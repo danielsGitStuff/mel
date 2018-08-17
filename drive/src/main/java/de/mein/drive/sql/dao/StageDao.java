@@ -5,6 +5,7 @@ import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.watchdog.StageIndexerRunnable;
+import de.mein.auth.file.AFile;
 import de.mein.drive.nio.FileTools;
 import de.mein.drive.sql.*;
 import de.mein.sql.Dao;
@@ -38,7 +39,7 @@ StageDao extends Dao.LockingDao {
      * @param f
      * @return relating Stage or null if f is not staged
      */
-    public Stage getStageByPath(Long stageSetId, File f) throws SqlQueriesException {
+    public Stage getStageByPath(Long stageSetId, AFile f) throws SqlQueriesException {
         //todo debug
         if (f.getName().equals("samesub") && Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClient"))
             System.out.println("StageDao.getStageByPath.debug");
@@ -47,8 +48,8 @@ StageDao extends Dao.LockingDao {
         //todo throw Exception if f is not in rootDirectory
         if (f.getAbsolutePath().length() < rootPath.length())
             return null;
-        File ff = new File(f.getAbsolutePath());
-        Stack<File> fileStack = FileTools.getFileStack(rootDirectory, ff);
+        AFile ff = AFile.instance(f.getAbsolutePath());
+        Stack<AFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
         FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
         Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
         while (!fileStack.empty()) {
@@ -123,7 +124,7 @@ StageDao extends Dao.LockingDao {
         return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId, false));
     }
 
-    public File getFileByStage(Stage stage) throws SqlQueriesException {
+    public AFile getFileByStage(Stage stage) throws SqlQueriesException {
         if (stage.getName().equals("samesub1.txt")) // todo debug
             System.err.println("StageDao.getFileByStage.debug 34234234");
         RootDirectory rootDirectory = driveSettings.getRootDirectory();
@@ -154,12 +155,12 @@ StageDao extends Dao.LockingDao {
         } catch (Exception e) {
             System.err.println("debug93h349");
         }
-        File file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
+        AFile file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
         StringBuilder path = new StringBuilder(file.getAbsolutePath());
         while (!stageStack.empty()) {
             path.append(File.separator).append(stageStack.pop().getName());
         }
-        return new File(path.toString());
+        return AFile.instance(path.toString());
     }
 
     public void deleteServerStageSets() throws SqlQueriesException {

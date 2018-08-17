@@ -6,6 +6,7 @@ import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
+import de.mein.auth.file.AFile;
 
 import java.io.File;
 
@@ -14,7 +15,7 @@ public class RootDirectory implements SerializableEntity {
     private String path;
     @JsonIgnore
     private RootDirectory backup;
-    private File originalFile;
+    private AFile originalFile;
     private Long id;
 
 
@@ -45,7 +46,7 @@ public class RootDirectory implements SerializableEntity {
         return this;
     }
 
-    public void setOriginalFile(File originalFile) {
+    public void setOriginalFile(AFile originalFile) {
         this.originalFile = originalFile;
     }
 
@@ -58,7 +59,7 @@ public class RootDirectory implements SerializableEntity {
         return this;
     }
 
-    public File getOriginalFile() {
+    public AFile getOriginalFile() {
         return originalFile;
     }
 }

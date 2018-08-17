@@ -2,6 +2,7 @@ package de.mein.drive.index.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
 
+import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.bash.BashTools;
@@ -51,7 +52,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
     }
 
     @Override
-    public void watchDirectory(File dir) {
+    public void watchDirectory(AFile dir) {
         if (!watchesRoot)
             try {
                 watchesRoot = true;
@@ -76,7 +77,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
                         Path eventPath = (Path) event.context();
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
-                            File file = new File(absolutePath);
+                            AFile file = AFile.instance(absolutePath);
                             // todo debug
                             System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {

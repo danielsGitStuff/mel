@@ -6,11 +6,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import de.mein.auth.file.AFile;
 
 /**
  * Created by xor on 10/28/16.
@@ -35,36 +35,36 @@ public abstract class BashTools {
     }
 
 
-    public static Set<Long> getINodesOfDirectory(File file) throws IOException {
+    public static Set<Long> getINodesOfDirectory(AFile file) throws IOException {
         return instance.getINodesOfDirectory(file);
     }
 
 
-    public static ModifiedAndInode getINodeOfFile(File file) throws IOException, InterruptedException {
+    public static ModifiedAndInode getINodeOfFile(AFile file) throws IOException, InterruptedException {
         return instance.getModifiedAndINodeOfFile(file);
     }
 
 
-    public static void rmRf(File directory) throws IOException {
+    public static void rmRf(AFile directory) throws IOException {
         instance.rmRf(directory);
     }
 
 
-    public static List<String> stuffModifiedAfter(File referenceFile, File directory, File pruneDir) throws IOException, BashToolsException {
+    public static List<String> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         return instance.stuffModifiedAfter(referenceFile, directory, pruneDir);
     }
 
 
-    public static Iterator<String> find(File directory, File pruneDir) throws IOException {
+    public static Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
         return instance.find(directory, pruneDir);
     }
 
 
-    public static Promise<Long, Exception, Void> getInode(File f) {
+    public static Promise<Long, Exception, Void> getInode(AFile f) {
         return instance.getInode(f);
     }
 
-    public static Iterator<String> stuffModifiedAfter(File originalFile, File pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public static Iterator<String> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return instance.stuffModifiedAfter(originalFile, pruneDir, timeStamp);
     }
 

@@ -2,6 +2,7 @@ package de.mein.auth.data.access;
 
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.dao.CertificateDao;
+import de.mein.auth.file.AFile;
 import de.mein.auth.tools.Cryptor;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
@@ -56,7 +57,7 @@ public class CertificateManager extends FileRelatedManager {
     private CertificateDao certificateDao;
 
 
-    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
+    public CertificateManager(AFile workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
         super(workingDirectory);
         System.out.println("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
         if (keysize != null)

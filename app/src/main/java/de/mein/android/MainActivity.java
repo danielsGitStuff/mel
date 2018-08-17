@@ -13,8 +13,6 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.view.SubMenu;
 import android.view.View;
@@ -64,6 +62,8 @@ import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
+import de.mein.auth.file.AFile;
+import de.mein.drive.nio.DFile;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.AccessController;
@@ -108,6 +108,7 @@ public class MainActivity extends MeinActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Tools.setApplicationContext(getApplicationContext());
+        AFile.setClass(DFile.class);
         setContentView(R.layout.activity_main);
         content = findViewById(R.id.content);
         toolbar = findViewById(R.id.toolbar);

@@ -1,6 +1,7 @@
 package de.mein.android.drive.controller;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentProvider;
 import android.content.ContentProviderClient;
@@ -74,6 +75,8 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     private boolean isEditingMaxSizeText = false;
     private int maxDays;
     private Long wastebinSize;
+    // this is required for android 5+ only.
+    private Uri rootTreeUri;
 
 
     public RemoteDriveServiceChooserGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup) {
@@ -95,68 +98,96 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         btnPath.setOnClickListener(view -> {
             Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
             permissionsPromise.done(nil -> {
-                /**
-                 * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
-                 * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
-                 * other option would (probably) be to adapt all the file handling and tools and workers and so on to work with SFA.
-                 * this works around it.
-                 *
-                 * list all storages found under '/storage' first.
-                 * then ask for permission to access external storage
-                 * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
-                 */
-                final String PATH_STORAGE = "/storage";
-                File[] storages = BashTools.lsD(PATH_STORAGE);
-                File[] ss = new File[storages.length + 1];
-                for (int i = 0; i < storages.length; i++) {
-                    ss[i] = storages[i];
-                }
-                ss[storages.length] = new File(createDrivePath());
-                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                builder.setTitle(R.string.chooseStorageTitle);
-                builder.setAdapter(new ArrayAdapter<File>(activity, android.R.layout.simple_list_item_1, storages), (dialog, which) -> {
 
-                    File root = storages[which];
-                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded: " + root.getAbsolutePath());
-                    final Intent chooserIntent = new Intent(activity, DirectoryChooserActivity.class);
-                    final DirectoryChooserConfig config = DirectoryChooserConfig.builder()
-                            .newDirectoryName("drive")
-                            .allowReadOnlyDirectory(false)
-                            .allowNewDirectoryNameModification(true)
-                            .initialDirectory(root.getAbsolutePath())
-                            .build();
-                    chooserIntent.putExtra(DirectoryChooserActivity.EXTRA_CONFIG, config);
-                    activity.launchActivityForResult(chooserIntent, (resultCode, result) -> {
-                        //result is here
-                        if (result != null) {
-                            String path = result.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR);
-                            File file = new File(path);
-                            if (file.canWrite())
-                            setPath(path);
-                            else {
-                                Notifier.toast(activity,"Cannot Write :(");
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                StorageManager storageManager = (StorageManager) activity.getSystemService(Context.STORAGE_SERVICE);
-                                    StorageVolume volume = storageManager.getStorageVolume(file);
-                                    Intent intent = volume.createAccessIntent(null);
-                                    activity.startActivityForResult(intent,666);
-                                }
-                                boolean canRead = activity.hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-                                boolean canWrite = activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                                File e = new File(file.getAbsolutePath()+ File.separator+"delme");
-                                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                                Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath());
-                                activity.startActivityForResult(intent,43);
-                            }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                    i.addCategory(Intent.CATEGORY_DEFAULT);
+                    activity.launchActivityForResult(Intent.createChooser(i, "Choose directory"), (resultCode, resultData) -> {
+                        System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                        if (resultCode == Activity.RESULT_OK) {
+                            // Get Uri from Storage Access Framework.
+                            rootTreeUri = resultData.getData();
+
+                            // Persist URI in shared preference so that you can use it later.
+                            // Use your own framework here instead of PreferenceUtil.
+                            //PreferenceUtil.setSharedPreferenceUri(R.string.key_internal_uri_extsdcard, treeUri);
+
+
+                            // Persist access permissions.
+                            final int takeFlags = resultData.getFlags()
+                                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                            activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
+                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                            DocumentFile documentFile = DocumentFile.fromTreeUri(activity, rootTreeUri);
+                            DocumentFile[] content = documentFile.listFiles();
+                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
                         }
                     });
-                });
-                builder.setCancelable(true);
-                builder.setNegativeButton("nope", (dialog, which) -> {
-                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                });
-                AlertDialog dialog = builder.show();
-                dialog.setCanceledOnTouchOutside(true);
+                } else {
+                    /**
+                     * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
+                     * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
+                     * other option would (probably) be to adapt all the file handling and tools and workers and so on to work with SFA.
+                     * this works around it.
+                     *
+                     * list all storages found under '/storage' first.
+                     * then ask for permission to access external storage
+                     * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
+                     */
+                    final String PATH_STORAGE = "/storage";
+                    File[] storages = BashTools.lsD(PATH_STORAGE);
+                    File[] ss = new File[storages.length + 1];
+                    for (int i = 0; i < storages.length; i++) {
+                        ss[i] = storages[i];
+                    }
+                    ss[storages.length] = new File(createDrivePath());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                    builder.setTitle(R.string.chooseStorageTitle);
+                    builder.setAdapter(new ArrayAdapter<File>(activity, android.R.layout.simple_list_item_1, storages), (dialog, which) -> {
+
+                        File root = storages[which];
+                        System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded: " + root.getAbsolutePath());
+                        final Intent chooserIntent = new Intent(activity, DirectoryChooserActivity.class);
+                        final DirectoryChooserConfig config = DirectoryChooserConfig.builder()
+                                .newDirectoryName("drive")
+                                .allowReadOnlyDirectory(false)
+                                .allowNewDirectoryNameModification(true)
+                                .initialDirectory(root.getAbsolutePath())
+                                .build();
+                        chooserIntent.putExtra(DirectoryChooserActivity.EXTRA_CONFIG, config);
+                        activity.launchActivityForResult(chooserIntent, (resultCode, result) -> {
+                            //result is here
+                            if (result != null) {
+                                String path = result.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR);
+                                File file = new File(path);
+                                if (file.canWrite())
+                                    setPath(path);
+                                else {
+                                    Notifier.toast(activity, "Cannot Write :(");
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                        StorageManager storageManager = (StorageManager) activity.getSystemService(Context.STORAGE_SERVICE);
+                                        StorageVolume volume = storageManager.getStorageVolume(file);
+                                        Intent intent = volume.createAccessIntent(null);
+                                        activity.startActivityForResult(intent, 666);
+                                    }
+                                    boolean canRead = activity.hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+                                    boolean canWrite = activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                                    File e = new File(file.getAbsolutePath() + File.separator + "delme");
+                                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                                    Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath());
+                                    activity.startActivityForResult(intent, 43);
+                                }
+                            }
+                        });
+                    });
+                    builder.setCancelable(true);
+                    builder.setNegativeButton("nope", (dialog, which) -> {
+                        System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                    });
+                    AlertDialog dialog = builder.show();
+                    dialog.setCanceledOnTouchOutside(true);
+                }
+
             }).fail(result -> {
                 Notifier.toast(activity, R.string.toastDrivePermissionsRequired);
             });
