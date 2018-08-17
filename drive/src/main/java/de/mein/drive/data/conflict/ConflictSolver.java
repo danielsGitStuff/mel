@@ -117,6 +117,7 @@ public class ConflictSolver extends SyncStageMerger {
         } else {
             if (left != null && leftIdConflictsMap.containsKey(left.getParentId())) {
                 //conflictSearch(left, lFile, false);
+                // this was set to createConflict(left, right); at some time. mybe bug related
                 Conflict conflict = createConflict(left, right);
                 Conflict parent = leftIdConflictsMap.get(left.getParentId());
                 conflict.dependOn(parent);

@@ -1,12 +1,8 @@
 package de.mein.auth.file;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 import de.mein.auth.tools.N;
+
+import java.io.*;
 
 /**
  * this is the default {@link File} wrapper for everything that is not recent android
@@ -18,12 +14,21 @@ public class FFile extends AFile {
 
     }
 
+    @Override
+    public String toString() {
+        return file.toString();
+    }
+
     public FFile(File parent, String name) {
         this.file = new File(parent, name);
     }
 
     public FFile(File file) {
         this.file = file;
+    }
+
+    public FFile(String path) {
+        this(new File(path));
     }
 
 
@@ -74,18 +79,20 @@ public class FFile extends AFile {
 
     @Override
     public AFile[] listFiles() {
-        File[] files = file.listFiles(File::isFile);
-        return N.arr.cast(files, element -> AFile.instance(element.getAbsolutePath()));
+        return N.arr.cast(file.listFiles((dir, name) -> dir.isFile()), N.castor(FFile.class, FFile::new));
+
     }
 
     @Override
     public AFile[] listDirectories() {
-        return N.arr.cast(file.listFiles(File::isDirectory), element -> AFile.instance(element.getAbsolutePath()));
+        return N.arr.cast(file.listFiles((dir, name) -> dir.isDirectory()), N.castor(FFile.class, FFile::new));
+
     }
 
+
     @Override
-    public void delete() {
-        file.delete();
+    public boolean delete() {
+        return file.delete();
     }
 
     @Override
@@ -94,8 +101,8 @@ public class FFile extends AFile {
     }
 
     @Override
-    public void mkdirs() {
-        file.mkdirs();
+    public boolean mkdirs() {
+        return file.mkdirs();
     }
 
     @Override
@@ -126,5 +133,10 @@ public class FFile extends AFile {
     @Override
     public boolean createNewFile() throws IOException {
         return file.createNewFile();
+    }
+
+    @Override
+    public AFile[] listContent() {
+        return N.arr.cast(file.listFiles(), N.castor(FFile.class, FFile::new));
     }
 }

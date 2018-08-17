@@ -62,8 +62,8 @@ public class DFile extends   AFile {
     }
 
     @Override
-    public void delete() {
-
+    public boolean delete() {
+        return false;
     }
 
     @Override
@@ -72,8 +72,8 @@ public class DFile extends   AFile {
     }
 
     @Override
-    public void mkdirs() {
-
+    public boolean mkdirs() {
+        return false;
     }
 
     @Override
@@ -104,5 +104,10 @@ public class DFile extends   AFile {
     @Override
     public boolean createNewFile() throws IOException {
         return false;
+    }
+
+    @Override
+    public AFile[] listContent() {
+        return new AFile[0];
     }
 }

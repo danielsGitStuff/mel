@@ -21,9 +21,12 @@ public abstract class AFile {
     }
 
     public static AFile instance(String path) {
+        if (clazz == null)
+            System.err.println(AFile.class.getSimpleName() + ". NOT INITIALIZED! Call "+AFile.clazz.getSimpleName()+".setClass() before!");
         try {
             AFile file = clazz.newInstance();
             file.setPath(path);
+            return file;
         } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -62,11 +65,11 @@ public abstract class AFile {
 
     public abstract AFile[] listDirectories();
 
-    public abstract void delete();
+    public abstract boolean delete();
 
     public abstract AFile getParentFile();
 
-    public abstract void mkdirs();
+    public abstract boolean mkdirs();
 
     public abstract FileInputStream inputStream() throws FileNotFoundException;
 
@@ -83,4 +86,6 @@ public abstract class AFile {
     }
 
     public abstract boolean createNewFile() throws IOException;
+
+    public abstract AFile[] listContent();
 }

@@ -5,6 +5,7 @@ import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinTestBootloader;
@@ -84,14 +85,14 @@ public class LotsOfTests {
      */
     @Test
     public void sendFile() throws Exception {
-        File target = new File("otters.transferred.jpg");
+        AFile target = AFile.instance("otters.transferred.jpg");
         target.delete();
         setup(new OnConnectedListener() {
             @Override
             public void onConnected() {
                 run(() -> {
                     URL otters = getClass().getClassLoader().getResource("otters.jpg");
-                    File source = new File(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
+                    AFile source =AFile.instance(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
                     FileTransferDetail fileTransferDetail1 = new FileTransferDetail(source, 7, 0, source.length());
                     fileTransferDetail1.openRead();
                     FileTransferDetail fileTransferDetail2 = new FileTransferDetail(target, 7, 0, source.length());
@@ -133,14 +134,14 @@ public class LotsOfTests {
      */
     @Test
     public void sendError() throws Exception {
-        File target = new File("otters.transferred.jpg");
+        AFile target = AFile.instance("otters.transferred.jpg");
         target.delete();
         setup(new OnConnectedListener() {
             @Override
             public void onConnected() {
                 run(() -> {
                     URL otters = getClass().getClassLoader().getResource("otters.jpg");
-                    File source = new File(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
+                    AFile source =AFile.instance(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
                     FileTransferDetail fileTransferDetail1 = new FileTransferDetail(source, 7, 0, source.length());
                     fileTransferDetail1.setError(true);
                     fileTransferDetail1.openRead();

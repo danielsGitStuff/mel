@@ -22,6 +22,9 @@ public class Commit extends CachedIterable<Stage> implements IPayload{
     }
 
     public Commit setBasedOnVersion(Long basedOnVersion) {
+        //todo debug
+        if (basedOnVersion == 2)
+            System.out.println("Commit.setBasedOnVersion.debug23");
         this.basedOnVersion = basedOnVersion;
         return this;
     }

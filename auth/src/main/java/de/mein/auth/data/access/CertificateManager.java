@@ -3,6 +3,7 @@ package de.mein.auth.data.access;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.file.AFile;
+import de.mein.auth.file.FFile;
 import de.mein.auth.tools.Cryptor;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
@@ -92,19 +93,23 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public static void deleteDirectory(File dir) {
+        deleteDirectory(new FFile(dir));
+    }
+
+    public static void deleteDirectory(AFile dir) {
         System.out.println("CertificateManager.deleteDirectory: " + dir.getAbsolutePath());
-        File[] subs = dir.listFiles();
+        AFile[] subs = dir.listContent();
         if (subs != null)
-            for (File f : subs) {
+            for (AFile f : subs) {
                 deleteDirectoryP(f);
             }
         dir.delete();
     }
 
-    private static void deleteDirectoryP(File dir) {
-        File[] subs = dir.listFiles();
+    private static void deleteDirectoryP(AFile dir) {
+        AFile[] subs = dir.listContent();
         if (subs != null)
-            for (File f : subs) {
+            for (AFile f : subs) {
                 deleteDirectoryP(f);
             }
         dir.delete();

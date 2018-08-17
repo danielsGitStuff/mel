@@ -7,6 +7,7 @@ import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.BackgroundExecutor;
 import de.mein.auth.tools.MeinDeferredManager;
@@ -127,10 +128,10 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
             serviceType = databaseManager.createServiceType(bootLoader.getName(), bootLoader.getDescription());
         }
         bootLoader.setTypeId(serviceType.getId().v());
-        File bootDir = new File(meinAuthSettings.getWorkingDirectory()
-                + File.separator
+        AFile bootDir = AFile.instance(meinAuthSettings.getWorkingDirectory().getAbsolutePath()
+                + AFile.separator()
                 + "servicetypes"
-                + File.separator
+                + AFile.separator()
                 + serviceType.getType().v());
         bootDir.mkdirs();
         bootLoader.setBootLoaderDir(bootDir);

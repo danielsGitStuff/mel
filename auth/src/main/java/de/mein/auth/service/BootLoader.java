@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.auth.data.db.Service;
+import de.mein.auth.file.AFile;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
@@ -18,7 +19,7 @@ import java.util.List;
 public abstract class BootLoader {
 
     protected Long typeId;
-    protected File bootLoaderDir;
+    protected AFile bootLoaderDir;
     protected MeinAuthService meinAuthService;
 
     public BootLoader(){
@@ -39,7 +40,7 @@ public abstract class BootLoader {
 
     public abstract Promise<Void, Exception, Void> boot(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException;
 
-    public void setBootLoaderDir(File bootLoaderDir) {
+    public void setBootLoaderDir(AFile bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;
     }
 

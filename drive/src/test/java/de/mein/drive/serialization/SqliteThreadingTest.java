@@ -1,6 +1,8 @@
 package de.mein.drive.serialization;
 
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.file.AFile;
+import de.mein.auth.file.FFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.data.DriveSettings;
@@ -30,8 +32,9 @@ public class SqliteThreadingTest {
 
     @Test
     public void thread() throws Exception {
-        File testDir = new File("test");
-        File rootFile = new File(testDir, "root");
+        AFile.setClass(FFile.class);
+        AFile testDir = AFile.instance("test");
+        AFile rootFile = AFile.instance(testDir, "root");
         CertificateManager.deleteDirectory(testDir);
         rootFile.mkdirs();
         RootDirectory root = new RootDirectory();
@@ -42,7 +45,7 @@ public class SqliteThreadingTest {
                 .setRootDirectory(root)
                 .setTransferDirectoryPath(testDir.getPath() + File.separator + "transfer");
 
-        DriveDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir, "test.db")), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
+        DriveDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir.getPath(), "test.db")), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
         ISQLQueries sqlQueries = sqlqueriesCreator.createConnection(null, null);
         SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
         st.execute();

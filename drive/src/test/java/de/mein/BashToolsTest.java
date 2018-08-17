@@ -1,5 +1,6 @@
 package de.mein;
 
+import de.mein.auth.file.FFile;
 import de.mein.auth.tools.N;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
@@ -46,7 +47,7 @@ public class BashToolsTest {
         files.stream().filter(File::exists).forEach(f -> N.r(() -> {
             System.out.println("BashToolsTest.escapePaths");
             BashTools.init();
-            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
+            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(new FFile(f));
             System.out.println("BashToolsTest.escapePaths: " + modifiedAndInode.getiNode().toString() + " " + modifiedAndInode.getModified().toString());
             count.getAndSet(count.get() + 1);
         }));

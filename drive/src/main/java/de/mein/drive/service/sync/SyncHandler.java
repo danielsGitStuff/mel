@@ -218,7 +218,7 @@ public abstract class SyncHandler {
      */
     public void commitStage(Long stageSetId, boolean lockFsEntry, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException {
         //todo debug
-        if (stageSetId == 15 || stageSetId == 13)
+        if (stageSetId == 6 || stageSetId == 13)
             System.out.println("SyncHandler.commitStage.debugj9v0jaseß");
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();

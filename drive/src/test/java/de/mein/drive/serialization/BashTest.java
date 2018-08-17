@@ -1,5 +1,6 @@
 package de.mein.drive.serialization;
 
+import de.mein.auth.file.FFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsImpl;
@@ -46,7 +47,7 @@ public class BashTest {
     @Test
     public void bash1() throws IOException {
         File file = new File(System.getProperty("user.dir"));
-        BashTools.getINodesOfDirectory(file);
+        BashTools.getINodesOfDirectory(new FFile(file));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package de.mein.drive.serialization;
 
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.file.FFile;
 import de.mein.drive.bash.BashTools;
 import org.junit.After;
 import org.junit.Before;
@@ -30,7 +31,7 @@ public class BashCommandsTest {
 
     @Test
     public void bashFind() throws Exception {
-        Iterator<String> iterator = BashTools.find(testDir, new File("blaaaa"));
+        Iterator<String> iterator = BashTools.find(new FFile(testDir), new FFile("blaaaa"));
         while (iterator.hasNext())
             System.out.println(iterator.next());
         System.out.println("BashCommandsTest.bashtest.end");
@@ -41,7 +42,7 @@ public class BashCommandsTest {
         //expect one result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new File("blaa"), 0L);
+        Iterator<String> iterator = BashTools.stuffModifiedAfter(new FFile(testDir), new FFile("blaa"), 0L);
         assertTrue(iterator.hasNext());
         iterator.next();
         assertFalse(iterator.hasNext());
@@ -53,7 +54,7 @@ public class BashCommandsTest {
         //expect no result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new File("blaa"), Long.MAX_VALUE);
+        Iterator<String> iterator = BashTools.stuffModifiedAfter(new FFile(testDir), new FFile("blaa"), Long.MAX_VALUE);
         assertFalse(iterator.hasNext());
         System.out.println("BashCommandsTest.bashtest.end");
     }
@@ -61,7 +62,7 @@ public class BashCommandsTest {
     @Test
     public void bashFindModifiedAfter3() throws Exception {
         // expect whole testdir
-        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new File("blaa"), 0L);
+        Iterator<String> iterator = BashTools.stuffModifiedAfter(new FFile(testDir), new FFile("blaa"), 0L);
         Iterator<String> expectedIterator = paths.iterator();
         while (iterator.hasNext()) {
             String path = iterator.next();

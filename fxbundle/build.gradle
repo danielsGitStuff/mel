@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: 'gradle-one-jar'
+//apply plugin: 'gradle-one-jar'
 
 compileJava {
     sourceCompatibility = '1.8'
@@ -21,9 +21,9 @@ dependencies {
     //compile 'org.jdeferred:jdeferred-core:1.2.4'
 }
 
-task awesomeFunJar(type: OneJar) {
-    mainClass = 'com.github.rholder.awesome.MyAwesomeMain'
-}
+//task awesomeFunJar(type: OneJar) {
+//    mainClass = 'com.github.rholder.awesome.MyAwesomeMain'
+//}
 
 task bundledJar(type: Jar){
     manifest{

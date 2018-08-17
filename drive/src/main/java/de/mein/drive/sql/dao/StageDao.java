@@ -321,7 +321,7 @@ StageDao extends Dao.LockingDao {
 
     public void deleteStageSet(Long id) throws SqlQueriesException {
         //todo debug
-        if (id == 2)
+        if (id == 6)
             System.out.println("StageDao.deleteStageSet.debugh98g4h5g");
         StageSet stageSet = new StageSet();
         List<Object> args = new ArrayList<>();

@@ -4,26 +4,51 @@ import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.lang.reflect.Array;
+import java.util.*;
 
 /**
  * Syntactic sugar. Saves you lots of try/catches. calls e.stacktrace() per default.
  */
 public class N {
+    public interface CastMethod<T, R> {
+        R cast(T element);
+    }
+
+    private static class Castor<T, R> {
+        private Class<R> castClass;
+        private CastMethod<T, R> castMethod;
+
+        public Class<R> getCastClass() {
+            return castClass;
+        }
+
+        public Castor(Class<R> clazz, CastMethod<T, R> castMethod) {
+            this.castClass = clazz;
+            this.castMethod = castMethod;
+        }
+
+        public R cast(T t) {
+            return castMethod.cast(t);
+        }
+    }
+
+    public static <T, R> Castor<T, R> castor(Class<R> clazz, CastMethod<T, R> method) {
+        Castor<T, R> castor = new Castor<>(clazz, method);
+        return castor;
+    }
+
+
     /**
      * helps doing common things with arrays
      */
     public static class arr {
-        public interface Castor<T, R> {
-            R cast(T element);
-        }
+
 
         public static <T, R> R[] cast(T[] source, Castor<T, R> castor) {
-            R[] result = (R[]) new Object[source.length];
+            if (source == null)
+                return null;
+            R[] result = (R[]) Array.newInstance(castor.getCastClass(), source.length);
             for (int i = 0; i < source.length; i++) {
                 if (source[i] != null)
                     result[i] = castor.cast(source[i]);
@@ -318,5 +343,7 @@ public class N {
                 break;
         }
     }
+
+
 }
 

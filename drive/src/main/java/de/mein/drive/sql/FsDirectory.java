@@ -154,6 +154,9 @@ public class FsDirectory extends FsEntry {
         if (!contentSet.contains(f.getName().v())) {
             files.add(f);
             contentSet.add(f.getName().v());
+            //todo debug
+            if (f.getName().isNull())
+                System.out.println("FsDirectory.addFile");
         }
         return this;
     }
@@ -162,6 +165,8 @@ public class FsDirectory extends FsEntry {
         if (!contentSet.contains(subDir.getName().v())) {
             subDirectories.add(subDir);
             contentSet.add(subDir.getName().v());
+            if (subDir.getName().isNull())
+                System.out.println("FsDirectory.addSub");
         }
         return this;
     }

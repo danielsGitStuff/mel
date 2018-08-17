@@ -6,6 +6,7 @@ import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.file.FFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
@@ -93,7 +94,7 @@ public class DriveTest {
                         System.out.println("DriveTest.onSyncFailed.creating new file...");
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
                         File delFile = new File(rootPath + File.separator + "samedir");
-                        BashTools.rmRf(delFile);
+                        BashTools.rmRf(new FFile(delFile));
                         MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
@@ -129,9 +130,9 @@ public class DriveTest {
                         File subFile = new File(subDir.getAbsolutePath() + File.separator + "samesub1.txt");
                         TestFileCreator.saveFile("samesub1.client".getBytes(), subFile);
 
-                        String hash = Hash.md5(file1);
+                        String hash = Hash.md5(new FFile(file1).inputStream());
                         System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
-                        hash = Hash.md5(file2);
+                        hash = Hash.md5(new FFile(file2).inputStream());
                         System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
                     });
 
@@ -216,9 +217,9 @@ public class DriveTest {
                         delFile.delete();
                         TestFileCreator.saveFile("same3.server".getBytes(), newFile);
                         TestFileCreator.saveFile("same1.server".getBytes(), f1);
-                        String hash = Hash.md5(f1);
+                        String hash = Hash.md5(new FFile(f1).inputStream());
                         System.out.println("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
-                        hash = Hash.md5(newFile);
+                        hash = Hash.md5(new FFile(newFile).inputStream());
                         System.out.println("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
                         MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
@@ -250,9 +251,9 @@ public class DriveTest {
                         file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
                         TestFileCreator.saveFile("same1.client".getBytes(), file1);
                         TestFileCreator.saveFile("same2.client".getBytes(), file2);
-                        String hash = Hash.md5(file1);
+                        String hash = Hash.md5(new FFile(file1).inputStream());
                         System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
-                        hash = Hash.md5(file2);
+                        hash = Hash.md5(new FFile(file2).inputStream());
                         System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
                     });
 
@@ -487,9 +488,9 @@ public class DriveTest {
 
     @Test
     public void restartServerAfterChangingFiles() throws Exception {
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(new FFile(MeinBoot.defaultWorkingDir1));
         File testdir1 = new File("testdir1");
-        CertificateManager.deleteDirectory(testdir1);
+        CertificateManager.deleteDirectory(new FFile(testdir1));
         TestDirCreator.createTestDir(testdir1);
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
@@ -724,10 +725,10 @@ public class DriveTest {
         //setup working directories & directories with test data
         File testdir1 = new File("testdir1");
         File testdir2 = new File("testdir2");
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(new FFile(MeinBoot.defaultWorkingDir1));
         //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
-        CertificateManager.deleteDirectory(testdir1);
-        CertificateManager.deleteDirectory(testdir2);
+        CertificateManager.deleteDirectory(new FFile(testdir1));
+        CertificateManager.deleteDirectory(new FFile(testdir1));
         TestDirCreator.createTestDir(testdir1);
 
 
@@ -804,7 +805,7 @@ public class DriveTest {
         //setup working directories & directories with test data
         File testdir1 = new File("testdir1");
         File testdir2 = new File("testdir2");
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(new FFile(MeinBoot.defaultWorkingDir1));
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         CertificateManager.deleteDirectory(testdir1);
         CertificateManager.deleteDirectory(testdir2);

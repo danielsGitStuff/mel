@@ -39,7 +39,7 @@ JSONException.java: The JSONException is the standard exception type thrown
 by this package.
 
 
-JSONString.java: The JSONString interface requires a toJSONString method,
+JSONString.java: The JSONString interface requires a toJSONString castMethod,
 allowing an object to provide its own serialization.
 
 JSONStringer.java: The JSONStringer provides a convenient facility for

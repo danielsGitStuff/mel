@@ -7,6 +7,8 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.file.AFile;
+import de.mein.auth.file.FFile;
 import de.mein.auth.gui.RegisterHandlerFX;
 import de.mein.auth.service.MeinAuthFxLoader;
 import de.mein.auth.service.MeinBoot;
@@ -352,6 +354,7 @@ public class FxTest {
 
     @Test
     public void startAcceptingServer() throws Exception {
+        AFile.setClass(FFile.class);
         File testdir = new File("testdir1");
         CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
