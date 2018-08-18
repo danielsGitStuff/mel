@@ -467,7 +467,7 @@ public class FxTest {
 //                phoneBookDao.insertDeep(debugBook);
             });
         });
-        lock.lockWrite();
+        lock.lockWrite().lockWrite();
         lock.unlockWrite();
     }
 

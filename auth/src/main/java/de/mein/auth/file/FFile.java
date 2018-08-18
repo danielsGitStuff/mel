@@ -79,13 +79,13 @@ public class FFile extends AFile {
 
     @Override
     public AFile[] listFiles() {
-        return N.arr.cast(file.listFiles((dir, name) -> dir.isFile()), N.castor(FFile.class, FFile::new));
+        return N.arr.cast(file.listFiles(File::isFile), N.castor(FFile.class, FFile::new));
 
     }
 
     @Override
     public AFile[] listDirectories() {
-        return N.arr.cast(file.listFiles((dir, name) -> dir.isDirectory()), N.castor(FFile.class, FFile::new));
+        return N.arr.cast(file.listFiles(File::isDirectory), N.castor(FFile.class, FFile::new));
 
     }
 

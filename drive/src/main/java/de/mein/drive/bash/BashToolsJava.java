@@ -65,7 +65,7 @@ public class BashToolsJava implements BashToolsImpl {
         Stack<Iterator<AFile>> fileStack = new Stack<>();
         String prunePath = pruneDir.getAbsolutePath();
         System.out.println("BashToolsJava.find.prune: " + prunePath);
-        fileStack.push(Arrays.asList(directory.listFiles()).iterator());
+        fileStack.push(Arrays.asList(directory.listContent()).iterator());
         return new Iterator<String>() {
             String nextLine = null;
 
@@ -104,7 +104,7 @@ public class BashToolsJava implements BashToolsImpl {
                         if (iterator.hasNext()) {
                             AFile nextFile = iterator.next();
                             if (nextFile.isDirectory())
-                                fileStack.push(Arrays.asList(nextFile.listFiles()).iterator());
+                                fileStack.push(Arrays.asList(nextFile.listContent()).iterator());
                             nextLine = nextFile.getAbsolutePath();
                             if (nextLine.startsWith(prunePath)) {
                                 return hasNext();
