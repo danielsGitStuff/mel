@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -104,10 +105,19 @@ public class MainActivity extends MeinActivity {
         //debugStuff2();
     }
 
+    private void dev(){
+        Uri u = Uri.parse("content://com.android.externalstorage.documents/tree/1A16-1611%3Athisisexternal");
+        Uri v = Uri.parse("/data/data/txt.txt");
+        String a = u.getAuthority();
+        String b = v.getAuthority();
+        System.out.println("ExampleUnitTest.uriTest "+a+" // "+b);
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //dev();
         Tools.setApplicationContext(getApplicationContext());
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));

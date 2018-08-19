@@ -38,11 +38,10 @@ public class DFile extends AFile {
         Context context = getContext();
         try {
             uri = Uri.parse(path);
-            boolean isDocUri = DocumentFile.isDocumentUri(context, uri);
-            if (isDocUri) {
-                rawFile = false;
-            }else {
+            if (uri.getAuthority() == null) {
                 rawFile = true;
+            } else {
+                rawFile = false;
             }
         } catch (Exception e) {
             this.uri = DocumentFile.fromFile(new File(path)).getUri();
@@ -70,15 +69,16 @@ public class DFile extends AFile {
     @Override
     protected AFile constructSubFile(String name) {
         if (rawFile) {
-            return new DFile(uri.getEncodedPath() + getSeparator() + name);
+            DFile dFile = new DFile(uri.getEncodedPath() + getSeparator() + name);
+            dFile.parent = this;
+            return dFile;
         } else {
             String str = uri.toString();
-            Object lastPath = documentFile.getUri().getLastPathSegment();
             Uri append;
             if (str.endsWith("%3A"))
-                append = Uri.parse(documentFile.getUri().toString() + name);
+                append = Uri.parse(uri.toString() + name);
             else
-                append = Uri.parse(documentFile.getUri().toString() + AFile.separator() + name);
+                append = Uri.parse(uri.toString() + AFile.separator() + name);
             DocumentFile sub = DocumentFile.fromSingleUri(getContext(), append);
 //            try {
 //                Uri u = DocumentsContract.createDocument(getContext().getContentResolver(), documentFile.getUri(), null, name);
@@ -126,6 +126,9 @@ public class DFile extends AFile {
 
     @Override
     public boolean isFile() {
+        if (rawFile) {
+            return new File(uri.getEncodedPath()).isFile();
+        }
         spawnDoc();
         return documentFile.isFile();
     }
@@ -138,13 +141,24 @@ public class DFile extends AFile {
 
     @Override
     public boolean isDirectory() {
+        if (rawFile) {
+            return new File(uri.getEncodedPath()).isDirectory();
+        }
         spawnDoc();
-        return false;
+        return documentFile.isDirectory();
     }
 
     @Override
     public Long length() {
-        return null;
+        if (rawFile)
+            return new File(uri.getEncodedPath()).length();
+        spawnDoc();
+        try {
+            return parcelFileDescriptor().getStatSize();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return -2L;
+        }
     }
 
     @Override
@@ -211,10 +225,18 @@ public class DFile extends AFile {
         return null;
     }
 
+    private ParcelFileDescriptor parcelFileDescriptor() throws FileNotFoundException {
+        return getContext().getContentResolver().openFileDescriptor(uri, "r");
+    }
+
     @Override
     public Long getUsableSpace() {
+        if (rawFile) {
+            return new File(uri.getEncodedPath()).getUsableSpace();
+        }
         try {
-            ParcelFileDescriptor descriptor = getContext().getContentResolver().openFileDescriptor(documentFile.getUri(), "r");
+            spawnDoc();
+            ParcelFileDescriptor descriptor = parcelFileDescriptor();
             StructStatVfs stats = Os.fstatvfs(descriptor.getFileDescriptor());
             return stats.f_bfree;
         } catch (FileNotFoundException e) {
@@ -236,14 +258,17 @@ public class DFile extends AFile {
 
     @Override
     public Long lastModified() {
+        if (rawFile)
+            return new File(uri.getEncodedPath()).lastModified();
+        spawnDoc();
         return documentFile.lastModified();
     }
 
     @Override
     public boolean createNewFile() throws IOException {
-        if (rawFile){
-         return new File(uri.getEncodedPath()).createNewFile();
-        }else {
+        if (rawFile) {
+            return new File(uri.getEncodedPath()).createNewFile();
+        } else {
             spawnDoc();
             if (!documentFile.exists()) {
                 if (rawFile) {

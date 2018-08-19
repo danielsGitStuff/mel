@@ -1,5 +1,7 @@
 package mein.de.meindrive;
 
+import android.net.Uri;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;

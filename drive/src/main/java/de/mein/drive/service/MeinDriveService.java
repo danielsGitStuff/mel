@@ -235,7 +235,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
         this.driveSettings = driveDatabaseManager.getDriveSettings();
-        File transferDir = new File(driveSettings.getTransferDirectoryPath());
+        AFile transferDir = driveSettings.getTransferDirectory();
         transferDir.mkdirs();
         File wasteDir = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN);
         wasteDir.mkdirs();

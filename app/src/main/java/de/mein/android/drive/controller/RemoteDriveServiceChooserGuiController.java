@@ -120,6 +120,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                             final int takeFlags = resultData.getFlags()
                                     & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                             activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
+                            activity.getContentResolver().
 //                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
                             DocumentFile root = DocumentFile.fromTreeUri(activity, rootTreeUri);
                             String type = root.getType();

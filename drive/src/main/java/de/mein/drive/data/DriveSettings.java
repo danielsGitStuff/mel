@@ -108,6 +108,10 @@ public class DriveSettings extends JsonSettings {
         return this;
     }
 
+    public AFile getTransferDirectory() {
+        return transferDirectory;
+    }
+
     /**
      * @param fsDao
      * @param jsonFile
