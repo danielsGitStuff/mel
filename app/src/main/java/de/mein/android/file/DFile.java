@@ -35,6 +35,14 @@ public class DFile extends AFile {
     private boolean rawFile;
     private String name;
 
+    /**
+     * deprecation:
+     * cannot ensure we get the right {@link DocumentFile}.
+     * It delivers the root element only.
+     * obviously we cannot extract the name from there.
+     * @param path
+     */
+    @Deprecated
     public DFile(String path) {
         Context context = getContext();
 //        try {
@@ -45,7 +53,11 @@ public class DFile extends AFile {
             rawFile = true;
         } else {
             rawFile = false;
-            spawnDoc();
+            if (DocumentsContract.isTreeUri(uri)) {
+                documentFile = DocumentFile.fromTreeUri(getContext(), uri);
+            } else if (DocumentsContract.isDocumentUri(getContext(), uri)) {
+                documentFile = DocumentFile.fromSingleUri(getContext(), uri);
+            }
             this.name = documentFile.getName();
         }
 //        } catch (Exception e) {
@@ -75,7 +87,7 @@ public class DFile extends AFile {
     }
 
     public DFile(DFile parent, String name) {
-        this.uri = Uri.parse(parent.getAbsolutePath()+parent.getSeparator()+name);
+        this.uri = Uri.parse(parent.getAbsolutePath() + parent.getSeparator() + name);
         this.name = name;
         this.parent = parent;
     }
@@ -124,11 +136,11 @@ public class DFile extends AFile {
     }
 
     private void spawnDoc() {
-        if (DocumentsContract.isTreeUri(uri))
-            documentFile = DocumentFile.fromTreeUri(getContext(), uri);
-        else if (DocumentsContract.isDocumentUri(getContext(), uri))
-            documentFile = DocumentFile.fromSingleUri(getContext(), uri);
-        else
+        if (DocumentsContract.isTreeUri(uri)) {
+//            documentFile = DocumentFile.fromTreeUri(getContext(), uri);
+        } else if (DocumentsContract.isDocumentUri(getContext(), uri)) {
+//            documentFile = DocumentFile.fromSingleUri(getContext(), uri);
+        } else
             documentFile = DocumentFile.fromFile(new File(uri.toString()));
     }
 
@@ -208,10 +220,13 @@ public class DFile extends AFile {
                     parent.mkdirs();
             }
             try {
-                Uri created = DocumentsContract.createDocument(getContext().getContentResolver(), parent.uri, null, name);
-                this.uri = created;
+                DocumentFile parentDoc = DocumentFile.fromTreeUri(getContext(), parent.uri);
+                documentFile = parentDoc.createDirectory(name);
+                this.uri = documentFile.getUri();
+//                Uri created = DocumentsContract.createDocument(getContext().getContentResolver(), parent.uri, null, name);
+//                this.uri = created;
                 return true;
-            } catch (FileNotFoundException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return true;
