@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.provider.DocumentFile;
 import android.view.ViewGroup;
 
 import org.jdeferred.Promise;
@@ -16,6 +17,7 @@ import de.mein.android.controller.AndroidServiceGuiController;
 import de.mein.android.Threadder;
 import de.mein.android.drive.controller.RemoteDriveServiceChooserGuiController;
 import de.mein.android.drive.controller.AndroidDriveEditGuiController;
+import de.mein.android.file.DFile;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
@@ -42,13 +44,14 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
         if (driveCreateGuiController.isValid())
             Threadder.runNoTryThread(() -> {
                 String name = driveCreateGuiController.getName();
-                String path = driveCreateGuiController.getPath();
+                DocumentFile rootDoc = driveCreateGuiController.getRootFile();
+                DFile rootFile = new DFile(rootDoc);
                 if (driveCreateGuiController.isServer()) {
-                    driveCreateController.createDriveServerService(name, path, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays());
+                    driveCreateController.createDriveServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays());
                 } else {
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedService().getUuid().v();
-                    Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays());
+                    Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays());
                     //promise.done(meinDriveClientService -> N.r(() -> meinDriveClientService.syncThisClient()));
                 }
             });

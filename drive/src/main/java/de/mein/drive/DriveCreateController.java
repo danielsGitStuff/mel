@@ -58,8 +58,8 @@ public class DriveCreateController {
         System.out.println("DriveCreateController.boot.booted");
     }
 
-    public MeinDriveServerService createDriveServerService(String name, String path, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
-        RootDirectory rootDirectory = DriveSettings.buildRootDirectory(path);
+    public MeinDriveServerService createDriveServerService(String name, AFile rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+        RootDirectory rootDirectory = DriveSettings.buildRootDirectory(rootFile);
         Service service = createService(name);
         de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
         driveSettings.setTransferDirectory(AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR));
@@ -70,9 +70,9 @@ public class DriveCreateController {
         return mdss;
     }
 
-    public Promise<MeinDriveServerService, Exception, Void> createDriveServerServiceDeferred(String name, String path, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+    public Promise<MeinDriveServerService, Exception, Void> createDriveServerServiceDeferred(String name, AFile rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         DeferredObject<MeinDriveServerService, Exception, Void> deferred = new DeferredObject<>();
-        RootDirectory rootDirectory = DriveSettings.buildRootDirectory(path);
+        RootDirectory rootDirectory = DriveSettings.buildRootDirectory(rootFile);
         Service service = createService(name);
         de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
         driveSettings.setTransferDirectory(AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR));
@@ -84,12 +84,12 @@ public class DriveCreateController {
         return deferred;
     }
 
-    public Promise<MeinDriveClientService, Exception, Void> createDriveClientService(String name, String path, Long certId, String serviceUuid, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
+    public Promise<MeinDriveClientService, Exception, Void> createDriveClientService(String name, AFile rootFile, Long certId, String serviceUuid, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
         meinAuthService.getDatabaseManager().lockWrite();
         DeferredObject<MeinDriveClientService, Exception, Void> deferred = new DeferredObject<>();
         Certificate certificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         //create Service
-        RootDirectory rootDirectory = DriveSettings.buildRootDirectory(path);
+        RootDirectory rootDirectory = DriveSettings.buildRootDirectory(rootFile);
         Service service = createService(name);
         de.mein.drive.data.DriveSettings driveSettingsCfg = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
         driveSettingsCfg.setTransferDirectory(AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR));

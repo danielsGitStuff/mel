@@ -237,7 +237,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         this.driveSettings = driveDatabaseManager.getDriveSettings();
         AFile transferDir = driveSettings.getTransferDirectory();
         transferDir.mkdirs();
-        File wasteDir = new File(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN);
+        AFile wasteDir = AFile.instance(driveSettings.getTransferDirectory(),DriveStrings.WASTEBIN);
         wasteDir.mkdirs();
         this.driveDatabaseManager = driveDatabaseManager;
         this.stageIndexer = new StageIndexer(driveDatabaseManager);

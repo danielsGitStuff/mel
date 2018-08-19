@@ -7,6 +7,7 @@ import android.content.ContentProvider;
 import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.Intent;
+import android.content.UriPermission;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
@@ -79,7 +80,11 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     private Long wastebinSize;
     // this is required for android 5+ only.
     private Uri rootTreeUri;
+    private DocumentFile rootFile;
 
+    public DocumentFile getRootFile() {
+        return rootFile;
+    }
 
     public RemoteDriveServiceChooserGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup) {
         super(meinAuthService, activity, viewGroup, R.layout.embedded_twice_drive);
@@ -120,10 +125,9 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                             final int takeFlags = resultData.getFlags()
                                     & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                             activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
-                            activity.getContentResolver().
+                            List<UriPermission> uris = activity.getContentResolver().getPersistedUriPermissions();
 //                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                            DocumentFile root = DocumentFile.fromTreeUri(activity, rootTreeUri);
-                            String type = root.getType();
+                            rootFile = DocumentFile.fromTreeUri(activity, rootTreeUri);
                             System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
 //                            AFile rootFile = AFile.instance(rootTreeUri.toString());
 //                            AFile music = AFile.instance(rootFile,"Music");
@@ -335,10 +339,6 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         File debug = Environment.getExternalStorageDirectory();
         File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         return new File(downloadDir, "drive").getAbsolutePath();
-    }
-
-    public String getPath() {
-        return txtPath.getText().toString();
     }
 
     public boolean isValid() {

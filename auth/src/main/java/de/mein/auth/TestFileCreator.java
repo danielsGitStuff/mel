@@ -1,5 +1,6 @@
 package de.mein.auth;
 
+import de.mein.auth.file.AFile;
 import de.mein.core.serialize.serialize.tools.StringBuilder;
 
 import java.io.File;
@@ -22,9 +23,9 @@ public class TestFileCreator {
         return stringBuilder.toString().getBytes();
     }
 
-    public static void saveFile(byte[] data, File file) throws IOException {
+    public static void saveFile(byte[] data, AFile file) throws IOException {
         System.out.println("TestFileCreator.saveFile: " + file.getAbsolutePath());
-        FileOutputStream fos = new FileOutputStream(file);
+        FileOutputStream fos = file.outputStream();
         fos.write(data);
         fos.close();
     }

@@ -77,7 +77,7 @@ public abstract class BashTools {
         return bufferedReader.iterator();
     }
 
-    public static void mkdir(File dir) throws IOException {
+    public static void mkdir(AFile dir) throws IOException {
         int i = 0;
         while (!dir.exists()) {
             dir.mkdirs();

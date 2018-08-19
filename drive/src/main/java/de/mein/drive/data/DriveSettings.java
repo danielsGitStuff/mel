@@ -29,9 +29,9 @@ public class DriveSettings extends JsonSettings {
     private Long maxAge = 30L;
     private AFile transferDirectory;
 
-    public static RootDirectory buildRootDirectory(String path) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
-        RootDirectory rootDirectory = new RootDirectory().setPath(path);
-        rootDirectory.setOriginalFile(AFile.instance(path));
+    public static RootDirectory buildRootDirectory(AFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
+        RootDirectory rootDirectory = new RootDirectory().setPath(rootFile.getAbsolutePath());
+        rootDirectory.setOriginalFile(rootFile);
         rootDirectory.backup();
         return rootDirectory;
     }

@@ -33,21 +33,27 @@ public class DFile extends AFile {
     private DocumentFile documentFile;
     private Uri uri;
     private boolean rawFile;
+    private String name;
 
     public DFile(String path) {
         Context context = getContext();
-        try {
-            uri = Uri.parse(path);
-            if (uri.getAuthority() == null) {
-                rawFile = true;
-            } else {
-                rawFile = false;
-            }
-        } catch (Exception e) {
-            this.uri = DocumentFile.fromFile(new File(path)).getUri();
+//        try {
+        uri = Uri.parse(path);
+        if (uri.getAuthority() == null) {
+            DocumentFile documentFile = DocumentFile.fromFile(new File(path));
+            this.name = documentFile.getName();
             rawFile = true;
+        } else {
+            rawFile = false;
+            spawnDoc();
+            this.name = documentFile.getName();
         }
-        System.out.println("DFile.DFile");
+//        } catch (Exception e) {
+//            DocumentFile documentFile = DocumentFile.fromFile(new File(path));
+//            this.uri = documentFile.getUri();
+//            this.name = documentFile.getName();
+//            rawFile = true;
+//        }
     }
 
     public DFile(File file) {
@@ -58,11 +64,19 @@ public class DFile extends AFile {
     public DFile(DocumentFile documentFile) {
         this.documentFile = documentFile;
         rawFile = false;
+        if (documentFile.getName() != null)
+            name = documentFile.getName();
         uri = documentFile.getUri();
     }
 
     public DFile(DFile parent, DocumentFile documentFile) {
         this(documentFile);
+        this.parent = parent;
+    }
+
+    public DFile(DFile parent, String name) {
+        this.uri = Uri.parse(parent.getAbsolutePath()+parent.getSeparator()+name);
+        this.name = name;
         this.parent = parent;
     }
 
@@ -88,7 +102,7 @@ public class DFile extends AFile {
 //            }
 //            DocumentFile sub2 = DocumentFile.fromSingleUri(getContext(),append);
 //            String a = sub.getUri().getEncodedPath();
-            return new DFile(this, sub);
+            return new DFile(this, name);
         }
     }
 
@@ -186,26 +200,20 @@ public class DFile extends AFile {
         if (rawFile) {
             return new File(uri.getEncodedPath()).mkdirs();
         } else {
-//            if (documentFile.isDirectory() && documentFile.exists())
-//                return false;
-            Stack<DFile> stack = new Stack<>();
-            DFile toCreate = this;
-            if (toCreate != null && !toCreate.exists()) {
-                stack.push(toCreate);
-                toCreate = toCreate.parent;
+            spawnDoc();
+            if (documentFile.exists())
+                return false;
+            if (parent != null) {
+                if (!parent.exists())
+                    parent.mkdirs();
             }
-            //the last parent has to exist
-            DFile root = toCreate;
-            while (!stack.empty()) {
-                DFile dir = stack.pop();
-                try {
-                    Uri created = DocumentsContract.createDocument(getContext().getContentResolver(), root.uri, null, dir.getName());
-                    dir.setUri(created);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+            try {
+                Uri created = DocumentsContract.createDocument(getContext().getContentResolver(), parent.uri, null, name);
+                this.uri = created;
+                return true;
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
             }
-
             return true;
         }
     }

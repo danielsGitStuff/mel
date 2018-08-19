@@ -2,6 +2,7 @@ package de.mein.drive.serialization;
 
 
 import de.mein.auth.TestFileCreator;
+import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashTools;
 
 import java.io.File;
@@ -13,35 +14,35 @@ import java.util.List;
  * Created by xor on 7/10/16.
  */
 public class TestDirCreator {
-    public static List<String> createTestDir(File testDir) throws IOException {
+    public static List<String> createTestDir(AFile testDir) throws IOException {
         return createTestDir(testDir, "");
     }
 
-    public static List<String> createTestDir(File testDir, String appendix) throws IOException {
+    public static List<String> createTestDir(AFile testDir, String appendix) throws IOException {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
         BashTools.mkdir(testDir);
-        File sub1 = new File(testDir.getPath() + File.separator + "sub1");
-        File sub2 = new File(testDir.getPath() + File.separator + "sub2");
+        AFile sub1 = AFile.instance(testDir.getPath() + File.separator + "sub1");
+        AFile sub2 = AFile.instance(testDir.getPath() + File.separator + "sub2");
         BashTools.mkdir(sub1);
         BashTools.mkdir(sub2);
 
-        File sub1txt = new File(sub1.getPath() + File.separator + "sub1.txt");
+        AFile sub1txt = AFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
 
-        File sub2txt = new File(sub1.getPath() + File.separator + "sub2.txt");
+        AFile sub2txt = AFile.instance(sub1.getPath() + File.separator + "sub2.txt");
         TestFileCreator.saveFile(("sub2.txt text" + appendix).getBytes(), sub2txt);
 
-        File sub22 = new File(sub2.getPath() + File.separator + "sub22");
+        AFile sub22 = AFile.instance(sub2.getPath() + File.separator + "sub22");
         BashTools.mkdir(sub22);
 
-        File sub22txt = new File(sub22.getPath() + File.separator + "sub22.txt");
+        AFile sub22txt = AFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
-        File sameDir = new File(testDir.getPath() + File.separator + "samedir");
+        AFile sameDir = AFile.instance(testDir.getPath() + File.separator + "samedir");
         BashTools.mkdir(sameDir);
-        File same1txt = new File(sameDir.getPath() + File.separator + "same1.txt");
-        File same2txt = new File(sameDir.getPath() + File.separator + "same2.txt");
+        AFile same1txt = AFile.instance(sameDir.getPath() + File.separator + "same1.txt");
+        AFile same2txt = AFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
         TestFileCreator.saveFile("same".getBytes(), same2txt);
 
@@ -60,31 +61,31 @@ public class TestDirCreator {
     }
 
 
-    public static List<String> createTestDir(File testDir, int noOfSubdirs) throws IOException {
+    public static List<String> createTestDir(AFile testDir, int noOfSubdirs) throws IOException {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
         BashTools.mkdir(testDir);
-        File sub1 = new File(testDir.getPath() + File.separator + "sub1");
-        File sub2 = new File(testDir.getPath() + File.separator + "sub2");
+        AFile sub1 = AFile.instance(testDir.getPath() + File.separator + "sub1");
+        AFile sub2 =AFile.instance(testDir.getPath() + File.separator + "sub2");
         BashTools.mkdir(sub1);
         BashTools.mkdir(sub2);
 
-        File sub1txt = new File(sub1.getPath() + File.separator + "sub1.txt");
+        AFile sub1txt =AFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
 
-        File sub2txt = new File(sub1.getPath() + File.separator + "sub2.txt");
+        AFile sub2txt = AFile.instance(sub1.getPath() + File.separator + "sub2.txt");
         TestFileCreator.saveFile(("sub2.txt text").getBytes(), sub2txt);
 
-        File sub22 = new File(sub2.getPath() + File.separator + "sub22");
+        AFile sub22 =AFile.instance(sub2.getPath() + File.separator + "sub22");
         BashTools.mkdir(sub22);
 
-        File sub22txt = new File(sub22.getPath() + File.separator + "sub22.txt");
+        AFile sub22txt = AFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
-        File sameDir = new File(testDir.getPath() + File.separator + "samedir");
+        AFile sameDir =AFile.instance(testDir.getPath() + File.separator + "samedir");
         BashTools.mkdir(sameDir);
-        File same1txt = new File(sameDir.getPath() + File.separator + "same1.txt");
-        File same2txt = new File(sameDir.getPath() + File.separator + "same2.txt");
+        AFile same1txt = AFile.instance(sameDir.getPath() + File.separator + "same1.txt");
+        AFile same2txt = AFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
         TestFileCreator.saveFile("same".getBytes(), same2txt);
         for (Integer i = 0; i < noOfSubdirs; i++) {

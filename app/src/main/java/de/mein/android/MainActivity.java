@@ -78,7 +78,7 @@ public class MainActivity extends MeinActivity {
     private boolean mBound = false;
     private GuiController guiController;
     private NavigationView navigationView;
-    private File driveDir;
+    private AFile driveDir;
     private ImageButton btnHelp;
 
     protected void startService() {
@@ -373,16 +373,15 @@ public class MainActivity extends MeinActivity {
                 permissionsGranted.done(nil -> Threadder.runNoTryThread(() -> {
                     BashTools.init();
                     Thread.sleep(1000);
-                    File download = new File(Environment.getExternalStorageDirectory(), "Download");
-                    driveDir = new File(download, "drive");
+                    AFile download = AFile.instance(AFile.instance(Environment.getExternalStorageDirectory()), "Download");
+                    driveDir = AFile.instance(download, "drive");
                     N.r(() -> CertificateManager.deleteDirectory(driveDir));
                     driveDir.mkdirs();
-                    driveDir.mkdir();
                     BashTools.mkdir(driveDir);
                     DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
                     //TestDirCreator.createTestDir(driveDir, " kek");
                     Promise<MeinDriveClientService, Exception, Void> serviceCreated = driveCreateController.createDriveClientService("drive.debug",
-                            driveDir.getAbsolutePath(),
+                            driveDir,
                             meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v(), DriveSettings.DEFAULT_WASTEBIN_RATIO, DriveSettings.DEFAULT_WASTEBIN_MAXDAYS);
                     serviceCreated.done(meinDriveClientService -> {
                                 N.r(() -> {

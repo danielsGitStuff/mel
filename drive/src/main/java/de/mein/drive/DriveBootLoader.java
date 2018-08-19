@@ -80,7 +80,7 @@ public class DriveBootLoader extends BootLoader {
      * @throws IllegalAccessException
      */
     public MeinDriveService boot(MeinAuthService meinAuthService, Service service, de.mein.drive.data.DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
-        AFile workingDirectory = AFile.instance(bootLoaderDir.getAbsolutePath() + AFile.separator() + service.getUuid().v());
+        AFile workingDirectory = AFile.instance(bootLoaderDir,service.getUuid().v());
         Long serviceTypeId = service.getTypeId().v();
         String uuid = service.getUuid().v();
         MeinDriveService meinDriveService = (driveSettings.isServer()) ?
