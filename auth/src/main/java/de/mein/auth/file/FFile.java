@@ -33,7 +33,7 @@ public class FFile extends AFile {
 
 
     @Override
-    protected AFile createSubFile(String name) {
+    protected AFile constructSubFile(String name) {
         return new FFile(file, name);
     }
 
@@ -79,13 +79,13 @@ public class FFile extends AFile {
 
     @Override
     public AFile[] listFiles() {
-        return N.arr.cast(file.listFiles(File::isFile), N.castor(FFile.class, FFile::new));
+        return N.arr.cast(file.listFiles(File::isFile), N.converter(FFile.class, FFile::new));
 
     }
 
     @Override
     public AFile[] listDirectories() {
-        return N.arr.cast(file.listFiles(File::isDirectory), N.castor(FFile.class, FFile::new));
+        return N.arr.cast(file.listFiles(File::isDirectory), N.converter(FFile.class, FFile::new));
 
     }
 
@@ -116,6 +116,11 @@ public class FFile extends AFile {
     }
 
     @Override
+    public String getSeparator() {
+        return File.separator;
+    }
+
+    @Override
     public Long getFreeSpace() {
         return file.getFreeSpace();
     }
@@ -137,6 +142,6 @@ public class FFile extends AFile {
 
     @Override
     public AFile[] listContent() {
-        return N.arr.cast(file.listFiles(), N.castor(FFile.class, FFile::new));
+        return N.arr.cast(file.listFiles(), N.converter(FFile.class, FFile::new));
     }
 }

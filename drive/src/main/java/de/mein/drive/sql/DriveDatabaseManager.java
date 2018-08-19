@@ -110,7 +110,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         this.driveSettings = DriveSettings.load(fsDao, driveSettingsFile, driveSettingsCfg).setRole(driveSettingsCfg.getRole()).setRootDirectory(driveSettingsCfg.getRootDirectory());
         this.driveSettings.getRootDirectory().backup();
         this.driveSettings.getRootDirectory().setOriginalFile(AFile.instance(this.driveSettings.getRootDirectory().getPath()));
-        this.driveSettings.setTransferDirectoryPath(driveSettingsCfg.getTransferDirectoryPath());
+        this.driveSettings.setTransferDirectory(AFile.instance(this.driveSettings.getRootDirectory().getOriginalFile(),DriveStrings.TRANSFER_DIR));
         this.driveSettings.setMaxWastebinSize(driveSettingsCfg.getMaxWastebinSize());
         this.driveSettings.setMaxAge(driveSettingsCfg.getMaxAge());
 

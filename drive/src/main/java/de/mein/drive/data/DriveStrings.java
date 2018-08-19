@@ -30,6 +30,7 @@ public abstract class DriveStrings {
     public static final String STAGESET_STATUS_STAGED = "staged";
     public static final String STAGESET_STATUS_SERVER_COMMITED = "server.com.done";
     public static final String STAGESET_STATUS_DELETE = "del";
+    public static final String TRANSFER_DIR = "ttransfer";
 
     public class Notifications {
         public static final String INTENTION_CONFLICT_DETECTED = "drive.conflict.detected";

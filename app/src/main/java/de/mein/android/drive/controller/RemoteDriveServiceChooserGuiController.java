@@ -51,7 +51,9 @@ import de.mein.android.Tools;
 import de.mein.android.controller.RemoteServiceChooserController;
 import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.tools.N;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -98,8 +100,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         btnPath.setOnClickListener(view -> {
             Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
             permissionsPromise.done(nil -> {
-
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                     i.addCategory(Intent.CATEGORY_DEFAULT);
                     activity.launchActivityForResult(Intent.createChooser(i, "Choose directory"), (resultCode, resultData) -> {
@@ -107,6 +108,8 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                         if (resultCode == Activity.RESULT_OK) {
                             // Get Uri from Storage Access Framework.
                             rootTreeUri = resultData.getData();
+                            setPath(rootTreeUri.toString());
+
 
                             // Persist URI in shared preference so that you can use it later.
                             // Use your own framework here instead of PreferenceUtil.
@@ -117,10 +120,38 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                             final int takeFlags = resultData.getFlags()
                                     & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                             activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
+//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                            DocumentFile root = DocumentFile.fromTreeUri(activity, rootTreeUri);
+                            String type = root.getType();
                             System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                            DocumentFile documentFile = DocumentFile.fromTreeUri(activity, rootTreeUri);
-                            DocumentFile[] content = documentFile.listFiles();
-                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+//                            AFile rootFile = AFile.instance(rootTreeUri.toString());
+//                            AFile music = AFile.instance(rootFile,"Music");
+//                            boolean exists = music.exists();
+//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+//                            AFile wrong = AFile.instance(rootFile,"doesnotexist");
+//                            boolean alsoexists = wrong.exists();
+//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+//
+//                            DocumentFile[] content = root.listFiles();
+//                            N.forEach(content, (stoppable, index, documentFile1) -> {
+//                                if (documentFile1.isDirectory()){
+//                                    N.forEach(documentFile1.listFiles(),(stoppable1, index1, documentFile2) -> {
+//                                        if (documentFile2.isDirectory())
+//                                            N.forEach(documentFile2.listFiles(),(stoppable2, index2, documentFile3) -> {
+//                                                Uri u = documentFile3.getUri();
+//                                                String path = u.getEncodedPath();
+//                                                String path2 = u.getPath();
+//                                                DocumentFile d1 = DocumentFile.fromSingleUri(activity, u);
+//                                                DocumentFile d2 = DocumentFile.fromTreeUri(activity, u);
+//                                                Uri u2 = Uri.withAppendedPath(u, documentFile1.getName());
+//                                                DocumentFile d3 = DocumentFile.fromTreeUri(activity, u2);
+//                                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded..." + path);
+//                                            });
+//                                    });
+//                                }
+//
+//                            });
+//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
                         }
                     });
                 } else {
@@ -310,9 +341,21 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     }
 
     public boolean isValid() {
-        File dir = new File(txtPath.getText().toString());
-        dir.mkdirs();
-        return dir.exists();
+        final String path = txtPath.getText().toString();
+        // check if file exists for SAF and the normal way
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            try {
+                DocumentFile documentFile = DocumentFile.fromTreeUri(activity, Uri.parse(path));
+                return documentFile.exists();
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            File dir = new File(path);
+            dir.mkdirs();
+            return dir.exists();
+        }
+
     }
 
     @Override

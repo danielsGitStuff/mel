@@ -3,6 +3,8 @@ package de.mein.drive.bash;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.FFile;
 import de.mein.auth.tools.N;
+import de.mein.drive.nio.DefaultFileConfiguration;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -26,7 +28,7 @@ public class BashToolsUnix implements BashToolsImpl {
 
 
     public static void main(String[] args) throws Exception {
-        AFile.setClass(FFile.class);
+        AFile.configure(new DefaultFileConfiguration());
         AFile f = AFile.instance("f");
         f.mkdirs();
         BashToolsUnix bashToolsUnix = new BashToolsUnix();

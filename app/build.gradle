@@ -78,12 +78,10 @@ task copyFiles(type: Copy) {
 preBuild.dependsOn(copyFiles)
 
 dependencies {
-//    compile 'org.greenrobot:eventbus:3.0.0'
-//    annotationProcessor 'org.greenrobot:eventbus-annotation-processor:3.0.1'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+//    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+//        exclude group: 'com.android.support', module: 'support-annotations'
+//    })
     implementation project(':json')
     implementation project(':serialize')
     implementation project(':sql')
@@ -92,25 +90,17 @@ dependencies {
     testImplementation project(':drive')
     implementation project(':contacts')
     implementation 'org.greenrobot:eventbus:3.0.0'
-    implementation 'com.gu:option:1.3'
-//    compile 'net.rdrei.android.dirchooser:library:1.0-pre-v11@aar'
+//    implementation 'com.gu:option:1.3'
     implementation 'net.rdrei.android.dirchooser:library:3.2@aar'
-
-    //    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    //compile 'com.android.support:multidex:0.0.+'
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:design:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
-//    compile 'com.annimon:stream:1.1.6'
     implementation 'com.android.support:support-v4:27.1.1'
+    androidTestImplementation 'com.android.support:support-annotations:27.1.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
     testImplementation 'junit:junit:4.12'
 
-//    //stream support
-//    compile 'net.sourceforge.streamsupport:streamsupport:1.5.5'
-//    compile 'net.sourceforge.streamsupport:streamsupport-cfuture:1.5.5'
-//    compile 'net.sourceforge.streamsupport:streamsupport-atomic:1.5.5'
-//    compile 'net.sourceforge.streamsupport:streamsupport-flow:1.5.5'
-//    compile 'net.sourceforge.streamsupport:streamsupport-literal:1.5.5'
 }
 
 repositories {

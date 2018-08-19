@@ -8,6 +8,7 @@ import java.util.*;
 
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.FFile;
+import de.mein.drive.nio.DefaultFileConfiguration;
 
 /**
  * Created by xor on 7/24/17.
@@ -43,7 +44,7 @@ public class BashToolsJava implements BashToolsImpl {
     //public static int depth = 0;
 
     public static void main(String[] args) throws Exception {
-        AFile.setClass(FFile.class);
+        AFile.configure(new DefaultFileConfiguration());
         AFile dir = AFile.instance("bash.test");
         AFile prune =AFile.instance(dir.getAbsolutePath() + File.separator + "prune");
         File file = new File(dir.getAbsolutePath() + File.separator + "file");

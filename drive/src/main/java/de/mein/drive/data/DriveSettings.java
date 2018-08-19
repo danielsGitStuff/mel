@@ -16,7 +16,6 @@ import java.io.IOException;
  */
 @SuppressWarnings("Duplicates")
 public class DriveSettings extends JsonSettings {
-    public static final String TRANSFER_DIR = "leTransfer";
     public static final float DEFAULT_WASTEBIN_RATIO = 0.1f;
     public static final int DEFAULT_WASTEBIN_MAXDAYS = 30;
     public static final int CACHE_LIST_SIZE = 2000;
@@ -28,6 +27,7 @@ public class DriveSettings extends JsonSettings {
     private String transferDirectoryPath;
     private Long maxWastebinSize;
     private Long maxAge = 30L;
+    private AFile transferDirectory;
 
     public static RootDirectory buildRootDirectory(String path) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
         RootDirectory rootDirectory = new RootDirectory().setPath(path);
@@ -102,8 +102,9 @@ public class DriveSettings extends JsonSettings {
         return this;
     }
 
-    public DriveSettings setTransferDirectoryPath(String transferDirectoryPath) {
-        this.transferDirectoryPath = transferDirectoryPath;
+    public DriveSettings setTransferDirectory(AFile transferDirectory) {
+        this.transferDirectory = transferDirectory;
+        this.transferDirectoryPath = transferDirectory.getAbsolutePath();
         return this;
     }
 

@@ -8,12 +8,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 
+import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsJava;
 import de.mein.drive.bash.BashToolsUnix;
 import de.mein.drive.bash.ModifiedAndInode;
+import de.mein.drive.nio.DefaultFileConfiguration;
 
 /**
  * Created by xor on 7/20/17.
@@ -34,11 +36,13 @@ public class BashToolsAndroid extends BashToolsUnix {
 
     private void testCommands() {
         // find
+        // in case find fails and we are on android 5+ we can use the storage access framework instead of the bash.
+        // but in case it works we will stick to that
         String cmd = "";
-        AFile cacheDir =AFile.instance(context.getCacheDir().getAbsolutePath());
-        AFile dir = AFile.instance(cacheDir + File.separator + "bash.test");
-        AFile prune = AFile.instance(dir.getAbsolutePath() + File.separator + "prune");
-        AFile file = AFile.instance(dir.getAbsolutePath() + File.separator + "file");
+        AFile cacheDir =AFile.instance(context.getCacheDir());
+        AFile dir = AFile.instance(cacheDir, "bash.test");
+        AFile prune = AFile.instance(dir, "prune");
+        AFile file = AFile.instance(dir,"file");
         try {
             dir.mkdirs();
             prune.mkdirs();
@@ -57,6 +61,12 @@ public class BashToolsAndroid extends BashToolsUnix {
         } catch (Exception e) {
             System.err.println(getClass().getSimpleName() + ".did not work as expected: " + cmd);
             System.err.println(getClass().getSimpleName() + ".using.fallback.for 'find'");
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+               findFallBack = new SAFBashTools(context);
+            } else {
+                findFallBack = javaBashTools;
+            }
             findFallBack = javaBashTools;
             e.printStackTrace();
         }

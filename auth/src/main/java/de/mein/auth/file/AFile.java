@@ -10,34 +10,50 @@ import java.io.IOException;
  * Think of this as an abstraction of {@link java.io.File}. It is necessary cause Android 7+ restricts access to external storages via {@link java.io.File}.
  */
 public abstract class AFile {
-    private static Class<? extends AFile> clazz;
-    private String path;
+    private static Configuration configuration;
 
-    public static void setClass(Class<? extends AFile> clazz) {
-        if (AFile.clazz == null)
-            AFile.clazz = clazz;
-        else
-            System.err.println("AFile implementation has already been set!");
+    public static Configuration getConfiguration() {
+        return configuration;
     }
 
-    public static AFile instance(String path) {
-        if (clazz == null)
-            System.err.println(AFile.class.getSimpleName() + ". NOT INITIALIZED! Call "+AFile.clazz.getSimpleName()+".setClass() before!");
-        try {
-            AFile file = clazz.newInstance();
-            file.setPath(path);
-            return file;
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
+    public static AFile instance(File file) {
+        return configuration.instance(file);
+    }
+
+    public abstract String getSeparator();
+
+    public abstract static class Configuration {
+        public abstract AFile instance(String path);
+
+        public abstract String separator();
+
+        public abstract AFile instance(File file);
+    }
+
+    private String path;
+
+    public static void configure(Configuration configuration) {
+        if (AFile.configuration != null) {
+            System.err.println("AFile implementation has already been set!");
+            return;
+        } else {
+            AFile.configuration = configuration;
         }
-        return null;
+    }
+
+
+    public static AFile instance(String path) {
+        if (configuration == null)
+            System.err.println(AFile.class.getSimpleName() + ". NOT INITIALIZED! Call configure() before!");
+        AFile file = configuration.instance(path);
+        return file;
     }
 
     public static AFile instance(AFile parent, String name) {
-        return parent.createSubFile(name);
+        return parent.constructSubFile(name);
     }
 
-    protected abstract AFile createSubFile(String name);
+    protected abstract AFile constructSubFile(String name);
 
     public String getPath() {
         return path;
@@ -82,7 +98,7 @@ public abstract class AFile {
     public abstract Long lastModified();
 
     public static String separator() {
-        return File.separator;
+        return configuration.separator();
     }
 
     public abstract boolean createNewFile() throws IOException;

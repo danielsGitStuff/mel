@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import de.mein.android.file.DFile;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.serialization.TestDirCreator;
@@ -25,7 +26,7 @@ import static org.junit.Assert.assertTrue;
  */
 
 public class BashTests {
-    File testDir = new File("testdir1");
+    DFile testDir = new DFile("testdir1");
     List<String> paths;
 
 //    @Before
@@ -37,7 +38,7 @@ public class BashTests {
 
     @Test
     public void bashFind() throws Exception {
-        Iterator<String> iterator = BashTools.find(testDir, new File("blaaaa"));
+        Iterator<String> iterator = BashTools.find(testDir, new DFile("blaaaa"));
         while (iterator.hasNext())
             System.out.println(iterator.next());
         System.out.println("BashCommandsTest.bashtest.end");
@@ -48,7 +49,7 @@ public class BashTests {
         //expect one result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new File("blaa"), 0L);
+        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), 0L);
         assertTrue(iterator.hasNext());
         iterator.next();
         assertFalse(iterator.hasNext());
@@ -60,7 +61,7 @@ public class BashTests {
         //expect no result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new File("blaa"), Long.MAX_VALUE);
+        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), Long.MAX_VALUE);
         assertFalse(iterator.hasNext());
         System.out.println("BashCommandsTest.bashtest.end");
     }
@@ -68,7 +69,7 @@ public class BashTests {
     @Test
     public void bashFindModifiedAfter3() throws Exception {
         // expect whole testdir
-        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new File("blaa"), 0L);
+        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), 0L);
         Iterator<String> expectedIterator = paths.iterator();
         while (iterator.hasNext()) {
             String path = iterator.next();
@@ -85,7 +86,7 @@ public class BashTests {
         testDir.mkdirs();
         Long t1 = testDir.lastModified();
         Thread.sleep(1);
-        File dir = new File(testDir.getAbsoluteFile() + File.separator + "ttttttt");
+        File dir = new File(testDir.getAbsolutePath() + File.separator + "ttttttt");
         dir.mkdirs();
         Long t2 = testDir.lastModified();
         System.out.println("before: " + t1);
@@ -99,7 +100,7 @@ public class BashTests {
         dir.mkdirs();
         Long t1 = dir.lastModified();
         Long tt1 = testDir.lastModified();
-        testDir.renameTo(new File(dir.getAbsolutePath() + File.separator + "movedTest"));
+        testDir.renameTo(new DFile(dir.getAbsolutePath() + File.separator + "movedTest"));
         Long t2 = dir.lastModified();
         Long tt2 = testDir.lastModified();
         System.out.println("upper dir before: " + t1);

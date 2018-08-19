@@ -42,7 +42,7 @@ public class Wastebin {
         this.driveSettings = meinDriveService.getDriveSettings();
         this.indexer = meinDriveService.getIndexer();
         this.wasteDao = driveDatabaseManager.getWasteDao();
-        this.wasteDir = AFile.instance(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN);
+        this.wasteDir = AFile.instance(driveSettings.getTransferDirectoryFile(), DriveStrings.WASTEBIN);
         this.deferredDir =AFile.instance(wasteDir, "deferred");
         wasteDir.mkdirs();
         deferredDir.mkdirs();

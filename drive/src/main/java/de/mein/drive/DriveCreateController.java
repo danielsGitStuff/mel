@@ -3,6 +3,7 @@ package de.mein.drive;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
@@ -15,7 +16,6 @@ import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.service.Wastebin;
 import de.mein.sql.SqlQueriesException;
 
 import org.jdeferred.Promise;
@@ -62,7 +62,7 @@ public class DriveCreateController {
         RootDirectory rootDirectory = DriveSettings.buildRootDirectory(path);
         Service service = createService(name);
         de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
-        driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + de.mein.drive.data.DriveSettings.TRANSFER_DIR);
+        driveSettings.setTransferDirectory(AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR));
         driveSettings.setMaxWastebinSize((long) (driveSettings.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         boot(service, driveSettings);
         MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
@@ -75,7 +75,7 @@ public class DriveCreateController {
         RootDirectory rootDirectory = DriveSettings.buildRootDirectory(path);
         Service service = createService(name);
         de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory);
-        driveSettings.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + de.mein.drive.data.DriveSettings.TRANSFER_DIR);
+        driveSettings.setTransferDirectory(AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR));
         driveSettings.setMaxWastebinSize((long) (driveSettings.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         boot(service, driveSettings);
         MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
@@ -92,7 +92,7 @@ public class DriveCreateController {
         RootDirectory rootDirectory = DriveSettings.buildRootDirectory(path);
         Service service = createService(name);
         de.mein.drive.data.DriveSettings driveSettingsCfg = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
-        driveSettingsCfg.setTransferDirectoryPath(rootDirectory.getPath() + File.separator + de.mein.drive.data.DriveSettings.TRANSFER_DIR);
+        driveSettingsCfg.setTransferDirectory(AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR));
         driveSettingsCfg.setMaxWastebinSize((long) (driveSettingsCfg.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         boot(service, driveSettingsCfg);
         MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinAuthService.getMeinService(service.getUuid().v());

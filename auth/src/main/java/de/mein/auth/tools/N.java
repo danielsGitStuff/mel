@@ -15,7 +15,7 @@ public class N {
         R cast(T element);
     }
 
-    private static class Castor<T, R> {
+    private static class Converter<T, R> {
         private Class<R> castClass;
         private CastMethod<T, R> castMethod;
 
@@ -23,7 +23,7 @@ public class N {
             return castClass;
         }
 
-        public Castor(Class<R> clazz, CastMethod<T, R> castMethod) {
+        public Converter(Class<R> clazz, CastMethod<T, R> castMethod) {
             this.castClass = clazz;
             this.castMethod = castMethod;
         }
@@ -33,9 +33,17 @@ public class N {
         }
     }
 
-    public static <T, R> Castor<T, R> castor(Class<R> clazz, CastMethod<T, R> method) {
-        Castor<T, R> castor = new Castor<>(clazz, method);
-        return castor;
+    /**
+     * Creates a {@link Converter} which handles your casting/conversion from S to R.
+     * @param clazz result class
+     * @param method put your lambda here
+     * @param <S> source type
+     * @param <R> result type
+     * @return
+     */
+    public static <S, R> Converter<S, R> converter(Class<R> clazz, CastMethod<S, R> method) {
+        Converter<S, R> converter = new Converter<>(clazz, method);
+        return converter;
     }
 
 
@@ -45,13 +53,13 @@ public class N {
     public static class arr {
 
 
-        public static <T, R> R[] cast(T[] source, Castor<T, R> castor) {
+        public static <T, R> R[] cast(T[] source, Converter<T, R> converter) {
             if (source == null)
                 return null;
-            R[] result = (R[]) Array.newInstance(castor.getCastClass(), source.length);
+            R[] result = (R[]) Array.newInstance(converter.getCastClass(), source.length);
             for (int i = 0; i < source.length; i++) {
                 if (source[i] != null)
-                    result[i] = castor.cast(source[i]);
+                    result[i] = converter.cast(source[i]);
             }
             return result;
         }

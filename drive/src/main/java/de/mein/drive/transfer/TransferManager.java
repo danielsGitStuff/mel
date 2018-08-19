@@ -10,9 +10,7 @@ import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.CountLock;
-import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
-import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;
@@ -78,7 +76,7 @@ public class TransferManager extends DeferredRunnable {
 
     @Override
     public void runImpl() {
-        String transferDirPath = meinDriveService.getDriveSettings().getRootDirectory().getPath() + File.separator + DriveSettings.TRANSFER_DIR;
+        String transferDirPath = meinDriveService.getDriveSettings().getRootDirectory().getPath() + File.separator + DriveStrings.TRANSFER_DIR;
         transferDir = new File(transferDirPath);
         transferDir.mkdirs();
         activeTransfers = new HashMap<>();

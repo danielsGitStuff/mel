@@ -130,7 +130,7 @@ public abstract class MeinActivity extends AppCompatActivity
     }
 
     public boolean hasPermissions(String... permissions) {
-        for (String permission : permissions){
+        for (String permission : permissions) {
             if (!hasPermission(permission))
                 return false;
         }
@@ -140,6 +140,7 @@ public abstract class MeinActivity extends AppCompatActivity
 
     /**
      * annoys the user one time with each given permission.
+     *
      * @param permissions
      * @return Promise that resolves when all permission have been granted or will reject with all denied permissions.
      */

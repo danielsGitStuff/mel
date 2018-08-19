@@ -42,6 +42,7 @@ import de.mein.android.controller.InfoController;
 import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.ConnectedController;
 import de.mein.android.controller.SettingsController;
+import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
@@ -63,7 +64,7 @@ import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
 import de.mein.auth.file.AFile;
-import de.mein.drive.nio.DFile;
+import de.mein.drive.nio.DefaultFileConfiguration;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.AccessController;
@@ -84,7 +85,7 @@ public class MainActivity extends MeinActivity {
             Intent intent = new Intent(getBaseContext(), AndroidService.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent);
-            }else {
+            } else {
                 startService(intent);
             }
 
@@ -108,7 +109,11 @@ public class MainActivity extends MeinActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Tools.setApplicationContext(getApplicationContext());
-        AFile.setClass(DFile.class);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            AFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
+        } else {
+            AFile.configure(new DefaultFileConfiguration());
+        }
         setContentView(R.layout.activity_main);
         content = findViewById(R.id.content);
         toolbar = findViewById(R.id.toolbar);
