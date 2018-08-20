@@ -1,8 +1,8 @@
 package de.mein.android.file;
 
 
-import android.content.ContentProvider;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
@@ -10,6 +10,7 @@ import android.support.v4.provider.DocumentFile;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.system.StructStatVfs;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,10 +18,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Stack;
 
 import de.mein.auth.file.AFile;
-import de.mein.auth.tools.N;
 
 /**
  * this maps {@link File} methods to androids storage access framework
@@ -28,30 +27,50 @@ import de.mein.auth.tools.N;
 public class DFile extends AFile {
 
 
-    private DFile parent;
     // this is only created if needed!
     private DocumentFile documentFile;
+    // this only exists if it already exists on the file system
     private Uri uri;
+    // this is used for the stuff in the private folder only
     private boolean rawFile;
+    // this is required to create the uri if necessary
     private String name;
+    // this is required except this is the root element
+    private DFile parent;
+
+
+    /**
+     * use this if this instance should behave like a root directory. eg. all operations you want to do in the future happen inside this directory.
+     *
+     * @param documentFile
+     */
+    public DFile(DocumentFile documentFile) {
+        this.name = documentFile.getName();
+        this.uri = documentFile.getUri();
+        this.rawFile = false;
+    }
 
     /**
      * deprecation:
      * cannot ensure we get the right {@link DocumentFile}.
      * It delivers the root element only.
      * obviously we cannot extract the name from there.
+     *
      * @param path
      */
     @Deprecated
     public DFile(String path) {
-        Context context = getContext();
-//        try {
         uri = Uri.parse(path);
         if (uri.getAuthority() == null) {
             DocumentFile documentFile = DocumentFile.fromFile(new File(path));
             this.name = documentFile.getName();
+            this.uri = Uri.parse(uri.getEncodedPath());
             rawFile = true;
         } else {
+            System.err.println("DFile.DFile(path): you fed a path that seems to be a URI. URIs are unsafe on android.");
+            System.err.println("DFile.DFile(path): the received DocumentFiles probably do not match the URIs");
+            System.err.println("DFile.DFile(path): please use DFile.DFile(parent,name) instead!");
+            System.err.println("DFile.DFile(path): the fed path was: " + path);
             rawFile = false;
             if (DocumentsContract.isTreeUri(uri)) {
                 documentFile = DocumentFile.fromTreeUri(getContext(), uri);
@@ -60,67 +79,56 @@ public class DFile extends AFile {
             }
             this.name = documentFile.getName();
         }
-//        } catch (Exception e) {
-//            DocumentFile documentFile = DocumentFile.fromFile(new File(path));
-//            this.uri = documentFile.getUri();
-//            this.name = documentFile.getName();
-//            rawFile = true;
-//        }
+    }
+
+
+    public DFile(DFile parent, String name) {
+        this.name = name;
+        this.parent = parent;
+        this.rawFile = parent.rawFile;
+        if (this.rawFile) {
+            this.uri = Uri.parse(parent.uri + File.separator + name);
+        }
+        readDocumentUri();
     }
 
     public DFile(File file) {
-        this.uri = DocumentFile.fromFile(file).getUri();
+        DocumentFile documentFile = DocumentFile.fromFile(file);
+        uri = Uri.parse(documentFile.getUri().getEncodedPath());
+        name = file.getName();
         rawFile = true;
     }
 
-    public DFile(DocumentFile documentFile) {
-        this.documentFile = documentFile;
-        rawFile = false;
-        if (documentFile.getName() != null)
-            name = documentFile.getName();
-        uri = documentFile.getUri();
-    }
-
-    public DFile(DFile parent, DocumentFile documentFile) {
-        this(documentFile);
-        this.parent = parent;
-    }
-
-    public DFile(DFile parent, String name) {
-        this.uri = Uri.parse(parent.getAbsolutePath() + parent.getSeparator() + name);
-        this.name = name;
-        this.parent = parent;
-    }
-
-    @Override
-    protected AFile constructSubFile(String name) {
-        if (rawFile) {
-            DFile dFile = new DFile(uri.getEncodedPath() + getSeparator() + name);
-            dFile.parent = this;
-            return dFile;
-        } else {
-            String str = uri.toString();
-            Uri append;
-            if (str.endsWith("%3A"))
-                append = Uri.parse(uri.toString() + name);
-            else
-                append = Uri.parse(uri.toString() + AFile.separator() + name);
-            DocumentFile sub = DocumentFile.fromSingleUri(getContext(), append);
-//            try {
-//                Uri u = DocumentsContract.createDocument(getContext().getContentResolver(), documentFile.getUri(), null, name);
-//                return new DFile(DocumentFile.fromSingleUri(getContext(), u));
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            }
-//            DocumentFile sub2 = DocumentFile.fromSingleUri(getContext(),append);
-//            String a = sub.getUri().getEncodedPath();
-            return new DFile(this, name);
+    private void readDocumentUri() {
+        if (parent != null && parent.uri != null && !rawFile) {
+            boolean parentTree = DocumentsContract.isTreeUri(parent.uri);
+            Uri childrenUri;//= DocumentsContract.buildChildDocumentsUriUsingTree(parent.uri, DocumentsContract.getTreeDocumentId(parent.uri));
+            try {
+                //for childs and sub child dirs
+                childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parent.uri, DocumentsContract.getDocumentId(parent.uri));
+            } catch (Exception e) {
+                // for parent dir
+                childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parent.uri, DocumentsContract.getTreeDocumentId(parent.uri));
+            }
+            Cursor c = getContext().getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE}
+                    , DocumentsContract.Document.COLUMN_DISPLAY_NAME + " = ?", new String[]{name}, null);
+            try {
+                uri = null;
+                while (c.moveToNext()) {
+                    final String docId = c.getString(0);
+                    final String name = c.getString(1);
+                    final String mime = c.getString(2);
+                    uri = DocumentsContract.buildDocumentUriUsingTree(childrenUri, docId);
+                }
+            } finally {
+                c.close();
+            }
         }
     }
 
     @Override
     public String getName() {
-        return null;
+        return name;
     }
 
     @Override
@@ -146,8 +154,13 @@ public class DFile extends AFile {
 
     @Override
     public boolean exists() {
-        spawnDoc();
-        return documentFile.exists();
+        if (rawFile) {
+            return new File(uri.getEncodedPath()).exists();
+        } else if (uri != null) {
+            DocumentFile documentFile = DocumentFile.fromTreeUri(getContext(), uri);
+            return documentFile.exists();
+        }
+        return false;
     }
 
     @Override
@@ -212,23 +225,27 @@ public class DFile extends AFile {
         if (rawFile) {
             return new File(uri.getEncodedPath()).mkdirs();
         } else {
-            spawnDoc();
-            if (documentFile.exists())
+            if (documentFile != null && documentFile.exists())
                 return false;
             if (parent != null) {
                 if (!parent.exists())
                     parent.mkdirs();
             }
-            try {
-                DocumentFile parentDoc = DocumentFile.fromTreeUri(getContext(), parent.uri);
-                documentFile = parentDoc.createDirectory(name);
-                this.uri = documentFile.getUri();
-//                Uri created = DocumentsContract.createDocument(getContext().getContentResolver(), parent.uri, null, name);
-//                this.uri = created;
-                return true;
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (uri == null)
+                readDocumentUri();
+            if (uri != null) {
+                DocumentFile documentFile = DocumentFile.fromTreeUri(getContext(), uri);
+                if (documentFile.exists())
+                    return false;
             }
+//            DocumentFile parentDoc;
+//            if (DocumentsContract.isTreeUri(parent.uri)) {
+//                parentDoc = DocumentFile.fromTreeUri(getContext(), parent.uri);
+//            } else {
+//                parentDoc = DocumentFile.fromSingleUri(getContext(), parent.uri);
+//            }
+//            DocumentFile ins = parentDoc.createDirectory(name);
+//            uri = ins.getUri();
             return true;
         }
     }

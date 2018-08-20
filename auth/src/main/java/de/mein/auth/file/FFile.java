@@ -14,6 +14,10 @@ public class FFile extends AFile {
 
     }
 
+    public FFile(FFile parent, String name) {
+        file = new File(parent.file, name);
+    }
+
     @Override
     public String toString() {
         return file.toString();
@@ -31,11 +35,6 @@ public class FFile extends AFile {
         this(new File(path));
     }
 
-
-    @Override
-    protected AFile constructSubFile(String name) {
-        return new FFile(file, name);
-    }
 
     @Override
     public void setPath(String path) {

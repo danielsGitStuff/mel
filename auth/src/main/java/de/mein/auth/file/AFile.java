@@ -28,6 +28,8 @@ public abstract class AFile {
         public abstract String separator();
 
         public abstract AFile instance(File file);
+
+        public abstract AFile instance(AFile parent, String name);
     }
 
     private String path;
@@ -57,10 +59,9 @@ public abstract class AFile {
     }
 
     public static AFile instance(AFile parent, String name) {
-        return parent.constructSubFile(name);
+        return configuration.instance(parent,name);
     }
 
-    protected abstract AFile constructSubFile(String name);
 
     public String getPath() {
         return path;

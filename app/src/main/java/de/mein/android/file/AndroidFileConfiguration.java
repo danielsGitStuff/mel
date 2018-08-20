@@ -28,6 +28,16 @@ public class AndroidFileConfiguration extends AFile.Configuration {
         return new DFile(file);
     }
 
+
+    @Override
+    public AFile instance(AFile parent, String name) {
+        if (parent instanceof DFile)
+            return new DFile((DFile) parent, name);
+        else
+            System.err.println(getClass().getSimpleName() + "instance(AFile parent, String name), got a '" + parent.getClass().getSimpleName() + "' as parent.");
+        return null;
+    }
+
     public Context getContext() {
         return context;
     }
