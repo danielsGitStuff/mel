@@ -3,6 +3,8 @@ package de.mein.android.file;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.media.MediaDescription;
+import android.media.MediaFormat;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
@@ -11,6 +13,7 @@ import android.system.ErrnoException;
 import android.system.Os;
 import android.system.StructStatVfs;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,6 +68,7 @@ public class DFile extends AFile {
             DocumentFile documentFile = DocumentFile.fromFile(new File(path));
             this.name = documentFile.getName();
             this.uri = Uri.parse(uri.getEncodedPath());
+            String mime = documentFile.getType();
             rawFile = true;
         } else {
             System.err.println("DFile.DFile(path): you fed a path that seems to be a URI. URIs are unsafe on android.");
@@ -99,17 +103,22 @@ public class DFile extends AFile {
         rawFile = true;
     }
 
+    private Uri buildChildrenUri(Uri uri) {
+        Uri childrenUri;//= DocumentsContract.buildChildDocumentsUriUsingTree(parent.uri, DocumentsContract.getTreeDocumentId(parent.uri));
+        try {
+            //for childs and sub child dirs
+            childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, DocumentsContract.getDocumentId(uri));
+        } catch (Exception e) {
+            // for parent dir
+            childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
+        }
+        return childrenUri;
+    }
+
     private void readDocumentUri() {
         if (parent != null && parent.uri != null && !rawFile) {
             boolean parentTree = DocumentsContract.isTreeUri(parent.uri);
-            Uri childrenUri;//= DocumentsContract.buildChildDocumentsUriUsingTree(parent.uri, DocumentsContract.getTreeDocumentId(parent.uri));
-            try {
-                //for childs and sub child dirs
-                childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parent.uri, DocumentsContract.getDocumentId(parent.uri));
-            } catch (Exception e) {
-                // for parent dir
-                childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parent.uri, DocumentsContract.getTreeDocumentId(parent.uri));
-            }
+            Uri childrenUri = buildChildrenUri(parent.uri);
             Cursor c = getContext().getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE}
                     , DocumentsContract.Document.COLUMN_DISPLAY_NAME + " = ?", new String[]{name}, null);
             try {
@@ -235,8 +244,14 @@ public class DFile extends AFile {
                 readDocumentUri();
             if (uri != null) {
                 DocumentFile documentFile = DocumentFile.fromTreeUri(getContext(), uri);
+                String mime = documentFile.getType();
                 if (documentFile.exists())
                     return false;
+            }
+            try {
+               uri = DocumentsContract.createDocument(getContext().getContentResolver(),parent.uri, DocumentsContract.Document.MIME_TYPE_DIR,name);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
             }
 //            DocumentFile parentDoc;
 //            if (DocumentsContract.isTreeUri(parent.uri)) {
@@ -244,6 +259,7 @@ public class DFile extends AFile {
 //            } else {
 //                parentDoc = DocumentFile.fromSingleUri(getContext(), parent.uri);
 //            }
+//            String mime2 = parentDoc.getType();
 //            DocumentFile ins = parentDoc.createDirectory(name);
 //            uri = ins.getUri();
             return true;

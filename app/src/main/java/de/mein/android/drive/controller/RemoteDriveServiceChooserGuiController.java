@@ -128,6 +128,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                             List<UriPermission> uris = activity.getContentResolver().getPersistedUriPermissions();
 //                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
                             rootFile = DocumentFile.fromTreeUri(activity, rootTreeUri);
+                            String mime = rootFile.getType();
                             System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
 //                            AFile rootFile = AFile.instance(rootTreeUri.toString());
 //                            AFile music = AFile.instance(rootFile,"Music");
