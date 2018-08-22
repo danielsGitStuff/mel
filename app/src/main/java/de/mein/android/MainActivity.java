@@ -32,7 +32,6 @@ import android.widget.TextView;
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +64,7 @@ import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
 import de.mein.auth.file.AFile;
-import de.mein.drive.nio.DefaultFileConfiguration;
+import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.android.controller.CreateServiceController;
 import de.mein.android.controller.AccessController;

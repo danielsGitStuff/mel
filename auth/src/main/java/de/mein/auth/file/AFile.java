@@ -8,6 +8,8 @@ import java.io.IOException;
 
 /**
  * Think of this as an abstraction of {@link java.io.File}. It is necessary cause Android 7+ restricts access to external storages via {@link java.io.File}.
+ * Before using {@link AFile}, call configure() and hand over a {@link Configuration}. This determines the implementation you want to use.
+ * {@link DefaultFileConfiguration} uses {@link FFile} which wraps {@link File}.
  */
 public abstract class AFile {
     private static Configuration configuration;
@@ -22,6 +24,9 @@ public abstract class AFile {
 
     public abstract String getSeparator();
 
+    /**
+     * creates common instances of {@link AFile}s
+     */
     public abstract static class Configuration {
         public abstract AFile instance(String path);
 

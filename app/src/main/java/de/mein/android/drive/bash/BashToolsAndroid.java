@@ -3,19 +3,16 @@ package de.mein.android.drive.bash;
 import android.content.Context;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 
-import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsJava;
 import de.mein.drive.bash.BashToolsUnix;
 import de.mein.drive.bash.ModifiedAndInode;
-import de.mein.drive.nio.DefaultFileConfiguration;
 
 /**
  * Created by xor on 7/20/17.

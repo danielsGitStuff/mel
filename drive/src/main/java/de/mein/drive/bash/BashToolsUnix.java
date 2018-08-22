@@ -1,15 +1,13 @@
 package de.mein.drive.bash;
 
 import de.mein.auth.file.AFile;
-import de.mein.auth.file.FFile;
 import de.mein.auth.tools.N;
-import de.mein.drive.nio.DefaultFileConfiguration;
+import de.mein.auth.file.DefaultFileConfiguration;
 
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;

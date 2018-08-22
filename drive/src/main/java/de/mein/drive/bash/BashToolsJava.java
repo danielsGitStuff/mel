@@ -7,8 +7,7 @@ import java.io.IOException;
 import java.util.*;
 
 import de.mein.auth.file.AFile;
-import de.mein.auth.file.FFile;
-import de.mein.drive.nio.DefaultFileConfiguration;
+import de.mein.auth.file.DefaultFileConfiguration;
 
 /**
  * Created by xor on 7/24/17.
