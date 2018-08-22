@@ -4,7 +4,6 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
-import de.mein.auth.service.power.PowerManager;
 
 import java.io.File;
 import java.security.SecureRandom;
@@ -16,7 +15,8 @@ public class MeinAuthSettings extends JsonSettings {
     public static final File DEFAULT_FILE = new File("meinauthsettings.json");
     public static final int BROTCAST_PORT = 9966;
     private int deliveryPort, port;
-    private String workingDirectory, name;
+    private String workingdirectoryPath, name;
+    private AFile workingDirectory;
     private String greeting;
     private Integer brotcastListenerPort;
     private Integer brotcastPort;
@@ -32,7 +32,7 @@ public class MeinAuthSettings extends JsonSettings {
                 .setName("meinauth")
                 .setBrotcastListenerPort(BROTCAST_PORT)
                 .setBrotcastPort(BROTCAST_PORT)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1)
+                .setWorkingDirectory(AFile.instance(MeinBoot.defaultWorkingDir1))
                 .setGreeting(generateGreeting())
                 .setJsonFile(new File("meinAuth.settings.json"));
         return meinAuthSettings;
@@ -140,11 +140,12 @@ public class MeinAuthSettings extends JsonSettings {
     }
 
     public AFile getWorkingDirectory() {
-        return AFile.instance(workingDirectory);
+        return workingDirectory;
     }
 
-    public MeinAuthSettings setWorkingDirectory(File workingDirectory) {
-        this.workingDirectory = workingDirectory.getAbsolutePath();
+    public MeinAuthSettings setWorkingDirectory(AFile workingDirectory) {
+        this.workingDirectory = workingDirectory;
+        this.workingdirectoryPath = workingDirectory.getAbsolutePath();
         File jsonFile = new File(workingDirectory.getAbsolutePath() + File.separator + DEFAULT_FILE);
         this.setJsonFile(jsonFile);
         return this;

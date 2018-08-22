@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.URI;
 
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.N;
 
 /**
  * this maps {@link File} methods to androids storage access framework
@@ -63,6 +64,8 @@ public class DFile extends AFile {
      */
     @Deprecated
     public DFile(String path) {
+        if (path.equals("content://com.android.externalstorage.documents/tree/1A16-1611%3Athisisexternal/document/1A16-1611%3Athisisexternal%2Fttransfer"))
+            System.out.println("DFile.DFile.debug");
         uri = Uri.parse(path);
         if (uri.getAuthority() == null) {
             DocumentFile documentFile = DocumentFile.fromFile(new File(path));
@@ -184,7 +187,7 @@ public class DFile extends AFile {
     @Override
     public boolean renameTo(AFile target) {
         spawnDoc();
-        return documentFile.renameTo("KKKKKK");
+        return documentFile.renameTo(target.getName());
     }
 
     @Override
@@ -211,22 +214,47 @@ public class DFile extends AFile {
 
     @Override
     public AFile[] listFiles() {
-        return new AFile[0];
+        Uri childrenUri = buildChildrenUri(uri);
+        Cursor cursor = getContext().getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME}, DocumentsContract.Document.COLUMN_MIME_TYPE + " != ?", new String[]{DocumentsContract.Document.MIME_TYPE_DIR}, null);
+        AFile[] result = new AFile[cursor.getCount()];
+        int index = 0;
+        while (cursor.moveToNext()) {
+            String name = cursor.getString(0);
+            DFile file = new DFile(this,name);
+            result[index] = file;
+            index++;
+        }
+        return result;
     }
 
     @Override
     public AFile[] listDirectories() {
-        return new AFile[0];
+        Uri childrenUri = buildChildrenUri(uri);
+        Cursor cursor = getContext().getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME}, DocumentsContract.Document.COLUMN_MIME_TYPE + " = ?", new String[]{DocumentsContract.Document.MIME_TYPE_DIR}, null);
+        AFile[] result = new AFile[cursor.getCount()];
+        int index = 0;
+        while (cursor.moveToNext()) {
+            String name = cursor.getString(0);
+            DFile dir = new DFile(this,name);
+            result[index] = dir;
+            index++;
+        }
+        return result;
     }
 
     @Override
     public boolean delete() {
+        try {
+            return DocumentsContract.deleteDocument(getContext().getContentResolver(), uri);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
     @Override
     public AFile getParentFile() {
-        return null;
+        return parent;
     }
 
     @Override
@@ -249,7 +277,7 @@ public class DFile extends AFile {
                     return false;
             }
             try {
-               uri = DocumentsContract.createDocument(getContext().getContentResolver(),parent.uri, DocumentsContract.Document.MIME_TYPE_DIR,name);
+                uri = DocumentsContract.createDocument(getContext().getContentResolver(), parent.uri, DocumentsContract.Document.MIME_TYPE_DIR, name);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -340,7 +368,17 @@ public class DFile extends AFile {
 
     @Override
     public AFile[] listContent() {
-        return new AFile[0];
+        Uri childrenUri = buildChildrenUri(uri);
+        Cursor cursor = getContext().getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME}, null, null, null);
+        AFile[] result = new AFile[cursor.getCount()];
+        int index = 0;
+        while (cursor.moveToNext()) {
+            String name = cursor.getString(0);
+            DFile elem = new DFile(this,name);
+            result[index] = elem;
+            index++;
+        }
+        return result;
     }
 
     public void setUri(Uri uri) {

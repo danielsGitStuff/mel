@@ -1,6 +1,7 @@
 package de.mein;
 
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.sql.Pair;
 
@@ -68,7 +69,7 @@ public class KonsoleHandler {
 		String value = args[position++];
 		assert key != null && value != null;
 		if (key.equals(workingDirectory.k()))
-			meinAuthSettings.setWorkingDirectory(new File(value));
+			meinAuthSettings.setWorkingDirectory(AFile.instance(value));
 		else if (key.equals(port.k()))
 			meinAuthSettings.setPort(Integer.parseInt(value));
 		else if (key.equals(deliveryPort.k()))
