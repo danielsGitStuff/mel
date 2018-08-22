@@ -20,7 +20,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
 
     IndexWatchdogListenerUnix2(MeinDriveService meinDriveService, WatchService watchService) {
         super(meinDriveService, "IndexWatchdogListenerUnix", watchService);
-        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(), AFile.instance(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
+        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(), AFile.instance(meinDriveService.getDriveSettings().getTransferDirectory().getAbsolutePath()));
     }
 
     @Override

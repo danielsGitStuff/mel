@@ -140,8 +140,8 @@ public class Wastebin {
      */
     public AFile moveToBin(Waste waste, AFile file) throws SqlQueriesException {
         try {
-            AFile target = AFile.instance(driveSettings.getTransferDirectoryPath() + File.separator + DriveStrings.WASTEBIN + File.separator + waste.getHash().v() + "." + waste.getId().v());
-            file.renameTo(target);
+            AFile target = AFile.instance(wasteDir,waste.getHash().v() + "." + waste.getId().v());
+            file.move(target);
             waste.getInplace().v(true);
             wasteDao.update(waste);
             return target;
@@ -306,7 +306,7 @@ public class Wastebin {
     public void deleteUnknown(AFile file) throws IOException, SqlQueriesException, InterruptedException {
         ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
         AFile target = AFile.instance(deferredDir, modifiedAndInode.getiNode().toString());
-        file.renameTo(target);
+        file.move(target);
 
         //if dir?!?!
         if (target.isDirectory()) {

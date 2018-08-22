@@ -23,8 +23,8 @@ public class UnixReferenceFileHandler {
         this.directoryToQuery = directoryToQuery;
         this.pruneDir = pruneDir;
         this.workingDirectory = workingDirectory;
-        timeReferenceFile1 = AFile.instance(workingDirectory.getAbsolutePath() + AFile.separator() + "time1");
-        timeReferenceFile2 = AFile.instance(workingDirectory.getAbsolutePath() + AFile.separator() + "time2");
+        timeReferenceFile1 = AFile.instance(workingDirectory ,"time1");
+        timeReferenceFile2 = AFile.instance(workingDirectory, "time2");
     }
 
     public void onStart() {

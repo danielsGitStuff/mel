@@ -44,12 +44,9 @@ public class DriveSettings extends JsonSettings {
         return new DriveDetails().setLastSyncVersion(lastSyncedVersion).setRole(role);
     }
 
-    public String getTransferDirectoryPath() {
-        return transferDirectoryPath;
-    }
 
     public AFile getTransferDirectoryFile() {
-        return AFile.instance(transferDirectoryPath);
+        return transferDirectory;
     }
 
     public Long getMaxWastebinSize() {
@@ -130,10 +127,14 @@ public class DriveSettings extends JsonSettings {
             driveSettings.setJsonFile(jsonFile);
         }
         if (driveSettings.getRootDirectory() == null && driveSettingsCfg != null) {
-            driveSettings.setRootDirectory(new RootDirectory().setPath(driveSettingsCfg.getRootDirectory().getPath()).backup());
+//            driveSettings.setRootDirectory(new RootDirectory().setPath(driveSettingsCfg.getRootDirectory().getPath()).backup());
+            RootDirectory rootDirectory = new RootDirectory();
+            rootDirectory.setOriginalFile(driveSettingsCfg.getRootDirectory().getOriginalFile());
+            rootDirectory.backup();
+            driveSettings.setRootDirectory(rootDirectory);
         }
         driveSettings.getRootDirectory().backup();
-        driveSettings.getRootDirectory().setOriginalFile(AFile.instance(driveSettings.getRootDirectory().getPath()));
+//        driveSettings.getRootDirectory().setOriginalFile(AFile.instance(driveSettings.getRootDirectory().getOriginalFile()));
         driveSettings.save();
         return driveSettings;
     }

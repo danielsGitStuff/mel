@@ -31,4 +31,9 @@ public class DefaultFileConfiguration extends AFile.Configuration {
             return null;
         }
     }
+
+    @Override
+    public AFile instance(AFile originalFile) {
+        return new FFile((FFile) originalFile);
+    }
 }

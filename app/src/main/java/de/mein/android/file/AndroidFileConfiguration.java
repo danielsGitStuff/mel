@@ -38,6 +38,12 @@ public class AndroidFileConfiguration extends AFile.Configuration {
         return null;
     }
 
+    @Override
+    public AFile instance(AFile originalFile) {
+        return new DFile((DFile) originalFile);
+
+    }
+
     public Context getContext() {
         return context;
     }

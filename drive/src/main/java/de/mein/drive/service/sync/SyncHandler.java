@@ -96,7 +96,7 @@ public abstract class SyncHandler {
             fsTarget.getModified().v(modifiedAndInode.getModified());
             fsTarget.getSize().v(source.length());
             fsTarget.getSynced().v(true);
-            boolean moved = source.renameTo(target);
+            boolean moved = source.move(target);
             if (!moved || !target.exists())
                 return null;
             fsDao.update(fsTarget);
@@ -140,7 +140,7 @@ public abstract class SyncHandler {
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             if (fsFiles.size() > 0) {
                 //TODO check if file is in transfer dir, then move, else copy
-                if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectoryPath())) {
+                if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getRootDirectory().getPath())) {
                     FsFile fsFile = fsFiles.get(0);
                     file = moveFile(file, fsFile);
                     //todo debug

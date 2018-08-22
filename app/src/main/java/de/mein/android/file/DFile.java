@@ -54,6 +54,27 @@ public class DFile extends AFile {
         this.rawFile = false;
     }
 
+    public DFile(DFile originalFile) {
+        if (originalFile == null) {
+            System.out.println("DFile.DFile");
+        }
+        this.name = originalFile.name;
+        this.uri = originalFile.uri;
+        if (originalFile.parent != null)
+            this.parent = new DFile(originalFile.parent);
+        this.rawFile = originalFile.rawFile;
+        this.documentFile = originalFile.documentFile;
+    }
+
+    @Override
+    public String toString() {
+        if (uri != null)
+            return uri.toString();
+        else if (parent != null && name != null)
+            return parent.toString() + parent.getSeparator() + name;
+        return "none";
+    }
+
     /**
      * deprecation:
      * cannot ensure we get the right {@link DocumentFile}.
@@ -185,7 +206,7 @@ public class DFile extends AFile {
     }
 
     @Override
-    public boolean renameTo(AFile target) {
+    public boolean move(AFile target) {
         spawnDoc();
         return documentFile.renameTo(target.getName());
     }
@@ -220,7 +241,7 @@ public class DFile extends AFile {
         int index = 0;
         while (cursor.moveToNext()) {
             String name = cursor.getString(0);
-            DFile file = new DFile(this,name);
+            DFile file = new DFile(this, name);
             result[index] = file;
             index++;
         }
@@ -235,7 +256,7 @@ public class DFile extends AFile {
         int index = 0;
         while (cursor.moveToNext()) {
             String name = cursor.getString(0);
-            DFile dir = new DFile(this,name);
+            DFile dir = new DFile(this, name);
             result[index] = dir;
             index++;
         }
@@ -374,7 +395,7 @@ public class DFile extends AFile {
         int index = 0;
         while (cursor.moveToNext()) {
             String name = cursor.getString(0);
-            DFile elem = new DFile(this,name);
+            DFile elem = new DFile(this, name);
             result[index] = elem;
             index++;
         }

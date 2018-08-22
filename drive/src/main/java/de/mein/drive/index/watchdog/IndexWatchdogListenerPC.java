@@ -29,7 +29,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
         this.name = name;
         this.watchService = watchService;
         this.setStageIndexer(meinDriveService.getStageIndexer());
-        this.transferDirectoryPath = meinDriveService.getDriveSettings().getTransferDirectoryPath();
+        this.transferDirectoryPath = meinDriveService.getDriveSettings().getTransferDirectory().getAbsolutePath();
     }
 
     protected void analyze(WatchEvent<?> event, AFile file) {

@@ -66,19 +66,19 @@ public class IndexerRunnable extends AbstractIndexer {
             FsDirectory fsRoot; //= databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
             if (rootDirectory.getId() == null) {
                 fsRoot = (FsDirectory) new FsDirectory().setName("[root]").setVersion(0L);
-                fsRoot.setOriginalFile(AFile.instance(rootDirectory.getPath()));
+                fsRoot.setOriginalFile(AFile.instance(rootDirectory.getOriginalFile()));
                 fsRoot = (FsDirectory) databaseManager.getFsDao().insert(fsRoot);
                 databaseManager.getDriveSettings().getRootDirectory().setId(fsRoot.getId().v());
             } else {
                 fsRoot = databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
                 if (fsRoot.getOriginal() == null) {
-                    fsRoot.setOriginalFile(AFile.instance(rootDirectory.getPath()));
+                    fsRoot.setOriginalFile(AFile.instance(rootDirectory.getOriginalFile()));
                 }
             }
             indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
             try {
                 fsDao.lockRead();
-                Iterator<String> found = BashTools.find(rootDirectory.getOriginalFile(), AFile.instance(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectoryPath()));
+                Iterator<String> found = BashTools.find(rootDirectory.getOriginalFile(), AFile.instance(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory().getAbsolutePath()));
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
                 examineStage();
                 fastBooting = false;

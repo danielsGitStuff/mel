@@ -267,7 +267,6 @@ public class TransferManager extends DeferredRunnable {
             @Override
             public void run() {
                 try {
-                    final String workingPath = meinDriveService.getDriveSettings().getTransferDirectoryPath() + File.separator;
                     List<TransferDetails> transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
                     meinAuthService.getPowerManager().wakeLock(this);
                     while (transfers.size() > 0) {
@@ -276,7 +275,7 @@ public class TransferManager extends DeferredRunnable {
                         for (TransferDetails transferDetails : transfers) {
                             transferDao.setStarted(transferDetails.getId().v(), true);
                             transferDetails.getStarted().v(true);
-                            AFile target = AFile.instance(workingPath + transferDetails.getHash().v());
+                            AFile target = AFile.instance(meinDriveService.getDriveSettings().getTransferDirectory(), transferDetails.getHash().v());
                             FileTransferDetail fileTransferDetail = new FileTransferDetail(target, new Random().nextInt(), 0L, transferDetails.getSize().v())
                                     .setHash(transferDetails.getHash().v())
                                     .setTransferDoneListener(fileTransferDetail1 -> N.r(() -> {

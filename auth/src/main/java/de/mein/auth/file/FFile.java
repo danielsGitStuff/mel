@@ -18,6 +18,10 @@ public class FFile extends AFile {
         file = new File(parent.file, name);
     }
 
+    public FFile(FFile originalFile) {
+        this.file = new File(originalFile.file.getAbsolutePath());
+    }
+
     @Override
     public String toString() {
         return file.toString();
@@ -62,7 +66,7 @@ public class FFile extends AFile {
     }
 
     @Override
-    public boolean renameTo(AFile target) {
+    public boolean move(AFile target) {
         return file.renameTo(new File(target.getAbsolutePath()));
     }
 

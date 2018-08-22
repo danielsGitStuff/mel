@@ -41,7 +41,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         this.setStageIndexer(meinDriveService.getStageIndexer());
         this.transferDirectory = meinDriveService.getDriveSettings().getTransferDirectoryFile();
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
-        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), target, AFile.instance(meinDriveService.getDriveSettings().getTransferDirectoryPath()));
+        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), target, meinDriveService.getDriveSettings().getTransferDirectory());
         unixReferenceFileHandler.onStart();
     }
 

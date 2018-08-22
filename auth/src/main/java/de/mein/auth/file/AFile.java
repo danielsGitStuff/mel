@@ -24,6 +24,11 @@ public abstract class AFile {
 
     public abstract String getSeparator();
 
+    public static AFile instance(AFile originalFile) {
+        return configuration.instance(originalFile);
+    }
+
+
     /**
      * creates common instances of {@link AFile}s
      */
@@ -35,6 +40,8 @@ public abstract class AFile {
         public abstract AFile instance(File file);
 
         public abstract AFile instance(AFile parent, String name);
+
+        public abstract AFile instance(AFile originalFile);
     }
 
     private String path;
@@ -84,7 +91,7 @@ public abstract class AFile {
 
     public abstract boolean isFile();
 
-    public abstract boolean renameTo(AFile target);
+    public abstract boolean move(AFile target);
 
     public abstract boolean isDirectory();
 

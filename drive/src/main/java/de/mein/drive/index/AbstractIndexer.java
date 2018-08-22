@@ -363,7 +363,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             System.out.println("AbstractIndexer.roamDirectoryStage.debug.1");
         if (subDirs != null)
             for (AFile subDir : subDirs) {
-                if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectoryPath()))
+                if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath()))
                     continue;
                 stuffToDelete.remove(subDir.getName());
                 // if subDir is on stage or fs we don't have to roam it

@@ -3,19 +3,15 @@ package de.mein.drive;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
 import de.mein.android.file.DFile;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.drive.bash.BashTools;
-import de.mein.drive.serialization.TestDirCreator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -100,7 +96,7 @@ public class BashTests {
         dir.mkdirs();
         Long t1 = dir.lastModified();
         Long tt1 = testDir.lastModified();
-        testDir.renameTo(new DFile(dir.getAbsolutePath() + File.separator + "movedTest"));
+        testDir.move(new DFile(dir.getAbsolutePath() + File.separator + "movedTest"));
         Long t2 = dir.lastModified();
         Long tt2 = testDir.lastModified();
         System.out.println("upper dir before: " + t1);
