@@ -22,8 +22,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 
+import de.mein.android.drive.data.NC;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
+import de.mein.drive.data.DriveStrings;
 
 /**
  * this maps {@link File} methods to androids storage access framework
@@ -66,15 +68,6 @@ public class DFile extends AFile {
         this.documentFile = originalFile.documentFile;
     }
 
-    @Override
-    public String toString() {
-        if (uri != null)
-            return uri.toString();
-        else if (parent != null && name != null)
-            return parent.toString() + parent.getSeparator() + name;
-        return "none";
-    }
-
     /**
      * deprecation:
      * cannot ensure we get the right {@link DocumentFile}.
@@ -109,8 +102,10 @@ public class DFile extends AFile {
         }
     }
 
-
     public DFile(DFile parent, String name) {
+        //todo debug
+        if (name.equals(DriveStrings.TRANSFER_DIR))
+            System.out.println("DFile.DFile");
         this.name = name;
         this.parent = parent;
         this.rawFile = parent.rawFile;
@@ -127,7 +122,38 @@ public class DFile extends AFile {
         rawFile = true;
     }
 
-    private Uri buildChildrenUri(Uri uri) {
+    public Uri getUri() {
+        return uri;
+    }
+
+    public void setUri(Uri uri) {
+        this.uri = uri;
+        rawFile = false;
+        documentFile = DocumentsContract.isTreeUri(uri) ? DocumentFile.fromTreeUri(getContext(), uri) : DocumentFile.fromSingleUri(getContext(), uri);
+    }
+
+    public boolean isRawFile() {
+        return rawFile;
+    }
+
+    public DFile getParent() {
+        return parent;
+    }
+
+    @Override
+    public String toString() {
+        if (uri != null)
+            return uri.toString();
+        else if (parent != null && name != null)
+            return parent.toString() + parent.getSeparator() + name;
+        return "none";
+    }
+
+    public Uri buildChildrenUri(){
+        return DFile.buildChildrenUri(this.uri);
+    }
+
+    public static Uri buildChildrenUri(Uri uri) {
         Uri childrenUri;//= DocumentsContract.buildChildDocumentsUriUsingTree(parent.uri, DocumentsContract.getTreeDocumentId(parent.uri));
         try {
             //for childs and sub child dirs
@@ -143,19 +169,18 @@ public class DFile extends AFile {
         if (parent != null && parent.uri != null && !rawFile) {
             boolean parentTree = DocumentsContract.isTreeUri(parent.uri);
             Uri childrenUri = buildChildrenUri(parent.uri);
+            // SAF completely ignores the selection >:(
             Cursor c = getContext().getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE}
-                    , DocumentsContract.Document.COLUMN_DISPLAY_NAME + " = ?", new String[]{name}, null);
-            try {
-                uri = null;
-                while (c.moveToNext()) {
-                    final String docId = c.getString(0);
-                    final String name = c.getString(1);
-                    final String mime = c.getString(2);
+                    , " where " + DocumentsContract.Document.COLUMN_DISPLAY_NAME + " +++= #'gjvghj", null, null);
+            NC.iterate(c, (cursor, stoppable) -> {
+                final String docId = c.getString(0);
+                final String name = c.getString(1);
+                final String mime = c.getString(2);
+                if (name.equals(this.name)) {
                     uri = DocumentsContract.buildDocumentUriUsingTree(childrenUri, docId);
+                    stoppable.stop();
                 }
-            } finally {
-                c.close();
-            }
+            });
         }
     }
 
@@ -400,11 +425,5 @@ public class DFile extends AFile {
             index++;
         }
         return result;
-    }
-
-    public void setUri(Uri uri) {
-        this.uri = uri;
-        rawFile = false;
-        documentFile = DocumentsContract.isTreeUri(uri) ? DocumentFile.fromTreeUri(getContext(), uri) : DocumentFile.fromSingleUri(getContext(), uri);
     }
 }

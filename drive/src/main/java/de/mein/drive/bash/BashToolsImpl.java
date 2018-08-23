@@ -14,11 +14,11 @@ import de.mein.auth.file.AFile;
  */
 public interface BashToolsImpl {
 
-     void setBinPath(String binPath);
+    void setBinPath(String binPath);
 
     Set<Long> getINodesOfDirectory(AFile file) throws IOException;
 
-     ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException, InterruptedException;
+    ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException, InterruptedException;
 
     /**
      * rm -rf
@@ -27,13 +27,13 @@ public interface BashToolsImpl {
      */
     void rmRf(AFile directory) throws IOException;
 
-    List<String> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException;
+    List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException;
 
-    Iterator<String> find(AFile directory, AFile pruneDir) throws IOException;
+    Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException;
 
-     Promise<Long, Exception, Void> getInode(AFile f);
+    Promise<Long, Exception, Void> getInode(AFile f);
 
-    Iterator<String> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException;
+    Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException;
 
     void mkdir(AFile dir) throws IOException;
 }

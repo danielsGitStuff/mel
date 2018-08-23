@@ -1,12 +1,9 @@
 package de.mein.drive.bash;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Created by xor on 5/24/17.

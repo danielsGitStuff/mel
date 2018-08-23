@@ -78,7 +78,7 @@ public class IndexerRunnable extends AbstractIndexer {
             indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
             try {
                 fsDao.lockRead();
-                Iterator<String> found = BashTools.find(rootDirectory.getOriginalFile(), AFile.instance(databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory().getAbsolutePath()));
+                Iterator<AFile> found = BashTools.find(rootDirectory.getOriginalFile(),databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
                 examineStage();
                 fastBooting = false;

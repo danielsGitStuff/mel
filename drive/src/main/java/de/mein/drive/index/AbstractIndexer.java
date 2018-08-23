@@ -106,16 +106,15 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Iterator<String> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<AFile> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
 //        stageDao.lockWrite();
         stageSet = stageDao.createStageSet(stageSetType, null, null, null);
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         String path = "none yet";
         this.stageSetId = stageSet.getId().v();
         while (iterator.hasNext()) {
-            path = iterator.next();
+            AFile f = iterator.next();
 //            System.out.println("AbstractIndexer[" + stageSetId + "].initStage.fromBashTools: " + path);
-            AFile f = AFile.instance(path);
             //todo debug
             if (f.getName().equals("the better life")) {
                 System.out.println("AbstractIndexer.initStage.debughegßeg");

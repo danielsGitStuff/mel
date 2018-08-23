@@ -57,7 +57,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
                 this.watchDirectory(file);
             }
             System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.getAbsolutePath());
-            pathCollection.addPath(file.getAbsolutePath());
+            pathCollection.addPath(file);
             if (event.kind().equals(ExtendedWatchEventModifier.FILE_TREE)) {
                 System.out.println("ALARM!");
             }

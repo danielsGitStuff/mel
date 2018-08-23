@@ -35,7 +35,7 @@ public class BashToolsJava implements BashToolsImpl {
     }
 
     @Override
-    public List<String> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
+    public List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         return null;
     }
 
@@ -54,19 +54,19 @@ public class BashToolsJava implements BashToolsImpl {
         }
         file.createNewFile();
         BashToolsJava bashToolsJava = new BashToolsJava();
-        Iterator<String> iterator = bashToolsJava.find(dir, prune);
+        Iterator<AFile> iterator = bashToolsJava.find(dir, prune);
         while (iterator.hasNext())
             System.out.println("BashToolsJava.main: " + iterator.next());
         //System.out.println("BashToolsJava.main.max: " + max);
     }
 
     @Override
-    public Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
+    public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
         Stack<Iterator<AFile>> fileStack = new Stack<>();
         String prunePath = pruneDir.getAbsolutePath();
         System.out.println("BashToolsJava.find.prune: " + prunePath);
         fileStack.push(Arrays.asList(directory.listContent()).iterator());
-        return new Iterator<String>() {
+        return new Iterator<AFile>() {
             String nextLine = null;
 
             private void fastForward() {
@@ -137,11 +137,11 @@ public class BashToolsJava implements BashToolsImpl {
 //            }
 
             @Override
-            public String next() {
+            public AFile next() {
                 if (nextLine != null || hasNext()) {
                     String line = nextLine;
                     nextLine = null;
-                    return line;
+                    return AFile.instance(line);
                 } else {
                     throw new NoSuchElementException();
                 }
@@ -155,7 +155,7 @@ public class BashToolsJava implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<String> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return null;
     }
 

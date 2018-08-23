@@ -46,9 +46,10 @@ public class BashToolsAndroid extends BashToolsUnix {
             file.createNewFile();
             cmd = "find \"" + dir.getAbsolutePath() + "\" -path " + escapeAbsoluteFilePath(prune) + " -prune -o -print";
             Streams streams = testCommand(cmd);
-            Iterator<String> iterator = streams.stdout;
+            Iterator<AFile> iterator = streams.stdout;
             while (iterator.hasNext()) {
-                String line = iterator.next();
+                System.err.println("no SAF");
+                AFile line = iterator.next();
                 if (line.equals(prune.getAbsolutePath())) {
                     throw new BashToolsException("'find' ignored '-prune");
                 }
@@ -59,18 +60,13 @@ public class BashToolsAndroid extends BashToolsUnix {
             System.err.println(getClass().getSimpleName() + ".did not work as expected: " + cmd);
             System.err.println(getClass().getSimpleName() + ".using.fallback.for 'find'");
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-               findFallBack = new SAFBashTools(context);
-            } else {
-                findFallBack = javaBashTools;
-            }
             findFallBack = javaBashTools;
             e.printStackTrace();
         }
     }
 
     class Streams {
-        Iterator<String> stdout;
+        Iterator<AFile> stdout;
         Iterator<String> stderr;
     }
 
@@ -85,7 +81,7 @@ public class BashToolsAndroid extends BashToolsUnix {
         }
         System.out.println("BashTest.exec." + proc.exitValue());
         Streams streams = new Streams();
-        streams.stdout = BashTools.inputStreamToIterator(proc.getInputStream());
+        streams.stdout = BashTools.inputStreamToFileIterator(proc.getInputStream());
         streams.stderr = BashTools.inputStreamToIterator(proc.getErrorStream());
         return streams;
     }
@@ -103,7 +99,7 @@ public class BashToolsAndroid extends BashToolsUnix {
     }
 
     @Override
-    public Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
+    public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
         if (findFallBack != null)
             return findFallBack.find(directory, pruneDir);
         return super.find(directory, pruneDir);

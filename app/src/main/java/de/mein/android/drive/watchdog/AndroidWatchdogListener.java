@@ -39,7 +39,8 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
                         if (path != null)
                             try {
                                 path = meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile().getAbsolutePath() + File.separator + path;
-                                analyzeEvent(event, path);
+                                AFile file = AFile.instance(path);
+                                analyzeEvent(event, file);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             } finally {
@@ -53,7 +54,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
             }
     }
 
-    private void analyzeEvent(final int event, String path) throws InterruptedException {
+    private void analyzeEvent(final int event, AFile path) throws InterruptedException {
         if (FileObserver.CLOSE_WRITE == event
                 || FileObserver.CREATE == event
                 || FileObserver.DELETE == event

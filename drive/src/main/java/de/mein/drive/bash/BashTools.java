@@ -50,12 +50,12 @@ public abstract class BashTools {
     }
 
 
-    public static List<String> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
+    public static List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         return instance.stuffModifiedAfter(referenceFile, directory, pruneDir);
     }
 
 
-    public static Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
+    public static Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
         return instance.find(directory, pruneDir);
     }
 
@@ -64,7 +64,7 @@ public abstract class BashTools {
         return instance.getInode(f);
     }
 
-    public static Iterator<String> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public static Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return instance.stuffModifiedAfter(originalFile, pruneDir, timeStamp);
     }
 
@@ -72,8 +72,13 @@ public abstract class BashTools {
         BashTools.instance = instance;
     }
 
+    public static Iterator<AFile> inputStreamToFileIterator(InputStream inputStream) {
+        BufferedIterator bufferedReader = new BufferedIterator.BufferedFileIterator(new InputStreamReader(inputStream));
+        return bufferedReader.iterator();
+    }
+
     public static Iterator<String> inputStreamToIterator(InputStream inputStream) {
-        BufferedIterator bufferedReader = new BufferedIterator(new InputStreamReader(inputStream));
+        BufferedIterator bufferedReader = new BufferedIterator.BufferedStringIterator(new InputStreamReader(inputStream));
         return bufferedReader.iterator();
     }
 

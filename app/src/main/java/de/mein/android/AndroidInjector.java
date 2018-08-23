@@ -12,6 +12,7 @@ import java.util.Scanner;
 
 import de.mein.MeinInjector;
 import de.mein.android.drive.bash.BashToolsAndroid;
+import de.mein.android.drive.bash.SAFBashTools;
 import de.mein.android.drive.watchdog.RecursiveWatcher;
 import de.mein.auth.tools.N;
 import de.mein.contacts.ContactsInjector;
@@ -105,7 +106,13 @@ public class AndroidInjector {
             }
             return null;
         });
-        BashToolsImpl bashTools = new BashToolsAndroid(context);
+        // use a proper bash tools variant
+        BashToolsImpl bashTools;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+           bashTools = new SAFBashTools(context);
+        } else {
+            bashTools = new BashToolsAndroid(context);
+        }
         BashTools.setInstance(bashTools);
         DriveInjector.setWatchDogRunner(RecursiveWatcher::new);
         DriveInjector.setBinPath("/system/bin/sh");

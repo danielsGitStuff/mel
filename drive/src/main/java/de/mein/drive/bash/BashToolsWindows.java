@@ -49,7 +49,7 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public List<String> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
+    public List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         System.err.println("BashToolsWindows.stuffModifiedAfter.I AM THE WINDOWS GUY!");
         return null;
     }
@@ -97,10 +97,10 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
+    public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
         String cmd = "dir /b/s \"" + directory.getAbsolutePath()
                 + "\" | findstr /v \"" + pruneDir.getAbsolutePath() + "\"";
-        return execReader("dir", "/b/s", directory.getAbsolutePath(), "|", "findstr", "/vc:\"" + pruneDir.getAbsolutePath() + "\"").lines().iterator();
+        return execReader("dir", "/b/s", directory.getAbsolutePath(), "|", "findstr", "/vc:\"" + pruneDir.getAbsolutePath() + "\"").lines().map(AFile::instance).iterator();
     }
 
     @Override
@@ -108,7 +108,7 @@ public class BashToolsWindows implements BashToolsImpl {
         return null;
     }
 
-    private Stream<String> execPowerShell(String command, String prependLine) throws IOException, InterruptedException {
+    private Stream<AFile> execPowerShell(String command, String prependLine) throws IOException, InterruptedException {
         System.out.println("BashToolsWindows.execPowerShell: " + command);
         String[] args = new String[]{"powershell.exe"};
         Process process = new ProcessBuilder(args).start();
@@ -118,11 +118,11 @@ public class BashToolsWindows implements BashToolsImpl {
         WindowsPowerReader reader = new WindowsPowerReader(new InputStreamReader(process.getInputStream()));
         reader.prependLine(prependLine);
         //process.waitFor();
-        return reader.lines();
+        return reader.lines().map(AFile::instance);
     }
 
     @Override
-    public Iterator<String> stuffModifiedAfter(AFile directory, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public Iterator<AFile> stuffModifiedAfter(AFile directory, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         Double winTimeStamp = timeStamp / 1000d;
         String prependLine = null;
         Object lm = directory.lastModified();

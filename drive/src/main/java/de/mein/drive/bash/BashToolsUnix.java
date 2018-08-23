@@ -118,7 +118,7 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public List<String> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
+    public List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         System.out.println("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
 //        String cmd = "find \"" + directory.getAbsolutePath() + "\"  "
 //                + " -path \"" + pruneDir + "\" -prune"
@@ -133,10 +133,10 @@ public class BashToolsUnix implements BashToolsImpl {
         processBuilder.redirectErrorStream(true);
         Process proc = processBuilder.start();
         System.out.println("BashTools.stuffModifiedAfter.collecting.result");
-        List<String> result = new ArrayList<>();
-        Iterator<String> iterator = BashTools.inputStreamToIterator(proc.getInputStream());
+        List<AFile> result = new ArrayList<>();
+        Iterator<AFile> iterator = BashTools.inputStreamToFileIterator(proc.getInputStream());
         while (iterator.hasNext()) {
-            String path = iterator.next();
+            AFile path = iterator.next();
             System.out.println(getClass().getSimpleName() + ".stuffModifiedAfter.collected: " + path);
             result.add(path);
         }
@@ -144,16 +144,16 @@ public class BashToolsUnix implements BashToolsImpl {
         return result;
     }
 
-    private Iterator<String> exec(String cmd) throws IOException {
+    private Iterator<AFile> exec(String cmd) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
         System.out.println("BashToolsUnix.exec: " + cmd);
         Process proc = new ProcessBuilder(args).start();
-        return BashTools.inputStreamToIterator(proc.getInputStream());
+        return BashTools.inputStreamToFileIterator(proc.getInputStream());
     }
 
     @Override
-    public Iterator<String> find(AFile directory, AFile pruneDir) throws IOException {
+    public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
         return exec("find " + escapeAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeAbsoluteFilePath(pruneDir) + " -prune -o -print");
     }
 
@@ -200,7 +200,7 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<String> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) {
+    public Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) {
         System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(");
         return null;
     }
