@@ -75,10 +75,11 @@ public class SAFBashTools implements BashToolsImpl {
         if (dDirectory.isRawFile())
             return bashToolsAndroid.find(dDirectory, pruneDir);
         Uri childrenUri = dDirectory.buildChildrenUri();
-        Cursor cursor = context.getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME}, null, null, null);
+        Cursor cursor = context.getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME,DocumentsContract.Document.COLUMN_DOCUMENT_ID}, null, null, null);
         NC.iterate(cursor, (cursor1, stoppable) -> {
             String name = cursor.getString(0);
-            System.out.println("SAFBashTools.find.name: " + name);
+            String id = cursor.getString(1);
+            System.out.println("SAFBashTools.find.name: " + name+", id: "+id);
         });
         return null;
     }

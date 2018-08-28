@@ -6,9 +6,12 @@ import android.database.Cursor;
 import android.media.MediaDescription;
 import android.media.MediaFormat;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
-import android.support.v4.provider.DocumentFile;
+import android.support.v4.app.BundleCompat;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.system.StructStatVfs;
@@ -149,7 +152,7 @@ public class DFile extends AFile {
         return "none";
     }
 
-    public Uri buildChildrenUri(){
+    public Uri buildChildrenUri() {
         return DFile.buildChildrenUri(this.uri);
     }
 
@@ -170,8 +173,9 @@ public class DFile extends AFile {
             boolean parentTree = DocumentsContract.isTreeUri(parent.uri);
             Uri childrenUri = buildChildrenUri(parent.uri);
             // SAF completely ignores the selection >:(
+            // bonus: it ignores the selection applied to the URI too
             Cursor c = getContext().getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE}
-                    , " where " + DocumentsContract.Document.COLUMN_DISPLAY_NAME + " +++= #'gjvghj", null, null);
+                    , null, null, null);
             NC.iterate(c, (cursor, stoppable) -> {
                 final String docId = c.getString(0);
                 final String name = c.getString(1);
