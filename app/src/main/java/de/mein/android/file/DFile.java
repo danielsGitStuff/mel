@@ -12,6 +12,7 @@ import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 import android.support.v4.app.BundleCompat;
+import android.support.v4.provider.DocumentFile;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.system.StructStatVfs;
@@ -23,6 +24,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 
 import de.mein.android.drive.data.NC;
@@ -36,6 +39,7 @@ import de.mein.drive.data.DriveStrings;
 public class DFile extends AFile {
 
 
+    private static Constructor<?> hackyContructor;
     // this is only created if needed!
     private DocumentFile documentFile;
     // this only exists if it already exists on the file system
@@ -135,6 +139,19 @@ public class DFile extends AFile {
         documentFile = DocumentsContract.isTreeUri(uri) ? DocumentFile.fromTreeUri(getContext(), uri) : DocumentFile.fromSingleUri(getContext(), uri);
     }
 
+    private static DocumentFile constructDocumentFile(Context context, Uri treeUri) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+        if (DFile.hackyContructor == null) {
+            N.r(() -> {
+                Class<?> c = Class.forName("android.support.v4.provider.TreeDocumentFile");
+                DFile.hackyContructor = c.getDeclaredConstructor(DocumentFile.class, Context.class, Uri.class);
+                DFile.hackyContructor.setAccessible(true);
+            });
+
+        }
+        DocumentFile dir = (DocumentFile) DFile.hackyContructor.newInstance(null, context, treeUri);
+        return dir;
+    }
+
     public boolean isRawFile() {
         return rawFile;
     }
@@ -206,12 +223,18 @@ public class DFile extends AFile {
     }
 
     private void spawnDoc() {
-        if (DocumentsContract.isTreeUri(uri)) {
+//        if (DocumentsContract.isTreeUri(uri)) {
 //            documentFile = DocumentFile.fromTreeUri(getContext(), uri);
-        } else if (DocumentsContract.isDocumentUri(getContext(), uri)) {
+//        } else if (DocumentsContract.isDocumentUri(getContext(), uri)) {
 //            documentFile = DocumentFile.fromSingleUri(getContext(), uri);
-        } else
-            documentFile = DocumentFile.fromFile(new File(uri.toString()));
+//        } else
+//            documentFile = DocumentFile.fromFile(new File(uri.toString()));
+        try {
+            documentFile = DFile.constructDocumentFile(getContext(), uri);
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            e.printStackTrace();
+        }
+        System.out.println("DFile.spawnDoc('" + documentFile.getName() + "')");
     }
 
     @Override

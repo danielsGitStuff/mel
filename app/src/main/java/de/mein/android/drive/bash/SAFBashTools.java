@@ -15,6 +15,7 @@ import java.util.Set;
 import de.mein.android.drive.data.NC;
 import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.android.file.DFile;
+import de.mein.android.file.DFileRecursiveIterator;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsImpl;
@@ -74,14 +75,15 @@ public class SAFBashTools implements BashToolsImpl {
         DFile dDirectory = (DFile) directory;
         if (dDirectory.isRawFile())
             return bashToolsAndroid.find(dDirectory, pruneDir);
-        Uri childrenUri = dDirectory.buildChildrenUri();
-        Cursor cursor = context.getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME,DocumentsContract.Document.COLUMN_DOCUMENT_ID}, null, null, null);
-        NC.iterate(cursor, (cursor1, stoppable) -> {
-            String name = cursor.getString(0);
-            String id = cursor.getString(1);
-            System.out.println("SAFBashTools.find.name: " + name+", id: "+id);
-        });
-        return null;
+//
+//        Uri childrenUri = dDirectory.buildChildrenUri();
+//        Cursor cursor = context.getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME,DocumentsContract.Document.COLUMN_DOCUMENT_ID}, null, null, null);
+//        NC.iterate(cursor, (cursor1, stoppable) -> {
+//            String name = cursor.getString(0);
+//            String id = cursor.getString(1);
+//            System.out.println("SAFBashTools.find.name: " + name+", id: "+id);
+//        });
+        return new DFileRecursiveIterator(context,dDirectory,pruneDir);
     }
 
     @Override
