@@ -1,5 +1,5 @@
 //include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx' ,':fxbundle'
-include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':contacts'//,':authfx', ':drivefx'
+include ':app',':files', ':json', ':serialize', ':sql', ':auth', ':drive', ':contacts'//,':authfx', ':drivefx'
 //
 project(':json').projectDir = new File('json')
 project(':serialize').projectDir = new File('serialize')
@@ -9,6 +9,7 @@ project(':drive').projectDir = new File('drive')
 project(':contacts').projectDir = new File('contacts')
 
 project(':app').projectDir = new File('app')
+project(':files').projectDir = new File('app/aos-FileCoreLibrary')
 
 //project(':authfx').projectDir = new File('authfx')
 //project(':drivefx').projectDir = new File('drivefx')
