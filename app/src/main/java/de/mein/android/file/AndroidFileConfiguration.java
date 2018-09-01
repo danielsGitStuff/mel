@@ -15,7 +15,7 @@ public class AndroidFileConfiguration extends AFile.Configuration {
 
     @Override
     public AFile instance(String path) {
-        return new DFile(path);
+        return new JFile(path);
     }
 
     @Override
@@ -25,14 +25,14 @@ public class AndroidFileConfiguration extends AFile.Configuration {
 
     @Override
     public AFile instance(File file) {
-        return new DFile(file);
+        return new JFile(file);
     }
 
 
     @Override
     public AFile instance(AFile parent, String name) {
-        if (parent instanceof DFile)
-            return new DFile((DFile) parent, name);
+        if (parent instanceof JFile)
+            return new JFile((JFile) parent, name);
         else
             System.err.println(getClass().getSimpleName() + "instance(AFile parent, String name), got a '" + parent.getClass().getSimpleName() + "' as parent.");
         return null;
@@ -40,7 +40,7 @@ public class AndroidFileConfiguration extends AFile.Configuration {
 
     @Override
     public AFile instance(AFile originalFile) {
-        return new DFile((DFile) originalFile);
+        return new JFile((JFile) originalFile);
 
     }
 

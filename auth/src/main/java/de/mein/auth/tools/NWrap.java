@@ -38,6 +38,7 @@ public class NWrap<V> {
         public boolean isTrue() {
             return v();
         }
+
     }
 
     public static class IWrap extends NWrap<Integer> {

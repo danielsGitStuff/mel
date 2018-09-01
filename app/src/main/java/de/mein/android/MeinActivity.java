@@ -23,13 +23,14 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.android.service.AndroidService;
+import de.mein.auth.MeinStrings;
+import de.mein.auth.tools.N;
 
 /**
  * Created by xor on 03.08.2017.
@@ -39,11 +40,39 @@ public abstract class MeinActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private SparseArray<Deferred<Void, List<String>, Void>> permissionPromises = new SparseArray<>();
     private Map<Integer, MeinActivityLaunchResult> launchResultMap = new HashMap<>();
+    private static Map<Integer, List<MeinActivityPayload>> launchPayloads = new HashMap<>();
 
     public void launchActivityForResult(Intent launchIntent, MeinActivityLaunchResult meinActivityLaunchResult) {
         final int id = Tools.generateIntentRequestCode();
+        launchIntent.putExtra(MeinStrings.Notifications.REQUEST_CODE,id);
         launchResultMap.put(id, meinActivityLaunchResult);
         startActivityForResult(launchIntent, id);
+    }
+
+    public void launchActivityForResult(Intent launchIntent, MeinActivityLaunchResult meinActivityLaunchResult, MeinActivityPayload... payloads) {
+        final int id = Tools.generateIntentRequestCode();
+        launchResultMap.put(id, meinActivityLaunchResult);
+        launchIntent.putExtra(MeinStrings.Notifications.REQUEST_CODE,id);
+        if (payloads != null) {
+            launchPayloads.put(id, new ArrayList<>());
+            N.forEach(payloads, (stoppable, index, meinActivityPayload) -> {
+                launchPayloads.get(id).add(meinActivityPayload);
+            });
+        }
+        startActivityForResult(launchIntent, id);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    public static void onLaunchDestroyed(Integer requestCode) {
+        launchPayloads.remove(requestCode);
+    }
+
+    public static List<MeinActivityPayload> getLaunchPayloads(Integer requestCode) {
+        return launchPayloads.get(requestCode);
     }
 
     public interface MeinActivityLaunchResult {
@@ -176,6 +205,7 @@ public abstract class MeinActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         MeinActivityLaunchResult launchResult = launchResultMap.remove(requestCode);
+        MeinActivity.launchPayloads.remove(requestCode);
         if (launchResult != null)
             launchResult.onResultReceived(resultCode, data);
     }

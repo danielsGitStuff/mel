@@ -8,8 +8,6 @@ allprojects {
         maven {
             url "https://maven.google.com"
         }
-        maven { url 'http://guardian.github.com/maven/repo-releases' }
-
     }
 }
 
@@ -105,7 +103,6 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 
     implementation project(path: ':files')
-    implementation project(':dirchooser')
 }
 
 repositories {
