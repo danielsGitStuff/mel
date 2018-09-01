@@ -33,19 +33,21 @@ public class N {
         }
     }
 
+
+
     /**
      * Creates a {@link Converter} which handles your casting/conversion from S to R.
-     * @param clazz result class
+     *
+     * @param clazz  result class
      * @param method put your lambda here
-     * @param <S> source type
-     * @param <R> result type
+     * @param <S>    source type
+     * @param <R>    result type
      * @return
      */
     public static <S, R> Converter<S, R> converter(Class<R> clazz, CastMethod<S, R> method) {
         Converter<S, R> converter = new Converter<>(clazz, method);
         return converter;
     }
-
 
     /**
      * helps doing common things with arrays
@@ -62,6 +64,19 @@ public class N {
                     result[i] = converter.cast(source[i]);
             }
             return result;
+        }
+
+        public static <T, R> R[] fromCollection(List<T> source, Converter<T, R> converter) {
+            if (source == null)
+                return null;
+            R[] result = (R[]) Array.newInstance(converter.getCastClass(), source.size());
+            int i = 0;
+            for (T t : source) {
+                result[i] = converter.cast(t);
+                i++;
+            }
+            return result;
+
         }
     }
 
@@ -349,6 +364,22 @@ public class N {
             index++;
             if (stoppable.isStopped())
                 break;
+        }
+    }
+
+    public static <T> void forEach(Iterator<T> iterator, ForEachLoop<T> forEachLoop) {
+        Stoppable stoppable = new Stoppable();
+        int index = 0;
+        while (iterator.hasNext() && !stoppable.isStopped()) {
+            try {
+                forEachLoop.foreach(stoppable, index, iterator.next());
+                if (stoppable.isStopped())
+                    break;
+                index++;
+            } catch (Exception e) {
+                e.printStackTrace();
+                stoppable.stop();
+            }
         }
     }
 

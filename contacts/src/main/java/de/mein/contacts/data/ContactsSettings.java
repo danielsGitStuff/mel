@@ -74,4 +74,8 @@ public class ContactsSettings <T extends PlatformContactSettings> extends JsonSe
         return contactsSettings;
     }
 
+    @Override
+    protected void init() {
+
+    }
 }

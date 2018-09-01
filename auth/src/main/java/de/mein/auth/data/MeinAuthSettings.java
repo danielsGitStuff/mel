@@ -159,4 +159,9 @@ public class MeinAuthSettings extends JsonSettings {
         this.name = name;
         return this;
     }
+
+    @Override
+    protected void init() {
+        this.workingDirectory = AFile.instance(new File(this.workingdirectoryPath));
+    }
 }

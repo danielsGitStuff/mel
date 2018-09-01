@@ -25,27 +25,27 @@ android {
         targetSdkVersion 27
     }
 
-    task ndkBuild(type:Exec) {
-        workingDir = "../"
-        List<String> myCmd = new ArrayList<String>()
-        myCmd.add("make")
-        myCmd.add("native_libnativehelper")
-        myCmd.add("native_build_FileCoreLibrary")
-        commandLine myCmd
-    }
-
-    task ndkClean(type:Exec) {
-        workingDir = "../"
-        List<String> myCmd = new ArrayList<String>()
-        myCmd.add("make")
-        myCmd.add("native_clean")
-        commandLine myCmd
-    }
+//    task ndkBuild(type:Exec) {
+//        workingDir = "."
+//        List<String> myCmd = new ArrayList<String>()
+//        myCmd.add("make")
+//        myCmd.add("native_libnativehelper")
+//        myCmd.add("native_build_FileCoreLibrary")
+//        commandLine myCmd
+//    }
+//
+//    task ndkClean(type:Exec) {
+//        workingDir = "."
+//        List<String> myCmd = new ArrayList<String>()
+//        myCmd.add("make")
+//        myCmd.add("native_clean")
+//        commandLine myCmd
+//    }
 
     tasks.withType(JavaCompile) {
-        compileTask -> compileTask.dependsOn ndkBuild
+//        compileTask -> compileTask.dependsOn ndkBuild
     }
-    clean.dependsOn 'ndkClean'
+//    clean.dependsOn 'ndkClean'
 
     buildTypes {
         release {

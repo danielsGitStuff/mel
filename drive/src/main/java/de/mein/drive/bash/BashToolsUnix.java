@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  */
 public class BashToolsUnix implements BashToolsImpl {
 
-    protected String BIN_PATH = "/bin/bash";
+    protected String BIN_PATH = "/bin/sh";
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
 

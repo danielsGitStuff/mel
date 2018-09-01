@@ -18,6 +18,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
+import android.provider.DocumentsContract;
 import android.support.v4.provider.DocumentFile;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -34,6 +35,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
+import com.archos.environment.ArchosUtils;
+import com.archos.filecorelibrary.ExtStorageManager;
+import com.archos.filecorelibrary.localstorage.JavaFile2;
+
 import net.rdrei.android.dirchooser.DirectoryChooserActivity;
 import net.rdrei.android.dirchooser.DirectoryChooserConfig;
 
@@ -43,6 +48,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 
 import de.mein.R;
@@ -51,11 +57,14 @@ import de.mein.android.Notifier;
 import de.mein.android.Tools;
 import de.mein.android.controller.RemoteServiceChooserController;
 import de.mein.android.drive.AndroidDriveBootloader;
+import de.mein.android.sql.AndroidSQLQueries;
+import de.mein.android.sql.AndroidSQLResource;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.bash.BashToolsUnix;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 
@@ -105,7 +114,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         btnPath.setOnClickListener(view -> {
             Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
             permissionsPromise.done(nil -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && false) {
                     Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                     i.addCategory(Intent.CATEGORY_DEFAULT);
                     activity.launchActivityForResult(Intent.createChooser(i, "Choose directory"), (resultCode, resultData) -> {
@@ -130,6 +139,51 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                             rootFile = DocumentFile.fromTreeUri(activity, rootTreeUri);
                             String mime = rootFile.getType();
                             System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                            N.r(() -> {
+                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                                JavaFile2 ra = (JavaFile2) JavaFile2.fromUri(rootTreeUri);
+
+                                Uri uuu = rootFile.getUri();
+                                Cursor c = activity.getContentResolver().query(uuu, new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, "_data"}
+                                        , DocumentsContract.Document.COLUMN_DOCUMENT_ID + "=?", new String[]{DocumentsContract.getTreeDocumentId(rootTreeUri)}, null);
+                                while (c.moveToNext()) {
+                                    String s1 = c.getString(0);
+                                    String s2 = c.getString(1);
+                                    String s3 = c.getString(2);
+                                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                                }
+                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                            });
+                            N.r(() -> {
+                                //debug stuff
+                                ArchosUtils.setGlobalContext(activity.getApplicationContext());
+                                ExtStorageManager extStorageManager = ExtStorageManager.getExtStorageManager();
+                                List<String> sdCards = extStorageManager.getExtSdcards();
+                                N.forEach(sdCards, (stoppable, index, s) -> {
+                                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                                    Uri rooturi = Uri.parse("file://" + s);
+                                    AFile rootFile = AFile.instance(new File(s));
+                                    BashToolsUnix bu = new BashToolsUnix();
+                                    Iterator<AFile> contentIterator = bu.find(rootFile, AFile.instance(rootFile, "bla"));
+                                    N.forEach(contentIterator, (stoppable1, index1, aFile) -> {
+                                        System.out.println(aFile.getAbsolutePath());
+                                        JavaFile2 f2 = new JavaFile2(new File(aFile.getAbsolutePath()));
+                                        System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                                    });
+                                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                                });
+                                File[] one = RemoteDriveServiceChooserGuiController.this.activity.getApplicationContext().getExternalMediaDirs();
+                                File two = Environment.getExternalStorageDirectory();
+                                String state = Environment.getExternalStorageState();
+                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                                File f = new File("/mnt/media_rw/1E03-251C");
+                                if (f.exists()) {
+                                    File[] b = BashTools.lsD("/mnt/media_rw");
+                                    File[] files = f.listFiles();
+                                    N.forEach(files, (stoppable, index, file) -> System.out.println(file.getAbsolutePath()));
+                                }
+                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded.end");
+                            });
 //                            AFile rootFile = AFile.instance(rootTreeUri.toString());
 //                            AFile music = AFile.instance(rootFile,"Music");
 //                            boolean exists = music.exists();
@@ -167,12 +221,15 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                      * other option would (probably) be to adapt all the file handling and tools and workers and so on to work with SFA.
                      * this works around it.
                      *
-                     * list all storages found under '/storage' first.
-                     * then ask for permission to access external storage
+                     * this relies on work done by the Archos people. they found a neat way to maneuver around SFA.
                      * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
                      */
-                    final String PATH_STORAGE = "/storage";
-                    File[] storages = BashTools.lsD(PATH_STORAGE);
+                    ArchosUtils.setGlobalContext(activity.getApplicationContext());
+                    ExtStorageManager extStorageManager = ExtStorageManager.getExtStorageManager();
+                    List<String> paths = extStorageManager.getExtSdcards();
+                    paths.add(Environment.getExternalStorageDirectory().getAbsolutePath());
+                    N.arr.fromCollection(N.converter(JavaFile2.class,element -> new JavaFile2(new File(element))));
+                    File[] storages = new File[paths.size()];
                     File[] ss = new File[storages.length + 1];
                     for (int i = 0; i < storages.length; i++) {
                         ss[i] = storages[i];

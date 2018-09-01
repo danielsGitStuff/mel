@@ -30,10 +30,16 @@ public abstract class JsonSettings implements SerializableEntity {
             String json = new String(bytes);
             JsonSettings jsonSettings = (JsonSettings) SerializableEntityDeserializer.deserialize(json);
             jsonSettings.setJsonFile(file);
+            jsonSettings.init();
             return jsonSettings;
         }
         return null;
     }
+
+    /**
+     * create file objects from paths here if necessary
+     */
+    protected abstract void init();
 
     public void save() throws JsonSerializationException, IllegalAccessException, IOException {
         String json = SerializableEntitySerializer.serialize(this);

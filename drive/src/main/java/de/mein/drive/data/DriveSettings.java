@@ -67,6 +67,11 @@ public class DriveSettings extends JsonSettings {
         return this;
     }
 
+    @Override
+    protected void init() {
+
+    }
+
     public interface DevRootDirInjector {
         File getRootDir(File jsonFile);
     }
