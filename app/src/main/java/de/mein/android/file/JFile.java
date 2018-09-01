@@ -2,18 +2,23 @@ package de.mein.android.file;
 
 import android.net.Uri;
 
+import com.archos.filecorelibrary.FileComparator;
 import com.archos.filecorelibrary.FileEditor;
 import com.archos.filecorelibrary.localstorage.JavaFile2;
 
 import java.io.File;
-import java.io.FileDescriptor;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.N;
 
 public class JFile extends AFile {
 
@@ -35,6 +40,10 @@ public class JFile extends AFile {
 
     public JFile(JFile originalFile) {
         this.file = new JavaFile2(new File(originalFile.getAbsolutePath()));
+    }
+
+    public JFile(JavaFile2 javaFile2) {
+        this.file = javaFile2;
     }
 
     private AndroidFileConfiguration getAndroidConfiguration() {
@@ -94,8 +103,71 @@ public class JFile extends AFile {
 
     @Override
     public AFile[] listDirectories() {
-        return new AFile[0];
+        final ArrayList<JavaFile2> directories = new ArrayList<JavaFile2>();
+
+
+        File directory = new File(file.getUri().getPath());
+
+        // File not found error
+        if (!directory.exists()) {
+            return new AFile[0];
+        }
+        if (!directory.canRead()) {
+            return new AFile[0];
+        }
+
+        File[] listFiles = directory.listFiles(File::isDirectory);
+
+
+        // Check Error in reading the directory (java.io.File do not allow any details about the error...).
+        if (listFiles == null) {
+//                postError(ListingEngine.ErrorEnum.ERROR_UNKNOWN);
+            return new AFile[0];
+        }
+
+        final ArrayList<JavaFile2> files = new ArrayList<JavaFile2>();
+        for (File f : listFiles) {
+            if (f.isDirectory()) {
+                directories.add(new JavaFile2(f, JavaFile2.NUMBER_UNKNOWN, JavaFile2.NUMBER_UNKNOWN));
+            } else if (f.isFile()) {
+                files.add(new JavaFile2(f));
+            }
+        }
+
+        // Put directories first, then files
+//            final Comparator<? super JavaFile2> comparator = new FileComparator().selectFileComparator(mSortOrder);
+//            Collections.sort(directories, comparator);
+//            Collections.sort(files, comparator);
+        final ArrayList<JavaFile2> allFiles = new ArrayList<JavaFile2>(directories.size() + files.size());
+        allFiles.addAll(directories);
+        allFiles.addAll(files);
+
+
+        for (final File f : listFiles) {
+            if (f.isDirectory()) {
+                // Count the files and folders inside this folder
+                int numerOfDirectories = 0;
+                int numberOfFiles = 0;
+                File[] insideFiles = f.listFiles();
+                if (insideFiles != null) {
+                    for (File insideFile : insideFiles) {
+                        if (insideFile.isDirectory()) {
+                            numerOfDirectories++;
+                        } else if (insideFile.isFile()) {
+                            numberOfFiles++;
+                        }
+                    }
+                }
+
+                final JavaFile2 javaFile2 = new JavaFile2(f, numberOfFiles, numerOfDirectories);
+
+            }
+
+        }
+        AFile[] result = N.arr.fromCollection(directories, N.converter(AFile.class, element -> new JFile(element)));
+        return result;
     }
+
 
     @Override
     public boolean delete() {

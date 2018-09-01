@@ -43,6 +43,11 @@ public class JavaFile2 extends MetaFile2 {
     private final boolean mCanWrite;
     private final String mPath;
 
+    @Override
+    public String toString() {
+        return mName;
+    }
+
     /**
      * This method does access the actual storage to get data about the file
      */

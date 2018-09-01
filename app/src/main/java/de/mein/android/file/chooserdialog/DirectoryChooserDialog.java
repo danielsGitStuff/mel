@@ -17,6 +17,7 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import de.mein.R;
 import de.mein.android.MeinActivity;
@@ -37,7 +38,10 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     private Button btnCancel, btnOk;
     private ImageButton btnUp;
     private RecyclerView list;
-    private ArrayList<AFile> rootDirs;
+    private AFile[] rootDirs;
+    private AFile currentDir;
+    private Stack<AFile> parentDirs = new Stack<>();
+    private int depth = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,19 +56,38 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
 
     private void init() {
 
-//        List<String> strings = filesToStrings(rootDirectories, isRoot);
+        rootDirs = (AFile[]) payloads.get(0).getPayload();
         FilesActivityPayload payload = (FilesActivityPayload) payloads.get(0);
-        rootDirs = new ArrayList<>();
-        N.forEach(payload.getPayload(), (stoppable, index, aFile) -> rootDirs.add(aFile));
         //ArrayAdapter<AFile> adapter = new ArrayAdapter<AFile>(this, android.R.layout.simple_list_item_1, rootDirs);
         FileAdapter adapter = new FileAdapter(this, list);
         adapter.setDirectories(payload.getPayload());
         adapter.setOnClicked(clickedDir -> {
+            parentDirs.push(currentDir);
+            currentDir = clickedDir;
+            depth++;
+            System.out.println("DirectoryChooserDialog.init.depth " + depth);
+            AFile[] subDirs = clickedDir.listDirectories();
+            adapter.setDirectories(subDirs);
+            DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
             System.out.println("DirectoryChooserDialog.init");
-            clickedDir.listDirectories();
         });
         list.setLayoutManager(new LinearLayoutManager(this));
         list.setAdapter(adapter);
+        btnUp.setOnClickListener(v -> {
+            if (depth > 0) {
+                depth--;
+                System.out.println("DirectoryChooserDialog.init.depth " + depth);
+                currentDir = parentDirs.pop();
+                AFile[] subDirs;
+                if (currentDir != null)
+                    subDirs = currentDir.listDirectories();
+                else
+                    subDirs = rootDirs;
+                adapter.setDirectories(subDirs);
+                DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
+            }
+        });
+
         runOnUiThread(adapter::notifyDataSetChanged);
     }
 
