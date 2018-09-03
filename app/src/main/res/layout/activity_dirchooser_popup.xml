@@ -7,7 +7,15 @@
         android:id="@+id/layTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical">
+
+        <TextView
+            android:paddingVertical="5dp"
+            android:paddingHorizontal="8dp"
+            android:text="placeholder"
+            android:id="@+id/txtPath"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <ImageButton
             android:id="@+id/btnUp"
@@ -19,27 +27,28 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list"
-        android:layout_above="@id/btnCancel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@id/btnCancel"
         android:layout_below="@id/layTop">
 
     </android.support.v7.widget.RecyclerView>
 
     <Button
-        android:text="@string/btnCancel"
-        android:layout_alignParentBottom="true"
         android:id="@+id/btnCancel"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    <Button
-        android:layout_toEndOf="@id/btnCancel"
-        android:layout_alignParentEnd="true"
-        android:text="@string/btnOk"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:text="@string/btnCancel" />
+
+    <Button
         android:id="@+id/btnOk"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@id/btnCancel"
+        android:text="@string/btnOk" />
 
 
 </RelativeLayout>

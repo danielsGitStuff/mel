@@ -63,6 +63,14 @@ public class JavaFile2 extends MetaFile2 {
         mCanWrite = file.canWrite();
         mNumberOfFilesInside = NUMBER_UNKNOWN;
         mNumberOfDirectoriesInside = NUMBER_UNKNOWN;
+        //todo debug
+        if (mName.equals("10.1109%40IPIN.2017.8115880.pdf")) {
+            System.out.println("JavaFile2.JavaFile2");
+            Uri uri = Uri.fromFile(file);
+            String encodedPath = uri.getEncodedPath();
+            boolean exists = file.exists();
+            System.out.println("JavaFile2.JavaFile2");
+        }
     }
 
     /**

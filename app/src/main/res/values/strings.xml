@@ -96,4 +96,5 @@
     <string name="chooseStorageTitle">Choose Storage Volume</string>
     <string name="toastDrivePermissionsRequired">Cannot choose a working directory for the drive service unless you grant the required permission.</string>
     <string name="driveChoosePath">Please choose a storage directory</string>
+    <string name="invalidDirectory">The chosen directory is invalid.</string>
 </resources>

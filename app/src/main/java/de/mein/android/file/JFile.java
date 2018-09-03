@@ -1,6 +1,7 @@
 package de.mein.android.file;
 
 import android.net.Uri;
+import android.os.Environment;
 
 import com.archos.filecorelibrary.FileComparator;
 import com.archos.filecorelibrary.FileEditor;
@@ -67,7 +68,7 @@ public class JFile extends AFile {
     @Override
     public String getAbsolutePath() {
         Uri uri = file.getUri();
-        String path = uri.getEncodedPath();
+        String path = uri.getPath();
         return path;
     }
 
@@ -98,74 +99,12 @@ public class JFile extends AFile {
 
     @Override
     public AFile[] listFiles() {
-        return new AFile[0];
+        return list(File::isFile);
     }
 
     @Override
     public AFile[] listDirectories() {
-        final ArrayList<JavaFile2> directories = new ArrayList<JavaFile2>();
-
-
-        File directory = new File(file.getUri().getPath());
-
-        // File not found error
-        if (!directory.exists()) {
-            return new AFile[0];
-        }
-        if (!directory.canRead()) {
-            return new AFile[0];
-        }
-
-        File[] listFiles = directory.listFiles(File::isDirectory);
-
-
-        // Check Error in reading the directory (java.io.File do not allow any details about the error...).
-        if (listFiles == null) {
-//                postError(ListingEngine.ErrorEnum.ERROR_UNKNOWN);
-            return new AFile[0];
-        }
-
-        final ArrayList<JavaFile2> files = new ArrayList<JavaFile2>();
-        for (File f : listFiles) {
-            if (f.isDirectory()) {
-                directories.add(new JavaFile2(f, JavaFile2.NUMBER_UNKNOWN, JavaFile2.NUMBER_UNKNOWN));
-            } else if (f.isFile()) {
-                files.add(new JavaFile2(f));
-            }
-        }
-
-        // Put directories first, then files
-//            final Comparator<? super JavaFile2> comparator = new FileComparator().selectFileComparator(mSortOrder);
-//            Collections.sort(directories, comparator);
-//            Collections.sort(files, comparator);
-        final ArrayList<JavaFile2> allFiles = new ArrayList<JavaFile2>(directories.size() + files.size());
-        allFiles.addAll(directories);
-        allFiles.addAll(files);
-
-
-        for (final File f : listFiles) {
-            if (f.isDirectory()) {
-                // Count the files and folders inside this folder
-                int numerOfDirectories = 0;
-                int numberOfFiles = 0;
-                File[] insideFiles = f.listFiles();
-                if (insideFiles != null) {
-                    for (File insideFile : insideFiles) {
-                        if (insideFile.isDirectory()) {
-                            numerOfDirectories++;
-                        } else if (insideFile.isFile()) {
-                            numberOfFiles++;
-                        }
-                    }
-                }
-
-                final JavaFile2 javaFile2 = new JavaFile2(f, numberOfFiles, numerOfDirectories);
-
-            }
-
-        }
-        AFile[] result = N.arr.fromCollection(directories, N.converter(AFile.class, element -> new JFile(element)));
-        return result;
+        return list(File::isDirectory);
     }
 
 
@@ -199,7 +138,7 @@ public class JFile extends AFile {
     public FileInputStream inputStream() throws FileNotFoundException {
         try {
             InputStream stream = getFileEditor().getInputStream();
-            System.out.println("JFile.inputStream");
+            return (FileInputStream) stream;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -208,16 +147,27 @@ public class JFile extends AFile {
 
     @Override
     public FileOutputStream outputStream() throws IOException {
-        return null;
-    }
+        try {
+            FileOutputStream stream = (FileOutputStream) getFileEditor().getOutputStream();
+            return stream;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;    }
 
     @Override
     public Long getFreeSpace() {
+        File ioFile = new File(file.getUri().getEncodedPath());
+        if (ioFile.exists())
+            return ioFile.getFreeSpace();
         return -1L;
     }
 
     @Override
     public Long getUsableSpace() {
+        File ioFile = new File(file.getUri().getEncodedPath());
+        if (ioFile.exists())
+            return ioFile.getUsableSpace();
         return -1L;
     }
 
@@ -231,8 +181,45 @@ public class JFile extends AFile {
         return getFileEditor().touchFile();
     }
 
+    private AFile[] list(FileFilter fileFilter) {
+        final ArrayList<JavaFile2> content = new ArrayList<JavaFile2>();
+
+
+        File directory = new File(file.getUri().getPath());
+
+        // File not found error
+        if (!directory.exists()) {
+            return new AFile[0];
+        }
+        if (!directory.canRead()) {
+            return new AFile[0];
+        }
+
+        File[] listFiles = fileFilter == null ? directory.listFiles() : directory.listFiles(fileFilter);
+
+
+        // Check Error in reading the directory (java.io.File do not allow any details about the error...).
+        if (listFiles == null) {
+//                postError(ListingEngine.ErrorEnum.ERROR_UNKNOWN);
+            return new AFile[0];
+        }
+
+        for (File f : listFiles) {
+            if (f.isDirectory()) {
+                content.add(new JavaFile2(f, JavaFile2.NUMBER_UNKNOWN, JavaFile2.NUMBER_UNKNOWN));
+            } else if (f.isFile()) {
+                content.add(new JavaFile2(f));
+            }
+        }
+
+        Collections.sort(content, Comparator.comparing(JavaFile2::getName));
+
+        AFile[] result = N.arr.fromCollection(content, N.converter(AFile.class, element -> new JFile(element)));
+        return result;
+    }
+
     @Override
     public AFile[] listContent() {
-        return new AFile[0];
+        return list(null);
     }
 }

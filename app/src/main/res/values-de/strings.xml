@@ -95,4 +95,5 @@
     <string name="chooseStorageTitle">Speicherortwahl</string>
     <string name="toastDrivePermissionsRequired">Ohne die nötige Berechtigung kannst du keinen Speicherort wählen.</string>
     <string name="driveChoosePath">Bitte wähle einen Speicherort.</string>
+    <string name="invalidDirectory">The chosen directory is invalid.</string>
 </resources>

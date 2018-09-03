@@ -9,12 +9,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -22,8 +25,10 @@ import java.util.Stack;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.MeinActivityPayload;
+import de.mein.android.Notifier;
 import de.mein.android.PopupActivity;
 import de.mein.android.drive.data.AndroidDriveStrings;
+import de.mein.android.file.JFile;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
@@ -38,6 +43,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     private Button btnCancel, btnOk;
     private ImageButton btnUp;
     private RecyclerView list;
+    private TextView txtPath;
     private AFile[] rootDirs;
     private AFile currentDir;
     private Stack<AFile> parentDirs = new Stack<>();
@@ -51,6 +57,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         btnOk = findViewById(R.id.btnOk);
         btnUp = findViewById(R.id.btnUp);
         list = findViewById(R.id.list);
+        txtPath = findViewById(R.id.txtPath);
         init();
     }
 
@@ -58,13 +65,15 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
 
         rootDirs = (AFile[]) payloads.get(0).getPayload();
         FilesActivityPayload payload = (FilesActivityPayload) payloads.get(0);
-        //ArrayAdapter<AFile> adapter = new ArrayAdapter<AFile>(this, android.R.layout.simple_list_item_1, rootDirs);
         FileAdapter adapter = new FileAdapter(this, list);
         adapter.setDirectories(payload.getPayload());
         adapter.setOnClicked(clickedDir -> {
             parentDirs.push(currentDir);
             currentDir = clickedDir;
             depth++;
+            if (currentDir!= null){
+                txtPath.setText(currentDir.getAbsolutePath());
+            }
             System.out.println("DirectoryChooserDialog.init.depth " + depth);
             AFile[] subDirs = clickedDir.listDirectories();
             adapter.setDirectories(subDirs);
@@ -79,14 +88,28 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
                 System.out.println("DirectoryChooserDialog.init.depth " + depth);
                 currentDir = parentDirs.pop();
                 AFile[] subDirs;
-                if (currentDir != null)
+                if (currentDir != null) {
                     subDirs = currentDir.listDirectories();
-                else
+                    txtPath.setText(currentDir.getAbsolutePath());
+                } else {
                     subDirs = rootDirs;
+                    txtPath.setText(R.string.invalidDirectory);
+                }
                 adapter.setDirectories(subDirs);
                 DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
             }
         });
+        btnOk.setOnClickListener(v -> {
+            if (currentDir != null) {
+                Intent result = new Intent();
+                result.putExtra(AndroidDriveStrings.DIR_CHOOSER_KEY, currentDir.getAbsolutePath());
+                setResult(RESULT_OK, result);
+                finish();
+            } else {
+                Notifier.toast(this, R.string.invalidDirectory);
+            }
+        });
+        btnCancel.setOnClickListener(v -> finish());
 
         runOnUiThread(adapter::notifyDataSetChanged);
     }
@@ -109,21 +132,12 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     public static Promise<AFile, Void, Void> showDialog(MeinActivity activity, AFile[] rootDirectories) {
         final NWrap.BWrap isRoot = new NWrap.BWrap(true);
         Deferred<AFile, Void, Void> deferred = new DeferredObject<>();
-//        List<String> storages = ExtStorageManager.getExtStorageManager().getExtSdcards();
-//        AFile[] roots = N.arr.fromCollection(storages, N.converter(AFile.class, element -> AFile.instance(new File(element))));
-
-
         Intent intent = new Intent(activity, DirectoryChooserDialog.class);
         FilesActivityPayload payload = new FilesActivityPayload(AndroidDriveStrings.DIR_CHOOSER_KEY, rootDirectories);
         activity.launchActivityForResult(intent, (resultCode, result) -> {
-            System.out.println("DirectoryChooserDialog.showDialog");
+            String path = result.getStringExtra(AndroidDriveStrings.DIR_CHOOSER_KEY);
+            deferred.resolve(AFile.instance(path));
         }, payload);
-
-
-//        List<String> strings = filesToStrings(rootDirectories, isRoot);
-//        AFile[] files = rootDirectories;
-//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_list_item_1, strings);
-
         return deferred;
     }
 
