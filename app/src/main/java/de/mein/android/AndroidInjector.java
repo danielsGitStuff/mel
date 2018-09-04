@@ -108,11 +108,11 @@ public class AndroidInjector {
         });
         // use a proper bash tools variant
         BashToolsImpl bashTools;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-           bashTools = new SAFBashTools(context);
-        } else {
-            bashTools = new BashToolsAndroid(context);
-        }
+//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+//           bashTools = new SAFBashTools(context);
+//        } else {
+        bashTools = new BashToolsAndroid(context);
+//        }
         BashTools.setInstance(bashTools);
         DriveInjector.setWatchDogRunner(RecursiveWatcher::new);
         DriveInjector.setBinPath("/system/bin/sh");

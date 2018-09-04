@@ -67,9 +67,9 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     private Long wastebinSize;
     // this is required for android 5+ only.
     private Uri rootTreeUri;
-    private DocumentFile rootFile;
+    private AFile rootFile;
 
-    public DocumentFile getRootFile() {
+    public AFile getRootFile() {
         return rootFile;
     }
 
@@ -215,6 +215,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         File dir = new File(path);
         totalSpace = dir.getTotalSpace();
         availableSpace = dir.getUsableSpace();
+        rootFile = AFile.instance(path);
         adjustMaxWasteBinRatio();
     }
 
@@ -231,20 +232,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 
     public boolean isValid() {
         final String path = txtPath.getText().toString();
-        // check if file exists for SAF and the normal way
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                DocumentFile documentFile = DocumentFile.fromTreeUri(activity, Uri.parse(path));
-                return documentFile.exists();
-            } catch (Exception e) {
-                return false;
-            }
-        } else {
-            File dir = new File(path);
-            dir.mkdirs();
-            return dir.exists();
-        }
-
+        return AFile.instance(path).exists();
     }
 
     @Override

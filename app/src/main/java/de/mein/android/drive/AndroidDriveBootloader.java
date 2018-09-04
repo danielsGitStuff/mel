@@ -19,6 +19,7 @@ import de.mein.android.drive.controller.RemoteDriveServiceChooserGuiController;
 import de.mein.android.drive.controller.AndroidDriveEditGuiController;
 import de.mein.android.file.DFile;
 import de.mein.auth.MeinNotification;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
@@ -44,8 +45,7 @@ public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBo
         if (driveCreateGuiController.isValid())
             Threadder.runNoTryThread(() -> {
                 String name = driveCreateGuiController.getName();
-                DocumentFile rootDoc = driveCreateGuiController.getRootFile();
-                DFile rootFile = new DFile(rootDoc);
+                AFile rootFile = driveCreateGuiController.getRootFile();
                 if (driveCreateGuiController.isServer()) {
                     driveCreateController.createDriveServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays());
                 } else {
