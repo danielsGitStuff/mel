@@ -128,9 +128,9 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
             serviceType = databaseManager.createServiceType(bootLoader.getName(), bootLoader.getDescription());
         }
         bootLoader.setTypeId(serviceType.getId().v());
-        AFile serviceTypesDir = AFile.instance(meinAuthService.getWorkingDirectory(), "servicetypes");
+        File serviceTypesDir = new File(meinAuthService.getWorkingDirectory(), "servicetypes");
         serviceTypesDir.mkdirs();
-        AFile bootDir = AFile.instance(serviceTypesDir, serviceType.getType().v());
+        File bootDir =new File(serviceTypesDir, serviceType.getType().v());
         bootDir.mkdirs();
         bootLoader.setBootLoaderDir(bootDir);
         return bootLoader;

@@ -69,7 +69,7 @@ public class KonsoleHandler {
 		String value = args[position++];
 		assert key != null && value != null;
 		if (key.equals(workingDirectory.k()))
-			meinAuthSettings.setWorkingDirectory(AFile.instance(value));
+			meinAuthSettings.setWorkingDirectory(new File(value));
 		else if (key.equals(port.k()))
 			meinAuthSettings.setPort(Integer.parseInt(value));
 		else if (key.equals(deliveryPort.k()))

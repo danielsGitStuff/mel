@@ -7,7 +7,7 @@ import java.io.*;
 /**
  * this is the default {@link File} wrapper for everything that is not recent android
  */
-public class FFile extends AFile {
+public class FFile extends AFile<FFile> {
     private File file;
 
     public FFile() {
@@ -66,7 +66,7 @@ public class FFile extends AFile {
     }
 
     @Override
-    public boolean move(AFile target) {
+    public boolean move(FFile target) {
         return file.renameTo(new File(target.getAbsolutePath()));
     }
 
@@ -81,13 +81,13 @@ public class FFile extends AFile {
     }
 
     @Override
-    public AFile[] listFiles() {
+    public FFile[] listFiles() {
         return N.arr.cast(file.listFiles(File::isFile), N.converter(FFile.class, FFile::new));
 
     }
 
     @Override
-    public AFile[] listDirectories() {
+    public FFile[] listDirectories() {
         return N.arr.cast(file.listFiles(File::isDirectory), N.converter(FFile.class, FFile::new));
 
     }
@@ -99,7 +99,7 @@ public class FFile extends AFile {
     }
 
     @Override
-    public AFile getParentFile() {
+    public FFile getParentFile() {
         return new FFile(file.getParentFile());
     }
 
@@ -144,7 +144,7 @@ public class FFile extends AFile {
     }
 
     @Override
-    public AFile[] listContent() {
+    public FFile[] listContent() {
         return N.arr.cast(file.listFiles(), N.converter(FFile.class, FFile::new));
     }
 }

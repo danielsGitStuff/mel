@@ -16,7 +16,7 @@ import java.util.concurrent.ThreadFactory;
  * Created by xor on 5/2/16.
  */
 public abstract class MeinService extends MeinWorker implements IMeinService {
-    protected final AFile serviceInstanceWorkingDirectory;
+    protected final File serviceInstanceWorkingDirectory;
     protected MeinAuthService meinAuthService;
     protected final String uuid;
     protected final Long serviceTypeId;
@@ -41,7 +41,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         }
     };
 
-    public MeinService(MeinAuthService meinAuthService, AFile serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid) {
+    public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid) {
         this.meinAuthService = meinAuthService;
         this.serviceInstanceWorkingDirectory = serviceInstanceWorkingDirectory;
         this.serviceTypeId = serviceTypeId;
@@ -59,7 +59,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         return serviceTypeId;
     }
 
-    public AFile getServiceInstanceWorkingDirectory() {
+    public File getServiceInstanceWorkingDirectory() {
         return serviceInstanceWorkingDirectory;
     }
 

@@ -75,7 +75,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         DriveDatabaseManager.driveSqlInputStreamInjector = driveSqlInputStreamInjector;
     }
 
-    public DriveDatabaseManager(MeinDriveService meinDriveService, AFile workingDirectory, DriveSettings driveSettingsCfg) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
+    public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
         super(workingDirectory);
 
         this.meinDriveService = meinDriveService;

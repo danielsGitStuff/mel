@@ -83,7 +83,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             syncListener.onTransfersDone();
     }
 
-    public MeinDriveService(MeinAuthService meinAuthService, AFile workingDirectory, Long serviceTypeId, String uuid) {
+    public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
     }
 

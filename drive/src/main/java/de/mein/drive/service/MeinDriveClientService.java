@@ -38,7 +38,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     private static Logger logger = Logger.getLogger(MeinDriveClientService.class.getName());
 
-    public MeinDriveClientService(MeinAuthService meinAuthService, AFile workingDirectory, Long serviceTypeId, String uuid) {
+    public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
     }
 

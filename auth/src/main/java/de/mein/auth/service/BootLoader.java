@@ -19,7 +19,7 @@ import java.util.List;
 public abstract class BootLoader {
 
     protected Long typeId;
-    protected AFile bootLoaderDir;
+    protected File bootLoaderDir;
     protected MeinAuthService meinAuthService;
 
     public BootLoader(){
@@ -40,7 +40,7 @@ public abstract class BootLoader {
 
     public abstract Promise<Void, Exception, Void> boot(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException;
 
-    public void setBootLoaderDir(AFile bootLoaderDir) {
+    public void setBootLoaderDir(File bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;
     }
 

@@ -11,7 +11,8 @@ import java.io.IOException;
  * Before using {@link AFile}, call configure() and hand over a {@link Configuration}. This determines the implementation you want to use.
  * {@link DefaultFileConfiguration} uses {@link FFile} which wraps {@link File}.
  */
-public abstract class AFile {
+public abstract class AFile<T extends  AFile> {
+
     private static Configuration configuration;
 
     public static Configuration getConfiguration() {
@@ -91,19 +92,19 @@ public abstract class AFile {
 
     public abstract boolean isFile();
 
-    public abstract boolean move(AFile target);
+    public abstract boolean move(T target);
 
     public abstract boolean isDirectory();
 
     public abstract Long length();
 
-    public abstract AFile[] listFiles();
+    public abstract T[] listFiles();
 
-    public abstract AFile[] listDirectories();
+    public abstract T[] listDirectories();
 
     public abstract boolean delete();
 
-    public abstract AFile getParentFile();
+    public abstract T getParentFile();
 
     public abstract boolean mkdirs();
 
@@ -123,5 +124,5 @@ public abstract class AFile {
 
     public abstract boolean createNewFile() throws IOException;
 
-    public abstract AFile[] listContent();
+    public abstract T[] listContent();
 }

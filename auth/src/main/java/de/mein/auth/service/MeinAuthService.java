@@ -70,7 +70,7 @@ public class MeinAuthService {
     private final IDBCreatedListener dbCreatedListener;
     private List<MeinAuthAdmin> meinAuthAdmins = new ArrayList<>();
     private final DatabaseManager databaseManager;
-    private final AFile workingDirectory;
+    private final File workingDirectory;
     protected List<IRegisterHandler> registerHandlers = new ArrayList<>();
     private List<IRegisteredHandler> registeredHandlers = new ArrayList<>();
     private NetworkEnvironment networkEnvironment = new NetworkEnvironment();
@@ -137,7 +137,7 @@ public class MeinAuthService {
         return this;
     }
 
-    public AFile getWorkingDirectory() {
+    public File getWorkingDirectory() {
         return workingDirectory;
     }
 

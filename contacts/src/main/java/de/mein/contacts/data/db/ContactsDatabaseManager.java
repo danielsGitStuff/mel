@@ -34,7 +34,7 @@ public class ContactsDatabaseManager extends FileRelatedManager {
     private final ContactsDao contactsDao;
     private final PhoneBookDao phoneBookDao;
 
-    public ContactsDatabaseManager(ContactsService contactsService, AFile workingDirectory, ContactsSettings settingsCfg) throws SQLException, ClassNotFoundException, IOException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public ContactsDatabaseManager(ContactsService contactsService, File workingDirectory, ContactsSettings settingsCfg) throws SQLException, ClassNotFoundException, IOException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         super(workingDirectory);
 
         this.contactsService = contactsService;

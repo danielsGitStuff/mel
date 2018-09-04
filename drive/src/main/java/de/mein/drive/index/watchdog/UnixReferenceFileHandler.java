@@ -14,17 +14,17 @@ import java.util.List;
 public class UnixReferenceFileHandler {
     private final AFile directoryToQuery;
     private final AFile pruneDir;
-    private final AFile workingDirectory;
+    private final File workingDirectory;
     private boolean refOnFile1 = true;
-    private final AFile timeReferenceFile1;
-    private final AFile timeReferenceFile2;
+    private final File timeReferenceFile1;
+    private final File timeReferenceFile2;
 
-    public UnixReferenceFileHandler(AFile workingDirectory, AFile directoryToQuery, AFile pruneDir) {
+    public UnixReferenceFileHandler(File workingDirectory, AFile directoryToQuery, AFile pruneDir) {
         this.directoryToQuery = directoryToQuery;
         this.pruneDir = pruneDir;
         this.workingDirectory = workingDirectory;
-        timeReferenceFile1 = AFile.instance(workingDirectory ,"time1");
-        timeReferenceFile2 = AFile.instance(workingDirectory, "time2");
+        timeReferenceFile1 = new File(workingDirectory ,"time1");
+        timeReferenceFile2 = new File(workingDirectory, "time2");
     }
 
     public void onStart() {
@@ -32,7 +32,7 @@ public class UnixReferenceFileHandler {
         createFile(timeReferenceFile2);
     }
 
-    private void createFile(AFile timeReferenceFile) {
+    private void createFile(File timeReferenceFile) {
         if (timeReferenceFile.exists())
             timeReferenceFile.delete();
         timeReferenceFile.mkdirs();
@@ -41,14 +41,14 @@ public class UnixReferenceFileHandler {
     public synchronized List<AFile> stuffModifiedAfter() throws IOException, BashToolsException {
         // take the older one as reference. but to avoid data loss, we recreate the other file before.
         // so no stuff which happened while the BashTools work gets lost.
-        AFile refFile = (refOnFile1) ? timeReferenceFile2 : timeReferenceFile1;
-        AFile otherFile = (refOnFile1) ? timeReferenceFile1 : timeReferenceFile2;
+        File refFile = (refOnFile1) ? timeReferenceFile2 : timeReferenceFile1;
+        File otherFile = (refOnFile1) ? timeReferenceFile1 : timeReferenceFile2;
         refOnFile1 = !refOnFile1;
         otherFile.delete();
         otherFile.mkdirs();
         //todo debug
         if (refFile.lastModified()>otherFile.lastModified())
             System.err.println("dewjwojo94ig");
-        return BashTools.stuffModifiedAfter(refFile, directoryToQuery, pruneDir);
+        return BashTools.stuffModifiedAfter(AFile.instance(refFile.getAbsolutePath()), directoryToQuery, pruneDir);
     }
 }

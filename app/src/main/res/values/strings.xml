@@ -6,7 +6,6 @@
     <string name="title_activity_cert_incoming">Pairing Attempt!</string>
 
 
-
     <string name="coupleNotificationCertTitle">Pairing Attempt!</string>
     <string name="coupleNotificationCertText">Your Drive instance wants to get to know another one.</string>
     <string name="slogan">No Clouds included!</string>
@@ -15,7 +14,7 @@
     <string name="titleHelp">Help</string>
     <string name="accessHelp">Left column: all other Drive instances known to you. When clicking on one of them the right column will show all existing services. Ticking the boxes will allow the other instance to talk to this specific Service.</string>
     <string name="createServiceHelp">You can create new Services here. Remember: Services are not allowed to \"talk\" to any other instances by default. You can change that in the Access view. Before a service can be created you must grant the required permissions so it can do its job.</string>
-    <string name="infoHelp" >Shows the current status of the background service and some additional info. You can see all running services and settings in the navigator on the left.</string>
+    <string name="infoHelp">Shows the current status of the background service and some additional info. You can see all running services and settings in the navigator on the left.</string>
     <string name="logcatHelp">Usually you do not need this. If something goes wrong and you cannot currently debug this is the place to look at.</string>
     <string name="discoveryHelp">Finds other instances of Drive in the current Wifi. This requires Broadcasting to be working on your network. Broadcast are sent on port 9966.</string>
     <string name="connectedHelp">List of instances that your device already knows and can connect with. Currently connected instances are highlighted.</string>
@@ -97,4 +96,6 @@
     <string name="toastDrivePermissionsRequired">Cannot choose a working directory for the drive service unless you grant the required permission.</string>
     <string name="driveChoosePath">Please choose a storage directory</string>
     <string name="invalidDirectory">The chosen directory is invalid.</string>
+    <string name="permissionWriteMessage">Write permission to external storage is required since Android introduced the storage access framework which is rubbish. So I replaced the java.io.File by something that works and requires the permission.</string>
+    <string name="permissionWriteTitle">Permission required.</string>
 </resources>
