@@ -126,13 +126,19 @@ public class MainActivity extends MeinActivity {
         } else {
             AFile.configure(new DefaultFileConfiguration());
         }
-        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
-            setContentView(R.layout.activity_main);
-            content = findViewById(R.id.content);
-            toolbar = findViewById(R.id.toolbar);
-            btnHelp = toolbar.findViewById(R.id.btnHelp);
-            setSupportActionBar(toolbar);
-            // skip floating button stuff. it has no purpose for now
+//        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
+//
+//        });
+        normalStart();
+    }
+
+    private void normalStart() {
+        setContentView(R.layout.activity_main);
+        content = findViewById(R.id.content);
+        toolbar = findViewById(R.id.toolbar);
+        btnHelp = toolbar.findViewById(R.id.btnHelp);
+        setSupportActionBar(toolbar);
+        // skip floating button stuff. it has no purpose for now
 //        FloatingActionButton fab = findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -142,43 +148,40 @@ public class MainActivity extends MeinActivity {
 //            }
 //        });
 
-            DrawerLayout drawer = findViewById(R.id.drawer_layout);
-            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                    this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
-                @Override
-                public void onDrawerOpened(View drawerView) {
-                    super.onDrawerOpened(drawerView);
-                    // refresh currently available service list
-                    N.r(() -> showMenuServices());
-                }
-            };
-            drawer.setDrawerListener(toggle);
-            toggle.syncState();
-
-            navigationView = findViewById(R.id.nav_view);
-            navigationView.setNavigationItemSelectedListener(this);
-            enableGuiController(new InfoController(this, content));
-            // turn the help button into something useful
-            btnHelp.setOnClickListener(v -> {
-                if (guiController != null && guiController.getHelp() != null) {
-                    showMessage(this, guiController.getHelp());
-                }
-            });
-            // show current app version
-            try {
-                PackageInfo packageInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
-                String version = packageInfo.versionName;
-                View navView = navigationView.getHeaderView(0);
-                TextView textTitle = navView.findViewById(R.id.textTitle);
-                String title = getText(R.string.app_name) + " " + version;
-                textTitle.setText(title);
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                // refresh currently available service list
+                N.r(() -> showMenuServices());
             }
-            startService();
+        };
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        enableGuiController(new InfoController(this, content));
+        // turn the help button into something useful
+        btnHelp.setOnClickListener(v -> {
+            if (guiController != null && guiController.getHelp() != null) {
+                showMessage(this, guiController.getHelp());
+            }
         });
-
-
+        // show current app version
+        try {
+            PackageInfo packageInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = packageInfo.versionName;
+            View navView = navigationView.getHeaderView(0);
+            TextView textTitle = navView.findViewById(R.id.textTitle);
+            String title = getText(R.string.app_name) + " " + version;
+            textTitle.setText(title);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        startService();
     }
 
     public static void showMessage(Context context, int message) {

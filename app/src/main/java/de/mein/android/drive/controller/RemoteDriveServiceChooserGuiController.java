@@ -92,107 +92,8 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         btnPath.setOnClickListener(view -> {
             Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
             permissionsPromise.done(nil -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && false) {
-                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                    i.addCategory(Intent.CATEGORY_DEFAULT);
-                    activity.launchActivityForResult(Intent.createChooser(i, "Choose directory"), (resultCode, resultData) -> {
-                        System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                        if (resultCode == Activity.RESULT_OK) {
-                            // Get Uri from Storage Access Framework.
-                            rootTreeUri = resultData.getData();
-                            setPath(rootTreeUri.toString());
-
-
-                            // Persist URI in shared preference so that you can use it later.
-                            // Use your own framework here instead of PreferenceUtil.
-                            //PreferenceUtil.setSharedPreferenceUri(R.string.key_internal_uri_extsdcard, treeUri);
-
-
-                            // Persist access permissions.
-                            final int takeFlags = resultData.getFlags()
-                                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                            activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
-                            List<UriPermission> uris = activity.getContentResolver().getPersistedUriPermissions();
-//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                            rootFile = DocumentFile.fromTreeUri(activity, rootTreeUri);
-                            String mime = rootFile.getType();
-                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                            N.r(() -> {
-                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                                JavaFile2 ra = (JavaFile2) JavaFile2.fromUri(rootTreeUri);
-
-                                Uri uuu = rootFile.getUri();
-                                Cursor c = activity.getContentResolver().query(uuu, new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, "_data"}
-                                        , DocumentsContract.Document.COLUMN_DOCUMENT_ID + "=?", new String[]{DocumentsContract.getTreeDocumentId(rootTreeUri)}, null);
-                                while (c.moveToNext()) {
-                                    String s1 = c.getString(0);
-                                    String s2 = c.getString(1);
-                                    String s3 = c.getString(2);
-                                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                                }
-                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                            });
-                            N.r(() -> {
-                                //debug stuff
-
-                                ExtStorageManager extStorageManager = ExtStorageManager.getExtStorageManager();
-                                List<String> sdCards = extStorageManager.getExtSdcards();
-                                N.forEach(sdCards, (stoppable, index, s) -> {
-                                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                                    Uri rooturi = Uri.parse("file://" + s);
-                                    AFile rootFile = AFile.instance(new File(s));
-                                    BashToolsUnix bu = new BashToolsUnix();
-                                    Iterator<AFile> contentIterator = bu.find(rootFile, AFile.instance(rootFile, "bla"));
-                                    N.forEach(contentIterator, (stoppable1, index1, aFile) -> {
-                                        System.out.println(aFile.getAbsolutePath());
-                                        JavaFile2 f2 = new JavaFile2(new File(aFile.getAbsolutePath()));
-                                        System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                                    });
-                                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                                });
-                                File[] one = RemoteDriveServiceChooserGuiController.this.activity.getApplicationContext().getExternalMediaDirs();
-                                File two = Environment.getExternalStorageDirectory();
-                                String state = Environment.getExternalStorageState();
-                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                                File f = new File("/mnt/media_rw/1E03-251C");
-                                if (f.exists()) {
-                                    File[] b = BashTools.lsD("/mnt/media_rw");
-                                    File[] files = f.listFiles();
-                                    N.forEach(files, (stoppable, index, file) -> System.out.println(file.getAbsolutePath()));
-                                }
-                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded.end");
-                            });
-//                            AFile rootFile = AFile.instance(rootTreeUri.toString());
-//                            AFile music = AFile.instance(rootFile,"Music");
-//                            boolean exists = music.exists();
-//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-//                            AFile wrong = AFile.instance(rootFile,"doesnotexist");
-//                            boolean alsoexists = wrong.exists();
-//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-//
-//                            DocumentFile[] content = root.listFiles();
-//                            N.forEach(content, (stoppable, index, documentFile1) -> {
-//                                if (documentFile1.isDirectory()){
-//                                    N.forEach(documentFile1.listFiles(),(stoppable1, index1, documentFile2) -> {
-//                                        if (documentFile2.isDirectory())
-//                                            N.forEach(documentFile2.listFiles(),(stoppable2, index2, documentFile3) -> {
-//                                                Uri u = documentFile3.getUri();
-//                                                String path = u.getEncodedPath();
-//                                                String path2 = u.getPath();
-//                                                DocumentFile d1 = DocumentFile.fromSingleUri(activity, u);
-//                                                DocumentFile d2 = DocumentFile.fromTreeUri(activity, u);
-//                                                Uri u2 = Uri.withAppendedPath(u, documentFile1.getName());
-//                                                DocumentFile d3 = DocumentFile.fromTreeUri(activity, u2);
-//                                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded..." + path);
-//                                            });
-//                                    });
-//                                }
-//
-//                            });
-//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                        }
-                    });
-                } else {
+               if (permissionsGrantedListener != null)
+                   permissionsGrantedListener.onPermissionsGranted();
                     /**
                      * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
                      * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
@@ -209,7 +110,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                     Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity,rootDirs);
                     result.done(result1 -> setPath(result1.getAbsolutePath()));
 //
-                }
+
 
             }).fail(result -> {
                 Notifier.toast(activity, R.string.toastDrivePermissionsRequired);

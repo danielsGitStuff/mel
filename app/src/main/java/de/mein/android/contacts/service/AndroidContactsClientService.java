@@ -52,7 +52,7 @@ public class AndroidContactsClientService extends ContactsClientService {
     private final AndroidServiceMethods serviceMethods;
     private ContactsToAndroidExporter contactsToAndroidExporter;
 
-    public AndroidContactsClientService(MeinAuthService meinAuthService, AFile serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+    public AndroidContactsClientService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
         AndroidContactSettings androidContactSettings = (AndroidContactSettings) settingsCfg.getPlatformContactSettings();
         serviceMethods = new AndroidServiceMethods(this, databaseManager, androidContactSettings);

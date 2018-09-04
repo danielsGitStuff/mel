@@ -19,14 +19,19 @@ import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.service.AndroidService;
-import de.mein.auth.service.MeinBoot;
 import de.mein.auth.tools.N;
 import de.mein.android.MainActivity;
 
 /**
  * Created by xor on 2/20/17.
  */
-public class CreateServiceController extends GuiController {
+public class CreateServiceController extends GuiController implements PermissionsGrantedListener {
+    @Override
+    public void onPermissionsGranted() {
+        btnCreate.setOnClickListener(defaultBtnCreateListener);
+        btnCreate.setText(R.string.btnCreate);
+    }
+
     private final Spinner spinner;
     private final EditText txtName;
     private LinearLayout embedded;
@@ -61,9 +66,9 @@ public class CreateServiceController extends GuiController {
             if (bootLoader != null) {
                 embedded.removeAllViews();
                 currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
+                currentController.setOnPermissionsGrantedListener(this);
                 if (activity.hasPermissions(bootLoader.getPermissions())) {
-                    btnCreate.setOnClickListener(defaultBtnCreateListener);
-                    btnCreate.setText(R.string.btnCreate);
+                   onPermissionsGranted();
                 } else {
                     btnCreate.setOnClickListener(v -> {
                         activity.annoyWithPermissions(bootLoader.getPermissions())
@@ -84,6 +89,7 @@ public class CreateServiceController extends GuiController {
         });
 
     }
+
 
 
     @Override

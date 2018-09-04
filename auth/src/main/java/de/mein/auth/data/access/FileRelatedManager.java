@@ -9,10 +9,10 @@ import java.io.File;
  * Created by xor on 4/26/16.
  */
 public abstract class FileRelatedManager extends RWLock{
-    protected AFile workingDirectory;
+    protected File workingDirectory;
     protected boolean hadToInitialize = false;
 
-    public FileRelatedManager(AFile workingDirectory) {
+    public FileRelatedManager(File workingDirectory) {
         this.workingDirectory = workingDirectory;
         if (!workingDirectory.exists()) {
             workingDirectory.mkdirs();

@@ -16,7 +16,7 @@ public class MeinAuthSettings extends JsonSettings {
     public static final int BROTCAST_PORT = 9966;
     private int deliveryPort, port;
     private String workingdirectoryPath, name;
-    private AFile workingDirectory;
+    private File workingDirectory;
     private String greeting;
     private Integer brotcastListenerPort;
     private Integer brotcastPort;
@@ -32,7 +32,7 @@ public class MeinAuthSettings extends JsonSettings {
                 .setName("meinauth")
                 .setBrotcastListenerPort(BROTCAST_PORT)
                 .setBrotcastPort(BROTCAST_PORT)
-                .setWorkingDirectory(AFile.instance(MeinBoot.defaultWorkingDir1))
+                .setWorkingDirectory(MeinBoot.defaultWorkingDir1)
                 .setGreeting(generateGreeting())
                 .setJsonFile(new File("meinAuth.settings.json"));
         return meinAuthSettings;
@@ -139,11 +139,11 @@ public class MeinAuthSettings extends JsonSettings {
         return this;
     }
 
-    public AFile getWorkingDirectory() {
+    public File getWorkingDirectory() {
         return workingDirectory;
     }
 
-    public MeinAuthSettings setWorkingDirectory(AFile workingDirectory) {
+    public MeinAuthSettings setWorkingDirectory(File workingDirectory) {
         this.workingDirectory = workingDirectory;
         this.workingdirectoryPath = workingDirectory.getAbsolutePath();
         File jsonFile = new File(workingDirectory.getAbsolutePath() + File.separator + DEFAULT_FILE);
@@ -162,6 +162,6 @@ public class MeinAuthSettings extends JsonSettings {
 
     @Override
     protected void init() {
-        this.workingDirectory = AFile.instance(new File(this.workingdirectoryPath));
+        this.workingDirectory = new File(this.workingdirectoryPath);
     }
 }

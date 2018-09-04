@@ -58,7 +58,7 @@ public class CertificateManager extends FileRelatedManager {
     private CertificateDao certificateDao;
 
 
-    public CertificateManager(AFile workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
+    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
         super(workingDirectory);
         System.out.println("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
         if (keysize != null)

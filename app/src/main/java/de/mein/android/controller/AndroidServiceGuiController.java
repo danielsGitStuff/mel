@@ -26,6 +26,7 @@ public abstract class AndroidServiceGuiController {
             }
         }
     };
+    protected PermissionsGrantedListener permissionsGrantedListener;
 
     public void setName(String name) {
         this.name = name;
@@ -51,4 +52,8 @@ public abstract class AndroidServiceGuiController {
      * is called when user presses apply button when editing server
      */
     public abstract void onOkClicked();
+
+    public void setOnPermissionsGrantedListener(PermissionsGrantedListener permissionsGrantedListener) {
+        this.permissionsGrantedListener = permissionsGrantedListener;
+    }
 }

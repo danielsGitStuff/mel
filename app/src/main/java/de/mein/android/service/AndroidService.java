@@ -201,8 +201,7 @@ public class AndroidService extends Service {
         System.out.println("AndroidService.onCreate()");
         createPermanentSticky();
         // configure MeinAuth
-        File workingFile = new File(getAndroidPath() + File.separator + "meinauth.workingdir");
-        AFile workingDir =AFile.instance(workingFile);
+        File workingDir = new File(getAndroidPath() + File.separator + "meinauth.workingdir");
         workingDir.mkdirs();
         File settingsFile = new File(workingDir.getAbsolutePath() + File.separator + "meinauth.settings.json");
         try {
