@@ -21,7 +21,7 @@ import java.util.Comparator;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 
-public class JFile extends AFile {
+public class JFile extends AFile<JFile> {
 
     private JavaFile2 file;
     private JFile parentFile;
@@ -83,8 +83,8 @@ public class JFile extends AFile {
     }
 
     @Override
-    public boolean move(AFile target) {
-        return false;
+    public boolean move(JFile target) {
+        return getFileEditor().move(target.file.getUri());
     }
 
     @Override
@@ -98,12 +98,12 @@ public class JFile extends AFile {
     }
 
     @Override
-    public AFile[] listFiles() {
+    public JFile[] listFiles() {
         return list(File::isFile);
     }
 
     @Override
-    public AFile[] listDirectories() {
+    public JFile[] listDirectories() {
         return list(File::isDirectory);
     }
 
@@ -119,7 +119,7 @@ public class JFile extends AFile {
     }
 
     @Override
-    public AFile getParentFile() {
+    public JFile getParentFile() {
         return parentFile;
     }
 
@@ -153,7 +153,8 @@ public class JFile extends AFile {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;    }
+        return null;
+    }
 
     @Override
     public Long getFreeSpace() {
@@ -181,7 +182,7 @@ public class JFile extends AFile {
         return getFileEditor().touchFile();
     }
 
-    private AFile[] list(FileFilter fileFilter) {
+    private JFile[] list(FileFilter fileFilter) {
         final ArrayList<JavaFile2> content = new ArrayList<JavaFile2>();
 
 
@@ -189,10 +190,10 @@ public class JFile extends AFile {
 
         // File not found error
         if (!directory.exists()) {
-            return new AFile[0];
+            return new JFile[0];
         }
         if (!directory.canRead()) {
-            return new AFile[0];
+            return new JFile[0];
         }
 
         File[] listFiles = fileFilter == null ? directory.listFiles() : directory.listFiles(fileFilter);
@@ -201,7 +202,7 @@ public class JFile extends AFile {
         // Check Error in reading the directory (java.io.File do not allow any details about the error...).
         if (listFiles == null) {
 //                postError(ListingEngine.ErrorEnum.ERROR_UNKNOWN);
-            return new AFile[0];
+            return new JFile[0];
         }
 
         for (File f : listFiles) {
@@ -214,12 +215,12 @@ public class JFile extends AFile {
 
         Collections.sort(content, Comparator.comparing(JavaFile2::getName));
 
-        AFile[] result = N.arr.fromCollection(content, N.converter(AFile.class, element -> new JFile(element)));
+        JFile[] result = N.arr.fromCollection(content, N.converter(JFile.class, element -> new JFile(element)));
         return result;
     }
 
     @Override
-    public AFile[] listContent() {
+    public JFile[] listContent() {
         return list(null);
     }
 }
