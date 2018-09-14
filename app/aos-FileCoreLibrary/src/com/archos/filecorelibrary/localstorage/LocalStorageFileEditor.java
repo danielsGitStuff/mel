@@ -14,12 +14,19 @@
 
 package com.archos.filecorelibrary.localstorage;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.UriPermission;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.annotation.RequiresApi;
+import android.support.v4.provider.DocumentFile;
 
 import com.archos.filecorelibrary.ExtStorageManager;
 import com.archos.filecorelibrary.FileEditor;
@@ -34,12 +41,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.channels.Channels;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Stack;
 
 
 public class LocalStorageFileEditor extends FileEditor {
+    private static Constructor<?> hackyContructor;
+
     private final Context mContext;
 
     private static final String PICTURES_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath();
@@ -53,11 +65,23 @@ public class LocalStorageFileEditor extends FileEditor {
      * These directories cannot be deleted, renamed, moved, ...
      */
     public static final String[] DO_NOT_TOUCH = {
-        DCIM_PATH,(new File(STORAGE, "Android")).getPath(), MUSIC_PATH, PICTURES_PATH, VIDEO_PATH, USBHOST_PTP_PATH
+            DCIM_PATH, (new File(STORAGE, "Android")).getPath(), MUSIC_PATH, PICTURES_PATH, VIDEO_PATH, USBHOST_PTP_PATH
     };
 
     public LocalStorageFileEditor(Uri uri, Context context) {
         super(uri);
+        if (LocalStorageFileEditor.hackyContructor == null) {
+
+            try {
+                Class<?> c = Class.forName("android.support.v4.provider.TreeDocumentFile");
+                LocalStorageFileEditor.hackyContructor = c.getDeclaredConstructor(DocumentFile.class, Context.class, Uri.class);
+                LocalStorageFileEditor.hackyContructor.setAccessible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+        }
 
         mContext = context;
     }
@@ -68,7 +92,8 @@ public class LocalStorageFileEditor extends FileEditor {
 
     // Our FileEditor API throw an exception when the delete fails.
     // Since the java.File API does not do it (returns false instead) we're using this home-made exception instead
-    public static class DeleteFailException extends Exception {}
+    public static class DeleteFailException extends Exception {
+    }
 
     public static boolean checkIfShouldNotTouchFolder(Uri uri) {
         String path = uri.getPath();
@@ -94,19 +119,65 @@ public class LocalStorageFileEditor extends FileEditor {
     public OutputStream getOutputStream() throws IOException {
         OutputStream fos = null;
         try {
-            fos = new FileOutputStream(new File(mUri.getPath()));
-        }
-        catch (FileNotFoundException e) {
+            List<UriPermission> permissions;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                permissions = mContext.getContentResolver().getPersistedUriPermissions();
+                UriPermission sdPermission = permissions.get(0);
+                Uri sdUri = sdPermission.getUri();
+                DocumentFile sdDcoumentFile = DocumentFile.fromTreeUri(mContext, sdUri);
+                Stack<DocumentFile> stack = new Stack<>();
+                String[] parts = mUri.toString().split("\\/");
+                DocumentFile documentFile = sdDcoumentFile;
+                stack.push(sdDcoumentFile);
+                for (int i = 5; i < parts.length; i++) {
+                    String part = parts[i];
+                    documentFile = getSubDocFile(documentFile, part);
+                    stack.push(documentFile);
+                }
+                DocumentFile lastDoc = stack.peek();
+                fos = mContext.getContentResolver().openOutputStream(lastDoc.getUri(), "w");
+                fos = new FileOutputStream(new File(lastDoc.getUri().getPath()));
+            } else
+                fos = new FileOutputStream(new File(mUri.getPath()));
+        } catch (FileNotFoundException e) {
             // when permission error, try externalsdfilewriter
             if (mContext != null) {
                 ExternalSDFileWriter external = new ExternalSDFileWriter(mContext.getContentResolver(), new File(mUri.getPath()));
                 fos = external.write();
-            }
-            else {
+            } else {
                 throw e;
             }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
         }
         return fos;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private DocumentFile getSubDocFile(DocumentFile documentFile, String name) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+        final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(documentFile.getUri(),
+                DocumentsContract.getDocumentId(documentFile.getUri()));
+        Cursor cursor = mContext.getContentResolver().query(childrenUri, new String[]{
+                DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME}, null, null, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String docId = cursor.getString(0);
+                String docName = cursor.getString(1);
+                if (docName.equals(name)) {
+                    final Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(documentFile.getUri(),
+                            docId);
+                    DocumentFile res = (DocumentFile) LocalStorageFileEditor.hackyContructor.newInstance(null, mContext, documentUri);
+                    return res;
+                }
+            }
+            cursor.close();
+        }
+        return null;
     }
 
     @Override
@@ -145,8 +216,7 @@ public class LocalStorageFileEditor extends FileEditor {
                 ExternalSDFileWriter external = new ExternalSDFileWriter(mContext.getContentResolver(), new File(mUri.getPath()));
                 return external.mkdir();
             }
-        }
-        else if (mContext != null) {
+        } else if (mContext != null) {
             scanFile(mUri, true);
             return true;
         }
@@ -171,7 +241,7 @@ public class LocalStorageFileEditor extends FileEditor {
         if (mContext != null) {
             Uri uri = MediaStore.Files.getContentUri("external");
             String where = MediaStore.MediaColumns.DATA + "=?";
-            String[] selectionArgs = { file.getAbsolutePath() };
+            String[] selectionArgs = {file.getAbsolutePath()};
             mContext.getContentResolver().delete(uri, where, selectionArgs);
         }
     }
@@ -185,13 +255,12 @@ public class LocalStorageFileEditor extends FileEditor {
                         throw new DeleteFailException();
                     }
                     return;
-                } catch (IOException e1) {}
-            }
-            else {
+                } catch (IOException e1) {
+                }
+            } else {
                 throw new DeleteFailException();
             }
-        }
-        else {
+        } else {
             deleteFromDatabase(file);
         }
     }
@@ -208,7 +277,6 @@ public class LocalStorageFileEditor extends FileEditor {
     }
 
     /**
-     *
      * @param context
      * @throws DeleteFailException if database AND file delete fails
      */
@@ -220,13 +288,14 @@ public class LocalStorageFileEditor extends FileEditor {
         ContentResolver cr = context.getContentResolver();
         Uri uri = MediaStore.Files.getContentUri("external");
         String where = MediaStore.MediaColumns.DATA + "=?";
-        String[] selectionArgs = { mUri.getPath() };
+        String[] selectionArgs = {mUri.getPath()};
         cr.delete(uri, where, selectionArgs);
         boolean delete = false;
         try {
             delete();
             delete = true;
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         if (!(delete || !exists())) {
             // in case delete fail because file has already been deleted by cr.delete
@@ -256,7 +325,7 @@ public class LocalStorageFileEditor extends FileEditor {
             return false;
         }
         if (uri.getScheme().equals(mUri.getScheme())) {
-           return new File(mUri.getPath()).renameTo(new File(uri.getPath()));
+            return new File(mUri.getPath()).renameTo(new File(uri.getPath()));
         }
         return false;
     }

@@ -33,11 +33,11 @@ android {
     buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "de.mein.meindrive"
-        minSdkVersion 24
+        minSdkVersion 19
         targetSdkVersion 27
         versionCode 1
         versionName "0.1-beta"
-        multiDexEnabled false
+        multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 //        javaCompileOptions {
@@ -83,6 +83,7 @@ dependencies {
 //    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
 //        exclude group: 'com.android.support', module: 'support-annotations'
 //    })
+    implementation 'com.android.support:multidex:1.0.3'
     implementation project(':json')
     implementation project(':serialize')
     implementation project(':sql')

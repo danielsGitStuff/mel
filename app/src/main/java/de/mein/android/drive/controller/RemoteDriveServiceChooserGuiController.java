@@ -27,6 +27,8 @@ import com.archos.filecorelibrary.localstorage.JavaFile2;
 import org.jdeferred.Promise;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -92,23 +94,48 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         btnPath.setOnClickListener(view -> {
             Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
             permissionsPromise.done(nil -> {
-               if (permissionsGrantedListener != null)
-                   permissionsGrantedListener.onPermissionsGranted();
-                    /**
-                     * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
-                     * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
-                     * other option would (probably) be to adapt all the file handling and tools and workers and so on to work with SFA.
-                     * this works around it.
-                     *
-                     * this relies on work done by the Archos people. they found a neat way to maneuver around SFA.
-                     * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
-                     */
-                    ExtStorageManager extStorageManager = ExtStorageManager.getExtStorageManager();
-                    List<String> paths = extStorageManager.getExtSdcards();
-                    paths.add(Environment.getExternalStorageDirectory().getAbsolutePath());
-                    AFile[] rootDirs = N.arr.fromCollection(paths,N.converter(AFile.class,element -> AFile.instance(AFile.instance(element))));
-                    Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity,rootDirs);
-                    result.done(result1 -> setPath(result1.getAbsolutePath()));
+                if (permissionsGrantedListener != null)
+                    permissionsGrantedListener.onPermissionsGranted();
+                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                i.addCategory(Intent.CATEGORY_DEFAULT);
+                activity.launchActivityForResult(Intent.createChooser(i, "Choose directory"), (resultCode, intentResult) -> {
+                    // Persist access permissions.
+                    if (resultCode == -1) {
+                        rootTreeUri = intentResult.getData();
+                        final int takeFlags = intentResult.getFlags()
+                                & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
+                        List<UriPermission> uris = activity.getContentResolver().getPersistedUriPermissions();
+
+                        /**
+                         * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
+                         * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
+                         * other option would (probably) be to adapt all the file handling and tools and workers and so on to work with SFA.
+                         * this works around it.
+                         *
+                         * this relies on work done by the Archos people. they found a neat way to maneuver around SFA.
+                         * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
+                         */
+                        ExtStorageManager extStorageManager = ExtStorageManager.getExtStorageManager();
+                        List<String> paths = extStorageManager.getExtSdcards();
+                        paths.add(Environment.getExternalStorageDirectory().getAbsolutePath());
+                        AFile[] rootDirs = N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
+                        Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
+                        result.done(result1 -> {
+                            setPath(result1.getAbsolutePath());
+                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded.touching file");
+                            AFile chosen = AFile.instance(result1.getAbsolutePath());
+                            AFile touch = AFile.instance(chosen, "touched.txt");
+                            try {
+                                FileOutputStream outputStream = touch.outputStream();
+                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    }
+                });
+
 //
 
 
