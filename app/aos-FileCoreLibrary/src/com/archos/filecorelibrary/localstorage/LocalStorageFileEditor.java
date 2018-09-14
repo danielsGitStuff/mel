@@ -52,6 +52,19 @@ import java.util.Stack;
 public class LocalStorageFileEditor extends FileEditor {
     private static Constructor<?> hackyContructor;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static Uri buildChildrenUri(Uri uri) {
+        Uri childrenUri;//= DocumentsContract.buildChildDocumentsUriUsingTree(parent.uri, DocumentsContract.getTreeDocumentId(parent.uri));
+        try {
+            //for childs and sub child dirs
+            childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, DocumentsContract.getDocumentId(uri));
+        } catch (Exception e) {
+            // for parent dir
+            childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
+        }
+        return childrenUri;
+    }
+
     private final Context mContext;
 
     private static final String PICTURES_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath();
@@ -129,12 +142,12 @@ public class LocalStorageFileEditor extends FileEditor {
                 String[] parts = mUri.toString().split("\\/");
                 DocumentFile documentFile = sdDcoumentFile;
                 stack.push(sdDcoumentFile);
-                for (int i = 5; i < parts.length; i++) {
-                    String part = parts[i];
-                    documentFile = getSubDocFile(documentFile, part);
-                    stack.push(documentFile);
-                }
-                DocumentFile lastDoc = stack.peek();
+//                for (int i = 5; i < parts.length; i++) {
+//                    String part = parts[i];
+//                    documentFile = getSubDocFile(documentFile, parts);
+//                    stack.push(documentFile);
+//                }
+                DocumentFile lastDoc = getSubDocFile(documentFile, parts);
                 fos = mContext.getContentResolver().openOutputStream(lastDoc.getUri(), "w");
                 fos = new FileOutputStream(new File(lastDoc.getUri().getPath()));
             } else
@@ -159,25 +172,33 @@ public class LocalStorageFileEditor extends FileEditor {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private DocumentFile getSubDocFile(DocumentFile documentFile, String name) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-        final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(documentFile.getUri(),
-                DocumentsContract.getDocumentId(documentFile.getUri()));
-        Cursor cursor = mContext.getContentResolver().query(childrenUri, new String[]{
-                DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME}, null, null, null);
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                String docId = cursor.getString(0);
-                String docName = cursor.getString(1);
-                if (docName.equals(name)) {
-                    final Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(documentFile.getUri(),
-                            docId);
-                    DocumentFile res = (DocumentFile) LocalStorageFileEditor.hackyContructor.newInstance(null, mContext, documentUri);
-                    return res;
+    private DocumentFile getSubDocFile(DocumentFile rootDocFile, String[] parts) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+        Uri parentUri = rootDocFile.getUri();
+        Stack<Uri> stack = new Stack<>();
+        for (int i = 5; i < parts.length; i++) {
+            String name = parts[i];
+            Uri childrenUri = buildChildrenUri(parentUri);
+            Cursor cursor = mContext.getContentResolver().query(childrenUri, new String[]{
+                    DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME}, null, null, null);
+            if (cursor != null) {
+                if (cursor.getCount() > 0)
+                    while (cursor.moveToNext()) {
+                        String docId = cursor.getString(0);
+                        String docName = cursor.getString(1);
+                        if (docName.equals(name)) {
+                            final Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(childrenUri, docId);
+                            DocumentFile res = (DocumentFile) LocalStorageFileEditor.hackyContructor.newInstance(null, mContext, documentUri);
+                            parentUri = res.getUri();
+                            break;
+                        }
+                    }
+                else {
+                    // file does not exist yet
                 }
+                cursor.close();
             }
-            cursor.close();
         }
-        return null;
+        return (DocumentFile) LocalStorageFileEditor.hackyContructor.newInstance(null, mContext, parentUri);
     }
 
     @Override
