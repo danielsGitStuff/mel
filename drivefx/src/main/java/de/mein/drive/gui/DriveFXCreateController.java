@@ -3,6 +3,7 @@ package de.mein.drive.gui;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.file.AFile;
 import de.mein.auth.gui.EmbeddedServiceSettingsFX;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
@@ -41,11 +42,11 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             String role = isServer ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
             String path = txtPath.getText();
             if (isServer)
-                driveCreateController.createDriveServerService(name, path, 0.1f, 30);
+                driveCreateController.createDriveServerService(name, AFile.instance(path), 0.1f, 30);
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, path, certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30);
+                Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30);
                 promise.done(meinDriveClientService -> N.r(() -> {
                     meinDriveClientService.syncThisClient();
                 }));

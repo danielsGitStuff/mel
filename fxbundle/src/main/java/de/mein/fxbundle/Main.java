@@ -3,6 +3,8 @@ package de.mein.fxbundle;
 import de.mein.KonsoleHandler;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.file.AFile;
+import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.gui.RegisterHandlerFX;
 import de.mein.auth.service.MeinAuthFxLoader;
 import de.mein.auth.service.MeinBoot;
@@ -33,6 +35,7 @@ public class Main {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
+        AFile.configure(new DefaultFileConfiguration());
         BashTools.init();
     }
 
