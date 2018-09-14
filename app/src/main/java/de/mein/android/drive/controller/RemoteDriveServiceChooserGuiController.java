@@ -125,13 +125,13 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                             setPath(result1.getAbsolutePath());
                             System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded.touching file");
                             AFile chosen = AFile.instance(result1.getAbsolutePath());
-                            AFile touch = AFile.instance(chosen, "touched.txt");
-                            try {
+                            N.r(() -> {
+                                AFile touch = AFile.instance(chosen, "touched.txt");
+                                touch.createNewFile();
                                 FileOutputStream outputStream = touch.outputStream();
                                 System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                            });
                         });
                     }
                 });
