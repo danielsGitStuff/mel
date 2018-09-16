@@ -38,6 +38,7 @@ import de.mein.android.Notifier;
 import de.mein.android.Tools;
 import de.mein.android.controller.RemoteServiceChooserController;
 import de.mein.android.drive.AndroidDriveBootloader;
+import de.mein.android.file.JFile;
 import de.mein.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
@@ -124,9 +125,11 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                         result.done(result1 -> {
                             setPath(result1.getAbsolutePath());
                             System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded.touching file");
-                            AFile chosen = AFile.instance(result1.getAbsolutePath());
+                            AFile chosen = result1;
                             N.r(() -> {
                                 AFile touch = AFile.instance(chosen, "touched.txt");
+                                JFile chosenJFile = (JFile) chosen;
+                                Uri chosenUri = chosenJFile.getUri();
                                 touch.createNewFile();
                                 FileOutputStream outputStream = touch.outputStream();
                                 System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");

@@ -1,10 +1,21 @@
 package de.mein.android.file;
 
+import android.content.ContentResolver;
+import android.content.UriPermission;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.os.storage.StorageManager;
+import android.provider.DocumentsContract;
+import android.support.v4.content.MimeTypeFilter;
+import android.support.v4.provider.DocumentFile;
+import android.webkit.MimeTypeMap;
 
+import com.archos.filecorelibrary.ExtStorageManager;
 import com.archos.filecorelibrary.FileComparator;
 import com.archos.filecorelibrary.FileEditor;
+import com.archos.filecorelibrary.MimeUtils;
 import com.archos.filecorelibrary.localstorage.JavaFile2;
 
 import java.io.File;
@@ -14,12 +25,19 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 
+import de.mein.android.Tools;
+import de.mein.android.drive.data.NC;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.NWrap;
 
 public class JFile extends AFile<JFile> {
 
@@ -179,7 +197,61 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public boolean createNewFile() throws IOException {
-        return getFileEditor().touchFile();
+        Uri parentUri = parentFile.file.getUri();
+        String path = parentUri.getPath();
+        String internalPath = Environment.getDataDirectory().getAbsolutePath();
+        if (path.startsWith(internalPath)) {
+            File f = new File(parentUri.getPath() + File.separator + file.getName());
+            return f.createNewFile();
+        }
+//        String auth = parentFile.file.getUri().getAuthority();
+//        if (auth.length() == 0){
+//            File f = new File(parentUri.getPath()+File.separator+file.getName());
+//            return f.createNewFile();
+//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ContentResolver resolver = Tools.getApplicationContext().getContentResolver();
+            UriPermission permission = resolver.getPersistedUriPermissions().get(0);
+            parentUri = permission.getUri();
+            String rootDocId = DocumentsContract.getTreeDocumentId(parentUri);
+            String storage = ExtStorageManager.getExtStorageManager().getExtSdcards().get(0);
+            String stripped = path.substring(storage.length() + 1);
+            String[] parts = stripped.split(File.separator);
+            NWrap<Uri> parentWrap = new NWrap<>(parentUri);
+            NWrap.SWrap idWrap = new NWrap.SWrap(null);
+            N.forEach(parts, (stoppable, index, part) -> {
+                String docId = DocumentsContract.getTreeDocumentId(parentWrap.v());
+                Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parentWrap.v(), docId);
+                Cursor cursor = resolver.query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME}, null, null, null);
+                NC.iterate(cursor, (cursor1, stoppable1) -> {
+                    String name = cursor1.getString(1);
+                    if (name.equals(part)) {
+                        String id = cursor.getString(0);
+                        Uri uri = DocumentsContract.buildDocumentUriUsingTree(parentWrap.v(), id);
+                        //uri = DocumentsContract.buildTreeDocumentUri(uri.getAuthority(), id);
+                        idWrap.v(id);
+                        parentWrap.v(uri);
+                        stoppable1.stop();
+                    }
+                });
+            });
+            parentUri = parentWrap.v();
+//            DocumentFile doc = DocumentFile.fromSingleUri(Tools.getApplicationContext(), parentUri);
+//            String docId = DocumentsContract.getDocumentId(doc.getUri());
+//            parentUri = DocumentsContract.buildDocumentUri(doc.getUri().getAuthority(), docId);
+            //parentUri = doc.getUri();
+            String mime = "text/plain";
+            mime = "application/octet-stream";
+            // tree uri -> document uri
+            // parentUri = DocumentsContract.buildDocumentUri(parentUri.getAuthority(), idWrap.v());
+            Uri docUri = DocumentsContract.createDocument(Tools.getApplicationContext().getContentResolver(), parentUri, mime, file.getName());
+            if (docUri != null) {
+                file = new JavaFile2(new File(docUri.getPath()));
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
 
     private JFile[] list(FileFilter fileFilter) {
@@ -213,7 +285,7 @@ public class JFile extends AFile<JFile> {
             }
         }
 
-        Collections.sort(content, Comparator.comparing(JavaFile2::getName));
+        Collections.sort(content, (o1, o2) -> o1.getName().compareTo(o2.getName()));
 
         JFile[] result = N.arr.fromCollection(content, N.converter(JFile.class, element -> new JFile(element)));
         return result;
@@ -222,5 +294,9 @@ public class JFile extends AFile<JFile> {
     @Override
     public JFile[] listContent() {
         return list(null);
+    }
+
+    public Uri getUri() {
+        return file.getUri();
     }
 }
