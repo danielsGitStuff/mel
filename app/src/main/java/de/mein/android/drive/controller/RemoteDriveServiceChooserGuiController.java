@@ -3,15 +3,11 @@ package de.mein.android.drive.controller;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.UriPermission;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
-import android.provider.DocumentsContract;
 import android.support.v4.provider.DocumentFile;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.Button;
@@ -22,34 +18,28 @@ import android.widget.TextView;
 
 
 import com.archos.filecorelibrary.ExtStorageManager;
-import com.archos.filecorelibrary.localstorage.JavaFile2;
 
 
 import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import de.mein.R;
-import de.mein.android.AndroidStrings;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
 import de.mein.android.Tools;
 import de.mein.android.controller.RemoteServiceChooserController;
 import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.android.file.JFile;
+import de.mein.android.file.SAFAccessor;
 import de.mein.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
-import de.mein.drive.bash.BashTools;
-import de.mein.drive.bash.BashToolsUnix;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 
@@ -84,6 +74,26 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         super(meinAuthService, activity, viewGroup, R.layout.embedded_twice_drive);
     }
 
+    private void launchDirChooser(){
+        /**
+         * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
+         * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
+         * other option would (probably) be to adapt all the file handling and tools and workers and so on to work with SFA.
+         * this works around it.
+         *
+         * this relies on work done by the Archos people. they found a neat way to maneuver around SFA.
+         * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
+         */
+        ExtStorageManager extStorageManager = ExtStorageManager.getExtStorageManager();
+        List<String> paths = extStorageManager.getExtSdcards();
+        paths.add(Environment.getExternalStorageDirectory().getAbsolutePath());
+        AFile[] rootDirs = N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
+        Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
+        result.done(result1 -> {
+            setPath(result1.getAbsolutePath());
+        });
+    }
+
     @Override
     protected void initEmbedded() {
         wastebinRatio = DriveSettings.DEFAULT_WASTEBIN_RATIO;
@@ -101,84 +111,66 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
             permissionsPromise.done(nil -> {
                 if (permissionsGrantedListener != null)
                     permissionsGrantedListener.onPermissionsGranted();
-                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                i.addCategory(Intent.CATEGORY_DEFAULT);
-                activity.launchActivityForResult(Intent.createChooser(i, "Choose directory"), (resultCode, intentResult) -> {
-                    // Persist access permissions.
-                    if (resultCode == -1) {
-                        rootTreeUri = intentResult.getData();
-                        final int takeFlags = intentResult.getFlags()
-                                & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                        activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
-                        List<UriPermission> uris = activity.getContentResolver().getPersistedUriPermissions();
 
-                        N.r(() -> {
-                            //save external sdcard uri
-                            File externalRoot = null;
-                            List<String> paths = new ArrayList<>();
-                            File[] candidates = Tools.getApplicationContext().getExternalFilesDirs("external");
-                            File notThis = Tools.getApplicationContext().getExternalFilesDir("external");
-                            for (File candidate : candidates) {
-                                if (candidate != null && !candidate.equals(notThis)) {
-                                    int cut = candidate.getAbsolutePath().lastIndexOf("/Android/data");
-                                    if (cut > 0) {
-                                        String path = candidate.getAbsolutePath().substring(0, cut);
-                                        externalRoot = new File(path);
-                                    }
-                                }
-                            }
-                            Tools.getSharedPreferences().edit()
-                                    .putString(AndroidStrings.EXT_SD_CARD_URI, rootTreeUri.toString())
-                                    .putString(AndroidStrings.EXT_SD_CARD_PATH, externalRoot.getAbsolutePath())
-                                    .commit();
-                            String testPath = "/storage/3352-1DEE/s/touched.txt";
-                            File testFile = new File(testPath);
-                            boolean isExternal = testFile.getCanonicalPath().startsWith(externalRoot.getCanonicalPath());
-                            if (isExternal) {
-                                String treeUriString = Tools.getSharedPreferences().getString(AndroidStrings.EXT_SD_CARD_URI, null);
-                                Uri treeUri = Uri.parse(treeUriString);
-                                DocumentFile rootDocFile = DocumentFile.fromTreeUri(Tools.getApplicationContext(), treeUri);
-                                String stripped = testPath.substring(externalRoot.getAbsolutePath().length() + 1);
-                                String[] parts = stripped.split("/");
-                                DocumentFile sub1 = rootDocFile.findFile(parts[0]);
-                                DocumentFile sub2 = sub1.findFile(parts[1]);
-                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                            }
-                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-
-                        });
-
-
-                        /**
-                         * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
-                         * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
-                         * other option would (probably) be to adapt all the file handling and tools and workers and so on to work with SFA.
-                         * this works around it.
-                         *
-                         * this relies on work done by the Archos people. they found a neat way to maneuver around SFA.
-                         * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
-                         */
-                        ExtStorageManager extStorageManager = ExtStorageManager.getExtStorageManager();
-                        List<String> paths = extStorageManager.getExtSdcards();
-                        paths.add(Environment.getExternalStorageDirectory().getAbsolutePath());
-                        AFile[] rootDirs = N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
-                        Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
-                        result.done(result1 -> {
-                            setPath(result1.getAbsolutePath());
-                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded.touching file");
-                            AFile chosen = result1;
-                            N.r(() -> {
-                                AFile touch = AFile.instance(chosen, "touched.txt");
-                                JFile chosenJFile = (JFile) chosen;
-                                Uri chosenUri = chosenJFile.getUri();
-                                touch.createNewFile();
-                                FileOutputStream outputStream = touch.outputStream();
-                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
-                            });
-                        });
-                    }
-                });
+                if (SAFAccessor.canWriteExternal()) {
+                    launchDirChooser();
+                } else {
+                    SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
+                        launchDirChooser();
+                    }).fail(Throwable::printStackTrace);
+                }
+//
+//                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+//                i.addCategory(Intent.CATEGORY_DEFAULT);
+//                activity.launchActivityForResult(Intent.createChooser(i, "Choose directory"), (resultCode, intentResult) -> {
+//                    // Persist access permissions.
+//                    if (resultCode == Activity.RESULT_OK) {
+//                        rootTreeUri = intentResult.getData();
+//                        final int takeFlags = intentResult.getFlags()
+//                                & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+//                        activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
+//                        List<UriPermission> uris = activity.getContentResolver().getPersistedUriPermissions();
+//
+//                        N.r(() -> {
+//                            //save external sdcard uri
+//                            File externalRoot = null;
+//                            List<String> paths = new ArrayList<>();
+//                            File[] candidates = Tools.getApplicationContext().getExternalFilesDirs("external");
+//                            File notThis = Tools.getApplicationContext().getExternalFilesDir("external");
+//                            for (File candidate : candidates) {
+//                                if (candidate != null && !candidate.equals(notThis)) {
+//                                    int cut = candidate.getAbsolutePath().lastIndexOf("/Android/data");
+//                                    if (cut > 0) {
+//                                        String path = candidate.getAbsolutePath().substring(0, cut);
+//                                        externalRoot = new File(path);
+//                                    }
+//                                }
+//                            }
+//                            Tools.getSharedPreferences().edit()
+//                                    .putString(SAFAccessor.EXT_SD_CARD_URI, rootTreeUri.toString())
+//                                    .putString(SAFAccessor.EXT_SD_CARD_PATH, externalRoot.getAbsolutePath())
+//                                    .commit();
+//                            String testPath = "/storage/3352-1DEE/s/touched.txt";
+//                            File testFile = new File(testPath);
+//                            boolean isExternal = testFile.getCanonicalPath().startsWith(externalRoot.getCanonicalPath());
+//                            if (isExternal) {
+//                                String treeUriString = Tools.getSharedPreferences().getString(SAFAccessor.EXT_SD_CARD_URI, null);
+//                                Uri treeUri = Uri.parse(treeUriString);
+//                                DocumentFile rootDocFile = DocumentFile.fromTreeUri(Tools.getApplicationContext(), treeUri);
+//                                String stripped = testPath.substring(externalRoot.getAbsolutePath().length() + 1);
+//                                String[] parts = stripped.split("/");
+//                                DocumentFile sub1 = rootDocFile.findFile(parts[0]);
+//                                DocumentFile sub2 = sub1.findFile(parts[1]);
+//                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+//                            }
+//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+//
+//                        });
+//
+//
+//
+//                    }
+//                });
 
 //
 

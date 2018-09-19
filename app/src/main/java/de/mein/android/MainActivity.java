@@ -45,6 +45,7 @@ import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.ConnectedController;
 import de.mein.android.controller.SettingsController;
 import de.mein.android.file.AndroidFileConfiguration;
+import de.mein.android.file.SAFAccessor;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
@@ -120,6 +121,7 @@ public class MainActivity extends MeinActivity {
         super.onCreate(savedInstanceState);
         //dev();
         Tools.init(this.getApplicationContext());
+        SAFAccessor.setupExternalPath();
         ArchosUtils.setGlobalContext(this.getApplicationContext());
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
