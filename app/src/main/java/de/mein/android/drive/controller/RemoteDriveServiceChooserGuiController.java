@@ -93,24 +93,24 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
         result.done(chosenDir -> {
             setPath(chosenDir.getAbsolutePath());
-            AFile testFile = AFile.instance(chosenDir, "testi.txt");
-            try {
-                if (testFile.createNewFile() || testFile.exists()) {
-                    FileOutputStream fos = testFile.outputStream();
-                    fos.write("kekse?".getBytes());
-                    FileInputStream fin = testFile.inputStream();
-                    byte[] bytes = new byte[6];
-                    fin.read(bytes);
-                    String read = new String(bytes);
-                    AFile subDir = AFile.instance(chosenDir, "subtest");
-                    subDir.mkdirs();
-                    AFile target = AFile.instance(new File(subDir.getAbsolutePath() + File.separator + "target.txt"));
-                    testFile.move(target);
-                    System.out.println("RemoteDriveServiceChooserGuiController.launchDirChooser");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            AFile testFile = AFile.instance(chosenDir, "testi.txt");
+//            try {
+//                if (testFile.createNewFile() || testFile.exists()) {
+//                    FileOutputStream fos = testFile.outputStream();
+//                    fos.write("kekse?".getBytes());
+//                    FileInputStream fin = testFile.inputStream();
+//                    byte[] bytes = new byte[6];
+//                    fin.read(bytes);
+//                    String read = new String(bytes);
+//                    AFile subDir = AFile.instance(chosenDir, "subtest");
+//                    subDir.mkdirs();
+//                    AFile target = AFile.instance(new File(subDir.getAbsolutePath() + File.separator + "target.txt"));
+//                    testFile.move(target);
+//                    System.out.println("RemoteDriveServiceChooserGuiController.launchDirChooser");
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         });
     }
 

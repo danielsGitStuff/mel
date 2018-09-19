@@ -1,8 +1,11 @@
 package de.mein.android.file;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.IntentService;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -26,6 +29,7 @@ import java.util.List;
 
 import de.mein.android.Tools;
 import de.mein.android.drive.data.NC;
+import de.mein.android.service.CopyService;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.NWrap;
@@ -89,27 +93,33 @@ public class JFile extends AFile<JFile> {
     @Override
     public boolean move(JFile target) {
         try {
-            DocumentFile sourceDoc = DocFileCreator.createDocFile(file);
-            DocumentFile targetDoc = DocFileCreator.createDocFile(target.file);
-            ParcelFileDescriptor descr = Tools.getApplicationContext().getContentResolver().openFileDescriptor(sourceDoc.getUri(), "rwt");
-            AsyncTask<Void,Integer,Boolean> copyTask = new AsyncTask<Void, Integer, Boolean>() {
-                @Override
-                protected Boolean doInBackground(Void... voids) {
-                    return null;
-                }
-            };
+//            DocumentFile sourceDoc = DocFileCreator.createDocFile(file);
+//            DocumentFile targetDoc = DocFileCreator.createDocFile(target.file);
+//            ParcelFileDescriptor descr = Tools.getApplicationContext().getContentResolver().openFileDescriptor(sourceDoc.getUri(), "rwt");
+//            AsyncTask<Void, Integer, Boolean> copyTask = new AsyncTask<Void, Integer, Boolean>() {
+//                @Override
+//                protected Boolean doInBackground(Void... voids) {
+//                    return null;
+//                }
+//            };
+
+            Intent copyIntent = new Intent(Tools.getApplicationContext(), CopyService.class);
+            copyIntent.putExtra(CopyService.SRC_PATH, file.getAbsolutePath());
+            copyIntent.putExtra(CopyService.TRGT_PATH, target.file.getAbsolutePath());
+            copyIntent.putExtra(CopyService.MOVE, true);
+            Tools.getApplicationContext().startService(copyIntent);
 
 
-            String docId = DocumentsContract.getDocumentId(sourceDoc.getUri());
-            Uri docUri = DocumentsContract.buildDocumentUri(sourceDoc.getUri().getAuthority(), docId);
-            Cursor cursor = Tools.getApplicationContext().getContentResolver().query(sourceDoc.getUri(), new String[]{"*"}, null, null, null);
-            List<Pair<String>> results = new ArrayList<>();
-            NC.iterate(cursor, (cursor1, stoppable) -> {
-                N.forLoop(0, cursor1.getCount(), (stoppable1, index) -> {
-                    results.add(new Pair<String>(String.class, cursor1.getColumnName(index), cursor1.getString(index)));
-                    System.out.println("JFile.move.loop." + index);
-                });
-            });
+//            String docId = DocumentsContract.getDocumentId(sourceDoc.getUri());
+//            Uri docUri = DocumentsContract.buildDocumentUri(sourceDoc.getUri().getAuthority(), docId);
+//            Cursor cursor = Tools.getApplicationContext().getContentResolver().query(sourceDoc.getUri(), new String[]{"*"}, null, null, null);
+//            List<Pair<String>> results = new ArrayList<>();
+//            NC.iterate(cursor, (cursor1, stoppable) -> {
+//                N.forLoop(0, cursor1.getCount(), (stoppable1, index) -> {
+//                    results.add(new Pair<String>(String.class, cursor1.getColumnName(index), cursor1.getString(index)));
+//                    System.out.println("JFile.move.loop." + index);
+//                });
+//            });
 
             System.out.println("JFile.move");
 
@@ -265,7 +275,7 @@ public class JFile extends AFile<JFile> {
         return Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT;
     }
 
-    private static class DocFileCreator {
+    public static class DocFileCreator {
 
         private static DocumentFile createDoc(String[] parts) throws SAFAccessor.SAFException {
             DocumentFile doc = SAFAccessor.getExternalRootDocFile();
@@ -282,13 +292,13 @@ public class JFile extends AFile<JFile> {
             return stripped.split(File.separator);
         }
 
-        private static DocumentFile createParentDocFile(File file) throws SAFAccessor.SAFException {
+        public static DocumentFile createParentDocFile(File file) throws SAFAccessor.SAFException {
             String[] parts = createRelativeFilePathParts(file);
             parts = Arrays.copyOf(parts, parts.length - 1);
             return createDoc(parts);
         }
 
-        private static DocumentFile createDocFile(File file) throws SAFAccessor.SAFException {
+        public static DocumentFile createDocFile(File file) throws SAFAccessor.SAFException {
             String[] parts = createRelativeFilePathParts(file);
             return createDoc(parts);
         }

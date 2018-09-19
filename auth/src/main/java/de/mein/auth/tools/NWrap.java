@@ -1,7 +1,7 @@
 package de.mein.auth.tools;
 
 public class NWrap<V> {
-    private V v;
+    public V v;
 
     public NWrap(V v) {
         this.v = v;
