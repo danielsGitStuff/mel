@@ -99,4 +99,8 @@ public abstract class BashTools {
         }
         return new File[0];
     }
+
+    public static boolean mv(File source, File target) throws IOException {
+        return instance.mv(source, target);
+    }
 }

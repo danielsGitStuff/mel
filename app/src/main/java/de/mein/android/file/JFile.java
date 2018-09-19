@@ -1,22 +1,18 @@
 package de.mein.android.file;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
-import android.content.UriPermission;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
-import android.os.storage.StorageManager;
+import android.os.ParcelFileDescriptor;
+import android.provider.BaseColumns;
 import android.provider.DocumentsContract;
-import android.support.v4.content.MimeTypeFilter;
+import android.provider.MediaStore;
 import android.support.v4.provider.DocumentFile;
-import android.webkit.MimeTypeMap;
-
-import com.archos.filecorelibrary.ExtStorageManager;
-import com.archos.filecorelibrary.FileComparator;
-import com.archos.filecorelibrary.FileEditor;
-import com.archos.filecorelibrary.MimeUtils;
-import com.archos.filecorelibrary.localstorage.JavaFile2;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -24,54 +20,46 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 
 import de.mein.android.Tools;
 import de.mein.android.drive.data.NC;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.NWrap;
+import de.mein.drive.bash.BashTools;
+import de.mein.sql.Pair;
+import de.mein.sql.SQLQueries;
 
 public class JFile extends AFile<JFile> {
 
-    private JavaFile2 file;
+    private File file;
     private JFile parentFile;
 
     public JFile(String path) {
-        file = new JavaFile2(new File(path));
+        file = new File(path);
     }
 
     public JFile(File file) {
-        this.file = new JavaFile2(file);
+        this.file = file;
     }
 
     public JFile(JFile parent, String name) {
         this.parentFile = parent;
-        this.file = new JavaFile2(new File(parent.getAbsolutePath() + File.separator + name));
+        this.file = new File(parent.getAbsolutePath() + File.separator + name);
     }
 
     public JFile(JFile originalFile) {
-        this.file = new JavaFile2(new File(originalFile.getAbsolutePath()));
+        this.file = new File(originalFile.getAbsolutePath());
     }
 
-    public JFile(JavaFile2 javaFile2) {
-        this.file = javaFile2;
-    }
 
     private AndroidFileConfiguration getAndroidConfiguration() {
         return (AndroidFileConfiguration) AFile.getConfiguration();
     }
 
-    private FileEditor getFileEditor() {
-        return file.getFileEditorInstance(getAndroidConfiguration().getContext());
-    }
 
     @Override
     public String getSeparator() {
@@ -85,14 +73,12 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public String getAbsolutePath() {
-        Uri uri = file.getUri();
-        String path = uri.getPath();
-        return path;
+        return file.getAbsolutePath();
     }
 
     @Override
     public boolean exists() {
-        return getFileEditor().exists();
+        return file.exists();
     }
 
     @Override
@@ -102,7 +88,58 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public boolean move(JFile target) {
-        return getFileEditor().move(target.file.getUri());
+        try {
+            DocumentFile sourceDoc = DocFileCreator.createDocFile(file);
+            DocumentFile targetDoc = DocFileCreator.createDocFile(target.file);
+            ParcelFileDescriptor descr = Tools.getApplicationContext().getContentResolver().openFileDescriptor(sourceDoc.getUri(), "rwt");
+            AsyncTask<Void,Integer,Boolean> copyTask = new AsyncTask<Void, Integer, Boolean>() {
+                @Override
+                protected Boolean doInBackground(Void... voids) {
+                    return null;
+                }
+            };
+
+
+            String docId = DocumentsContract.getDocumentId(sourceDoc.getUri());
+            Uri docUri = DocumentsContract.buildDocumentUri(sourceDoc.getUri().getAuthority(), docId);
+            Cursor cursor = Tools.getApplicationContext().getContentResolver().query(sourceDoc.getUri(), new String[]{"*"}, null, null, null);
+            List<Pair<String>> results = new ArrayList<>();
+            NC.iterate(cursor, (cursor1, stoppable) -> {
+                N.forLoop(0, cursor1.getCount(), (stoppable1, index) -> {
+                    results.add(new Pair<String>(String.class, cursor1.getColumnName(index), cursor1.getString(index)));
+                    System.out.println("JFile.move.loop." + index);
+                });
+            });
+
+            System.out.println("JFile.move");
+
+//                DocumentsContract.moveDocument(Tools.getApplicationContext().getContentResolver(),sourceDoc.getUri(),sourceParent,targetParent);
+//            BashTools.mv(file,target.file);
+//            DocumentFile docFile = DocFileCreator.createParentDocFile(file); //FIXME change to docfile
+//            ContentResolver resolver = Tools.getApplicationContext().getContentResolver();
+////            Cursor filecursor = resolver.query(MediaStore.Files.getContentUri("external"),
+////                    new String[]{BaseColumns._ID}, MediaStore.MediaColumns.DATA + " = ?",
+////                    new String[]{path}, MediaStore.MediaColumns.DATE_ADDED + " desc");
+//            Uri u = MediaStore.Audio.Media.getContentUri("external");
+//            Cursor cursor = resolver.query(u, new String[]{"_data", "_id"}, null, null, null);
+//            NWrap.SWrap data = new NWrap.SWrap("");
+//            NWrap.SWrap id = new NWrap.SWrap("");
+//            NC.iterate(cursor, (cursor1, stoppable) -> {
+//                data.v(cursor1.getString(0));
+//                id.v(cursor1.getString(1));
+//                System.out.println("JFile.move");
+//                stoppable.stop();
+//            });
+//            String modified = data.v() + ".renamed";
+//            System.out.println("JFile.move... "+modified);
+//            ContentValues values = new ContentValues();
+//            values.put("_data", modified);
+//            int ren = resolver.update(u, values, "_data=?", new String[]{data.v()});
+            System.out.println("JFile.move.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override
@@ -128,50 +165,73 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public boolean delete() {
-        try {
-            getFileEditor().delete();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
         return true;
     }
+
 
     @Override
     public JFile getParentFile() {
         return parentFile;
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private boolean mkdir() {
+        try {
+            DocumentFile folderDoc = DocFileCreator.createParentDocFile(file);
+            String name = file.getName();
+            DocumentFile found = folderDoc.findFile(name);
+            if (found != null) {
+                return false;
+            }
+            DocumentFile created = folderDoc.createDirectory(name);
+            return created != null && created.exists();
+        } catch (SAFAccessor.SAFException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
     @Override
     public boolean mkdirs() {
-        if (parentFile != null)
-            if (!parentFile.exists()) {
-                boolean made = parentFile.mkdirs();
-                if (!made)
-                    return false;
-            }
-        return getFileEditor().mkdir();
+        if (requiresSAF()) {
+            if (parentFile != null)
+                if (!parentFile.exists()) {
+                    boolean made = parentFile.mkdirs();
+                    if (!made)
+                        return false;
+                }
+            return mkdir();
+        } else {
+            return file.mkdirs();
+        }
     }
 
     @Override
     public FileInputStream inputStream() throws FileNotFoundException {
-        try {
-            InputStream stream = getFileEditor().getInputStream();
-            return (FileInputStream) stream;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+//        try {
+//            InputStream stream = getFileEditor().getInputStream();
+//            return (FileInputStream) stream;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        return new FileInputStream(file);
     }
 
     @Override
     public FileOutputStream outputStream() throws IOException {
         try {
-            //FileOutputStream fos = (FileOutputStream) MediaStoreHack.getOutputStream(Tools.getApplicationContext(),file.getUri().getPath());
-            return null;
-//            Uri uri = MediaStoreHack.getUriFromFile(file.getUri().getPath(),Tools.getApplicationContext());
-//            FileOutputStream stream = (FileOutputStream) getFileEditor().getOutputStream();
-//            return stream;
-        } catch (Exception e) {
+            if (requiresSAF()) {
+                DocumentFile documentFile = DocFileCreator.createDocFile(file);
+                if (documentFile == null)
+                    throw new IOException("file does not exist: " + file.getAbsolutePath());
+                FileOutputStream outputStream = (FileOutputStream) Tools.getApplicationContext().getContentResolver().openOutputStream(documentFile.getUri());
+                return outputStream;
+            } else {
+                return new FileOutputStream(file);
+            }
+        } catch (SAFAccessor.SAFException e) {
             e.printStackTrace();
         }
         return null;
@@ -179,17 +239,17 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public Long getFreeSpace() {
-        File ioFile = new File(file.getUri().getEncodedPath());
-        if (ioFile.exists())
-            return ioFile.getFreeSpace();
+//        File ioFile = new File(file.getUri().getEncodedPath());
+//        if (ioFile.exists())
+//            return ioFile.getFreeSpace();
         return -1L;
     }
 
     @Override
     public Long getUsableSpace() {
-        File ioFile = new File(file.getUri().getEncodedPath());
-        if (ioFile.exists())
-            return ioFile.getUsableSpace();
+//        File ioFile = new File(file.getUri().getEncodedPath());
+//        if (ioFile.exists())
+//            return ioFile.getUsableSpace();
         return -1L;
     }
 
@@ -198,70 +258,69 @@ public class JFile extends AFile<JFile> {
         return file.lastModified();
     }
 
+    private boolean requiresSAF() {
+        String internalPath = Environment.getDataDirectory().getAbsolutePath();
+        if (file.getAbsolutePath().startsWith(internalPath))
+            return false;
+        return Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT;
+    }
+
+    private static class DocFileCreator {
+
+        private static DocumentFile createDoc(String[] parts) throws SAFAccessor.SAFException {
+            DocumentFile doc = SAFAccessor.getExternalRootDocFile();
+            for (String part : parts) {
+                doc = doc.findFile(part);
+            }
+            return doc;
+        }
+
+        private static String[] createRelativeFilePathParts(File file) {
+            String rootPath = SAFAccessor.getExternalSDPath();
+            String path = file.getAbsolutePath();
+            String stripped = path.substring(rootPath.length());
+            return stripped.split(File.separator);
+        }
+
+        private static DocumentFile createParentDocFile(File file) throws SAFAccessor.SAFException {
+            String[] parts = createRelativeFilePathParts(file);
+            parts = Arrays.copyOf(parts, parts.length - 1);
+            return createDoc(parts);
+        }
+
+        private static DocumentFile createDocFile(File file) throws SAFAccessor.SAFException {
+            String[] parts = createRelativeFilePathParts(file);
+            return createDoc(parts);
+        }
+    }
+
+
     @Override
     public boolean createNewFile() throws IOException {
-        Uri parentUri = parentFile.file.getUri();
-        String path = parentUri.getPath();
-        String internalPath = Environment.getDataDirectory().getAbsolutePath();
-        if (path.startsWith(internalPath)) {
-            File f = new File(parentUri.getPath() + File.separator + file.getName());
-            return f.createNewFile();
-        }
-//        String auth = parentFile.file.getUri().getAuthority();
-//        if (auth.length() == 0){
-//            File f = new File(parentUri.getPath()+File.separator+file.getName());
-//            return f.createNewFile();
-//        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ContentResolver resolver = Tools.getApplicationContext().getContentResolver();
-            UriPermission permission = resolver.getPersistedUriPermissions().get(0);
-            parentUri = permission.getUri();
-            String rootDocId = DocumentsContract.getTreeDocumentId(parentUri);
-            String storage = ExtStorageManager.getExtStorageManager().getExtSdcards().get(0);
-            String stripped = path.substring(storage.length() + 1);
-            String[] parts = stripped.split(File.separator);
-            NWrap<Uri> parentWrap = new NWrap<>(parentUri);
-            NWrap.SWrap idWrap = new NWrap.SWrap(null);
-            N.forEach(parts, (stoppable, index, part) -> {
-                String docId = DocumentsContract.getTreeDocumentId(parentWrap.v());
-                Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parentWrap.v(), docId);
-                Cursor cursor = resolver.query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME}, null, null, null);
-                NC.iterate(cursor, (cursor1, stoppable1) -> {
-                    String name = cursor1.getString(1);
-                    if (name.equals(part)) {
-                        String id = cursor.getString(0);
-                        Uri uri = DocumentsContract.buildDocumentUriUsingTree(parentWrap.v(), id);
-                        //uri = DocumentsContract.buildTreeDocumentUri(uri.getAuthority(), id);
-                        idWrap.v(id);
-                        parentWrap.v(uri);
-                        stoppable1.stop();
-                    }
-                });
-            });
-            parentUri = parentWrap.v();
-//            DocumentFile doc = DocumentFile.fromSingleUri(Tools.getApplicationContext(), parentUri);
-//            String docId = DocumentsContract.getDocumentId(doc.getUri());
-//            parentUri = DocumentsContract.buildDocumentUri(doc.getUri().getAuthority(), docId);
-            //parentUri = doc.getUri();
-            String mime = "text/plain";
-            mime = "application/octet-stream";
-            // tree uri -> document uri
-            // parentUri = DocumentsContract.buildDocumentUri(parentUri.getAuthority(), idWrap.v());
-            Uri docUri = DocumentsContract.createDocument(Tools.getApplicationContext().getContentResolver(), parentUri, mime, file.getName());
-            if (docUri != null) {
-                file = new JavaFile2(new File(docUri.getPath()));
-                return true;
+        if (requiresSAF()) {
+            try {
+                DocumentFile folderDoc = DocFileCreator.createParentDocFile(file);
+                DocumentFile found = folderDoc.findFile(file.getName());
+                if (found != null) {
+                    return false;
+                }
+                DocumentFile created = folderDoc.createFile(SAFAccessor.MIME_GENERIC, file.getName());
+                if (created != null) {
+                    return true;
+                }
+                return false;
+            } catch (SAFAccessor.SAFException e) {
+                e.printStackTrace();
             }
-            return false;
+        } else {
+            return file.createNewFile();
         }
         return false;
     }
 
     private JFile[] list(FileFilter fileFilter) {
-        final ArrayList<JavaFile2> content = new ArrayList<JavaFile2>();
 
-
-        File directory = new File(file.getUri().getPath());
+        File directory = new File(file.getAbsolutePath());
 
         // File not found error
         if (!directory.exists()) {
@@ -280,17 +339,9 @@ public class JFile extends AFile<JFile> {
             return new JFile[0];
         }
 
-        for (File f : listFiles) {
-            if (f.isDirectory()) {
-                content.add(new JavaFile2(f, JavaFile2.NUMBER_UNKNOWN, JavaFile2.NUMBER_UNKNOWN));
-            } else if (f.isFile()) {
-                content.add(new JavaFile2(f));
-            }
-        }
+        Arrays.sort(listFiles, (o1, o2) -> o1.getName().compareTo(o2.getName()));
 
-        Collections.sort(content, (o1, o2) -> o1.getName().compareTo(o2.getName()));
-
-        JFile[] result = N.arr.fromCollection(content, N.converter(JFile.class, element -> new JFile(element)));
+        JFile[] result = N.arr.cast(listFiles, N.converter(JFile.class, JFile::new));
         return result;
     }
 
@@ -299,7 +350,4 @@ public class JFile extends AFile<JFile> {
         return list(null);
     }
 
-    public Uri getUri() {
-        return file.getUri();
-    }
 }

@@ -1,18 +1,15 @@
 package de.mein.android.drive.bash;
 
 import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.DocumentsContract;
 
 import org.jdeferred.Promise;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import de.mein.android.drive.data.NC;
 import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.android.file.DFile;
 import de.mein.android.file.DFileRecursiveIterator;
@@ -83,7 +80,7 @@ public class SAFBashTools implements BashToolsImpl {
 //            String id = cursor.getString(1);
 //            System.out.println("SAFBashTools.find.name: " + name+", id: "+id);
 //        });
-        return new DFileRecursiveIterator(context,dDirectory,pruneDir);
+        return new DFileRecursiveIterator(context, dDirectory, pruneDir);
     }
 
     @Override
@@ -99,5 +96,11 @@ public class SAFBashTools implements BashToolsImpl {
     @Override
     public void mkdir(AFile dir) throws IOException {
 
+    }
+
+    @Override
+    public boolean mv(File source, File target) throws IOException {
+        bashToolsAndroid.mv(source, target);
+        return false;
     }
 }

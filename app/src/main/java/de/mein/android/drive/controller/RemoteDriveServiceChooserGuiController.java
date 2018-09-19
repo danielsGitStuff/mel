@@ -23,7 +23,9 @@ import com.archos.filecorelibrary.ExtStorageManager;
 import org.jdeferred.Promise;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,7 +76,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         super(meinAuthService, activity, viewGroup, R.layout.embedded_twice_drive);
     }
 
-    private void launchDirChooser(){
+    private void launchDirChooser() {
         /**
          * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
          * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
@@ -89,8 +91,26 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         paths.add(Environment.getExternalStorageDirectory().getAbsolutePath());
         AFile[] rootDirs = N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
         Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
-        result.done(result1 -> {
-            setPath(result1.getAbsolutePath());
+        result.done(chosenDir -> {
+            setPath(chosenDir.getAbsolutePath());
+            AFile testFile = AFile.instance(chosenDir, "testi.txt");
+            try {
+                if (testFile.createNewFile() || testFile.exists()) {
+                    FileOutputStream fos = testFile.outputStream();
+                    fos.write("kekse?".getBytes());
+                    FileInputStream fin = testFile.inputStream();
+                    byte[] bytes = new byte[6];
+                    fin.read(bytes);
+                    String read = new String(bytes);
+                    AFile subDir = AFile.instance(chosenDir, "subtest");
+                    subDir.mkdirs();
+                    AFile target = AFile.instance(new File(subDir.getAbsolutePath() + File.separator + "target.txt"));
+                    testFile.move(target);
+                    System.out.println("RemoteDriveServiceChooserGuiController.launchDirChooser");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         });
     }
 

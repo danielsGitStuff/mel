@@ -167,4 +167,10 @@ public class BashToolsJava implements BashToolsImpl {
             System.out.println("BashToolsJava.mkdir."+i);
         }
     }
+
+    @Override
+    public boolean mv(File source, File target) throws IOException {
+        System.err.println("BashToolsJava.mv.NOT:IMPLEMENTED");
+        return false;
+    }
 }

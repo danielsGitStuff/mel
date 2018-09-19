@@ -18,11 +18,16 @@ import de.mein.android.Tools;
 
 public class SAFAccessor {
 
+    public static String getExternalSDPath() {
+        return Tools.getSharedPreferences().getString(EXT_SD_CARD_PATH, null);
+    }
+
     public static class SAFException extends Exception {
     }
 
     public static final String EXT_SD_CARD_URI = "extsdcarduri";
     public static final String EXT_SD_CARD_PATH = "extPath";
+    public static final String MIME_GENERIC = "application/octet-stream";
 
     /**
      * finds the path to the external sd card and stores it.
@@ -78,7 +83,7 @@ public class SAFAccessor {
                 File dummyFile;
                 Integer count = 0;
                 do {
-                    String dummyPath = rootPath + (count++).toString()+".txt";
+                    String dummyPath = rootPath + (count++).toString() + ".txt";
                     dummyFile = new File(dummyPath);
                 } while (dummyFile.exists());
                 DocumentFile rootDirDoc = getExternalRootDocFile();

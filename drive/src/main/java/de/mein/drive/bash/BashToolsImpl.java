@@ -2,6 +2,7 @@ package de.mein.drive.bash;
 
 import org.jdeferred.Promise;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -36,4 +37,6 @@ public interface BashToolsImpl {
     Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException;
 
     void mkdir(AFile dir) throws IOException;
+
+    boolean mv(File source, File target) throws IOException;
 }

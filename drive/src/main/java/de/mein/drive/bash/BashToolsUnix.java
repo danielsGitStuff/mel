@@ -8,6 +8,7 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -210,5 +211,25 @@ public class BashToolsUnix implements BashToolsImpl {
         String[] args = new String[]{BIN_PATH, "-c",
                 "mkdir " + escapeAbsoluteFilePath(dir)};
         new ProcessBuilder(args).start();
+    }
+
+    @Override
+    public boolean mv(File source, File target) throws IOException {
+        String src = source.getAbsolutePath().replaceAll("'", "\\'");
+        String tgt = target.getAbsolutePath().replaceAll("'", "\\'");
+        String cmd = "mv '" + src + "' '" + tgt + "'";
+        String[] args = new String[]{BIN_PATH, "-c", cmd};
+        Process process = new ProcessBuilder(args).start();
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+        String error = reader.readLine();
+        if (error == null)
+            return true;
+        System.out.println("BashToolsUnix.mv");
+        return false;
     }
 }

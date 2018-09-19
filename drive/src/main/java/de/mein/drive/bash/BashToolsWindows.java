@@ -1,15 +1,12 @@
 package de.mein.drive.bash;
 
-import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.file.AFile;
-import de.mein.auth.service.MeinBoot;
-import de.mein.auth.service.MeinService;
+
 import org.jdeferred.Promise;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -138,5 +135,11 @@ public class BashToolsWindows implements BashToolsImpl {
     @Override
     public void mkdir(AFile dir) throws IOException {
         exec("mkdir", dir.getAbsolutePath());
+    }
+
+    @Override
+    public boolean mv(File source, File target) throws IOException {
+        System.err.println("BashToolsWindows.mv.NOT:IMPLEMENTED");
+        return false;
     }
 }
