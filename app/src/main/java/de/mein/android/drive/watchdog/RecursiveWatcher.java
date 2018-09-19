@@ -106,7 +106,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     }
 
     private void eve(Watcher watcher, int event, String path) {
-        AFile f = path != null ? AFile.instance(watcher.getTarget() + AFile.separator() + path) : watcher.getTarget();
+        AFile f = path != null ? AFile.instance(watcher.getTarget() + File.separator + path) : watcher.getTarget();
         if (watcher.getTarget().equals(transferDirectory))
             return;
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
@@ -168,7 +168,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     public void analyze(int event, Watcher watcher, String path) {
         try {
             startTimer();
-            AFile file = AFile.instance(watcher.getTarget().getAbsolutePath() + AFile.separator() + path);
+            AFile file = AFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path);
             if ((event & FileObserver.MODIFY) != 0 || (event & FileObserver.MOVE_SELF) != 0) {
                 // figure out whether or not writing to the file is still in progress
                 try {

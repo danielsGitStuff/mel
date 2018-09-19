@@ -71,7 +71,7 @@ public class ContactsBootloader extends BootLoader {
     }
 
     public ContactsService boot(MeinAuthService meinAuthService, Service service, ContactsSettings contactsSettings) throws SqlQueriesException, JsonDeserializationException, JsonSerializationException, IOException, SQLException, IllegalAccessException, ClassNotFoundException {
-        File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + AFile.separator() + service.getUuid().v());
+        File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
         ContactsService contactsService = null;
         if (contactsSettings.isServer()) {
             contactsService = createServerInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);

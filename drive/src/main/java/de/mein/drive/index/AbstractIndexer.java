@@ -125,7 +125,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             Stage stage;
             // find the actual relating FsEntry of the parent directory
             // android does not recognize --mindepth when calling find. if we find the root directory here we must skip it.
-            if (parent.getAbsolutePath().length() > rootPathLength)
+            if (parent == null || parent.getAbsolutePath().length() < rootPathLength)
+                System.out.println("AbstractIndexer.initStage. find ignored --mindepth. fixed it");
+            else
                 fsParent = fsDao.getFsDirectoryByPath(parent);
             // find its relating FsEntry
             if (fsParent != null) {

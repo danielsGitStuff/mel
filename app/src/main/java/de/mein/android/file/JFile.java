@@ -159,15 +159,15 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public boolean delete() {
-        if (requiresSAF()){
+        if (requiresSAF()) {
             try {
                 DocumentFile documentFile = DocFileCreator.createDocFile(file);
-                if (documentFile!= null)
+                if (documentFile != null)
                     return documentFile.delete();
             } catch (SAFAccessor.SAFException e) {
                 e.printStackTrace();
             }
-        }else {
+        } else {
             return file.delete();
         }
         return true;
@@ -176,7 +176,7 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public JFile getParentFile() {
-        return parentFile;
+        return new JFile(file.getParentFile());
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -228,8 +228,10 @@ public class JFile extends AFile<JFile> {
         try {
             if (requiresSAF()) {
                 DocumentFile documentFile = DocFileCreator.createDocFile(file);
-                if (documentFile == null)
-                    throw new IOException("file does not exist: " + file.getAbsolutePath());
+                if (documentFile == null) {
+                    DocumentFile parent = DocFileCreator.createParentDocFile(file);
+                    documentFile = parent.createFile(SAFAccessor.MIME_GENERIC, file.getName());
+                }
                 FileOutputStream outputStream = (FileOutputStream) Tools.getApplicationContext().getContentResolver().openOutputStream(documentFile.getUri());
                 return outputStream;
             } else {
