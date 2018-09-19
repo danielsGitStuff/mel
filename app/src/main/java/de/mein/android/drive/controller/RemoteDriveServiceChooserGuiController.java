@@ -11,6 +11,7 @@ import android.provider.DocumentsContract;
 import android.support.v4.provider.DocumentFile;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.Button;
@@ -29,10 +30,13 @@ import org.jdeferred.Promise;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import de.mein.R;
+import de.mein.android.AndroidStrings;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
 import de.mein.android.Tools;
@@ -107,6 +111,43 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                                 & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                         activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
                         List<UriPermission> uris = activity.getContentResolver().getPersistedUriPermissions();
+
+                        N.r(() -> {
+                            //save external sdcard uri
+                            File externalRoot = null;
+                            List<String> paths = new ArrayList<>();
+                            File[] candidates = Tools.getApplicationContext().getExternalFilesDirs("external");
+                            File notThis = Tools.getApplicationContext().getExternalFilesDir("external");
+                            for (File candidate : candidates) {
+                                if (candidate != null && !candidate.equals(notThis)) {
+                                    int cut = candidate.getAbsolutePath().lastIndexOf("/Android/data");
+                                    if (cut > 0) {
+                                        String path = candidate.getAbsolutePath().substring(0, cut);
+                                        externalRoot = new File(path);
+                                    }
+                                }
+                            }
+                            Tools.getSharedPreferences().edit()
+                                    .putString(AndroidStrings.EXT_SD_CARD_URI, rootTreeUri.toString())
+                                    .putString(AndroidStrings.EXT_SD_CARD_PATH, externalRoot.getAbsolutePath())
+                                    .commit();
+                            String testPath = "/storage/3352-1DEE/s/touched.txt";
+                            File testFile = new File(testPath);
+                            boolean isExternal = testFile.getCanonicalPath().startsWith(externalRoot.getCanonicalPath());
+                            if (isExternal) {
+                                String treeUriString = Tools.getSharedPreferences().getString(AndroidStrings.EXT_SD_CARD_URI, null);
+                                Uri treeUri = Uri.parse(treeUriString);
+                                DocumentFile rootDocFile = DocumentFile.fromTreeUri(Tools.getApplicationContext(), treeUri);
+                                String stripped = testPath.substring(externalRoot.getAbsolutePath().length() + 1);
+                                String[] parts = stripped.split("/");
+                                DocumentFile sub1 = rootDocFile.findFile(parts[0]);
+                                DocumentFile sub2 = sub1.findFile(parts[1]);
+                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                            }
+                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+
+                        });
+
 
                         /**
                          * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.

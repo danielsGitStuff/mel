@@ -166,8 +166,11 @@ public class JFile extends AFile<JFile> {
     @Override
     public FileOutputStream outputStream() throws IOException {
         try {
-            FileOutputStream stream = (FileOutputStream) getFileEditor().getOutputStream();
-            return stream;
+            //FileOutputStream fos = (FileOutputStream) MediaStoreHack.getOutputStream(Tools.getApplicationContext(),file.getUri().getPath());
+            return null;
+//            Uri uri = MediaStoreHack.getUriFromFile(file.getUri().getPath(),Tools.getApplicationContext());
+//            FileOutputStream stream = (FileOutputStream) getFileEditor().getOutputStream();
+//            return stream;
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -3,9 +3,11 @@ package de.mein.android;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.storage.StorageManager;
+import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.support.annotation.Nullable;
 
@@ -20,14 +22,20 @@ import java.security.SecureRandom;
 
 public class Tools {
     private static Context applicationContext;
+    private static SharedPreferences sharedPreferences;
 
     public static int generateIntentRequestCode() {
         int value = new SecureRandom().nextInt(65000);
         return value;
     }
 
-    public static void setApplicationContext(Context applicationContext) {
+    public static void init(Context applicationContext) {
         Tools.applicationContext = applicationContext;
+        Tools.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+    }
+
+    public static SharedPreferences getSharedPreferences() {
+        return sharedPreferences;
     }
 
     public static Context getApplicationContext() {

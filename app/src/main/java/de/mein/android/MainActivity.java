@@ -119,7 +119,7 @@ public class MainActivity extends MeinActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //dev();
-        Tools.setApplicationContext(this.getApplicationContext());
+        Tools.init(this.getApplicationContext());
         ArchosUtils.setGlobalContext(this.getApplicationContext());
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
