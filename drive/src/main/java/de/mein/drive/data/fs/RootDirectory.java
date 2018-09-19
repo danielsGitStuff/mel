@@ -60,6 +60,6 @@ public class RootDirectory implements SerializableEntity {
     }
 
     public AFile getOriginalFile() {
-        return originalFile;
+        return AFile.instance(path);
     }
 }

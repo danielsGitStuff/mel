@@ -1,20 +1,9 @@
 package de.mein.android.file;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.IntentService;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
-import android.os.ParcelFileDescriptor;
-import android.provider.BaseColumns;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 import android.support.v4.provider.DocumentFile;
 
 import java.io.File;
@@ -23,19 +12,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import de.mein.android.Tools;
-import de.mein.android.drive.data.NC;
 import de.mein.android.service.CopyService;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.NWrap;
-import de.mein.drive.bash.BashTools;
-import de.mein.sql.Pair;
-import de.mein.sql.SQLQueries;
 
 public class JFile extends AFile<JFile> {
 
@@ -43,6 +25,8 @@ public class JFile extends AFile<JFile> {
     private JFile parentFile;
 
     public JFile(String path) {
+        if (path == null)
+            System.out.println("JFile.JFile.debu.null");
         file = new File(path);
     }
 
@@ -175,7 +159,17 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public boolean delete() {
-
+        if (requiresSAF()){
+            try {
+                DocumentFile documentFile = DocFileCreator.createDocFile(file);
+                if (documentFile!= null)
+                    return documentFile.delete();
+            } catch (SAFAccessor.SAFException e) {
+                e.printStackTrace();
+            }
+        }else {
+            return file.delete();
+        }
         return true;
     }
 
@@ -252,15 +246,12 @@ public class JFile extends AFile<JFile> {
 //        File ioFile = new File(file.getUri().getEncodedPath());
 //        if (ioFile.exists())
 //            return ioFile.getFreeSpace();
-        return -1L;
+        return file.getFreeSpace();
     }
 
     @Override
     public Long getUsableSpace() {
-//        File ioFile = new File(file.getUri().getEncodedPath());
-//        if (ioFile.exists())
-//            return ioFile.getUsableSpace();
-        return -1L;
+        return file.getUsableSpace();
     }
 
     @Override

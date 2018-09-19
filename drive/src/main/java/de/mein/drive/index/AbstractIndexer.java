@@ -124,7 +124,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             FsEntry fsEntry = null;
             Stage stage;
             // find the actual relating FsEntry of the parent directory
-            fsParent = fsDao.getFsDirectoryByPath(parent);
+            // android does not recognize --mindepth when calling find. if we find the root directory here we must skip it.
+            if (parent.getAbsolutePath().length() > rootPathLength)
+                fsParent = fsDao.getFsDirectoryByPath(parent);
             // find its relating FsEntry
             if (fsParent != null) {
                 GenericFSEntry genDummy = new GenericFSEntry();
@@ -431,27 +433,27 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     protected void updateFileStage(Stage stage, AFile stageFile) throws IOException, SqlQueriesException, InterruptedException {
         // skip hashing if information is complete -> speeds up booting
 //        if ((stage.getModifiedPair().isNull() || stage.getiNodePair().isNull() || stage.getContentHashPair().isNull())) {
-            if (stageFile.exists()) {
-                ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
-                stage.setContentHash(Hash.md5(stageFile.inputStream()));
-                stage.setiNode(modifiedAndInode.getiNode());
-                stage.setModified(modifiedAndInode.getModified());
-                stage.setSize(stageFile.length());
-                stage.setSynced(true);
-                // stage can be deleted if nothing changed
-                if (stage.getFsId() != null) {
-                    FsEntry fsEntry = fsDao.getFile(stage.getFsId());
-                    if (fsEntry.getContentHash().v().equals(stage.getContentHash()))
-                        stageDao.deleteStageById(stage.getId());
-                    else
-                        stageDao.update(stage);
-                } else
+        if (stageFile.exists()) {
+            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
+            stage.setContentHash(Hash.md5(stageFile.inputStream()));
+            stage.setiNode(modifiedAndInode.getiNode());
+            stage.setModified(modifiedAndInode.getModified());
+            stage.setSize(stageFile.length());
+            stage.setSynced(true);
+            // stage can be deleted if nothing changed
+            if (stage.getFsId() != null) {
+                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
+                if (fsEntry.getContentHash().v().equals(stage.getContentHash()))
+                    stageDao.deleteStageById(stage.getId());
+                else
                     stageDao.update(stage);
-
-            } else {
-                stage.setDeleted(true);
+            } else
                 stageDao.update(stage);
-            }
+
+        } else {
+            stage.setDeleted(true);
+            stageDao.update(stage);
+        }
 //        }
     }
 }
