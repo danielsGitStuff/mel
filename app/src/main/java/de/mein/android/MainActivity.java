@@ -37,6 +37,11 @@ import android.widget.TextView;
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -130,6 +135,7 @@ public class MainActivity extends MeinActivity {
         } else {
             AFile.configure(new DefaultFileConfiguration());
         }
+        //testFileWrite();
 //        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
 //
 //        });
@@ -558,6 +564,45 @@ public class MainActivity extends MeinActivity {
                 navigationView.refreshDrawableState();
                 System.out.println();
             }));
+        }
+    }
+
+    /**
+     * debug function to figure out if opening an {@link java.io.InputStream} on a file which is currently written to will throw exceptions
+     */
+    private void testFileWrite() {
+        FileOutputStream fos = null;
+        FileInputStream fis = null;
+        try {
+            File file = new File(SAFAccessor.getExternalSDPath() + "target");
+            AFile target = AFile.instance(file);
+            String path = target.getAbsolutePath();
+            target.createNewFile();
+            fos = target.outputStream();
+            fos.write("test".getBytes());
+            AFile duplicate = AFile.instance(file);
+            fis = duplicate.inputStream();
+            byte[] bytes = new byte[4];
+            fis.read(bytes);
+            String result = new String(bytes);
+            System.out.println(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
