@@ -1,11 +1,7 @@
 package de.mein.android.drive.controller;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.content.UriPermission;
 import android.net.Uri;
 import android.os.Environment;
-import android.support.v4.provider.DocumentFile;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.ViewGroup;
@@ -17,16 +13,11 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
-import com.archos.filecorelibrary.ExtStorageManager;
 
 
 import org.jdeferred.Promise;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.R;
@@ -35,8 +26,8 @@ import de.mein.android.Notifier;
 import de.mein.android.Tools;
 import de.mein.android.controller.RemoteServiceChooserController;
 import de.mein.android.drive.AndroidDriveBootloader;
-import de.mein.android.file.JFile;
 import de.mein.android.file.SAFAccessor;
+import de.mein.android.file.StoragesManager;
 import de.mein.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
@@ -86,10 +77,8 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
          * this relies on work done by the Archos people. they found a neat way to maneuver around SFA.
          * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
          */
-        ExtStorageManager extStorageManager = ExtStorageManager.getExtStorageManager();
-        List<String> paths = extStorageManager.getExtSdcards();
-        paths.add(Environment.getExternalStorageDirectory().getAbsolutePath());
-        AFile[] rootDirs = N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
+
+        AFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());// N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
         Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
         result.done(chosenDir -> {
             setPath(chosenDir.getAbsolutePath());

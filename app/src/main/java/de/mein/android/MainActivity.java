@@ -29,7 +29,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.archos.environment.ArchosUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
@@ -122,7 +121,6 @@ public class MainActivity extends MeinActivity {
         //dev();
         Tools.init(this.getApplicationContext());
         SAFAccessor.setupExternalPath();
-        ArchosUtils.setGlobalContext(this.getApplicationContext());
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
         } else {
