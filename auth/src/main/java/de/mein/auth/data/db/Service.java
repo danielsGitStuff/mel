@@ -12,6 +12,7 @@ public class Service extends SQLTableObject implements SerializableEntity {
     private Pair<String> uuid = new Pair<>(String.class, "uuid");
     private Pair<Long> typeId = new Pair<>(Long.class, "typeid");
     private Pair<String> name = new Pair<>(String.class, "name");
+    private Pair<Boolean> active = new Pair<>(Boolean.class,"active");
     private Boolean running;
 
     public Service() {
@@ -25,7 +26,7 @@ public class Service extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(uuid, typeId, name);
+        populateInsert(uuid, typeId, name, active);
         populateAll(id);
     }
 
@@ -72,5 +73,18 @@ public class Service extends SQLTableObject implements SerializableEntity {
     public Service setTypeId(Long typeId) {
         this.typeId.v(typeId);
         return this;
+    }
+
+    public Service setActive(Boolean active) {
+        this.active.v(active);
+        return this;
+    }
+
+    public Boolean isActive() {
+        return active.v();
+    }
+
+    public Pair<Boolean> getActivePair() {
+        return active;
     }
 }

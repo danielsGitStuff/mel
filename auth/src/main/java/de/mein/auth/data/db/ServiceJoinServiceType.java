@@ -11,6 +11,8 @@ import de.mein.sql.SQLTableObject;
 public class ServiceJoinServiceType extends SQLTableObject implements SerializableEntity {
     @JsonIgnore
     private Pair<Long> serviceId;
+    @JsonIgnore
+    private Pair<Boolean> active;
     private Pair<String> uuid, type, description, name;
     @JsonIgnore
     private boolean running;
@@ -33,9 +35,10 @@ public class ServiceJoinServiceType extends SQLTableObject implements Serializab
         uuid = service.getUuid();
         type = serviceType.getType();
         name = service.getName();
+        active = service.getActivePair();
         description = serviceType.getDescription();
         populateInsert();
-        populateAll(serviceId, uuid, type, description, name);
+        populateAll(serviceId, uuid, type, description, name, active);
     }
 
     public Pair<String> getType() {
@@ -64,5 +67,9 @@ public class ServiceJoinServiceType extends SQLTableObject implements Serializab
 
     public Pair<String> getName() {
         return name;
+    }
+
+    public Pair<Boolean> getActive() {
+        return active;
     }
 }

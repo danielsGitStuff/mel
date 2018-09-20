@@ -116,7 +116,8 @@ public final class DatabaseManager extends FileRelatedManager {
         Service service = new Service()
                 .setUuid(UUID.randomUUID().toString())
                 .setTypeId(typeId)
-                .setName(name);
+                .setName(name)
+                .setActive(true);
         Long id = ISQLQueries.insert(service);
         return service.setId(id);
     }
@@ -155,6 +156,17 @@ public final class DatabaseManager extends FileRelatedManager {
         return this;
     }
 
+    public List<Service> getActiveServicesByType(Long typeId) throws SqlQueriesException {
+        Service dummy = new Service();
+        String where = dummy.getTypeId().k() + "=? and " + dummy.getActivePair().k() + "=?";
+        List<SQLTableObject> sqlTableObjects = ISQLQueries.load(dummy.getAllAttributes(), dummy, where, de.mein.sql.ISQLQueries.whereArgs(typeId, true));
+        List<Service> result = new ArrayList<>();
+        for (SQLTableObject service : sqlTableObjects) {
+            result.add((Service) service);
+        }
+        return result;
+    }
+
     public List<Service> getServicesByType(Long typeId) throws SqlQueriesException {
         Service dummy = new Service();
         String where = dummy.getTypeId().k() + "=?";
@@ -175,14 +187,12 @@ public final class DatabaseManager extends FileRelatedManager {
         Approval a = new Approval();
         Certificate c = new Certificate();
         ServiceJoinServiceType dummy = new ServiceJoinServiceType();
-        String query = "select s." + s.getId().k() + ",s." + s.getUuid().k() + ",s." + s.getName().k() + ", t." + t.getType().k() + ", t." + t.getDescription().k()
+        String query = "select s." + s.getId().k() + ",s." + s.getUuid().k() + ",s." + s.getName().k() + ", t." + t.getType().k() + ", t." + t.getDescription().k() + ", s." + s.getActivePair().k()
                 + " from " + s.getTableName() + " s"
                 + " left join " + t.getTableName() + " t on s." + s.getTypeId().k() + "=t." + t.getId().k()
                 + " left join " + a.getTableName() + " a on s." + s.getId().k() + "=a." + a.getServiceId().k()
-                + " left join " + c.getTableName() + " c on c." + c.getId().k() + "=a." + a.getCertificateId().k() + " where c." + c.getId().k() + "=?";
-        List<Object> args = new ArrayList<>();
-        args.add(certId);
-        List<SQLTableObject> result = ISQLQueries.loadString(dummy.getAllAttributes(), dummy, query, args);
+                + " left join " + c.getTableName() + " c on c." + c.getId().k() + "=a." + a.getCertificateId().k() + " where c." + c.getId().k() + "=? and s." + s.getActivePair().k() + "=?";
+        List<SQLTableObject> result = ISQLQueries.loadString(dummy.getAllAttributes(), dummy, query, de.mein.sql.ISQLQueries.whereArgs(certId, true));
         List<ServiceJoinServiceType> services = new ArrayList<>();
         for (SQLTableObject sqlTableObject : result) {
             services.add((ServiceJoinServiceType) sqlTableObject);

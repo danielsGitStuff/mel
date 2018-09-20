@@ -9,4 +9,8 @@
     <color name="colorListSelected">#ff99cc00</color>
     <color name="colorIcon">#88c039</color>
     <color name="bright_blue">#00bbff</color>
+    <color name="tintDeactive">#5b5b5b</color>
+    <color name="stateRunning">#57bf40</color>
+    <color name="stateDeactivated">#ffcc35</color>
+    <color name="stateStopped">#c60000</color>
 </resources>

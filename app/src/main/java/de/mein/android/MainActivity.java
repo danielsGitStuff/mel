@@ -7,6 +7,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.ColorFilter;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -539,7 +543,13 @@ public class MainActivity extends MeinActivity {
                         BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(service.getType().v());
                         if (bootLoader instanceof AndroidBootLoader) {
                             AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootLoader;
-                            mService.setIcon(androidBootLoader.getMenuIcon());
+                            Drawable drawableIcon = MainActivity.this.getResources().getDrawable(androidBootLoader.getMenuIcon());
+                            if (!service.getActive().v()) {
+                                drawableIcon.mutate();
+                                int tint = MainActivity.this.getResources().getColor(R.color.tintDeactive);
+                                drawableIcon.setColorFilter(tint, PorterDuff.Mode.MULTIPLY);
+                            }
+                            mService.setIcon(drawableIcon);
                         }
                     }
                 }

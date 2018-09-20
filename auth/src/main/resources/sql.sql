@@ -13,6 +13,7 @@ CREATE TABLE "service" (
    uuid    TEXT    NOT NULL UNIQUE,
    name    TEXT    NOT NULL,
    typeid  INTEGER NOT NULL,
+   active INTEGER  not null,
   FOREIGN KEY ( typeid ) REFERENCES servicetype (id)
 );
 CREATE TABLE  certificate  (

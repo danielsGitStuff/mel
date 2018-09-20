@@ -23,7 +23,7 @@ public class ServiceDao extends Dao {
         Service s = new Service();
         ServiceType t = new ServiceType();
         ServiceJoinServiceType dummy = new ServiceJoinServiceType();
-        String query = "select s." + s.getId().k() + ",s." + s.getName().k() + ",s." + s.getUuid().k() + ", t." + t.getType().k() + ", t." + t.getDescription().k()
+        String query = "select s." + s.getId().k() + ",s." + s.getName().k() + ",s." + s.getUuid().k() + ", t." + t.getType().k() + ", t." + t.getDescription().k() + ", s." + s.getActivePair().k()
                 + " from " + s.getTableName() + " s left join " + t.getTableName() + " t on s." + s.getTypeId().k() + "=t." + t.getId().k() + " order by t." + t.getType().k() + ", s." + s.getName().k();
         List<SQLTableObject> result = sqlQueries.loadString(dummy.getAllAttributes(), dummy, query, null);
         List<ServiceJoinServiceType> services = new ArrayList<>();
