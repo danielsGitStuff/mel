@@ -36,8 +36,8 @@ CREATE TABLE  approval  (
    id             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    certificateid  INTEGER NOT NULL,
    serviceid      INTEGER NOT NULL,
-  FOREIGN KEY ( certificateid ) REFERENCES certificate (id),
-  FOREIGN KEY ( serviceid ) REFERENCES service (id),
+  FOREIGN KEY ( certificateid ) REFERENCES certificate (id) on delete cascade ,
+  FOREIGN KEY ( serviceid ) REFERENCES service (id) on delete cascade ,
   UNIQUE (serviceid, certificateid)
 );
 CREATE INDEX uuidindex
