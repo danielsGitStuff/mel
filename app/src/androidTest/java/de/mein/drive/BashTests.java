@@ -3,15 +3,19 @@ package de.mein.drive;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
 import de.mein.android.file.DFile;
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.serialization.TestDirCreator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -25,16 +29,16 @@ public class BashTests {
     DFile testDir = new DFile("testdir1");
     List<String> paths;
 
-//    @Before
-//    public void before() throws IOException {
-//        BashTools.init();
-//        CertificateManager.deleteDirectory(testDir);
-//        paths = TestDirCreator.createTestDir(testDir);
-//    }
+    @Before
+    public void before() throws IOException {
+        BashTools.init();
+        CertificateManager.deleteDirectory(testDir);
+        paths = TestDirCreator.createTestDir(testDir);
+    }
 
     @Test
     public void bashFind() throws Exception {
-        Iterator<String> iterator = BashTools.find(testDir, new DFile("blaaaa"));
+        Iterator<AFile> iterator = BashTools.find(testDir, new DFile("blaaaa"));
         while (iterator.hasNext())
             System.out.println(iterator.next());
         System.out.println("BashCommandsTest.bashtest.end");
@@ -45,7 +49,7 @@ public class BashTests {
         //expect one result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), 0L);
+        Iterator<AFile> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), 0L);
         assertTrue(iterator.hasNext());
         iterator.next();
         assertFalse(iterator.hasNext());
@@ -57,7 +61,7 @@ public class BashTests {
         //expect no result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), Long.MAX_VALUE);
+        Iterator<AFile> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), Long.MAX_VALUE);
         assertFalse(iterator.hasNext());
         System.out.println("BashCommandsTest.bashtest.end");
     }
@@ -65,10 +69,10 @@ public class BashTests {
     @Test
     public void bashFindModifiedAfter3() throws Exception {
         // expect whole testdir
-        Iterator<String> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), 0L);
+        Iterator<AFile> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), 0L);
         Iterator<String> expectedIterator = paths.iterator();
         while (iterator.hasNext()) {
-            String path = iterator.next();
+            String path = iterator.next().getAbsolutePath();
             String expected = expectedIterator.next();
             System.out.println(path + " vs " + expected);
             assertEquals(expected, path);

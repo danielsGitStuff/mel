@@ -169,21 +169,22 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         try {
             startTimer();
             AFile file = AFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path);
-            if ((event & FileObserver.MODIFY) != 0 || (event & FileObserver.MOVE_SELF) != 0) {
-                // figure out whether or not writing to the file is still in progress
-                try {
-                    double r = Math.random();
-                    System.out.println("IndexWatchdogListener.analyze.attempt to open " + file.getAbsolutePath() + " " + r);
-                    InputStream is = file.inputStream();
-                    is.close();
-                    System.out.println("IndexWatchdogListener.analyze.success " + r);
-                    watchDogTimer.resume();
-                } catch (FileNotFoundException e) {
-                    System.out.println("IndexWatchdogListener.analyze.file not found: " + file.getAbsolutePath());
-                } catch (Exception e) {
-                    System.out.println("IndexWatchdogListener.analyze.writing in progress");
-                    watchDogTimer.waite();
-                }
+            //todo debug
+            Map<String, Boolean> flags = flags(event);
+            boolean modified = (event & FileObserver.MODIFY) != 0;
+            boolean moved = (event & FileObserver.MOVE_SELF) != 0;
+            boolean closeWrite = (event & FileObserver.CLOSE_WRITE) != 0;
+            boolean delete = (event & FileObserver.DELETE) != 0;
+            boolean deleteSelf = (event & FileObserver.DELETE_SELF) != 0;
+
+            if (modified || moved) {
+                watchDogTimer.waite();
+                System.out.println("RecursiveWatcher.analyze.waite");
+            } else if (closeWrite || delete || deleteSelf) {
+                System.out.println("RecursiveWatcher.analyze.resume");
+                watchDogTimer.resume();
+            }else {
+                System.out.println("RecursiveWatcher.analyze.nothing");
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -58,12 +58,10 @@ public abstract class AFile<T extends  AFile> {
 
 
     /**
-     * Deprecated: Cannot ensure we get the corresponding DocumentFile on android.
      * It just creates some sort of root element.
      * @param path
      * @return
      */
-    @Deprecated
     public static AFile instance(String path) {
         if (configuration == null)
             System.err.println(AFile.class.getSimpleName() + ". NOT INITIALIZED! Call configure() before!");

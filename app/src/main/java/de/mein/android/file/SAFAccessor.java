@@ -11,6 +11,7 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
+import java.io.IOException;
 
 import de.mein.R;
 import de.mein.android.MeinActivity;
@@ -128,5 +129,8 @@ public class SAFAccessor {
 
         });
         return deferred;
+    }
+    public static void askForSuperUser() throws IOException {
+        Process p = Runtime.getRuntime().exec("su");
     }
 }
