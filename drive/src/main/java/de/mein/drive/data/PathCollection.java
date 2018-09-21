@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 
 /**
@@ -21,7 +22,7 @@ public class PathCollection {
 
     public PathCollection addPath(AFile file) {
         if (!pathSet.contains(file.getAbsolutePath())) {
-            System.out.println("PathCollection.addPath: "+file);
+            Lok.debug("PathCollection.addPath: "+file);
             paths.add(file);
             pathSet.add(file.getAbsolutePath());
         }

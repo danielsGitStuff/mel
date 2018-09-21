@@ -1,6 +1,7 @@
 package de.mein.drive.service;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.auth.data.ClientData;
 import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
@@ -91,7 +92,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 }
             }
 //            else if (unknownJob instanceof FsSyncJob) {
-//                System.out.println("MeinDriveServerService.workWorkWork.SYNC");
+//                Lok.debug("MeinDriveServerService.workWorkWork.SYNC");
 //                FsSyncJob syncJob = (FsSyncJob) unknownJob;
 //                Promise<Long, Exception, Void> indexedPromise = doFsSyncJob(syncJob);
 //                indexedPromise.done(stageSetId -> {
@@ -177,7 +178,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                         if (driveDatabaseManager.getMeinDriveService() instanceof MeinDriveServerService)
                             syncHandler.commitStage(stageSetId);
                     }else {
-                        System.out.println("MeinDriveServerService.done(). StageSet was empty");
+                        Lok.debug("MeinDriveServerService.done(). StageSet was empty");
                     }
                 });
             }
@@ -199,7 +200,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     @Override
     public void onMeinAuthIsUp() {
         startIndexerDonePromise.done(result -> {
-            System.out.println("MeinDriveServerService.onMeinAuthIsUp");
+            Lok.debug("MeinDriveServerService.onMeinAuthIsUp");
             // connect to every client that we know
             for (ClientData client : this.driveSettings.getServerSettings().getClients()) {
                 N.r(() -> meinAuthService.connect(client.getCertId()));

@@ -1,6 +1,7 @@
 package de.mein.drive.service;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
@@ -61,7 +62,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     @Override
     protected boolean workWorkWork(Job unknownJob) {
-        System.out.println(meinAuthService.getName() + ".MeinDriveClientService.workWorkWork :)");
+        Lok.debug(meinAuthService.getName() + ".MeinDriveClientService.workWorkWork :)");
         if (unknownJob instanceof ServiceRequestHandlerJob) {
             ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
             if (job.isRequest()) {
@@ -105,9 +106,9 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     public void addJob(Job job) {
         //todo debug
         if (job instanceof Job.ConnectionAuthenticatedJob)
-            System.out.println("MeinDriveClientService.addJob.debug123");
+            Lok.debug("MeinDriveClientService.addJob.debug123");
         if (job instanceof SyncClientJob)
-            System.out.println("MeinDriveClientService.addJob.debug345");
+            Lok.debug("MeinDriveClientService.addJob.debug345");
         super.addJob(job);
     }
 
@@ -152,7 +153,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     public void onMeinAuthIsUp() {
         startIndexerDonePromise.done(result -> {
-            System.out.println("MeinDriveClientService.onMeinAuthIsUp");
+            Lok.debug("MeinDriveClientService.onMeinAuthIsUp");
             N.r(() -> {
                 Long serverId = driveSettings.getClientSettings().getServerCertId();
                 if (serverId != null) {
@@ -166,7 +167,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
 
     public void onConflicts() {
-        System.out.println("MeinDriveClientService.onConflicts.oj9h034800");
+        Lok.debug("MeinDriveClientService.onConflicts.oj9h034800");
         MeinNotification notification = new MeinNotification(uuid, DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED, "Conflict detected", "here we go");
         meinAuthService.onNotificationFromService(this, notification);
     }

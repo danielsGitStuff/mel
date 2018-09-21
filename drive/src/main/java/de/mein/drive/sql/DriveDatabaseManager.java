@@ -1,5 +1,6 @@
 package de.mein.drive.sql;
 
+import de.mein.Lok;
 import de.mein.auth.data.access.FileRelatedManager;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -121,7 +122,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
 
         fsDao.setDriveSettings(this.driveSettings);
         transferDao.resetStarted();
-        System.out.println("DriveDatabaseManager.initialised");
+        Lok.debug("DriveDatabaseManager.initialised");
     }
 
     public MeinDriveService getMeinDriveService() {

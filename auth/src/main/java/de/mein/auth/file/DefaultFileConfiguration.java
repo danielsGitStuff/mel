@@ -2,6 +2,7 @@ package de.mein.auth.file;
 
 import java.io.File;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.FFile;
 
@@ -27,7 +28,7 @@ public class DefaultFileConfiguration extends AFile.Configuration {
             FFile fFile = (FFile) parent;
             return new FFile(fFile, name);
         } else {
-            System.err.println(getClass().getSimpleName() + "instance(AFile parent, String name), got a '" + parent.getClass().getSimpleName() + "' as parent.");
+            Lok.error("got a '" + parent.getClass().getSimpleName() + "' as parent.");
             return null;
         }
     }

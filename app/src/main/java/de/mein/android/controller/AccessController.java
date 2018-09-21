@@ -9,6 +9,7 @@ import android.widget.ListView;
 import java.util.List;
 import java.util.Map;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.auth.data.ApprovalMatrix;
@@ -110,9 +111,9 @@ public class AccessController extends GuiController {
             listCertificates.setOnItemClickListener((parent, view, position, id) -> {
                 Certificate cert = knownCertListAdapter.getItemT(position);
                 selectedCertId = cert.getId().v();
-                System.out.println("AccessController.fillContent.CLICKED: " + cert.getName().v());
+                Lok.debug("AccessController.fillContent.CLICKED: " + cert.getName().v());
                 serviceAdapter.clear();
-                System.out.println("AccessController.AccessController");
+                Lok.debug("AccessController.AccessController");
                 serviceAdapter.setApprovalCheckedListener((serviceId, approved) -> matrix.setApproved(selectedCertId, serviceId, approved));
                 for (ServiceJoinServiceType s : services) {
                     // check if it is approved
@@ -123,7 +124,7 @@ public class AccessController extends GuiController {
             });
         }
         listServices.setOnItemClickListener((parent, view, position, id) -> {
-            System.out.println("AccessController.fillContent.CLICKED:S");
+            Lok.debug("AccessController.fillContent.CLICKED:S");
             ServiceJoinServiceType service = serviceAdapter.getItemT(position);
             Long serviceId = service.getServiceId().v();
             if (serviceAdapter.isApproved(serviceId)) {

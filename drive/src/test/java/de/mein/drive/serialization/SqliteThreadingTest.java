@@ -73,7 +73,7 @@ public class SqliteThreadingTest {
                 ISQLResource<Stage> resource = stageDao.getStagesByStageSet(stageSet1.getId().v());
                 Stage stage = resource.getNext();
                 while (stage != null) {
-                    System.out.println("read1: " + stage.getName());
+                    Lok.debug("read1: " + stage.getName());
                     stage = resource.getNext();
                 }
             });
@@ -84,7 +84,7 @@ public class SqliteThreadingTest {
                 ISQLResource<Stage> resource = stageDao.getStagesByStageSet(stageSet1.getId().v());
                 Stage stage = resource.getNext();
                 while (stage != null) {
-                    System.out.println("read2: " + stage.getName());
+                    Lok.debug("read2: " + stage.getName());
                     stage = resource.getNext();
                 }
             });
@@ -99,7 +99,7 @@ public class SqliteThreadingTest {
                             .setIsDirectory(false)
                             .setOrder((long) i)
                             .setDeleted(false);
-                    System.out.println("write: " + i);
+                    Lok.debug("write: " + i);
                     stageDao.insert(stage);
                 }
             });
@@ -118,7 +118,7 @@ public class SqliteThreadingTest {
 //                            .setIsDirectory(false)
 //                            .setOrder((long) i)
 //                            .setDeleted(false);
-//                    System.out.println("write: " + i);
+//                    Lok.debug("write: " + i);
 //                    stageDao.insert(stage);
                     FsFile fsFile = new FsFile()
                             .setName(i.toString());
@@ -135,7 +135,7 @@ public class SqliteThreadingTest {
                 ISQLResource<Stage> resource = stageDao.getStagesByStageSet(stageSet1.getId().v());
                 Stage stage = resource.getNext();
                 while (stage != null) {
-                    System.out.println("read2: " + stage.getName());
+                    Lok.debug("read2: " + stage.getName());
                     stage.setName(stage.getName() + ".a");
                     stageDao.update(stage);
                     stage = resource.getNext();
@@ -160,7 +160,7 @@ public class SqliteThreadingTest {
 //        for (Future<Void> f : res) {
 //            f.get();
 //        }
-        System.out.println("SqliteThreadingTest.thread.end");
+        Lok.debug("SqliteThreadingTest.thread.end");
         new WaitLock().lock().lock();
     }
 

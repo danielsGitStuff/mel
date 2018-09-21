@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import de.mein.Lok;
+
 /**
  * Think of this as an abstraction of {@link java.io.File}. It is necessary cause Android 7+ restricts access to external storages via {@link java.io.File}.
  * Before using {@link AFile}, call configure() and hand over a {@link Configuration}. This determines the implementation you want to use.
@@ -49,7 +51,7 @@ public abstract class AFile<T extends  AFile> {
 
     public static void configure(Configuration configuration) {
         if (AFile.configuration != null) {
-            System.err.println("AFile implementation has already been set!");
+            Lok.error("AFile implementation has already been set!");
             return;
         } else {
             AFile.configuration = configuration;
@@ -64,7 +66,7 @@ public abstract class AFile<T extends  AFile> {
      */
     public static AFile instance(String path) {
         if (configuration == null)
-            System.err.println(AFile.class.getSimpleName() + ". NOT INITIALIZED! Call configure() before!");
+            Lok.error(AFile.class.getSimpleName() + ". NOT INITIALIZED! Call configure() before!");
         AFile file = configuration.instance(path);
         return file;
     }

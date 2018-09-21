@@ -1,5 +1,6 @@
 package de.mein.drive.sql;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.sql.Hash;
@@ -156,7 +157,7 @@ public class FsDirectory extends FsEntry {
             contentSet.add(f.getName().v());
             //todo debug
             if (f.getName().isNull())
-                System.out.println("FsDirectory.addFile");
+                Lok.debug("FsDirectory.addFile");
         }
         return this;
     }
@@ -166,7 +167,7 @@ public class FsDirectory extends FsEntry {
             subDirectories.add(subDir);
             contentSet.add(subDir.getName().v());
             if (subDir.getName().isNull())
-                System.out.println("FsDirectory.addSub");
+                Lok.debug("FsDirectory.addSub");
         }
         return this;
     }

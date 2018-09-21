@@ -2,6 +2,7 @@ package de.mein.drive.index.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveSettings;
@@ -34,7 +35,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
 
     @Override
     public void onTimerStopped() {
-        System.out.println("IndexWatchdogListener.onTimerStopped");
+        Lok.debug("IndexWatchdogListener.onTimerStopped");
         long newTimeStamp = System.currentTimeMillis();
         long timeStamp = latestTimeStamp;
         latestTimeStamp =newTimeStamp;
@@ -44,7 +45,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
             Iterator<AFile> paths = BashTools.stuffModifiedAfter(driveSettings.getRootDirectory().getOriginalFile(), driveSettings.getTransferDirectoryFile(), timeStamp);
             while (paths.hasNext()) {
                 AFile path = paths.next();
-                System.out.println("   IndexWatchDogListenerWindows.onTimerStopped: " + path);
+                Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);
                 pathCollection.addPath(path);
             }
         });
@@ -58,7 +59,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
                 watchesRoot = true;
                 Path path = Paths.get(dir.getAbsolutePath());
                 path.register(watchService, KINDS, ExtendedWatchEventModifier.FILE_TREE);
-                System.out.println("IndexWatchDogListenerWindows.registerRoot: " + path.toString());
+                Lok.debug("IndexWatchDogListenerWindows.registerRoot: " + path.toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -79,14 +80,14 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
                             AFile file = AFile.instance(absolutePath);
                             // todo debug
-                            System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
+                            Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
                                 watchDogTimer.start();
-                                System.out.println("ignored/broken WatchService");
+                                Lok.debug("ignored/broken WatchService");
                             } else {
                                 analyze(event, file);
-                                System.out.println("analyzed");
+                                Lok.debug("analyzed");
                             }
                         }
                         watchKey.reset();

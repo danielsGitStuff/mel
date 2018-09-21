@@ -23,7 +23,7 @@ public class RightMergeListCell extends AbstractMergeListCell {
     @Override
     void handleAction(ActionEvent event) {
         if (lastSelected != null) {
-            System.out.println("AbstractMergeListCell.left " + lastSelected);
+            Lok.debug("AbstractMergeListCell.left " + lastSelected);
             lastSelected.chooseRight();
             getListView().refresh();
             mergeList.refresh();

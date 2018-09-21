@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MainActivity;
 import de.mein.android.boot.AndroidBootLoader;
@@ -72,7 +73,7 @@ public class EditServiceController extends GuiController {
                 databaseManager.updateService(s);
                 currentController.onOkClicked();
             }));
-            System.out.println("EditServiceController.showSelected");
+            Lok.debug("showSelected");
         }));
         btnDelete.setOnClickListener(v -> {
             MeinService service = androidService.getMeinAuthService().getMeinService(EditServiceController.this.service.getUuid().v());

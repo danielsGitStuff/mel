@@ -1,5 +1,6 @@
 package de.mein.drive.index.watchdog;
 
+import de.mein.Lok;
 import de.mein.auth.tools.BackgroundExecutor;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.sql.DriveDatabaseManager;
@@ -44,8 +45,8 @@ public class StageIndexer extends BackgroundExecutor {
     public void examinePaths(IndexWatchdogListener indexWatchdogListener, PathCollection pathCollection) {
         StageIndexerRunnable indexerRunnable = new StageIndexerRunnable(databaseManager, pathCollection, indexWatchdogListener);
         indexerRunnable.setStagingDoneListener(stagingDoneListener);
-        System.out.println(getClass().getSimpleName() + ".examinePaths.execute.on: " + Thread.currentThread().getName());
+        Lok.debug(getClass().getSimpleName() + ".examinePaths.execute.on: " + Thread.currentThread().getName());
         execute(indexerRunnable);
-        System.out.println(getClass().getSimpleName() + ".examinePaths.executed.on: " + Thread.currentThread().getName());
+        Lok.debug(getClass().getSimpleName() + ".examinePaths.executed.on: " + Thread.currentThread().getName());
     }
 }

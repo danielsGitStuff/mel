@@ -75,7 +75,7 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
     public void setListener(IRegisterHandlerListener listener) {
         this.listener = listener;
         btnAccept.setOnAction(e -> {
-            System.out.println("RegisterHandlerFX.initialize");
+            Lok.debug("RegisterHandlerFX.initialize");
             stage.close();
             listener.onCertificateAccepted(request, certificate);
         });

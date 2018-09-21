@@ -23,7 +23,7 @@ public class DriveFXEditClientController extends DriveFXEditBaseController {
 
     @Override
     public void init() {
-        System.out.println("DriveFXEditClientController.init");
+        Lok.debug("DriveFXEditClientController.init");
         btnSync.setOnAction(event -> {
             try {
                 meinDriveService.syncThisClient();

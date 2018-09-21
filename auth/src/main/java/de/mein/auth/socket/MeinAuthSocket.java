@@ -1,5 +1,6 @@
 package de.mein.auth.socket;
 
+import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
@@ -93,8 +94,8 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             if (deserialized instanceof MeinRequest) {
                 MeinRequest request = (MeinRequest) deserialized;
                 if (request.getAuthenticated() != null && request.getAuthenticated()) {
-                    System.out.println("MeinAuthSocket.onMessage.9djg90areh0g");
-                    System.out.println("MeinAuthSocket.onMessage.ij3g89wh9543w");
+                    Lok.debug("MeinAuthSocket.onMessage.9djg90areh0g");
+                    Lok.debug("MeinAuthSocket.onMessage.ij3g89wh9543w");
                 }
             }
             if (process != null) {
@@ -133,7 +134,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        System.out.println(meinAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
+        Lok.debug(meinAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
     }
 
     @Override
@@ -153,7 +154,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         final Integer portCert = job.getPortCert();
         final boolean regOnUnknown = job.getRegOnUnknown();
 
-        System.out.println("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
+        Lok.debug("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
         meinAuthService.getPowerManager().wakeLock(this);
         DeferredObject result = job.getPromise();
         N runner = new N(e -> {
@@ -168,7 +169,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             if (except instanceof ShamefulSelfConnectException) {
                 result.reject(except);
             } else if (except instanceof ConnectException) {
-                System.err.println(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
+                Lok.error(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
                 result.reject(except);
                 meinAuthService.getPowerManager().releaseWakeLock(this);
             } else if (regOnUnknown && remoteCertId == null) {
@@ -211,7 +212,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         }));
 
         /*else {
-            System.out.println("MeinAuthSocket.connect.NOT.IMPLEMENTED.YET");
+            Lok.debug("MeinAuthSocket.connect.NOT.IMPLEMENTED.YET");
             this.auth(result, remoteCertId, address, port, portCert);
         }*/
         return result;
@@ -261,7 +262,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         if (certId != null)
             partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         Socket socket = meinAuthService.getCertificateManager().createSocket();
-        System.out.println("MeinAuthSocket.connectSSL: " + address + ":" + port);
+        Lok.debug("MeinAuthSocket.connectSSL: " + address + ":" + port);
         socket.connect(new InetSocketAddress(address, port));
         //stop();
         setSocket(socket);
@@ -277,7 +278,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             // todo debug
             List<Certificate> allCerts = meinAuthService.getCertificateManager().getAllCertificateDetails();
             for (Certificate certificate : allCerts) {
-                System.out.println("avail cert: id: " + certificate.getId().v() + " , name: " + certificate.getName().v() + " ,hash: " + certificate.getHash().v() + " ,trusted: " + certificate.getTrusted().v());
+                Lok.debug("avail cert: id: " + certificate.getId().v() + " , name: " + certificate.getName().v() + " ,hash: " + certificate.getHash().v() + " ,trusted: " + certificate.getTrusted().v());
             }
             partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateByHash(hash);
             if (partnerCertificate == null) {

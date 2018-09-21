@@ -34,7 +34,7 @@ public class MergeListCell extends AbstractMergeListCell {
     @Override
     void handleAction(ActionEvent event) {
         if (lastSelected != null) {
-            System.out.println("AbstractMergeListCell.unsolve " + lastSelected);
+            Lok.debug("AbstractMergeListCell.unsolve " + lastSelected);
             lastSelected.chooseNothing();
             leftList.refresh();
             rightList.refresh();

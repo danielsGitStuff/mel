@@ -1,5 +1,6 @@
 package de.mein.auth.data;
 
+import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.socket.MeinSocket;
@@ -150,7 +151,7 @@ public class MeinRequest extends MeinMessage {
     }
 
     public void setMode(String mode) {
-        System.out.println();
+        Lok.debug("");
         this.mode = mode;
     }
 }

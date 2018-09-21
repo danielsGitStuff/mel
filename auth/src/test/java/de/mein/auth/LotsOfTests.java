@@ -64,10 +64,10 @@ public class LotsOfTests {
                 run(() -> {
                     DeferredObject<MeinIsolatedFileProcess, Exception, Void> isolated = standAloneAuth1.connectToService(MeinIsolatedFileProcess.class, 1L, "test uuid no. 1", "test uuid no. 0", null, null, null);
                     isolated.done(meinIsolatedProcess -> {
-                        System.out.println("DriveTest.onSyncDoneImpl.SUCCESS");
+                        Lok.debug("DriveTest.onSyncDoneImpl.SUCCESS");
                         lock.unlockWrite();
                     }).fail(result -> {
-                        System.out.println("DriveTest.onSyncDoneImpl.FAIL");
+                        Lok.debug("DriveTest.onSyncDoneImpl.FAIL");
                         Assert.fail("did not connect");
                     });
                 });
@@ -75,7 +75,7 @@ public class LotsOfTests {
         });
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.isolation.END");
+        Lok.debug("DriveTest.isolation.END");
     }
 
     /**
@@ -101,18 +101,18 @@ public class LotsOfTests {
                     });
                     DeferredObject<MeinIsolatedFileProcess, Exception, Void> isolated = standAloneAuth1.connectToService(MeinIsolatedFileProcess.class, 1L, serviceUuid2, serviceUuid1, null, null, null);
                     isolated.done(fileProcess -> run(() -> {
-                        System.out.println("LotsOfTests.onConnected1");
+                        Lok.debug("LotsOfTests.onConnected1");
                         MeinIsolatedFileProcess iso1 = (MeinIsolatedFileProcess) meinTestService1.getIsolatedProcess(1L, serviceUuid2);
                         MeinIsolatedFileProcess iso2 = (MeinIsolatedFileProcess) meinTestService2.getIsolatedProcess(1L, serviceUuid1);
-                        System.out.println("LotsOfTests.onConnected2");
+                        Lok.debug("LotsOfTests.onConnected2");
                         iso2.addFilesReceiving(fileTransferDetail2);
-                        System.out.println("LotsOfTests.onConnected3");
+                        Lok.debug("LotsOfTests.onConnected3");
                         iso1.sendFile(fileTransferDetail1);
-                        System.out.println("DriveTest.onSyncDoneImpl.SUCCESS");
+                        Lok.debug("DriveTest.onSyncDoneImpl.SUCCESS");
                         //fileProcess.sendFile(source);
                         //lock.unlockWrite();
                     })).fail(result -> {
-                        System.out.println("DriveTest.onSyncDoneImpl.FAIL");
+                        Lok.debug("DriveTest.onSyncDoneImpl.FAIL");
                         Assert.fail("did not connect");
                     });
                 });
@@ -122,9 +122,9 @@ public class LotsOfTests {
         lock.unlockWrite();
 
         if (!target.exists())
-            System.out.println("LotsOfTests.sendFile.debugf43g");
+            Lok.debug("LotsOfTests.sendFile.debugf43g");
         assertTrue(target.exists());
-        System.out.println("DriveTest.isolation.END");
+        Lok.debug("DriveTest.isolation.END");
     }
 
     /**
@@ -151,18 +151,18 @@ public class LotsOfTests {
                     });
                     DeferredObject<MeinIsolatedFileProcess, Exception, Void> isolated = standAloneAuth1.connectToService(MeinIsolatedFileProcess.class, 1L, serviceUuid2, serviceUuid1, null, null, null);
                     isolated.done(fileProcess -> run(() -> {
-                        System.out.println("LotsOfTests.onConnected1");
+                        Lok.debug("LotsOfTests.onConnected1");
                         MeinIsolatedFileProcess iso1 = (MeinIsolatedFileProcess) meinTestService1.getIsolatedProcess(1L, serviceUuid2);
                         MeinIsolatedFileProcess iso2 = (MeinIsolatedFileProcess) meinTestService2.getIsolatedProcess(1L, serviceUuid1);
-                        System.out.println("LotsOfTests.onConnected2");
+                        Lok.debug("LotsOfTests.onConnected2");
                         iso2.addFilesReceiving(fileTransferDetail2);
-                        System.out.println("LotsOfTests.onConnected3");
+                        Lok.debug("LotsOfTests.onConnected3");
                         iso1.sendFile(fileTransferDetail1);
-                        System.out.println("DriveTest.onSyncDoneImpl.SUCCESS");
+                        Lok.debug("DriveTest.onSyncDoneImpl.SUCCESS");
                         //fileProcess.sendFile(source);
                         //lock.unlockWrite();
                     })).fail(result -> {
-                        System.out.println("DriveTest.onSyncDoneImpl.FAIL");
+                        Lok.debug("DriveTest.onSyncDoneImpl.FAIL");
                         Assert.fail("did not connect");
                     });
                 });
@@ -172,9 +172,9 @@ public class LotsOfTests {
         lock.unlockWrite();
 
         if (target.exists())
-            System.out.println("LotsOfTests.sendFile.debugf43g");
+            Lok.debug("LotsOfTests.sendFile.debugf43g");
         assertFalse(target.exists());
-        System.out.println("DriveTest.isolation.END");
+        Lok.debug("DriveTest.isolation.END");
     }
 
     public ServiceJoinServiceType getOnlyService(MeinAuthService ma) throws SqlQueriesException {
@@ -250,12 +250,12 @@ public class LotsOfTests {
             standAloneAuth1.addRegisterHandler(allowRegisterHandler);
             standAloneAuth1.addRegisteredHandler(registeredHandler);
             runner.runTry(() -> {
-                System.out.println("LotsOfTests.setup.1.booted");
+                Lok.debug("LotsOfTests.setup.1.booted");
                 // setup the server Service
                 boot2.boot().done(ma2 -> {
                     standAloneAuth2 = ma2;
                     standAloneAuth2.addRegisterHandler(allowRegisterHandler);
-                    System.out.println("LotsOfTests.setup.2.booted");
+                    Lok.debug("LotsOfTests.setup.2.booted");
                     meinTestService1 = (MeinTestService) standAloneAuth1.getMeinService("test uuid no. 0");
                     meinTestService2 = (MeinTestService) standAloneAuth2.getMeinService("test uuid no. 1");
                     runner.runTry(() -> {
@@ -263,7 +263,7 @@ public class LotsOfTests {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
                         connectPromise.done(meinValidationProcess -> {
                             runner.runTry(() -> {
-                                System.out.println("LotsOfTests.setup.connected");
+                                Lok.debug("LotsOfTests.setup.connected");
                                 onConnectedListener.onConnected();
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
                             });

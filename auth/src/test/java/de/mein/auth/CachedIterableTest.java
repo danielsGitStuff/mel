@@ -25,7 +25,7 @@ public class CachedIterableTest {
         CACHE_DIR.mkdirs();
         iterable = new CachedIterable(CACHE_DIR, 5);
         iterable.setCacheId(99999L);
-        System.out.println("CachedIterableTest.before.done: " + CACHE_DIR.getAbsolutePath());
+        Lok.debug("CachedIterableTest.before.done: " + CACHE_DIR.getAbsolutePath());
     }
 
     //@After
@@ -47,7 +47,7 @@ public class CachedIterableTest {
         for (Integer i = 1; i <= 21; i++) {
             iterable.add(new SimpleSerializableEntity().setPrimitive(i.toString()));
         }
-        System.out.println("CachedIterableTest.serialize.done");
+        Lok.debug("CachedIterableTest.serialize.done");
     }
 
     @Test
@@ -56,12 +56,12 @@ public class CachedIterableTest {
         Iterator<SimpleSerializableEntity> iterator = iterable.iterator();
         assertTrue(iterator.hasNext());
         while (iterator.hasNext()) {
-            System.out.println("CachedIterableTest.iterate: " + iterator.next().getPrimitive());
+            Lok.debug("CachedIterableTest.iterate: " + iterator.next().getPrimitive());
         }
         assertTrue(iterable.createCachedPartFile(1).exists());
         iterable.cleanUp();
         assertFalse(iterable.createCachedPartFile(1).exists());
-        System.out.println("CachedIterableTest.iterate.done");
+        Lok.debug("CachedIterableTest.iterate.done");
     }
 
     /**

@@ -1,13 +1,14 @@
 package de.mein.auth.tools;
 
-import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.sql.RWLock;
-
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import de.mein.Lok;
+import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.sql.RWLock;
 
 /**
  * Created by xor on 2/26/16.
@@ -46,7 +47,7 @@ public class Timor {
         URL url = String.class.getResource("foo.txt");
         String text = new Scanner(String.class.getResourceAsStream("/sql.sql"), "UTF-8").useDelimiter("\\A").next();
         String r = convertStreamToString(is);
-        System.out.println(r);
+        Lok.debug(r);
         //.getClassLoader().getResource("de/mein/auth/service/register.fxml"));
     }
 

@@ -1,6 +1,7 @@
 package de.mein.auth.broadcast;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.WaitingDeferredRunnable;
 
 import java.io.IOException;
@@ -74,11 +75,11 @@ public abstract class BrotCaster extends DeferredRunnable {
         InetAddress brotcastAddress = InetAddress.getByName("224.0.0.1"); //this is BrotCast!!!
         //InetAddress brotcastAddress = InetAddress.getByName("localhost"); //this is LocalCast!!!
         if (brotcastAddress != null) {
-            System.out.println(brotcastAddress.getCanonicalHostName());
+            Lok.debug(brotcastAddress.getCanonicalHostName());
             DatagramPacket packet;
             packet = new DatagramPacket(buf, buf.length, brotcastAddress, port);
             socket().send(packet);
-        } else System.out.println("fail");
+        } else Lok.debug("fail");
     }
 
     private MulticastSocket socket() throws IOException {

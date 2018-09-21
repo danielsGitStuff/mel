@@ -92,7 +92,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     @Override
     public void onChanged() {
-        System.out.println("MeinAuthAdminFX.onChanged");
+        Lok.debug("MeinAuthAdminFX.onChanged");
         showServices();
     }
 
@@ -149,7 +149,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
                         MenuItem menuItem = new MenuItem(name);
                         menuItem.setOnAction(e1 -> {
-                            System.out.println("MeinAuthAdminFX.initialize.createmenu.clicked");
+                            Lok.debug("MeinAuthAdminFX.initialize.createmenu.clicked");
                             runner.r(() -> {
                                         onCreateMenuItemClicked(name);
                                         createServiceMenu.hide();
@@ -287,7 +287,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
             stage.setTitle("Notification Center");
             stage.setScene(scene);
             stage.show();
-            System.out.println("MeinAuthAdminFX.displayTray");
+            Lok.debug("MeinAuthAdminFX.displayTray");
             notificationCenter.showNotifications();
         } else {
             notificationCenter.show();
@@ -314,7 +314,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                 loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML(), null);
             }
         } else {
-            System.out.println("MeinAuthAdminFX.onCreateMenuItemClicked.NO.FX.BOOTLOADER");
+            Lok.debug("MeinAuthAdminFX.onCreateMenuItemClicked.NO.FX.BOOTLOADER");
         }
 
     }
@@ -345,7 +345,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
             contentController.setMeinAuthService(meinAuthService);
             lblTitle.setText(contentController.getTitle());
             setContentPane(pane);
-            System.out.println("MeinAuthAdminFX.loadSettingsFX.loaded");
+            Lok.debug("MeinAuthAdminFX.loadSettingsFX.loaded");
         });
     }
 
@@ -362,7 +362,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     public static void main(String[] args) {
         WaitLock waitLock = new WaitLock().lock();
         waitLock.lock();
-        System.out.println("MeinAuthAdminFX.main");
+        Lok.debug("MeinAuthAdminFX.main");
     }
 
     @SuppressWarnings("Duplicates")
@@ -374,7 +374,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         WaitLock lock = new WaitLock().lock();
         Platform.runLater(() -> {
                     try {
-                        System.out.println("MeinAuthAdminFX.load...");
+                        Lok.debug("MeinAuthAdminFX.load...");
                         FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
                         ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/fxui", new Locale("en", "En"));
                         loader.setResources(resourceBundle);

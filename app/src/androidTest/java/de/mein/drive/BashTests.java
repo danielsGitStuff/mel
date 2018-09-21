@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.android.file.DFile;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.file.AFile;
@@ -40,8 +41,8 @@ public class BashTests {
     public void bashFind() throws Exception {
         Iterator<AFile> iterator = BashTools.find(testDir, new DFile("blaaaa"));
         while (iterator.hasNext())
-            System.out.println(iterator.next());
-        System.out.println("BashCommandsTest.bashtest.end");
+            Lok.debug(iterator.next());
+        Lok.debug("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -53,7 +54,7 @@ public class BashTests {
         assertTrue(iterator.hasNext());
         iterator.next();
         assertFalse(iterator.hasNext());
-        System.out.println("BashCommandsTest.bashtest.end");
+        Lok.debug("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -63,7 +64,7 @@ public class BashTests {
         testDir.mkdirs();
         Iterator<AFile> iterator = BashTools.stuffModifiedAfter(testDir, new DFile("blaa"), Long.MAX_VALUE);
         assertFalse(iterator.hasNext());
-        System.out.println("BashCommandsTest.bashtest.end");
+        Lok.debug("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -74,11 +75,11 @@ public class BashTests {
         while (iterator.hasNext()) {
             String path = iterator.next().getAbsolutePath();
             String expected = expectedIterator.next();
-            System.out.println(path + " vs " + expected);
+            Lok.debug(path + " vs " + expected);
             assertEquals(expected, path);
         }
         assertFalse(expectedIterator.hasNext());
-        System.out.println("BashCommandsTest.bashtest.end");
+        Lok.debug("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -89,8 +90,8 @@ public class BashTests {
         File dir = new File(testDir.getAbsolutePath() + File.separator + "ttttttt");
         dir.mkdirs();
         Long t2 = testDir.lastModified();
-        System.out.println("before: " + t1);
-        System.out.println("after : " + t2);
+        Lok.debug("before: " + t1);
+        Lok.debug("after : " + t2);
         assertTrue(t1 < t2);
     }
 
@@ -103,10 +104,10 @@ public class BashTests {
         testDir.move(new DFile(dir.getAbsolutePath() + File.separator + "movedTest"));
         Long t2 = dir.lastModified();
         Long tt2 = testDir.lastModified();
-        System.out.println("upper dir before: " + t1);
-        System.out.println("upper dir after : " + t2);
-        System.out.println("moved dir before: " + tt1);
-        System.out.println("moved dir after : " + tt2);
+        Lok.debug("upper dir before: " + t1);
+        Lok.debug("upper dir after : " + t2);
+        Lok.debug("moved dir before: " + tt1);
+        Lok.debug("moved dir after : " + tt2);
         assertEquals(t1, t2);
         assertEquals(tt1, tt2);
     }
@@ -115,8 +116,8 @@ public class BashTests {
     public void timestamp3() {
         BashTools.init();
         Context context = InstrumentationRegistry.getTargetContext();
-        System.out.println("bla " + context.getPackageCodePath());
-        System.out.println(context.getApplicationInfo().dataDir);
+        Lok.debug("bla " + context.getPackageCodePath());
+        Lok.debug(context.getApplicationInfo().dataDir);
         final String rootPath = context.getApplicationInfo().dataDir;
         File dir = new File(rootPath + File.separator + "ttttttt");
         while (true){
@@ -124,7 +125,7 @@ public class BashTests {
             dir.mkdirs();
             Long after = System.currentTimeMillis();
             Long modified = dir.lastModified();
-            System.out.println("b "+before+" / m "+modified+" / a "+after);
+            Lok.debug("b "+before+" / m "+modified+" / a "+after);
             dir.delete();
         }
     }

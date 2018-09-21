@@ -6,6 +6,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import de.mein.Lok;
+
 /**
  * Created by xor on 03.09.2016.
  */
@@ -44,9 +46,9 @@ public class WatchDogTimer extends Timer {
         if (task != null)
             task.reset();
         if (!runs) {
-            //System.out.println("WatchDogTimer.start.NEWTASK");
+            //Lok.debug("WatchDogTimer.start.NEWTASK");
             task = new WatchDogTimerTask(() -> {
-                System.out.println("WatchDogTimer.STOPPPPED");
+                Lok.debug("WatchDogTimer.STOPPPPED");
                 lock.acquire();
                 WatchDogTimer.this.runs = false;
                 lock.release();
@@ -127,10 +129,10 @@ public class WatchDogTimer extends Timer {
             int count = this.count.decrementAndGet();
             boolean wait = this.wait.get();
             if (wait) {
-                //System.out.println("WatchDogTimerTask.runTry.wait");
+                //Lok.debug("WatchDogTimerTask.runTry.wait");
                 reset();
             } else {
-                //System.out.println("WatchDogTimerTask.runTry." + count);
+                //Lok.debug("WatchDogTimerTask.runTry." + count);
                 if (count == 0) {
                     this.cancel();
                     try {
@@ -143,7 +145,7 @@ public class WatchDogTimer extends Timer {
         }
 
         public void reset() {
-            //System.out.println("WatchDogTimerTask.reset");
+            //Lok.debug("WatchDogTimerTask.reset");
             count.set(startValue);
         }
     }

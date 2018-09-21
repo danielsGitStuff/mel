@@ -1,5 +1,6 @@
 package de.mein.drive.index.watchdog;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
@@ -27,7 +28,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
             Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
             keyMap.put(path.toString(), key);
-            System.out.println("IndexWatchdogListener.foundDirectory: " + path.toString());
+            Lok.debug("IndexWatchdogListener.foundDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -40,7 +41,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
             Path path = Paths.get(dir.getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
             keyMap.put(dir.getAbsolutePath(), key);
-//            System.out.println("IndexWatchdogListener.watchDirectory: " + path.toString());
+//            Lok.debug("IndexWatchdogListener.watchDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -57,15 +58,15 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
                     Path eventPath = (Path) event.context();
                     String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                     if (!ignoredMap.containsKey(absolutePath)) {
-                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
+                        Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                         AFile object = AFile.instance(absolutePath);
                         analyze(event, object);
                     } else {
-                        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].IGN event[" + event.kind() + "] for: " + absolutePath);
+                        Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].IGN event[" + event.kind() + "] for: " + absolutePath);
                         int amount = ignoredMap.get(absolutePath);
                         amount--;
                         if (amount == 0) {
-                            System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].STOP IGN for: " + absolutePath);
+                            Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].STOP IGN for: " + absolutePath);
                             ignoredMap.remove(absolutePath);
                         } else
                             ignoredMap.put(absolutePath, amount);

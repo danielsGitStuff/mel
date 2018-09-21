@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import de.mein.Lok;
 import de.mein.android.Tools;
 import de.mein.android.contacts.data.AndroidContactSettings;
 import de.mein.android.contacts.data.ConflictIntentExtra;
@@ -106,7 +107,7 @@ public class AndroidContactsServerService extends ContactsServerService {
             PhoneBook after = serviceMethods.examineContacts(0L);
             PhoneBook afterDeep = databaseManager.getPhoneBookDao().loadDeepPhoneBook(after.getId().v());
             afterDeep.hash();
-            System.out.println("AndroidContactsServerService.debugonConflictSolved");
+            Lok.debug("AndroidContactsServerService.debugonConflictSolved");
         });
 
     }
@@ -115,7 +116,7 @@ public class AndroidContactsServerService extends ContactsServerService {
 
     @Override
     protected void workWork(Job job) throws Exception {
-        System.out.println("AndroidContactsServerService.workWork");
+        Lok.debug("AndroidContactsServerService.workWork");
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
         ContactsSettings settings = databaseManager.getSettings();
         if (job instanceof ExamineJob) {
@@ -126,7 +127,7 @@ public class AndroidContactsServerService extends ContactsServerService {
                     phoneBook.getVersion().v(1L);
                 } else {
                     Long newVersion = masterPhoneBook.getVersion().v() + 1;
-                    System.out.println("AndroidContactsServerService: setting new version to: " + newVersion);
+                    Lok.debug("AndroidContactsServerService: setting new version to: " + newVersion);
                     phoneBook.getVersion().v(newVersion);
                 }
                 phoneBookDao.updateFlat(phoneBook);
@@ -136,7 +137,7 @@ public class AndroidContactsServerService extends ContactsServerService {
                 //todo debug
                 //contactsToAndroidExporter.export(phoneBook.getId().v());
             } else {
-                System.out.println("AndroidContactsServerService: phonebook did not change, id=" + phoneBook.getId().v() + ", version=" + phoneBook.getVersion().v());
+                Lok.debug("AndroidContactsServerService: phonebook did not change, id=" + phoneBook.getId().v() + ", version=" + phoneBook.getVersion().v());
                 phoneBookDao.deletePhoneBook(phoneBook.getId().v());
             }
 //            //todo debug
@@ -167,7 +168,7 @@ public class AndroidContactsServerService extends ContactsServerService {
                 UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
                 contactsToAndroidExporter.export(updatePhoneBookJob.getPhoneBook().getId().v());
             })).fail(result -> N.r(() -> {
-                System.out.println("AndroidContactsServerService.workWork.update failed :(");
+                Lok.debug("AndroidContactsServerService.workWork.update failed :(");
             }));
             super.workWork(job);
         } else {

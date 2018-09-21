@@ -1,5 +1,6 @@
 package de.mein.drive.service.sync;
 
+import de.mein.Lok;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveSettings;
@@ -64,8 +65,8 @@ public abstract class SyncHandler {
             target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
             //todo debug
             if (target.getName().equals("sub2.txt"))
-                System.out.println("SyncHandler.moveFile.debugr23hr03w");
-            System.out.println("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
+                Lok.debug("SyncHandler.moveFile.debugr23hr03w");
+            Lok.debug("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
             // check if there already is a file & delete
             if (target.exists()) {
                 ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(target);
@@ -131,12 +132,12 @@ public abstract class SyncHandler {
             fsDao.lockWrite();
             //todo debug
             if (hash.equals("fdcbc1aca23cfebaa128bac31df20969"))
-                System.out.println("SyncHandler.onFileTransferred.debug23423r");
+                Lok.debug("SyncHandler.onFileTransferred.debug23423r");
             if (hash.equals("238810397cd86edae7957bca350098bc")) {
-                System.out.println("SyncHandler.onFileTransferred.debugjivf3hi8o");
+                Lok.debug("SyncHandler.onFileTransferred.debugjivf3hi8o");
             }
             if (hash.equals("0610338abac66dc659f5c04dc95a480a"))
-                System.out.println("SyncHandler.onFileTransferred.debugf43fh30w");
+                Lok.debug("SyncHandler.onFileTransferred.debugf43fh30w");
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             if (fsFiles.size() > 0) {
                 //TODO check if file is in transfer dir, then move, else copy
@@ -145,7 +146,7 @@ public abstract class SyncHandler {
                     file = moveFile(file, fsFile);
                     //todo debug
                     if (file == null)
-                        System.out.println("SyncHandler.onFileTransferred.debug.ja09gf4");
+                        Lok.debug("SyncHandler.onFileTransferred.debug.ja09gf4");
                     fsFile.getSynced().v(true);
                     fsDao.setSynced(fsFile.getId().v(), true);
                 }
@@ -173,7 +174,7 @@ public abstract class SyncHandler {
         indexer.ignorePath(target.getAbsolutePath(), 2);
         //todo debug
         if (source == null)
-            System.out.println("SyncHandler.copyFile.debug1");
+            Lok.debug("SyncHandler.copyFile.debug1");
         InputStream in = source.inputStream();
         try {
             OutputStream out =target.outputStream();
@@ -219,7 +220,7 @@ public abstract class SyncHandler {
     public void commitStage(Long stageSetId, boolean lockFsEntry, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException {
         //todo debug
         if (stageSetId == 6 || stageSetId == 13)
-            System.out.println("SyncHandler.commitStage.debugj9v0jaseß");
+            Lok.debug("SyncHandler.commitStage.debugj9v0jaseß");
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         try {
@@ -235,9 +236,9 @@ public abstract class SyncHandler {
                 while (stage != null) {
                     //todo debug
                     if (stage.getName().equals("samedir"))
-                        System.out.println("SyncHandler.commitStag.debugn3uivw34e");
+                        Lok.debug("SyncHandler.commitStag.debugn3uivw34e");
                     if (stage.getName().equals("sub2.txt"))
-                        System.out.println("SyncHandler.commitStag.debugl,b45ni");
+                        Lok.debug("SyncHandler.commitStag.debugl,b45ni");
                     if (stage.getFsId() == null) {
                         if (stage.getIsDirectory()) {
                             if (stage.getFsId() != null) {
@@ -300,7 +301,7 @@ public abstract class SyncHandler {
                         }
                         //todo debug
                         if (stage.getSyncedPair().isNull())
-                            System.out.println("SyncHandler.commitStage.debugebguse0");
+                            Lok.debug("SyncHandler.commitStage.debugebguse0");
 //                        if (stage.getDeleted() != null && stage.getDeleted() && stage.getIsDirectory())
 //                            wastebin.delete(stage.getFsId()););
                         if ((stage.getDeleted() != null && stage.getDeleted() && stage.getSynced() != null && stage.getSynced()) || (stage.getIsDirectory() && stage.getDeleted())) {
@@ -335,7 +336,7 @@ public abstract class SyncHandler {
                                 }
                             }
                             if (fsEntry.getSynced().isNull())
-                                System.out.println("SyncHandler.commitStage.isnull");
+                                Lok.debug("SyncHandler.commitStage.isnull");
                             if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
                                 fsEntry.getSynced().v(false);
 //                            File file = stageDao.getFileByStage(stage);
@@ -380,7 +381,7 @@ public abstract class SyncHandler {
                 AFile d = AFile.instance(path);
                 if (!d.exists()) {
                     indexer.ignorePath(path, 1);
-                    System.out.println("SyncHandler.createDirs: " + d.getAbsolutePath());
+                    Lok.debug("SyncHandler.createDirs: " + d.getAbsolutePath());
                     d.mkdirs();
                     indexer.watchDirectory(d);
                     updateInodeModified(dbParent, d);
@@ -395,7 +396,7 @@ public abstract class SyncHandler {
             AFile target = AFile.instance(path);
             if (!target.exists()) {
                 indexer.ignorePath(path, 1);
-                System.out.println("SyncHandler.createDirs: " + target.getAbsolutePath());
+                Lok.debug("SyncHandler.createDirs: " + target.getAbsolutePath());
                 target.mkdirs();
                 indexer.watchDirectory(target);
                 updateInodeModified(fsEntry, target);

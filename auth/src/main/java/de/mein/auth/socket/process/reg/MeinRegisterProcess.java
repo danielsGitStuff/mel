@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.reg;
 
+import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
@@ -52,7 +53,7 @@ public class MeinRegisterProcess extends MeinProcess {
                 registerHandler.onLocallyAccepted(partnerCertificate);
         });
         new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(results -> runner.runTry(() -> {
-                    System.out.println(meinAuthSocket.getMeinAuthService().getName() + ".MeinRegisterProcess.MeinRegisterProcess");
+                    Lok.debug(meinAuthSocket.getMeinAuthService().getName() + ".MeinRegisterProcess.MeinRegisterProcess");
                     MeinRegisterConfirm confirm = (MeinRegisterConfirm) results.get(0).getResult();
                     Certificate certificate = (Certificate) results.get(1).getResult();
                     certificate.getAnswerUuid().v(confirm.getAnswerUuid());
@@ -68,17 +69,17 @@ public class MeinRegisterProcess extends MeinProcess {
         ).fail(results -> runner.runTry(() -> {
             if (results instanceof OneReject) {
                 if (results.getReject() instanceof PartnerDidNotTrustException) {
-                    System.out.println("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
+                    Lok.debug("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
                     for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
                         registerHandler.onRemoteRejected(partnerCertificate);
                 }else if (results.getReject() instanceof UserDidNotTrustException){
-                    System.out.println("MeinRegisterProcess.MeinRegisterProcess.user.did.not.trust");
+                    Lok.debug("MeinRegisterProcess.MeinRegisterProcess.user.did.not.trust");
                     for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
                         registerHandler.onLocallyRejected(partnerCertificate);
                 }
                 certificateManager.deleteCertificate(partnerCertificate);
             } else {
-                System.err.println("MeinRegisterProcess.MeinRegisterProcess.reject.UNKNOWN.2");
+                Lok.error("MeinRegisterProcess.MeinRegisterProcess.reject.UNKNOWN.2");
                 certificateManager.deleteCertificate(partnerCertificate);
             }
 
@@ -87,7 +88,7 @@ public class MeinRegisterProcess extends MeinProcess {
     }
 
     public Promise<Certificate, Exception, Void> register(DeferredObject<Certificate, Exception, Void> deferred, Long id, String address, int port) throws InterruptedException, SqlQueriesException, CertificateException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, JsonSerializationException, IllegalAccessException, URISyntaxException, UnrecoverableKeyException, KeyStoreException, KeyManagementException {
-        System.out.println(meinAuthSocket.getMeinAuthService().getName() + ".MeinRegisterProcessImpl.register.id=" + id);
+        Lok.debug(meinAuthSocket.getMeinAuthService().getName() + ".MeinRegisterProcessImpl.register.id=" + id);
         meinAuthSocket.connectSSL(id, address, port);
         partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getCertificateById(id);
         Certificate myCert = new Certificate();
@@ -146,11 +147,11 @@ public class MeinRegisterProcess extends MeinProcess {
                 deferred.reject(e);
             }
         }).fail(result -> {
-            System.out.println("MeinRegisterProcess.onFail!!!!!!!!");
+            Lok.debug("MeinRegisterProcess.onFail!!!!!!!!");
             deferred.reject(result);
         });
         new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(result -> {
-            System.out.println("MeinRegisterProcess.register");
+            Lok.debug("MeinRegisterProcess.register");
             deferred.resolve(partnerCertificate);
         });
         String json = SerializableEntitySerializer.serialize(request);
@@ -177,7 +178,7 @@ public class MeinRegisterProcess extends MeinProcess {
                 try {
                     Certificate certificate = request.getCertificate();
                     if (meinAuthSocket.getMeinAuthService().getRegisterHandlers().size() == 0) {
-                        System.out.println("MeinRegisterProcess.onMessageReceived.NO.HANDLER.FOR.REGISTRATION.AVAILABLE");
+                        Lok.debug("MeinRegisterProcess.onMessageReceived.NO.HANDLER.FOR.REGISTRATION.AVAILABLE");
                     }
                     for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers()) {
                         registerHandler.acceptCertificate(new IRegisterHandlerListener() {
@@ -213,7 +214,7 @@ public class MeinRegisterProcess extends MeinProcess {
                 }
             } else if (deserialized instanceof MeinResponse) {
                 //should not be called
-                System.out.println("MeinRegisterProcess.onMessageReceived.WRONG");
+                Lok.debug("MeinRegisterProcess.onMessageReceived.WRONG");
             } else if (deserialized instanceof MeinMessage) {
                 MeinMessage message = (MeinMessage) deserialized;
                 if (message.getPayload() != null && message.getPayload() instanceof MeinRegisterConfirm) {
@@ -225,6 +226,6 @@ public class MeinRegisterProcess extends MeinProcess {
                     }
                 }
             } else
-                System.out.println("MeinRegisterProcess.onMessageReceived.VERY.WRONG");
+                Lok.debug("MeinRegisterProcess.onMessageReceived.VERY.WRONG");
     }
 }

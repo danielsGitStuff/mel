@@ -142,7 +142,7 @@ public class FxTest {
         boot1.boot().done(result -> {
             result.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
-                System.out.println("FxTest.startEmptyClient.booted");
+                Lok.debug("FxTest.startEmptyClient.booted");
             });
         });
         lock.lockWrite();
@@ -197,7 +197,7 @@ public class FxTest {
         boot1.boot().done(meinAuthService -> {
             meinAuthService.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
-                System.out.println("FxTest.startEmptyServer.booted");
+                Lok.debug("FxTest.startEmptyServer.booted");
             });
 //            N.r(() -> {
 //                DriveCreateController createController = new DriveCreateController(meinAuthService);
@@ -263,15 +263,15 @@ public class FxTest {
             meinAuthService.addRegisteredHandler(allowRegisteredHandler);
 //            meinAuthService.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
-                System.out.println("FxTest.startEmptyServer.booted");
+                Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
                     DriveCreateController createController = new DriveCreateController(meinAuthService);
                     Promise<MeinDriveClientService, Exception, Void> clientBooted = createController.createDriveClientService("drive client", testdir.getAbsolutePath(), 1L, tmp, 0.1f, 30);
-                    System.out.println("FxTest.connectAcceptingClient");
-                    clientBooted.done(result1 -> System.out.println("FxTest.connectAcceptingClient.j89veaj4"));
+                    Lok.debug("FxTest.connectAcceptingClient");
+                    clientBooted.done(result1 -> Lok.debug("FxTest.connectAcceptingClient.j89veaj4"));
                 }));
 
             });
@@ -337,7 +337,7 @@ public class FxTest {
             meinAuthService.addRegisteredHandler(allowRegisteredHandler);
 //            meinAuthService.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
-                System.out.println("FxTest.startEmptyServer.booted");
+                Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
@@ -413,7 +413,7 @@ public class FxTest {
             meinAuthService.addRegisteredHandler(allowRegisteredHandler);
 //            meinAuthService.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
-                System.out.println("FxTest.startEmptyServer.booted");
+                Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
@@ -541,16 +541,16 @@ public class FxTest {
         boot1.boot().done(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
-                System.out.println("FxTest.driveGui.1.booted");
+                Lok.debug("FxTest.driveGui.1.booted");
 //                DriveBootLoader.deVinjector = null;
                 boot2.boot().done(standAloneAuth2 -> {
-                    System.out.println("FxTest.driveGui.2.booted");
+                    Lok.debug("FxTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
                     runner.r(() -> {
 //                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
 //                        connectPromise.done(integer -> {
 //                            runner.r(() -> {
-//                                System.out.println("FxTest.driveGui.booted");
+//                                Lok.debug("FxTest.driveGui.booted");
 //                                //standAloneAuth2.getBrotCaster().discover(9966);
 //                                //lock.unlockWrite();
 //                            });
@@ -631,16 +631,16 @@ public class FxTest {
         boot1.boot().done(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
-                System.out.println("FxTest.driveGui.1.booted");
+                Lok.debug("FxTest.driveGui.1.booted");
 //                DriveBootLoader.deVinjector = null;
                 boot2.boot().done(standAloneAuth2 -> {
-                    System.out.println("FxTest.driveGui.2.booted");
+                    Lok.debug("FxTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
                     runner.r(() -> {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect("localhost", 8888, 8889, true);
                         connectPromise.done(integer -> {
                             runner.r(() -> {
-                                System.out.println("FxTest.driveGui.booted");
+                                Lok.debug("FxTest.driveGui.booted");
                                 //standAloneAuth2.getBrotCaster().discover(9966);
                                 //lock.unlockWrite();
                             });
@@ -721,12 +721,12 @@ public class FxTest {
         MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootLoader.class);
         boot1.boot().done(standAloneAuth1 -> {
             runner.r(() -> {
-                System.out.println("FxTest.driveGui.1.booted");
+                Lok.debug("FxTest.driveGui.1.booted");
                 standAloneAuth1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
                 MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath(), 0.1f, 30);
                 boot2.boot().done(standAloneAuth2 -> {
-                    System.out.println("FxTest.driveGui.2.booted");
+                    Lok.debug("FxTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(allowRegisterHandler);
 
                     runner.r(() -> {
@@ -734,11 +734,11 @@ public class FxTest {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect("localhost", 8888, 8889, true);
                         connectPromise.done(meinValidationProcess -> {
                             runner.r(() -> {
-                                System.out.println("FxTest.driveGui.connected");
+                                Lok.debug("FxTest.driveGui.connected");
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
                                 Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(), 0.1f, 30);
                                 promise.done(clientDriveService -> runner.r(() -> {
-                                            System.out.println("FxTest attempting first syncFromServer");
+                                            Lok.debug("FxTest attempting first syncFromServer");
                                             clientSyncListener.testStructure.setMaClient(standAloneAuth2)
                                                     .setMaServer(standAloneAuth1)
                                                     .setClientDriveService(clientDriveService)
@@ -793,12 +793,12 @@ public class FxTest {
                         DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
-                            System.out.println(f.getName().v());
+                            Lok.debug(f.getName().v());
                         }
                         File newFile = new File(testStructure.testdir1.getAbsolutePath() + "/sub1/sub2.txt");
                         newFile.createNewFile();
                     } else if (count == 1) {
-                        System.out.println("FxTest.onSyncDoneImpl :)");
+                        Lok.debug("FxTest.onSyncDoneImpl :)");
                         Map<Long, GenericFSEntry> entries1 = genList2Map(testStructure.serverDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
                         Map<Long, GenericFSEntry> entries2 = genList2Map(testStructure.clientDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
                         Map<Long, GenericFSEntry> cp1 = new HashMap<>(entries1);

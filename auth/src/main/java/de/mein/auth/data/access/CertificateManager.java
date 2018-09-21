@@ -1,5 +1,6 @@
 package de.mein.auth.data.access;
 
+import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.file.AFile;
@@ -60,7 +61,7 @@ public class CertificateManager extends FileRelatedManager {
 
     public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
         super(workingDirectory);
-        System.out.println("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
+        Lok.debug("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
         if (keysize != null)
             this.keysize = keysize;
         //insertCertificate Bouncycastle Provider
@@ -79,7 +80,7 @@ public class CertificateManager extends FileRelatedManager {
         if (keyStoreFile.exists()) {
             boolean deleted = keyStoreFile.delete();
             if (!deleted)
-                System.err.println("CertificateManager().KEYSTORE.NOT.DELETED");
+                Lok.error("CertificateManager().KEYSTORE.NOT.DELETED");
         }
         keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(null, PASS.toCharArray());
@@ -97,7 +98,7 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public static void deleteDirectory(AFile dir) {
-        System.out.println("CertificateManager.deleteDirectory: " + dir.getAbsolutePath());
+        Lok.debug("CertificateManager.deleteDirectory: " + dir.getAbsolutePath());
         AFile[] subs = dir.listContent();
         if (subs != null)
             for (AFile f : subs) {
@@ -200,7 +201,7 @@ public class CertificateManager extends FileRelatedManager {
             privateKey = null;
             publicKey = null;
             certificate = null;
-            System.err.println("error loading existing keys");
+            Lok.error("error loading existing keys");
         }
         return false;
     }
@@ -283,13 +284,13 @@ public class CertificateManager extends FileRelatedManager {
         try {
             kmf = KeyManagerFactory.getInstance("X509");
         } catch (Exception e) {
-            System.err.println("CertificateManager.getSSLContext(X509).failed.trying(SunX509)");
+            Lok.error("CertificateManager.getSSLContext(X509).failed.trying(SunX509)");
         }
         if (kmf == null)
             try {
                 kmf = KeyManagerFactory.getInstance("SunX509");
             } catch (Exception e) {
-                System.err.println("CertificateManager.getSSLContext(SunX509).failed");
+                Lok.error("CertificateManager.getSSLContext(SunX509).failed");
             }
         kmf.init(keyStore, PASS.toCharArray());
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");

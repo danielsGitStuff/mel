@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.Notifier;
 import de.mein.android.view.BootloaderAdapter;
@@ -85,7 +86,7 @@ public class CreateServiceController extends GuiController implements Permission
                 BootLoader bl = (BootLoader) bootLoader;
                 txtName.setText(bl.getName());
             }
-            System.out.println("CreateServiceController.showSelected");
+            Lok.debug("CreateServiceController.showSelected");
         });
 
     }
@@ -107,7 +108,7 @@ public class CreateServiceController extends GuiController implements Permission
                     BootLoader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootloaderClass);
                     bootLoaders.add(bootLoader);
                     //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
-                    System.out.println("CreateServiceController.CreateServiceController");
+                    Lok.debug("CreateServiceController.CreateServiceController");
                 });
             }
             Collections.sort(bootLoaders, (b1, b2) -> b1.getName().compareToIgnoreCase(b2.getName()));

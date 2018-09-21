@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MainActivity;
 import de.mein.android.service.AndroidService;
@@ -43,7 +44,7 @@ public class SettingsController extends GuiController {
             //service
             Intent serviceIntent = new Intent(rootView.getContext(), AndroidService.class);
             ComponentName name = rootView.getContext().startService(serviceIntent);
-            System.out.println("InfoController.InfoController.service.started: " + name.getClassName());
+            Lok.debug("InfoController.InfoController.service.started: " + name.getClassName());
         });
         btnShow.setOnClickListener(v -> {
             MainActivity.showMessage(activity, R.string.firstStart);

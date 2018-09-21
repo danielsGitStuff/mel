@@ -23,27 +23,27 @@ public class MeinTestService extends MeinServiceWorker {
 
     @Override
     public void handleRequest(Request request) throws Exception {
-        System.out.println("MeinTestService.handleRequest");
+        Lok.debug("MeinTestService.handleRequest");
     }
 
     @Override
     public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
-        System.out.println("MeinTestService.handleMessage");
+        Lok.debug("MeinTestService.handleMessage");
     }
 
     @Override
     public void connectionAuthenticated(Certificate partnerCertificate) {
-        System.out.println("MeinTestService.connectionAuthenticated");
+        Lok.debug("MeinTestService.connectionAuthenticated");
     }
 
     @Override
     public void handleCertificateSpotted(Certificate partnerCertificate) {
-        System.out.println("MeinTestService.handleCertificateSpotted");
+        Lok.debug("MeinTestService.handleCertificateSpotted");
     }
 
     @Override
     public void onMeinAuthIsUp() {
-        System.out.println("MeinTestService.onMeinAuthIsUp");
+        Lok.debug("MeinTestService.onMeinAuthIsUp");
     }
 
     @Override
@@ -64,7 +64,7 @@ public class MeinTestService extends MeinServiceWorker {
 
     @Override
     protected void workWork(Job job) throws Exception {
-        System.out.println("MeinTestService.workWork");
+        Lok.debug("MeinTestService.workWork");
     }
 
     @Override
@@ -74,7 +74,7 @@ public class MeinTestService extends MeinServiceWorker {
 
     @Override
     public void onShutDown() {
-        System.out.println("MeinTestService.onShutDown");
+        Lok.debug("MeinTestService.onShutDown");
     }
 
     @Override

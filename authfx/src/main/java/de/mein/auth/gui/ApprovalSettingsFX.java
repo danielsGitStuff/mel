@@ -29,7 +29,7 @@ public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable 
 
     @Override
     public void onPrimaryClicked() {
-        System.out.println("ApprovalSettingsFX.onPrimaryClicked");
+        Lok.debug("ApprovalSettingsFX.onPrimaryClicked");
         try {
             meinAuthService.saveApprovals(approvalMatrix);
         } catch (SqlQueriesException e) {

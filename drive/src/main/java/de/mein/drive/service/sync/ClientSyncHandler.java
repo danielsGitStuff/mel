@@ -1,5 +1,6 @@
 package de.mein.drive.service.sync;
 
+import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.ConnectResult;
@@ -70,7 +71,7 @@ public class ClientSyncHandler extends SyncHandler {
                 while (fsFile != null) {
                     //todo debug
                     if (fsFile.getContentHash().v().equals("238810397cd86edae7957bca350098bc"))
-                        System.out.println("TransferDao.insert.debugmic3n0fv");
+                        Lok.debug("TransferDao.insert.debugmic3n0fv");
                     TransferDetails transfer = new TransferDetails();
                     transfer.getServiceUuid().v(driveSettings.getClientSettings().getServerServiceUuid());
                     transfer.getCertId().v(driveSettings.getClientSettings().getServerCertId());
@@ -90,7 +91,7 @@ public class ClientSyncHandler extends SyncHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("ClientSyncHandler.setupTransfer.done: starting...");
+        Lok.debug("ClientSyncHandler.setupTransfer.done: starting...");
         transferManager.research();
     }
 
@@ -150,11 +151,11 @@ public class ClientSyncHandler extends SyncHandler {
 //                }))
 //                        .fail(result -> {
 //                            if (result instanceof TooOldVersionException) {
-//                                System.out.println("ClientSyncHandler.syncWithServer");
+//                                Lok.debug("ClientSyncHandler.syncWithServer");
 //                                N.r(() -> {
 //                                    // check if the new server version is already present
 //                                    TooOldVersionException tooOldVersionException = (TooOldVersionException) result;
-//                                    System.out.println("ClientSyncHandler.syncWithServer.TooOldVersionException");
+//                                    Lok.debug("ClientSyncHandler.syncWithServer.TooOldVersionException");
 //                                    Long latestVersion = driveDatabaseManager.getLatestVersion();
 //                                    if (latestVersion < tooOldVersionException.getNewVersion()) {
 //                                        latestVersion = stageDao.getLatestStageSetVersion();
@@ -163,7 +164,7 @@ public class ClientSyncHandler extends SyncHandler {
 //                                            //syncFromServer(tooOldVersionException.getNewVersion());
 //                                        }
 //                                    }
-//                                    System.out.println("ClientSyncHandler.syncWithServer");
+//                                    Lok.debug("ClientSyncHandler.syncWithServer");
 ////                                    meinDriveService.addJob(new SyncClientJob());
 //                                });
 //                            }
@@ -239,11 +240,11 @@ public class ClientSyncHandler extends SyncHandler {
                     } else {
                         Exception result = lockedRequest.getException();
                         if (result instanceof TooOldVersionException) {
-                            System.out.println("ClientSyncHandler.syncWithServer");
+                            Lok.debug("ClientSyncHandler.syncWithServer");
                             N.r(() -> {
                                 // check if the new server version is already present
                                 TooOldVersionException tooOldVersionException = (TooOldVersionException) result;
-                                System.out.println("ClientSyncHandler.syncWithServer.TooOldVersionException");
+                                Lok.debug("ClientSyncHandler.syncWithServer.TooOldVersionException");
                                 Long latestVersion = driveDatabaseManager.getLatestVersion();
                                 if (latestVersion < tooOldVersionException.getNewVersion()) {
                                     latestVersion = stageDao.getLatestStageSetVersion();
@@ -252,7 +253,7 @@ public class ClientSyncHandler extends SyncHandler {
                                         //syncFromServer(tooOldVersionException.getNewVersion());
                                     }
                                 }
-                                System.out.println("ClientSyncHandler.syncWithServer");
+                                Lok.debug("ClientSyncHandler.syncWithServer");
 //                                    meinDriveService.addJob(new SyncClientJob());
                             });
                         }
@@ -285,13 +286,13 @@ public class ClientSyncHandler extends SyncHandler {
      * @param commitJob
      */
     public void commitJob(CommitJob commitJob) {
-        System.out.println("ClientSyncHandler.commitJob");
+        Lok.debug("ClientSyncHandler.commitJob");
         try {
             // first wait until every staging stuff is finished.
             fsDao.lockRead();
 
             List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
-            System.out.println("ClientSyncHandler.commitJob");
+            Lok.debug("ClientSyncHandler.commitJob");
 
             // first: merge everything which has been analysed by the indexer
             mergeStageSets(stagedFromFs);
@@ -328,7 +329,7 @@ public class ClientSyncHandler extends SyncHandler {
                 handleConflict(updateSets.get(0), stagedFromFs.get(0));
                 setupTransfer();
                 //transferManager.research();
-                System.out.println("ClientSyncHandler.commitJob.fwq3j0");
+                Lok.debug("ClientSyncHandler.commitJob.fwq3j0");
                 return;
             } else if (stagedFromFs.size() == 1) {
                 //method should create a new CommitJob ? method blocks
@@ -401,7 +402,7 @@ public class ClientSyncHandler extends SyncHandler {
             if (conflictSolver.isSolved()) {
                 //todo debug
                 if (serverStageSet.getId().v() == 3 && stagedFromFs.getId().v() == 6)
-                    System.out.println("ClientSyncHandler.handleConflict.debung0vbgiw435g");
+                    Lok.debug("ClientSyncHandler.handleConflict.debung0vbgiw435g");
                 iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
                 conflictSolver.setSolving(false);
             } else {
@@ -524,7 +525,7 @@ public class ClientSyncHandler extends SyncHandler {
             return;
         StageSet lStageSet = stageSets.get(0);
         StageSet rStageSet = stageSets.get(1);
-        System.out.println("ClientSyncHandler.mergeStageSets L: " + lStageSet.getId().v() + " R: " + rStageSet.getId().v());
+        Lok.debug("ClientSyncHandler.mergeStageSets L: " + lStageSet.getId().v() + " R: " + rStageSet.getId().v());
         StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, null, null, lStageSet.getVersion().v());
         final Long mStageSetId = mStageSet.getId().v();
         SyncStageMerger merger = new SyncStageMerger(lStageSet.getId().v(), rStageSet.getId().v()) {
@@ -537,7 +538,7 @@ public class ClientSyncHandler extends SyncHandler {
                 if (left != null) {
                     //todo debug
                     if (left.getId() == 64)
-                        System.out.println("ClientSyncHandler.stuffFound.debugfin30f");
+                        Lok.debug("ClientSyncHandler.stuffFound.debugfin30f");
                     if (right != null) {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
                         stage.mergeValuesFrom(right);
@@ -591,7 +592,7 @@ public class ClientSyncHandler extends SyncHandler {
                             }
                             //todo debug
                             if (idMapRight.containsKey(right.getId()))
-                                System.out.println("ClientSyncHandler.stuffFound.debugj9f3jß");
+                                Lok.debug("ClientSyncHandler.stuffFound.debugj9f3jß");
 
                             idMapRight.put(right.getId(), stage.getId());
                         }
@@ -625,7 +626,7 @@ public class ClientSyncHandler extends SyncHandler {
             while (lStage != null) {
                 //todo debug
                 if (lStage.getName().equals("same2.txt"))
-                    System.out.println("ClientSyncHandler.iterateStageSets.debugmf03nm");
+                    Lok.debug("ClientSyncHandler.iterateStageSets.debugmf03nm");
                 AFile lFile = stageDao.getFileByStage(lStage);
                 Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
                 if (conflictSolver != null)
@@ -696,14 +697,14 @@ public class ClientSyncHandler extends SyncHandler {
                     );
                 });
                 else {
-                    System.out.println("ClientSyncHandler.syncFromServer.EXCEPTION: " + requestResult.getException());
+                    Lok.debug("ClientSyncHandler.syncFromServer.EXCEPTION: " + requestResult.getException());
                 }
             });
         } else {
-            System.out.println("ClientSyncHandler.syncFromServer.debughv08e5hg");
+            Lok.debug("ClientSyncHandler.syncFromServer.debughv08e5hg");
 
         }
-        System.out.println("ClientSyncHandler.syncFromServer");
+        Lok.debug("ClientSyncHandler.syncFromServer");
     }
 
     private void insertWithParentId(Map<Long, Long> entryIdStageIdMap, GenericFSEntry genericFSEntry, Stage stage) throws SqlQueriesException {
@@ -806,7 +807,7 @@ public class ClientSyncHandler extends SyncHandler {
                 fsDirectory.calcContentHash();
                 String hash = fsDirectory.getContentHash().v();
                 if (!hash.equals(stage.getContentHash())) {
-                    System.out.println("ClientSyncHandler.syncFromServer.SOMETHING.DELETED?");
+                    Lok.debug("ClientSyncHandler.syncFromServer.SOMETHING.DELETED?");
                     fsDirIdsToRetrieve.put(fsDirectory.getId().v(), fsDirectory);
                 }
             }

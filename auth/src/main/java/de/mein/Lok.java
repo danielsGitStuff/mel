@@ -1,0 +1,34 @@
+package de.mein;
+
+/**
+ * German word for 'locomotive' which pronounces like 'log' in English.
+ * Does the obvious thing.
+ */
+public class Lok {
+
+    private static LokImpl impl = new LokImpl();
+
+    public static void setLokImpl(LokImpl impl) {
+        Lok.impl = impl;
+    }
+
+    public static void debug(Object msg) {
+        impl.debug(msg);
+    }
+
+    public static void error(Object msg) {
+        impl.error(msg);
+    }
+
+    public static void warn(Object msg) {
+        impl.warn(msg);
+    }
+
+    public static void info(Object msg) {
+        impl.info(msg);
+    }
+
+    public static void debug() {
+        impl.debug("");
+    }
+}

@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.jobs.AConnectJob;
@@ -61,13 +62,13 @@ public class MeinAuthWorker extends MeinWorker {
                 brotCaster.brotcast(MeinAuthSettings.BROTCAST_PORT, meinAuthService.getSettings().getDiscoverMessage());
                 meinAuthService.onMeinAuthIsUp();
             } catch (IOException e) {
-                System.err.println("brotcast went wrong :(");
+                Lok.error("brotcast went wrong :(");
                 e.printStackTrace();
                 startedPromise.resolve(this);
             }
             startedPromise.resolve(this);
         }).fail(result -> {
-            System.out.println("MeinAuthWorker.runTry.STRANGE");
+            Lok.debug("MeinAuthWorker.runTry.STRANGE");
             startedPromise.reject(new Exception("keinen plan von nix"));
         });
         // wait for work
@@ -77,7 +78,7 @@ public class MeinAuthWorker extends MeinWorker {
 
     @Override
     protected void workWork(Job job) throws Exception {
-        System.out.println("MeinAuthWorker.workWork." + job.getClass().getSimpleName());
+        Lok.debug("MeinAuthWorker.workWork." + job.getClass().getSimpleName());
         if (job instanceof AConnectJob) {
             connect((AConnectJob) job);
         } else if (job instanceof NetworkEnvDiscoveryJob) {
@@ -88,14 +89,14 @@ public class MeinAuthWorker extends MeinWorker {
     @Override
     public void addJob(Job job) {
         if(job instanceof IsolatedConnectJob){
-            System.out.println("MeinAuthWorker.addJob.debugf0e4");
+            Lok.debug("MeinAuthWorker.addJob.debugf0e4");
         }
         super.addJob(job);
     }
 
     private void connect(AConnectJob job) throws ClassNotFoundException, IllegalAccessException, NoSuchPaddingException, URISyntaxException, SqlQueriesException, KeyManagementException, BadPaddingException, CertificateException, KeyStoreException, NoSuchAlgorithmException, InvalidKeyException, UnrecoverableKeyException, JsonSerializationException, IOException, IllegalBlockSizeException, InterruptedException {
         MeinAuthSocket meinAuthSocket = new MeinAuthSocket(meinAuthService);
-        System.out.println("MeinAuthWorker.connect: " + job.getAddress() + ":" + job.getPort() + ":" + job.getPortCert() + "?reg=" + job.getRegOnUnknown());
+        Lok.debug("MeinAuthWorker.connect: " + job.getAddress() + ":" + job.getPort() + ":" + job.getPortCert() + "?reg=" + job.getRegOnUnknown());
         Promise<MeinValidationProcess, Exception, Void> promise = meinAuthSocket.connect(job);
 //        promise.done(meinValidationProcess -> {
 //            job.getPromise().resolve(meinValidationProcess);

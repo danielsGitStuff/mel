@@ -130,7 +130,7 @@ public class TestDirCreator {
                 String fileName = ze.getSource();
                 File newFile = new File(outputFolder + File.separator + fileName);
 
-                System.out.println("file unzip : "+ newFile.getAbsoluteFile());
+                Lok.debug("file unzip : "+ newFile.getAbsoluteFile());
 
                 //create all non exists folders
                 //else you will hit FileNotFoundException for compressed folder
@@ -150,7 +150,7 @@ public class TestDirCreator {
             zis.closeEntry();
             zis.close();
 
-            System.out.println("Done");
+            Lok.debug("Done");
 
         }catch(IOException ex){
             ex.printStackTrace();

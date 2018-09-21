@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
@@ -55,7 +56,7 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     @Override
     public void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceGuiController currentController) {
 
-        System.out.println("AndroidContactsBootloader.createService");
+        Lok.debug();
         try {
             RemoteContactsServiceChooserGuiController controller = (RemoteContactsServiceChooserGuiController) currentController;
             ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeByName(new ContactsBootloader().getName());

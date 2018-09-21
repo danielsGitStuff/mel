@@ -1,6 +1,7 @@
 
 package de.mein.drive.sql.dao;
 
+import de.mein.Lok;
 import de.mein.auth.tools.RWSemaphore;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
@@ -44,12 +45,12 @@ public class FsDao extends Dao {
 
     private int printLock(String method, AtomicInteger count) {
         int n = count.incrementAndGet();
-        System.out.println("FsDao." + method + "(" + n + ").on " + Thread.currentThread().getName());
+        Lok.debug("FsDao." + method + "(" + n + ").on " + Thread.currentThread().getName());
         return n;
     }
 
     private void printGotLock(String method, int n) {
-        System.out.println("FsDao." + method + "(" + n + ").got.lock.on " + Thread.currentThread().getName());
+        Lok.debug("FsDao." + method + "(" + n + ").got.lock.on " + Thread.currentThread().getName());
     }
 
     public void lockRead() {
@@ -65,7 +66,7 @@ public class FsDao extends Dao {
         printGotLock("lockWrite", n);
         //todo debug
         if (n == 22)
-            System.out.println("FsDao.lockWrite.debugj8ivj450v");
+            Lok.debug("FsDao.lockWrite.debugj8ivj450v");
     }
 
 
@@ -92,11 +93,11 @@ public class FsDao extends Dao {
     public void update(FsEntry fsEntry) throws SqlQueriesException {
         //todo debug
         if (fsEntry.getName().v().equals("sub1.txt"))
-            System.out.println("FsDao.update.debug3");
+            Lok.debug("FsDao.update.debug3");
         if (fsEntry.getName().v().equals("sub2.txt"))
-            System.out.println("FsDao.update.debug3243");
+            Lok.debug("FsDao.update.debug3243");
         if (!fsEntry.getName().v().equals("[root]") && fsEntry.getParentId().isNull())
-            System.out.println("FsDao.update.debug3");
+            Lok.debug("FsDao.update.debug3");
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(fsEntry.getId().v());
         sqlQueries.update(fsEntry, fsEntry.getId().k() + "=?", whereArgs);
@@ -191,21 +192,21 @@ public class FsDao extends Dao {
         if (fsEntry.getContentHash().notNull() && fsEntry.getContentHash().equals("c72eb02c586d74bc41ad680ba5f184f3"))
             System.err.println("FsDao.insert.debug");
         if (fsEntry.getContentHash().notNull() && fsEntry.getContentHash().v().equals("51037a4a37730f52c8732586d3aaa316"))
-            System.out.println("FsDao.insert.debugf934wt0ß4");
+            Lok.debug("FsDao.insert.debugf934wt0ß4");
         if (!fsEntry.getName().v().equals("[root]") && fsEntry.getParentId().isNull())
-            System.out.println("FsDao.insert.debug3");
+            Lok.debug("FsDao.insert.debug3");
         if (fsEntry.getName().v().equals("samesub1.txt"))
-            System.out.println("FsDao.insert.4");
+            Lok.debug("FsDao.insert.4");
         if (fsEntry.getName().v().equals("sub2.txt") && fsEntry.getSynced().v())
-            System.out.println("FsDao.insert.debug5");
+            Lok.debug("FsDao.insert.debug5");
         if (fsEntry.getName().v().equals("sub1.txt") && fsEntry.getSynced().v())
-            System.out.println("FsDao.insert.debug3");
+            Lok.debug("FsDao.insert.debug3");
         if (fsEntry.getId().v() != null)
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
         else
             id = sqlQueries.insert(fsEntry);
         if (id == 7)
-            System.out.println("FsDao.insert.debug238rz2f9");
+            Lok.debug("FsDao.insert.debug238rz2f9");
         fsEntry.getId().v(id);
         return fsEntry;
     }
@@ -423,8 +424,8 @@ public class FsDao extends Dao {
     public void deleteById(Long fsId) throws SqlQueriesException {
         //todo debug
         if (fsId == 7)
-            System.out.println("FsDao.deleteById.debugjc03jg0äpeg");
-        System.out.println("FsDao.deleteById: " + fsId);
+            Lok.debug("FsDao.deleteById.debugjc03jg0äpeg");
+        Lok.debug("FsDao.deleteById: " + fsId);
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(fsId);
         FsEntry fsEntry = new GenericFSEntry();
@@ -441,7 +442,7 @@ public class FsDao extends Dao {
     public void insertOrUpdate(FsEntry fsEntry) throws SqlQueriesException {
         //todo debug
         if (fsEntry.getName().equals("same1.txt") && !fsEntry.getSynced().v())
-            System.out.println("FsDao.insert.debug3");
+            Lok.debug("FsDao.insert.debug3");
         if (fsEntry.getId().v() != null && hasId(fsEntry.getId().v())) {
             update(fsEntry);
         } else {
@@ -535,7 +536,7 @@ public class FsDao extends Dao {
         assert id != null;
         //todo debug
         if (id == 10 || id == 7)
-            System.out.println("FsDao.setSynced.debug9uf93");
+            Lok.debug("FsDao.setSynced.debug9uf93");
         FsFile dummy = new FsFile();
         String statement = "update " + dummy.getTableName() + " set " + dummy.getSynced().k() + "=? where " + dummy.getId().k() + "=?";
         sqlQueries.execute(statement, ISQLQueries.whereArgs(synced, id));
@@ -571,7 +572,7 @@ public class FsDao extends Dao {
         FsEntry lastEntry = this.getRootDirectory();
         while (!fileStack.empty()) {
             if (lastEntry == null) {
-                System.out.println("FsDao.getFsFileByFile.did not find");
+                Lok.debug("FsDao.getFsFileByFile.did not find");
                 return null;
             }
             String name = fileStack.pop().getName();

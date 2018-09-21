@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.val;
 
+import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.cached.data.CachedData;
@@ -65,7 +66,7 @@ public class MeinValidationProcess extends MeinProcess {
             try {
                 if (!handleGetServices(deserialized)) {
                     if (!handleDriveOps(deserialized)) {
-                        System.out.println("MeinValidationProcess.onMessageReceived.something exploded here :/");
+                        Lok.debug("MeinValidationProcess.onMessageReceived.something exploded here :/");
                     }
                 }
             } catch (Exception e) {
@@ -106,7 +107,7 @@ public class MeinValidationProcess extends MeinProcess {
                             // we will update its cached payload and put it in handleAnswer()
                             try {
                                 CachedData receivedData = (CachedData) response.getPayload();
-                                System.out.println(receivedData);
+                                Lok.debug(receivedData);
                             } catch (ClassCastException e) {
                                 e.printStackTrace();
                             }
@@ -139,7 +140,7 @@ public class MeinValidationProcess extends MeinProcess {
                     }
                     if (receivedData.getPart() == null) {
                         boolean compl = receivedData.isComplete();
-                        System.out.println("MeinValidationProcess.handleCached.debughreg");
+                        Lok.debug("MeinValidationProcess.handleCached.debughreg");
                     }
                     if (receivedData.isComplete()) {
                         cachedForRetrieving.remove(receivedData.getCacheId());
@@ -166,7 +167,7 @@ public class MeinValidationProcess extends MeinProcess {
                     CachedData cachedData = cachedForSending.remove(cachedDoneMessage.getCacheId());
                     //todo debug
                     if (cachedData == null) {
-                        System.out.println("MeinValidationProcess.handleCached.debug234");
+                        Lok.debug("MeinValidationProcess.handleCached.debug234");
                     }
                     cachedData.cleanUp();
                 }
@@ -227,7 +228,7 @@ public class MeinValidationProcess extends MeinProcess {
 
                     IPayload payload = request.getPayload();
                     if (payload instanceof CachedData) {
-                        System.out.println("MeinValidationProcess.handleDriveOps");
+                        Lok.debug("MeinValidationProcess.handleDriveOps");
                     }
                     //wrap the answer and send it back
                     validatePromise.done(newPayload -> {
@@ -268,10 +269,10 @@ public class MeinValidationProcess extends MeinProcess {
     private void handleError(MeinRequest request, Exception e) {
         MeinResponse response = request.respondError(e);
         try {
-            System.err.println("MeinValidationProcess for " + meinAuthSocket.getMeinAuthService().getName() + ".handleError");
+            Lok.error("MeinValidationProcess for " + meinAuthSocket.getMeinAuthService().getName() + ".handleError");
             e.printStackTrace();
             send(response);
-            System.err.println("MeinValidationProcess for " + meinAuthSocket.getMeinAuthService().getName() + ".handleError.done");
+            Lok.error("MeinValidationProcess for " + meinAuthSocket.getMeinAuthService().getName() + ".handleError.done");
         } catch (JsonSerializationException e1) {
             e1.printStackTrace();
         } catch (IllegalAccessException e1) {
@@ -283,7 +284,7 @@ public class MeinValidationProcess extends MeinProcess {
         Service service = meinAuthSocket.getMeinAuthService().getDatabaseManager().getServiceByUuid(serviceUuid);
         if (service == null) {
             //todo debug
-            System.out.println("MeinValidationProcess.isServiceAllowed.debug");
+            Lok.debug("MeinValidationProcess.isServiceAllowed.debug");
         }
         return meinAuthSocket.getMeinAuthService().getDatabaseManager().isApproved(partnerCertificate.getId().v(), service.getId().v());
     }

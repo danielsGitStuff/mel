@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
@@ -43,7 +44,7 @@ public class InfoController extends GuiController {
         super(activity, content, R.layout.content_info);
         lblStatus = rootView.findViewById(R.id.lblStatus);
         permissionReasonContainer = rootView.findViewById(R.id.permissionReasonContainer);
-        System.out.println("InfoController.InfoController");
+        Lok.debug("InfoController.InfoController");
 
         txtSSID = rootView.findViewById(R.id.txtSSID);
         txtIP = rootView.findViewById(R.id.txtIP);

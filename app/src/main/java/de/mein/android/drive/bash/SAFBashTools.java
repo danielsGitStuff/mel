@@ -78,7 +78,7 @@ public class SAFBashTools implements BashToolsImpl {
 //        NC.iterate(cursor, (cursor1, stoppable) -> {
 //            String name = cursor.getString(0);
 //            String id = cursor.getString(1);
-//            System.out.println("SAFBashTools.find.name: " + name+", id: "+id);
+//            Lok.debug("SAFBashTools.find.name: " + name+", id: "+id);
 //        });
         return new DFileRecursiveIterator(context, dDirectory, pruneDir);
     }

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.android.contacts.service.AndroidContactsClientService;
@@ -202,7 +203,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
                         InputStream inputStream = new ByteArrayInputStream(bytes);
                         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                         imageLeft.setImageBitmap(bitmap);
-                        System.out.println("ContactsConflictListAdapter.getView");
+                        Lok.debug("ContactsConflictListAdapter.getView");
                     }
                     if (leftText != null) {
                         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -234,7 +235,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
                         InputStream inputStream = new ByteArrayInputStream(bytes);
                         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                         imageRight.setImageBitmap(bitmap);
-                        System.out.println("ContactsConflictListAdapter.getView");
+                        Lok.debug("ContactsConflictListAdapter.getView");
                     }
                     if (rightText != null) {
                         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);

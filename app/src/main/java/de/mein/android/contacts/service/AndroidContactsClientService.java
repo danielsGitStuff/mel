@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.mein.Lok;
 import de.mein.android.contacts.data.AndroidContactSettings;
 import de.mein.android.contacts.data.ConflictIntentExtra;
 import de.mein.android.contacts.data.db.ContactName;
@@ -128,7 +129,7 @@ public class AndroidContactsClientService extends ContactsClientService {
         final String serviceUuid = databaseManager.getSettings().getClientSettings().getServiceUuid();
         meinAuthService.connect(serverCertId).done(mvp -> N.r(() -> {
             mvp.request(serviceUuid, ContactStrings.INTENT_QUERY, null).done(result -> N.r(() -> {
-                System.out.println("ContactsClientService.workWork.query.success");
+                Lok.debug("ContactsClientService.workWork.query.success");
                 PhoneBook receivedPhoneBook = (PhoneBook) result;
                 PhoneBook master = databaseManager.getFlatMasterPhoneBook();
                 receivedPhoneBook.getOriginal().v(false);
@@ -157,7 +158,7 @@ public class AndroidContactsClientService extends ContactsClientService {
         PhoneBook deepPhoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(phoneBookId);
         meinAuthService.connect(clientSettings.getServerCertId()).done(meinValidationProcess -> N.r(() -> meinValidationProcess.request(clientSettings.getServiceUuid(), ContactStrings.INTENT_UPDATE, deepPhoneBook)
                 .done(result -> N.r(() -> {
-                    System.out.println("AndroidContactsClientService.workWork. update succeeded");
+                    Lok.debug("AndroidContactsClientService.workWork. update succeeded");
                     updateLocalPhoneBook(deepPhoneBook.getId().v());
                     //export(deepPhoneBook.getId().v());
                     waitLock.unlock();
@@ -167,7 +168,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                     queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> {
                         Boolean conflictOccurred = checkConflict(deepPhoneBook.getId().v(), receivedPhoneBookId);
                         if (!conflictOccurred) {
-                            System.out.println("AndroidContactsClientService.commitPhoneBook");
+                            Lok.debug("AndroidContactsClientService.commitPhoneBook");
                             updateLocalPhoneBook(receivedPhoneBookId);
                             databaseManager.getPhoneBookDao().deletePhoneBook(phoneBookId);
                         }
@@ -193,7 +194,7 @@ public class AndroidContactsClientService extends ContactsClientService {
     }
 
     private void updateLocalPhoneBook(Long newPhoneBookId) throws IllegalAccessException, IOException, JsonSerializationException {
-        System.out.println("AndroidContactsClientService.workWork. update succeeded");
+        Lok.debug("AndroidContactsClientService.workWork. update succeeded");
         databaseManager.getSettings().setMasterPhoneBookId(newPhoneBookId);
         //databaseManager.getSettings().getClientSettings().setLastReadId(null);
         databaseManager.getSettings().save();

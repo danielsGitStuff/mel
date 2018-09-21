@@ -1,5 +1,6 @@
 package de.mein.auth.data;
 
+import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.sql.RWLock;
@@ -49,7 +50,7 @@ public class NetworkEnvironment extends Observable {
 
     public synchronized NetworkEnvironment add(Long certificateId, ServiceJoinServiceType service) {
         if (certificateId == null && service != null) {
-            System.err.println("NetworkEnvironment.add: Cert==null, Service!=null");
+            Lok.error("NetworkEnvironment.add: Cert==null, Service!=null");
             return this;
         }
         if (!certificateServicesMap.containsKey(certificateId)) {

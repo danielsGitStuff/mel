@@ -18,26 +18,26 @@ public class LockTest {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                System.out.println("LockTest.countLockTest.unlocking.1");
+                Lok.debug("LockTest.countLockTest.unlocking.1");
                 unlock();
             }
         }).start();
         new Thread(() -> {
             try {
-                System.out.println("LockTest.countLockTest.locking.2");
+                Lok.debug("LockTest.countLockTest.locking.2");
                 lock();
-                System.out.println("LockTest.countLockTest.unlocked.2");
+                Lok.debug("LockTest.countLockTest.unlocked.2");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
-        System.out.println("LockTest.countLockTest.locking.1");
+        Lok.debug("LockTest.countLockTest.locking.1");
         lock();
         unlock();
-        System.out.println("LockTest.CountLockTest.end");
+        Lok.debug("LockTest.CountLockTest.end");
         unlock();
         unlock();
-        System.out.println("LockTest.countLockTest.power off");
+        Lok.debug("LockTest.countLockTest.power off");
     }
 
     @Test
@@ -46,28 +46,28 @@ public class LockTest {
         Thread thread = new Thread(() -> {
             try {
                 Thread.sleep(1000);
-                System.out.println("LockTest.countLockTest.locking.2");
+                Lok.debug("LockTest.countLockTest.locking.2");
                 unlock();
-                System.out.println("LockTest.countLockTest.unlocked.2");
+                Lok.debug("LockTest.countLockTest.unlocked.2");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
         thread.start();
-        System.out.println("LockTest.countLockTest.locking.1");
+        Lok.debug("LockTest.countLockTest.locking.1");
         lock();
         lock();
-        System.out.println("LockTest.countLockTest.power off");
+        Lok.debug("LockTest.countLockTest.power off");
     }
 
     @Test
     public void unlockBefore() {
         lock = new CountLock();
-        System.out.println("LockTest.countLockTest.locking.1");
+        Lok.debug("LockTest.countLockTest.locking.1");
         unlock();
         lock();
         lock();
-        System.out.println("LockTest.countLockTest.power off");
+        Lok.debug("LockTest.countLockTest.power off");
     }
 
     @Test
@@ -76,17 +76,17 @@ public class LockTest {
         Thread thread = new Thread(() -> {
             try {
                 Thread.sleep(1000);
-                System.out.println("LockTest.countLockTest.locking.2");
+                Lok.debug("LockTest.countLockTest.locking.2");
                 unlock();
-                System.out.println("LockTest.countLockTest.unlocked.2");
+                Lok.debug("LockTest.countLockTest.unlocked.2");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
         thread.start();
-        System.out.println("LockTest.countLockTest.locking.1");
+        Lok.debug("LockTest.countLockTest.locking.1");
         lock();
-        System.out.println("LockTest.countLockTest.power off");
+        Lok.debug("LockTest.countLockTest.power off");
     }
 
 
@@ -96,18 +96,18 @@ public class LockTest {
         Thread thread = new Thread(() -> {
             try {
                 Thread.sleep(1000);
-                System.out.println("LockTest.countLockTest.locking.2");
+                Lok.debug("LockTest.countLockTest.locking.2");
                 unlock();
-                System.out.println("LockTest.countLockTest.unlocked.2");
+                Lok.debug("LockTest.countLockTest.unlocked.2");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
         thread.start();
-        System.out.println("LockTest.countLockTest.locking.1");
+        Lok.debug("LockTest.countLockTest.locking.1");
         unlock();
         lock();
-        System.out.println("LockTest.countLockTest.power off");
+        Lok.debug("LockTest.countLockTest.power off");
     }
 
     private void lock() {

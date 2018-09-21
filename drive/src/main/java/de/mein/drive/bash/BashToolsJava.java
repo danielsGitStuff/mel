@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 
@@ -56,15 +57,15 @@ public class BashToolsJava implements BashToolsImpl {
         BashToolsJava bashToolsJava = new BashToolsJava();
         Iterator<AFile> iterator = bashToolsJava.find(dir, prune);
         while (iterator.hasNext())
-            System.out.println("BashToolsJava.main: " + iterator.next());
-        //System.out.println("BashToolsJava.main.max: " + max);
+            Lok.debug("BashToolsJava.main: " + iterator.next());
+        //Lok.debug("BashToolsJava.main.max: " + max);
     }
 
     @Override
     public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
         Stack<Iterator<AFile>> fileStack = new Stack<>();
         String prunePath = pruneDir.getAbsolutePath();
-        System.out.println("BashToolsJava.find.prune: " + prunePath);
+        Lok.debug("BashToolsJava.find.prune: " + prunePath);
         fileStack.push(Arrays.asList(directory.listContent()).iterator());
         return new Iterator<AFile>() {
             String nextLine = null;
@@ -164,7 +165,7 @@ public class BashToolsJava implements BashToolsImpl {
         int i = 0;
         while (!dir.exists()) {
             dir.mkdirs();
-            System.out.println("BashToolsJava.mkdir."+i);
+            Lok.debug("BashToolsJava.mkdir."+i);
         }
     }
 

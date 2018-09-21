@@ -3,6 +3,7 @@ package de.mein.drive.index.watchdog;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.drive.service.MeinDriveService;
@@ -42,24 +43,24 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
                 // figure out whether or not writing to the file is still in progress
                 try {
                     double r = Math.random();
-                    System.out.println("IndexWatchdogListener.analyze.attempt to open " + file.getAbsolutePath() + " " + r);
+                    Lok.debug("IndexWatchdogListener.analyze.attempt to open " + file.getAbsolutePath() + " " + r);
                     InputStream is = file.inputStream();
                     is.close();
-                    System.out.println("IndexWatchdogListener.analyze.success " + r);
+                    Lok.debug("IndexWatchdogListener.analyze.success " + r);
                     watchDogTimer.resume();
                 } catch (FileNotFoundException e) {
-                    System.out.println("IndexWatchdogListener.analyze.file not found: " + file.getAbsolutePath());
+                    Lok.debug("IndexWatchdogListener.analyze.file not found: " + file.getAbsolutePath());
                 } catch (Exception e) {
-                    System.out.println("IndexWatchdogListener.analyze.writing in progress");
+                    Lok.debug("IndexWatchdogListener.analyze.writing in progress");
                     watchDogTimer.waite();
                 }
             } else if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE) && file.exists() && file.isDirectory()) {
                 this.watchDirectory(file);
             }
-            System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.getAbsolutePath());
+            Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.getAbsolutePath());
             pathCollection.addPath(file);
             if (event.kind().equals(ExtendedWatchEventModifier.FILE_TREE)) {
-                System.out.println("ALARM!");
+                Lok.debug("ALARM!");
             }
         } catch (Exception e) {
             e.printStackTrace();

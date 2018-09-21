@@ -1,5 +1,6 @@
 package de.mein.auth;
 
+import de.mein.Lok;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mein.sql.deserialize.PairDeserializerFactory;
@@ -22,6 +23,6 @@ public class MeinBootLoader implements Runnable {
     @Override
     public void run() {
         while (true)
-            System.out.println("MeinBootLoader.runTry");
+            Lok.debug("MeinBootLoader.runTry");
     }
 }

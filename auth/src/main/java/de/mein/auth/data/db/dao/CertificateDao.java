@@ -1,5 +1,6 @@
 package de.mein.auth.data.db.dao;
 
+import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
@@ -53,7 +54,7 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(uuid, true));
         //todo debug
         if (result.size() == 0) {
-            System.err.println("CertificateDao.getTrustedCertificateByUuid for uuid " + uuid);
+            Lok.error(".getTrustedCertificateByUuid for uuid " + uuid);
         }
         return (Certificate) result.get(0);
     }
@@ -116,7 +117,7 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         args.add(trusted);
         args.add(certId);
         sqlQueries.execute(sql, args);
-        System.out.println("CertificateDao.trustCertificate");
+        Lok.debug("CertificateDao.trustCertificate");
     }
 
     public Certificate getTrustedCertificateByHash(String hash) throws SqlQueriesException {

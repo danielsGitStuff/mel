@@ -1,5 +1,6 @@
 package de.mein.drive.service.sync;
 
+import de.mein.Lok;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.drive.data.Commit;
@@ -96,6 +97,6 @@ public class ServerSyncHandler extends SyncHandler {
             fsDao.unlockWrite();
         }
         transferManager.research();
-        System.out.println("MeinDriveServerService.handleCommit");
+        Lok.debug("MeinDriveServerService.handleCommit");
     }
 }

@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 
 /**
@@ -86,7 +87,7 @@ public abstract class BashTools {
         int i = 0;
         while (!dir.exists()) {
             dir.mkdirs();
-            System.out.println("BashTools.mkdir(" + i + ") for " + dir.getAbsolutePath());
+            Lok.debug("BashTools.mkdir(" + i + ") for " + dir.getAbsolutePath());
         }
         //instance.mkdir(dir);
     }

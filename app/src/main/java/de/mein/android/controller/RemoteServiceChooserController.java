@@ -11,6 +11,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.view.KnownCertListAdapter;
@@ -57,7 +58,7 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
         knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
         knownCertList.setOnItemClickListener((parent, view, position, id) -> {
             selectedCertId = knownCertListAdapter.getItemT(position).getId().v();
-            System.out.println("RemoteDriveServiceChooserGuiController.init.CLICKED");
+            Lok.debug("RemoteDriveServiceChooserGuiController.init.CLICKED");
             showServices(selectedCertId);
         });
         knownCertList.setAdapter(knownCertListAdapter);

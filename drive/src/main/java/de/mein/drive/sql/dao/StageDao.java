@@ -1,5 +1,6 @@
 package de.mein.drive.sql.dao;
 
+import de.mein.Lok;
 import de.mein.auth.tools.Eva;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -42,7 +43,7 @@ StageDao extends Dao.LockingDao {
     public Stage getStageByPath(Long stageSetId, AFile f) throws SqlQueriesException {
         //todo debug
         if (f.getName().equals("samesub") && Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClient"))
-            System.out.println("StageDao.getStageByPath.debug");
+            Lok.debug("StageDao.getStageByPath.debug");
         RootDirectory rootDirectory = driveSettings.getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
@@ -74,7 +75,7 @@ StageDao extends Dao.LockingDao {
         //todo debug
         Stage s = this.getStageById(id);
         if (s.getName().equals("samesub1.txt"))
-            System.out.println("StageDao.deleteStageById.debugj0j3f034hh");
+            Lok.debug("StageDao.deleteStageById.debugj0j3f034hh");
         Stage dummy = new Stage();
         sqlQueries.delete(dummy, dummy.getIdPair().k() + "=?", ISQLQueries.whereArgs(id));
     }
@@ -294,35 +295,35 @@ StageDao extends Dao.LockingDao {
         StageSet stageSet = new StageSet().setSource(type).setOriginCertId(originCertId)
                 .setOriginServiceUuid(originServiceUuid).setStatus(status).setVersion(version);
         Eva.eva((eva, count) -> {
-            System.out.println("StageDao.createStageSet.eva." + count);
+            Lok.debug("StageDao.createStageSet.eva." + count);
             if (count == 9)
-                System.out.println("StageDao.createStageSet.fmner9hg0sa");
+                Lok.debug("StageDao.createStageSet.fmner9hg0sa");
         });
         Long id = sqlQueries.insert(stageSet);
         //todo debug
         if (id == 6)
-            System.out.println("StageDao.createStageSet.debug1");
+            Lok.debug("StageDao.createStageSet.debug1");
         if (id == 4 && Thread.currentThread().getName().startsWith(StageIndexerRunnable.class.getSimpleName() + " for MeinDriveServer"))
-            System.out.println("StageDao.createStageSet.debug2");
+            Lok.debug("StageDao.createStageSet.debug2");
         if (id == 3)
-            System.out.println("StageDao.createStageSet.debug2.2");
+            Lok.debug("StageDao.createStageSet.debug2.2");
         if (id.toString().equals("7") && Thread.currentThread().getName().startsWith("MeinDriveClientService"))
-            System.out.println("StageDao.createStageSet.debug3");
+            Lok.debug("StageDao.createStageSet.debug3");
         if (id.toString().equals("3") && Thread.currentThread().getName().toLowerCase().contains("client"))
-            System.out.println("StageDao.createStageSet.debug3");
+            Lok.debug("StageDao.createStageSet.debug3");
         if (id.toString().equals("6") && Thread.currentThread().getName().toLowerCase().contains("client"))
-            System.out.println("StageDao.createStageSet.debug4");
+            Lok.debug("StageDao.createStageSet.debug4");
         if (id.toString().equals("5") && Thread.currentThread().getName().toLowerCase().contains("client"))
-            System.out.println("StageDao.createStageSet.debug5");
+            Lok.debug("StageDao.createStageSet.debug5");
         if (id == 4)
-            System.out.println("StageDao.createStageSet.debug6");
+            Lok.debug("StageDao.createStageSet.debug6");
         return stageSet.setId(id);
     }
 
     public void deleteStageSet(Long id) throws SqlQueriesException {
         //todo debug
         if (id == 6)
-            System.out.println("StageDao.deleteStageSet.debugh98g4h5g");
+            Lok.debug("StageDao.deleteStageSet.debugh98g4h5g");
         StageSet stageSet = new StageSet();
         List<Object> args = new ArrayList<>();
         args.add(id);
@@ -351,11 +352,11 @@ StageDao extends Dao.LockingDao {
     public void update(Stage stage) throws SqlQueriesException {
         //todo debug
         if (stage.getDeletedPair().equalsValue(true))
-            System.out.println("StageDao.update.debug.1");
+            Lok.debug("StageDao.update.debug.1");
         if (stage.getId() == null)
-            System.out.println("StageDao.update.debug.2");
+            Lok.debug("StageDao.update.debug.2");
         if (stage.getId() == 63)
-            System.out.println("StageDao.update.debug.3");
+            Lok.debug("StageDao.update.debug.3");
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(stage.getId());

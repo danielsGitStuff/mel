@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import de.mein.Lok;
 import de.mein.android.Tools;
 import de.mein.android.file.JFile;
 import de.mein.android.file.SAFAccessor;
@@ -78,6 +79,6 @@ public class CopyService extends IntentService {
             N.s(() -> fis.v.close());
             N.s(() -> fos.v.close());
         }
-        System.out.println("CopyService.onHandleIntent");
+        Lok.debug("CopyService.onHandleIntent");
     }
 }

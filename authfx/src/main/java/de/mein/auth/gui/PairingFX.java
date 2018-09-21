@@ -54,13 +54,13 @@ public class PairingFX extends AuthSettingsFX implements Initializable {
         environment.deleteObservers();
         environment.deleteObservers();
         environment.addObserver((o, arg) -> {
-            System.out.println("PairingFX.init");
+            Lok.debug("PairingFX.init");
             listAll.getItems().clear();
             listAll.getItems().addAll(environment.getUnknownAuthInstances());
             listKnown.getItems().clear();
             for (Long certId : environment.getCertificateIds()) {
                 try {
-                    System.out.println("PairingFX.discover");
+                    Lok.debug("PairingFX.discover");
                     Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
                     listKnown.getItems().add(certificate);
                 } catch (Exception e) {

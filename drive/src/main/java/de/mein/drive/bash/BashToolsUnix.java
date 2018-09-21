@@ -1,5 +1,6 @@
 package de.mein.drive.bash;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.file.DefaultFileConfiguration;
@@ -32,7 +33,7 @@ public class BashToolsUnix implements BashToolsImpl {
         f.mkdirs();
         BashToolsUnix bashToolsUnix = new BashToolsUnix();
         ModifiedAndInode modifiedAndInode = bashToolsUnix.getModifiedAndInode(f);
-        System.out.println("mod " + modifiedAndInode.getModified() + " ... inode " + modifiedAndInode.getiNode());
+        Lok.debug("mod " + modifiedAndInode.getModified() + " ... inode " + modifiedAndInode.getiNode());
         f.delete();
     }
 
@@ -88,13 +89,12 @@ public class BashToolsUnix implements BashToolsImpl {
         String line = reader.readLine();
         //todo debug
         if (line == null) {
-            System.out.println("BashToolsUnix.getModifiedAndINodeOfFile.lions.is.null");
-            System.out.println("BashToolsUnix.getModifiedAndINodeOfFile.reading error for: " + args[2]);
+            Lok.debug("reading error for: " + args[2]);
             try {
                 BufferedReader r = new BufferedReader((new InputStreamReader(proc.getErrorStream())));
                 String l = r.readLine();
                 while (l != null) {
-                    System.out.println("BashToolsUnix.getModifiedAndINodeOfFile.err: " + l);
+                    Lok.debug(l);
                     l = r.readLine();
                 }
             } catch (Exception e) {
@@ -120,35 +120,35 @@ public class BashToolsUnix implements BashToolsImpl {
 
     @Override
     public List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
-        System.out.println("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
+        Lok.debug("BashTools.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified());
 //        String cmd = "find \"" + directory.getAbsolutePath() + "\"  "
 //                + " -path \"" + pruneDir + "\" -prune"
 //                + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print";
         String cmd = "find " + escapeAbsoluteFilePath(directory)
                 + " -path " + escapeAbsoluteFilePath(pruneDir) + " -prune"
                 + " -o -newer " + escapeAbsoluteFilePath(referenceFile) + " -print";
-        System.out.println("BashTools.stuffModifiedAfter.cmd: " + cmd);
+        Lok.debug("BashTools.stuffModifiedAfter.cmd: " + cmd);
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
         ProcessBuilder processBuilder = new ProcessBuilder(args);
         processBuilder.redirectErrorStream(true);
         Process proc = processBuilder.start();
-        System.out.println("BashTools.stuffModifiedAfter.collecting.result");
+        Lok.debug("BashTools.stuffModifiedAfter.collecting.result");
         List<AFile> result = new ArrayList<>();
         Iterator<AFile> iterator = BashTools.inputStreamToFileIterator(proc.getInputStream());
         while (iterator.hasNext()) {
             AFile path = iterator.next();
-            System.out.println(getClass().getSimpleName() + ".stuffModifiedAfter.collected: " + path);
+            Lok.debug(getClass().getSimpleName() + ".stuffModifiedAfter.collected: " + path);
             result.add(path);
         }
-        System.out.println("BashTools.stuffModifiedAfter.collecting.done");
+        Lok.debug("BashTools.stuffModifiedAfter.collecting.done");
         return result;
     }
 
     private Iterator<AFile> exec(String cmd) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
-        System.out.println("BashToolsUnix.exec: " + cmd);
+        Lok.debug("BashToolsUnix.exec: " + cmd);
         Process proc = new ProcessBuilder(args).start();
         return BashTools.inputStreamToFileIterator(proc.getInputStream());
     }
@@ -175,18 +175,18 @@ public class BashToolsUnix implements BashToolsImpl {
                     if (!hasFinished) {
                         BufferedReader errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
                         List<String> errors = errorReader.lines().collect(Collectors.toList());
-                        System.out.println("BashTools.stuffModifiedAfter.did not finish");
+                        Lok.debug("BashTools.stuffModifiedAfter.did not finish");
                     }
                     // try to read anyway.
                     // the process might have come to an end but Process.waitFor() does not always finish.
-                    System.out.println("BashTools.stuffModifiedAfter");
+                    Lok.debug("BashTools.stuffModifiedAfter");
                     BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                    System.out.println("BashTools.stuffModifiedAfter.collecting.result");
+                    Lok.debug("BashTools.stuffModifiedAfter.collecting.result");
                     lines = reader.lines().collect(Collectors.toList());
-                    lines.forEach(s -> System.out.println("BashTools.getNodeAndTime.LLLL " + s));
+                    lines.forEach(s -> Lok.debug("BashTools.getNodeAndTime.LLLL " + s));
                     String[] s = lines.get(0).split(" ");
                     if (s[0].isEmpty())
-                        System.out.println("BashTools.getNodeAndTime");
+                        Lok.debug("BashTools.getNodeAndTime");
                     inode = Long.parseLong(s[0]);
                     deferred.resolve(inode);
                     hasFinished = true;
@@ -229,7 +229,7 @@ public class BashToolsUnix implements BashToolsImpl {
         String error = reader.readLine();
         if (error == null)
             return true;
-        System.out.println("BashToolsUnix.mv");
+        Lok.debug("BashToolsUnix.mv");
         return false;
     }
 }

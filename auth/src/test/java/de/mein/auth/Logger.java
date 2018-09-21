@@ -16,7 +16,7 @@ public class Logger {
         MeinLogger.redirectSysOut(10);
         MeinLogger logger = MeinLogger.getInstance();
         for (int i = 0; i < 3; i++)
-            System.out.println(i);
+            Lok.debug(i);
         String[] lines = logger.getLines();
         assertEquals(3, lines.length);
         for (String line : lines)

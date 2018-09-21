@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.MeinActivityPayload;
@@ -74,18 +75,18 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
             if (currentDir!= null){
                 txtPath.setText(currentDir.getAbsolutePath());
             }
-            System.out.println("DirectoryChooserDialog.init.depth " + depth);
+            Lok.debug("DirectoryChooserDialog.init.depth " + depth);
             AFile[] subDirs = clickedDir.listDirectories();
             adapter.setDirectories(subDirs);
             DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
-            System.out.println("DirectoryChooserDialog.init");
+            Lok.debug("DirectoryChooserDialog.init");
         });
         list.setLayoutManager(new LinearLayoutManager(this));
         list.setAdapter(adapter);
         btnUp.setOnClickListener(v -> {
             if (depth > 0) {
                 depth--;
-                System.out.println("DirectoryChooserDialog.init.depth " + depth);
+                Lok.debug("DirectoryChooserDialog.init.depth " + depth);
                 currentDir = parentDirs.pop();
                 AFile[] subDirs;
                 if (currentDir != null) {

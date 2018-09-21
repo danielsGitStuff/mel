@@ -1,6 +1,7 @@
 package de.mein.drive.transfer;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.file.AFile;
@@ -82,17 +83,17 @@ public class TransferManager extends DeferredRunnable {
         activeTransfers = new HashMap<>();
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                System.out.println("TransferManager.RUN");
+                Lok.debug("TransferManager.RUN");
                 // these only contain certId and serviceUuid
                 List<TransferDetails> groupedTransferSets = transferDao.getTwoTransferSets();
                 // check if groupedTransferSets are active yet
                 if (groupedTransferSets.size() == 0 || allTransferSetsAreActive(groupedTransferSets)) {
-                    System.out.println("TransferManager.WAIT");
+                    Lok.debug("TransferManager.WAIT");
                     meinDriveService.onTransfersDone();
                     lock.lock();
                 } else {
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {
-                        System.out.println("TransferManager.run.2222");
+                        Lok.debug("TransferManager.run.2222");
                         // skip if already active
                         activeTransfersLock.lock();
                         if (activeTransfers.containsKey(activeTransferKey(groupedTransferSet))) {
@@ -291,7 +292,7 @@ public class TransferManager extends DeferredRunnable {
                                     .setTransferProgressListener(fileTransferDetail1 -> N.r(() ->
                                             transferDao.updateTransferredBytes(transferDetails.getId().v(), transferDetails.getTransferred().v())
                                     ));
-                            System.out.println("TransferManager.retrieveFiles.add.transfer: " + fileTransferDetail.getStreamId());
+                            Lok.debug("TransferManager.retrieveFiles.add.transfer: " + fileTransferDetail.getStreamId());
                             fileProcess.addFilesReceiving(fileTransferDetail);
                             payLoad.add(fileTransferDetail);
                         }
@@ -300,7 +301,7 @@ public class TransferManager extends DeferredRunnable {
                         connected.done(validationProcess -> N.r(() -> {
                             validationProcess.message(strippedTransferDetails.getServiceUuid().v(), DriveStrings.INTENT_PLEASE_TRANSFER, payLoad);
                         })).fail(result -> N.r(() -> {
-                            System.out.println("TransferManager.retrieveFiles.48nf49");
+                            Lok.debug("TransferManager.retrieveFiles.48nf49");
                             deferred.reject(strippedTransferDetails);
                         }));
                         //wait until current batch is transferred

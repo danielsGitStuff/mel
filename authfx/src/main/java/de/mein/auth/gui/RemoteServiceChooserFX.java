@@ -70,7 +70,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
 
     @Override
     public void init() {
-        System.out.println("RemoteServiceChooserFX.init");
+        Lok.debug("RemoteServiceChooserFX.init");
         listCerts.setCellFactory(param -> new CertListCell());
         listServices.setCellFactory(param -> new ServiceListCell());
         rdServer.setOnAction(event -> showServer());
@@ -82,7 +82,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
             NetworkEnvironment.FoundServices foundServices = new NetworkEnvironment.FoundServices(listCerts.getItems()::add);
             env.deleteObservers();
             env.addObserver((environment, arg) -> {
-                System.out.println("DriveFXCreateController.change");
+                Lok.debug("DriveFXCreateController.change");
                 N.r(() -> {
                     Collection<ServiceJoinServiceType> services = env.getServices();
                     for (ServiceJoinServiceType service : services) {
@@ -94,7 +94,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
             });
             listCerts.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 listServices.getItems().clear();
-                System.out.println("DriveFXCreateController.init");
+                Lok.debug("DriveFXCreateController.init");
                 Certificate certificate = (Certificate) newValue;
                 foundServices.lockRead();
                 for (ServiceJoinServiceType service : foundServices.get(certificate.getId().v())) {
@@ -129,7 +129,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
 //            lblTitle.setText(contentController.getTitle());
 //            setContentPane(pane);
             container.getChildren().add(pane);
-            System.out.println("MeinAuthAdminFX.loadSettingsFX.loaded");
+            Lok.debug("MeinAuthAdminFX.loadSettingsFX.loaded");
         });
     }
 

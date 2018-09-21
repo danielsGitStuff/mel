@@ -147,7 +147,7 @@ public class PerfTransferTest {
         promise.done(test -> N.r(() -> {
             DriveCreateController createController = new DriveCreateController(test.mas);
             createController.createDriveServerService("server", PerfTransferTest.SOURCE_PATH, 0.1f, 30);
-            System.out.println("PerfTransferTest.startSource.done");
+            Lok.debug("PerfTransferTest.startSource.done");
         }));
         lock.lockWrite().lockWrite();
     }
@@ -158,7 +158,7 @@ public class PerfTransferTest {
         RWLock lock = new RWLock();
         Promise<PerfTransferTest, Void, Void> promise = create();
         promise.done(test -> N.r(() -> {
-            System.out.println("PerfTransferTest.startTarget.connecting");
+            Lok.debug("PerfTransferTest.startTarget.connecting");
             Promise<MeinValidationProcess, Exception, Void> connected = test.mas.connect("192.168.1.109", 8888, 8889, true);
             connected.done(mvp -> N.r(() -> {
                 NetworkEnvironment nve = test.mas.getNetworkEnvironment();
@@ -170,7 +170,7 @@ public class PerfTransferTest {
                             DriveCreateController createController = new DriveCreateController(test.mas);
                             Promise<MeinDriveClientService, Exception, Void> allDone = createController.createDriveClientService("client", PerfTransferTest.TARGET_PATH, mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30);
                             allDone.done(result -> {
-                                System.out.println("PerfTransferTest.startTarget.done");
+                                Lok.debug("PerfTransferTest.startTarget.done");
                             });
                         }
                     });
@@ -204,15 +204,15 @@ public class PerfTransferTest {
     public void netServerEncrypted() throws Exception {
         Promise<PerfTransferTest, Void, Void> started = create();
         started.done(test -> N.r(() -> {
-            System.out.println("PerfTransferTest.netServerEncrypted() starting server socket");
+            Lok.debug("PerfTransferTest.netServerEncrypted() starting server socket");
             ServerSocket serverSocket = test.mas.getCertificateManager().createServerSocket();
             serverSocket.bind(new InetSocketAddress(9999));
             new Thread(() -> {
                 N.r(() -> {
                     while (true) {
-                        System.out.println("PerfTransferTest.netServerEncrypted. waiting for connection");
+                        Lok.debug("PerfTransferTest.netServerEncrypted. waiting for connection");
                         Socket socket = serverSocket.accept();
-                        System.out.println("PerfTransferTest.netServerEncrypted. got connection");
+                        Lok.debug("PerfTransferTest.netServerEncrypted. got connection");
                         N.r(() -> {
                             OutputStream out = socket.getOutputStream();
                             Random random = new Random(1);

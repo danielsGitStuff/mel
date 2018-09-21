@@ -1,5 +1,6 @@
 package de.mein.drive.data.conflict;
 
+import de.mein.Lok;
 import de.mein.auth.tools.Eva;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.dao.StageDao;
@@ -28,7 +29,7 @@ public class Conflict {
         this.stageDao = stageDao;
         key = createKey(lStage, rStage);
         if (lStageId != null && rStageId != null && lStageId == 18 && rStageId == 40)
-            System.out.println("Conflict.Conflict");
+            Lok.debug("Conflict.Conflict");
         Eva.eva((eva, count) -> {
             if (lStageId != null && rStageId != null && lStageId == 18 && rStageId == 40)
                 eva.error();

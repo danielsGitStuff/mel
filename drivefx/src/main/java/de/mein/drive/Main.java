@@ -43,14 +43,14 @@ public class Main {
         meinBoot.addMeinAuthAdmin(new MeinAuthFxLoader());
         meinBoot.boot().done(meinAuthService -> {
             meinAuthService.addRegisterHandler(new RegisterHandlerFX());
-            System.out.println("Main.main.booted");
+            Lok.debug("Main.main.booted");
             lock.unlockWrite();
         }).fail(exc -> {
             exc.printStackTrace();
         });
         lock.lockWrite();
         lock.lockWrite();
-        System.out.println("Main.main.end");
+        Lok.debug("Main.main.end");
         new WaitLock().lock().lock();
     }
 

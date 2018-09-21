@@ -54,13 +54,13 @@ public class SerializationPerformanceTest {
         timer.reset().start();
         Object des = deserializer.deserialize(json);
         timer.stop().print();
-        //System.out.println(de.mein.json.json);
+        //Lok.debug(de.mein.json.json);
     }
 
     @Test
     public void repeat() throws FileNotFoundException, JsonDeserializationException, JsonSerializationException, UnsupportedEncodingException {
-        System.out.println("SerializationPerformanceTest.repeat");
+        Lok.debug("SerializationPerformanceTest.repeat");
         testPerformance();
-        System.out.println("SerializationPerformanceTest.repeat.end");
+        Lok.debug("SerializationPerformanceTest.repeat.end");
     }
 }

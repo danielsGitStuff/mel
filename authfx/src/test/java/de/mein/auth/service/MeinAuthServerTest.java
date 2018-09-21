@@ -100,7 +100,7 @@ public class MeinAuthServerTest {
 //                    runner.r(() -> {
 //                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
 //                        connectPromise.done(integer -> {
-//                            System.out.println("MeinAuthServerTest.acceptRegistration.registered");
+//                            Lok.debug("MeinAuthServerTest.acceptRegistration.registered");
 //                            lock.unlockWrite();
 //                        });
 //                    });
@@ -142,15 +142,15 @@ public class MeinAuthServerTest {
 //        boot1.boot().done(standAloneAuth1 -> {
 //            standAloneAuth1.addRegisterHandler(allowRegisterHandler);
 //            runner.r(() -> {
-//                System.out.println("MeinAuthServerTest.gui.1.booted");
+//                Lok.debug("MeinAuthServerTest.gui.1.booted");
 //                boot2.boot().done(standAloneAuth2 -> {
 //                    standAloneAuth2.addRegisterHandler(allowRegisterHandler);
-//                    System.out.println("MeinAuthServerTest.gui.2.booted");
+//                    Lok.debug("MeinAuthServerTest.gui.2.booted");
 //                    runner.r(() -> {
 //                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
 //                        connectPromise.done(integer -> {
 //                            runner.r(() -> {
-//                                System.out.println("MeinAuthServerTest.gui.booted");
+//                                Lok.debug("MeinAuthServerTest.gui.booted");
 //                                standAloneAuth2.getBrotCaster().discover(9966);
 //                                //lock.unlockWrite();
 //                            });
@@ -207,10 +207,10 @@ public class MeinAuthServerTest {
 //            runner.r(() -> {
 //                Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
 //                connectPromise.done(integer -> {
-//                    System.out.println("MeinAuthServerTest.rejectRegistration.registered");
+//                    Lok.debug("MeinAuthServerTest.rejectRegistration.registered");
 //                    lock.unlockWrite();
 //                }).fail(result2 -> {
-//                    System.out.println("MeinAuthServerTest.rejectRegistration.fail");
+//                    Lok.debug("MeinAuthServerTest.rejectRegistration.fail");
 //                    lock.unlockWrite();
 //                });
 //            });

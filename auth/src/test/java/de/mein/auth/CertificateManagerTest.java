@@ -115,7 +115,7 @@ public class CertificateManagerTest {
         PrivateKey pk2 = certificateManager.getPrivateKey();
         PublicKey pubk2 = certificateManager.getPublicKey();
         X509Certificate cert2 = certificateManager.getMyX509Certificate();
-        System.out.println("CertificateManagerTest.keySerialization");
+        Lok.debug("CertificateManagerTest.keySerialization");
         assertEquals(pk1, pk2);
         assertEquals(pubk1, pubk2);
         assertEquals(cert1, cert2);
@@ -130,7 +130,7 @@ public class CertificateManagerTest {
         certificate.setAnswerUuid("some address");
         UUID uuid = UUID.randomUUID();
         certificate.setUuid(uuid.toString());
-        System.out.println("CertificateManagerTest.storeCertificateDB");
+        Lok.debug("CertificateManagerTest.storeCertificateDB");
     }
 
 }

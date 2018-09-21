@@ -43,7 +43,7 @@ public class CheckCell extends TableCell<ServiceJoinServiceType, ServiceJoinServ
             checkBox.onActionProperty().setValue(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
-                    System.out.println("CheckCell.handle");
+                    Lok.debug("CheckCell.handle");
                     if (approvalHandler != null) {
                         approvalHandler.approved(certificate, service, checkBox.isSelected() );
                     }

@@ -1,5 +1,6 @@
 package de.mein.drive.data;
 
+import de.mein.Lok;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.cached.data.CachedIterable;
 import de.mein.drive.sql.Stage;
@@ -14,7 +15,7 @@ public class Commit extends CachedIterable<Stage> implements IPayload{
     private Long basedOnVersion;
 
     public Commit(){
-        System.out.println("Commit.Commit");
+        Lok.debug("Commit.Commit");
     }
 
     public Commit(File cacheDir, int partSize) {
@@ -24,7 +25,7 @@ public class Commit extends CachedIterable<Stage> implements IPayload{
     public Commit setBasedOnVersion(Long basedOnVersion) {
         //todo debug
         if (basedOnVersion == 2)
-            System.out.println("Commit.setBasedOnVersion.debug23");
+            Lok.debug("Commit.setBasedOnVersion.debug23");
         this.basedOnVersion = basedOnVersion;
         return this;
     }

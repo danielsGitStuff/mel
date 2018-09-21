@@ -1,5 +1,16 @@
 package de.mein.auth.socket.process.transfer;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
+import java.util.TreeMap;
+import java.util.concurrent.Semaphore;
+
+import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.service.IMeinService;
@@ -8,10 +19,6 @@ import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.tools.ByteTools;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.RWLock;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Semaphore;
 
 /**
  * Transfers files.<br>
@@ -61,11 +68,11 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
     }
 
     public void addFilesReceiving(FileTransferDetail fileTransferDetail) throws InterruptedException {
-        System.out.println("MeinIsolatedFileProcess.addFilesReceiving.ID: " + fileTransferDetail.getStreamId());
+        Lok.debug("MeinIsolatedFileProcess.addFilesReceiving.ID: " + fileTransferDetail.getStreamId());
         receivingSemaphore.acquire();
         hashFTDReceivingMap.put(fileTransferDetail.getHash(), fileTransferDetail);
         streamIdFileMapReceiving.put(fileTransferDetail.getStreamId(), fileTransferDetail);
-        System.out.println("MeinIsolatedFileProcess.addFilesReceiving.stored.hash: " + streamIdFileMapReceiving.get(fileTransferDetail.getStreamId()).getHash());
+        Lok.debug("MeinIsolatedFileProcess.addFilesReceiving.stored.hash: " + streamIdFileMapReceiving.get(fileTransferDetail.getStreamId()).getHash());
         receivingSemaphore.release();
     }
 
@@ -84,7 +91,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
         try {
             while (block.getFirstByteToProcessIndex() < block.getBytes().length && !(block.getBytes()[block.getFirstByteToProcessIndex()] == 0)) {
                 if (!handleTransfer(block)) {
-                    System.err.println("MeinIsolatedFileProcess.onBlockReceived. did not know what to do :(");
+                    Lok.error("MeinIsolatedFileProcess.onBlockReceived. did not know what to do :(");
                 }
             }
         } catch (Exception e) {
@@ -114,12 +121,12 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
             assert length == data.length;
             FileTransferDetail transferDetail = streamIdFileMapReceiving.get(streamId);
             if (transferDetail == null) {
-                System.out.println("MeinIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
+                Lok.debug("MeinIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
             }
             transferDetail.onReceived(offset, data);
             if (transferDetail.transferred() || c.equals('t')) {
                 receivingSemaphore.acquire();
-                System.out.println("MeinIsolatedFileProcess.handleTransfer.remove.receiving.id: " + transferDetail.getStreamId());
+                Lok.debug("MeinIsolatedFileProcess.handleTransfer.remove.receiving.id: " + transferDetail.getStreamId());
                 streamIdFileMapReceiving.remove(streamId);
                 receivingSemaphore.release();
             }
@@ -131,7 +138,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
             int streamId = ByteTools.bytesToInt(bytes, firstByteToProcess + 1);
             FileTransferDetail transferDetail = streamIdFileMapReceiving.get(streamId);
             if (transferDetail == null) {
-                System.out.println("MeinIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
+                Lok.debug("MeinIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
             } else {
                 transferDetail.setError(true);
                 transferDetail.onFailed();

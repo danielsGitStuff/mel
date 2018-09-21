@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
+import de.mein.Lok;
 import de.mein.MeinInjector;
 import de.mein.android.drive.bash.BashToolsAndroid;
 import de.mein.android.drive.bash.SAFBashTools;
@@ -46,7 +47,7 @@ public class AndroidInjector {
                         // "create trigger" hackery
                         if (sql.trim().toLowerCase().startsWith("create trigger "))
                             sql += "; " + scanner.next();
-                        System.out.println("SqliteExecutor.executeStream: " + sql);
+                        Lok.debug("SqliteExecutor.executeStream: " + sql);
                         db.execSQL(sql);
                     }
                 });
@@ -71,12 +72,12 @@ public class AndroidInjector {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "meinauth", null, 1) {
                 @Override
                 public void onCreate(SQLiteDatabase db) {
-                    System.out.println("AndroidDriveBootloader.onCreate");
+                    Lok.debug("AndroidDriveBootloader.onCreate");
                 }
 
                 @Override
                 public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-                    System.out.println("AndroidDriveBootloader.onUpgrade");
+                    Lok.debug("AndroidDriveBootloader.onUpgrade");
                 }
             };
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
@@ -88,12 +89,12 @@ public class AndroidInjector {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
                 @Override
                 public void onCreate(SQLiteDatabase db) {
-                    System.out.println("AndroidDriveBootloader.onCreate");
+                    Lok.debug("AndroidDriveBootloader.onCreate");
                 }
 
                 @Override
                 public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-                    System.out.println("AndroidDriveBootloader.onUpgrade");
+                    Lok.debug("AndroidDriveBootloader.onUpgrade");
                 }
             };
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
@@ -122,12 +123,12 @@ public class AndroidInjector {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + ContactStrings.DB_FILENAME, null, ContactStrings.DB_VERSION) {
                 @Override
                 public void onCreate(SQLiteDatabase db) {
-                    System.out.println("AndroidDriveBootloader.onCreate");
+                    Lok.debug("AndroidDriveBootloader.onCreate");
                 }
 
                 @Override
                 public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-                    System.out.println("AndroidDriveBootloader.onUpgrade");
+                    Lok.debug("AndroidDriveBootloader.onUpgrade");
                 }
             };
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));

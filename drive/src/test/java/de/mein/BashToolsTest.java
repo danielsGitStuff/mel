@@ -45,10 +45,10 @@ public class BashToolsTest {
     public void escapePaths() throws IOException, InterruptedException {
         AtomicReference<Integer> count = new AtomicReference<>(0);
         files.stream().filter(File::exists).forEach(f -> N.r(() -> {
-            System.out.println("BashToolsTest.escapePaths");
+            Lok.debug("BashToolsTest.escapePaths");
             BashTools.init();
             ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(new FFile(f));
-            System.out.println("BashToolsTest.escapePaths: " + modifiedAndInode.getiNode().toString() + " " + modifiedAndInode.getModified().toString());
+            Lok.debug("BashToolsTest.escapePaths: " + modifiedAndInode.getiNode().toString() + " " + modifiedAndInode.getModified().toString());
             count.getAndSet(count.get() + 1);
         }));
         assertEquals(Integer.valueOf(files.size()), Integer.valueOf(count.get()));

@@ -45,6 +45,7 @@ import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.controller.EditServiceController;
@@ -101,14 +102,14 @@ public class MainActivity extends MeinActivity {
             }
 
         } else {
-            System.out.println("MainActivity.startService(): AndroidService already running");
+            Lok.debug("MainActivity.startService(): AndroidService already running");
         }
     }
 
 
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
-        System.out.println("MainActivity.onAndroidServiceAvailable");
+        Lok.debug("MainActivity.onAndroidServiceAvailable");
         if (androidService.getMeinAuthService().getSettings().getRedirectSysout()) {
             MeinLogger.redirectSysOut(200, true);
         }
@@ -120,7 +121,7 @@ public class MainActivity extends MeinActivity {
         Uri v = Uri.parse("/data/data/txt.txt");
         String a = u.getAuthority();
         String b = v.getAuthority();
-        System.out.println("ExampleUnitTest.uriTest " + a + " // " + b);
+        Lok.debug("ExampleUnitTest.uriTest " + a + " // " + b);
     }
 
 
@@ -128,6 +129,7 @@ public class MainActivity extends MeinActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //dev();
+        Lok.setLokImpl(new AndroidLok().setPrintDebug(false));
         Tools.init(this.getApplicationContext());
         SAFAccessor.setupExternalPath();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
@@ -247,14 +249,14 @@ public class MainActivity extends MeinActivity {
     }
 
     private void debugStuff2() {
-        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        System.out.println("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
+        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
         Notifier.toast(this, "WARNING: DEBUG");
         annoyWithPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE
                 , Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS).done(result -> {
@@ -382,7 +384,7 @@ public class MainActivity extends MeinActivity {
     private void debugStuff() throws InterruptedException {
         Notifier.toast(this, "WARNING: DEBUG");
         MeinAuthService meinAuthService = androidService.getMeinAuthService();
-        System.out.println(meinAuthService);
+        Lok.debug(meinAuthService);
         Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect("10.0.2.2", 8888, 8889, true);
         promise.done(meinValidationProcess -> N.r(() -> {
             Request<MeinServicesPayload> gotAllowedServices = meinAuthService.getAllowedServices(meinValidationProcess.getConnectedId());
@@ -403,7 +405,7 @@ public class MainActivity extends MeinActivity {
                             meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v(), DriveSettings.DEFAULT_WASTEBIN_RATIO, DriveSettings.DEFAULT_WASTEBIN_MAXDAYS);
                     serviceCreated.done(meinDriveClientService -> {
                                 N.r(() -> {
-                                    System.out.println("successssss");
+                                    Lok.debug("successssss");
                                     DriveSyncListener syncListener = new DriveSyncListener() {
                                         @Override
                                         public void onSyncFailed() {
@@ -475,11 +477,11 @@ public class MainActivity extends MeinActivity {
                     );
                 }));
             })).fail(result -> {
-                System.out.println("erererere." + result);
+                Lok.debug("erererere." + result);
             });
 
         })).fail(result -> {
-            System.out.println("errrrr." + result);
+            Lok.debug("errrrr." + result);
         });
     }
 
@@ -562,7 +564,7 @@ public class MainActivity extends MeinActivity {
                 MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, getText(R.string.drawerCreateNewService));
                 mNewService.setIcon(R.drawable.ic_menu_add);
                 navigationView.refreshDrawableState();
-                System.out.println();
+                Lok.debug("");
             }));
         }
     }
@@ -585,7 +587,7 @@ public class MainActivity extends MeinActivity {
             byte[] bytes = new byte[4];
             fis.read(bytes);
             String result = new String(bytes);
-            System.out.println(result);
+            Lok.debug(result);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

@@ -1,5 +1,6 @@
 package de.mein.drive.bash;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 
 import org.jdeferred.Promise;
@@ -22,7 +23,7 @@ public class BashToolsWindows implements BashToolsImpl {
 
     @Override
     public void setBinPath(String binPath) {
-        System.out.println("BashToolsWindows.setBinPath");
+        Lok.debug("BashToolsWindows.setBinPath");
     }
 
     @Override
@@ -64,7 +65,7 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     private Process exec(String... commands) throws IOException {
-        //System.out.println("BashToolsWindows.exec: " + Arrays.toString(commands));
+        //Lok.debug("BashToolsWindows.exec: " + Arrays.toString(commands));
         String[] args = buildArgs(commands);
         return new ProcessBuilder(args).start();
     }
@@ -106,7 +107,7 @@ public class BashToolsWindows implements BashToolsImpl {
     }
 
     private Stream<AFile> execPowerShell(String command, String prependLine) throws IOException, InterruptedException {
-        System.out.println("BashToolsWindows.execPowerShell: " + command);
+        Lok.debug("BashToolsWindows.execPowerShell: " + command);
         String[] args = new String[]{"powershell.exe"};
         Process process = new ProcessBuilder(args).start();
         PrintWriter stdin = new PrintWriter(process.getOutputStream());

@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import java.security.cert.X509Certificate;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.CertificateManager;
@@ -81,7 +82,7 @@ public class CertActivity extends PopupActivity {
     }
 
     private void showWaiting() {
-        System.out.println("CertActivity.showWaiting.NOT:IMPLEMENTED:YET");
+        Lok.debug("NOT:IMPLEMENTED:YET");
         lock.lockWrite();
         lock.lockWrite();
     }

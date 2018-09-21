@@ -29,7 +29,7 @@ public class NotificationCenter {
     private Stage stage;
 
     public NotificationCenter() {
-        System.out.println("NotificationCenter.NotificationCenter");
+        Lok.debug("NotificationCenter.NotificationCenter");
     }
 
     public void setMeinAuthAdminFX(MeinAuthAdminFX adminFx) {
@@ -39,7 +39,7 @@ public class NotificationCenter {
 
     @FXML
     void initialize() {
-        System.out.println("NotificationCenter.initialize");
+        Lok.debug("NotificationCenter.initialize");
         btnClose.setOnAction(event -> ((Stage) btnClose.getScene().getWindow()).close());
     }
 
@@ -48,7 +48,7 @@ public class NotificationCenter {
         Platform.runLater(() -> {
             list.setItems(meinAuthAdminFX.getNotifications());
             list.setCellFactory(param -> new NotificationListCell(meinAuthService));
-            System.out.println("NotificationCenter.showNotifications");
+            Lok.debug("NotificationCenter.showNotifications");
         });
     }
 

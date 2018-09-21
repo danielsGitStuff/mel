@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.AndroidInjector;
 import de.mein.android.AndroidRegHandler;
@@ -48,9 +49,9 @@ import de.mein.sql.SqlQueriesException;
 
 
 /**
+ * puts Android specific workarounds in their places. eg: sqlite databasing works different than on a standard Linux
  * Created by xor on 2/3/17.
  */
-
 public class AndroidService extends Service {
 
     private MeinAuthService meinAuthService;
@@ -104,7 +105,7 @@ public class AndroidService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        System.out.println("AndroidService.onBind");
+        Lok.debug("AndroidService.onBind");
         return mBinder;
     }
 
@@ -198,7 +199,7 @@ public class AndroidService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        System.out.println("AndroidService.onCreate()");
+        Lok.debug("AndroidService.onCreate()");
         createPermanentSticky();
         // configure MeinAuth
         File workingDir = new File(getAndroidPath() + File.separator + "meinauth.workingdir");
@@ -218,7 +219,7 @@ public class AndroidService extends Service {
             e.printStackTrace();
         }
 
-        System.out.println("AndroidService.onCreate");
+        Lok.debug("AndroidService.onCreate");
     }
 
     /**
@@ -247,19 +248,19 @@ public class AndroidService extends Service {
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        System.out.println("AndroidService.onConfigurationChanged");
+        Lok.debug("AndroidService.onConfigurationChanged");
         super.onConfigurationChanged(newConfig);
     }
 
     @Override
     public void onRebind(Intent intent) {
-        System.out.println("AndroidService.onRebind");
+        Lok.debug("AndroidService.onRebind");
         super.onRebind(intent);
     }
 
     @Override
     public void onTrimMemory(int level) {
-        System.out.println("AndroidService.onTrimMemory");
+        Lok.debug("AndroidService.onTrimMemory");
         super.onTrimMemory(level);
     }
 
@@ -330,12 +331,12 @@ public class AndroidService extends Service {
         meinBoot.addMeinAuthAdmin(admin);
         Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot().done(meinAuthService -> {
             N.r(() -> {
-                System.out.println("AndroidService.booted");
+                Lok.debug("AndroidService.booted");
                 AndroidService.this.meinAuthService = meinAuthService;
                 // todo debug
                 //meinAuthService.addRegisteredHandler(registeredHandler);
                 Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
-                System.out.println(t1);
+                Lok.debug(t1);
             });
         });
         return promise;

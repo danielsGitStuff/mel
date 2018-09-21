@@ -52,7 +52,7 @@ public abstract class MeinServiceWorker extends MeinService {
                 } else {
                     // wait here if no jobs are available
                     waitLock.lock();
-                    //System.out.println(getRunnableName() + "...unlocked");
+                    //Lok.debug(getRunnableName() + "...unlocked");
                 }
             }
         } catch (Exception e) {

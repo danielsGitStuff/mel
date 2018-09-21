@@ -1,5 +1,6 @@
 package de.mein.auth.tools;
 
+import de.mein.Lok;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
@@ -150,7 +151,7 @@ public class N {
                 e.printStackTrace();
                 sqlResource.close();
             } catch (SqlQueriesException e1) {
-                System.err.println("N.sqlResource.close() FAILED!");
+                Lok.error("N.sqlResource.close() FAILED!");
                 e1.printStackTrace();
             }
         }
@@ -179,7 +180,7 @@ public class N {
                 e.printStackTrace();
                 sqlResource.close();
             } catch (SqlQueriesException e1) {
-                System.err.println("N.sqlResource.close() FAILED!");
+                Lok.error("N.sqlResource.close() FAILED!");
                 e1.printStackTrace();
             }
         } finally {
@@ -216,7 +217,7 @@ public class N {
                 e.printStackTrace();
                 sqlResource.close();
             } catch (SqlQueriesException e1) {
-                System.err.println("N.sqlResource.close() FAILED!");
+                Lok.error("N.sqlResource.close() FAILED!");
                 e1.printStackTrace();
             }
         }
@@ -251,12 +252,12 @@ public class N {
     }
 
     public static void main(String[] args) {
-        N runner = new N(e -> System.out.println("NoTryRunner.main." + e.getMessage()));
+        N runner = new N(e -> Lok.debug("NoTryRunner.main." + e.getMessage()));
         runner.runTry(() -> {
             List<String> list = (ArrayList) ((Object) 12);
-            System.out.println(list);
+            Lok.debug(list);
         });
-        System.out.println("NoTryRunner.main.end");
+        Lok.debug("NoTryRunner.main.end");
     }
 
     //####

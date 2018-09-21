@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.N;
@@ -41,16 +42,16 @@ public abstract class MeinWorker extends DeferredRunnable {
                     if (workDonePromise != null)
                         N.s(() -> workDonePromise.resolve(null));
                     N.r(() -> waitLock.lock());
-                    //System.out.println(getRunnableName() + "...unlocked");
+                    //Lok.debug(getRunnableName() + "...unlocked");
                 }
             }
             if (workDonePromise != null) {
                 RWLock shutDownLock = new RWLock().lockWrite();
                 workDonePromise.done(result -> shutDownLock.unlockWrite());
                 shutDownLock.lockWrite();
-                System.out.println("MeinWorker.runImpl.work done. shutting down");
+                Lok.debug("MeinWorker.runImpl.work done. shutting down");
             }
-            System.out.println(getClass().getSimpleName() + " has finished");
+            Lok.debug(getClass().getSimpleName() + " has finished");
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -173,8 +173,8 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
 
     public static class AAAAA {
         public static void main(String[] args) {
-            System.out.println(new JFXPanel());
-            System.out.println("AbstractMergeListCell.main");
+            Lok.debug(new JFXPanel());
+            Lok.debug("AbstractMergeListCell.main");
             Platform.runLater(() -> N.r(() -> {
                 javafx.stage.Stage stage = new javafx.stage.Stage();
                 HBox root = new HBox();

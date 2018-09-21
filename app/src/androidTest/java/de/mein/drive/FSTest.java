@@ -44,7 +44,7 @@ public class FSTest {
             byte[] bytes = new byte[4];
             fis.read(bytes);
             String result = new String(bytes);
-            System.out.println(result);
+            Lok.debug(result);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

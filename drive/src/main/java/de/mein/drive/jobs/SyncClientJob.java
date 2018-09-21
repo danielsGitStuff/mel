@@ -1,5 +1,6 @@
 package de.mein.drive.jobs;
 
+import de.mein.Lok;
 import de.mein.auth.jobs.Job;
 
 /**
@@ -9,7 +10,7 @@ public class SyncClientJob extends Job {
     private Long newVersion;
 
     public SyncClientJob(){
-        System.out.println("SyncClientJob.SyncClientJob");
+        Lok.debug("SyncClientJob.SyncClientJob");
     }
 
     public SyncClientJob(Long newVersion) {

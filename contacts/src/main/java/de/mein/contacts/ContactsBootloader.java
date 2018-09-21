@@ -1,5 +1,6 @@
 package de.mein.contacts;
 
+import de.mein.Lok;
 import de.mein.auth.data.ClientData;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
@@ -48,7 +49,7 @@ public class ContactsBootloader extends BootLoader {
             N runner = new N(e -> {
                 meinAuthService.unregisterMeinService(service.getId().v());
                 N.r(() -> meinAuthService.getDatabaseManager().deleteService(service.getId().v()));
-                System.out.println("ContactsBootloader.createService.service.deleted:something.failed");
+                Lok.debug("ContactsBootloader.createService.service.deleted:something.failed");
                 waitLock.unlock();
             });
             runner.runTry(() -> meinAuthService.connect(contactsSettings.getClientSettings().getServerCertId())

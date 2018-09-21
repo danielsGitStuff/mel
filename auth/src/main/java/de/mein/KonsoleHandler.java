@@ -56,7 +56,7 @@ public class KonsoleHandler {
 		} else {
 			File jsonFile = new File(jsonPath);
 			if (jsonFile.exists()) {
-				System.out.println("KonsoleHandler.start.loading settings from file: " + jsonFile.getAbsolutePath());
+				Lok.debug("KonsoleHandler.start.loading settings from file: " + jsonFile.getAbsolutePath());
 				meinAuthSettings = (MeinAuthSettings) MeinAuthSettings.load(jsonFile);
 			} else
 				meinAuthSettings = MeinAuthSettings.createDefaultSettings();
@@ -81,9 +81,9 @@ public class KonsoleHandler {
 	}
 
 	private void displayHelp() {
-		System.out.println("MeinAuth Help: available arguments:");
+		Lok.debug("MeinAuth Help: available arguments:");
 		for (Pair<String> parameter : parameters) {
-			System.out.println(parameter.k() + ": " + parameter.v());
+			Lok.debug(parameter.k() + ": " + parameter.v());
 		}
 	}
 }

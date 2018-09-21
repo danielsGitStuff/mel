@@ -20,7 +20,7 @@ public class CryptorTest {
         final String original = "bla";
         byte[] encrypted = Cryptor.encrypt(certificateManager.getPublicKey(), original);
         String decrypted = Cryptor.decrypt(certificateManager.getPrivateKey(), encrypted);
-        System.out.println("CertificateManagerTest.encrypt:" + decrypted);
+        Lok.debug("CertificateManagerTest.encrypt:" + decrypted);
         assertEquals(original, decrypted);
     }
 

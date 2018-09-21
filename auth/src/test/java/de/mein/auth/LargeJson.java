@@ -57,14 +57,14 @@ public class LargeJson {
 //
 //                @Override
 //                public void onMessage(MeinSocket meinSocket, String msg) {
-//                    System.out.println("LargeJson.onMessage: " + msg);
+//                    Lok.debug("LargeJson.onMessage: " + msg);
 //                    assertEquals(largeJson, msg);
 //                    waitLock.unlock().unlock();
 //                }
 //
 //                @Override
 //                public void onOpen() {
-//                    System.out.println("LargeJson.onOpen");
+//                    Lok.debug("LargeJson.onOpen");
 //                }
 //
 //                @Override
@@ -96,7 +96,7 @@ public class LargeJson {
 //
 //        String json = largeJson;
 //        meinSocketSend.send(json);
-//        System.out.println("LargeJson.json." + json.length());
+//        Lok.debug("LargeJson.json." + json.length());
 //        new WaitLock().lock().lock();
 //    }
 
@@ -105,7 +105,7 @@ public class LargeJson {
         int MAX_CHARS = 3;
         String s = json.substring(0, MAX_CHARS);
         json = json.substring(MAX_CHARS, json.length());
-        System.out.println("LargeJson.bla");
+        Lok.debug("LargeJson.bla");
     }
 
     private String createLargeJson() throws JsonSerializationException, IllegalAccessException {

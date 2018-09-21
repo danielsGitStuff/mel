@@ -1,5 +1,6 @@
 package de.mein.drive.index.watchdog;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.service.MeinDriveService;
@@ -28,7 +29,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
         try {
             Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
-            System.out.println("IndexWatchdogListener.foundDirectory: " + path.toString());
+            Lok.debug("IndexWatchdogListener.foundDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -56,15 +57,15 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
                             AFile file = AFile.instance(absolutePath);
                             // todo debug
-                            System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
+                            Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
                                 if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed())
                                     watchDogTimer.start();
-                                System.out.println("ignored/broken WatchService");
+                                Lok.debug("ignored/broken WatchService");
                             } else {
                                 analyze(event, file);
-                                System.out.println("analyzed");
+                                Lok.debug("analyzed");
                             }
                         }
                         watchKey.reset();
@@ -86,7 +87,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
         try {
             Path path = Paths.get(dir.getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
-//            System.out.println("IndexWatchdogListener.watchDirectory: " + path.toString());
+//            Lok.debug("IndexWatchdogListener.watchDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -94,7 +95,7 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
 
     @Override
     public void onTimerStopped() {
-        System.out.println("IndexWatchdogListener.onTimerStopped");
+        Lok.debug("IndexWatchdogListener.onTimerStopped");
         PathCollection pathCollection = new PathCollection();
 
         try {

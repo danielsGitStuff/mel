@@ -1,5 +1,6 @@
 package de.mein.drive;
 
+import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
@@ -55,7 +56,7 @@ public class DriveCreateController {
             waitLock.unlock();
         });
         waitLock.lock();
-        System.out.println("DriveCreateController.boot.booted");
+        Lok.debug("DriveCreateController.boot.booted");
     }
 
     public MeinDriveServerService createDriveServerService(String name, AFile rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
@@ -104,19 +105,19 @@ public class DriveCreateController {
 
         // approve server
         meinAuthService.getDatabaseManager().grant(service.getId().v(), certId);
-        System.out.println("DriveCreateController.createDriveClientService");
-        System.out.println("approve successful? " + meinAuthService.getDatabaseManager().isApproved(certId, service.getId().v()));
+        Lok.debug("DriveCreateController.createDriveClientService");
+        Lok.debug("approve successful? " + meinAuthService.getDatabaseManager().isApproved(certId, service.getId().v()));
 
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
         DriveDetails driveDetails = new DriveDetails().setRole(DriveStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.getUuid().v());
         connected.done(validationProcess -> runner.runTry(() -> validationProcess.request(serviceUuid, DriveStrings.INTENT_REG_AS_CLIENT, driveDetails).done(result -> runner.runTry(() -> {
-            System.out.println("DriveCreateController.createDriveClientServiceAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            Lok.debug("DriveCreateController.createDriveClientServiceAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             driveSettings.getClientSettings().setServerCertId(certId).setServerServiceUuid(serviceUuid);
             driveSettings.save();
             meinDriveClientService.start();
             deferred.resolve(meinDriveClientService);
         })))).fail(result -> runner.runTry(() -> {
-            System.out.println("DriveCreateController.createDriveClientService.FAIL");
+            Lok.debug("DriveCreateController.createDriveClientService.FAIL");
             result.printStackTrace();
             meinAuthService.getDatabaseManager().revoke(service.getId().v(), certId);
             deferred.reject(result);

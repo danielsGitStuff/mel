@@ -130,7 +130,7 @@ public abstract class CachedData implements IPayload {
     }
 
     public void cleanUp() {
-//        System.out.println("CachedData.cleanUp(). SKIPPING DELETE for debug reaons");
+//        Lok.debug("CachedData.cleanUp(). SKIPPING DELETE for debug reaons");
         part = null;
         partCount = 0;
         for (int i = 0; i < partCount; i++) {

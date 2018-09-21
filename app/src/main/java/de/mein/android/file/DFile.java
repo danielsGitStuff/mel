@@ -28,6 +28,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 
+import de.mein.Lok;
 import de.mein.android.drive.data.NC;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
@@ -65,7 +66,7 @@ public class DFile extends AFile {
 
     public DFile(DFile originalFile) {
         if (originalFile == null) {
-            System.out.println("DFile.DFile");
+            Lok.debug("DFile.DFile");
         }
         this.name = originalFile.name;
         this.uri = originalFile.uri;
@@ -86,7 +87,7 @@ public class DFile extends AFile {
     @Deprecated
     public DFile(String path) {
         if (path.equals("content://com.android.externalstorage.documents/tree/1A16-1611%3Athisisexternal/document/1A16-1611%3Athisisexternal%2Fttransfer"))
-            System.out.println("DFile.DFile.debug");
+            Lok.debug("DFile.DFile.debug");
         uri = Uri.parse(path);
         if (uri.getAuthority() == null) {
             DocumentFile documentFile = DocumentFile.fromFile(new File(path));
@@ -112,7 +113,7 @@ public class DFile extends AFile {
     public DFile(DFile parent, String name) {
         //todo debug
         if (name.equals(DriveStrings.TRANSFER_DIR))
-            System.out.println("DFile.DFile");
+            Lok.debug("DFile.DFile");
         this.name = name;
         this.parent = parent;
         this.rawFile = parent.rawFile;
@@ -234,7 +235,7 @@ public class DFile extends AFile {
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
             e.printStackTrace();
         }
-        System.out.println("DFile.spawnDoc('" + documentFile.getName() + "')");
+        Lok.debug("DFile.spawnDoc('" + documentFile.getName() + "')");
     }
 
     @Override

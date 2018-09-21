@@ -4,6 +4,7 @@ import android.os.FileObserver;
 
 import java.io.File;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
@@ -29,7 +30,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
 
     @Override
     public void watchDirectory(AFile dir) {
-//        System.out.println("AndroidWatchdogListener.watchDirectory");
+//        Lok.debug("AndroidWatchdogListener.watchDirectory");
         if (!watchesRoot)
             try {
                 watchesRoot = true;
@@ -62,7 +63,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
                 || FileObserver.MOVED_FROM == event) {
             ignoredSemaphore.acquire();
             if (!ignoredMap.containsKey(path)) {
-                System.out.println("AndroidWatchdogListener.analyzeEvent: " + path);
+                Lok.debug("AndroidWatchdogListener.analyzeEvent: " + path);
                 pathCollection.addPath(path);
                 if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed()) {
                     watchDogTimer.start();
@@ -74,7 +75,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
 
     @Override
     public void foundDirectory(FsDirectory fsDirectory) {
-        System.out.println("AndroidWatchdogListener.foundDirectory");
+        Lok.debug("AndroidWatchdogListener.foundDirectory");
     }
 
     @Override
@@ -84,13 +85,13 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
 
     @Override
     public void runImpl() {
-        System.out.println("AndroidWatchdogListener.run.nothing to do :)");
+        Lok.debug("AndroidWatchdogListener.run.nothing to do :)");
         RWLock lock = new RWLock();
         lock.lockWrite();
         while (!Thread.currentThread().isInterrupted()) {
             lock.lockWrite();
         }
-        System.out.println("AndroidWatchdogListener.run.stop");
+        Lok.debug("AndroidWatchdogListener.run.stop");
         fileObserver.stopWatching();
     }
 

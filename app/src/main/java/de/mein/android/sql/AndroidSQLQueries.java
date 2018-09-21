@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.Pair;
@@ -330,7 +331,7 @@ public class AndroidSQLQueries extends ISQLQueries {
                     else if (a.getClass().equals(Integer.class))
                         values[pos] = (Short) a;
                     else {
-                        System.out.println("AndroidSQLQueries.argsToAndroidValues.TYPE:CONVERSION:FAILED:FOR: " + a.getClass().getSimpleName());
+                        Lok.debug("TYPE:CONVERSION:FAILED:FOR: " + a.getClass().getSimpleName());
                     }
                 }
                 pos++;

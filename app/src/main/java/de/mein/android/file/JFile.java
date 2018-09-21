@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import de.mein.Lok;
 import de.mein.android.Tools;
 import de.mein.android.service.CopyService;
 import de.mein.auth.file.AFile;
@@ -26,7 +27,7 @@ public class JFile extends AFile<JFile> {
 
     public JFile(String path) {
         if (path == null)
-            System.out.println("JFile.JFile.debu.null");
+            Lok.debug("JFile.JFile.debu.null");
         file = new File(path);
     }
 
@@ -101,11 +102,11 @@ public class JFile extends AFile<JFile> {
 //            NC.iterate(cursor, (cursor1, stoppable) -> {
 //                N.forLoop(0, cursor1.getCount(), (stoppable1, index) -> {
 //                    results.add(new Pair<String>(String.class, cursor1.getColumnName(index), cursor1.getString(index)));
-//                    System.out.println("JFile.move.loop." + index);
+//                    Lok.debug("JFile.move.loop." + index);
 //                });
 //            });
 
-            System.out.println("JFile.move");
+            Lok.debug("JFile.move");
 
 //                DocumentsContract.moveDocument(Tools.getApplicationContext().getContentResolver(),sourceDoc.getUri(),sourceParent,targetParent);
 //            BashTools.mv(file,target.file);
@@ -121,15 +122,15 @@ public class JFile extends AFile<JFile> {
 //            NC.iterate(cursor, (cursor1, stoppable) -> {
 //                data.v(cursor1.getString(0));
 //                id.v(cursor1.getString(1));
-//                System.out.println("JFile.move");
+//                Lok.debug("JFile.move");
 //                stoppable.stop();
 //            });
 //            String modified = data.v() + ".renamed";
-//            System.out.println("JFile.move... "+modified);
+//            Lok.debug("JFile.move... "+modified);
 //            ContentValues values = new ContentValues();
 //            values.put("_data", modified);
 //            int ren = resolver.update(u, values, "_data=?", new String[]{data.v()});
-            System.out.println("JFile.move.");
+            Lok.debug("JFile.move.");
         } catch (Exception e) {
             e.printStackTrace();
         }

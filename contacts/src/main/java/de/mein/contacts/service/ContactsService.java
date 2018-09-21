@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.file.AFile;
@@ -44,17 +45,17 @@ public abstract class ContactsService extends MeinService {
 
     @Override
     public void connectionAuthenticated(Certificate partnerCertificate) {
-        System.out.println("ContactsService.connectionAuthenticated");
+        Lok.debug("ContactsService.connectionAuthenticated");
     }
 
     @Override
     public void handleCertificateSpotted(Certificate partnerCertificate) {
-        System.out.println("ContactsService.handleCertificateSpotted");
+        Lok.debug("ContactsService.handleCertificateSpotted");
     }
 
     @Override
     public void onMeinAuthIsUp() {
-        System.out.println("ContactsService.onMeinAuthIsUp");
+        Lok.debug("ContactsService.onMeinAuthIsUp");
     }
 
     @Override

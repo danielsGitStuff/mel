@@ -1,5 +1,6 @@
 package de.mein.auth.broadcast;
 
+import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.IMeinService;
@@ -78,9 +79,9 @@ public class MeinAuthBrotCaster extends BrotCaster {
     private Certificate findCertificate(String greeting) throws SqlQueriesException {
         List<Certificate> possibleCertificates = meinAuthService.getCertificateManager().getCertificatesByGreeting(greeting);
         if (possibleCertificates.size() == 0)
-            System.out.println("MeinAuthBrotCaster.findCertificate.don't know that guy");
+            Lok.debug("MeinAuthBrotCaster.findCertificate.don't know that guy");
         else if (possibleCertificates.size() > 1)
-            System.out.println("MeinAuthBrotCaster.findCertificate.know too many of these guys");
+            Lok.debug("MeinAuthBrotCaster.findCertificate.know too many of these guys");
         else {
             return possibleCertificates.get(0);
         }
@@ -130,7 +131,7 @@ public class MeinAuthBrotCaster extends BrotCaster {
     @Override
     protected void handleMessage(DatagramPacket packet, byte[] buf) {
         String brotCast = new String(buf);
-        System.out.println(meinAuthService.getName() + ".MeinAuthBrotCaster.handleMessage.msg: '" + brotCast + "' from address " + packet.getAddress().getHostName());
+        Lok.debug(meinAuthService.getName() + ".MeinAuthBrotCaster.handleMessage.msg: '" + brotCast + "' from address " + packet.getAddress().getHostName());
         try {
             if (!handleDiscover(packet))
                 if (!handleDiscoverAnswer(packet))

@@ -14,7 +14,7 @@ public abstract class WaitingDeferredRunnable extends DeferredRunnable {
         thread.setName(getRunnableName());
         countdownLock.lock();
         runImpl();
-        System.out.println(getClass().getSimpleName() + ".run.done on " + thread.getName());
+        Lok.debug(getClass().getSimpleName() + ".run.done on " + thread.getName());
     }
 
     public void begin() {

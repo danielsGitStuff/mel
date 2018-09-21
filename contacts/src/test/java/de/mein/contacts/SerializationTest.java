@@ -38,7 +38,7 @@ public class SerializationTest {
         contact.addAppendix(appendix);
         contact.getHash().v("hurrdurr");
         String json = SerializableEntitySerializer.serialize(contact);
-        System.out.println(json);
+        Lok.debug(json);
         assertEquals("{\"$id\":1,\"__type\":\"de.mein.contacts.data.db.Contact\",\"appendices\":[{\"$id\":2,\"__type\":\"de.mein.contacts.data.db.ContactAppendix\",\"blob\":\"AQIDBA==\",\"dataCols\":[\"0\",\"1\",\"2\",\"3\",\"4\",null,\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\"]}],\"hash\":\"hurrdurr\"}", json);
         return json;
     }
@@ -55,7 +55,7 @@ public class SerializationTest {
         assertEquals("data4", pair3.k());
         assertEquals("3", pair3.v());
         assertNull(pair5.v());
-        System.out.println("SerializationTest.deserialize");
+        Lok.debug("SerializationTest.deserialize");
     }
 
 }

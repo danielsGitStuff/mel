@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.transfer;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
@@ -86,7 +87,7 @@ public class FileTransferDetail implements SerializableEntity {
         assertCheck();
         //todo debug
         if (file.getName().equals("same1.txt"))
-            System.err.println("MeinIsolatedFileProcess.addFilesReceiving.debug");
+            Lok.error("MeinIsolatedFileProcess.addFilesReceiving.debug");
     }
 
     public FileTransferDetail setHash(String hash) {

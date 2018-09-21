@@ -1,5 +1,6 @@
 package de.mein.auth.tools;
 
+import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
 import de.mein.core.serialize.serialize.reflection.FieldAnalyzer;
@@ -64,14 +65,14 @@ public abstract class BackgroundExecutor {
                 });
             //threadSemaphore.acquire();
             //if (threadQueue.size() > 1) {
-              //  System.out.println("BackgroundExecutor.execute");
+              //  Lok.debug("BackgroundExecutor.execute");
             //}
             //threadQueue.add(new MeinThread(runnable));
             threadSemaphore.release();
             //todo debug
             RunnableWrapper wrapper = new RunnableWrapper(runnable);
             if (wrapper.meinRunnable.getRunnableName().toLowerCase().startsWith("meindriveclientservice for test"))
-                System.out.println("BackgroundExecutor.execute.debugkßc3ß4");
+                Lok.debug("BackgroundExecutor.execute.debugkßc3ß4");
             executorService.execute(wrapper);
         } catch (Exception e) {
             e.printStackTrace();

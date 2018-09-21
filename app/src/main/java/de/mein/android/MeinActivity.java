@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.mein.Lok;
 import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.MeinStrings;
@@ -111,7 +112,7 @@ public abstract class MeinActivity extends AppCompatActivity
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             AndroidService.LocalBinder localBinder = (AndroidService.LocalBinder) service;
             androidService = localBinder.getService();
-            System.out.println("MeinActivity.onServiceConnected: " + androidService.toString());
+            Lok.debug(".onServiceConnected: " + androidService.toString());
 //            if (guiController != null)
 //                guiController.onAndroidServiceBound(androidService);
         }
@@ -194,7 +195,7 @@ public abstract class MeinActivity extends AppCompatActivity
             } else {
                 deferred.resolve(null);
             }
-            System.out.println(AndroidDriveBootloader.class.getSimpleName() + ".askForPermission()?: " + request);
+            Lok.debug(".askForPermission()?: " + request);
         } else {
             deferred.resolve(null);
         }

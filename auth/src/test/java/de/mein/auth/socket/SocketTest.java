@@ -55,7 +55,7 @@ public class SocketTest {
 
                     @Override
                     public void onMessage(MeinSocket meinSocket, String msg) {
-                        System.out.println("SocketTest.onMessage: " + msg);
+                        Lok.debug("SocketTest.onMessage: " + msg);
                         onUTFsent.resolve(null);
                         //lock.unlockWrite();
                     }
@@ -92,9 +92,9 @@ public class SocketTest {
 
                 onUTFsent.done(result -> {
                     try {
-                        System.out.println("SocketTest.sendFile1");
-                        System.out.println("SocketTest.sendFile.reMode");
-                        System.out.println("SocketTest.sendFile.reMode.END");
+                        Lok.debug("SocketTest.sendFile1");
+                        Lok.debug("SocketTest.sendFile.reMode");
+                        Lok.debug("SocketTest.sendFile.reMode.END");
 
 
                         DataOutputStream output = new DataOutputStream(s1.getOutputStream());
@@ -120,11 +120,11 @@ public class SocketTest {
 //        output.write(bytes);
 //        output.flush();
 
-        System.out.println("SocketTest.sendFile2");
+        Lok.debug("SocketTest.sendFile2");
 //        MeinAuthSocket meinAuthSocket = new MeinAuthSocket(new MeinAuthService(new MeinAuthSettings()),s1);
 //        meinAuthSocket.
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("SocketTest.sendFile.END");
+        Lok.debug("SocketTest.sendFile.END");
     }
 }

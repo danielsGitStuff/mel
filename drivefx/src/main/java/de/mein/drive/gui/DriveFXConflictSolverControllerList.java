@@ -27,7 +27,7 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
 
     @Override
     public String onOkCLicked() {
-        System.out.println("DriveFXConflictSolverController.onOkCLicked");
+        Lok.debug("DriveFXConflictSolverController.onOkCLicked");
         if (conflictSolver.isSolved()) {
             CommitJob commitJob = new CommitJob();
             meinDriveClientService.addJob(commitJob);
@@ -44,7 +44,7 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
         conflictSolver = (ConflictSolver) notification.getContent();
         for (ConflictSolver conflictSolver : meinDriveClientService.getConflictSolverMap().values()) {
             this.conflictSolver = conflictSolver;
-            System.out.println("DriveFXConflictSolverController.init");
+            Lok.debug("DriveFXConflictSolverController.init");
             AbstractMergeListCell.setup(listLeft, listMerge, listRight);
             List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
             listLeft.getItems().addAll(conflicts);

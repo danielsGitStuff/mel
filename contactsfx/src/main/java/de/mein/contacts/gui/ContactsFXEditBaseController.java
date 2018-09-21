@@ -19,14 +19,14 @@ public abstract class ContactsFXEditBaseController extends ServiceSettingsFX<Con
 
     @Override
     public void init() {
-        System.out.println("ContactsFXEditBaseController.init");
+        Lok.debug("ContactsFXEditBaseController.init");
     }
 
     @Override
     public void feed(ServiceJoinServiceType serviceJoinServiceType) {
         super.feed(serviceJoinServiceType);
         lblRole.setText(this.service.getSettings().getRole());
-        System.out.println("ContactsFXEditBaseController.feed");
+        Lok.debug("ContactsFXEditBaseController.feed");
         lblHint.prefWidthProperty().bind(pane.widthProperty());
     }
 

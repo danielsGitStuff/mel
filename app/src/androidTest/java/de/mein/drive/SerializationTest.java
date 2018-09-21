@@ -27,6 +27,6 @@ public class SerializationTest {
         obj.strings.add("AAA");
         obj.strings.add("BBB");
         String json = SerializableEntitySerializer.serialize(obj);
-        System.out.println(json);
+        Lok.debug(json);
     }
 }

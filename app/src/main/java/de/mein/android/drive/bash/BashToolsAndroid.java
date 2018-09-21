@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
@@ -73,13 +74,13 @@ public class BashToolsAndroid extends BashToolsUnix {
     private Streams testCommand(String cmd) throws IOException, InterruptedException {
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
-        System.out.println("BashToolsUnix.exec: " + cmd);
+        Lok.debug("BashToolsUnix.exec: " + cmd);
         Process proc = new ProcessBuilder(args).start();
         proc.waitFor();
         if (proc.exitValue() != 0) {
             throw new BashToolsException(proc);
         }
-        System.out.println("BashTest.exec." + proc.exitValue());
+        Lok.debug("BashTest.exec." + proc.exitValue());
         Streams streams = new Streams();
         streams.stdout = BashTools.inputStreamToFileIterator(proc.getInputStream());
         streams.stderr = BashTools.inputStreamToIterator(proc.getErrorStream());

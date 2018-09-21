@@ -1,5 +1,6 @@
 package de.mein.contacts.service;
 
+import de.mein.Lok;
 import de.mein.auth.data.ClientData;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
@@ -46,7 +47,7 @@ public class ContactsServerService extends ContactsService {
 
     @Override
     protected void workWork(Job job) throws Exception {
-        System.out.println("ContactsServerService.workWork.nothing here yet");
+        Lok.debug("ContactsServerService.workWork.nothing here yet");
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
         ContactsSettings settings = databaseManager.getSettings();
         if (job instanceof AnswerQueryJob) {
@@ -106,7 +107,7 @@ public class ContactsServerService extends ContactsService {
 
     @Override
     public void handleRequest(Request request) throws Exception {
-        System.out.println(getClass().getSimpleName() + ".handleRequest");
+        Lok.debug(getClass().getSimpleName() + ".handleRequest");
         if (request.hasIntent(ContactStrings.INTENT_QUERY)) {
             addJob(new AnswerQueryJob(request));
         } else if (request.hasIntent(ContactStrings.INTENT_UPDATE)) {

@@ -1,5 +1,6 @@
 package de.mein.drive.index;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.Order;
 import de.mein.drive.bash.BashTools;
@@ -61,7 +62,7 @@ public class IndexerRunnable extends AbstractIndexer {
     @Override
     public void runImpl() {
         try {
-            System.out.println("IndexerRunnable.runTry.roaming");
+            Lok.debug("IndexerRunnable.runTry.roaming");
             // if root directory does not exist: create one
             FsDirectory fsRoot; //= databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
             if (rootDirectory.getId() == null) {
@@ -90,10 +91,10 @@ public class IndexerRunnable extends AbstractIndexer {
             }
 
 
-            System.out.println("IndexerRunnable.runTry.save in mem db");
+            Lok.debug("IndexerRunnable.runTry.save in mem db");
             for (IndexListener listener : listeners)
                 listener.done(stageSetId);
-            System.out.println("IndexerRunnable.runTry.done");
+            Lok.debug("IndexerRunnable.runTry.done");
             startedPromise.resolve(this);
         } catch (Exception e) {
             e.printStackTrace();

@@ -2,6 +2,7 @@ package de.mein.contacts.data.db.dao;
 
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.sql.Dao;
@@ -33,7 +34,7 @@ public class PhoneBookDao extends Dao {
         phoneBook.getOriginal().v(original);
         Long id = sqlQueries.insert(phoneBook);
         phoneBook.getId().v(id);
-        System.out.println("PhoneBookDao.create.id=" + id + ",version=" + version);
+        Lok.debug("PhoneBookDao.create.id=" + id + ",version=" + version);
         return phoneBook;
     }
 
@@ -95,7 +96,7 @@ public class PhoneBookDao extends Dao {
     }
 
     public void deletePhoneBook(Long id) throws SqlQueriesException {
-        System.out.println("PhoneBookDao.deletePhoneBook.id=" + id);
+        Lok.debug("PhoneBookDao.deletePhoneBook.id=" + id);
         PhoneBook phoneBook = new PhoneBook();
         sqlQueries.delete(phoneBook, phoneBook.getId().k() + "=?", ISQLQueries.whereArgs(id));
     }

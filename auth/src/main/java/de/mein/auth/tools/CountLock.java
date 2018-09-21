@@ -1,5 +1,7 @@
 package de.mein.auth.tools;
 
+import de.mein.Lok;
+
 /**
  * Created by xor on 6/7/17.
  */
@@ -45,7 +47,7 @@ public class CountLock {
         synchronized (counter) {
             //todo debug
             if (counter.getCount() == 2) {
-                System.out.println("CountLock.unlock.debug");
+                Lok.debug("CountLock.unlock.debug");
             }
             if (counter.dec() < 1)
                 lock.unlock();

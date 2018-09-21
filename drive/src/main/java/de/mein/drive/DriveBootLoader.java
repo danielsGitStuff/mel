@@ -1,6 +1,7 @@
 package de.mein.drive;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.db.Service;
@@ -93,7 +94,7 @@ public class DriveBootLoader extends BootLoader {
         meinAuthService.onNotificationFromService(meinDriveService, notification);
         //exec
         meinAuthService.execute(meinDriveService);
-        System.out.println("DriveBootLoader.boot");
+        Lok.debug("DriveBootLoader.boot");
         meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
         meinDriveService.getStartedDeferred()
                 .done(result -> N.r(() -> {

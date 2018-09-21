@@ -33,8 +33,8 @@ public class BashCommandsTest {
     public void bashFind() throws Exception {
         Iterator<String> iterator = BashTools.find(new FFile(testDir), new FFile("blaaaa"));
         while (iterator.hasNext())
-            System.out.println(iterator.next());
-        System.out.println("BashCommandsTest.bashtest.end");
+            Lok.debug(iterator.next());
+        Lok.debug("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -46,7 +46,7 @@ public class BashCommandsTest {
         assertTrue(iterator.hasNext());
         iterator.next();
         assertFalse(iterator.hasNext());
-        System.out.println("BashCommandsTest.bashtest.end");
+        Lok.debug("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -56,7 +56,7 @@ public class BashCommandsTest {
         testDir.mkdirs();
         Iterator<String> iterator = BashTools.stuffModifiedAfter(new FFile(testDir), new FFile("blaa"), Long.MAX_VALUE);
         assertFalse(iterator.hasNext());
-        System.out.println("BashCommandsTest.bashtest.end");
+        Lok.debug("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -67,11 +67,11 @@ public class BashCommandsTest {
         while (iterator.hasNext()) {
             String path = iterator.next();
             String expected = expectedIterator.next();
-            System.out.println(path + " vs " + expected);
+            Lok.debug(path + " vs " + expected);
             assertEquals(expected, path);
         }
         assertFalse(expectedIterator.hasNext());
-        System.out.println("BashCommandsTest.bashtest.end");
+        Lok.debug("BashCommandsTest.bashtest.end");
     }
 
     @Test
@@ -81,8 +81,8 @@ public class BashCommandsTest {
         File dir = new File(testDir.getAbsoluteFile() + File.separator + "ttttttt");
         dir.mkdirs();
         Long t2 = testDir.lastModified();
-        System.out.println("before: " + t1);
-        System.out.println("after : " + t2);
+        Lok.debug("before: " + t1);
+        Lok.debug("after : " + t2);
         assertTrue(t1 < t2);
     }
 
@@ -95,10 +95,10 @@ public class BashCommandsTest {
         testDir.renameTo(new File(dir.getAbsolutePath() + File.separator + "movedTest"));
         Long t2 = dir.lastModified();
         Long tt2 = testDir.lastModified();
-        System.out.println("upper dir before: " + t1);
-        System.out.println("upper dir after : " + t2);
-        System.out.println("moved dir before: " + tt1);
-        System.out.println("moved dir after : " + tt2);
+        Lok.debug("upper dir before: " + t1);
+        Lok.debug("upper dir after : " + t2);
+        Lok.debug("moved dir before: " + tt1);
+        Lok.debug("moved dir after : " + tt2);
         assertEquals(t1, t2);
         assertEquals(tt1, tt2);
     }

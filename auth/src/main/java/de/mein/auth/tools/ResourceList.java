@@ -11,6 +11,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import de.mein.Lok;
+
 /**
  * list resources available from the classpath @ *
  */
@@ -26,7 +28,7 @@ public class ResourceList {
     public static Collection<String> getResources(final Pattern pattern) {
         final ArrayList<String> retval = new ArrayList<String>();
         final String classPath = System.getProperty("java.class.path", ".");
-        System.out.println("ResourceList.getResources.from: "+classPath);
+        Lok.debug("ResourceList.getResources.from: "+classPath);
         final String[] classPathElements = classPath.split(System.getProperty("path.separator"));
         for (final String element : classPathElements) {
             retval.addAll(getResources(element, pattern));
@@ -103,7 +105,7 @@ public class ResourceList {
      */
     public static void main(final String[] args) {
         URL r = ResourceList.class.getClassLoader().getResource("sql.sql");
-        System.out.println("url: "+r);
+        Lok.debug("url: "+r);
         Pattern pattern;
         if (args.length < 1) {
             pattern = Pattern.compile(".*sql$");
@@ -112,7 +114,7 @@ public class ResourceList {
         }
         final Collection<String> list = ResourceList.getResources(pattern);
         for (final String name : list) {
-            System.out.println(name);
+            Lok.debug(name);
         }
     }
 }

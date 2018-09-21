@@ -1,5 +1,6 @@
 package de.mein.drive.service;
 
+import de.mein.Lok;
 import de.mein.auth.tools.N;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
@@ -84,7 +85,7 @@ public class Wastebin {
         GenericFSEntry genericFSEntry = fsDao.getGenericById(fsId);
         //todo debug
         if (genericFSEntry == null)
-            System.out.println("Wastebin.deleteFsEntry.debug1");
+            Lok.debug("Wastebin.deleteFsEntry.debug1");
         if (genericFSEntry != null) {
             if (genericFSEntry.getIsDirectory().v())
                 deleteDirectory((FsDirectory) genericFSEntry.ins());
@@ -201,7 +202,7 @@ public class Wastebin {
     private void moveToBin(AFile file, String contentHash, ModifiedAndInode modifiedAndInode) throws SqlQueriesException {
         //todo debug
         if (contentHash.equals("9471e9c1779a51bb6fcb5735127c0701"))
-            System.out.println("Wastebin.moveToBin.debugjfc03jg0w");
+            Lok.debug("Wastebin.moveToBin.debugjfc03jg0w");
         Waste waste = new Waste();
         waste.getModified().v(modifiedAndInode.getModified());
         waste.getHash().v(contentHash);
@@ -218,7 +219,7 @@ public class Wastebin {
     private void recursiveDelete(AFile dir) throws SqlQueriesException, IOException, InterruptedException {
         //todo debug
         if (dir.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir/samesub"))
-            System.out.println("Wastebin.recursiveDelete.debugnfi34fa");
+            Lok.debug("Wastebin.recursiveDelete.debugnfi34fa");
         FsDirectory fsDirectory = fsDao.getFsDirectoryByPath(dir);
         AFile[] files = dir.listFiles();
         for (AFile f : files) {
@@ -292,7 +293,7 @@ public class Wastebin {
     private AFile getWasteFile(Waste waste) {
         //todo debug
         if (waste == null || waste.getHash().isNull())
-            System.out.println("Wastebin.getWasteFile.debug.1");
+            Lok.debug("Wastebin.getWasteFile.debug.1");
         return AFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
     }
 

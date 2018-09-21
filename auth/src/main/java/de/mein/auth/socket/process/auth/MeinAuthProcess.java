@@ -1,5 +1,24 @@
 package de.mein.auth.socket.process.auth;
 
+import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.List;
+import java.util.UUID;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.IsolationDetails;
 import de.mein.auth.data.MeinRequest;
@@ -23,20 +42,6 @@ import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
-
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * handles authentication of incoming and outgoing connections
@@ -99,14 +104,14 @@ public class MeinAuthProcess extends MeinProcess {
                                         MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
                                         send(response);
                                         // done here, set up validationprocess
-                                        System.out.println(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
+                                        Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
                                         MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate);
                                         // tell MAS we are connected & authenticated
                                         meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
                                         // propagate that we are connected!
                                         propagateAuthentication(this.partnerCertificate);
                                     } else {
-                                        System.out.println("MeinAuthProcess.isolation.onMessageReceived");
+                                        Lok.debug("MeinAuthProcess.isolation.onMessageReceived");
                                         IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
                                         Class<? extends MeinIsolatedProcess> isolatedClass = (Class<? extends MeinIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
                                         MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());
@@ -127,7 +132,7 @@ public class MeinAuthProcess extends MeinProcess {
                         e.printStackTrace();
                     }
                 } else
-                    System.out.println("MeinAuthProcess.onMessageReceived.ELSE1");
+                    Lok.debug("MeinAuthProcess.onMessageReceived.ELSE1");
         } catch (Exception e) {
             try {
                 socket.disconnect();
@@ -196,7 +201,7 @@ public class MeinAuthProcess extends MeinProcess {
                                     // propagate that we are connected!
                                     propagateAuthentication(partnerCertificate);
                                     // done here, set up validationprocess
-                                    System.out.println(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
+                                    Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
                                     MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate);
                                     // tell MAS we are connected & authenticated
                                     meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
@@ -212,7 +217,7 @@ public class MeinAuthProcess extends MeinProcess {
                                     if (partnerCertificate.getId().v() != job.getCertificateId()) {
                                         job.getPromise().reject(new Exception("not the partner I expected"));
                                     } else {
-                                        System.out.println("MeinAuthProcess.authenticate465");
+                                        Lok.debug("MeinAuthProcess.authenticate465");
                                         IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(isolatedConnectJob.getOwnServiceUuid());
                                         Class isolatedProcessClass = isolatedConnectJob.getProcessClass();
                                         MeinIsolatedProcess meinIsolatedProcess = MeinIsolatedProcess.instance(isolatedProcessClass, meinAuthSocket, service, partnerCertificate.getId().v(), isolatedConnectJob.getRemoteServiceUuid(), isolatedConnectJob.getIsolatedUuid());
@@ -231,8 +236,8 @@ public class MeinAuthProcess extends MeinProcess {
                     });
                 } else {
                     //error stuff
-                    System.out.println("MeinAuthProcess.authenticate.error.decrypted.secret: " + r.getDecryptedSecret());
-                    System.out.println("MeinAuthProcess.authenticate.error.should.be: " + mySecret);
+                    Lok.debug("MeinAuthProcess.authenticate.error.decrypted.secret: " + r.getDecryptedSecret());
+                    Lok.debug("MeinAuthProcess.authenticate.error.should.be: " + mySecret);
                     deferred.reject(new Exception("find aok39ka"));
                 }
             });

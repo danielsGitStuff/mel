@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.bash.BashTools;
@@ -165,6 +166,8 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         }
     }
 
+    private boolean hasWrittenSinceStart = false;
+
     public void analyze(int event, Watcher watcher, String path) {
         try {
             startTimer();
@@ -179,12 +182,14 @@ public class RecursiveWatcher extends IndexWatchdogListener {
 
             if (modified || moved) {
                 watchDogTimer.waite();
-                System.out.println("RecursiveWatcher.analyze.waite");
+                hasWrittenSinceStart = true;
+                Lok.warn("waite");
             } else if (closeWrite || delete || deleteSelf) {
-                System.out.println("RecursiveWatcher.analyze.resume");
+                hasWrittenSinceStart = true;
+                Lok.warn("resume");
                 watchDogTimer.resume();
             }else {
-                System.out.println("RecursiveWatcher.analyze.nothing");
+                Lok.warn("nothing");
             }
         } catch (Exception e) {
             e.printStackTrace();

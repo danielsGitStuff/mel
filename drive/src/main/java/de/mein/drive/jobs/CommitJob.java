@@ -1,5 +1,6 @@
 package de.mein.drive.jobs;
 
+import de.mein.Lok;
 import de.mein.auth.jobs.Job;
 import de.mein.drive.data.Commit;
 
@@ -15,7 +16,7 @@ public class CommitJob extends Job {
     }
 
     public CommitJob() {
-        System.out.println("CommitJob.CommitJob");
+        Lok.debug("CommitJob.CommitJob");
     }
 
     public boolean getSyncAnyway() {

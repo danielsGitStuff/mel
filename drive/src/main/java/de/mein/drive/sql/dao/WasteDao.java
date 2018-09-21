@@ -1,5 +1,6 @@
 package de.mein.drive.sql.dao;
 
+import de.mein.Lok;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.TransferDetails;
 import de.mein.drive.sql.Waste;
@@ -62,7 +63,7 @@ public class WasteDao extends Dao.LockingDao {
     public Waste insert(Waste waste) throws SqlQueriesException {
         //todo debug
         if (!waste.getInplace().v() && waste.getName().v().equals("same1.txt"))
-            System.out.println("WasteDao.insert.debug0fj3ß4u");
+            Lok.debug("WasteDao.insert.debug0fj3ß4u");
         Long id = sqlQueries.insert(waste);
         waste.getId().v(id);
         return waste;

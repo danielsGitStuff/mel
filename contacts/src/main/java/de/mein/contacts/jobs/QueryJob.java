@@ -1,5 +1,6 @@
 package de.mein.contacts.jobs;
 
+import de.mein.Lok;
 import de.mein.auth.jobs.Job;
 
 /**
@@ -9,6 +10,6 @@ import de.mein.auth.jobs.Job;
 
 public class QueryJob extends Job<Long,Void,Void> {
     public QueryJob(){
-        System.out.println("QueryJob.QueryJob");
+        Lok.debug("QueryJob.QueryJob");
     }
 }

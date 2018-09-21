@@ -1,5 +1,6 @@
 package de.mein.auth.data.cached.data;
 
+import de.mein.Lok;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -63,7 +64,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
                 File file = createCachedPartFile(i);
                 file.delete();
             } catch (Exception e) {
-                System.err.println("CachedIterable.cleanUp.err(cacheId= " + cacheId + " part= " + part + " cacheDir.null= " + (cacheDir == null) + ")");
+                Lok.error("CachedIterable.cleanUp.err(cacheId= " + cacheId + " part= " + part + " cacheDir.null= " + (cacheDir == null) + ")");
                 e.printStackTrace();
             }
         }

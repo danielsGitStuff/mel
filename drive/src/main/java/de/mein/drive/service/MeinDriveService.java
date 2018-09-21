@@ -1,6 +1,7 @@
 package de.mein.drive.service;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
@@ -290,7 +291,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void start() {
-        System.out.println("MeinDriveService.start");
+        Lok.debug("MeinDriveService.start");
         super.start();
     }
 

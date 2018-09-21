@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import java.sql.SQLException;
 
+import de.mein.Lok;
 import de.mein.sql.SQLStatement;
 import de.mein.sql.conn.SQLResultSet;
 
@@ -31,7 +32,7 @@ public class AndroiDBStatement extends SQLStatement {
 
     @Override
     public void setObject(int pos, Object o) throws SQLException {
-        System.out.println("AndroiDBStatement.setObject:NOT:IMPLEMENTED");
+        Lok.debug("AndroiDBStatement.setObject:NOT:IMPLEMENTED");
     }
 
     @Override

@@ -28,14 +28,14 @@ public class ThreadTest {
 
         @Override
         public synchronized void start() {
-            System.out.println("TestThread.start");
+            Lok.debug("TestThread.start");
             super.start();
         }
 
 
         @Override
         public void interrupt() {
-            System.out.println("TestThread.interrupt");
+            Lok.debug("TestThread.interrupt");
             super.interrupt();
         }
 
@@ -46,13 +46,13 @@ public class ThreadTest {
 
         @Override
         public void destroy() {
-            System.out.println("TestThread.destroy");
+            Lok.debug("TestThread.destroy");
             super.destroy();
         }
 
         @Override
         public int countStackFrames() {
-            System.out.println("TestThread.countStackFrames");
+            Lok.debug("TestThread.countStackFrames");
             return super.countStackFrames();
         }
     }
@@ -88,16 +88,16 @@ public class ThreadTest {
 
             @Override
             public void onShutDown() {
-                System.out.println("ThreadTest.onShutDown1");
+                Lok.debug("ThreadTest.onShutDown1");
             }
 
             @Override
             public void runImpl() {
-                System.out.println("ThreadTest.run1.lock");
+                Lok.debug("ThreadTest.run1.lock");
                 int i = 0;
                 while (!Thread.currentThread().isInterrupted())
                     i++;
-                System.out.println("ThreadTest.run1.stopped");
+                Lok.debug("ThreadTest.run1.stopped");
                 threadLock.unlockWrite();
             }
         };
@@ -110,7 +110,7 @@ public class ThreadTest {
 
             @Override
             public void onShutDown() {
-                System.out.println("ThreadTest.onShutDown2");
+                Lok.debug("ThreadTest.onShutDown2");
             }
 
             @Override

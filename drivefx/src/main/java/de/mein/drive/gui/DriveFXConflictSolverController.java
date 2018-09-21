@@ -41,7 +41,7 @@ public class DriveFXConflictSolverController extends PopupContentFX implements I
 
     @Override
     public String onOkCLicked() {
-        System.out.println("DriveFXConflictSolverController.onOkCLicked");
+        Lok.debug("DriveFXConflictSolverController.onOkCLicked");
         conflictSolver.isSolved();
         meinDriveClientService.addJob(new CommitJob());
         return null;
@@ -49,7 +49,7 @@ public class DriveFXConflictSolverController extends PopupContentFX implements I
 
     @Override
     public void initImpl(javafx.stage.Stage stage, MeinAuthService meinAuthService, MeinNotification notification) {
-        System.out.println("DriveFXConflictSolverController.init");
+        Lok.debug("DriveFXConflictSolverController.init");
         this.meinDriveClientService = (MeinDriveClientService) meinAuthService.getMeinService(notification.getServiceUuid());
         this.stage.setTitle(notification.getTitle());
         for (ConflictSolver conflictSolver : meinDriveClientService.getConflictSolverMap().values()) {
@@ -96,7 +96,7 @@ public class DriveFXConflictSolverController extends PopupContentFX implements I
 
             conflictSolver = (ConflictSolver) notification.getContent();
 
-            System.out.println("DriveFXConflictSolverController.init.done");
+            Lok.debug("DriveFXConflictSolverController.init.done");
         }
     }
 

@@ -20,6 +20,6 @@ public class SqlBuildTest {
 //        CertificateManager certificateManager = new CertificateManager(new File("z_dbTest"));
 //        Connection connection = certificateManager.getDbConnection();
 //        SqliteExecutor.replaceSchema("meinauth", connection, new FileInputStream(new File("sql.sql")));
-//        System.out.println("SqlBuildTest.buildDB");
+//        Lok.debug("SqlBuildTest.buildDB");
     }
 }

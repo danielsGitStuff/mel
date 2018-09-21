@@ -7,6 +7,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.service.AndroidService;
 import de.mein.android.MeinActivity;
@@ -46,7 +47,7 @@ public class NetworkDiscoveryController extends GuiController {
         environment.deleteObservers();
         environment.deleteObservers();
         environment.addObserver((observable, o) -> {
-            System.out.println("NetworkDiscoveryController.discover");
+            Lok.debug("NetworkDiscoveryController.discover");
             unkownListAdapter.clear().addAll(environment.getUnknownAuthInstances());
             knownCertListAdapter.clear();
             for (Long certId : environment.getCertificateIds()) {
@@ -63,14 +64,14 @@ public class NetworkDiscoveryController extends GuiController {
 //        environment.deleteObservers();
 //        environment.deleteObservers();
 //        environment.addObserver((o, arg) -> {
-//            System.out.println("NetworkDiscoveryController.observed something!!!!!!!!");
+//            Lok.debug("NetworkDiscoveryController.observed something!!!!!!!!");
 //            listUnkown.removeAllViews();
 //            listAll.getItems().clear();
 //            listAll.getItems().setPaths(environment.getUnknownAuthInstances());
 //            listKnown.getItems().clear();
 //            for (Long certId : environment.getCertificateIds()) {
 //                try {
-//                    System.out.println("NetworkDiscoveryController.discover");
+//                    Lok.debug("NetworkDiscoveryController.discover");
 //                    Certificate certificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
 //                    listKnown.getItems().add(certificate);
 //                } catch (Exception e) {
@@ -91,7 +92,7 @@ public class NetworkDiscoveryController extends GuiController {
         environment = androidService.getMeinAuthService().getNetworkEnvironment();
         unkownListAdapter = new UnknownAuthListAdapter(rootView.getContext(), environment);
         listUnkown.setOnItemClickListener((parent, view, position, id) -> {
-            System.out.println("NetworkDiscoveryController.NetworkDiscoveryController");
+            Lok.debug("NetworkDiscoveryController.NetworkDiscoveryController");
             NetworkEnvironment.UnknownAuthInstance unknown = unkownListAdapter.getItemT(position);
             txtAddress.setText(unknown.getAddress());
             txtPort.setText(Integer.toString(unknown.getPort()));
@@ -99,7 +100,7 @@ public class NetworkDiscoveryController extends GuiController {
         });
         knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
         listKnown.setOnItemClickListener((parent, view, position, id) -> {
-            System.out.println("NetworkDiscoveryController.NetworkDiscoveryController");
+            Lok.debug("NetworkDiscoveryController.NetworkDiscoveryController");
             Certificate c = knownCertListAdapter.getItemT(position);
             txtAddress.setText(c.getAddress().v());
             txtPort.setText(c.getPort().v());

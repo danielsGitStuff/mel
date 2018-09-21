@@ -12,6 +12,7 @@ import android.provider.ContactsContract;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.android.Tools;
 import de.mein.android.contacts.service.AndroidServiceMethods;
 import de.mein.android.contacts.service.DataTableCursorReader;
@@ -45,7 +46,7 @@ public class ContactsToAndroidExporter {
 
     public void export(final Long phoneBookId) {
         try {
-            System.out.println("ContactsToAndroidExporter.export.id." + phoneBookId);
+            Lok.debug("id." + phoneBookId);
             //check if phonebooks are different first
 
             ContentResolver contentResolver = Tools.getApplicationContext().getContentResolver();

@@ -1,6 +1,7 @@
 package de.mein.drive.index.watchdog;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.IndexListener;
@@ -43,10 +44,10 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
             e.printStackTrace();
         }
         if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
-            System.out.println("WatchDog.windows");
+            Lok.debug("WatchDog.windows");
             watchdogListener = new IndexWatchDogListenerWindows(meinDriveService1, watchService1);
         } else {
-            System.out.println("WatchDog.unix");
+            Lok.debug("WatchDog.unix");
             watchdogListener = new IndexWatchdogListenerUnix2(meinDriveService1, watchService1);
         }
         watchdogListener.meinDriveService = meinDriveService1;
@@ -68,7 +69,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
     @Override
     public void onTimerStopped() {
-        System.out.println("IndexWatchdogListener.onTimerStopped");
+        Lok.debug("IndexWatchdogListener.onTimerStopped");
         //meinDriveService.addJob(new FsSyncJob(pathCollection));
         stageIndexer.examinePaths(this,pathCollection);
         pathCollection = new PathCollection();
@@ -98,12 +99,12 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
     @Override
     public void done(Long stageSetId) {
-        System.out.println("IndexWatchdogListener.done");
+        Lok.debug("IndexWatchdogListener.done");
     }
 
 
     public void ignore(String path, int amount) throws InterruptedException {
-        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getDriveDetails().getRole()
+        Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getDriveDetails().getRole()
                 + "].ignore(" + path + ")");
         ignoredSemaphore.acquire();
         if (ignoredMap.containsKey(path))
@@ -119,7 +120,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
     public void stopIgnore(String path) throws InterruptedException {
         ignoredSemaphore.acquire();
-        System.out.println("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getDriveDetails().getRole()
+        Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getDriveDetails().getRole()
                 + "].stopignore(" + path + ")");
         ignoredMap.remove(path);
         ignoredSemaphore.release();

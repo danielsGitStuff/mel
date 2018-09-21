@@ -24,7 +24,7 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
 
     @Override
     public void onPrimaryClicked() {
-        System.out.println("GeneralSettingsFX.onPrimaryClicked");
+        Lok.debug("GeneralSettingsFX.onPrimaryClicked");
         MeinAuthSettings settings = meinAuthService.getSettings();
         settings.setName(txtName.getText());
         settings.setPort(Integer.parseInt(txtSslPort.getText()));
@@ -50,7 +50,7 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         txtPort.setTextFormatter(new TextFormatter<>(change -> numbersOnly(change)));
         txtSslPort.setTextFormatter(new TextFormatter<>(change -> numbersOnly(change)));
-        System.out.println("GeneralSettingsFX.initialize");
+        Lok.debug("GeneralSettingsFX.initialize");
     }
 
 

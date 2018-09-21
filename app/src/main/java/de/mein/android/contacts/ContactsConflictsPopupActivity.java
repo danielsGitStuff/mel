@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.ConflictsPopupActivity;
 import de.mein.android.Notifier;
@@ -88,7 +89,7 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
                         merged.hashContact(choice);
                     }
                 }
-                System.out.println("ContactsConflictsPopupActivity: Conflict resolved!");
+                Lok.debug("ContactsConflictsPopupActivity: Conflict resolved!");
                 merged.digest();
                 if (merged.getHash().equalsValue(flatLastreadPhoneBook.getHash()))
                     merged.getOriginal().v(true);

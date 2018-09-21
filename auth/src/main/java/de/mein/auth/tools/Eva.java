@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import de.mein.Lok;
+
 /**
  * Created by xor on 27.08.2017.
  */
@@ -16,7 +18,7 @@ public class Eva {
     }
 
     public void print(String appendix) {
-        System.out.println(key + "." + countMap.get(key).get() + (appendix != null ? "." + appendix : ""));
+        Lok.debug(key + "." + countMap.get(key).get() + (appendix != null ? "." + appendix : ""));
     }
 
     public interface EvaRun {
@@ -28,12 +30,12 @@ public class Eva {
     }
 
     public Eva out(String msg) {
-        System.out.println("Eva.out: " + msg);
+        Lok.debug("Eva.out: " + msg);
         return this;
     }
 
     public Eva error() {
-        System.err.println("Eva.error");
+        Lok.error("Eva.error");
         return this;
     }
 
@@ -58,14 +60,14 @@ public class Eva {
                 semaphore.release();
                 run.run(new Eva(key), count);
             } catch (Exception ee) {
-                System.err.println(Eva.class.getSimpleName() + ".eva(): Exception!!!");
+                Lok.error(Eva.class.getSimpleName() + ".eva(): Exception!!!");
                 ee.printStackTrace();
             }
         }
     }
 
     public static void main(String[] args) {
-        Eva.eva((eva, count) -> System.out.println("Eva.main." + count));
-        Eva.eva((eva, count) -> System.out.println("Eva.main." + count));
+        Eva.eva((eva, count) -> Lok.debug("Eva.main." + count));
+        Eva.eva((eva, count) -> Lok.debug("Eva.main." + count));
     }
 }

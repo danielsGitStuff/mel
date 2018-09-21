@@ -5,6 +5,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidPowerManager;
@@ -87,7 +88,7 @@ public class LogCatController extends GuiController {
 
     @Override
     public void onAndroidServiceAvailable() {
-        System.out.println("LogCatController.onAndroidServiceAvailable");
+        Lok.debug("LogCatController.onAndroidServiceAvailable");
     }
 
     private void showLog() {

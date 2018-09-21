@@ -18,12 +18,12 @@ public abstract class DeferredRunnable implements MeinRunnable {
         String line = "shutting down: " + getClass().getSimpleName();
         if (thread != null)
             line += "/" + thread.getName();
-        System.out.println(line);
+        Lok.debug(line);
         if (thread != null) {
             thread.interrupt();
             interrupted = true;
         } else {
-            System.err.println(getClass().getSimpleName() + ".shutDown: Thread was null :'(  " + getRunnableName());
+            Lok.error(getClass().getSimpleName() + ".shutDown: Thread was null :'(  " + getRunnableName());
         }
         onShutDown();
     }
@@ -40,7 +40,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
         thread = Thread.currentThread();
         thread.setName(getRunnableName());
         runImpl();
-        System.out.println(getClass().getSimpleName()+".run.done on "+thread.getName());
+        Lok.debug(getClass().getSimpleName()+".run.done on "+thread.getName());
     }
 
     /**

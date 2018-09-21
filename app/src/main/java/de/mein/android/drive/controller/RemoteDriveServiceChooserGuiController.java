@@ -20,6 +20,7 @@ import org.jdeferred.Promise;
 import java.io.File;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
@@ -95,7 +96,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 //                    subDir.mkdirs();
 //                    AFile target = AFile.instance(new File(subDir.getAbsolutePath() + File.separator + "target.txt"));
 //                    testFile.move(target);
-//                    System.out.println("RemoteDriveServiceChooserGuiController.launchDirChooser");
+//                    Lok.debug("RemoteDriveServiceChooserGuiController.launchDirChooser");
 //                }
 //            } catch (IOException e) {
 //                e.printStackTrace();
@@ -170,9 +171,9 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 //                                String[] parts = stripped.split("/");
 //                                DocumentFile sub1 = rootDocFile.findFile(parts[0]);
 //                                DocumentFile sub2 = sub1.findFile(parts[1]);
-//                                System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+//                                Lok.debug("RemoteDriveServiceChooserGuiController.initEmbedded");
 //                            }
-//                            System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+//                            Lok.debug("RemoteDriveServiceChooserGuiController.initEmbedded");
 //
 //                        });
 //
@@ -223,7 +224,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                 if (!optionalCollapsed) {
                     RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 0);
                     optionalContainer.setLayoutParams(relativeParams);
-                    System.out.println("RemoteDriveServiceChooserGuiController.initEmbedded");
+                    Lok.debug("initEmbedded");
                 }
                 rootView.invalidate();
                 optionalCollapsed = !optionalCollapsed;

@@ -1,6 +1,7 @@
 package de.mein.auth.socket;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.WaitingDeferredRunnable;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
@@ -42,7 +43,7 @@ public class MeinAuthSocketOpener extends DeferredRunnable {
             }
         } catch (Exception e) {
             if (!isInterrupted()) {
-                System.err.println("MeinAuthSocketOpener.runTry.FAAAAAIL!");
+                Lok.error("MeinAuthSocketOpener.runTry.FAAAAAIL!");
                 e.printStackTrace();
             }
         } finally {
@@ -53,7 +54,7 @@ public class MeinAuthSocketOpener extends DeferredRunnable {
             }
 
         }
-        System.out.println("MeinAuthService.runTry.end");
+        Lok.debug("MeinAuthService.runTry.end");
     }
 
     @Override

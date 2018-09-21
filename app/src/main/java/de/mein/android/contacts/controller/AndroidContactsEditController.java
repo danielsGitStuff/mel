@@ -3,6 +3,7 @@ package de.mein.android.contacts.controller;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.contacts.data.AndroidContactSettings;
@@ -34,7 +35,7 @@ public class AndroidContactsEditController extends AndroidServiceGuiController {
 
     @Override
     protected void init() {
-        System.out.println("AndroidContactsEditController.init");
+        Lok.debug("AndroidContactsEditController.init");
         cbStoreToPhoneBook = rootView.findViewById(R.id.cbStoreToPhoneBook);
     }
 

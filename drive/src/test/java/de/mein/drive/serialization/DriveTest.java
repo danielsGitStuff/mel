@@ -87,18 +87,18 @@ public class DriveTest {
 
             @Override
             public void onSyncFailed() {
-                System.out.println("DriveTest.onSyncFailed");
+                Lok.debug("DriveTest.onSyncFailed");
                 if (failCount == 0) {
                     N.r(() -> {
                         //if (!file2.exists())
-                        System.out.println("DriveTest.onSyncFailed.creating new file...");
+                        Lok.debug("DriveTest.onSyncFailed.creating new file...");
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
                         File delFile = new File(rootPath + File.separator + "samedir");
                         BashTools.rmRf(new FFile(delFile));
                         MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
-                            System.out.println("DriveTest.alles ok");
+                            Lok.debug("DriveTest.alles ok");
 //                            testStructure.setMaClient(meinAuthService2)
 //                                    .setMaServer(meinAuthService1)
 //                                    .setClientDriveService(clientDriveService)
@@ -131,9 +131,9 @@ public class DriveTest {
                         TestFileCreator.saveFile("samesub1.client".getBytes(), subFile);
 
                         String hash = Hash.md5(new FFile(file1).inputStream());
-                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
+                        Lok.debug("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
                         hash = Hash.md5(new FFile(file2).inputStream());
-                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
+                        Lok.debug("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
                     });
 
                 }
@@ -142,18 +142,18 @@ public class DriveTest {
 
             @Override
             public void onSyncDoneImpl() {
-                System.out.println("DriveTest.onSyncDoneImpl");
+                Lok.debug("DriveTest.onSyncDoneImpl");
                 if (count == 1) {
-                    System.out.println("DriveTest.onSyncDoneImpl");
+                    Lok.debug("DriveTest.onSyncDoneImpl");
                 }
-                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                Lok.debug("DriveTest.onSyncDoneImpl.shot down." + count);
                 count++;
             }
         };
         setup(false, syncListener, clientMeinBoot);
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.clientMergeStages.END");
+        Lok.debug("DriveTest.clientMergeStages.END");
     }
 
     public void simpleTransferFromServerToClient(MeinBoot clientMeinBoot) throws Exception {
@@ -178,18 +178,18 @@ public class DriveTest {
 
             @Override
             public void onSyncDoneImpl() {
-                System.out.println("DriveTest.onSyncDoneImpl");
+                Lok.debug("DriveTest.onSyncDoneImpl");
                 if (count == 1) {
-                    System.out.println("DriveTest.onSyncDoneImpl");
+                    Lok.debug("DriveTest.onSyncDoneImpl");
                 }
-                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                Lok.debug("DriveTest.onSyncDoneImpl.shot down." + count);
                 count++;
             }
         };
         setup(null, syncListener, clientMeinBoot);
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.clientMergeStages.END");
+        Lok.debug("DriveTest.clientMergeStages.END");
     }
 
     public void clientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
@@ -205,11 +205,11 @@ public class DriveTest {
 
             @Override
             public void onSyncFailed() {
-                System.out.println("DriveTest.onSyncFailed");
+                Lok.debug("DriveTest.onSyncFailed");
                 if (failCount == 0) {
                     N.r(() -> {
                         //if (!file2.exists())
-                        System.out.println("DriveTest.onSyncFailed.creating new file...");
+                        Lok.debug("DriveTest.onSyncFailed.creating new file...");
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
                         File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
                         File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
@@ -218,13 +218,13 @@ public class DriveTest {
                         TestFileCreator.saveFile("same3.server".getBytes(), newFile);
                         TestFileCreator.saveFile("same1.server".getBytes(), f1);
                         String hash = Hash.md5(new FFile(f1).inputStream());
-                        System.out.println("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
+                        Lok.debug("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
                         hash = Hash.md5(new FFile(newFile).inputStream());
-                        System.out.println("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
+                        Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
                         MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
-                            System.out.println("DriveTest.alles ok");
+                            Lok.debug("DriveTest.alles ok");
 //                            testStructure.setMaClient(meinAuthService2)
 //                                    .setMaServer(meinAuthService1)
 //                                    .setClientDriveService(clientDriveService)
@@ -252,9 +252,9 @@ public class DriveTest {
                         TestFileCreator.saveFile("same1.client".getBytes(), file1);
                         TestFileCreator.saveFile("same2.client".getBytes(), file2);
                         String hash = Hash.md5(new FFile(file1).inputStream());
-                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
+                        Lok.debug("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
                         hash = Hash.md5(new FFile(file2).inputStream());
-                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
+                        Lok.debug("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
                     });
 
                 }
@@ -263,18 +263,18 @@ public class DriveTest {
 
             @Override
             public void onSyncDoneImpl() {
-                System.out.println("DriveTest.onSyncDoneImpl");
+                Lok.debug("DriveTest.onSyncDoneImpl");
                 if (count == 1) {
-                    System.out.println("DriveTest.onSyncDoneImpl");
+                    Lok.debug("DriveTest.onSyncDoneImpl");
                 }
-                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                Lok.debug("DriveTest.onSyncDoneImpl.shot down." + count);
                 count++;
             }
         };
         setup(false, syncListener, clientMeinBoot);
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.clientMergeStages.END");
+        Lok.debug("DriveTest.clientMergeStages.END");
     }
 
     public void simpleClientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
@@ -290,11 +290,11 @@ public class DriveTest {
 
             @Override
             public void onSyncFailed() {
-                System.out.println("DriveTest.onSyncFailed");
+                Lok.debug("DriveTest.onSyncFailed");
                 if (failCount == 0) {
 //                    N.r(() -> {
 //                        //if (!file2.exists())
-//                        System.out.println("DriveTest.onSyncFailed.creating new file...");
+//                        Lok.debug("DriveTest.onSyncFailed.creating new file...");
 //                        rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
 //                        File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
 //                        File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
@@ -303,13 +303,13 @@ public class DriveTest {
 //                        TestFileCreator.saveFile("same3.server".getBytes(), newFile);
 //                        TestFileCreator.saveFile("same1.server".getBytes(), f1);
 //                        String hash = Hash.md5(f1);
-//                        System.out.println("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
+//                        Lok.debug("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
 //                        hash = Hash.md5(newFile);
-//                        System.out.println("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
+//                        Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
 //                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
 //                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
 //                        rebooted.done(res -> N.r(() -> {
-//                            System.out.println("DriveTest.alles ok");
+//                            Lok.debug("DriveTest.alles ok");
 ////                            testStructure.setMaClient(meinAuthService2)
 ////                                    .setMaServer(meinAuthService1)
 ////                                    .setClientDriveService(clientDriveService)
@@ -337,9 +337,9 @@ public class DriveTest {
 //                        TestFileCreator.saveFile("same1.client".getBytes(), file1);
 //                        TestFileCreator.saveFile("same2.client".getBytes(), file2);
 //                        String hash = Hash.md5(file1);
-//                        System.out.println("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
+//                        Lok.debug("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
 //                        hash = Hash.md5(file2);
-//                        System.out.println("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
+//                        Lok.debug("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
 //                    });
 //
 //                }
@@ -348,18 +348,18 @@ public class DriveTest {
 
             @Override
             public void onSyncDoneImpl() {
-                System.out.println("DriveTest.onSyncDoneImpl");
+                Lok.debug("DriveTest.onSyncDoneImpl");
                 if (count == 1) {
-                    System.out.println("DriveTest.onSyncDoneImpl");
+                    Lok.debug("DriveTest.onSyncDoneImpl");
                 }
-                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                Lok.debug("DriveTest.onSyncDoneImpl.shot down." + count);
                 count++;
             }
         };
         setup(false, syncListener, clientMeinBoot);
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.clientMergeStages.END");
+        Lok.debug("DriveTest.clientMergeStages.END");
     }
 
     @Test
@@ -384,7 +384,7 @@ public class DriveTest {
                         DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
-                            System.out.println(f.getName().v());
+                            Lok.debug(f.getName().v());
                         }
                         // TODO: checks go here
                         //lock.unlockWrite();
@@ -396,7 +396,7 @@ public class DriveTest {
         });
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.firstTransfer.END");
+        Lok.debug("DriveTest.firstTransfer.END");
     }
 
     @Test
@@ -421,9 +421,9 @@ public class DriveTest {
 //                 String address, int port, int portCert
                     DeferredObject<MeinIsolatedFileProcess, Exception, Void> isolated = testStructure.maClient.connectToService(MeinIsolatedFileProcess.class, certId, remoteServiceUuid, ownServiceUuid, null, null, null);
                     isolated.done(meinIsolatedProcess -> {
-                        System.out.println("DriveTest.onSyncDoneImpl.SUCCESS");
+                        Lok.debug("DriveTest.onSyncDoneImpl.SUCCESS");
                     }).fail(result -> {
-                        System.out.println("DriveTest.onSyncDoneImpl.FAIL");
+                        Lok.debug("DriveTest.onSyncDoneImpl.FAIL");
                     });
                 });
 
@@ -431,7 +431,7 @@ public class DriveTest {
         });
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.isolation.END");
+        Lok.debug("DriveTest.isolation.END");
     }
 
 
@@ -458,7 +458,7 @@ public class DriveTest {
 
             @Override
             public void onSyncDoneImpl() {
-                System.out.println("DriveTest.onSyncDoneImpl");
+                Lok.debug("DriveTest.onSyncDoneImpl");
                 if (count == 0) {
                     N.r(() -> {
                         meinAuthService1.shutDown();
@@ -471,19 +471,19 @@ public class DriveTest {
                     });
 
                 } else if (count == 1) {
-                    System.out.println("DriveTest.onSyncDoneImpl");
+                    Lok.debug("DriveTest.onSyncDoneImpl");
                     N.r(() -> {
                         if (!file2.exists())
                             TestFileCreator.saveFile("newfile.2".getBytes(), file1);
                     });
                 }
-                System.out.println("DriveTest.onSyncDoneImpl.shot down." + count);
+                Lok.debug("DriveTest.onSyncDoneImpl.shot down." + count);
                 count++;
             }
         });
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.clientMergeStages.END");
+        Lok.debug("DriveTest.clientMergeStages.END");
     }
 
     @Test
@@ -532,7 +532,7 @@ public class DriveTest {
         RWLock lock = new RWLock();
         lock.lockWrite();
         lock.lockWrite();
-        System.out.println("DriveTest.startSingleServer.END");
+        Lok.debug("DriveTest.startSingleServer.END");
     }
 
     @Test
@@ -556,12 +556,12 @@ public class DriveTest {
                         DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
-                            System.out.println(f.getName().v());
+                            Lok.debug(f.getName().v());
                         }
                         // TODO: checks go here
                         //lock.unlockWrite();
                     }
-                    System.out.println("DriveTest.onSyncDoneImpl.EEEEEEEEEEE " + getCount());
+                    Lok.debug("DriveTest.onSyncDoneImpl.EEEEEEEEEEE " + getCount());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -569,7 +569,7 @@ public class DriveTest {
         });
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.firstSync.END");
+        Lok.debug("DriveTest.firstSync.END");
     }
 
     @Test
@@ -593,7 +593,7 @@ public class DriveTest {
                         DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
-                            System.out.println(f.getName().v());
+                            Lok.debug(f.getName().v());
                         }
                         // TODO: checks go here
                         lock.unlockWrite();
@@ -605,7 +605,7 @@ public class DriveTest {
         }, null);
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.firstSync.END");
+        Lok.debug("DriveTest.firstSync.END");
     }
 
     @Test
@@ -629,12 +629,12 @@ public class DriveTest {
                         DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
-                            System.out.println(f.getName().v());
+                            Lok.debug(f.getName().v());
                         }
                         File newFile = new File(testStructure.testdir1.getAbsolutePath() + "/sub1/sub3.txt");
                         newFile.createNewFile();
                     } else if (getCount() == 1) {
-                        System.out.println("DriveFXTest.onSyncDoneImpl :)");
+                        Lok.debug("DriveFXTest.onSyncDoneImpl :)");
                         Map<Long, GenericFSEntry> entries1 = genList2Map(testStructure.serverDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
                         Map<Long, GenericFSEntry> entries2 = genList2Map(testStructure.clientDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
                         Map<Long, GenericFSEntry> cp1 = new HashMap<>(entries1);
@@ -655,7 +655,7 @@ public class DriveTest {
         });
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.addFile.END");
+        Lok.debug("DriveTest.addFile.END");
     }
 
     @Test
@@ -679,12 +679,12 @@ public class DriveTest {
                         DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
-                            System.out.println(f.getName().v());
+                            Lok.debug(f.getName().v());
                         }
                         File deleteFile = new File(testStructure.testdir1.getAbsolutePath() + "/sub1/sub2.txt");
                         deleteFile.delete();
                     } else if (getCount() == 1) {
-                        System.out.println("DriveFXTest.onSyncDoneImpl :)");
+                        Lok.debug("DriveFXTest.onSyncDoneImpl :)");
                         Map<Long, GenericFSEntry> entries1 = genList2Map(testStructure.serverDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
                         Map<Long, GenericFSEntry> entries2 = genList2Map(testStructure.clientDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
                         Map<Long, GenericFSEntry> cp1 = new HashMap<>(entries1);
@@ -705,7 +705,7 @@ public class DriveTest {
         }, null);
         lock.lockWrite();
         lock.unlockWrite();
-        System.out.println("DriveTest.deleteFsEntry.END");
+        Lok.debug("DriveTest.deleteFsEntry.END");
     }
 
     private Map<Long, GenericFSEntry> genList2Map(List<GenericFSEntry> entries) {
@@ -783,13 +783,13 @@ public class DriveTest {
         MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
-                System.out.println("DriveTest.driveGui.booted");
+                Lok.debug("DriveTest.driveGui.booted");
                 meinAuthService1 = ma1;
                 meinAuthService1.addRegisterHandler(allowRegisterHandler);
                 meinAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
                 MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath(),0.01f,30);
-                System.out.println("DriveTest.startServer.booted");
+                Lok.debug("DriveTest.startServer.booted");
             });
         });
 
@@ -872,14 +872,14 @@ public class DriveTest {
             boot2 = new MeinBoot(json2, new PowerManager(json2));
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
-                System.out.println("DriveFXTest.driveGui.1.booted");
+                Lok.debug("DriveFXTest.driveGui.1.booted");
                 meinAuthService1 = ma1;
                 meinAuthService1.addRegisterHandler(allowRegisterHandler);
                 meinAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
                 MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath(),0.01f,30);
                 boot2.boot().done(ma2 -> {
-                    System.out.println("DriveFXTest.driveGui.2.booted");
+                    Lok.debug("DriveFXTest.driveGui.2.booted");
                     meinAuthService2 = ma2;
                     meinAuthService2.addRegisterHandler(allowRegisterHandler);
                     runner.runTry(() -> {
@@ -887,11 +887,11 @@ public class DriveTest {
                         Promise<MeinValidationProcess, Exception, Void> connectPromise = meinAuthService2.connect( "localhost", 8888, 8889, true);
                         connectPromise.done(meinValidationProcess -> {
                             runner.runTry(() -> {
-                                System.out.println("DriveFXTest.driveGui.connected");
+                                Lok.debug("DriveFXTest.driveGui.connected");
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
                                 Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(),0.01f,30);
                                 promise.done(clientDriveService -> runner.runTry(() -> {
-                                            System.out.println("DriveFXTest attempting first syncFromServer");
+                                            Lok.debug("DriveFXTest attempting first syncFromServer");
                                             clientSyncListener.testStructure.setMaClient(meinAuthService2)
                                                     .setMaServer(meinAuthService1)
                                                     .setClientDriveService(clientDriveService)

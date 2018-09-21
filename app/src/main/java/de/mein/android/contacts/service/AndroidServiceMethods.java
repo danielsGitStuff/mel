@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.android.Tools;
 import de.mein.android.contacts.data.AndroidContactSettings;
 import de.mein.auth.service.MeinService;
@@ -102,7 +103,7 @@ public class AndroidServiceMethods {
                 Pair<String> pair = new Pair<>(String.class, cursor.getColumnName(i), cursor.getString(i));
                 list.add(pair);
             }
-            System.out.println("AndroidServiceMethods.readMimeTypes");
+            Lok.debug("AndroidServiceMethods.readMimeTypes");
         }
     }
 
@@ -167,7 +168,7 @@ public class AndroidServiceMethods {
         observer = new ContentObserver(null) {
             @Override
             public boolean deliverSelfNotifications() {
-                System.out.println("AndroidContactsServerService.deliverSelfNotifications");
+                Lok.debug("AndroidContactsServerService.deliverSelfNotifications");
                 return super.deliverSelfNotifications();
             }
 
@@ -179,7 +180,7 @@ public class AndroidServiceMethods {
                         if (!selfChange)
                             watchDogTimer.start();
                         else
-                            System.out.println("AndroidServiceMethods.onChange.selfChange");
+                            Lok.debug("AndroidServiceMethods.onChange.selfChange");
                     } else {
                         stopListening();
                     }

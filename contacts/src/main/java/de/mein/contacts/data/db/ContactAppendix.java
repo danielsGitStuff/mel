@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.mein.Lok;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -98,9 +99,9 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
         String json1 = SerializableEntitySerializer.serialize(c1);
         String json2 = SerializableEntitySerializer.serialize(c2);
         String json3 = SerializableEntitySerializer.serialize(c3);
-        System.out.println(json1);
-        System.out.println(json2);
-        System.out.println(json3);
+        Lok.debug(json1);
+        Lok.debug(json2);
+        Lok.debug(json3);
         ContactAppendix cc1 = (ContactAppendix) SerializableEntityDeserializer.deserialize(json1);
         ContactAppendix cc2 = (ContactAppendix) SerializableEntityDeserializer.deserialize(json2);
         ContactAppendix cc3 = (ContactAppendix) SerializableEntityDeserializer.deserialize(json3);
@@ -143,7 +144,7 @@ public class ContactAppendix extends SQLTableObject implements SerializableEntit
 //        phone2.setValue(0, "015-208-775497").setValue(1, "2");
 //        contact.addAppendix(name).addAppendix(phone1).addAppendix(phone2);
         contact.hash();
-        System.out.println("ContactAppendix.main");
+        Lok.debug("ContactAppendix.main");
 
     }
 

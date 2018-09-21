@@ -25,14 +25,14 @@ public class BashTest {
     private Stream<String> exec(String cmd) throws IOException, InterruptedException {
         String[] args = new String[]{BIN_PATH, "-c",
                 cmd};
-        System.out.println("BashToolsUnix.exec: " + cmd);
+        Lok.debug("BashToolsUnix.exec: " + cmd);
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         proc.waitFor();
         if (proc.exitValue()!=0){
             throw new BashToolsException(proc);
         }
-        System.out.println("BashTest.exec."+proc.exitValue());
+        Lok.debug("BashTest.exec."+proc.exitValue());
         return reader.lines();
     }
 
@@ -40,7 +40,7 @@ public class BashTest {
     public void cmdNotFound() throws IOException, InterruptedException {
         Stream<String> result = exec("findr . -mindepth 1 -maxdepth 1");
         result.forEach(System.out::println);
-        System.out.println("BashTest.cmdNotFound.end");
+        Lok.debug("BashTest.cmdNotFound.end");
     }
 
     // might be deprecated below
@@ -65,7 +65,7 @@ public class BashTest {
                     Process proc = new ProcessBuilder(args).start();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
                     reader.lines().forEach(System.out::println);
-                    System.out.println("BashTest.finish");
+                    Lok.debug("BashTest.finish");
                 } catch (Exception e) {
                     System.err.println("string I got from bash: " + res);
                     e.printStackTrace();

@@ -8,6 +8,8 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 
+import de.mein.Lok;
+
 /**
  * Created by xor on 9/18/17.
  */
@@ -32,7 +34,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
             NetworkInfo.State state = info.getState();
             WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             WifiInfo wifiInfo = wifiManager != null ? wifiManager.getConnectionInfo() : null;
-            System.out.println("NetworkChangeReceiver.onReceive.state: " + state.name());
+            Lok.debug("state: " + state.name());
             if (state.equals(NetworkInfo.State.CONNECTED)) {
                 androidService.getMeinAuthService().getPowerManager().onCommunicationsEnabled();
             } else if (state.equals(NetworkInfo.State.DISCONNECTED)) {

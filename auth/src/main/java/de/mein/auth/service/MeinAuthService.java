@@ -2,6 +2,7 @@ package de.mein.auth.service;
 
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
@@ -123,7 +124,7 @@ public class MeinAuthService {
             try {
                 admin.onChanged();
             } catch (Exception e) {
-                System.err.println(getName() + ".notifyAdmins.fail: " + e.getMessage());
+                Lok.error(getName() + ".notifyAdmins.fail: " + e.getMessage());
             }
         }
     }
@@ -225,7 +226,7 @@ public class MeinAuthService {
 
     public MeinAuthService registerMeinService(MeinService meinService) throws SqlQueriesException {
         if (meinService.getUuid() == null)
-            System.err.println("MeinAuthService.registerMeinService: MeinService.UUID was NULL");
+            Lok.error("MeinAuthService.registerMeinService: MeinService.UUID was NULL");
         uuidServiceMapSemaphore.lock();
         uuidServiceMap.put(meinService.getUuid(), meinService);
         if (meinAuthWorker.getStartedDeferred().isResolved()) {
@@ -261,13 +262,13 @@ public class MeinAuthService {
         DeferredObject<MeinAuthService, Exception, Void> bootedPromise = new DeferredObject<>();
         DeferredObject<DeferredRunnable, Exception, Void> startedPromise = this.prepareStart();
         start();
-        System.out.println("MeinAuthService.boot.trying to connect to everybody");
+        Lok.debug("MeinAuthService.boot.trying to connect to everybody");
         startedPromise.done(result -> N.r(() -> {
             for (Certificate certificate : certificateManager.getTrustedCertificates()) {
                 Promise<MeinValidationProcess, Exception, Void> connected = connect(certificate.getId().v());
                 connected.done(mvp -> N.r(() -> {
 
-                })).fail(result1 -> System.err.println("MeinAuthServive.boot.could not connect to: '" + certificate.getName().v() + "' address: " + certificate.getAddress().v()));
+                })).fail(result1 -> Lok.error("MeinAuthServive.boot.could not connect to: '" + certificate.getName().v() + "' address: " + certificate.getAddress().v()));
             }
         }));
         bootedPromise.resolve(this);

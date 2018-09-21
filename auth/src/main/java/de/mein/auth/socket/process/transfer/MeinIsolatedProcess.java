@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.transfer;
 
+import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.socket.MeinAuthSocket;
@@ -63,11 +64,11 @@ public abstract class MeinIsolatedProcess extends MeinProcess {
 
     @Override
     public void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) {
-        System.out.println("MeinIsolatedProcess.onMessageReceived");
+        Lok.debug("MeinIsolatedProcess.onMessageReceived");
     }
 
     public Promise<Void, Exception, Void> sendIsolate() {
-        System.out.println("MeinIsolatedProcess.sendIsolate");
+        Lok.debug("MeinIsolatedProcess.sendIsolate");
         meinAuthSocket.send(MeinStrings.msg.MODE_ISOLATE);
         meinAuthSocket.setIsolated(true);
         return isolatedPromise;

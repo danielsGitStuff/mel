@@ -1,5 +1,6 @@
 package de.mein.drive.data.conflict;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
@@ -113,7 +114,7 @@ public class ConflictSolver extends SyncStageMerger {
             return;
         }
         if (left != null && right != null && left.getContentHash().equals(right.getContentHash()) && !left.getIsDirectory() && !right.getIsDirectory()) {
-            System.out.println("ConflictSolver.stuffFound.no conflict between " + left.getId() + " and " + right.getId());
+            Lok.debug("ConflictSolver.stuffFound.no conflict between " + left.getId() + " and " + right.getId());
         } else {
             if (left != null && leftIdConflictsMap.containsKey(left.getParentId())) {
                 //conflictSearch(left, lFile, false);
@@ -169,7 +170,7 @@ public class ConflictSolver extends SyncStageMerger {
         Conflict conflict = new Conflict(stageDao, left, right);
         //todo debug
         if ((left != null && left.getName().equals("sub22")) || right != null && right.getName().equals("sub22")) {
-            System.out.println("ConflictSolver.createConflict.debugd23");
+            Lok.debug("ConflictSolver.createConflict.debugd23");
         }
         conflicts.put(key, conflict);
         if (left != null)
@@ -391,7 +392,7 @@ public class ConflictSolver extends SyncStageMerger {
             Conflict conflict = conflicts.remove(key);
             //todo debug
             if (conflict.hasRight() && conflict.hasDecision() && conflict.getRight().getName().equals("samesub"))
-                System.out.println("ConflictSolver.solve.debug1231");
+                Lok.debug("ConflictSolver.solve.debug1231");
             if (conflict.isRight() && conflict.hasRight()) {
                 solvedStage = right;
                 if (left != null) {
@@ -489,7 +490,7 @@ public class ConflictSolver extends SyncStageMerger {
             AFile solvedParent = solvedFile.getParentFile();
             //todo debug
             if (solvedParent.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir"))
-                System.out.println("ConflictSolver.solve.debugj0f2n4");
+                Lok.debug("ConflictSolver.solve.debugj0f2n4");
             Stage solvedParentStage = stageDao.getStageByPath(solvedStage.getStageSet(), solvedParent);
             if (solvedParentStage != null) {
                 if (right != null && right.getFsParentId() == null) {

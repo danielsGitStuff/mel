@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.sql.Stage;
@@ -189,7 +190,7 @@ public class DriveConflictListAdapter extends BaseAdapter {
             rdLeft.setChecked(false);
             rdRight.setChecked(true);
         } else {
-            System.out.println("ConflictListAdapter.adjustToConflict.debug333");
+            Lok.debug("debug333");
         }
     }
 
