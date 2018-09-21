@@ -4,20 +4,17 @@ import android.os.FileObserver;
 import android.support.annotation.Nullable;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Set;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
-import de.mein.auth.tools.WaitLock;
-import de.mein.drive.bash.BashTools;
+import de.mein.auth.tools.N;
+import de.mein.auth.tools.WatchDogTimer;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.index.watchdog.UnixReferenceFileHandler;
@@ -42,6 +39,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         this.setStageIndexer(meinDriveService.getStageIndexer());
         this.transferDirectory = meinDriveService.getDriveSettings().getTransferDirectoryFile();
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
+        this.watchDogTimer = new WatchDogTimer(this::onTimerStopped, 15, 100, 1000);
         unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), target, meinDriveService.getDriveSettings().getTransferDirectory());
         unixReferenceFileHandler.onStart();
     }
@@ -106,27 +104,57 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         }
     }
 
+    private Set<String> writePaths = new HashSet<>();
+
     private void eve(Watcher watcher, int event, String path) {
-        AFile f = path != null ? AFile.instance(watcher.getTarget() + File.separator + path) : watcher.getTarget();
-        if (watcher.getTarget().equals(transferDirectory))
+        AFile f = path != null ? AFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path) : watcher.getTarget();
+        if (transferDirectory.hasSubContent(watcher.getTarget()))
             return;
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
             watch(f);
         }
         try {
+            String fPath = f.getAbsolutePath();
             //todo debug
             Map<String, Boolean> flags = flags(event);
-            if (checkEvent(event,
-                    FileObserver.CLOSE_WRITE,
+            StringBuilder positiveListBuilder = new StringBuilder();
+            N.forEachAdv(flags, (stoppable, index, s, b) -> {
+                if (b)
+                    positiveListBuilder.append(s).append(",");
+            });
+            positiveListBuilder.append(f.getAbsolutePath());
+            String positiveList = positiveListBuilder.toString();
+            if (checkEvent(event, FileObserver.DELETE_SELF)) {
+                Lok.warn("delete self" + positiveList);
+                this.watchers.remove(f.getAbsolutePath());
+                // folder was deleted. so check if we are still waiting for a writing event and remove it.
+                Set<String> newWritePaths = new HashSet<>();
+                for (String writePath : writePaths) {
+                    if (writePath.startsWith(fPath))
+                        newWritePaths.add(writePath);
+                }
+                writePaths = newWritePaths;
+                startTimer();
+            } else if (checkEvent(event, FileObserver.CLOSE_WRITE)) {
+                Lok.warn("close.write: " + positiveList);
+                writePaths.remove(f.getAbsolutePath());
+                startTimer();
+            } else if (checkEvent(event,
                     FileObserver.DELETE,
                     FileObserver.DELETE_SELF,
                     FileObserver.CREATE,
                     FileObserver.MOVE_SELF,
                     FileObserver.MOVED_FROM,
                     FileObserver.MOVED_TO)) {
+                Lok.warn("1st: " + positiveList);
                 startTimer();
-            } else if (checkEvent(event, FileObserver.MODIFY))
-                analyze(event, watcher, path);
+            } else if (checkEvent(event, FileObserver.MODIFY)) {
+                Lok.warn("modify: " + positiveList);
+                writePaths.add(f.getAbsolutePath());
+                startTimer();
+            } else {
+                Lok.warn("something else: " + positiveList);
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -168,42 +196,21 @@ public class RecursiveWatcher extends IndexWatchdogListener {
 
     private boolean hasWrittenSinceStart = false;
 
-    public void analyze(int event, Watcher watcher, String path) {
-        try {
-            startTimer();
-            AFile file = AFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path);
-            //todo debug
-            Map<String, Boolean> flags = flags(event);
-            boolean modified = (event & FileObserver.MODIFY) != 0;
-            boolean moved = (event & FileObserver.MOVE_SELF) != 0;
-            boolean closeWrite = (event & FileObserver.CLOSE_WRITE) != 0;
-            boolean delete = (event & FileObserver.DELETE) != 0;
-            boolean deleteSelf = (event & FileObserver.DELETE_SELF) != 0;
-
-            if (modified || moved) {
-                watchDogTimer.waite();
-                hasWrittenSinceStart = true;
-                Lok.warn("waite");
-            } else if (closeWrite || delete || deleteSelf) {
-                hasWrittenSinceStart = true;
-                Lok.warn("resume");
-                watchDogTimer.resume();
-            }else {
-                Lok.warn("nothing");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void onTimerStopped() {
         PathCollection pathCollection = new PathCollection();
         try {
+            if (writePaths.size() > 0) {
+                Lok.warn("assuming there is still writing in progess...");
+                startTimer();
+                return;
+            }
             /**
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
              */
+            Lok.warn("stopped");
             List<AFile> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
             for (AFile f : paths) {
@@ -212,6 +219,8 @@ public class RecursiveWatcher extends IndexWatchdogListener {
                 }
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
         stageIndexer.examinePaths(this, pathCollection);

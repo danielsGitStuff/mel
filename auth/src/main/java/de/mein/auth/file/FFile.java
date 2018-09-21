@@ -124,6 +124,11 @@ public class FFile extends AFile<FFile> {
     }
 
     @Override
+    public boolean hasSubContent(FFile subFile) {
+        return subFile != null && subFile.getAbsolutePath().startsWith(file.getAbsolutePath());
+    }
+
+    @Override
     public Long getFreeSpace() {
         return file.getFreeSpace();
     }

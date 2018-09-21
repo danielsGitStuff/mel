@@ -56,6 +56,13 @@ public class JFile extends AFile<JFile> {
     }
 
     @Override
+    public boolean hasSubContent(JFile subFile) {
+        if (subFile != null)
+            return subFile.file.getAbsolutePath().startsWith(file.getAbsolutePath());
+        return false;
+    }
+
+    @Override
     public String getName() {
         return file.getName();
     }
@@ -76,61 +83,22 @@ public class JFile extends AFile<JFile> {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof JFile) {
+            JFile jFile = (JFile) obj;
+            return jFile.file.equals(file);
+        }
+        return false;
+    }
+
+    @Override
     public boolean move(JFile target) {
         try {
-//            DocumentFile sourceDoc = DocFileCreator.createDocFile(file);
-//            DocumentFile targetDoc = DocFileCreator.createDocFile(target.file);
-//            ParcelFileDescriptor descr = Tools.getApplicationContext().getContentResolver().openFileDescriptor(sourceDoc.getUri(), "rwt");
-//            AsyncTask<Void, Integer, Boolean> copyTask = new AsyncTask<Void, Integer, Boolean>() {
-//                @Override
-//                protected Boolean doInBackground(Void... voids) {
-//                    return null;
-//                }
-//            };
-
             Intent copyIntent = new Intent(Tools.getApplicationContext(), CopyService.class);
             copyIntent.putExtra(CopyService.SRC_PATH, file.getAbsolutePath());
             copyIntent.putExtra(CopyService.TRGT_PATH, target.file.getAbsolutePath());
             copyIntent.putExtra(CopyService.MOVE, true);
             Tools.getApplicationContext().startService(copyIntent);
-
-
-//            String docId = DocumentsContract.getDocumentId(sourceDoc.getUri());
-//            Uri docUri = DocumentsContract.buildDocumentUri(sourceDoc.getUri().getAuthority(), docId);
-//            Cursor cursor = Tools.getApplicationContext().getContentResolver().query(sourceDoc.getUri(), new String[]{"*"}, null, null, null);
-//            List<Pair<String>> results = new ArrayList<>();
-//            NC.iterate(cursor, (cursor1, stoppable) -> {
-//                N.forLoop(0, cursor1.getCount(), (stoppable1, index) -> {
-//                    results.add(new Pair<String>(String.class, cursor1.getColumnName(index), cursor1.getString(index)));
-//                    Lok.debug("JFile.move.loop." + index);
-//                });
-//            });
-
-            Lok.debug("JFile.move");
-
-//                DocumentsContract.moveDocument(Tools.getApplicationContext().getContentResolver(),sourceDoc.getUri(),sourceParent,targetParent);
-//            BashTools.mv(file,target.file);
-//            DocumentFile docFile = DocFileCreator.createParentDocFile(file); //FIXME change to docfile
-//            ContentResolver resolver = Tools.getApplicationContext().getContentResolver();
-////            Cursor filecursor = resolver.query(MediaStore.Files.getContentUri("external"),
-////                    new String[]{BaseColumns._ID}, MediaStore.MediaColumns.DATA + " = ?",
-////                    new String[]{path}, MediaStore.MediaColumns.DATE_ADDED + " desc");
-//            Uri u = MediaStore.Audio.Media.getContentUri("external");
-//            Cursor cursor = resolver.query(u, new String[]{"_data", "_id"}, null, null, null);
-//            NWrap.SWrap data = new NWrap.SWrap("");
-//            NWrap.SWrap id = new NWrap.SWrap("");
-//            NC.iterate(cursor, (cursor1, stoppable) -> {
-//                data.v(cursor1.getString(0));
-//                id.v(cursor1.getString(1));
-//                Lok.debug("JFile.move");
-//                stoppable.stop();
-//            });
-//            String modified = data.v() + ".renamed";
-//            Lok.debug("JFile.move... "+modified);
-//            ContentValues values = new ContentValues();
-//            values.put("_data", modified);
-//            int ren = resolver.update(u, values, "_data=?", new String[]{data.v()});
-            Lok.debug("JFile.move.");
         } catch (Exception e) {
             e.printStackTrace();
         }

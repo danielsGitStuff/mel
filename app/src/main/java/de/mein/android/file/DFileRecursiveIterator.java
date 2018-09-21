@@ -5,7 +5,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.DocumentsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.provider.DocumentFile;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -14,23 +16,38 @@ import java.util.Queue;
 
 import de.mein.auth.file.AFile;
 
+/**
+ * maybe faster than the other find method. needs some benchmarking. if the other way is fast enough this can be removed.
+ * does not work yet. probably never will.
+ */
+@Deprecated
 public class DFileRecursiveIterator implements Iterator<AFile> {
 
     private final AFile pruneDir;
     private Cursor cursor;
     private final Context context;
-    private final DFile currentDir;
-    private Queue<DFile> currentSubDirs = new LinkedList<>();
+    private final AFile currentDir;
+    private Queue<AFile> currentSubDirs = new LinkedList<>();
     private DFileRecursiveIterator subIterator;
 
-    public DFileRecursiveIterator(Context context, DFile rootDirectory, AFile pruneDir) {
+    public DFileRecursiveIterator(Context context, AFile rootDirectory, AFile pruneDir)  {
         this.context = context;
         this.pruneDir = pruneDir;
         this.currentDir = rootDirectory;
-        Uri childrenUri = rootDirectory.buildChildrenUri();
-        this.cursor = context.getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE, DocumentsContract.Document.COLUMN_DOCUMENT_ID}, null, null, null);
+        DocumentFile rootDoc = null;
+        try {
+            rootDoc = JFile.DocFileCreator.createDocFile(new File(rootDirectory.getAbsolutePath()));
+        } catch (SAFAccessor.SAFException e) {
+            e.printStackTrace();
+        }
+        String rootId = DocumentsContract.getDocumentId(rootDoc.getUri());
+//        DocumentsContract.build(rootDoc.getUri(),rootId);
+//        Uri childrenUri = rootDirectory.buildChildrenUri();
+//        this.cursor = context.getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE, DocumentsContract.Document.COLUMN_DOCUMENT_ID}, null, null, null);
 
     }
+
+
 
     @Override
     public boolean hasNext() {
@@ -48,7 +65,7 @@ public class DFileRecursiveIterator implements Iterator<AFile> {
                 if (subIterator != null)
                     return subIterator.next();
                 while (!currentSubDirs.isEmpty()) {
-                    DFile subDir = currentSubDirs.poll();
+                    AFile subDir = currentSubDirs.poll();
                     subIterator = new DFileRecursiveIterator(context, currentDir, null);
                     if (subIterator.hasNext())
                         return subIterator.next();
@@ -59,7 +76,7 @@ public class DFileRecursiveIterator implements Iterator<AFile> {
                 String name = cursor.getString(0);
                 String mime = cursor.getString(1);
                 String id = cursor.getString(2);
-                DFile dFile = new DFile(currentDir, name);
+                AFile dFile = AFile.instance(currentDir, name);
                 if (dFile.isDirectory()) {
                     currentSubDirs.add(dFile);
                 }

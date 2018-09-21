@@ -17,7 +17,6 @@ import de.mein.android.controller.AndroidServiceGuiController;
 import de.mein.android.Threadder;
 import de.mein.android.drive.controller.RemoteDriveServiceChooserGuiController;
 import de.mein.android.drive.controller.AndroidDriveEditGuiController;
-import de.mein.android.file.DFile;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.IMeinService;

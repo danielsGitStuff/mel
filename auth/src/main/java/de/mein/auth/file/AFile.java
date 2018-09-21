@@ -31,6 +31,13 @@ public abstract class AFile<T extends  AFile> {
         return configuration.instance(originalFile);
     }
 
+    /**
+     *
+     * @param subFile
+     * @return true if subFile is located in a subfolder of this instance.
+     */
+    public abstract boolean hasSubContent(T subFile);
+
 
     /**
      * creates common instances of {@link AFile}s

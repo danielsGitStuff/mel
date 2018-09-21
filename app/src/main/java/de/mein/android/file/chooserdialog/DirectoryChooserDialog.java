@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -16,8 +15,6 @@ import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -29,7 +26,6 @@ import de.mein.android.MeinActivityPayload;
 import de.mein.android.Notifier;
 import de.mein.android.PopupActivity;
 import de.mein.android.drive.data.AndroidDriveStrings;
-import de.mein.android.file.JFile;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
@@ -120,7 +116,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         List<String> strings = new ArrayList<>();
         if (!isRoot.v())
             strings.add("..");
-        N.forEach(files, (stoppable, index, aFile) -> strings.add(aFile.getName()));
+        N.forEachAdv(files, (stoppable, index, aFile) -> strings.add(aFile.getName()));
         return strings;
     }
 

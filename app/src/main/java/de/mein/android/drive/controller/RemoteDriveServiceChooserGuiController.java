@@ -1,6 +1,7 @@
 package de.mein.android.drive.controller;
 
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,8 +12,6 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
-
 
 
 import org.jdeferred.Promise;
@@ -121,13 +120,16 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
             permissionsPromise.done(nil -> {
                 if (permissionsGrantedListener != null)
                     permissionsGrantedListener.onPermissionsGranted();
-
-                if (SAFAccessor.canWriteExternal()) {
-                    launchDirChooser();
-                } else {
-                    SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    if (SAFAccessor.canWriteExternal()) {
                         launchDirChooser();
-                    }).fail(Throwable::printStackTrace);
+                    } else {
+                        SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
+                            launchDirChooser();
+                        }).fail(Throwable::printStackTrace);
+                    }
+                } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
+                    launchDirChooser();
                 }
 //
 //                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);

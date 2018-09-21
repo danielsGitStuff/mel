@@ -24,17 +24,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @SuppressWarnings("Duplicates")
 public abstract class IndexWatchdogListener extends DeferredRunnable implements IndexListener, Runnable, WatchDogTimer.WatchDogTimerFinished, PowerManager.PowerManagerListener {
 
-    protected String name;
-    protected WatchDogTimer watchDogTimer = new WatchDogTimer(this, 20, 100, 100);
-    protected MeinDriveService meinDriveService;
-    protected PathCollection pathCollection = new PathCollection();
-    protected Map<String, Integer> ignoredMap = new ConcurrentHashMap<>();
-    protected Semaphore ignoredSemaphore = new Semaphore(1, true);
-    protected String transferDirectoryPath;
-    protected StageIndexer stageIndexer;
-    private ReentrantLock surpressLock = new ReentrantLock();
-    private boolean hasSupressedEvents = false;
-
     private static WatchDogRunner watchDogRunner = meinDriveService1 -> {
         WatchService watchService1 = null;
         IndexWatchdogListener watchdogListener;
@@ -54,13 +43,24 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         watchdogListener.meinDriveService.execute(watchdogListener);
         return watchdogListener;
     };
+    protected String name;
+    protected WatchDogTimer watchDogTimer = new WatchDogTimer(this, 20, 100, 150);
+    protected MeinDriveService meinDriveService;
+    protected PathCollection pathCollection = new PathCollection();
+    protected Map<String, Integer> ignoredMap = new ConcurrentHashMap<>();
+    protected Semaphore ignoredSemaphore = new Semaphore(1, true);
+    protected String transferDirectoryPath;
+    protected StageIndexer stageIndexer;
+    private ReentrantLock surpressLock = new ReentrantLock();
+    private boolean hasSupressedEvents = false;
+
+    public IndexWatchdogListener(MeinDriveService meinDriveService) {
+        this.meinDriveService = meinDriveService;
+        this.meinDriveService.getMeinAuthService().getPowerManager().addPowerListener(this);
+    }
 
     public static void setWatchDogRunner(WatchDogRunner watchDogRunner) {
         IndexWatchdogListener.watchDogRunner = watchDogRunner;
-    }
-
-    public interface WatchDogRunner {
-        IndexWatchdogListener runInstance(MeinDriveService meinDriveService);
     }
 
     public static IndexWatchdogListener runInstance(MeinDriveService meinDriveService) {
@@ -73,12 +73,6 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         //meinDriveService.addJob(new FsSyncJob(pathCollection));
         stageIndexer.examinePaths(this,pathCollection);
         pathCollection = new PathCollection();
-    }
-
-
-    public IndexWatchdogListener(MeinDriveService meinDriveService) {
-        this.meinDriveService = meinDriveService;
-        this.meinDriveService.getMeinAuthService().getPowerManager().addPowerListener(this);
     }
 
     public StageIndexer getStageIndexer() {
@@ -96,12 +90,10 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
     public abstract void watchDirectory(AFile dir);
 
-
     @Override
     public void done(Long stageSetId) {
         Lok.debug("IndexWatchdogListener.done");
     }
-
 
     public void ignore(String path, int amount) throws InterruptedException {
         Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getDriveDetails().getRole()
@@ -153,5 +145,9 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         } finally {
             surpressLock.unlock();
         }
+    }
+
+    public interface WatchDogRunner {
+        IndexWatchdogListener runInstance(MeinDriveService meinDriveService);
     }
 }

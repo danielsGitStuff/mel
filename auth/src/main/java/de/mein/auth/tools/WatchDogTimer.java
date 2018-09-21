@@ -42,13 +42,14 @@ public class WatchDogTimer extends Timer {
      * @throws InterruptedException
      */
     public WatchDogTimer start() throws InterruptedException {
+        Lok.warn("started");
         lock.acquire();
         if (task != null)
             task.reset();
         if (!runs) {
             //Lok.debug("WatchDogTimer.start.NEWTASK");
             task = new WatchDogTimerTask(() -> {
-                Lok.debug("WatchDogTimer.STOPPPPED");
+                Lok.warn("WatchDogTimer.STOPPPPED");
                 lock.acquire();
                 WatchDogTimer.this.runs = false;
                 lock.release();
@@ -129,10 +130,10 @@ public class WatchDogTimer extends Timer {
             int count = this.count.decrementAndGet();
             boolean wait = this.wait.get();
             if (wait) {
-                //Lok.debug("WatchDogTimerTask.runTry.wait");
+                Lok.warn("WatchDogTimerTask.runTry.wait");
                 reset();
             } else {
-                //Lok.debug("WatchDogTimerTask.runTry." + count);
+                Lok.warn("WatchDogTimerTask.runTry." + count);
                 if (count == 0) {
                     this.cancel();
                     try {
@@ -145,7 +146,7 @@ public class WatchDogTimer extends Timer {
         }
 
         public void reset() {
-            //Lok.debug("WatchDogTimerTask.reset");
+            Lok.warn("WatchDogTimerTask.reset");
             count.set(startValue);
         }
     }

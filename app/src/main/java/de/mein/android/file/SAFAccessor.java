@@ -104,7 +104,7 @@ public class SAFAccessor {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @android.support.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static Promise<Void, Exception, Void> askForExternalRootDirectory(MeinActivity activity) {
         DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
         Intent docIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);

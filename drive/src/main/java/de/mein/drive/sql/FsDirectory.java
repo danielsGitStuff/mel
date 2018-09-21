@@ -2,16 +2,14 @@ package de.mein.drive.sql;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.sql.Hash;
 import de.mein.sql.Pair;
 
-import java.io.File;
-import java.io.FileFilter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.function.Function;
 
 
 public class FsDirectory extends FsEntry {
@@ -36,11 +34,9 @@ public class FsDirectory extends FsEntry {
             //since there is no guarantee that hashCode() delivers the same hashes on different machines the order inside of a Collection/Set
             //may vary. to work around this we sort the list before feeding the hash algorithm.
             List<String> sorted = new ArrayList<>(content.size());
-            content.forEach(sorted::add);
+            N.forEach(content, sorted::add);
             Collections.sort(sorted);
-            for (String name : sorted) {
-                digest.update(name.getBytes());
-            }
+            N.forEach(sorted, name -> digest.update(name.getBytes()));
             return Hash.bytesToString(digest.digest());
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -124,7 +120,6 @@ public class FsDirectory extends FsEntry {
         }
         return original.listFiles();
     }
-
 
 
     public AFile[] listDirectories() {

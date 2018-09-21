@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 import de.mein.android.file.AndroidFileConfiguration;
-import de.mein.android.file.DFile;
 import de.mein.android.file.DFileRecursiveIterator;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashToolsException;
@@ -69,18 +68,9 @@ public class SAFBashTools implements BashToolsImpl {
 
     @Override
     public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
-        DFile dDirectory = (DFile) directory;
-        if (dDirectory.isRawFile())
-            return bashToolsAndroid.find(dDirectory, pruneDir);
-//
-//        Uri childrenUri = dDirectory.buildChildrenUri();
-//        Cursor cursor = context.getContentResolver().query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME,DocumentsContract.Document.COLUMN_DOCUMENT_ID}, null, null, null);
-//        NC.iterate(cursor, (cursor1, stoppable) -> {
-//            String name = cursor.getString(0);
-//            String id = cursor.getString(1);
-//            Lok.debug("SAFBashTools.find.name: " + name+", id: "+id);
-//        });
-        return new DFileRecursiveIterator(context, dDirectory, pruneDir);
+        //testing needed which one is faster.
+        return bashToolsAndroid.find(directory, pruneDir);
+//        return new DFileRecursiveIterator(context, directory, pruneDir);
     }
 
     @Override

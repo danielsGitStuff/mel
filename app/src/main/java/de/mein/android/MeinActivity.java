@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import de.mein.Lok;
-import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.tools.N;
@@ -56,7 +55,7 @@ public abstract class MeinActivity extends AppCompatActivity
         launchIntent.putExtra(MeinStrings.Notifications.REQUEST_CODE,id);
         if (payloads != null) {
             launchPayloads.put(id, new ArrayList<>());
-            N.forEach(payloads, (stoppable, index, meinActivityPayload) -> {
+            N.forEachAdv(payloads, (stoppable, index, meinActivityPayload) -> {
                 launchPayloads.get(id).add(meinActivityPayload);
             });
         }
