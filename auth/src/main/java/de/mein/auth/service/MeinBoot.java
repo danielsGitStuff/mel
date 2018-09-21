@@ -91,7 +91,7 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
             for (Class<? extends BootLoader> bootClass : bootloaderClasses) {
                 logger.log(Level.FINE, "MeinBoot.boot.booting: " + bootClass.getCanonicalName());
                 BootLoader bootLoader = createBootLoader(meinAuthService, bootClass);
-                bootloaderMap.put(bootLoader.getName(), bootClass);
+                //bootloaderMap.put(bootLoader.getName(), bootClass);
                 bootLoaders.add(bootLoader);
             }
             List<Promise> bootedPromises = new ArrayList<>();
@@ -123,7 +123,6 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
         bootloaderMap.put(bootLoader.getName(), bootClass);
         bootLoader.setMeinAuthService(meinAuthService);
         DatabaseManager databaseManager = meinAuthService.getDatabaseManager();
-        MeinAuthSettings meinAuthSettings = meinAuthService.getSettings();
         ServiceType serviceType = databaseManager.getServiceTypeByName(bootLoader.getName());
         if (serviceType == null) {
             serviceType = databaseManager.createServiceType(bootLoader.getName(), bootLoader.getDescription());

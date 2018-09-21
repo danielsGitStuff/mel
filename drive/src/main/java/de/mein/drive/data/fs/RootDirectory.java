@@ -1,12 +1,12 @@
 package de.mein.drive.data.fs;
 
+import de.mein.auth.file.AFile;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-import de.mein.auth.file.AFile;
 
 import java.io.File;
 
