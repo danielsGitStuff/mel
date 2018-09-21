@@ -1,5 +1,6 @@
 package de.mein.drive.index.watchdog;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
@@ -9,6 +10,9 @@ import java.io.IOException;
 import java.util.List;
 
 /**
+ * The only way to let Linux find to retrieve all files and folders modified after a certain time I figured out
+ * is to start it with a reference folder. It then takes its timestamp and works properly. I did not figure out how to use
+ * a "--modified-after $someNumber"-method. There is one but I only could get it to work with minutes instead of Unix timestamps.
  * Created by xor on 5/7/17.
  */
 public class UnixReferenceFileHandler {
@@ -48,7 +52,7 @@ public class UnixReferenceFileHandler {
         otherFile.mkdirs();
         //todo debug
         if (refFile.lastModified()>otherFile.lastModified())
-            System.err.println("dewjwojo94ig");
+            Lok.error("dewjwojo94ig");
         return BashTools.stuffModifiedAfter(AFile.instance(refFile.getAbsolutePath()), directoryToQuery, pruneDir);
     }
 }

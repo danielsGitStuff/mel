@@ -22,9 +22,12 @@ import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
 /**
+ * Watches directories on Android. {@link Watcher} is the Android component that delivers events for one folder but not its subfolders.
+ * The {@link RecursiveWatcher} takes care of analyzing the events. It holds references to all {@link Watcher}s.
+ * It deletes the references to the {@link Watcher}s once they are obsolete (folder or parent folder deleted) and creates new ones
+ * for every new directory.
  * Created by xor on 31.07.2017.
  */
-
 public class RecursiveWatcher extends IndexWatchdogListener {
     private final AFile target;
     private final Map<String, Watcher> watchers = new HashMap<>();
@@ -88,7 +91,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
 
         @Override
         public void onEvent(int event, @Nullable String path) {
-            recursiveWatcher.eve(this, event, path);
+            recursiveWatcher.onWatcherEvent(this, event, path);
         }
 
         public AFile getTarget() {
@@ -106,7 +109,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
 
     private Set<String> writePaths = new HashSet<>();
 
-    private void eve(Watcher watcher, int event, String path) {
+    private void onWatcherEvent(Watcher watcher, int event, String path) {
         AFile f = path != null ? AFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path) : watcher.getTarget();
         if (transferDirectory.hasSubContent(watcher.getTarget()))
             return;
@@ -186,6 +189,10 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         return flags;
     }
 
+    /**
+     * starts the timer if allowed.
+     * @throws InterruptedException
+     */
     private void startTimer() throws InterruptedException {
         if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed()) {
             watchDogTimer.start();
@@ -218,9 +225,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
                     watchDirectory(f);
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         stageIndexer.examinePaths(this, pathCollection);
