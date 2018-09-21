@@ -1,5 +1,6 @@
 package de.mein.auth.gui;
 
+import de.mein.Lok;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.db.Approval;
 import de.mein.auth.data.db.Certificate;

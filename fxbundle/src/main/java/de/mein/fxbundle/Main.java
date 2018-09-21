@@ -1,6 +1,7 @@
 package de.mein.fxbundle;
 
 import de.mein.KonsoleHandler;
+import de.mein.Lok;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.file.AFile;

@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.Lok;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
