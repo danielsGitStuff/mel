@@ -1,5 +1,6 @@
 package de.mein.auth.gui;
 
+import de.mein.Lok;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;

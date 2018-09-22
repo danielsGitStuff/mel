@@ -1,5 +1,6 @@
 package de.mein.auth.gui;
 
+import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.service.MeinAuthService;
 import javafx.application.Platform;

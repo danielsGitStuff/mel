@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.Lok;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;

@@ -1,5 +1,6 @@
 package de.mein.auth.gui.notification;
 
+import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.service.MeinAuthService;

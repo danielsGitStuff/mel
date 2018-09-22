@@ -1,6 +1,7 @@
 package de.mein.drive.gui;
 
 
+import de.mein.Lok;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.data.conflict.EmptyRowConflict;
 import de.mein.drive.sql.Stage;

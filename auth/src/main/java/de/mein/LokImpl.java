@@ -31,7 +31,7 @@ public class LokImpl {
     }
 
     private String fabricate(String mode, Object msg) {
-        StackTraceElement stackTrace = Thread.currentThread().getStackTrace()[1];
+        StackTraceElement stackTrace = Thread.currentThread().getStackTrace()[4];
         String tag = stackTrace.getFileName();
         String line = fabricateLine(stackTrace, mode, msg);
         return tag + "." + line;
