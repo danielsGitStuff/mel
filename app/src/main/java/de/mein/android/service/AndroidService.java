@@ -54,8 +54,8 @@ import de.mein.sql.SqlQueriesException;
  */
 public class AndroidService extends Service {
 
-    private MeinAuthService meinAuthService;
     private final IBinder mBinder = new LocalBinder();
+    private MeinAuthService meinAuthService;
     private MeinAuthSettings meinAuthSettings;
     private MeinBoot meinBoot;
     private NetworkChangeReceiver networkChangeReceiver;
@@ -75,7 +75,7 @@ public class AndroidService extends Service {
 
         @Override
         public void onCommunicationsDisabled() {
-
+                //TODO deactivate communications here
         }
     };
 
@@ -89,19 +89,6 @@ public class AndroidService extends Service {
         if (powerChangeReceiver != null)
             unregisterReceiver(powerChangeReceiver);
     }
-
-
-    /**
-     * Class used for the client Binder.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with IPC.
-     */
-    public class LocalBinder extends Binder {
-        public AndroidService getService() {
-            // Return this instance of LocalService so clients can call public methods
-            return AndroidService.this;
-        }
-    }
-
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -138,7 +125,6 @@ public class AndroidService extends Service {
             }
             lock.unlockWrite();
         }
-
 
 
         return Service.START_STICKY;
@@ -225,7 +211,7 @@ public class AndroidService extends Service {
     /**
      * create notification so hopefully android won't kill our beloved service
      */
-    private void createPermanentSticky(){
+    private void createPermanentSticky() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(this, 0, notificationIntent, 0);
@@ -263,11 +249,6 @@ public class AndroidService extends Service {
         Lok.debug("AndroidService.onTrimMemory");
         super.onTrimMemory(level);
     }
-
-//    @Override
-//    public File getFilesDir() {
-//        return new File("/data/data/" + getPackageName());
-//    }
 
     public Promise<MeinAuthService, Exception, Void> setup(DriveSyncListener clientSyncListener) throws Exception {
         android();
@@ -326,8 +307,8 @@ public class AndroidService extends Service {
 
         AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
         AndroidPowerManager powerManager = new AndroidPowerManager(meinAuthSettings, (android.os.PowerManager) getSystemService(POWER_SERVICE));
-//        meinBoot = new MeinBoot(meinAuthSettings, powerManager, AndroidDriveBootloader.class, AndroidContactsBootloader.class);
-        meinBoot = new MeinBoot(meinAuthSettings, powerManager, AndroidDriveBootloader.class);
+        meinBoot = new MeinBoot(meinAuthSettings, powerManager, AndroidDriveBootloader.class, AndroidContactsBootloader.class);
+//        meinBoot = new MeinBoot(meinAuthSettings, powerManager, AndroidDriveBootloader.class);
         meinBoot.addMeinAuthAdmin(admin);
         Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot().done(meinAuthService -> {
             N.r(() -> {
@@ -344,6 +325,11 @@ public class AndroidService extends Service {
         //lock.unlockWrite();
     }
 
+//    @Override
+//    public File getFilesDir() {
+//        return new File("/data/data/" + getPackageName());
+//    }
+
     private void android() throws IOException {
 //        meinBoot.addBootLoaderClass(AndroidDriveBootloader.class);
 
@@ -352,6 +338,17 @@ public class AndroidService extends Service {
 
     public MeinAuthService getMeinAuthService() {
         return meinAuthService;
+    }
+
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class LocalBinder extends Binder {
+        public AndroidService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return AndroidService.this;
+        }
     }
 
 }

@@ -16,11 +16,13 @@
         android:id="@+id/lblName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
         android:layout_alignBaseline="@+id/txtName"
         android:text="@string/editServiceName" />
 
     <EditText
         android:id="@+id/txtName"
+        android:layout_alignParentEnd="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/lblName"
@@ -32,7 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@id/lblName"
+        android:layout_below="@id/txtName"
         android:background="@color/bright_blue"
         android:text="@string/state"
         android:textAlignment="center" />
