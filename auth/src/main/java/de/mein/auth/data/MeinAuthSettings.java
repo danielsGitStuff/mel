@@ -49,6 +49,11 @@ public class MeinAuthSettings extends JsonSettings {
         return redirectSysout;
     }
 
+    /**
+     * TODO: rename me properly
+     * @param redirectSysout
+     * @return
+     */
     public MeinAuthSettings setRedirectSysout(Boolean redirectSysout) {
         this.redirectSysout = redirectSysout;
         return this;

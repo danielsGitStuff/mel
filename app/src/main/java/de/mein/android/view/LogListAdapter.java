@@ -9,14 +9,14 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.function.Function;
 
+import de.mein.LokImpl;
 import de.mein.R;
-import de.mein.auth.tools.MeinLogger;
 
 /**
  * Created by xor on 9/11/17.
  */
 
-public class LogListAdapter extends MeinListAdapter<Object> implements MeinLogger.LoggerListener {
+public class LogListAdapter extends MeinListAdapter<Object> implements LokImpl.LokListener{
 
     private final Activity activity;
     private ToStringFunction toStringFunction;

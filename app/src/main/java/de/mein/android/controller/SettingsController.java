@@ -13,10 +13,11 @@ import android.widget.Toast;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MainActivity;
+import de.mein.android.PreferenceStrings;
+import de.mein.android.Tools;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.power.PowerManager;
-import de.mein.auth.tools.MeinLogger;
 import de.mein.auth.tools.N;
 
 /**
@@ -67,13 +68,15 @@ public class SettingsController extends GuiController {
                 txtPort.setText(meinAuthSettings.getPort().toString());
                 txtName.setText(meinAuthSettings.getName());
                 txtCertPort.setText(meinAuthSettings.getDeliveryPort().toString());
-                cbRedirectSysOut.setChecked(meinAuthSettings.getRedirectSysout());
+                cbRedirectSysOut.setChecked(Lok.isLineStorageActive());
                 cbRedirectSysOut.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     meinAuthSettings.setRedirectSysout(isChecked);
-                    if (isChecked)
-                        MeinLogger.redirectSysOut(200,true);
-                    else
-                        MeinLogger.resetSysOut();
+                    int lines = isChecked ? 200 : 0;
+                    Lok.setupSaveLok(lines, true);
+                    Tools.getSharedPreferences().edit()
+                            .putInt(PreferenceStrings.LOK_LINE_COUNT, lines)
+                            .putBoolean(PreferenceStrings.LOK_TIMESTAMP, true)
+                            .apply();
                     N.r(() -> meinAuthSettings.save());
                 });
             });

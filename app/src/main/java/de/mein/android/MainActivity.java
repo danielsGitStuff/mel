@@ -69,7 +69,6 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.MeinLogger;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
@@ -111,7 +110,6 @@ public class MainActivity extends MeinActivity {
     protected void onAndroidServiceAvailable(AndroidService androidService) {
         Lok.debug("MainActivity.onAndroidServiceAvailable");
         if (androidService.getMeinAuthService().getSettings().getRedirectSysout()) {
-            MeinLogger.redirectSysOut(200, true);
         }
         //debugStuff2();
     }
@@ -129,8 +127,10 @@ public class MainActivity extends MeinActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //dev();
-        Lok.setLokImpl(new AndroidLok().setPrintDebug(true));
         Tools.init(this.getApplicationContext());
+        boolean timestamp = Tools.getSharedPreferences().getBoolean(PreferenceStrings.LOK_TIMESTAMP, true);
+        int lines = Tools.getSharedPreferences().getInt(PreferenceStrings.LOK_LINE_COUNT, 0);
+        Lok.setLokImpl(new AndroidLok().setPrintDebug(true).setup(lines, timestamp));
         SAFAccessor.setupExternalPath();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
@@ -527,7 +527,7 @@ public class MainActivity extends MeinActivity {
                 MenuItem mSettings = subMeinAuth.add(5, R.id.nav_settings, 4, R.string.settingsTitle);
                 mSettings.setIcon(R.drawable.icon_settings);
                 //logcat
-                if (meinAuthService != null && meinAuthService.getSettings().getRedirectSysout()) {
+                if (Lok.isLineStorageActive()) {
                     MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 5, getText(R.string.logcatTitle));
                     mLogCat.setIcon(R.drawable.icon_fail);
                 }

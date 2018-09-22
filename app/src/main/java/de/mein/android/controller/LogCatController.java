@@ -11,7 +11,6 @@ import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
 import de.mein.android.view.LogListAdapter;
-import de.mein.auth.tools.MeinLogger;
 import de.mein.auth.tools.N;
 
 /**
@@ -27,14 +26,14 @@ public class LogCatController extends GuiController {
 
     private void initLog() {
         listAdapter.setClickListener(line -> txtLogCat.setText(logcatToString.apply(line)));
-        MeinLogger.setLoggerListener(listAdapter);
+        Lok.setLokListener(listAdapter);
         btnToggle.setText("showing logcat");
         listAdapter.setToStringFunction(logcatToString);
         listAdapter.notifyDataSetChanged();
     }
 
     private void initWakeLock() {
-        MeinLogger.setLoggerListener(null);
+        Lok.setLokListener(null);
         AndroidPowerManager powerManager = (AndroidPowerManager) this.androidService.getMeinAuthService().getPowerManager();
         Object[] callers = powerManager.devGetHeldWakeLockCallers();
         listAdapter.clear();
@@ -93,8 +92,7 @@ public class LogCatController extends GuiController {
     }
 
     private void showLog() {
-        MeinLogger logger = MeinLogger.getInstance();
-        String[] lines = logger.getLines();
+        String[] lines = Lok.getLines();
         listAdapter.clear().addAll(lines);
         listAdapter.notifyDataSetChanged();
     }

@@ -6,7 +6,7 @@ package de.mein;
  */
 public class Lok {
 
-    private static LokImpl impl = new LokImpl();
+    private static LokImpl impl = new LokImpl().setup(0, true);
 
     public static void setLokImpl(LokImpl impl) {
         Lok.impl = impl;
@@ -30,5 +30,21 @@ public class Lok {
 
     public static void debug() {
         impl.debug("");
+    }
+
+    public static void setLokListener(LokImpl.LokListener listener) {
+        impl.setLokListener(listener);
+    }
+
+    public static void setupSaveLok(int lines, boolean timeStamp) {
+        impl.setup(lines, timeStamp);
+    }
+
+    public static String[] getLines() {
+        return impl.getLines();
+    }
+
+    public static boolean isLineStorageActive() {
+        return impl.isLineStorageActive();
     }
 }

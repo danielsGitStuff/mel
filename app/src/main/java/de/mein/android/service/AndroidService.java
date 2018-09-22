@@ -54,6 +54,8 @@ import de.mein.sql.SqlQueriesException;
  */
 public class AndroidService extends Service {
 
+
+
     private final IBinder mBinder = new LocalBinder();
     private MeinAuthService meinAuthService;
     private MeinAuthSettings meinAuthSettings;
