@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
@@ -17,7 +18,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public class MeinTestService extends MeinServiceWorker {
 
-    public MeinTestService(MeinAuthService meinAuthService, AFile workingDirectory, Long serviceTypeId, String uuid) {
+    public MeinTestService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory,serviceTypeId,uuid);
     }
 

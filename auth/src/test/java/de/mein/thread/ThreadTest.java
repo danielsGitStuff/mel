@@ -1,6 +1,7 @@
 package de.mein.thread;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
 import de.mein.sql.RWLock;

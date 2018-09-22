@@ -223,7 +223,7 @@ public class AndroidService extends Service {
                         .setContentText(getText(R.string.permanentNotificationText))
                         .setSmallIcon(R.drawable.icon_notification_2)
                         .setContentIntent(pendingIntent)
-                        .setTicker("ticker")
+                        .setTicker("starting...")
                         .build();
         startForeground(777, notification);
     }

@@ -183,30 +183,30 @@ public class N {
 
     /**
      * for loop in lambda style
-     *
-     * @param start
+     *  @param start
      * @param stop
      * @param forLoop
      */
-    public static void forLoop(int start, int stop, ForLoop forLoop) {
+    public static boolean forLoop(int start, int stop, ForLoop forLoop) {
         Stoppable stoppable = new Stoppable();
         for (int index = start; index < stop; index++) {
             try {
                 forLoop.forloop(stoppable, index);
             } catch (Exception e) {
                 e.printStackTrace();
-                break;
+                return false;
             }
             if (stoppable.isStopped())
                 break;
         }
+        return true;
     }
 
-    public static <T> void forEachAdv(T[] arr, ForEachLoopAdv<T> forEachLoop) {
-        forEachAdv(Arrays.asList(arr), forEachLoop);
+    public static <T> boolean forEachAdv(T[] arr, ForEachLoopAdv<T> forEachLoop) {
+        return forEachAdv(Arrays.asList(arr), forEachLoop);
     }
 
-    public static <K, V> void forEachAdv(Map<K, V> map, MapForEachLoop<K, V> loop) {
+    public static <K, V> boolean forEachAdv(Map<K, V> map, MapForEachLoop<K, V> loop) {
         Stoppable stoppable = new Stoppable();
         int index = 0;
         for (K k : map.keySet()) {
@@ -215,48 +215,54 @@ public class N {
             } catch (Exception e) {
                 e.printStackTrace();
                 stoppable.stop();
+                return false;
             }
             index++;
             if (stoppable.isStopped())
                 break;
         }
+        return true;
     }
 
     /**
      * lambda foreach loop.
      *
+     * @param <T>
      * @param collection
      * @param forEachLoop
-     * @param <T>
      */
-    public static <T> void forEachAdv(Collection<T> collection, ForEachLoopAdv<T> forEachLoop) {
-        forEachAdv(collection.iterator(), forEachLoop);
+    public static <T> boolean forEachAdv(Collection<T> collection, ForEachLoopAdv<T> forEachLoop) {
+        return forEachAdv(collection.iterator(), forEachLoop);
     }
 
-    public static <T> void forEach(Iterable<T> iterable, ForEachLoop<T> forEachLoop) {
-        N.forEach(iterable.iterator(), forEachLoop);
+    public static <T> boolean forEach(Iterable<T> iterable, ForEachLoop<T> forEachLoop) {
+        return N.forEach(iterable.iterator(), forEachLoop);
     }
 
-    public static <T> void forEach(Iterator<T> iterator, ForEachLoop<T> forEachLoop) {
+    public static <T> boolean forEach(Iterator<T> iterator, ForEachLoop<T> forEachLoop) {
         while (iterator.hasNext()) {
             try {
                 forEachLoop.foreach(iterator.next());
             } catch (Exception e) {
                 e.printStackTrace();
+                return false;
             }
         }
+        return true;
     }
 
-    public static <T> void forEach(T[] arr, ForEachLoop<T> forEachLoop) {
+    public static <T> boolean forEach(T[] arr, ForEachLoop<T> forEachLoop) {
         try {
             for (T t : arr)
                 forEachLoop.foreach(t);
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
-    public static <T> void forEachAdv(Iterator<T> iterator, ForEachLoopAdv<T> forEachLoop) {
+    public static <T> boolean forEachAdv(Iterator<T> iterator, ForEachLoopAdv<T> forEachLoop) {
         Stoppable stoppable = new Stoppable();
         int index = 0;
         while (iterator.hasNext() && !stoppable.isStopped()) {
@@ -268,8 +274,10 @@ public class N {
             } catch (Exception e) {
                 e.printStackTrace();
                 stoppable.stop();
+                return false;
             }
         }
+        return true;
     }
 
     public void abort() {

@@ -1,5 +1,6 @@
 package de.mein.auth;
 
+import de.mein.Lok;
 import de.mein.auth.data.cached.data.CachedIterable;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;

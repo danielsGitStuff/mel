@@ -12,6 +12,7 @@ import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
 import de.mein.android.view.LogListAdapter;
 import de.mein.auth.tools.MeinLogger;
+import de.mein.auth.tools.N;
 
 /**
  * Created by xor on 9/8/17.
@@ -40,10 +41,10 @@ public class LogCatController extends GuiController {
         listAdapter.addAll(callers);
         listAdapter.notifyDataSetChanged();
         listAdapter.setClickListener(caller -> {
-            StackTraceElement[] stack = powerManager.getStack(caller);
+            StackTraceElement[] stack = powerManager.devGetCallerStackTrace(caller);
             StringBuilder b = new StringBuilder();
-            for (StackTraceElement element : stack) {
-                b.append(element.getClassName() + "//" + element.getLineNumber() + "//" + element.getMethodName() + "\n");
+            if (!N.forEach(stack, element -> b.append(element.getClassName() + "//" + element.getLineNumber() + "//" + element.getMethodName() + "\n"))) {
+                b.append("stacktrace was null");
             }
             txtLogCat.setText(b.toString());
         });

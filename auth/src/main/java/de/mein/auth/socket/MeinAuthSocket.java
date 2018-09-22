@@ -168,6 +168,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         }).fail(except -> runner.runTry(() -> {
             if (except instanceof ShamefulSelfConnectException) {
                 result.reject(except);
+                meinAuthService.getPowerManager().releaseWakeLock(this);
             } else if (except instanceof ConnectException) {
                 Lok.error(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
                 result.reject(except);

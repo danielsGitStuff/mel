@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mein.Lok;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinAuthSocketOpener;

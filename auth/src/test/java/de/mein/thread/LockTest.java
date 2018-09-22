@@ -1,5 +1,6 @@
 package de.mein.thread;
 
+import de.mein.Lok;
 import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.CountWaitLock;
 

@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import de.mein.Lok;
 import de.mein.auth.tools.MeinLogger;
 
 /**

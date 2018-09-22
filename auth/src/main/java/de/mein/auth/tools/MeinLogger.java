@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by xor on 9/9/17.
  */
-
+@Deprecated
 public class MeinLogger extends PrintStream {
     private static MeinLogger logger;
     private final boolean timeStamp;

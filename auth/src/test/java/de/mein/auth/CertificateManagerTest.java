@@ -1,5 +1,6 @@
 package de.mein.auth;
 
+import de.mein.Lok;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
@@ -56,7 +57,7 @@ public class CertificateManagerTest {
     @Before
     public void init() throws Exception, SqlQueriesException {
         CertificateManager.deleteDirectory(new File("z_test"));
-        certificateManager = createCertificateManager(new MeinAuthSettings().setWorkingDirectory(AFile.instance(new File("z_test"))));
+        certificateManager = createCertificateManager(new MeinAuthSettings().setWorkingDirectory((new File("z_test"))));
     }
 
     public static CertificateManager createCertificateManager(MeinAuthSettings meinAuthSettings) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
@@ -99,7 +100,7 @@ public class CertificateManagerTest {
         if (delete)
             CertificateManager.deleteDirectory(wd);
         wd.mkdirs();
-        MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setWorkingDirectory(AFile.instance(wd));
+        MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setWorkingDirectory(wd);
         DatabaseManager databaseManager = new DatabaseManager(meinAuthSettings);
         return new CertificateManager(meinAuthSettings.getWorkingDirectory(), databaseManager.getSqlQueries(), 1024);
     }

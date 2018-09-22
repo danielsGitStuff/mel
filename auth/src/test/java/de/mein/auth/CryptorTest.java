@@ -1,5 +1,6 @@
 package de.mein.auth;
 
+import de.mein.Lok;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.tools.Cryptor;
 import de.mein.sql.SqlQueriesException;
