@@ -10,7 +10,6 @@ import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
@@ -33,7 +32,6 @@ import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
@@ -56,7 +54,8 @@ import de.mein.sql.SqlQueriesException;
 public class AndroidService extends Service {
 
 
-    private final IBinder mBinder = new LocalBinder();
+    private static final int PERMANENT_REQUEST_CODE = 876;
+    private final IBinder localBinder = new LocalBinder();
     private MeinAuthService meinAuthService;
     private MeinAuthSettings meinAuthSettings;
     private MeinBoot meinBoot;
@@ -84,6 +83,7 @@ public class AndroidService extends Service {
             meinAuthService.shutDownCommunications();
         }
     };
+    private Intent permanentNotificationIntent;
 
     @Override
     public void onDestroy() {
@@ -99,7 +99,7 @@ public class AndroidService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Lok.debug("AndroidService.onBind");
-        return mBinder;
+        return localBinder;
     }
 
     @Override
@@ -210,7 +210,6 @@ public class AndroidService extends Service {
             System.err.println("loading existing meinauth.settings failed :(");
             e.printStackTrace();
         }
-
         Lok.debug("AndroidService.onCreate");
     }
 
@@ -218,21 +217,26 @@ public class AndroidService extends Service {
      * create notification so hopefully android won't kill our beloved service
      */
     private void createPermanentSticky() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent =
-                PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
+        permanentNotificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, PERMANENT_REQUEST_CODE, permanentNotificationIntent, 0);
         Notifier.createNotificationManager(this);
-        Notification notification =
-                new NotificationCompat.Builder(this, Notifier.CHANNEL_ID_SILENT)
-                        .setContentTitle(getText(R.string.app_name))
-                        .setContentText(getText(R.string.permanentNotificationText))
-                        .setSmallIcon(R.drawable.icon_notification_2)
-                        .setContentIntent(pendingIntent)
-                        .setTicker("starting...")
-                        .build();
+        Notification notification = new NotificationCompat.Builder(this, Notifier.CHANNEL_ID_SILENT)
+                .setContentTitle(getText(R.string.app_name))
+                .setContentText(getText(R.string.permanentNotificationText))
+                .setSmallIcon(R.drawable.icon_notification_2)
+                .setContentIntent(pendingIntent)
+                .setTicker("starting...")
+                .build();
         startForeground(777, notification);
     }
+
+    public void shutDown() {
+        Notifier.cancel(permanentNotificationIntent, PERMANENT_REQUEST_CODE);
+        this.stopForeground(true);
+        N.r(() -> meinAuthService.shutDown());
+        stopSelf();
+    }
+
 
     public MeinAuthSettings getMeinAuthSettings() {
         return meinAuthSettings;
@@ -345,6 +349,7 @@ public class AndroidService extends Service {
     public MeinAuthService getMeinAuthService() {
         return meinAuthService;
     }
+
 
     /**
      * Class used for the client Binder.  Because we know this service always

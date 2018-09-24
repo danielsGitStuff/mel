@@ -82,6 +82,7 @@ public class ContactsBootloader extends BootLoader {
             N.r(() -> meinAuthService.getDatabaseManager().grant(service.getId().v(), contactsSettings.getClientSettings().getServerCertId()));
             contactsService = createClientInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
             meinAuthService.registerMeinService(contactsService);
+
         }
         return contactsService;
     }

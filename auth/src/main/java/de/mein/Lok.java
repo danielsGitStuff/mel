@@ -28,9 +28,7 @@ public class Lok {
         impl.info(msg);
     }
 
-    public static void debug() {
-        impl.debug("");
-    }
+
 
     public static void setLokListener(LokImpl.LokListener listener) {
         impl.setLokListener(listener);

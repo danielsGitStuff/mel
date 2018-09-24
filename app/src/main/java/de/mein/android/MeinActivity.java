@@ -38,13 +38,45 @@ import de.mein.auth.tools.N;
 
 public abstract class MeinActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    private static Map<Integer, List<MeinActivityPayload>> launchPayloads = new HashMap<>();
+    protected AndroidService androidService;
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
+    protected ServiceConnection serviceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder binder) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            AndroidService.LocalBinder localBinder = (AndroidService.LocalBinder) binder;
+            androidService = localBinder.getService();
+            Lok.debug(".onServiceConnected: " + androidService.toString());
+//            if (guiController != null)
+//                guiController.onAndroidServiceBound(androidService);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            androidService = null;
+//            if (guiController != null)
+//                guiController.onAndroidServiceUnbound(androidService);
+        }
+    };
     private SparseArray<Deferred<Void, List<String>, Void>> permissionPromises = new SparseArray<>();
     private Map<Integer, MeinActivityLaunchResult> launchResultMap = new HashMap<>();
-    private static Map<Integer, List<MeinActivityPayload>> launchPayloads = new HashMap<>();
+
+    public static void onLaunchDestroyed(Integer requestCode) {
+        launchPayloads.remove(requestCode);
+    }
+
+    public static List<MeinActivityPayload> getLaunchPayloads(Integer requestCode) {
+        return launchPayloads.get(requestCode);
+    }
 
     public void launchActivityForResult(Intent launchIntent, MeinActivityLaunchResult meinActivityLaunchResult) {
         final int id = Tools.generateIntentRequestCode();
-        launchIntent.putExtra(MeinStrings.Notifications.REQUEST_CODE,id);
+        launchIntent.putExtra(MeinStrings.Notifications.REQUEST_CODE, id);
         launchResultMap.put(id, meinActivityLaunchResult);
         startActivityForResult(launchIntent, id);
     }
@@ -52,7 +84,7 @@ public abstract class MeinActivity extends AppCompatActivity
     public void launchActivityForResult(Intent launchIntent, MeinActivityLaunchResult meinActivityLaunchResult, MeinActivityPayload... payloads) {
         final int id = Tools.generateIntentRequestCode();
         launchResultMap.put(id, meinActivityLaunchResult);
-        launchIntent.putExtra(MeinStrings.Notifications.REQUEST_CODE,id);
+        launchIntent.putExtra(MeinStrings.Notifications.REQUEST_CODE, id);
         if (payloads != null) {
             launchPayloads.put(id, new ArrayList<>());
             N.forEachAdv(payloads, (stoppable, index, meinActivityPayload) -> {
@@ -67,23 +99,10 @@ public abstract class MeinActivity extends AppCompatActivity
         super.onDestroy();
     }
 
-    public static void onLaunchDestroyed(Integer requestCode) {
-        launchPayloads.remove(requestCode);
-    }
-
-    public static List<MeinActivityPayload> getLaunchPayloads(Integer requestCode) {
-        return launchPayloads.get(requestCode);
-    }
-
-    public interface MeinActivityLaunchResult {
-        void onResultReceived(int resultCode, Intent result);
-    }
-
-    protected AndroidService androidService;
-
     protected void bindService() {
+        Lok.debug("BINDSERVICE");
         Intent intent = new Intent(getBaseContext(), AndroidService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -97,31 +116,8 @@ public abstract class MeinActivity extends AppCompatActivity
     protected void onStop() {
         super.onStop();
         EventBus.getDefault().unregister(this);
-        unbindService(mConnection);
+        unbindService(serviceConnection);
     }
-
-    /**
-     * Defines callbacks for service binding, passed to bindService()
-     */
-    protected ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            AndroidService.LocalBinder localBinder = (AndroidService.LocalBinder) service;
-            androidService = localBinder.getService();
-            Lok.debug(".onServiceConnected: " + androidService.toString());
-//            if (guiController != null)
-//                guiController.onAndroidServiceBound(androidService);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-//            if (guiController != null)
-//                guiController.onAndroidServiceUnbound(androidService);
-        }
-    };
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onServiceStarted(AndroidService androidService) {
@@ -166,7 +162,6 @@ public abstract class MeinActivity extends AppCompatActivity
         return true;
     }
 
-
     /**
      * annoys the user one time with each given permission.
      *
@@ -208,5 +203,9 @@ public abstract class MeinActivity extends AppCompatActivity
         MeinActivity.launchPayloads.remove(requestCode);
         if (launchResult != null)
             launchResult.onResultReceived(resultCode, data);
+    }
+
+    public interface MeinActivityLaunchResult {
+        void onResultReceived(int resultCode, Intent result);
     }
 }

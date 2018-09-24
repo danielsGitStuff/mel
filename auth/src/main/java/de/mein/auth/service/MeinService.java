@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
 import de.mein.auth.file.AFile;
@@ -91,10 +92,10 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         return getClass().getSimpleName() + " for " + meinAuthService.getName();
     }
 
-     @Override
+    @Override
     public void onShutDown() {
-        executorService.shutdown();
-
+        if (executorService != null)
+            executorService.shutdown();
     }
 
     /**

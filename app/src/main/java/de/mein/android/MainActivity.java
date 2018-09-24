@@ -347,6 +347,14 @@ public class MainActivity extends MeinActivity {
             enableGuiController(new SettingsController(this, content));
         } else if (id == R.id.nav_logcat) {
             enableGuiController(new LogCatController(this, content));
+        } else if (id == R.id.nav_exit) {
+            Lok.debug("exiting...");
+            if (androidService != null) {
+                Lok.debug("shutting down android service...");
+                androidService.shutDown();
+            }
+            Lok.debug("bye...");
+            finish();
         }
         closeDrawer();
         return true;
@@ -527,10 +535,13 @@ public class MainActivity extends MeinActivity {
                 MenuItem mSettings = subMeinAuth.add(5, R.id.nav_settings, 4, R.string.settingsTitle);
                 mSettings.setIcon(R.drawable.icon_settings);
                 //logcat
+                int order = 5;
                 if (Lok.isLineStorageActive()) {
-                    MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, 5, getText(R.string.logcatTitle));
+                    MenuItem mLogCat = subMeinAuth.add(5, R.id.nav_logcat, order++, getText(R.string.logcatTitle));
                     mLogCat.setIcon(R.drawable.icon_fail);
                 }
+                MenuItem mExit = subMeinAuth.add(5, R.id.nav_exit, order, getText(R.string.exit));
+                mExit.setIcon(R.drawable.icon_exit);
                 SubMenu subServices = menu.addSubMenu(getText(R.string.drawerServices));
                 if (meinAuthService != null) {
                     List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();

@@ -102,4 +102,5 @@
     <string name="stateStopped">Stopped</string>
     <string name="stateRunning">Running</string>
     <string name="stateDeactivated">Deactivated</string>
+    <string name="exit">Exit</string>
 </resources>

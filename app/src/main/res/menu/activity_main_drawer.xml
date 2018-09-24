@@ -28,6 +28,9 @@
                     android:id="@+id/nav_logcat"
                     android:icon="@drawable/icon_fail"
                     android:title="@string/logcatTitle" />
+                <item android:id="@+id/nav_exit"
+                    android:icon="@drawable/icon_exit"
+                    android:title="@string/exit"/>
             </group>
         </menu>
     </item>

@@ -56,7 +56,7 @@ public class AndroidContactsBootloader extends ContactsBootloader implements And
     @Override
     public void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceGuiController currentController) {
 
-        Lok.debug();
+        Lok.debug("");
         try {
             RemoteContactsServiceChooserGuiController controller = (RemoteContactsServiceChooserGuiController) currentController;
             ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeByName(new ContactsBootloader().getName());

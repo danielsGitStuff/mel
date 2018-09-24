@@ -19,9 +19,9 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 
 /**
+ * this service is not executed as a Runnable. Since phonebooks usually are relatively small the service does not need to run in a separate thread.
  * Created by xor on 9/21/17.
  */
-
 public abstract class ContactsService extends MeinService {
 
 
@@ -32,7 +32,7 @@ public abstract class ContactsService extends MeinService {
         super(meinAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid);
         databaseManager = new ContactsDatabaseManager(this, serviceInstanceWorkingDirectory, settingsCfg);
         settings = databaseManager.getSettings();
-        meinAuthService.execute(this);
+        //meinAuthService.execute(this);
     }
 
     public ContactsSettings getSettings() {
