@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 
+import de.mein.Lok;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.file.AFile;
@@ -21,6 +22,7 @@ import de.mein.contacts.data.ContactsClientSettings;
 import de.mein.contacts.data.NewVersionDetails;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.jobs.CommitJob;
+import de.mein.contacts.jobs.ExamineJob;
 import de.mein.contacts.jobs.QueryJob;
 import de.mein.contacts.jobs.UpdatePhoneBookJob;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -42,6 +44,15 @@ public class ContactsClientService extends ContactsService {
     @Override
     public void onContactsChanged() {
 
+    }
+
+    @Override
+    public void connectionAuthenticated(Certificate partnerCertificate) {
+        if (partnerCertificate.getId().equalsValue(settings.getClientSettings().getServerCertId())){
+            addJob(new ExamineJob());
+        }else {
+            Lok.debug("received a cert id that is not from server: "+partnerCertificate.getId().v());
+        }
     }
 
     @Override

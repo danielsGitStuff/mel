@@ -62,7 +62,6 @@ public class AndroidContactsClientService extends ContactsClientService {
             contactsToAndroidExporter = new ContactsToAndroidExporter(databaseManager);
         }
         databaseManager.maintenance();
-        addJob(new ExamineJob());
     }
 
     @Override
