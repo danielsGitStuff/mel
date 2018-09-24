@@ -100,7 +100,6 @@ public abstract class MeinActivity extends AppCompatActivity
     }
 
     protected void bindService() {
-        Lok.debug("BINDSERVICE");
         Intent intent = new Intent(getBaseContext(), AndroidService.class);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }

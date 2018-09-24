@@ -84,6 +84,7 @@ public class ContactsBootloader extends BootLoader {
             meinAuthService.registerMeinService(contactsService);
 
         }
+        meinAuthService.execute(contactsService);
         return contactsService;
     }
 

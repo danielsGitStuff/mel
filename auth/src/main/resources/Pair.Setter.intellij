@@ -6,14 +6,14 @@ public ##
 #if($field.modifierStatic)
 static ##
 #end
-$class.certUuid set$StringUtil.capitalizeWithJavaBeanConvention($StringUtil.sanitizeJavaIdentifier($helper.getPropertyName($field, $project)))($t $paramName) {
-#if ($field.certUuid == $paramName)
+$class.name set$StringUtil.capitalizeWithJavaBeanConvention($StringUtil.sanitizeJavaIdentifier($helper.getPropertyName($field, $project)))($t $paramName) {
+#if ($field.name == $paramName)
     #if (!$field.modifierStatic)
     this.##
     #else
-        $classname.##
+        $class.name.##
     #end
 #end
-$field.certUuid .v($paramName);
+$field.name .v($paramName);
 return this;
 }
