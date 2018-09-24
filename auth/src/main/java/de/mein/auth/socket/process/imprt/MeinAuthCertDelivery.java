@@ -15,6 +15,7 @@ import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
 import javax.net.ServerSocketFactory;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.InetSocketAddress;
@@ -40,7 +41,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
     protected MeinSocket.MeinSocketListener listener;
 
 
-    public MeinAuthCertDelivery(MeinAuthService meinAuthService, int port) throws Exception {
+    public MeinAuthCertDelivery(MeinAuthService meinAuthService, int port) {
         this.meinAuthService = meinAuthService;
         this.certificateManager = meinAuthService.getCertificateManager();
         this.port = port;
@@ -145,9 +146,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
                 Lok.debug("MeinAuthCertDelivery.runImpl.interrupted");
         } finally {
             try {
-                in.close();
-                out.close();
-                serverSocket.close();
+                N.s(() -> serverSocket.close(), () -> in.close(), () -> out.close());
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -15,7 +15,6 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
@@ -55,7 +54,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -500,6 +498,9 @@ public class MeinAuthService {
         this.meinBoot = meinBoot;
     }
 
+    /**
+     * shuts down all running services and connections.
+     */
     public void shutDown() {
         uuidServiceMapSemaphore.lock();
         for (IMeinService service : uuidServiceMap.values()) {
@@ -567,5 +568,22 @@ public class MeinAuthService {
         for (MeinAuthAdmin admin : meinAuthAdmins) {
             admin.onChanged();
         }
+    }
+
+    public void shutDownCommunications() {
+        this.meinAuthWorker.shutDown();
+    }
+
+    public DeferredObject<DeferredRunnable, Exception, Void> startUpCommunications() {
+        DeferredObject<DeferredRunnable,Exception,Void> deferred = new DeferredObject<>();
+        if (meinAuthWorker.isInterrupted()) {
+            // restart
+            meinAuthWorker.setStartedPromise(deferred);
+            this.execute(meinAuthWorker);
+        }else {
+            // it is still running
+            deferred.resolve(meinAuthWorker);
+        }
+        return deferred;
     }
 }

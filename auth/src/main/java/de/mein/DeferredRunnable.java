@@ -37,6 +37,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
 
     @Override
     public void run() {
+        interrupted = false;
         thread = Thread.currentThread();
         thread.setName(getRunnableName());
         runImpl();
@@ -52,7 +53,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
      * call this from(!) the running Thread to see whether or not the Thread should stop.
      * @return
      */
-    protected boolean isInterrupted() {
+    public boolean isInterrupted() {
         return interrupted;
     }
 

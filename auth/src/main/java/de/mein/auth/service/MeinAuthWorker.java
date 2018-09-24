@@ -14,6 +14,7 @@ import de.mein.auth.socket.process.imprt.MeinAuthCertDelivery;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -21,6 +22,7 @@ import org.jdeferred.impl.DeferredObject;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
@@ -32,23 +34,25 @@ import java.security.cert.CertificateException;
 @SuppressWarnings("Duplicates")
 public class MeinAuthWorker extends MeinWorker {
     private final int port;
+    private final Integer deliverPort;
     private MeinAuthSocketOpener socketOpener;
     private final MeinAuthService meinAuthService;
     protected MeinAuthCertDelivery certDelivery;
     protected MeinAuthBrotCaster brotCaster;
 
 
-    public MeinAuthWorker(MeinAuthService meinAuthService, MeinAuthSettings meinAuthSettings) throws Exception {
-        this.certDelivery = new MeinAuthCertDelivery(meinAuthService, meinAuthSettings.getDeliveryPort());
+    public MeinAuthWorker(MeinAuthService meinAuthService, MeinAuthSettings meinAuthSettings) {
         this.meinAuthService = meinAuthService;
         this.port = meinAuthSettings.getPort();
-        brotCaster = new MeinAuthBrotCaster(meinAuthService);
-        meinAuthService.setBrotCaster(brotCaster);
+        this.deliverPort = meinAuthSettings.getDeliveryPort();
     }
 
     @Override
     public void run() {
         // initialize everything and then wait for things to happen
+        brotCaster = new MeinAuthBrotCaster(meinAuthService);
+        meinAuthService.setBrotCaster(brotCaster);
+        certDelivery = new MeinAuthCertDelivery(meinAuthService,deliverPort);
         DeferredObject<DeferredRunnable, Exception, Void> brotcasterPromise = brotCaster.getStartedDeferred();
         DeferredObject<DeferredRunnable, Exception, Void> certDeliveryPromise = certDelivery.getStartedDeferred();
         socketOpener = new MeinAuthSocketOpener(meinAuthService, port);
@@ -75,7 +79,6 @@ public class MeinAuthWorker extends MeinWorker {
         super.run();
     }
 
-
     @Override
     protected void workWork(Job job) throws Exception {
         Lok.debug("MeinAuthWorker.workWork." + job.getClass().getSimpleName());
@@ -88,7 +91,7 @@ public class MeinAuthWorker extends MeinWorker {
 
     @Override
     public void addJob(Job job) {
-        if(job instanceof IsolatedConnectJob){
+        if (job instanceof IsolatedConnectJob) {
             Lok.debug("MeinAuthWorker.addJob.debugf0e4");
         }
         super.addJob(job);

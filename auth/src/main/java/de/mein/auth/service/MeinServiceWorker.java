@@ -43,11 +43,14 @@ public abstract class MeinServiceWorker extends MeinService {
                 queueLock.unlockWrite();
                 if (job != null) {
                     try {
+                        meinAuthService.getPowerManager().wakeLock(this);
                         workWork(job);
                     } catch (Exception e) {
                         e.printStackTrace();
                         if (job.getPromise() != null)
                             job.getPromise().reject(e);
+                    } finally {
+                        meinAuthService.getPowerManager().releaseWakeLock(this);
                     }
                 } else {
                     // wait here if no jobs are available

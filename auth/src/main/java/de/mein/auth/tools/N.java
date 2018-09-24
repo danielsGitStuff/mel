@@ -44,9 +44,11 @@ public class N {
 
     /**
      * fails silently
+     * @param noTryRunnables each {@link INoTryRunnable} is run separately. if one fails it won't prevent the others from being executed.
      */
-    public static void s(N.INoTryRunnable noTryRunnable) {
-        N.silentRunner.runTry(noTryRunnable);
+    public static void s(N.INoTryRunnable... noTryRunnables) {
+        for (N.INoTryRunnable noTryRunnable : noTryRunnables)
+            N.silentRunner.runTry(noTryRunnable);
     }
 
     /**
@@ -61,10 +63,11 @@ public class N {
     /**
      * prints stacktrace when failing
      *
-     * @param noTryRunnable
+     * @param noTryRunnables each {@link INoTryRunnable} is run separately. if one fails it won't prevent the others from being executed.
      */
-    public static void r(N.INoTryRunnable noTryRunnable) {
-        N.runner.runTry(noTryRunnable);
+    public static void r(N.INoTryRunnable... noTryRunnables) {
+        for (N.INoTryRunnable noTryRunnable : noTryRunnables)
+            N.runner.runTry(noTryRunnable);
     }
 
     /**
@@ -183,7 +186,8 @@ public class N {
 
     /**
      * for loop in lambda style
-     *  @param start
+     *
+     * @param start
      * @param stop
      * @param forLoop
      */

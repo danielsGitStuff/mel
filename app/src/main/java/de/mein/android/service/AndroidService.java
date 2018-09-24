@@ -49,11 +49,11 @@ import de.mein.sql.SqlQueriesException;
 
 
 /**
- * puts Android specific workarounds in their places. eg: sqlite databasing works different than on a standard Linux
+ * puts Android specific workarounds in their places. eg: sqlite databasing works different than on a standard Linux.
+ * <p>
  * Created by xor on 2/3/17.
  */
 public class AndroidService extends Service {
-
 
 
     private final IBinder mBinder = new LocalBinder();
@@ -65,19 +65,23 @@ public class AndroidService extends Service {
     private PowerManager.CommunicationsListener communicationsListener = new PowerManager.CommunicationsListener() {
         @Override
         public void onCommunicationsEnabled() {
-            try {
-                for (Certificate certificate : meinAuthService.getCertificateManager().getAllCertificateDetails()) {
-                    meinAuthService.connect(certificate.getId().v());
+            Lok.debug("restarting communications");
+            meinAuthService.startUpCommunications().done(result -> {
+                try {
+                    for (Certificate certificate : meinAuthService.getCertificateManager().getAllCertificateDetails()) {
+                        meinAuthService.connect(certificate.getId().v());
+                    }
                     meinAuthService.discoverNetworkEnvironment();
+                } catch (SqlQueriesException | InterruptedException e) {
+                    e.printStackTrace();
                 }
-            } catch (SqlQueriesException | InterruptedException e) {
-                e.printStackTrace();
-            }
+            }).fail(result -> Lok.error("failed to restart MeinAuthWorker."));
         }
 
         @Override
         public void onCommunicationsDisabled() {
-                //TODO deactivate communications here
+            Lok.debug("shutting down communications");
+            meinAuthService.shutDownCommunications();
         }
     };
 
