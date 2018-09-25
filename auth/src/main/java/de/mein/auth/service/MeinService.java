@@ -96,6 +96,16 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     public void onShutDown() {
         if (executorService != null)
             executorService.shutdown();
+        super.onShutDown();
+    }
+
+    /**
+     * stop all workers threads here.
+     */
+    public void suspend() {
+        if (executorService != null)
+            executorService.shutdown();
+        super.onShutDown();
     }
 
     /**

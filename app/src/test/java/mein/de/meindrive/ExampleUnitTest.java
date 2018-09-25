@@ -16,4 +16,29 @@ public class ExampleUnitTest {
     public void addition_isCorrect() throws Exception {
         assertEquals(4, 2 + 2);
     }
+
+    class A {
+        String print() {
+            return "AA";
+        }
+
+        String test() {
+            return A.this.print();
+        }
+    }
+
+    class B extends A {
+        @Override
+        String print() {
+            return "BB";
+        }
+    }
+
+    @Test
+    public void inheritageTest() {
+        A a = new A();
+        B b = new B();
+        System.out.println("ExampleUnitTest.inheritageTest.print: "+a.print()+"..."+b.print());
+        System.out.println("ExampleUnitTest.inheritageTest.test: "+a.test()+"..."+b.test());
+    }
 }

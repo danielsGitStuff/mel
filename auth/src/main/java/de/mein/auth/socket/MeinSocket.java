@@ -200,10 +200,6 @@ public class MeinSocket extends DeferredRunnable {
             super.onShutDown();
         }
 
-        @Override
-        public void shutDown() {
-            super.shutDown();
-        }
     }
 
 

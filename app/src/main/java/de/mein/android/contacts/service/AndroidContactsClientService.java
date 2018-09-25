@@ -181,14 +181,8 @@ public class AndroidContactsClientService extends ContactsClientService {
     }
 
     @Override
-    public void shutDown() {
-        super.shutDown();
-        serviceMethods.onShutDown();
-    }
-
-
-    @Override
     public void onShutDown() {
+        serviceMethods.onShutDown();
         super.onShutDown();
     }
 

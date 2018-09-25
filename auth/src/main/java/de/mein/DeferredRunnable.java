@@ -3,7 +3,9 @@ package de.mein;
 import org.jdeferred.impl.DeferredObject;
 
 /**
- * A Runnable that comes with a Deferred object, that is resolved when the Thread has started
+ * A Runnable that comes with a Deferred object, that is resolved when the Thread has started.
+ * Extend this class, grab the startedPromise in a place that wants to know when this thing has started.
+ * Then execute it and resolve the startedPromise somewhere in the run() method.
  * Created by xor on 04.09.2016.
  */
 public abstract class DeferredRunnable implements MeinRunnable {
@@ -14,7 +16,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
     /**
      * you must not override this
      */
-    public void shutDown() {
+    public final void shutDown() {
         String line = "shutting down: " + getClass().getSimpleName();
         if (thread != null)
             line += "/" + thread.getName();
