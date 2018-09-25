@@ -22,7 +22,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'com.android.tools.build:gradle:3.2.0'
 //        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
         // NOTE: Do not place your a
         // pplication dependencies here; they belong
@@ -33,7 +33,7 @@ buildscript {
 android {
     compileOptions.encoding = 'UTF-8'
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.2'
     defaultConfig {
         applicationId "de.mein.meindrive"
         minSdkVersion 19

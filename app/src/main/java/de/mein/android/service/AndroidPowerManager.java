@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.mein.Lok;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.N;
@@ -13,7 +14,6 @@ import de.mein.auth.tools.WatchDogTimer;
 public class AndroidPowerManager extends PowerManager {
     private final android.os.PowerManager osPowerManager;
     private Map<Object, StackTraceElement[]> wakeLockCallers = new HashMap<>();
-    private Map<Object, Thread> wakeThreads = new HashMap<>();
     private android.os.PowerManager.WakeLock wakeLock;
     private WatchDogTimer wakeTimer;
     private ReentrantLock wakeAccessLock = new ReentrantLock(true);
@@ -47,9 +47,8 @@ public class AndroidPowerManager extends PowerManager {
     @Override
     public void wakeLock(Object caller) {
         wakeAccessLock.lock();
+        Lok.debug("aquire");
         if (!wakeLockCallers.containsKey(caller)) {
-            Thread thread = Thread.currentThread();
-            wakeThreads.put(caller, thread);
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             stackTrace = Arrays.copyOfRange(stackTrace, 3, stackTrace.length);
             wakeLockCallers.put(caller, stackTrace);
@@ -61,7 +60,7 @@ public class AndroidPowerManager extends PowerManager {
     @Override
     public void releaseWakeLock(Object caller) {
         wakeAccessLock.lock();
-        wakeThreads.remove(caller);
+        Lok.debug("release");
         if (wakeLockCallers.containsKey(caller)) {
             wakeLockCallers.remove(caller);
             if (wakeLockCallers.isEmpty() && wakeLock.isHeld()) {

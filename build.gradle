@@ -10,7 +10,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'com.android.tools.build:gradle:3.2.0'
 //        classpath 'com.github.rholder:gradle-one-jar:1.0.4'
         //classpath 'com.android.tools.build:gradle:3.0.0-beta7'
         //classpath 'me.tatarka:gradle-retrolambda:3.2.0'
