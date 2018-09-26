@@ -18,6 +18,7 @@ import java.util.List;
 class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
     // we
     private final UnixReferenceFileHandler unixReferenceFileHandler;
+    private boolean firstRun = true;
 
     IndexWatchdogListenerUnix2(MeinDriveService meinDriveService, WatchService watchService) {
         super(meinDriveService, "IndexWatchdogListenerUnix", watchService);
@@ -39,14 +40,16 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
     @Override
     public void runImpl() {
         try {
-            unixReferenceFileHandler.onStart();
+            if (firstRun)
+                unixReferenceFileHandler.onStart();
+            firstRun = false;
             /**
              * cause the WatchService sometimes confuses the WatchKeys when creating folders we have to go around that.
              * We will only process all "delete" and "modify" (cause they can be ongoing for some time) events directly.
              * when an Event pops up, we will start the Timer and once it is finished we ask the Bash to show us every new/modified
              * File or Directory.
              */
-            while (true) {
+            while (!isStopped()) {
                 WatchKey watchKey = watchService.take();
                 ignoredSemaphore.acquire();
                 try {
@@ -123,9 +126,4 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
         super.onShutDown();
     }
 
-
-    @Override
-    public void onHeavyWorkForbidden() {
-
-    }
 }

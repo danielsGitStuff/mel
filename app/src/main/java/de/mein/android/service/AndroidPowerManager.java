@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import de.mein.Lok;
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WatchDogTimer;
@@ -18,7 +19,7 @@ public class AndroidPowerManager extends PowerManager {
     private WatchDogTimer wakeTimer;
     private ReentrantLock wakeAccessLock = new ReentrantLock(true);
 
-    public AndroidPowerManager(MeinAuthSettings meinAuthSettings, android.os.PowerManager osPowerManager) {
+    public AndroidPowerManager( MeinAuthSettings meinAuthSettings, android.os.PowerManager osPowerManager) {
         super(meinAuthSettings);
         this.osPowerManager = osPowerManager;
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());

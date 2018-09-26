@@ -11,7 +11,7 @@ import org.jdeferred.impl.DeferredObject;
 public abstract class DeferredRunnable implements MeinRunnable {
     protected DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
     protected Thread thread;
-    private boolean interrupted = false;
+    private boolean stopped = false;
 
     /**
      * you must not override this
@@ -23,7 +23,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
         Lok.debug(line);
         if (thread != null) {
             thread.interrupt();
-            interrupted = true;
+            stopped = true;
         } else {
             Lok.error(getClass().getSimpleName() + ".shutDown: Thread was null :'(  " + getRunnableName());
         }
@@ -31,19 +31,19 @@ public abstract class DeferredRunnable implements MeinRunnable {
     }
 
     /**
-     * Is called after shutDown() was called. The current Thread is already interrupted.
-     * You may want to shut down other components as well. They should be interrupted but might block somewhere.
+     * Is called after shutDown() was called. The current Thread is already stopped.
+     * You may want to shut down other components as well. They should be stopped but might block somewhere.
      * Unblock them here.
      */
     public abstract void onShutDown();
 
     @Override
     public void run() {
-        interrupted = false;
+        stopped = false;
         thread = Thread.currentThread();
         thread.setName(getRunnableName());
         runImpl();
-        Lok.debug(getClass().getSimpleName()+".run.done on "+thread.getName());
+        Lok.debug(getClass().getSimpleName() + ".run.done on " + thread.getName());
     }
 
     /**
@@ -53,14 +53,20 @@ public abstract class DeferredRunnable implements MeinRunnable {
 
     /**
      * call this from(!) the running Thread to see whether or not the Thread should stop.
+     *
      * @return
      */
-    public boolean isInterrupted() {
-        return interrupted;
+    public boolean isStopped() {
+        return stopped;
     }
 
     public DeferredObject<DeferredRunnable, Exception, Void> getStartedDeferred() {
         return startedPromise;
+    }
+
+    public void suspend(){
+        stopped = true;
+        thread.interrupt();
     }
 
     public DeferredRunnable setStartedPromise(DeferredObject<DeferredRunnable, Exception, Void> startedPromise) {

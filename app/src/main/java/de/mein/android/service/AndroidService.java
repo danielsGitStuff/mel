@@ -323,6 +323,7 @@ public class AndroidService extends Service {
         Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot().done(meinAuthService -> {
             N.r(() -> {
                 Lok.debug("AndroidService.booted");
+                powerManager.setMeinAuthService(meinAuthService);
                 AndroidService.this.meinAuthService = meinAuthService;
                 // todo debug
                 //meinAuthService.addRegisteredHandler(registeredHandler);

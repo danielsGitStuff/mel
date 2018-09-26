@@ -6,162 +6,199 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="?attr/actionBarSize"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="de.mein.android.MainActivity">
     <!--tools:showIn="@layout/app_bar_main"-->
 
-    <TextView
-        android:id="@+id/txtConnection"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/colorLabelBackground"
-        android:text="@string/settingsConnectionSettings" />
+        android:layout_height="match_parent">
 
-    <TableLayout
-        android:id="@+id/table"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/txtConnection">
-
-        <TableRow>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/lName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settingsName" />
-
-            <EditText
-                android:id="@+id/txtName"
+                android:id="@+id/txtConnection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ems="10"
-                android:inputType="text" />
-        </TableRow>
+                android:background="@color/colorLabelBackground"
+                android:text="@string/settingsConnectionSettings" />
 
-        <TableRow>
+            <TableLayout
+                android:id="@+id/table"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/txtConnection">
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/lName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settingsName" />
+
+                    <EditText
+                        android:id="@+id/txtName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:inputType="text" />
+                </TableRow>
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/lPort"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settingsPort" />
+
+                    <EditText
+                        android:id="@+id/txtPort"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:inputType="number" />
+                </TableRow>
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/lPortCert"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settingsCertPort" />
+
+                    <EditText
+                        android:id="@+id/txtCertPort"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:inputType="number" />
+                </TableRow>
+            </TableLayout>
+
+            <View
+                android:id="@+id/dummyMiddle"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_centerHorizontal="true" />
+
+            <Button
+                android:id="@+id/btnApply"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/table"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/dummyMiddle"
+                android:text="@string/settingsApply" />
+
+            <Button
+                android:id="@+id/btnStart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/table"
+                android:layout_alignParentEnd="true"
+                android:layout_toEndOf="@id/dummyMiddle"
+                android:text="@string/settingsStartStop" />
 
             <TextView
-                android:id="@+id/lPort"
+                android:id="@+id/txtPower"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/btnApply"
+                android:background="@color/colorLabelBackground"
+                android:text="@string/settingsPowerSettings" />
+
+
+            <Button
+                android:id="@+id/btnPowerClient"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settingsPort" />
+                android:layout_below="@id/txtPower"
+                android:layout_alignEnd="@id/dummyMiddle"
+                android:layout_alignParentStart="true"
+                android:text="@string/btnClient" />
 
-            <EditText
-                android:id="@+id/txtPort"
+
+            <Button
+                android:id="@+id/btnPowerServer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ems="10"
-                android:inputType="number" />
-        </TableRow>
+                android:layout_below="@id/txtPower"
+                android:layout_alignParentEnd="true"
+                android:layout_toEndOf="@id/dummyMiddle"
+                android:text="@string/btnServer" />
 
-        <TableRow>
+            <de.mein.android.view.PowerView
+                android:id="@+id/powerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/btnPowerClient"></de.mein.android.view.PowerView>
+
+            <CheckBox
+                android:id="@+id/cbWorkWhenPlugged"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/powerView"
+                android:layout_alignParentStart="true"
+                android:text="@string/settingsHeavyWorkWhenPlugged" />
+
+            <CheckBox
+                android:id="@+id/cbWorkWhenOffline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/cbWorkWhenPlugged"
+                android:text="@string/settingsHeavyWorkNoWifi" />
 
             <TextView
-                android:id="@+id/lPortCert"
+                android:id="@+id/txtHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/cbWorkWhenOffline"
+                android:text="@string/settingsHeavyWorkHint" />
+
+            <TextView
+                android:id="@+id/txtMisc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/txtHint"
+                android:background="@color/colorLabelBackground"
+                android:text="@string/settingsMisc" />
+
+            <CheckBox
+                android:id="@+id/cbShowFirstStartDialog"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settingsCertPort" />
+                android:layout_below="@id/txtMisc"
+                android:layout_alignBaseline="@id/btnShow"
+                android:checked="false"
+                android:text="@string/settingsStartDialog" />
 
-            <EditText
-                android:id="@+id/txtCertPort"
-                android:layout_width="wrap_content"
+            <Button
+                android:id="@+id/btnShow"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ems="10"
-                android:inputType="number" />
-        </TableRow>
-    </TableLayout>
+                android:layout_below="@id/txtMisc"
+                android:layout_toEndOf="@id/cbShowFirstStartDialog"
+                android:text="@string/settingsShow" />
 
-    <View
-        android:id="@+id/dummyMiddle"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:id="@+id/btnApply"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@id/table"
-        android:layout_toStartOf="@id/dummyMiddle"
-        android:text="@string/settingsApply" />
-
-    <Button
-        android:id="@+id/btnStart"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@id/table"
-        android:layout_toEndOf="@id/dummyMiddle"
-        android:text="@string/settingsStartStop" />
-
-    <TextView
-        android:id="@+id/txtPower"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btnApply"
-        android:background="@color/colorLabelBackground"
-        android:text="@string/settingsPowerSettings" />
-
-    <CheckBox
-        android:id="@+id/cbWorkWhenPlugged"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/txtPower"
-        android:text="@string/settingsHeavyWorkWhenPlugged" />
-
-    <CheckBox
-        android:id="@+id/cbWorkWhenOffline"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cbWorkWhenPlugged"
-        android:text="@string/settingsHeavyWorkNoWifi" />
-
-    <TextView
-        android:id="@+id/txtHint"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cbWorkWhenOffline"
-        android:text="@string/settingsHeavyWorkHint" />
-
-    <TextView
-        android:id="@+id/txtMisc"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/txtHint"
-        android:background="@color/colorLabelBackground"
-        android:text="@string/settingsMisc" />
-
-    <CheckBox
-        android:id="@+id/cbShowFirstStartDialog"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@id/btnShow"
-        android:layout_below="@id/txtMisc"
-        android:checked="false"
-        android:text="@string/settingsStartDialog" />
-
-    <Button
-        android:id="@+id/btnShow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/txtMisc"
-        android:layout_toEndOf="@id/cbShowFirstStartDialog"
-        android:text="@string/settingsShow" />
-    <CheckBox
-        android:id="@+id/cbRedirectSysOut"
-        android:text="@string/settingsRedirectSysOut"
-        android:layout_below="@id/btnShow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+            <CheckBox
+                android:id="@+id/cbRedirectSysOut"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/btnShow"
+                android:text="@string/settingsRedirectSysOut" />
+        </RelativeLayout>
+    </ScrollView>
 </RelativeLayout>
 

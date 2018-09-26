@@ -9,6 +9,7 @@ import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
@@ -16,7 +17,7 @@ import java.io.File;
 /**
  * Created by xor on 10.07.2016.
  */
-public class Indexer  {
+public class Indexer {
     private final MeinDriveService meinDriveService;
     private IndexerRunnable indexerRunnable;
 
@@ -55,18 +56,24 @@ public class Indexer  {
     }
 
 
-    public void shutDown(){
+    public void shutDown() {
         indexerRunnable.shutDown();
     }
 
-    public DeferredObject<DeferredRunnable, Exception, Void> start(){
+    public DeferredObject<DeferredRunnable, Exception, Void> start() {
         meinDriveService.execute(indexerRunnable);
         return indexerRunnable.getStartedDeferred();
     }
 
-    public DeferredObject<DeferredRunnable, Exception, Void> getIndexerStartedDeferred(){
+    public DeferredObject<DeferredRunnable, Exception, Void> getIndexerStartedDeferred() {
         return indexerRunnable.getStartedDeferred();
     }
 
+    public void suspend() {
+        indexerRunnable.suspend();
+    }
 
+    public void resume() {
+        meinDriveService.execute(indexerRunnable);
+    }
 }

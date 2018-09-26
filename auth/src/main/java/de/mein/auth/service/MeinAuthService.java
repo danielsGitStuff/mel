@@ -39,7 +39,9 @@ import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairCollectionSerializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 
+import org.jdeferred.DeferredManager;
 import org.jdeferred.Promise;
+import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.crypto.BadPaddingException;
@@ -520,6 +522,39 @@ public class MeinAuthService {
         N.r(meinBoot::shutDown);
     }
 
+    public void suspend() {
+        uuidServiceMapSemaphore.lock();
+        for (IMeinService service : uuidServiceMap.values()) {
+            if (service instanceof MeinService) {
+                N.r(((MeinService) service)::suspend);
+            }
+        }
+        uuidServiceMapSemaphore.unlock();
+        Set<MeinSocket> socks = new HashSet<>(sockets);
+        for (MeinSocket socket : socks) {
+            socket.shutDown();
+        }
+        meinAuthWorker.shutDown();
+    }
+
+    public void resume() {
+        uuidServiceMapSemaphore.lock();
+        List<DeferredObject> servicesStarted = new ArrayList<>();
+        for (IMeinService service : uuidServiceMap.values()) {
+            if (service instanceof MeinService) {
+                MeinService meinService = (MeinService) service;
+                DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<DeferredRunnable, Exception, Void>();
+                meinService.setStartedPromise(startedPromise);
+                servicesStarted.add(startedPromise);
+                execute(meinService);
+            }
+        }
+        uuidServiceMapSemaphore.unlock();
+        DeferredObject[] arr = N.arr.fromCollection(servicesStarted, N.converter(DeferredObject.class, element -> element));
+        new DefaultDeferredManager().when(arr).done(result -> execute(meinAuthWorker))
+                .fail(result -> Lok.error("could not resume!"));
+    }
+
     public void addMeinSocket(MeinSocket meinSocket) {
         sockets.add(meinSocket);
     }
@@ -561,7 +596,7 @@ public class MeinAuthService {
         return powerManager;
     }
 
-      /**
+    /**
      * services changed names or something {@link MeinAuthService displays}
      */
     public void onServicesChanged() {
@@ -575,12 +610,12 @@ public class MeinAuthService {
     }
 
     public DeferredObject<DeferredRunnable, Exception, Void> startUpCommunications() {
-        DeferredObject<DeferredRunnable,Exception,Void> deferred = new DeferredObject<>();
-        if (meinAuthWorker.isInterrupted()) {
+        DeferredObject<DeferredRunnable, Exception, Void> deferred = new DeferredObject<>();
+        if (meinAuthWorker.isStopped()) {
             // restart
             meinAuthWorker.setStartedPromise(deferred);
             this.execute(meinAuthWorker);
-        }else {
+        } else {
             // it is still running
             deferred.resolve(meinAuthWorker);
         }

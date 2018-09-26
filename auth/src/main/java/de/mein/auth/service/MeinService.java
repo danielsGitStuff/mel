@@ -42,6 +42,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         }
     };
 
+
     public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid) {
         this.meinAuthService = meinAuthService;
         this.serviceInstanceWorkingDirectory = serviceInstanceWorkingDirectory;
@@ -94,8 +95,10 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
 
     @Override
     public void onShutDown() {
-        if (executorService != null)
+        if (executorService != null) {
             executorService.shutdown();
+            executorService = null;
+        }
         super.onShutDown();
     }
 
@@ -103,9 +106,15 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
      * stop all workers threads here.
      */
     public void suspend() {
-        if (executorService != null)
+        if (executorService != null) {
             executorService.shutdown();
-        super.onShutDown();
+            executorService = null;
+        }
+        super.suspend();
+    }
+
+    public void resume(){
+
     }
 
     /**

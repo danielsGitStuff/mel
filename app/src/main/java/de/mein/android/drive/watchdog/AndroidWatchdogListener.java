@@ -105,8 +105,4 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
         return getClass().getSimpleName();
     }
 
-    @Override
-    public void onHeavyWorkForbidden() {
-
-    }
 }

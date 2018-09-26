@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by xor on 7/11/16.
  */
 @SuppressWarnings("Duplicates")
-public abstract class IndexWatchdogListener extends DeferredRunnable implements IndexListener, Runnable, WatchDogTimer.WatchDogTimerFinished, PowerManager.PowerManagerListener {
+public abstract class IndexWatchdogListener extends DeferredRunnable implements IndexListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
 
     private static WatchDogRunner watchDogRunner = meinDriveService1 -> {
         WatchService watchService1 = null;
@@ -54,9 +54,9 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     private ReentrantLock surpressLock = new ReentrantLock();
     private boolean hasSupressedEvents = false;
 
+
     public IndexWatchdogListener(MeinDriveService meinDriveService) {
         this.meinDriveService = meinDriveService;
-        this.meinDriveService.getMeinAuthService().getPowerManager().addPowerListener(this);
     }
 
     public static void setWatchDogRunner(WatchDogRunner watchDogRunner) {
@@ -71,7 +71,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     public void onTimerStopped() {
         Lok.debug("IndexWatchdogListener.onTimerStopped");
         //meinDriveService.addJob(new FsSyncJob(pathCollection));
-        stageIndexer.examinePaths(this,pathCollection);
+        stageIndexer.examinePaths(this, pathCollection);
         pathCollection = new PathCollection();
     }
 
@@ -81,11 +81,6 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
     public void setStageIndexer(StageIndexer stageIndexer) {
         this.stageIndexer = stageIndexer;
-    }
-
-    @Override
-    public void foundFile(FsFile fsFile) {
-
     }
 
     public abstract void watchDirectory(AFile dir);
@@ -131,20 +126,6 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         surpressLock.unlock();
     }
 
-    @Override
-    public void onHeavyWorkAllowed() {
-        surpressLock.lock();
-        try {
-            if (hasSupressedEvents) {
-                hasSupressedEvents = false;
-                watchDogTimer.start();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            surpressLock.unlock();
-        }
-    }
 
     public interface WatchDogRunner {
         IndexWatchdogListener runInstance(MeinDriveService meinDriveService);

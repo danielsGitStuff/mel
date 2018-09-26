@@ -163,6 +163,18 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         handleSending(partnerCertId, detailSet, true);
     }
 
+    @Override
+    public void suspend() {
+        indexer.suspend();
+        super.suspend();
+    }
+
+    @Override
+    public void resume() {
+        indexer.resume();
+        super.resume();
+    }
+
     protected void handleSending(Long partnerCertId, FileTransferDetailSet detailSet, boolean lockFsEntry) {
         //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
         FsDao fsDao = driveDatabaseManager.getFsDao();

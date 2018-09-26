@@ -8,7 +8,6 @@ import de.mein.drive.sql.FsFile;
  */
 public interface IndexListener {
 
-    void foundFile(FsFile fsFile);
 
     void foundDirectory(FsDirectory fsDirectory);
 

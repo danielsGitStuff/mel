@@ -6,25 +6,33 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.PowerManagerSettings;
+import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 
 /**
+ * This class keeps track of the systems power state and shuts down or suspends connections and services.
  * Created by xor on 9/19/17.
  */
-
 public class PowerManager {
     private final MeinAuthSettings meinAuthSettings;
     private final PowerManagerSettings settings;
+    private MeinAuthService meinAuthService;
     protected boolean online = true;
     protected ReentrantLock stateLock = new ReentrantLock(true);
     private boolean plugged = true;
     private ReentrantLock powerListenerLock = new ReentrantLock();
     private ReentrantLock comListenerLock = new ReentrantLock();
-    private Set<PowerManagerListener> powerManagerListeners = new HashSet<>();
+    //    private Set<PowerManagerListener> powerManagerListeners = new HashSet<>();
     private Set<CommunicationsListener> comListeners = new HashSet<>();
+
     public PowerManager(MeinAuthSettings meinAuthSettings) {
         this.meinAuthSettings = meinAuthSettings;
         this.settings = meinAuthSettings.getPowerManagerSettings();
+    }
+
+    public PowerManager setMeinAuthService(MeinAuthService meinAuthService) {
+        this.meinAuthService = meinAuthService;
+        return this;
     }
 
     public void wakeLock(Object caller) {
@@ -42,26 +50,26 @@ public class PowerManager {
         return this;
     }
 
-    public PowerManager removeCommunicationListener(CommunicationsListener listener) {
-        comListenerLock.lock();
-        comListeners.remove(listener);
-        comListenerLock.unlock();
-        return this;
-    }
+//    public PowerManager removeCommunicationListener(CommunicationsListener listener) {
+//        comListenerLock.lock();
+//        comListeners.remove(listener);
+//        comListenerLock.unlock();
+//        return this;
+//    }
 
-    public PowerManager addPowerListener(PowerManagerListener listener) {
-        powerListenerLock.lock();
-        powerManagerListeners.add(listener);
-        powerListenerLock.unlock();
-        return this;
-    }
-
-    public PowerManager removePowerListener(PowerManagerListener listener) {
-        powerListenerLock.lock();
-        powerManagerListeners.remove(listener);
-        powerListenerLock.unlock();
-        return this;
-    }
+//    public PowerManager addPowerListener(PowerManagerListener listener) {
+//        powerListenerLock.lock();
+//        powerManagerListeners.add(listener);
+//        powerListenerLock.unlock();
+//        return this;
+//    }
+//
+//    public PowerManager removePowerListener(PowerManagerListener listener) {
+//        powerListenerLock.lock();
+//        powerManagerListeners.remove(listener);
+//        powerListenerLock.unlock();
+//        return this;
+//    }
 
     /**
      * useful for android only
@@ -82,14 +90,14 @@ public class PowerManager {
             powerListenerLock.lock();
             if ((workNow ^ workBefore)) {
                 if (workNow) {
-                    for (PowerManagerListener listener : powerManagerListeners) {
-                        listener.onHeavyWorkAllowed();
-                    }
+//                    for (PowerManagerListener listener : powerManagerListeners) {
+//                        listener.onHeavyWorkAllowed();
+//                    }
                     onHeavyWorkAllowed();
                 } else {
-                    for (PowerManagerListener listener : powerManagerListeners) {
-                        listener.onHeavyWorkForbidden();
-                    }
+//                    for (PowerManagerListener listener : powerManagerListeners) {
+//                        listener.onHeavyWorkForbidden();
+//                    }
                     onHeavyWorkForbidden();
                 }
             }
@@ -185,12 +193,12 @@ public class PowerManager {
         stateLock.unlock();
     }
 
-    public interface PowerManagerListener {
-        void onHeavyWorkAllowed();
-
-        void onHeavyWorkForbidden();
-    }
-
+    //    public interface PowerManagerListener {
+//        void onHeavyWorkAllowed();
+//
+//        void onHeavyWorkForbidden();
+//    }
+//
     public interface CommunicationsListener {
         void onCommunicationsEnabled();
 

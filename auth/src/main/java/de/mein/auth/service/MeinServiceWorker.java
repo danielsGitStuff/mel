@@ -1,6 +1,5 @@
 package de.mein.auth.service;
 
-import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.tools.CountdownLock;
@@ -37,7 +36,7 @@ public abstract class MeinServiceWorker extends MeinService {
     public void runImpl() {
         try {
             initLock.lock();
-            while (!isInterrupted()) {
+            while (!isStopped()) {
                 queueLock.lockWrite();
                 Job job = jobs.poll();
                 queueLock.unlockWrite();

@@ -2,7 +2,6 @@ package de.mein.auth.broadcast;
 
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
-import de.mein.WaitingDeferredRunnable;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -46,12 +45,12 @@ public abstract class BrotCaster extends DeferredRunnable {
                 socket.leaveGroup(group);
             } catch (SocketException e) {
                 // network seems to be down
-                if (!isInterrupted()) {
+                if (!isStopped()) {
                     e.printStackTrace();
                     startedPromise.resolve(this);
                 }
             } catch (Exception e) {
-                if (!isInterrupted()) {
+                if (!isStopped()) {
                     e.printStackTrace();
                     startedPromise.reject(e);
                 }

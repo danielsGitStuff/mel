@@ -2,7 +2,6 @@ package de.mein.auth.socket.process.imprt;
 
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
-import de.mein.WaitingDeferredRunnable;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.MeinResponse;
@@ -140,7 +139,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
             listener.onClose(42, "don't know shit...", true);
 
         } catch (Exception e) {
-            if (!isInterrupted())
+            if (!isStopped())
                 e.printStackTrace();
             else
                 Lok.debug("MeinAuthCertDelivery.runImpl.interrupted");

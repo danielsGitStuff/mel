@@ -69,7 +69,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
     @Override
     public void runImpl() {
         try {
-            while (true) {
+            while (!isStopped()) {
                 WatchKey watchKey = watchService.take();
                 ignoredSemaphore.acquire();
                 try {
@@ -103,8 +103,5 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
         }
     }
 
-    @Override
-    public void onHeavyWorkForbidden() {
 
-    }
 }

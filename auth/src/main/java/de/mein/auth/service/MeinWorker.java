@@ -5,13 +5,19 @@ import de.mein.Lok;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.WaitLock;
 import de.mein.sql.RWLock;
+
 import org.jdeferred.impl.DeferredObject;
 
 import java.util.LinkedList;
 
 /**
+ * Default worker class. Queues jobs and has an own working thread.
+ * The instance might be suspended indirectly by the {@link de.mein.auth.service.power.PowerManager}.
+ * If you listen for system events like listening for file system changes
+ * you should not create a new Job or trigger timers every time you get an event since this would only fill the job queue.
+ * Instead take note somewhere, and only add one job.
+ * <p>
  * Created by xor on 9/25/16.
  */
 public abstract class MeinWorker extends DeferredRunnable {
@@ -23,7 +29,7 @@ public abstract class MeinWorker extends DeferredRunnable {
     @Override
     public void runImpl() {
         try {
-            while (!isInterrupted()) {
+            while (!isStopped()) {
                 queueLock.lockWrite();
                 Job job = jobs.poll();
                 queueLock.unlockWrite();
@@ -67,7 +73,7 @@ public abstract class MeinWorker extends DeferredRunnable {
 
 
     public void addJob(Job job) {
-        if (!isInterrupted()) {
+        if (!isStopped()) {
             queueLock.lockWrite();
             jobs.offer(job);
             queueLock.unlockWrite();
@@ -75,9 +81,18 @@ public abstract class MeinWorker extends DeferredRunnable {
         }
     }
 
+    /**
+     * stops the current worker.
+     */
     @Override
     public void onShutDown() {
         queueLock.unlockWrite();
         waitLock.unlock();
+    }
+
+    public void suspend() {
+        queueLock.unlockWrite();
+        waitLock.unlock();
+        super.suspend();
     }
 }

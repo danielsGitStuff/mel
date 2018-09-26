@@ -50,7 +50,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
     @Override
     public void run() {
         try {
-            while (!isInterrupted()) {
+            while (!isStopped()) {
                 WatchKey watchKey = watchService.take();
                 ignoredSemaphore.acquire();
                 Path keyPath = (Path) watchKey.watchable();
@@ -88,8 +88,5 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
 
     }
 
-    @Override
-    public void onHeavyWorkForbidden() {
 
-    }
 }

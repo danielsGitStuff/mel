@@ -13,4 +13,6 @@
     <color name="stateRunning">#57bf40</color>
     <color name="stateDeactivated">#ffcc35</color>
     <color name="stateStopped">#c60000</color>
+    <color name="colorTextDark" >#000000</color>
+    <color name="colorTextBright" >#FFFFFF</color>
 </resources>

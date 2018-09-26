@@ -73,10 +73,6 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         watch(dir);
     }
 
-    @Override
-    public void onHeavyWorkForbidden() {
-
-    }
 
     private class Watcher extends FileObserver {
 

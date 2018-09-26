@@ -110,4 +110,8 @@ public class IndexerRunnable extends AbstractIndexer {
     public String getRunnableName() {
         return getClass().getSimpleName() + " for " + databaseManager.getDriveSettings().getRootDirectory().getPath();
     }
+
+    public void suspend() {
+        indexWatchdogListener.suspend();
+    }
 }

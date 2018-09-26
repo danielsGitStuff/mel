@@ -160,10 +160,6 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     @Override
     protected IndexListener createIndexListener() {
         IndexListener indexListener = new IndexListener() {
-            @Override
-            public void foundFile(FsFile fsFile) {
-
-            }
 
             @Override
             public void foundDirectory(FsDirectory fsDirectory) {

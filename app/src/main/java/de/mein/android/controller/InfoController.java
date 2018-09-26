@@ -31,6 +31,7 @@ import de.mein.android.Notifier;
 import de.mein.android.Threadder;
 import de.mein.android.Tools;
 import de.mein.android.service.AndroidService;
+import de.mein.android.view.PowerView;
 import de.mein.auth.tools.N;
 
 /**
@@ -39,10 +40,12 @@ import de.mein.auth.tools.N;
 public class InfoController extends GuiController {
     private TextView lblStatus, txtSSID, txtIP;
     private LinearLayout permissionReasonContainer;
+    private PowerView powerView;
 
     public InfoController(MeinActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_info);
         lblStatus = rootView.findViewById(R.id.lblStatus);
+        powerView = rootView.findViewById(R.id.powerView);
         permissionReasonContainer = rootView.findViewById(R.id.permissionReasonContainer);
         Lok.debug("InfoController.InfoController");
 

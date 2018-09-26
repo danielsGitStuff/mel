@@ -226,7 +226,7 @@ public class MeinSocket extends DeferredRunnable {
                 streams();
             socketWorker = new SocketWorker(this, listener);
             meinAuthService.execute(socketWorker);
-            while (!isInterrupted()) {
+            while (!isStopped()) {
                 if (isIsolated && allowIsolation) {
                     byte[] bytes = new byte[BLOCK_SIZE];
                     in.readFully(bytes);
@@ -264,7 +264,7 @@ public class MeinSocket extends DeferredRunnable {
             logger.log(Level.SEVERE, "MeinSocket.runTry.CLOSING");
             listener.onClose(42, "don't know shit", true);
         } catch (Exception e) {
-            if (!isInterrupted()) {
+            if (!isStopped()) {
                 String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
                 //todo debug
                 if (line.startsWith("MA2.MeinAuthSocket.SSLSocketImpl.run") || line.startsWith("MA1.MeinAuthSocket.SSLSocketImpl.run"))

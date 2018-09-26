@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/colorDecentHighlight"
+    android:padding="5sp">
+
+    <TextView
+        android:id="@+id/lblCaption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Power Configuration"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/lblH"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lblCaption"
+        android:layout_alignStart="@id/hOn"
+        android:text="Wifi" />
+
+
+    <TextView
+        android:id="@+id/lblV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/hOn"
+        android:layout_alignParentStart="true"
+        android:rotation="270"
+        android:text="Power" />
+
+    <TextView
+        android:id="@+id/hOn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lblH"
+        android:layout_alignEnd="@id/hDummy"
+        android:layout_toEndOf="@id/vOff"
+        android:text="on" />
+
+    <TextView
+        android:id="@+id/hDummy"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lblH"
+        android:layout_centerHorizontal="true"
+        android:text="!!" />
+
+    <TextView
+        android:id="@+id/hOff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lblH"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/hDummy"
+        android:text="off" />
+
+    <TextView
+        android:id="@+id/vOn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/hOn"
+        android:layout_toEndOf="@id/lblV"
+        android:text="on" />
+
+    <TextView
+        android:id="@+id/vOff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/vOn"
+        android:layout_alignStart="@id/vOn"
+        android:text="off" />
+
+    <TextView
+        android:id="@+id/aa"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/hOn"
+        android:layout_alignStart="@id/hOn"
+        android:layout_alignEnd="@id/hOn"
+        android:background="@color/stateRunning"
+        android:padding="@dimen/spinner_padding"
+        android:text="aa" />
+
+    <TextView
+        android:id="@+id/ab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/hOn"
+        android:layout_alignStart="@id/hOff"
+        android:layout_alignEnd="@id/hOff"
+        android:background="@color/stateDeactivated"
+        android:padding="@dimen/spinner_padding"
+        android:text="ab" />
+
+    <TextView
+        android:id="@+id/ba"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/aa"
+        android:layout_alignStart="@id/hOn"
+        android:layout_alignEnd="@id/hOn"
+        android:background="@color/stateDeactivated"
+        android:padding="@dimen/spinner_padding"
+        android:text="aa" />
+
+    <TextView
+        android:id="@+id/bb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ab"
+        android:layout_alignStart="@id/hOff"
+        android:layout_alignEnd="@id/hOff"
+        android:background="@color/stateDeactivated"
+        android:padding="@dimen/spinner_padding"
+        android:text="bb"
+        android:textColor="@color/colorTextDark" />
+</RelativeLayout>
