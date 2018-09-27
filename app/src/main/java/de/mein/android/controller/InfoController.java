@@ -86,7 +86,8 @@ public class InfoController extends GuiController implements PowerManager.IPower
     }
 
     @Override
-    public void onAndroidServiceAvailable() {
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
         AndroidPowerManager powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
         powerManager.addStateListener(this);
         updateGui();
@@ -109,9 +110,9 @@ public class InfoController extends GuiController implements PowerManager.IPower
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         AndroidPowerManager powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
         powerManager.removeListener(this);
+        super.onDestroy();
     }
 
     @Override

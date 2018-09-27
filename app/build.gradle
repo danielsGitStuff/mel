@@ -91,7 +91,7 @@ dependencies {
     implementation project(':drive')
     testImplementation project(':drive')
     implementation project(':contacts')
-    implementation 'org.greenrobot:eventbus:3.0.0'
+//    implementation 'org.greenrobot:eventbus:3.0.0'
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'

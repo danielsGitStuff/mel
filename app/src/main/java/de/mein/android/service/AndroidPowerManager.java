@@ -39,7 +39,7 @@ public class AndroidPowerManager extends PowerManager {
         wakeTimer = new WatchDogTimer(() -> {
             stateLock.lock();
             boolean shouldRun = runWhen(powered, wifi);
-            if (shouldRun != running) {
+            if (shouldRun != running && meinAuthService != null) {
                 if (shouldRun) {
                     Lok.debug("resuming...");
                     meinAuthService.resume();
@@ -51,7 +51,7 @@ public class AndroidPowerManager extends PowerManager {
             } else {
                 Lok.debug("nothing to do...");
             }
-            N.forEach(listeners,iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
+            N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
             stateLock.unlock();
 //            propagatePossibleStateChanges(workBefore, workNow);
         }, 10, 100, 1000);

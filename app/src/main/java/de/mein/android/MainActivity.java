@@ -15,15 +15,20 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+
 import android.view.SubMenu;
 import android.view.View;
+
 import com.google.android.material.navigation.NavigationView;
+
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
@@ -32,7 +37,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 
-import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -105,10 +109,10 @@ public class MainActivity extends MeinActivity {
 
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
         Lok.debug("MainActivity.onAndroidServiceAvailable");
-        if (androidService.getMeinAuthService().getSettings().getRedirectSysout()) {
-        }
-        //debugStuff2();
+        if (guiController != null)
+            guiController.onAndroidServiceAvailable(androidService);
     }
 
     private void dev() {
@@ -369,21 +373,30 @@ public class MainActivity extends MeinActivity {
     }
 
     private void enableGuiController(GuiController guiController) {
-        if (this.guiController != null)
-            EventBus.getDefault().unregister(this.guiController);
+
 //        content.removeAllViews();
         toolbar.setTitle(guiController.getTitle());
+        if (this.guiController != null && this.guiController != guiController) {
+            this.guiController.onDestroy();
+        }
         this.guiController = guiController;
+        if (androidService != null)
+            this.guiController.onAndroidServiceAvailable(androidService);
         boolean offersHelp = guiController.getHelp() != null;
         btnHelp.setVisibility(offersHelp ? View.VISIBLE : View.INVISIBLE);
-        EventBus.getDefault().register(guiController);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (this.guiController != null) {
+            this.guiController.onDestroy();
+        }
+        super.onDestroy();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (guiController != null)
-            EventBus.getDefault().unregister(guiController);
     }
 
     private void debugStuff() throws InterruptedException {

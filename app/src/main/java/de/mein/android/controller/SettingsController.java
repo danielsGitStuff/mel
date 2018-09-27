@@ -117,7 +117,8 @@ public class SettingsController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceAvailable() {
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
         this.powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
         CheckBox cbWorkWhenPlugged = rootView.findViewById(R.id.cbWorkWhenPlugged);
         cbWorkWhenPlugged.setChecked(powerManager.getHeavyWorkWhenPlugged());

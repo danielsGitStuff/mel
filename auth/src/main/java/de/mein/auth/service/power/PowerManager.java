@@ -83,55 +83,55 @@ public class PowerManager {
 //    }
 
     public void onCommunicationsDisabled() {
-        stateLock.lock();
-        boolean workBefore = heavyWorkAllowedNoLock();
-        boolean onlineBefore = wifi;
-        wifi = false;
-        boolean workNow = heavyWorkAllowedNoLock();
-        stateLock.unlock();
-//        propagatePossibleStateChanges(workBefore, workNow);
-        try {
-            comListenerLock.lock();
-            if (onlineBefore)
-                for (CommunicationsListener listener : comListeners)
-                    listener.onCommunicationsDisabled();
-        } finally {
-            comListenerLock.unlock();
-        }
+//        stateLock.lock();
+//        boolean workBefore = heavyWorkAllowedNoLock();
+//        boolean onlineBefore = wifi;
+//        wifi = false;
+//        boolean workNow = heavyWorkAllowedNoLock();
+//        stateLock.unlock();
+////        propagatePossibleStateChanges(workBefore, workNow);
+//        try {
+//            comListenerLock.lock();
+//            if (onlineBefore)
+//                for (CommunicationsListener listener : comListeners)
+//                    listener.onCommunicationsDisabled();
+//        } finally {
+//            comListenerLock.unlock();
+//        }
     }
 
     public void onCommunicationsEnabled() {
-        stateLock.lock();
-        boolean workBefore = heavyWorkAllowedNoLock();
-        boolean onlineBefore = wifi;
-        wifi = true;
-        boolean workNow = heavyWorkAllowedNoLock();
-        stateLock.unlock();
-//        propagatePossibleStateChanges(workBefore, workNow);
-        try {
-            comListenerLock.lock();
-            if (!onlineBefore)
-                for (CommunicationsListener listener : comListeners)
-                    listener.onCommunicationsEnabled();
-        } finally {
-            comListenerLock.unlock();
-        }
+//        stateLock.lock();
+//        boolean workBefore = heavyWorkAllowedNoLock();
+//        boolean onlineBefore = wifi;
+//        wifi = true;
+//        boolean workNow = heavyWorkAllowedNoLock();
+//        stateLock.unlock();
+////        propagatePossibleStateChanges(workBefore, workNow);
+//        try {
+//            comListenerLock.lock();
+//            if (!onlineBefore)
+//                for (CommunicationsListener listener : comListeners)
+//                    listener.onCommunicationsEnabled();
+//        } finally {
+//            comListenerLock.unlock();
+//        }
     }
 
     public void onPowerPlugged() {
-        stateLock.lock();
-        boolean workBefore = heavyWorkAllowedNoLock();
-        powered = true;
-        boolean workNow = heavyWorkAllowedNoLock();
-        stateLock.unlock();
+//        stateLock.lock();
+//        boolean workBefore = heavyWorkAllowedNoLock();
+//        powered = true;
+//        boolean workNow = heavyWorkAllowedNoLock();
+//        stateLock.unlock();
     }
 
     public void onPowerUnplugged() {
-        stateLock.lock();
-        boolean workBefore = heavyWorkAllowedNoLock();
-        powered = false;
-        boolean workNow = heavyWorkAllowedNoLock();
-        stateLock.unlock();
+//        stateLock.lock();
+//        boolean workBefore = heavyWorkAllowedNoLock();
+//        powered = false;
+//        boolean workNow = heavyWorkAllowedNoLock();
+//        stateLock.unlock();
     }
 
     protected boolean heavyWorkAllowedNoLock() {

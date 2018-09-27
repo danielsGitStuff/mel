@@ -7,16 +7,17 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
+
 import androidx.annotation.NonNull;
+
 import com.google.android.material.navigation.NavigationView;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.util.SparseArray;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -52,6 +53,9 @@ public abstract class MeinActivity extends AppCompatActivity
             AndroidService.LocalBinder localBinder = (AndroidService.LocalBinder) binder;
             androidService = localBinder.getService();
             Lok.debug(".onServiceConnected: " + androidService.toString());
+            androidService.getStartedPromise()
+                    .done(result -> onAndroidServiceAvailable(androidService))
+                    .fail(Throwable::printStackTrace);
 //            if (guiController != null)
 //                guiController.onAndroidServiceBound(androidService);
         }
@@ -96,6 +100,7 @@ public abstract class MeinActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
+        androidService = null;
         super.onDestroy();
     }
 
@@ -107,30 +112,22 @@ public abstract class MeinActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        EventBus.getDefault().register(this);
         bindService();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
         unbindService(serviceConnection);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
-    public void onServiceStarted(AndroidService androidService) {
-        this.androidService = androidService;
-        if (androidService != null) {
-            onAndroidServiceAvailable(androidService);
-        }
     }
 
     public AndroidService getAndroidService() {
         return androidService;
     }
 
-    protected abstract void onAndroidServiceAvailable(AndroidService androidService);
+    protected void onAndroidServiceAvailable(AndroidService androidService){
+        this.androidService = androidService;
+    };
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

@@ -34,7 +34,7 @@ public class AccessController extends GuiController {
     private ApprovalMatrix matrix;
     private Long selectedCertId;
 
-    public AccessController(MeinActivity activity, LinearLayout content){
+    public AccessController(MeinActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_access);
         this.listCertificates = rootView.findViewById(R.id.listCertificates);
         this.listServices = rootView.findViewById(R.id.listServices);
@@ -143,7 +143,8 @@ public class AccessController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceAvailable() {
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
         N.r(this::fillContent);
     }
 

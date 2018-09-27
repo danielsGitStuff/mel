@@ -88,7 +88,8 @@ public class NetworkDiscoveryController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceAvailable() {
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
         environment = androidService.getMeinAuthService().getNetworkEnvironment();
         unkownListAdapter = new UnknownAuthListAdapter(rootView.getContext(), environment);
         listUnkown.setOnItemClickListener((parent, view, position, id) -> {

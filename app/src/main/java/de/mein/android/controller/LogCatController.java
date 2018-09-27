@@ -87,7 +87,8 @@ public class LogCatController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceAvailable() {
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
         Lok.debug("LogCatController.onAndroidServiceAvailable");
     }
 

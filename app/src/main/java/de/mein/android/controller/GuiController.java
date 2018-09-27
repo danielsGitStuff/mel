@@ -2,9 +2,6 @@ package de.mein.android.controller;
 
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-
-import org.greenrobot.eventbus.Subscribe;
 
 import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidService;
@@ -26,22 +23,21 @@ public abstract class GuiController {
         this.rootView = View.inflate(activity, resourceId, content);
     }
 
-    @Subscribe(sticky = true)
-    public void onAndroidServiceAvailable(AndroidService androidService) {
-        this.androidService = androidService;
-        onAndroidServiceAvailable();
-    }
 
     /**
      * called when the controller is removed from the view. you should clean up references to this instance here.
      */
-    public void onDestroy(){
-
+    public void onDestroy() {
+        androidService = null;
     }
 
     public abstract Integer getTitle();
 
-    public abstract void onAndroidServiceAvailable();
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        this.androidService = androidService;
+    }
+
+    ;
 
     public abstract void onAndroidServiceUnbound(AndroidService androidService);
 

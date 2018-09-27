@@ -58,7 +58,8 @@ public class EditServiceController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceAvailable() {
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
         activity.runOnUiThread(() -> N.r(() -> {
             MeinAuthService meinAuthService = androidService.getMeinAuthService();
             embedded = rootView.findViewById(R.id.embedded);

@@ -12,8 +12,8 @@ import android.os.IBinder;
 
 import androidx.core.app.NotificationCompat;
 
-import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,6 +56,7 @@ import de.mein.sql.SqlQueriesException;
 public class AndroidService extends Service {
 
 
+    private DeferredObject<MeinAuthService,Exception,Void> startedDeferred = new DeferredObject<>();
     private static final int PERMANENT_REQUEST_CODE = 876;
     private final IBinder localBinder = new LocalBinder();
     private MeinAuthService meinAuthService;
@@ -87,6 +88,10 @@ public class AndroidService extends Service {
     };
     private Intent permanentNotificationIntent;
 
+    public Promise<MeinAuthService, Exception, Void> getStartedPromise() {
+        return startedDeferred;
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -113,7 +118,6 @@ public class AndroidService extends Service {
                 bootedPromise.done(result -> {
                     meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
                     meinAuthService.getPowerManager().addCommunicationListener(communicationsListener);
-                    EventBus.getDefault().postSticky(this);
                     // listen for connectivity changes
                     IntentFilter conIntentFilter = new IntentFilter();
                     conIntentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -123,6 +127,7 @@ public class AndroidService extends Service {
                     IntentFilter powIntentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
                     powerChangeReceiver = new PowerChangeReceiver(this);
                     this.registerReceiver(powerChangeReceiver, powIntentFilter);
+                    startedDeferred.resolve(meinAuthService);
                     // todo debug
                     //debugStuff();
                 });
@@ -130,6 +135,7 @@ public class AndroidService extends Service {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                startedDeferred.reject(e);
             }
             lock.unlockWrite();
         }

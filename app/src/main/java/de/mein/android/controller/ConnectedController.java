@@ -61,7 +61,8 @@ public class ConnectedController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceAvailable() {
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
         activity.runOnUiThread(() -> N.r(() -> {
             listCertAdapter.addAll(androidService.getMeinAuthService().getTrustedCertificates());
             listCertAdapter.notifyDataSetChanged();
