@@ -86,6 +86,7 @@ import de.mein.android.controller.GuiController;
 
 
 public class MainActivity extends MeinActivity {
+    private static final String SHOW_INTRO = "shwntr";
     private LinearLayout content;
     private Toolbar toolbar;
     private boolean mBound = false;
@@ -145,7 +146,9 @@ public class MainActivity extends MeinActivity {
 //        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
 //
 //        });
-        if (true) {
+
+        boolean showIntro = Tools.getSharedPreferences().getBoolean(MainActivity.SHOW_INTRO, true);
+        if (showIntro) {
             introStart();
         } else {
             normalStart();
@@ -153,11 +156,17 @@ public class MainActivity extends MeinActivity {
         startService();
     }
 
-    private void introStart() {
+    public void introStart() {
         IntroWrapper introWrapper = new IntroWrapper(this);
+        if (guiController != null)
+            guiController.onDestroy();
         if (serviceBind != null)
-            serviceBind.onAndroidServiceUnbound(androidService);
+            serviceBind.onAndroidServiceUnbound();
         serviceBind = introWrapper;
+        introWrapper.setIntroDoneListener(() -> {
+            Tools.getSharedPreferences().edit().putBoolean(MainActivity.SHOW_INTRO, false).apply();
+            normalStart();
+        });
         setContentView(introWrapper);
         if (androidService != null)
             serviceBind.onAndroidServiceAvailable(androidService);
@@ -393,11 +402,11 @@ public class MainActivity extends MeinActivity {
 
 //        content.removeAllViews();
         toolbar.setTitle(guiController.getTitle());
-        if (serviceBind != null) {
-            serviceBind.onAndroidServiceUnbound(androidService);
-        }
         if (this.guiController != null && this.guiController != guiController) {
             this.guiController.onDestroy();
+        }
+        if (serviceBind != null) {
+            serviceBind.onAndroidServiceUnbound();
         }
         this.guiController = guiController;
         this.serviceBind = this.guiController;
@@ -536,14 +545,14 @@ public class MainActivity extends MeinActivity {
     }
 
     public void showFirstStart() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        boolean showIntro = prefs.getBoolean(getString(R.string.showIntro), true);
-        if (showIntro) {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean(getString(R.string.showIntro), false);
-            editor.apply();
-            showMessage(this, R.string.firstStart);
-        }
+//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+//        boolean showIntro = prefs.getBoolean(getString(R.string.showIntro), true);
+//        if (showIntro) {
+//            SharedPreferences.Editor editor = prefs.edit();
+//            editor.putBoolean(getString(R.string.showIntro), false);
+//            editor.apply();
+//            showMessage(this, R.string.firstStart);
+//        }
     }
 
     public void showMenuServices() {

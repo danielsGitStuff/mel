@@ -70,7 +70,7 @@ public class ConnectedController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceUnbound(AndroidService androidService) {
+    public void onAndroidServiceUnbound() {
 
     }
 

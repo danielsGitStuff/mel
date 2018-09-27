@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/lblName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:text="@string/intro_3_lblPresets"
+                android:textSize="22sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnPowerMobile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lblName"
+                android:layout_alignEnd="@id/dummy"
+                android:layout_alignParentStart="true"
+                android:layout_marginTop="20dp"
+                app:backgroundTint="@color/colorAccent"
+                android:text="@string/intro_3_btnPowerMobile" />
+
+            <View
+                android:id="@+id/dummy"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_centerHorizontal="true" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnPowerServer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/btnPowerMobile"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="20dp"
+                android:layout_toEndOf="@id/dummy"
+                app:backgroundTint="@color/colorAccent"
+                android:text="@string/intro_3_btnPowerServer" />
+
+            <TextView
+                android:id="@+id/txtExplanation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/btnPowerMobile"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginVertical="20dp"
+                android:text="@string/intro_3_explanation" />
+
+            <de.mein.android.view.PowerView
+                android:id="@+id/powerView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/txtExplanation"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                app:activeButtons="true" />
+        </RelativeLayout>
+    </ScrollView>
+
+
+    <!--<EditText-->
+    <!--android:id="@+id/txtName"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_below="@id/lblName"-->
+    <!--android:layout_alignParentStart="true"-->
+    <!--android:layout_alignParentEnd="true"-->
+    <!--android:layout_marginLeft="80dp"-->
+    <!--android:layout_marginTop="20dp"-->
+    <!--android:maxLines="1"-->
+    <!--android:inputType="text"-->
+    <!--android:gravity="center"-->
+    <!--android:hint="@string/intro_2_hint" />-->
+
+    <!--<TextView-->
+    <!--android:id="@+id/lblExplain"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_below="@id/txtName"-->
+    <!--android:layout_marginLeft="10dp"-->
+    <!--android:layout_marginTop="40dp"-->
+    <!--android:text="@string/intro_2_explanation"-->
+    <!--android:textSize="18sp" />-->
+</RelativeLayout>

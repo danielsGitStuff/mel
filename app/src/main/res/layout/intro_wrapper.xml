@@ -10,9 +10,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
         android:background="@color/colorPrimary"
         android:gravity="center_horizontal"
-        android:text="dummy text"
         android:textSize="22sp" />
 
     <LinearLayout
@@ -24,17 +24,18 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:orientation="horizontal"
-        android:paddingBottom="10dp" />
+        android:padding="10dp" />
 
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/btnPrevious"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
+        android:visibility="invisible"
         android:layout_alignParentBottom="true"
+        android:background="@color/colorPrimary"
         android:paddingVertical="16dp"
         android:paddingStart="20dp"
-        android:background="@color/colorPrimary"
         app:srcCompat="@drawable/icon_previous" />
 
     <TextView
@@ -54,7 +55,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
+        android:visibility="invisible"
         android:layout_alignParentBottom="true"
+        android:background="@color/colorPrimary"
         android:paddingVertical="16dp"
         android:paddingEnd="20dp"
         app:srcCompat="@drawable/icon_next" />

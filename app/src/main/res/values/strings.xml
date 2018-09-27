@@ -110,4 +110,19 @@
     <string name="intro_1_booting">Starting up the background service...</string>
     <string name="intro_1_booted">Background service started. We can begin. Click next.</string>
     <string name="intro_1_title">Let\'s setup!</string>
+    <string name="intro_2_title">Give it a name!</string>
+    <string name="intro_2_lblName">Name:</string>
+    <string name="intro_2_hint">type something</string>
+    <string name="intro_2_explanation">This is the name this device will have when it is connected to other devices. For privacy reasons your name will not be send to unknown devices.</string>
+    <string name="intro_2_error_too_short">The name is too short.</string>
+    <string name="intro_3_title">Save Battery?</string>
+    <string name="intro_4_title">One last point...</string>
+    <string name="intro_3_lblPresets">Choose a preset:</string>
+    <string name="intro_3_btnPowerMobile">Mobile</string>
+    <string name="intro_3_btnPowerServer">Server</string>
+    <string name="intro_3_explanation">Here you can adjust your power settings. You have two presets that you can fine tune in the table below. If the state changes to \'stop\' all background work and communications will be suspended to save some battery. If you plan to use this device as a daily driver stick to the \'mobile\' preset. The blue border is the current state.</string>
+    <string name="intro_4_caption1" >Things this can do</string>
+    <string name="intro_4_explanation1" >This program syncs data to multiple devices. Each type of data requires a Services that handles the synchronisation process. Currently all services rely on a client server scheme. You should have another device running as a server and sync your other devices to it. Running as a server ruins your battery life so plug it in an let it stay connected to Wifi.</string>
+    <string name="intro_4_caption2" >Security</string>
+    <string name="intro_4_explanation2" >The app requires SSL encrypted connections to work properly. To keep things simple: imagine you want two devices to sync. To get that to work you have to exchange keys with the other device first. It works like pairing a new Bluetooth device. From that point on the two devices will communicate encrypted only. The certificate exchange process is the only unencrypted connection the app supports.</string>
 </resources>

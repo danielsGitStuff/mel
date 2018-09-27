@@ -54,7 +54,7 @@ public class SettingsController extends GuiController {
             Lok.debug("InfoController.InfoController.service.started: " + name.getClassName());
         });
         btnShow.setOnClickListener(v -> {
-            MainActivity.showMessage(activity, R.string.firstStart);
+            activity.introStart();
         });
         btnApply.setOnClickListener(v1 -> applyInputs());
         cbShowFirstStartDialog.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -132,7 +132,7 @@ public class SettingsController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceUnbound(AndroidService androidService) {
+    public void onAndroidServiceUnbound() {
 
     }
 

@@ -11,6 +11,7 @@ import androidx.gridlayout.widget.GridLayout;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.service.AndroidPowerManager;
+import de.mein.auth.service.power.PowerManager;
 
 public class PowerView extends GridLayout {
 

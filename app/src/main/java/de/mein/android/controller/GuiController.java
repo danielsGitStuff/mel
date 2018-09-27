@@ -42,7 +42,7 @@ public abstract class GuiController implements AndroidServiceBind {
     ;
 
     @Override
-    public void onAndroidServiceUnbound(AndroidService androidService) {
+    public void onAndroidServiceUnbound() {
         androidService = null;
     }
 

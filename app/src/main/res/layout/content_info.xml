@@ -10,6 +10,7 @@
     <!--tools:showIn="@layout/app_bar_main"-->
     <TableLayout
         android:id="@+id/table"
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:stretchColumns="1">
@@ -59,17 +60,6 @@
                 android:padding="5dp" />
         </TableRow>
 
-        <TableRow>
-
-            <TextView
-                android:padding="5dp"
-                android:text="@string/infoNoOfServices" />
-
-            <TextView
-                android:id="@+id/txtNoOfServices"
-                android:layout_gravity="end"
-                android:padding="5dp" />
-        </TableRow>
     </TableLayout>
 
     <LinearLayout
@@ -89,6 +79,7 @@
 
 <de.mein.android.view.PowerView
     android:id="@+id/powerView"
+    android:layout_marginTop="20dp"
     android:layout_below="@id/permissionReasonContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"/>

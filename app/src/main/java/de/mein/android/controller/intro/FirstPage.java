@@ -1,14 +1,11 @@
 package de.mein.android.controller.intro;
 
-import android.view.ViewGroup;
 import android.widget.TextView;
 
 import de.mein.R;
-import de.mein.android.MeinActivity;
-import de.mein.android.controller.GuiController;
 import de.mein.android.service.AndroidService;
 
-public class FirstPage extends IntroController {
+public class FirstPage extends IntroPageController {
 
     private TextView text;
 
@@ -41,6 +38,11 @@ public class FirstPage extends IntroController {
 
     @Override
     public Integer getHelp() {
+        return null;
+    }
+
+    @Override
+    public String getError() {
         return null;
     }
 }

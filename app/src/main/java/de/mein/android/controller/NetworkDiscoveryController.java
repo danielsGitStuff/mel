@@ -128,7 +128,7 @@ public class NetworkDiscoveryController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceUnbound(AndroidService androidService) {
+    public void onAndroidServiceUnbound( ) {
 
     }
 

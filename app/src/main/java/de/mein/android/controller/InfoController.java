@@ -116,7 +116,7 @@ public class InfoController extends GuiController implements PowerManager.IPower
     }
 
     @Override
-    public void onAndroidServiceUnbound(AndroidService androidService) {
+    public void onAndroidServiceUnbound() {
         this.androidService = null;
     }
 

@@ -1,25 +1,36 @@
 package de.mein.android.controller.intro;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.core.content.ContextCompat;
 import de.mein.R;
 import de.mein.android.MeinActivity;
-import de.mein.android.controller.GuiController;
+import de.mein.android.Notifier;
 import de.mein.android.service.AndroidService;
 import de.mein.android.service.AndroidServiceBind;
 
 public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
 
+    public interface IntroDoneListener {
+        void introDone();
+    }
+
     private MeinActivity meinActivity;
     private LinearLayout container;
-    private ImageButton btnForward, btnPrevious;
+    private AppCompatImageButton btnForward, btnPrevious;
     private TextView lblTitle, lblIndex;
-    private GuiController guiController;
+    private IntroPageController pageController;
+    private int index = 1;
+    private final int maxIndex = 4;
+    private IntroDoneListener introDoneListener;
 
     public IntroWrapper(MeinActivity meinActivity) {
         super(meinActivity.getApplicationContext());
@@ -35,16 +46,75 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
         btnForward = findViewById(R.id.btnForward);
         btnPrevious = findViewById(R.id.btnPrevious);
         lblIndex = findViewById(R.id.lblIndex);
-        showPage(1);
+        btnPrevious.setVisibility(INVISIBLE);
+        btnForward.setOnClickListener(v -> {
+            if (pageController.getError() == null) {
+                btnForward.setEnabled(true);
+                btnPrevious.setEnabled(true);
+                btnPrevious.setVisibility(VISIBLE);
+                if (index < maxIndex) {
+                    index++;
+                    showPage();
+                } else {
+                    if (introDoneListener != null) {
+                        introDoneListener.introDone();
+                    }
+                    return;
+                }
+                if (index == maxIndex) {
+                    meinActivity.runOnUiThread(() -> {
+                        btnForward.setImageResource(R.drawable.icon_finish);
+                    });
+                }
+            } else {
+                Notifier.toast(meinActivity, pageController.getError());
+            }
+        });
+        btnPrevious.setOnClickListener(v -> {
+            btnPrevious.setEnabled(true);
+            btnForward.setEnabled(true);
+            if (index > 1) {
+                index--;
+                showPage();
+            }
+            if (index == 1) {
+                btnPrevious.setEnabled(false);
+            } else if (index < maxIndex) {
+                meinActivity.runOnUiThread(() -> {
+                    btnForward.setImageResource(R.drawable.icon_next);
+                });
+            }
+        });
+        showPage();
     }
 
-    private void showPage(int index) {
+    public void setIntroDoneListener(IntroDoneListener introDoneListener) {
+        this.introDoneListener = introDoneListener;
+    }
+
+    private void showPage() {
+        if (pageController != null) {
+            pageController.onDestroy();
+            pageController.onAndroidServiceUnbound();
+        }
         switch (index) {
             case 1:
-                guiController = new FirstPage(this);
+                pageController = new FirstPage(this);
+                break;
+            case 2:
+                pageController = new SecondPage(this);
+                break;
+            case 3:
+                pageController = new ThirdPage(this);
+                break;
+            case 4:
+                pageController = new FourthPage(this);
                 break;
         }
-        lblTitle.setText(guiController.getTitle());
+        if (meinActivity.getAndroidService() != null) {
+            pageController.onAndroidServiceAvailable(meinActivity.getAndroidService());
+        }
+        lblTitle.setText(pageController.getTitle());
         lblIndex.setText(index + "/" + 4);
     }
 
@@ -62,11 +132,12 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
 
     @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
-        guiController.onAndroidServiceAvailable(androidService);
+        pageController.onAndroidServiceAvailable(androidService);
+        meinActivity.runOnUiThread(() -> btnForward.setVisibility(VISIBLE));
     }
 
     @Override
-    public void onAndroidServiceUnbound(AndroidService androidService) {
-        guiController.onAndroidServiceUnbound(androidService);
+    public void onAndroidServiceUnbound() {
+        pageController.onAndroidServiceUnbound();
     }
 }
