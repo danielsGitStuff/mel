@@ -5,12 +5,13 @@ import android.view.ViewGroup;
 
 import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidService;
+import de.mein.android.service.AndroidServiceBind;
 
 /**
  * Created by xor on 2/23/17.
  */
 
-public abstract class GuiController {
+public abstract class GuiController implements AndroidServiceBind {
 
     protected final MeinActivity activity;
     protected final View rootView;
@@ -33,13 +34,19 @@ public abstract class GuiController {
 
     public abstract Integer getTitle();
 
+    @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
         this.androidService = androidService;
     }
 
     ;
 
-    public abstract void onAndroidServiceUnbound(AndroidService androidService);
+    @Override
+    public void onAndroidServiceUnbound(AndroidService androidService) {
+        androidService = null;
+    }
+
+    ;
 
     public View getRootView() {
         return rootView;

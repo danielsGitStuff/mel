@@ -51,12 +51,14 @@ import de.mein.R;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.controller.EditServiceController;
 import de.mein.android.controller.InfoController;
+import de.mein.android.controller.intro.IntroWrapper;
 import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.ConnectedController;
 import de.mein.android.controller.SettingsController;
 import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.android.file.SAFAccessor;
 import de.mein.android.service.AndroidService;
+import de.mein.android.service.AndroidServiceBind;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
@@ -88,6 +90,7 @@ public class MainActivity extends MeinActivity {
     private Toolbar toolbar;
     private boolean mBound = false;
     private GuiController guiController;
+    private AndroidServiceBind serviceBind;
     private NavigationView navigationView;
     private AFile driveDir;
     private ImageButton btnHelp;
@@ -111,8 +114,8 @@ public class MainActivity extends MeinActivity {
     protected void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
         Lok.debug("MainActivity.onAndroidServiceAvailable");
-        if (guiController != null)
-            guiController.onAndroidServiceAvailable(androidService);
+        if (serviceBind != null)
+            serviceBind.onAndroidServiceAvailable(androidService);
     }
 
     private void dev() {
@@ -142,7 +145,22 @@ public class MainActivity extends MeinActivity {
 //        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
 //
 //        });
-        normalStart();
+        if (true) {
+            introStart();
+        } else {
+            normalStart();
+        }
+        startService();
+    }
+
+    private void introStart() {
+        IntroWrapper introWrapper = new IntroWrapper(this);
+        if (serviceBind != null)
+            serviceBind.onAndroidServiceUnbound(androidService);
+        serviceBind = introWrapper;
+        setContentView(introWrapper);
+        if (androidService != null)
+            serviceBind.onAndroidServiceAvailable(androidService);
     }
 
     private void normalStart() {
@@ -194,7 +212,6 @@ public class MainActivity extends MeinActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        startService();
     }
 
     public static void showMessage(Context context, int message) {
@@ -376,12 +393,16 @@ public class MainActivity extends MeinActivity {
 
 //        content.removeAllViews();
         toolbar.setTitle(guiController.getTitle());
+        if (serviceBind != null) {
+            serviceBind.onAndroidServiceUnbound(androidService);
+        }
         if (this.guiController != null && this.guiController != guiController) {
             this.guiController.onDestroy();
         }
         this.guiController = guiController;
+        this.serviceBind = this.guiController;
         if (androidService != null)
-            this.guiController.onAndroidServiceAvailable(androidService);
+            this.serviceBind.onAndroidServiceAvailable(androidService);
         boolean offersHelp = guiController.getHelp() != null;
         btnHelp.setVisibility(offersHelp ? View.VISIBLE : View.INVISIBLE);
     }
@@ -392,6 +413,11 @@ public class MainActivity extends MeinActivity {
             this.guiController.onDestroy();
         }
         super.onDestroy();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     @Override

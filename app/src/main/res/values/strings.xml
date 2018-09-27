@@ -107,4 +107,7 @@
     <string name="btnClient">Mobile</string>
     <string name="powerRun">run</string>
     <string name="powerStop">stop</string>
+    <string name="intro_1_booting">Starting up the background service...</string>
+    <string name="intro_1_booted">Background service started. We can begin. Click next.</string>
+    <string name="intro_1_title">Let\'s setup!</string>
 </resources>

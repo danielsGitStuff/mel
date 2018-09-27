@@ -103,7 +103,11 @@
     <string name="stateRunning">Läuft</string>
     <string name="stateDeactivated">Deaktiviert</string>
     <string name="exit">Exit</string>
-    <string name="btnServer" />
+    <string name="btnServer" >Server</string>
     <string name="btnClient">Client</string>
-    <string name="powerRun">run</string>
+    <string name="powerRun">Läuft</string>
+    <string name="intro_1_booting">Starte den Hintergrunddienst...</string>
+    <string name="intro_1_title">Lasset es einrichten!</string>
+    <string name="powerStop">Halt</string>
+    <string name="intro_1_booted">Hintergrunddienst läuft. Es kann los gehen. Klicke auf Weiter.</string>
 </resources>

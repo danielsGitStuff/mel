@@ -1,0 +1,46 @@
+package de.mein.android.controller.intro;
+
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import de.mein.R;
+import de.mein.android.MeinActivity;
+import de.mein.android.controller.GuiController;
+import de.mein.android.service.AndroidService;
+
+public class FirstPage extends IntroController {
+
+    private TextView text;
+
+    FirstPage(IntroWrapper introWrapper) {
+        super(introWrapper, R.layout.intro_first);
+        text = rootView.findViewById(R.id.text);
+        introWrapper.setBtnForwardActive(false);
+        text();
+    }
+
+    @Override
+    public void onAndroidServiceAvailable(AndroidService androidService) {
+        super.onAndroidServiceAvailable(androidService);
+        text();
+    }
+
+    private synchronized void text() {
+        if (androidService != null) {
+            activity.runOnUiThread(() -> {
+                text.setText(R.string.intro_1_booted);
+                introWrapper.setBtnForwardActive(true);
+            });
+        }
+    }
+
+    @Override
+    public Integer getTitle() {
+        return R.string.intro_1_title;
+    }
+
+    @Override
+    public Integer getHelp() {
+        return null;
+    }
+}

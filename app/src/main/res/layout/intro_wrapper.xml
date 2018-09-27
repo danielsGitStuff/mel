@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
+
+    <TextView
+        android:id="@+id/lblTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="@color/colorPrimary"
+        android:gravity="center_horizontal"
+        android:text="dummy text"
+        android:textSize="22sp" />
+
+    <LinearLayout
+        android:id="@+id/container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/btnForward"
+        android:layout_below="@id/lblTitle"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:orientation="horizontal"
+        android:paddingBottom="10dp" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btnPrevious"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:paddingVertical="16dp"
+        android:paddingStart="20dp"
+        android:background="@color/colorPrimary"
+        app:srcCompat="@drawable/icon_previous" />
+
+    <TextView
+        android:id="@+id/lblIndex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@id/btnForward"
+        android:layout_toEndOf="@+id/btnPrevious"
+        android:background="@color/colorPrimary"
+        android:gravity="center_horizontal"
+        android:paddingBottom="16dp"
+        android:text="13/10" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btnForward"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:paddingVertical="16dp"
+        android:paddingEnd="20dp"
+        app:srcCompat="@drawable/icon_next" />
+
+</RelativeLayout>
