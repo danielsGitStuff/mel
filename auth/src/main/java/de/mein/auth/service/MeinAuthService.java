@@ -237,7 +237,7 @@ public class MeinAuthService {
         return this;
     }
 
-    public MeinAuthService unregisterMeinService(Long serviceUuid) {
+    public MeinAuthService unregisterMeinService(String serviceUuid) {
         uuidServiceMapSemaphore.lock();
         uuidServiceMap.remove(serviceUuid);
         uuidServiceMapSemaphore.unlock();
@@ -551,8 +551,12 @@ public class MeinAuthService {
         }
         uuidServiceMapSemaphore.unlock();
         DeferredObject[] arr = N.arr.fromCollection(servicesStarted, N.converter(DeferredObject.class, element -> element));
-        new DefaultDeferredManager().when(arr).done(result -> execute(meinAuthWorker))
-                .fail(result -> Lok.error("could not resume!"));
+        if (arr.length > 0) {
+            new DefaultDeferredManager().when(arr).done(result -> execute(meinAuthWorker))
+                    .fail(result -> Lok.error("could not resume!"));
+        } else {
+            execute(meinAuthWorker);
+        }
     }
 
     public void addMeinSocket(MeinSocket meinSocket) {

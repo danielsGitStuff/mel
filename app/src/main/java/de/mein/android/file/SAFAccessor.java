@@ -5,7 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.support.v4.provider.DocumentFile;
+import androidx.documentfile.provider.DocumentFile;
 
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -13,7 +13,6 @@ import org.jdeferred.impl.DeferredObject;
 import java.io.File;
 import java.io.IOException;
 
-import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.Tools;
 
@@ -104,7 +103,7 @@ public class SAFAccessor {
         }
     }
 
-    @android.support.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static Promise<Void, Exception, Void> askForExternalRootDirectory(MeinActivity activity) {
         DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
         Intent docIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);

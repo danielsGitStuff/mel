@@ -3,41 +3,37 @@ package de.mein.android.controller;
 import android.Manifest;
 import android.content.Context;
 import android.graphics.Color;
-import android.net.wifi.ScanResult;
 import android.net.wifi.SupplicantState;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
-import android.support.v4.content.ContextCompat;
+
+import androidx.core.content.ContextCompat;
+
 import android.text.format.Formatter;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.jdeferred.Promise;
-import org.w3c.dom.Text;
 
-import java.math.BigInteger;
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
-import de.mein.android.Threadder;
 import de.mein.android.Tools;
+import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
 import de.mein.android.view.PowerView;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.N;
 
 /**
  * Created by xor on 2/22/17.
  */
-public class InfoController extends GuiController {
+public class InfoController extends GuiController implements PowerManager.IPowerStateListener {
     private TextView lblStatus, txtSSID, txtIP;
     private LinearLayout permissionReasonContainer;
     private PowerView powerView;
@@ -91,15 +87,31 @@ public class InfoController extends GuiController {
 
     @Override
     public void onAndroidServiceAvailable() {
+        AndroidPowerManager powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
+        powerManager.addStateListener(this);
+        updateGui();
+    }
+
+    private void updateGui() {
         activity.runOnUiThread(() -> {
             if (androidService.isRunning()) {
                 lblStatus.setText("Running");
                 lblStatus.setBackgroundColor(Color.parseColor("#ff99cc00"));
+                powerView.setPowerManager((AndroidPowerManager) androidService.getMeinAuthService().getPowerManager());
+                powerView.update();
             } else {
                 lblStatus.setText("Stopped");
                 lblStatus.setBackgroundColor(Color.parseColor("#ffcc0000"));
+                powerView.disable();
             }
         });
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        AndroidPowerManager powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
+        powerManager.removeListener(this);
     }
 
     @Override
@@ -113,4 +125,8 @@ public class InfoController extends GuiController {
     }
 
 
+    @Override
+    public void onStateChanged(PowerManager powerManager) {
+        updateGui();
+    }
 }

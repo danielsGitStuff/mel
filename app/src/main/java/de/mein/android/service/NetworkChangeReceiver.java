@@ -47,20 +47,12 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
                 connected = connectedNow;
                 hasChanged = true;
             }
-            if (hasChanged) {
-                if (connectedNow) {
-                    androidService.getMeinAuthService().getPowerManager().onCommunicationsEnabled();
-                } else {
-                    androidService.getMeinAuthService().getPowerManager().onCommunicationsDisabled();
-                }
+//            if (hasChanged) {
+            if (connectedNow) {
+                androidService.getMeinAuthService().getPowerManager().onCommunicationsEnabled();
+            } else {
+                androidService.getMeinAuthService().getPowerManager().onCommunicationsDisabled();
             }
-
-//            if (state.equals(NetworkInfo.State.CONNECTED)) {
-//                androidService.getMeinAuthService().getPowerManager().onCommunicationsEnabled();
-//            } else if (state.equals(NetworkInfo.State.DISCONNECTED)) {
-//                androidService.getMeinAuthService().getPowerManager().onCommunicationsDisabled();
-//            } else if (state.equals(NetworkInfo.State.DISCONNECTING)) {
-//
 //            }
         }
     }

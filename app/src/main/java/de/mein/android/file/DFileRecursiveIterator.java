@@ -2,16 +2,13 @@ package de.mein.android.file;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.net.Uri;
 import android.provider.DocumentsContract;
-import android.support.annotation.NonNull;
-import android.support.v4.provider.DocumentFile;
+import androidx.annotation.NonNull;
+import androidx.documentfile.provider.DocumentFile;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 import de.mein.auth.file.AFile;

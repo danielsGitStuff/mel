@@ -2,7 +2,7 @@ package de.mein.android;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.app.NotificationManagerCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import java.io.IOException;
 import java.util.HashMap;

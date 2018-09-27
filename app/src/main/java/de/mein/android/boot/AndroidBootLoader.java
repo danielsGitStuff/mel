@@ -1,14 +1,9 @@
 package de.mein.android.boot;
 
 import android.app.Activity;
-import android.app.ListActivity;
 import android.content.Context;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 import android.view.ViewGroup;
-
-import org.jdeferred.Promise;
-
-import java.util.List;
 
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceGuiController;

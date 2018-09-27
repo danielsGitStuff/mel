@@ -1,5 +1,6 @@
 package de.mein.auth.service.power;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
@@ -16,14 +17,16 @@ import de.mein.auth.tools.N;
 public class PowerManager {
     private final MeinAuthSettings meinAuthSettings;
     private final PowerManagerSettings settings;
-    private MeinAuthService meinAuthService;
-    protected boolean online = true;
+    protected MeinAuthService meinAuthService;
+    protected boolean wifi = true;
     protected ReentrantLock stateLock = new ReentrantLock(true);
-    private boolean plugged = true;
+    protected boolean powered = true;
+    protected boolean running = true;
     private ReentrantLock powerListenerLock = new ReentrantLock();
     private ReentrantLock comListenerLock = new ReentrantLock();
     //    private Set<PowerManagerListener> powerManagerListeners = new HashSet<>();
     private Set<CommunicationsListener> comListeners = new HashSet<>();
+    protected Set<IPowerStateListener<? extends PowerManager>> listeners = new HashSet<>();
 
     public PowerManager(MeinAuthSettings meinAuthSettings) {
         this.meinAuthSettings = meinAuthSettings;
@@ -50,27 +53,6 @@ public class PowerManager {
         return this;
     }
 
-//    public PowerManager removeCommunicationListener(CommunicationsListener listener) {
-//        comListenerLock.lock();
-//        comListeners.remove(listener);
-//        comListenerLock.unlock();
-//        return this;
-//    }
-
-//    public PowerManager addPowerListener(PowerManagerListener listener) {
-//        powerListenerLock.lock();
-//        powerManagerListeners.add(listener);
-//        powerListenerLock.unlock();
-//        return this;
-//    }
-//
-//    public PowerManager removePowerListener(PowerManagerListener listener) {
-//        powerListenerLock.lock();
-//        powerManagerListeners.remove(listener);
-//        powerListenerLock.unlock();
-//        return this;
-//    }
-
     /**
      * useful for android only
      */
@@ -85,35 +67,29 @@ public class PowerManager {
 
     }
 
-    protected void propagatePossibleStateChanges(boolean workBefore, boolean workNow) {
-        try {
-            powerListenerLock.lock();
-            if ((workNow ^ workBefore)) {
-                if (workNow) {
-//                    for (PowerManagerListener listener : powerManagerListeners) {
-//                        listener.onHeavyWorkAllowed();
-//                    }
-                    onHeavyWorkAllowed();
-                } else {
-//                    for (PowerManagerListener listener : powerManagerListeners) {
-//                        listener.onHeavyWorkForbidden();
-//                    }
-                    onHeavyWorkForbidden();
-                }
-            }
-        } finally {
-            powerListenerLock.unlock();
-        }
-    }
+//    protected void propagatePossibleStateChanges(boolean workBefore, boolean workNow) {
+//        try {
+//            powerListenerLock.lock();
+//            if ((workNow ^ workBefore)) {
+//                if (workNow) {
+//                    onHeavyWorkAllowed();
+//                } else {
+//                    onHeavyWorkForbidden();
+//                }
+//            }
+//        } finally {
+//            powerListenerLock.unlock();
+//        }
+//    }
 
     public void onCommunicationsDisabled() {
         stateLock.lock();
         boolean workBefore = heavyWorkAllowedNoLock();
-        boolean onlineBefore = online;
-        online = false;
+        boolean onlineBefore = wifi;
+        wifi = false;
         boolean workNow = heavyWorkAllowedNoLock();
         stateLock.unlock();
-        propagatePossibleStateChanges(workBefore, workNow);
+//        propagatePossibleStateChanges(workBefore, workNow);
         try {
             comListenerLock.lock();
             if (onlineBefore)
@@ -127,11 +103,11 @@ public class PowerManager {
     public void onCommunicationsEnabled() {
         stateLock.lock();
         boolean workBefore = heavyWorkAllowedNoLock();
-        boolean onlineBefore = online;
-        online = true;
+        boolean onlineBefore = wifi;
+        wifi = true;
         boolean workNow = heavyWorkAllowedNoLock();
         stateLock.unlock();
-        propagatePossibleStateChanges(workBefore, workNow);
+//        propagatePossibleStateChanges(workBefore, workNow);
         try {
             comListenerLock.lock();
             if (!onlineBefore)
@@ -145,23 +121,21 @@ public class PowerManager {
     public void onPowerPlugged() {
         stateLock.lock();
         boolean workBefore = heavyWorkAllowedNoLock();
-        plugged = true;
+        powered = true;
         boolean workNow = heavyWorkAllowedNoLock();
         stateLock.unlock();
-        propagatePossibleStateChanges(workBefore, workNow);
     }
 
     public void onPowerUnplugged() {
         stateLock.lock();
         boolean workBefore = heavyWorkAllowedNoLock();
-        plugged = false;
+        powered = false;
         boolean workNow = heavyWorkAllowedNoLock();
         stateLock.unlock();
-        propagatePossibleStateChanges(workBefore, workNow);
     }
 
     protected boolean heavyWorkAllowedNoLock() {
-        return (settings.doHeavyWorkWhenPlugged() && plugged) || (settings.doHeavyWorkWhenOffline() && !online);
+        return (settings.doHeavyWorkWhenPlugged() && powered) || (settings.doHeavyWorkWhenOffline() && !wifi);
     }
 
     public boolean heavyWorkAllowed() {
@@ -193,6 +167,14 @@ public class PowerManager {
         stateLock.unlock();
     }
 
+    public <T extends PowerManager> void addStateListener(IPowerStateListener<T> listener) {
+        this.listeners.add(listener);
+    }
+
+    public <T extends PowerManager> void removeListener(IPowerStateListener<T> listener) {
+        this.listeners.remove(listener);
+    }
+
     //    public interface PowerManagerListener {
 //        void onHeavyWorkAllowed();
 //
@@ -203,5 +185,17 @@ public class PowerManager {
         void onCommunicationsEnabled();
 
         void onCommunicationsDisabled();
+    }
+
+    public static interface IPowerStateListener<PowerManager> {
+        void onStateChanged(de.mein.auth.service.power.PowerManager powerManager);
+    }
+
+    public boolean isPowered() {
+        return powered;
+    }
+
+    public boolean isWifi() {
+        return wifi;
     }
 }

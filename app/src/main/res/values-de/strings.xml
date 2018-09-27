@@ -105,4 +105,5 @@
     <string name="exit">Exit</string>
     <string name="btnServer" />
     <string name="btnClient">Client</string>
+    <string name="powerRun">run</string>
 </resources>

@@ -1,6 +1,6 @@
 package de.mein.drive;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,8 +10,6 @@ import java.util.List;
 
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by xor on 3/8/17.

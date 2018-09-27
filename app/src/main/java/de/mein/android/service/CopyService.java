@@ -3,10 +3,9 @@ package de.mein.android.service;
 import android.app.IntentService;
 import android.content.ContentResolver;
 import android.content.Intent;
-import android.provider.DocumentsContract;
-import android.provider.DocumentsProvider;
-import android.support.annotation.Nullable;
-import android.support.v4.provider.DocumentFile;
+
+import androidx.annotation.Nullable;
+import androidx.documentfile.provider.DocumentFile;
 import android.util.Log;
 
 import java.io.File;
@@ -19,7 +18,6 @@ import de.mein.Lok;
 import de.mein.android.Tools;
 import de.mein.android.file.JFile;
 import de.mein.android.file.SAFAccessor;
-import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.NWrap;
 

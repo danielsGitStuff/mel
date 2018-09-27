@@ -3,7 +3,7 @@ package de.mein.android.contacts;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 import android.view.ViewGroup;
 
 import java.io.File;
@@ -24,7 +24,6 @@ import de.mein.android.contacts.service.AndroidContactsServerService;
 import de.mein.android.controller.AndroidServiceGuiController;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.db.ServiceType;
-import de.mein.auth.file.AFile;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.contacts.ContactsBootloader;

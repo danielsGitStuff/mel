@@ -3,8 +3,8 @@ package de.mein.android.drive;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.provider.DocumentFile;
+import androidx.core.app.NotificationCompat;
+
 import android.view.ViewGroup;
 
 import org.jdeferred.Promise;
@@ -24,7 +24,6 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
-import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveClientService;
 

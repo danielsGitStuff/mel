@@ -9,7 +9,8 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
+
+import androidx.core.app.NotificationCompat;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jdeferred.Promise;
@@ -24,6 +25,7 @@ import de.mein.android.AndroidInjector;
 import de.mein.android.AndroidRegHandler;
 import de.mein.android.MainActivity;
 import de.mein.android.Notifier;
+import de.mein.android.Tools;
 import de.mein.android.contacts.AndroidContactsBootloader;
 import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.auth.data.JsonSettings;

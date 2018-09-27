@@ -111,10 +111,11 @@ public class WatchDogTimer extends Timer {
         public WatchDogTimerTask(WatchDogTimerFinished watchDogTimerFinished, int startValue) {
             this.startValue = startValue;
             this.watchDogTimerFinished = watchDogTimerFinished;
+            count = new AtomicInteger(startValue);
         }
 
         private int startValue = 20;
-        private AtomicInteger count = new AtomicInteger(20);
+        private AtomicInteger count;
         private AtomicBoolean wait = new AtomicBoolean(false);
 
         void waite() {

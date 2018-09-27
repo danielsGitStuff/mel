@@ -6,32 +6,87 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.mein.Lok;
+import de.mein.android.Tools;
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WatchDogTimer;
 
 public class AndroidPowerManager extends PowerManager {
+    private static final String PREF_POWER_WIFI = "p.pw";
+    private static final String PREF_POWER_NO_WIFI = "p.pnw";
+    private static final String PREF_NO_POWER_WIFI = "p.npw";
+    private static final String PREF_NO_POWER_NO_WIFI = "p.npnw";
     private final android.os.PowerManager osPowerManager;
     private Map<Object, StackTraceElement[]> wakeLockCallers = new HashMap<>();
     private android.os.PowerManager.WakeLock wakeLock;
     private WatchDogTimer wakeTimer;
     private ReentrantLock wakeAccessLock = new ReentrantLock(true);
+    private boolean powerWifi = false;
+    private boolean powerNoWifi = false;
+    private boolean noPowerWifi = false;
+    private boolean noPowerNoWifi = false;
 
-    public AndroidPowerManager( MeinAuthSettings meinAuthSettings, android.os.PowerManager osPowerManager) {
+
+    public AndroidPowerManager(MeinAuthSettings meinAuthSettings, android.os.PowerManager osPowerManager) {
         super(meinAuthSettings);
         this.osPowerManager = osPowerManager;
+        powerWifi = Tools.getSharedPreferences().getBoolean(PREF_POWER_WIFI, true);
+        powerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_POWER_NO_WIFI, false);
+        noPowerWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_WIFI, false);
+        noPowerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_NO_WIFI, false);
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
         wakeTimer = new WatchDogTimer(() -> {
             stateLock.lock();
-            boolean workBefore = heavyWorkAllowedNoLock();
-            boolean onlineBefore = online;
-            online = false;
-            boolean workNow = heavyWorkAllowedNoLock();
+            boolean shouldRun = runWhen(powered, wifi);
+            if (shouldRun != running) {
+                if (shouldRun) {
+                    Lok.debug("resuming...");
+                    meinAuthService.resume();
+                } else {
+                    Lok.debug("suspending...");
+                    meinAuthService.suspend();
+                }
+                running = shouldRun;
+            } else {
+                Lok.debug("nothing to do...");
+            }
+            N.forEach(listeners,iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
             stateLock.unlock();
-            propagatePossibleStateChanges(workBefore, workNow);
+//            propagatePossibleStateChanges(workBefore, workNow);
         }, 10, 100, 1000);
+    }
+
+    public void configure(Boolean powerWifi, Boolean powerNoWifi, Boolean noPowerWifi, Boolean noPowerNoWifi) {
+        if (powerWifi != null)
+            this.powerWifi = powerWifi;
+        if (powerNoWifi != null)
+            this.powerNoWifi = powerNoWifi;
+        if (noPowerWifi != null)
+            this.noPowerWifi = noPowerWifi;
+        if (noPowerNoWifi != null)
+            this.noPowerNoWifi = noPowerNoWifi;
+        savePrefs();
+    }
+
+    private void savePrefs() {
+        Tools.getSharedPreferences().edit()
+                .putBoolean(PREF_POWER_WIFI, powerWifi)
+                .putBoolean(PREF_POWER_NO_WIFI, powerNoWifi)
+                .putBoolean(PREF_NO_POWER_WIFI, noPowerWifi)
+                .putBoolean(PREF_NO_POWER_NO_WIFI, noPowerNoWifi)
+                .apply();
+    }
+
+    public boolean runWhen(boolean onPower, boolean onWifi) {
+        if (onPower && onWifi)
+            return powerWifi;
+        else if (onPower)
+            return powerNoWifi;
+        else if (onWifi)
+            return noPowerWifi;
+        else
+            return noPowerNoWifi;
     }
 
     @Override
@@ -43,6 +98,54 @@ public class AndroidPowerManager extends PowerManager {
     protected void onHeavyWorkForbidden() {
         // release the wakelock if heavy work is forbidden but the lock is held
         N.r(() -> wakeTimer.start());
+    }
+
+    private void updateWifi(boolean wifiNow) {
+        if (wifi != wifiNow) {
+            wifi = wifiNow;
+            boolean shouldRun = runWhen(powered, wifi);
+            if (shouldRun != running) {
+                N.r(() -> wakeTimer.start());
+            }
+        }
+    }
+
+    private void updatePowered(boolean powerNow) {
+        if (powered != powerNow) {
+            powered = powerNow;
+            boolean shouldRun = runWhen(powered, wifi);
+            if (shouldRun != running) {
+                N.r(() -> wakeTimer.start());
+            }
+        }
+    }
+
+    @Override
+    public void onCommunicationsDisabled() {
+        stateLock.lock();
+        updateWifi(false);
+        stateLock.unlock();
+    }
+
+    @Override
+    public void onCommunicationsEnabled() {
+        stateLock.lock();
+        updateWifi(true);
+        stateLock.unlock();
+    }
+
+    @Override
+    public void onPowerPlugged() {
+        stateLock.lock();
+        updatePowered(true);
+        stateLock.unlock();
+    }
+
+    @Override
+    public void onPowerUnplugged() {
+        stateLock.lock();
+        updatePowered(false);
+        stateLock.unlock();
     }
 
     @Override
@@ -83,4 +186,39 @@ public class AndroidPowerManager extends PowerManager {
         return wakeLockCallers.get(caller);
     }
 
+    public void togglePowerWifi() {
+        powerWifi = !powerWifi;
+        savePrefs();
+    }
+
+    public void togglePowerNoWifi() {
+        powerNoWifi = !powerNoWifi;
+        savePrefs();
+    }
+
+    public void toggleNoPowerWifi() {
+        noPowerWifi = !noPowerWifi;
+        savePrefs();
+    }
+
+    public void toggleNoPowerNoWifi() {
+        noPowerNoWifi = !noPowerNoWifi;
+        savePrefs();
+    }
+
+    public boolean getNoPowerNoWifi() {
+        return noPowerNoWifi;
+    }
+
+    public boolean getNoPowerWifi() {
+        return noPowerWifi;
+    }
+
+    public boolean getPowerNoWifi() {
+        return powerNoWifi;
+    }
+
+    public boolean getPowerWifi() {
+        return powerWifi;
+    }
 }

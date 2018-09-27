@@ -2,7 +2,7 @@ package de.mein.android.contacts;
 
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.MenuItem;
 
 import java.util.HashMap;
@@ -18,7 +18,6 @@ import de.mein.android.Notifier;
 import de.mein.android.contacts.data.ConflictIntentExtra;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.android.contacts.service.AndroidContactsClientService;
-import de.mein.android.contacts.service.AndroidContactsServerService;
 import de.mein.android.contacts.view.ContactsConflictListAdapter;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.MeinNotification;

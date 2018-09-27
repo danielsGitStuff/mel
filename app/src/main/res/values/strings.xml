@@ -103,6 +103,8 @@
     <string name="stateRunning">Running</string>
     <string name="stateDeactivated">Deactivated</string>
     <string name="exit">Exit</string>
-    <string name="btnServer" >Server</string>
-    <string name="btnClient">Client</string>
+    <string name="btnServer">Server</string>
+    <string name="btnClient">Mobile</string>
+    <string name="powerRun">run</string>
+    <string name="powerStop">stop</string>
 </resources>

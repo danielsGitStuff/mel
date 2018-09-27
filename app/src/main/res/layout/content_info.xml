@@ -89,7 +89,7 @@
 
 <de.mein.android.view.PowerView
     android:id="@+id/powerView"
-    android:layout_below="@id/table"
+    android:layout_below="@id/permissionReasonContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"/>
 </RelativeLayout>

@@ -47,7 +47,7 @@ public class ContactsBootloader extends BootLoader {
             // tell server we are here. if it goes wrong: reverse everything
             WaitLock waitLock = new WaitLock().lock();
             N runner = new N(e -> {
-                meinAuthService.unregisterMeinService(service.getId().v());
+                meinAuthService.unregisterMeinService(service.getUuid().v());
                 N.r(() -> meinAuthService.getDatabaseManager().deleteService(service.getId().v()));
                 Lok.debug("ContactsBootloader.createService.service.deleted:something.failed");
                 waitLock.unlock();

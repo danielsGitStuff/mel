@@ -15,7 +15,9 @@ import de.mein.R;
 import de.mein.android.MainActivity;
 import de.mein.android.PreferenceStrings;
 import de.mein.android.Tools;
+import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
+import de.mein.android.view.PowerView;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.N;
@@ -25,10 +27,11 @@ import de.mein.auth.tools.N;
  */
 
 public class SettingsController extends GuiController {
-    private PowerManager powerManager;
-    private Button btnStartStop, btnApply, btnShow;
+    private AndroidPowerManager powerManager;
+    private Button btnStartStop, btnApply, btnShow, btnPowerMobile, btnPowerServer;
     private EditText txtPort, txtCertPort, txtName;
     private CheckBox cbShowFirstStartDialog, cbRedirectSysOut;
+    private PowerView powerView;
 
     public SettingsController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_settings);
@@ -41,6 +44,9 @@ public class SettingsController extends GuiController {
         // action listeners
         btnStartStop = rootView.findViewById(R.id.btnStart);
         btnApply = rootView.findViewById(R.id.btnApply);
+        btnPowerMobile = rootView.findViewById(R.id.btnPowerMobile);
+        btnPowerServer = rootView.findViewById(R.id.btnPowerServer);
+        powerView = rootView.findViewById(R.id.powerView);
         btnStartStop.setOnClickListener(v1 -> {
             //service
             Intent serviceIntent = new Intent(rootView.getContext(), AndroidService.class);
@@ -57,7 +63,14 @@ public class SettingsController extends GuiController {
             editor.putBoolean(activity.getString(R.string.showIntro), cbShowFirstStartDialog.isChecked());
             editor.apply();
         });
-
+        btnPowerServer.setOnClickListener(view -> {
+            powerManager.configure(true, true, true, true);
+            powerView.update();
+        });
+        btnPowerMobile.setOnClickListener(view -> {
+            powerManager.configure(true, false, false, false);
+            powerView.update();
+        });
     }
 
     private void showAll() {
@@ -105,13 +118,15 @@ public class SettingsController extends GuiController {
 
     @Override
     public void onAndroidServiceAvailable() {
-        this.powerManager = androidService.getMeinAuthService().getPowerManager();
+        this.powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
         CheckBox cbWorkWhenPlugged = rootView.findViewById(R.id.cbWorkWhenPlugged);
         cbWorkWhenPlugged.setChecked(powerManager.getHeavyWorkWhenPlugged());
         cbWorkWhenPlugged.setOnCheckedChangeListener((compoundButton, isChecked) -> powerManager.setHeavyWorkWhenPlugged(isChecked));
         CheckBox cbWorkWhenOffline = rootView.findViewById(R.id.cbWorkWhenOffline);
         cbWorkWhenOffline.setOnCheckedChangeListener((compoundButton, isChecked) -> powerManager.setHeavyWorkWhenOffline(isChecked));
         cbWorkWhenOffline.setChecked(powerManager.getHeavyWorkWhenOffline());
+        powerView.setPowerManager(powerManager);
+        powerView.update();
         showAll();
     }
 
