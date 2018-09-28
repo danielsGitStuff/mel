@@ -3,6 +3,7 @@ package de.mein.drive.service.sync;
 import de.mein.Lok;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.N;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
@@ -34,14 +35,14 @@ public class ServerSyncHandler extends SyncHandler {
         try {
             final long olderVersion = driveDatabaseManager.getLatestVersion();
             if (commit.getBasedOnVersion() != olderVersion) {
-                request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion()+ " vs "+driveDatabaseManager.getLatestVersion(), driveDatabaseManager.getLatestVersion()));
+                request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion() + " vs " + driveDatabaseManager.getLatestVersion(), driveDatabaseManager.getLatestVersion()));
                 return;
             }
             // stage everything
             StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null);
             Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
             Iterator<Stage> iterator = commit.iterator();
-            while (iterator.hasNext()){
+            while (iterator.hasNext()) {
                 Stage stage = iterator.next();
                 stage.setStageSet(stageSet.getId().v());
                 if (!stage.getIsDirectory()) {
@@ -90,7 +91,8 @@ public class ServerSyncHandler extends SyncHandler {
                     details.getHash().v(genericFSEntry.getContentHash().v());
                     details.getSize().v(genericFSEntry.getSize().v());
                     details.getServiceUuid().v(commit.getServiceUuid());
-                    transferManager.createTransfer(details);
+                    //insert fails if there already is a transfer with that hash
+                    N.r(() -> transferManager.createTransfer(details));
                 }
             }
         } finally {

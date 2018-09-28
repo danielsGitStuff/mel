@@ -69,7 +69,7 @@ public class CreateServiceController extends GuiController implements Permission
                 currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
                 currentController.setOnPermissionsGrantedListener(this);
                 if (activity.hasPermissions(bootLoader.getPermissions())) {
-                   onPermissionsGranted();
+                    onPermissionsGranted();
                 } else {
                     btnCreate.setOnClickListener(v -> {
                         activity.annoyWithPermissions(bootLoader.getPermissions())
@@ -78,7 +78,7 @@ public class CreateServiceController extends GuiController implements Permission
                                     btnCreate.setOnClickListener(defaultBtnCreateListener);
                                     btnCreate.setText(R.string.btnCreate);
                                 })
-                                .fail(r -> Notifier.toast(mainActivity,R.string.infufficientPermissions));
+                                .fail(r -> Notifier.toast(mainActivity, R.string.infufficientPermissions));
                     });
                     btnCreate.setText(R.string.btnCreateRequestPerm);
                 }
@@ -92,7 +92,6 @@ public class CreateServiceController extends GuiController implements Permission
     }
 
 
-
     @Override
     public Integer getTitle() {
         return R.string.createServiceTitle;
@@ -101,41 +100,38 @@ public class CreateServiceController extends GuiController implements Permission
     @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
-        activity.runOnUiThread(() -> {
-            MeinAuthService meinAuthService = androidService.getMeinAuthService();
-            List<BootLoader> bootLoaders = new ArrayList<>();
-            for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
-                N.r(() -> {
-                    BootLoader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootloaderClass);
-                    bootLoaders.add(bootLoader);
-                    //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
-                    Lok.debug("CreateServiceController.CreateServiceController");
+        if (bootLoader == null) {
+            activity.runOnUiThread(() -> {
+                MeinAuthService meinAuthService = androidService.getMeinAuthService();
+                List<BootLoader> bootLoaders = new ArrayList<>();
+                for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
+                    N.r(() -> {
+                        BootLoader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootloaderClass);
+                        bootLoaders.add(bootLoader);
+                        //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
+                        Lok.debug("CreateServiceController.CreateServiceController");
+                    });
+                }
+                Collections.sort(bootLoaders, (b1, b2) -> b1.getName().compareToIgnoreCase(b2.getName()));
+                BootloaderAdapter adapter = new BootloaderAdapter(rootView.getContext(), bootLoaders);
+                // Specify the layout to use when the list of choices appears
+                // Apply the adapter to the spinner
+                spinner.setAdapter(adapter);
+                spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        showSelected();
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
                 });
-            }
-            Collections.sort(bootLoaders, (b1, b2) -> b1.getName().compareToIgnoreCase(b2.getName()));
-            BootloaderAdapter adapter = new BootloaderAdapter(rootView.getContext(), bootLoaders);
-            // Specify the layout to use when the list of choices appears
-            // Apply the adapter to the spinner
-            spinner.setAdapter(adapter);
-            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    showSelected();
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) {
-
-                }
+                //showSelected();
+                btnCreate.setOnClickListener(defaultBtnCreateListener);
             });
-            //showSelected();
-            btnCreate.setOnClickListener(defaultBtnCreateListener);
-        });
-    }
-
-    @Override
-    public void onAndroidServiceUnbound() {
-
+        }
     }
 
     @Override

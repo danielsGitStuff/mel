@@ -1,5 +1,6 @@
 package de.mein.android.file.chooserdialog;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -132,8 +133,10 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         Intent intent = new Intent(activity, DirectoryChooserDialog.class);
         FilesActivityPayload payload = new FilesActivityPayload(AndroidDriveStrings.DIR_CHOOSER_KEY, rootDirectories);
         activity.launchActivityForResult(intent, (resultCode, result) -> {
-            String path = result.getStringExtra(AndroidDriveStrings.DIR_CHOOSER_KEY);
-            deferred.resolve(AFile.instance(path));
+            if (resultCode == Activity.RESULT_OK) {
+                String path = result.getStringExtra(AndroidDriveStrings.DIR_CHOOSER_KEY);
+                deferred.resolve(AFile.instance(path));
+            }
         }, payload);
         return deferred;
     }

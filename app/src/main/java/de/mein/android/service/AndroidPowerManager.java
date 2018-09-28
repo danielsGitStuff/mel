@@ -36,25 +36,34 @@ public class AndroidPowerManager extends PowerManager {
         noPowerWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_WIFI, false);
         noPowerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_NO_WIFI, false);
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
-        wakeTimer = new WatchDogTimer(() -> {
-            stateLock.lock();
-            boolean shouldRun = runWhen(powered, wifi);
-            if (shouldRun != running && meinAuthService != null) {
-                if (shouldRun) {
-                    Lok.debug("resuming...");
-                    meinAuthService.resume();
-                } else {
-                    Lok.debug("suspending...");
-                    meinAuthService.suspend();
-                }
-                running = shouldRun;
+        wakeTimer = new WatchDogTimer(() -> changeState(), 10, 100, 1000);
+    }
+
+    /**
+     * changes state, takes or releases wakelock if necessary.
+     */
+    private void changeState() {
+        stateLock.lock();
+        boolean shouldRun = runWhen(powered, wifi);
+        if (shouldRun != running && meinAuthService != null) {
+            if (shouldRun) {
+                Lok.debug("resuming...");
+                meinAuthService.resume();
             } else {
-                Lok.debug("nothing to do...");
+                Lok.debug("suspending...");
+                meinAuthService.suspend();
             }
-            N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
-            stateLock.unlock();
-//            propagatePossibleStateChanges(workBefore, workNow);
-        }, 10, 100, 1000);
+            running = shouldRun;
+            if (running) {
+                this.wakeLock(this);
+            } else {
+                this.releaseWakeLock(this);
+            }
+        } else {
+            Lok.debug("nothing to do...");
+        }
+        N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
+        stateLock.unlock();
     }
 
     public void configure(Boolean powerWifi, Boolean powerNoWifi, Boolean noPowerWifi, Boolean noPowerNoWifi) {
@@ -189,21 +198,25 @@ public class AndroidPowerManager extends PowerManager {
     public void togglePowerWifi() {
         powerWifi = !powerWifi;
         savePrefs();
+        changeState();
     }
 
     public void togglePowerNoWifi() {
         powerNoWifi = !powerNoWifi;
         savePrefs();
+        changeState();
     }
 
     public void toggleNoPowerWifi() {
         noPowerWifi = !noPowerWifi;
         savePrefs();
+        changeState();
     }
 
     public void toggleNoPowerNoWifi() {
         noPowerNoWifi = !noPowerNoWifi;
         savePrefs();
+        changeState();
     }
 
     public boolean getNoPowerNoWifi() {
