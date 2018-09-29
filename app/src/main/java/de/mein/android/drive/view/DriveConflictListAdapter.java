@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import de.mein.Lok;
@@ -73,9 +74,10 @@ public class DriveConflictListAdapter extends BaseAdapter {
     private List<Conflict> sort(Collection<Conflict> dependents) {
         List<Conflict> result = new ArrayList<>();
         result.addAll(dependents);
-        result.sort((c1, c2) -> {
-            return compareConflicts(c1, c2);
-        });
+        Collections.sort(result, (o1, o2) -> compareConflicts(o1, o2));
+//        result.sort((c1, c2) -> {
+//            return compareConflicts(c1, c2);
+//        });
         return result;
     }
 

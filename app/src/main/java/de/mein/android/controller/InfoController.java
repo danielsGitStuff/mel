@@ -110,8 +110,10 @@ public class InfoController extends GuiController implements PowerManager.IPower
 
     @Override
     public void onDestroy() {
-        AndroidPowerManager powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
-        powerManager.removeListener(this);
+        if (androidService != null) {
+            AndroidPowerManager powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
+            powerManager.removeListener(this);
+        }
         super.onDestroy();
     }
 

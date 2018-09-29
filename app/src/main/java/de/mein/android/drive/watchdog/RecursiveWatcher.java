@@ -124,7 +124,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
             positiveListBuilder.append(f.getAbsolutePath());
             String positiveList = positiveListBuilder.toString();
             if (checkEvent(event, FileObserver.DELETE_SELF)) {
-                Lok.warn("delete self" + positiveList);
+//                Lok.warn("delete self" + positiveList);
                 this.watchers.remove(f.getAbsolutePath());
                 // folder was deleted. so check if we are still waiting for a writing event and remove it.
                 Set<String> newWritePaths = new HashSet<>();
@@ -135,7 +135,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
                 writePaths = newWritePaths;
                 startTimer();
             } else if (checkEvent(event, FileObserver.CLOSE_WRITE)) {
-                Lok.warn("close.write: " + positiveList);
+//                Lok.warn("close.write: " + positiveList);
                 writePaths.remove(f.getAbsolutePath());
                 startTimer();
             } else if (checkEvent(event,
@@ -145,14 +145,14 @@ public class RecursiveWatcher extends IndexWatchdogListener {
                     FileObserver.MOVE_SELF,
                     FileObserver.MOVED_FROM,
                     FileObserver.MOVED_TO)) {
-                Lok.warn("1st: " + positiveList);
+//                Lok.warn("1st: " + positiveList);
                 startTimer();
             } else if (checkEvent(event, FileObserver.MODIFY)) {
-                Lok.warn("modify: " + positiveList);
+//                Lok.warn("modify: " + positiveList);
                 writePaths.add(f.getAbsolutePath());
                 startTimer();
             } else {
-                Lok.warn("something else: " + positiveList);
+//                Lok.warn("something else: " + positiveList);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -205,7 +205,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         PathCollection pathCollection = new PathCollection();
         try {
             if (writePaths.size() > 0) {
-                Lok.warn("assuming there is still writing in progess...");
+                Lok.debug("assuming there is still writing in progess...");
                 startTimer();
                 return;
             }
@@ -213,7 +213,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
              */
-            Lok.warn("stopped");
+            Lok.debug("stopped");
             List<AFile> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
             for (AFile f : paths) {
