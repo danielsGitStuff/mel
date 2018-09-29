@@ -5,6 +5,7 @@ import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.AConnectJob;
+import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.auth.MeinAuthProcess;
 import de.mein.auth.socket.process.imprt.MeinCertRetriever;
@@ -138,7 +139,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     }
 
     @Override
-    public void onBlockReceived(byte[] block) {
+    public void onBlockReceived(BlockReceivedJob block) {
         // this shall only work with isolated processes
         ((MeinIsolatedProcess) process).onBlockReceived(block);
     }

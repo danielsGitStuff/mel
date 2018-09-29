@@ -7,6 +7,7 @@ import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.MeinResponse;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.tools.N;
@@ -94,7 +95,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
             }
 
             @Override
-            public void onBlockReceived(byte[] block) {
+            public void onBlockReceived(BlockReceivedJob block) {
 
             }
 

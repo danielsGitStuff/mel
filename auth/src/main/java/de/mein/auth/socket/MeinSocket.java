@@ -8,9 +8,11 @@ import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinWorker;
+import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.N;
 
 import javax.net.SocketFactory;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -136,7 +138,7 @@ public class MeinSocket extends DeferredRunnable {
 
         void onClose(int code, String reason, boolean remote);
 
-        void onBlockReceived(byte[] block);
+        void onBlockReceived(BlockReceivedJob block);
     }
 
 
@@ -185,7 +187,7 @@ public class MeinSocket extends DeferredRunnable {
                 ReceivedJob receivedJob = (ReceivedJob) job;
                 listener.onMessage(socket, receivedJob.getMessage());
             } else if (job instanceof BlockReceivedJob) {
-                listener.onBlockReceived(((BlockReceivedJob) job).getBlock());
+                listener.onBlockReceived(((BlockReceivedJob) job));
             }
         }
 
@@ -206,13 +208,15 @@ public class MeinSocket extends DeferredRunnable {
     @Override
     public void onShutDown() {
         N.r(() -> {
-            Lok.error(getClass().getName()+".onShutDown()");
+            Lok.error(getClass().getName() + ".onShutDown()");
             socketWorker.shutDown();
         });
         N.r(() -> socket.close());
     }
 
     StringBuffer msgBuffer = new StringBuffer();
+
+    private CountWaitLock queueLock = new CountWaitLock();
 
     @Override
     public void runImpl() {
@@ -230,7 +234,10 @@ public class MeinSocket extends DeferredRunnable {
                 if (isIsolated && allowIsolation) {
                     byte[] bytes = new byte[BLOCK_SIZE];
                     in.readFully(bytes);
-                    socketWorker.addJob(new BlockReceivedJob().setBlock(bytes));
+                    BlockReceivedJob blockReceivedJob = new BlockReceivedJob().setBlock(bytes);
+                    blockReceivedJob.getPromise().done(result -> queueLock.unlock());
+                    socketWorker.addJob(blockReceivedJob);
+                    queueLock.lock();
                 } else {
                     String s = in.readUTF();
                     int l = s.length();
@@ -297,6 +304,7 @@ public class MeinSocket extends DeferredRunnable {
             if (this.thread != null) {
                 in.close();
                 out.close();
+                queueLock.unlock();
                 this.thread.interrupt();
             }
         } catch (Exception e) {

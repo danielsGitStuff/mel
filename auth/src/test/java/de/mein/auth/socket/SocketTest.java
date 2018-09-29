@@ -1,7 +1,7 @@
 package de.mein.auth.socket;
 
 import de.mein.Lok;
-import de.mein.auth.file.AFile;
+import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.power.PowerManager;
@@ -77,7 +77,7 @@ public class SocketTest {
                     }
 
                     @Override
-                    public void onBlockReceived(byte[] block) {
+                    public void onBlockReceived(BlockReceivedJob block) {
 
                     }
                 });

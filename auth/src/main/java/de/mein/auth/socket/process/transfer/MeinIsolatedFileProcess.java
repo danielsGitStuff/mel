@@ -13,6 +13,7 @@ import java.util.concurrent.Semaphore;
 import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.auth.MeinNotification;
+import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinSocket;
@@ -83,7 +84,8 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
 
 
     @Override
-    public void onBlockReceived(byte[] bytes) {
+    public void onBlockReceived(BlockReceivedJob blockJob) {
+        byte[] bytes = blockJob.getBlock();
         assert bytes.length == MeinSocket.BLOCK_SIZE;
         byte[] streamBytes = Arrays.copyOfRange(bytes, 1, 5);
         int streamId = ByteTools.bytesToInt(streamBytes);
@@ -96,6 +98,8 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            blockJob.getPromise().resolve(null);
         }
     }
 

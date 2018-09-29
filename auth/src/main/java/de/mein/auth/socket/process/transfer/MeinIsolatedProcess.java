@@ -2,6 +2,7 @@ package de.mein.auth.socket.process.transfer;
 
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
+import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
@@ -75,7 +76,7 @@ public abstract class MeinIsolatedProcess extends MeinProcess {
     }
 
 
-    public abstract void onBlockReceived(byte[] bytes);
+    public abstract void onBlockReceived(BlockReceivedJob bytes);
 
 
     private long readTransferOffSet(byte[] block) {

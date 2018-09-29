@@ -1,11 +1,11 @@
 package de.mein.auth.socket.process.imprt;
 
 import de.mein.DeferredRunnable;
-import de.mein.MeinRunnable;
 import de.mein.auth.data.MeinMessage;
 import de.mein.auth.data.MeinResponse;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.socket.ShamefulSelfConnectException;
@@ -134,7 +134,7 @@ public class MeinCertRetriever extends DeferredRunnable {
                 }
 
                 @Override
-                public void onBlockReceived(byte[] block) {
+                public void onBlockReceived(BlockReceivedJob block) {
 
                 }
             });
