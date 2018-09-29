@@ -64,7 +64,7 @@ public abstract class ServiceSettingsFX<T extends MeinService> extends AuthSetti
         N.r(() -> service.onShutDown());
         N.r(() -> {
             Service dbService = meinAuthService.getDatabaseManager().getServiceByUuid(service.getUuid());
-            meinAuthService.unregisterMeinService(dbService.getId().v());
+            meinAuthService.unregisterMeinService(dbService.getUuid().v());
             meinAuthService.getDatabaseManager().deleteService(dbService.getId().v());
         });
 

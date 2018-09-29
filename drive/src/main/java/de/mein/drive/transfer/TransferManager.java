@@ -199,7 +199,7 @@ public class TransferManager extends DeferredRunnable {
                     }
                     MeinNotification notification = activeTransfers.get(key);
                     if (notification == null) {
-                        notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_PROGRESS, "transferring", "line2");
+                        notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_PROGRESS, "transferring", "");
                         activeTransfers.put(key, notification);
                         notification.setProgress(max, current, false);
                         meinAuthService.onNotificationFromService(meinDriveService, notification);
@@ -214,7 +214,7 @@ public class TransferManager extends DeferredRunnable {
                 } else {
                     MeinNotification notification = notActiveTransfers.get(key);
                     if (notification == null) {
-                        notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_PROGRESS, "transferring", "line2");
+                        notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_PROGRESS, "transferring", "");
                         notActiveTransfers.put(key, notification);
                         meinAuthService.onNotificationFromService(meinDriveService, notification);
                     }

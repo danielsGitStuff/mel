@@ -396,7 +396,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    roamDirectoryStage(subStage, subDir);
+//                    roamDirectoryStage(subStage, subDir);
                 }
                 if (leSubDirectory == null)
                     leSubDirectory = new FsDirectory(subDir);
