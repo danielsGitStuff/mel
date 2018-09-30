@@ -109,6 +109,11 @@ public abstract class SyncHandler {
         return target;
     }
 
+    public void suspend() {
+        if (transferManager != null)
+            this.transferManager.suspend();
+    }
+
     public void onFileTransferFailed(String hash) {
         try {
             fsDao.lockRead();
@@ -177,7 +182,7 @@ public abstract class SyncHandler {
             Lok.debug("SyncHandler.copyFile.debug1");
         InputStream in = source.inputStream();
         try {
-            OutputStream out =target.outputStream();
+            OutputStream out = target.outputStream();
             try {
                 // Transfer bytes from in to out
                 byte[] buf = new byte[1024];

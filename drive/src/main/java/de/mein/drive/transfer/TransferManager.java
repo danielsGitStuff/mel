@@ -76,12 +76,18 @@ public class TransferManager extends DeferredRunnable {
     }
 
     @Override
+    public void suspend() {
+        super.suspend();
+        lock.unlock();
+    }
+
+    @Override
     public void runImpl() {
         String transferDirPath = meinDriveService.getDriveSettings().getRootDirectory().getPath() + File.separator + DriveStrings.TRANSFER_DIR;
         transferDir = new File(transferDirPath);
         transferDir.mkdirs();
         activeTransfers = new HashMap<>();
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!Thread.currentThread().isInterrupted() && !isStopped()) {
             try {
                 Lok.debug("TransferManager.RUN");
                 // these only contain certId and serviceUuid

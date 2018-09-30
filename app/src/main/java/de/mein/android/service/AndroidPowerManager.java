@@ -36,7 +36,10 @@ public class AndroidPowerManager extends PowerManager {
         noPowerWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_WIFI, false);
         noPowerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_NO_WIFI, false);
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
-        wakeTimer = new WatchDogTimer(() -> changeState(), 10, 100, 1000);
+        wakeTimer = new WatchDogTimer(() -> {
+            changeState();
+            wakeTimer.cancel();
+        }, 10, 100, 1000);
     }
 
     /**
@@ -115,7 +118,7 @@ public class AndroidPowerManager extends PowerManager {
             boolean shouldRun = runWhen(powered, wifi);
             if (shouldRun != running) {
                 N.r(() -> wakeTimer.start());
-            }else {
+            } else {
                 N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
             }
         }
@@ -127,7 +130,7 @@ public class AndroidPowerManager extends PowerManager {
             boolean shouldRun = runWhen(powered, wifi);
             if (shouldRun != running) {
                 N.r(() -> wakeTimer.start());
-            }else {
+            } else {
                 N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
             }
         }
