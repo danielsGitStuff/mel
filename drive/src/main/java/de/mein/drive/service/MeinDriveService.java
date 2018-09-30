@@ -173,6 +173,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     @Override
     public void resume() {
         indexer.resume();
+        syncHandler.resume();
         super.resume();
     }
 

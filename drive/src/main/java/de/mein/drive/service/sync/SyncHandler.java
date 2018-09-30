@@ -422,4 +422,8 @@ public abstract class SyncHandler {
     }
 
 
+    public void resume() {
+        if (transferManager != null)
+            this.transferManager.resume();
+    }
 }

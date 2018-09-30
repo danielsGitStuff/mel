@@ -81,6 +81,10 @@ public class TransferManager extends DeferredRunnable {
         lock.unlock();
     }
 
+    public void resume(){
+        start();
+    }
+
     @Override
     public void runImpl() {
         String transferDirPath = meinDriveService.getDriveSettings().getRootDirectory().getPath() + File.separator + DriveStrings.TRANSFER_DIR;
