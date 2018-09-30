@@ -115,6 +115,8 @@ public class AndroidPowerManager extends PowerManager {
             boolean shouldRun = runWhen(powered, wifi);
             if (shouldRun != running) {
                 N.r(() -> wakeTimer.start());
+            }else {
+                N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
             }
         }
     }
@@ -125,6 +127,8 @@ public class AndroidPowerManager extends PowerManager {
             boolean shouldRun = runWhen(powered, wifi);
             if (shouldRun != running) {
                 N.r(() -> wakeTimer.start());
+            }else {
+                N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
             }
         }
     }

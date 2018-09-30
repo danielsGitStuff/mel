@@ -41,6 +41,7 @@ public class ConnectedController extends GuiController {
                             .setTitle(R.string.confirmCertDeletionTitle)
                             .setMessage(R.string.confirmCertDeletionMessage)
                             .setPositiveButton(R.string.btnOk, (dialog, which) -> N.r(() -> {
+                                androidService.getMeinAuthService().getCertificateManager().deleteCertificate(selectedCert);
                                 listCertAdapter.clear();
                                 listCertAdapter.addAll(androidService.getMeinAuthService().getTrustedCertificates());
                                 listCertificates.clearChoices();

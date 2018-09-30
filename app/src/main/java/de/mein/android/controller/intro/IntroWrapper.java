@@ -23,14 +23,15 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
         void introDone();
     }
 
-    private MeinActivity meinActivity;
+    protected MeinActivity meinActivity;
     private LinearLayout container;
     private AppCompatImageButton btnForward, btnPrevious;
-    private TextView lblTitle, lblIndex;
-    private IntroPageController pageController;
-    private int index = 1;
-    private final int maxIndex = 4;
-    private IntroDoneListener introDoneListener;
+    protected TextView lblTitle;
+    protected TextView lblIndex;
+    protected IntroPageController pageController;
+    protected int index = 1;
+    protected int maxIndex = 4;
+    protected IntroDoneListener introDoneListener;
 
     public IntroWrapper(MeinActivity meinActivity) {
         super(meinActivity.getApplicationContext());
@@ -92,7 +93,7 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
         this.introDoneListener = introDoneListener;
     }
 
-    private void showPage() {
+    protected void showPage() {
         if (pageController != null) {
             pageController.onDestroy();
             pageController.onAndroidServiceUnbound();

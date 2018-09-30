@@ -125,4 +125,5 @@
     <string name="intro_4_explanation1" >Dieses Programm synchronisiert Daten über mehrere Geräte. Jeder Datentyp hat einen eigenen Dienst, der sich im Hintergrund um die Synchronisierung kümmert. Zur Zeit funktionieren alle Dienste nach dem Client-Server-Prinzip. Du solltest ein weiteres Gerät haben, dass du als Server einsetzt, da dieser Einsatz die Akkulaufzeit drastisch verkürzt. Es sollte am Ladegeät hängen und mit dem W-LAN verbunden bleiben.</string>
     <string name="intro_4_caption2" >Sicherheit</string>
     <string name="intro_4_explanation2" >Die App funktioniert nur über SSL-verschlüsselte Verbindungen. An einem Beispiel erklärt: stell dir vor, du möchtest zwei Geräte synchronisiert halten. Damit die Verschlüsselung aufgebaut werden kann, muss erst ein Schlüsselaustausch stattfinden. Dieser funktioniert ungefähr so als würdest du ein neues Bluetoothgerät koppeln. Danach kommunizieren diese Geäte ausschließlich verschlüsselt miteinander. Der Schlüsselaustausch ist die einzige unverschlüsselte Prozess, den diese App beherrscht.</string>
+    <string name="loading">Starte...</string>
 </resources>

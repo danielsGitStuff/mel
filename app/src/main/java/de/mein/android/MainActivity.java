@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
@@ -13,7 +12,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 
 import androidx.annotation.NonNull;
@@ -24,7 +22,9 @@ import android.view.View;
 
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.MenuCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
@@ -55,6 +55,7 @@ import de.mein.android.controller.intro.IntroWrapper;
 import de.mein.android.controller.LogCatController;
 import de.mein.android.controller.ConnectedController;
 import de.mein.android.controller.SettingsController;
+import de.mein.android.controller.intro.LoadingWrapper;
 import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.android.file.SAFAccessor;
 import de.mein.android.service.AndroidService;
@@ -149,14 +150,32 @@ public class MainActivity extends MeinActivity {
 
         boolean showIntro = Tools.getSharedPreferences().getBoolean(MainActivity.SHOW_INTRO, true);
         if (showIntro) {
-            introStart();
+            showIntroGui();
         } else {
-            normalStart();
+            if (androidService == null)
+                showLoadingGui();
+            else
+                showNormalGui();
         }
         startService();
     }
 
-    public void introStart() {
+    public void showLoadingGui() {
+        LoadingWrapper loadingWrapper = new LoadingWrapper(this);
+        if (guiController != null)
+            guiController.onDestroy();
+        if (serviceBind != null)
+            serviceBind.onAndroidServiceUnbound();
+        serviceBind = loadingWrapper;
+        loadingWrapper.setIntroDoneListener(() -> {
+            runOnUiThread(this::showNormalGui);
+        });
+        setContentView(loadingWrapper);
+        if (androidService != null)
+            serviceBind.onAndroidServiceAvailable(androidService);
+    }
+
+    public void showIntroGui() {
         IntroWrapper introWrapper = new IntroWrapper(this);
         if (guiController != null)
             guiController.onDestroy();
@@ -165,14 +184,14 @@ public class MainActivity extends MeinActivity {
         serviceBind = introWrapper;
         introWrapper.setIntroDoneListener(() -> {
             Tools.getSharedPreferences().edit().putBoolean(MainActivity.SHOW_INTRO, false).apply();
-            normalStart();
+            showNormalGui();
         });
         setContentView(introWrapper);
         if (androidService != null)
             serviceBind.onAndroidServiceAvailable(androidService);
     }
 
-    private void normalStart() {
+    private void showNormalGui() {
         setContentView(R.layout.activity_main);
         content = findViewById(R.id.content);
         toolbar = findViewById(R.id.toolbar);

@@ -125,4 +125,5 @@
     <string name="intro_4_explanation1" >This program syncs data to multiple devices. Each type of data requires a Services that handles the synchronisation process. Currently all services rely on a client server scheme. You should have another device running as a server and sync your other devices to it. Running as a server ruins your battery life so plug it in an let it stay connected to Wifi.</string>
     <string name="intro_4_caption2" >Security</string>
     <string name="intro_4_explanation2" >The app requires SSL encrypted connections to work properly. To keep things simple: imagine you want two devices to sync. To get that to work you have to exchange keys with the other device first. It works like pairing a new Bluetooth device. From that point on the two devices will communicate encrypted only. The certificate exchange process is the only unencrypted connection the app supports.</string>
+    <string name="loading">Starting...</string>
 </resources>

@@ -8,10 +8,12 @@ import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinAuthSocketOpener;
 import de.mein.auth.socket.process.imprt.MeinAuthCertDelivery;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 
@@ -32,7 +34,7 @@ import java.security.cert.CertificateException;
  * Created by xor on 05.09.2016.
  */
 @SuppressWarnings("Duplicates")
-public class MeinAuthWorker extends MeinWorker {
+public class MeinAuthWorker extends MeinWorker implements PowerManager.IPowerStateListener<PowerManager> {
     private final int port;
     private final Integer deliverPort;
     private MeinAuthSocketOpener socketOpener;
@@ -45,6 +47,7 @@ public class MeinAuthWorker extends MeinWorker {
         this.meinAuthService = meinAuthService;
         this.port = meinAuthSettings.getPort();
         this.deliverPort = meinAuthSettings.getDeliveryPort();
+        meinAuthService.getPowerManager().addStateListener(this);
     }
 
     @Override
@@ -52,7 +55,7 @@ public class MeinAuthWorker extends MeinWorker {
         // initialize everything and then wait for things to happen
         brotCaster = new MeinAuthBrotCaster(meinAuthService);
         meinAuthService.setBrotCaster(brotCaster);
-        certDelivery = new MeinAuthCertDelivery(meinAuthService,deliverPort);
+        certDelivery = new MeinAuthCertDelivery(meinAuthService, deliverPort);
         DeferredObject<DeferredRunnable, Exception, Void> brotcasterPromise = brotCaster.getStartedDeferred();
         DeferredObject<DeferredRunnable, Exception, Void> certDeliveryPromise = certDelivery.getStartedDeferred();
         socketOpener = new MeinAuthSocketOpener(meinAuthService, port);
@@ -123,5 +126,10 @@ public class MeinAuthWorker extends MeinWorker {
         brotCaster.shutDown();
         socketOpener.shutDown();
         super.onShutDown();
+    }
+
+    @Override
+    public void onStateChanged(PowerManager powerManager) {
+        N.thread(() ->  brotCaster.discover(meinAuthService.getSettings().getBrotcastPort()));
     }
 }

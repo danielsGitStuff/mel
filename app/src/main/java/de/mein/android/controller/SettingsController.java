@@ -19,7 +19,6 @@ import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
 import de.mein.android.view.PowerView;
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.N;
 
 /**
@@ -54,7 +53,7 @@ public class SettingsController extends GuiController {
             Lok.debug("InfoController.InfoController.service.started: " + name.getClassName());
         });
         btnShow.setOnClickListener(v -> {
-            activity.introStart();
+            activity.showIntroGui();
         });
         btnApply.setOnClickListener(v1 -> applyInputs());
         cbShowFirstStartDialog.setOnCheckedChangeListener((buttonView, isChecked) -> {
