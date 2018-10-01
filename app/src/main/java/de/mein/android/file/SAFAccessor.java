@@ -1,11 +1,9 @@
 package de.mein.android.file;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import androidx.documentfile.provider.DocumentFile;
 
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -13,6 +11,8 @@ import org.jdeferred.impl.DeferredObject;
 import java.io.File;
 import java.io.IOException;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 import de.mein.android.MeinActivity;
 import de.mein.android.Tools;
 
@@ -111,7 +111,7 @@ public class SAFAccessor {
 
 
         activity.launchActivityForResult(Intent.createChooser(docIntent, "choose directory"), (resultCode, result) -> {
-            if (resultCode == Activity.RESULT_OK) {
+            if (resultCode == AppCompatActivity.RESULT_OK) {
                 Uri rootTreeUri = result.getData();
                 final int takeFlags = result.getFlags()
                         & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);

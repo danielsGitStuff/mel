@@ -1,6 +1,5 @@
 package de.mein.android.contacts.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import androidx.appcompat.app.AppCompatActivity;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.contacts.data.db.ContactName;
@@ -43,7 +43,7 @@ import de.mein.sql.SqlQueriesException;
 
 public class ContactsConflictListAdapter extends BaseAdapter {
     private final LayoutInflater layoutInflator;
-    private final Activity activity;
+    private final AppCompatActivity activity;
     private final Long localPhoneBookId;
     private final Long receivedPhoneBookId;
     private final AndroidContactsClientService service;
@@ -54,7 +54,7 @@ public class ContactsConflictListAdapter extends BaseAdapter {
     private final int green = Color.argb(120, 0, 120, 0);
     private final int normal = Color.argb(255, 100, 100, 100);
 
-    public ContactsConflictListAdapter(Activity activity, AndroidContactsClientService service, Long localPhoneBookId, Long receivedPhoneBookId) {
+    public ContactsConflictListAdapter(AppCompatActivity activity, AndroidContactsClientService service, Long localPhoneBookId, Long receivedPhoneBookId) {
         this.activity = activity;
         this.layoutInflator = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.localPhoneBookId = localPhoneBookId;

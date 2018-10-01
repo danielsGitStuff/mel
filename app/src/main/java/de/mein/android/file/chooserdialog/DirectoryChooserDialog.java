@@ -1,16 +1,11 @@
 package de.mein.android.file.chooserdialog;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
 
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -20,6 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
@@ -133,7 +132,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         Intent intent = new Intent(activity, DirectoryChooserDialog.class);
         FilesActivityPayload payload = new FilesActivityPayload(AndroidDriveStrings.DIR_CHOOSER_KEY, rootDirectories);
         activity.launchActivityForResult(intent, (resultCode, result) -> {
-            if (resultCode == Activity.RESULT_OK) {
+            if (resultCode == AppCompatActivity.RESULT_OK) {
                 String path = result.getStringExtra(AndroidDriveStrings.DIR_CHOOSER_KEY);
                 deferred.resolve(AFile.instance(path));
             }

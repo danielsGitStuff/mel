@@ -12,8 +12,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileObserver;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -43,6 +41,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Activities that contain this fragment must implement the

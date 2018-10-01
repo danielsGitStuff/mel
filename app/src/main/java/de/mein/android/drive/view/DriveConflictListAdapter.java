@@ -1,6 +1,5 @@
 package de.mein.android.drive.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -18,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import androidx.appcompat.app.AppCompatActivity;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.drive.data.conflict.Conflict;
@@ -33,7 +33,7 @@ public class DriveConflictListAdapter extends BaseAdapter {
     private final ListView listView;
     private final Collection<Conflict> rootConflicts;
     private List<Conflict> items;
-    private final Activity activity;
+    private final AppCompatActivity activity;
     private final LayoutInflater layoutInflator;
     private final int imageDirectoryId = R.drawable.ic_menu_add;
     private final int imageFileId = R.drawable.ic_menu_search;
@@ -44,7 +44,7 @@ public class DriveConflictListAdapter extends BaseAdapter {
     private final int red = Color.argb(120, 125, 0, 0);
     private final int green = Color.argb(120, 0, 120, 0);
 
-    public DriveConflictListAdapter(ListView listView, Activity activity, Collection<Conflict> rootConflicts) {
+    public DriveConflictListAdapter(ListView listView, AppCompatActivity activity, Collection<Conflict> rootConflicts) {
         this.activity = activity;
         this.listView = listView;
         this.rootConflicts = rootConflicts;

@@ -1,16 +1,16 @@
 package de.mein.android.file.chooserdialog;
 
-import android.app.Activity;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import de.mein.R;
 import de.mein.auth.file.AFile;
 
 public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
-    private final Activity activity;
+    private final AppCompatActivity activity;
     private final View.OnClickListener clickListener;
     private AFile[] directories;
     private final RecyclerView recyclerView;
@@ -24,7 +24,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
         void clicked(AFile clickedDir);
     }
 
-    FileAdapter(Activity activity, RecyclerView recyclerView) {
+    FileAdapter(AppCompatActivity activity, RecyclerView recyclerView) {
         this.activity = activity;
         this.recyclerView = recyclerView;
         this.clickListener = new View.OnClickListener() {

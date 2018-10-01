@@ -1,17 +1,15 @@
 package de.mein.android.controller;
 
-import android.app.AlertDialog;
-import android.view.View;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import androidx.appcompat.app.AlertDialog;
 import de.mein.R;
+import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
 import de.mein.android.service.AndroidService;
-import de.mein.android.MeinActivity;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.tools.N;

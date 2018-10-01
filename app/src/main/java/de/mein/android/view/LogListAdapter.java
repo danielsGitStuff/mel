@@ -1,14 +1,10 @@
 package de.mein.android.view;
 
-import android.app.Activity;
-import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.function.Function;
-
+import androidx.appcompat.app.AppCompatActivity;
 import de.mein.LokImpl;
 import de.mein.R;
 
@@ -18,7 +14,7 @@ import de.mein.R;
 
 public class LogListAdapter extends MeinListAdapter<Object> implements LokImpl.LokListener{
 
-    private final Activity activity;
+    private final AppCompatActivity activity;
     private ToStringFunction toStringFunction;
     private LogListClickListener clickListener;
 
@@ -34,7 +30,7 @@ public class LogListAdapter extends MeinListAdapter<Object> implements LokImpl.L
         void onLineClicked(Object line);
     }
 
-    public LogListAdapter(Activity activity, ToStringFunction toStringFunction) {
+    public LogListAdapter(AppCompatActivity activity, ToStringFunction toStringFunction) {
         super(activity);
         this.activity = activity;
         this.toStringFunction = toStringFunction;
