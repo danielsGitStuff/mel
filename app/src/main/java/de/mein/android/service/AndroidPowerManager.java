@@ -38,8 +38,10 @@ public class AndroidPowerManager extends PowerManager {
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
         wakeLock(this);
         wakeTimer = new WatchDogTimer(() -> {
+            stateLock.lock();
             changeState();
             wakeTimer.cancel();
+            stateLock.unlock();
         }, 10, 100, 1000);
     }
 
@@ -47,7 +49,6 @@ public class AndroidPowerManager extends PowerManager {
      * changes state, takes or releases wakelock if necessary.
      */
     private void changeState() {
-        stateLock.lock();
         boolean shouldRun = runWhen(powered, wifi);
         if (shouldRun != running && meinAuthService != null) {
             if (shouldRun) {
@@ -67,7 +68,6 @@ public class AndroidPowerManager extends PowerManager {
             Lok.debug("nothing to do...");
         }
         N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
-        stateLock.unlock();
     }
 
     public void configure(Boolean powerWifi, Boolean powerNoWifi, Boolean noPowerWifi, Boolean noPowerNoWifi) {
@@ -205,27 +205,35 @@ public class AndroidPowerManager extends PowerManager {
     }
 
     public void togglePowerWifi() {
+        stateLock.lock();
         powerWifi = !powerWifi;
         savePrefs();
         changeState();
+        stateLock.unlock();
     }
 
     public void togglePowerNoWifi() {
+        stateLock.lock();
         powerNoWifi = !powerNoWifi;
         savePrefs();
         changeState();
+        stateLock.unlock();
     }
 
     public void toggleNoPowerWifi() {
+        stateLock.lock();
         noPowerWifi = !noPowerWifi;
         savePrefs();
         changeState();
+        stateLock.unlock();
     }
 
     public void toggleNoPowerNoWifi() {
+        stateLock.lock();
         noPowerNoWifi = !noPowerNoWifi;
         savePrefs();
         changeState();
+        stateLock.unlock();
     }
 
     public boolean getNoPowerNoWifi() {

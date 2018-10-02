@@ -112,6 +112,7 @@ public class AndroidService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (meinAuthService == null) {
+            Notifier.toast(getApplicationContext(),"booting auth service");
             RWLock lock = new RWLock();
             try {
                 Promise<MeinAuthService, Exception, Void> bootedPromise = setup(null);
