@@ -36,6 +36,7 @@ public class AndroidPowerManager extends PowerManager {
         noPowerWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_WIFI, false);
         noPowerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_NO_WIFI, false);
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+        wakeLock(this);
         wakeTimer = new WatchDogTimer(() -> {
             changeState();
             wakeTimer.cancel();
@@ -184,7 +185,8 @@ public class AndroidPowerManager extends PowerManager {
         if (wakeLockCallers.containsKey(caller)) {
             wakeLockCallers.remove(caller);
             if (wakeLockCallers.isEmpty() && wakeLock.isHeld()) {
-                N.r(() -> wakeTimer.start());
+                wakeLock.release();
+//                N.r(() -> wakeTimer.start());
             }
         } else {
             System.err.println("AndroidPowerManager.releaseWakeLock(" + caller.getClass().getName() + "): caller not registered");
