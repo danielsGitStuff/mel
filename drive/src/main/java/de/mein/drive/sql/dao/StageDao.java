@@ -1,12 +1,10 @@
 package de.mein.drive.sql.dao;
 
 import de.mein.Lok;
-import de.mein.auth.tools.Eva;
+import de.mein.auth.file.AFile;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
-import de.mein.drive.index.watchdog.StageIndexerRunnable;
-import de.mein.auth.file.AFile;
 import de.mein.drive.nio.FileTools;
 import de.mein.drive.sql.*;
 import de.mein.sql.Dao;
@@ -295,29 +293,10 @@ StageDao extends Dao.LockingDao {
     public StageSet createStageSet(String type, String status, Long originCertId, String originServiceUuid, Long version) throws SqlQueriesException {
         StageSet stageSet = new StageSet().setSource(type).setOriginCertId(originCertId)
                 .setOriginServiceUuid(originServiceUuid).setStatus(status).setVersion(version);
-        Eva.eva((eva, count) -> {
-            Lok.debug("StageDao.createStageSet.eva." + count);
-            if (count == 9)
-                Lok.debug("StageDao.createStageSet.fmner9hg0sa");
-        });
         Long id = sqlQueries.insert(stageSet);
         //todo debug
-        if (id == 6)
+        if (type.equals(DriveStrings.STAGESET_SOURCE_SERVER) && (originCertId == null || originServiceUuid == null))
             Lok.debug("StageDao.createStageSet.debug1");
-        if (id == 4 && Thread.currentThread().getName().startsWith(StageIndexerRunnable.class.getSimpleName() + " for MeinDriveServer"))
-            Lok.debug("StageDao.createStageSet.debug2");
-        if (id == 3)
-            Lok.debug("StageDao.createStageSet.debug2.2");
-        if (id.toString().equals("7") && Thread.currentThread().getName().startsWith("MeinDriveClientService"))
-            Lok.debug("StageDao.createStageSet.debug3");
-        if (id.toString().equals("3") && Thread.currentThread().getName().toLowerCase().contains("client"))
-            Lok.debug("StageDao.createStageSet.debug3");
-        if (id.toString().equals("6") && Thread.currentThread().getName().toLowerCase().contains("client"))
-            Lok.debug("StageDao.createStageSet.debug4");
-        if (id.toString().equals("5") && Thread.currentThread().getName().toLowerCase().contains("client"))
-            Lok.debug("StageDao.createStageSet.debug5");
-        if (id == 4)
-            Lok.debug("StageDao.createStageSet.debug6");
         return stageSet.setId(id);
     }
 
@@ -500,7 +479,7 @@ StageDao extends Dao.LockingDao {
         String statement = "update " + stage.getTableName() + " set " + stage.getSyncedPair().k() + "=? where "
                 + stage.getStageSetPair().k() + "=? and " + stage.getContentHashPair().k() + " in ";
         statement += ISQLQueries.buildPartIn(availableHashes);
-        List<Object> whereArgs = ISQLQueries.whereArgs(stageSetId,true);
+        List<Object> whereArgs = ISQLQueries.whereArgs(stageSetId, true);
         whereArgs.addAll(availableHashes);
         sqlQueries.execute(statement, whereArgs);
     }

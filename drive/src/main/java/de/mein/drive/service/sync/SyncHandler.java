@@ -1,14 +1,14 @@
 package de.mein.drive.service.sync;
 
 import de.mein.Lok;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
-import de.mein.drive.data.DriveSettings;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
-import de.mein.auth.file.AFile;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.MeinDriveService;
@@ -20,7 +20,10 @@ import de.mein.drive.transfer.TransferManager;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -288,15 +291,16 @@ public abstract class SyncHandler {
                             fsFile.getSize().v(stage.getSize());
                             fsFile.getSynced().v(stage.getSynced());
                             fsDao.insert(fsFile);
-                            TransferDetails details = new TransferDetails();
-                            details.getAvailable().v(stage.getSynced());
-                            details.getCertId().v(stageSet.getOriginCertId());
-                            details.getServiceUuid().v(stageSet.getOriginServiceUuid());
-                            details.getHash().v(stage.getContentHash());
-                            details.getDeleted().v(false);
-                            details.getSize().v(stage.getSize());
-                            N.r(() -> transferManager.createTransfer(details));
-                            transferManager.createTransfer(details);
+                            if (stageSet.getOriginCertId().notNull()) {
+                                TransferDetails details = new TransferDetails();
+                                details.getAvailable().v(stage.getSynced());
+                                details.getCertId().v(stageSet.getOriginCertId());
+                                details.getServiceUuid().v(stageSet.getOriginServiceUuid());
+                                details.getHash().v(stage.getContentHash());
+                                details.getDeleted().v(false);
+                                details.getSize().v(stage.getSize());
+                                N.r(() -> transferManager.createTransfer(details));
+                            }
                             if (stageIdFsIdMap != null) {
                                 stageIdFsIdMap.put(stage.getId(), fsFile.getId().v());
                             }
@@ -350,14 +354,16 @@ public abstract class SyncHandler {
 //                            File file = stageDao.getFileByStage(stage);
 //                            fsEntry.getSynced().v(file.exists());
                             fsDao.insertOrUpdate(fsEntry);
-                            TransferDetails details = new TransferDetails();
-                            details.getAvailable().v(fsEntry.getSynced());
-                            details.getCertId().v(stageSet.getOriginCertId());
-                            details.getServiceUuid().v(stageSet.getOriginServiceUuid());
-                            details.getHash().v(fsEntry.getContentHash());
-                            details.getDeleted().v(false);
-                            details.getSize().v(fsEntry.getSize());
-                            N.r(() -> transferManager.createTransfer(details));
+                            if (stageSet.getOriginCertId().notNull()) {
+                                TransferDetails details = new TransferDetails();
+                                details.getAvailable().v(fsEntry.getSynced());
+                                details.getCertId().v(stageSet.getOriginCertId());
+                                details.getServiceUuid().v(stageSet.getOriginServiceUuid());
+                                details.getHash().v(fsEntry.getContentHash());
+                                details.getDeleted().v(false);
+                                details.getSize().v(fsEntry.getSize());
+                                N.r(() -> transferManager.createTransfer(details));
+                            }
                             this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
                         }
                     }

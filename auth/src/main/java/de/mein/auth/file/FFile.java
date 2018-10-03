@@ -14,6 +14,11 @@ public class FFile extends AFile<FFile> {
 
     }
 
+    @Override
+    public String getPath() {
+        return file.getPath();
+    }
+
     public FFile(FFile parent, String name) {
         file = new File(parent.file, name);
     }

@@ -9,12 +9,8 @@ import de.mein.auth.socket.process.val.LockedRequest;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
-import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveSyncListener;
-import de.mein.drive.data.Commit;
-import de.mein.drive.data.CommitAnswer;
-import de.mein.drive.data.DriveSettings;
-import de.mein.drive.data.DriveStrings;
+import de.mein.drive.data.*;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
@@ -28,7 +24,6 @@ import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -38,6 +33,7 @@ import java.util.*;
 @SuppressWarnings("Duplicates")
 public class ClientSyncHandler extends SyncHandler {
 
+    private final DriveClientSettingsDetails clientSttings;
     private DriveSyncListener syncListener;
     private MeinDriveClientService meinDriveService;
     private Map<String, ConflictSolver> conflictSolverMap = new keks<>();
@@ -58,6 +54,7 @@ public class ClientSyncHandler extends SyncHandler {
     public ClientSyncHandler(MeinAuthService meinAuthService, MeinDriveClientService meinDriveService) {
         super(meinAuthService, meinDriveService);
         this.meinDriveService = meinDriveService;
+        this.clientSttings = meinDriveService.getDriveSettings().getClientSettings();
     }
 
 
@@ -208,7 +205,7 @@ public class ClientSyncHandler extends SyncHandler {
             if (stageDao.stageSetHasContent(stageSetId)) {
                 //all other stages we can find at this point are complete/valid and wait at this point.
                 //todo conflict checking goes here - has to block
-                ConnectResult connectResult = meinAuthService.connectLocked(driveSettings.getClientSettings().getServerCertId());
+                ConnectResult connectResult = meinAuthService.connectLocked(clientSttings.getServerCertId());
                 if (connectResult.successful()) N.r(() -> {
                     // load to cached data structure
                     Commit commit = new Commit(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
@@ -216,7 +213,7 @@ public class ClientSyncHandler extends SyncHandler {
                     commit.setServiceUuid(meinDriveService.getUuid());
                     commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
                     MeinValidationProcess mvp = connectResult.getValidationProcess();
-                    LockedRequest<CommitAnswer> lockedRequest = mvp.requestLocked(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit);
+                    LockedRequest<CommitAnswer> lockedRequest = mvp.requestLocked(clientSttings.getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit);
                     if (lockedRequest.successful()) {
 //fsDao.lockWrite();
                         CommitAnswer answer = lockedRequest.getResponse();
@@ -528,7 +525,8 @@ public class ClientSyncHandler extends SyncHandler {
         StageSet lStageSet = stageSets.get(0);
         StageSet rStageSet = stageSets.get(1);
         Lok.debug("ClientSyncHandler.mergeStageSets L: " + lStageSet.getId().v() + " R: " + rStageSet.getId().v());
-        StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, null, null, lStageSet.getVersion().v());
+        StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, lStageSet.getOriginCertId().v(), lStageSet.getOriginServiceUuid().v()
+                , lStageSet.getVersion().v());
         final Long mStageSetId = mStageSet.getId().v();
         SyncStageMerger merger = new SyncStageMerger(lStageSet.getId().v(), rStageSet.getId().v()) {
             private Order order = new Order();
@@ -667,23 +665,23 @@ public class ClientSyncHandler extends SyncHandler {
         runner.runTry(() -> {
             stageDao.deleteServerStageSets();
         });
-        Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(driveSettings.getClientSettings().getServerCertId());
+        Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(clientSttings.getServerCertId());
         ConnectResult connectResult = meinAuthService.connectLocked(serverCert.getId().v());
         if (connectResult.successful()) {
             runner.runTry(() -> {
                 MeinValidationProcess mvp = connectResult.getValidationProcess();
                 long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
-                StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, null, null, newVersion);
+                StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSttings.getServerCertId(), clientSttings.getServerServiceUuid(), newVersion);
                 //prepare cached answer
                 SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE)
                         .setOldVersion(version);
-                sentSyncTask.setServiceUuid(this.driveSettings.getClientSettings().getServerServiceUuid());
-                LockedRequest<SyncTask> requestResult = mvp.requestLocked(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_SYNC, sentSyncTask);
+                sentSyncTask.setServiceUuid(this.clientSttings.getServerServiceUuid());
+                LockedRequest<SyncTask> requestResult = mvp.requestLocked(clientSttings.getServerServiceUuid(), DriveStrings.INTENT_SYNC, sentSyncTask);
                 if (requestResult.successful()) runner.runTry(() -> {
                     SyncTask syncTask = requestResult.getResponse();
                     syncTask.setStageSet(stageSet);
-                    syncTask.setSourceCertId(driveSettings.getClientSettings().getServerCertId());
-                    syncTask.setSourceServiceUuid(driveSettings.getClientSettings().getServerServiceUuid());
+                    syncTask.setSourceCertId(clientSttings.getServerCertId());
+                    syncTask.setSourceServiceUuid(clientSttings.getServerServiceUuid());
                     //server might have gotten a new version in the mean time and sent us that
                     stageSet.setVersion(syncTask.getNewVersion());
                     stageDao.updateStageSet(stageSet);
@@ -813,7 +811,7 @@ public class ClientSyncHandler extends SyncHandler {
             }
         }
         if (fsDirIdsToRetrieve.size() > 0) {
-            Promise<List<FsDirectory>, Exception, Void> promise = meinDriveService.requestDirectoriesByIds(fsDirIdsToRetrieve.keySet(), driveSettings.getClientSettings().getServerCertId(), driveSettings.getClientSettings().getServerServiceUuid());
+            Promise<List<FsDirectory>, Exception, Void> promise = meinDriveService.requestDirectoriesByIds(fsDirIdsToRetrieve.keySet(), clientSttings.getServerCertId(), clientSttings.getServerServiceUuid());
             promise.done(directories -> runner.runTry(() -> {
                 // stage everything not in the directories as deleted
                 for (FsDirectory directory : directories) {

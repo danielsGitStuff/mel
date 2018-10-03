@@ -10,6 +10,7 @@ import de.mein.Lok;
 /**
  * Created by xor on 27.08.2017.
  */
+@Deprecated
 public class Eva {
     private final String key;
 

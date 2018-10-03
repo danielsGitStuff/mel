@@ -50,7 +50,7 @@ public class ConflictSolver extends SyncStageMerger {
         stageDao = driveDatabaseManager.getStageDao();
         fsDao = driveDatabaseManager.getFsDao();
         identifier = createIdentifier(lStageSet.getId().v(), rStageSet.getId().v());
-        obsoleteStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_DELETE, null, null, lStageSet.getVersion().v());
+        obsoleteStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_DELETE, lStageSet.getOriginCertId().v(), lStageSet.getOriginServiceUuid().v(), lStageSet.getVersion().v());
         obsoleteOrder = new Order();
     }
 
