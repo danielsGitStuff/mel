@@ -12,7 +12,7 @@ import de.mein.Lok;
  * Created by xor on 03.09.2016.
  */
 public class WatchDogTimer extends Timer {
-    private final WatchDogTimerFinished watchDogTimerFinished;
+    private  WatchDogTimerFinished watchDogTimerFinished;
     private final int repetitions;
     private final int delay;
     private final int period;
@@ -21,6 +21,10 @@ public class WatchDogTimer extends Timer {
     private boolean runs = false;
     private Semaphore lock = new Semaphore(1, true);
     private int waitCounter = 0;
+
+    protected void setWatchDogTimerFinished(WatchDogTimerFinished watchDogTimerFinished) {
+        this.watchDogTimerFinished = watchDogTimerFinished;
+    }
 
     /**
      * @param watchDogTimerFinished

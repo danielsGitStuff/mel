@@ -62,7 +62,6 @@ public class MeinValidationProcess extends MeinProcess {
     public synchronized void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) {
 
         if (!handleCached(deserialized) && !handleAnswer(deserialized)) {
-            // there is only GET_SERVICES yet
             try {
                 if (!handleGetServices(deserialized)) {
                     if (!handleDriveOps(deserialized)) {

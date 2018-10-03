@@ -44,6 +44,7 @@ public class N {
 
     /**
      * fails silently
+     *
      * @param noTryRunnables each {@link INoTryRunnable} is run separately. if one fails it won't prevent the others from being executed.
      */
     public static void s(N.INoTryRunnable... noTryRunnables) {
@@ -210,6 +211,10 @@ public class N {
         return forEachAdv(Arrays.asList(arr), forEachLoop);
     }
 
+    public static <T> boolean forEachAdvIgnorantly(T[] arr, ForEachLoopAdv<T> forEachLoop) {
+        return forEachAdvIgnorantly(Arrays.asList(arr), forEachLoop);
+    }
+
     public static <K, V> boolean forEachAdv(Map<K, V> map, MapForEachLoop<K, V> loop) {
         Stoppable stoppable = new Stoppable();
         int index = 0;
@@ -239,34 +244,91 @@ public class N {
         return forEachAdv(collection.iterator(), forEachLoop);
     }
 
+    public static <T> boolean forEachAdvIgnorantly(Collection<T> collection, ForEachLoopAdv<T> forEachLoop) {
+        return forEachAdvImpl(collection.iterator(), forEachLoop, false);
+    }
+
     public static <T> boolean forEach(Iterable<T> iterable, ForEachLoop<T> forEachLoop) {
-        return N.forEach(iterable.iterator(), forEachLoop);
+        return N.forEachImpl(iterable.iterator(), forEachLoop, true);
     }
 
     public static <T> boolean forEach(Iterator<T> iterator, ForEachLoop<T> forEachLoop) {
+        return N.forEachImpl(iterator, forEachLoop, true);
+    }
+
+    /**
+     * @param arr
+     * @param forEachLoop
+     * @param <T>
+     * @return true if successful
+     */
+    public static <T> boolean forEachIgnorantly(T[] arr, ForEachLoop<T> forEachLoop) {
+        return N.forEachImpl(arr, forEachLoop, false);
+    }
+
+    public static <T> boolean forEachIgnorantly(Iterable<T> iterable, ForEachLoop<T> forEachLoop) {
+        return N.forEachImpl(iterable.iterator(), forEachLoop, false);
+    }
+
+    public static <T> boolean forEachIgnorantly(Iterator<T> iterator, ForEachLoop<T> forEachLoop) {
+        return N.forEachImpl(iterator, forEachLoop, false);
+    }
+
+    /**
+     * @param arr
+     * @param forEachLoop
+     * @param <T>
+     * @return true if successful
+     */
+    public static <T> boolean forEach(T[] arr, ForEachLoop<T> forEachLoop) {
+        return N.forEachImpl(arr, forEachLoop, true);
+    }
+
+
+    /**
+     * @param <T>
+     * @param arr
+     * @param forEachLoop
+     * @return true if successful
+     */
+    private static <T> boolean forEachImpl(T[] arr, ForEachLoop<T> forEachLoop, boolean returnOnException) {
+        if (arr != null) {
+            for (T t : arr) {
+                try {
+                    forEachLoop.foreach(t);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (returnOnException)
+                        return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private static <T> boolean forEachImpl(Iterator<T> iterator, ForEachLoop<T> forEachLoop, boolean returnOnException) {
         while (iterator.hasNext()) {
             try {
                 forEachLoop.foreach(iterator.next());
             } catch (Exception e) {
                 e.printStackTrace();
-                return false;
+                if (returnOnException)
+                    return false;
             }
         }
         return true;
     }
 
-    public static <T> boolean forEach(T[] arr, ForEachLoop<T> forEachLoop) {
-        try {
-            for (T t : arr)
-                forEachLoop.foreach(t);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+    public static <T> boolean forEachAdv(Iterator<T> iterator, ForEachLoopAdv<T> forEachLoop) {
+        return N.forEachAdvImpl(iterator, forEachLoop, true);
     }
 
-    public static <T> boolean forEachAdv(Iterator<T> iterator, ForEachLoopAdv<T> forEachLoop) {
+    public static <T> boolean forEachAdvIgnorantly(Iterator<T> iterator, ForEachLoopAdv<T> forEachLoop) {
+        return N.forEachAdvImpl(iterator, forEachLoop, false);
+    }
+
+    public static <T> boolean forEachAdvImpl(Iterator<T> iterator, ForEachLoopAdv<T> forEachLoop, boolean returnOnException) {
         Stoppable stoppable = new Stoppable();
         int index = 0;
         while (iterator.hasNext() && !stoppable.isStopped()) {
@@ -278,11 +340,13 @@ public class N {
             } catch (Exception e) {
                 e.printStackTrace();
                 stoppable.stop();
-                return false;
+                if (returnOnException)
+                    return false;
             }
         }
         return true;
     }
+
 
     public void abort() {
         consumer.accept(new Exception("aborted"));

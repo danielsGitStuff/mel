@@ -3,7 +3,6 @@ package de.mein.drive.service;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.MeinNotification;
-import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
@@ -11,22 +10,27 @@ import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.data.AvailableHashes;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
+import de.mein.drive.jobs.UpdateHashesJob;
 import de.mein.drive.service.sync.ClientSyncHandler;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.StageSet;
+import de.mein.drive.sql.dao.FsDao;
+import de.mein.drive.sql.dao.StageDao;
+import de.mein.drive.sql.dao.TransferDao;
 import de.mein.sql.SqlQueriesException;
 
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -59,7 +63,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
 
-
     @Override
     protected boolean workWorkWork(Job unknownJob) {
         Lok.debug(meinAuthService.getName() + ".MeinDriveClientService.workWorkWork :)");
@@ -77,6 +80,10 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                } else if (job.getIntent().equals(DriveStrings.INTENT_HASH_AVAILABLE)) {
+                    AvailableHashes availableHashes = (AvailableHashes) job.getPayLoad();
+                    updateHashes(availableHashes.getHashes());
+                    //addJob(new UpdateHashesJob(availableHashes.getHashes()));
                 }
             }
         } else if (unknownJob instanceof Job.CertificateSpottedJob) {
@@ -102,6 +109,26 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         return false;
     }
 
+    private void updateHashes(Set<String> hashes) {
+        FsDao fsDao = driveDatabaseManager.getFsDao();
+        StageDao stageDao = driveDatabaseManager.getStageDao();
+        TransferDao transferDao = driveDatabaseManager.getTransferDao();
+        fsDao.lockWrite();
+        N.forEach(hashes, s -> {
+            // if is stage from server or is transfer -> flag as avail
+
+
+            N.forEach(stageDao.getUpdateStageSetsFromServer(), stageSet -> {
+                stageDao.devUpdateSyncedByHashSet(stageSet.getId().v(), hashes);
+                transferDao.devUpdateAvailableByHashSet(stageSet.getOriginCertId().v(), stageSet.getOriginServiceUuid().v(), hashes);
+//                N.readSqlResource(stageDao.getStagesByStageSet(stageSet.getId().v()), (sqlResource, stage) -> {
+//
+//                });
+            });
+        });
+        fsDao.unlockWrite();
+    }
+
     @Override
     public void addJob(Job job) {
         //todo debug
@@ -113,13 +140,12 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
 
-
     @Override
     protected ClientSyncHandler initSyncHandler() {
         return new ClientSyncHandler(meinAuthService, this);
     }
 
-    public void syncThisClient(){
+    public void syncThisClient() {
         addJob(new SyncClientJob());
     }
 
@@ -159,8 +185,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             });
         });
     }
-
-
 
 
     public void onConflicts() {

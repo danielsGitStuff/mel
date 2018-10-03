@@ -9,7 +9,10 @@ import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLResource;
 import de.mein.sql.SqlQueriesException;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by xor on 12/16/16.
@@ -128,5 +131,15 @@ public class TransferDao extends Dao {
         TransferDetails t = new TransferDetails();
         String stmt = "update " + t.getTableName() + " set " + t.getDeleted().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(flag));
+    }
+
+    public void devUpdateAvailableByHashSet(Long certId, String serviceUUID, Collection<String> hashes) throws SqlQueriesException {
+        TransferDetails t = new TransferDetails();
+        String statement = "update " + t.getTableName() + " set " + t.getAvailable().k() + "=? where " + t.getCertId().k() + "=? and " + t.getServiceUuid().k() + "=? and "
+                + t.getHash().k() + " in ";
+        statement += ISQLQueries.buildPartIn(hashes);
+        List<Object> whereArgs = ISQLQueries.whereArgs(true, certId, serviceUUID);
+        whereArgs.addAll(hashes);
+        sqlQueries.execute(statement, whereArgs);
     }
 }

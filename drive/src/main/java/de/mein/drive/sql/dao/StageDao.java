@@ -17,6 +17,7 @@ import de.mein.sql.SqlQueriesException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 /**
@@ -492,5 +493,15 @@ StageDao extends Dao.LockingDao {
         Stage stage = new Stage();
         String where = stage.getStageSetPair().k() + "=? and " + stage.getDeletedPair().k() + "=? and " + stage.getIsDirectoryPair().k() + "=? order by " + stage.getOrderPair().k();
         return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId, true, isDir));
+    }
+
+    public void devUpdateSyncedByHashSet(Long stageSetId, Set<String> availableHashes) throws SqlQueriesException {
+        Stage stage = new Stage();
+        String statement = "update " + stage.getTableName() + " set " + stage.getSyncedPair().k() + "=? where "
+                + stage.getStageSetPair().k() + "=? and " + stage.getContentHashPair().k() + " in ";
+        statement += ISQLQueries.buildPartIn(availableHashes);
+        List<Object> whereArgs = ISQLQueries.whereArgs(stageSetId,true);
+        whereArgs.addAll(availableHashes);
+        sqlQueries.execute(statement, whereArgs);
     }
 }

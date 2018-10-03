@@ -1,4 +1,5 @@
 package de.mein.drive.sql;
+
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 
@@ -15,6 +16,7 @@ public class TransferDetails extends SQLTableObject {
     private static final String STARTED = "started";
     private static final String TRANSFERRED = "transferred";
     private static final String DELETED = "f_delete";
+    private static final String AVAILABLE = "avail";
 
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<String> hash = new Pair<>(String.class, HASH);
@@ -24,6 +26,8 @@ public class TransferDetails extends SQLTableObject {
     private Pair<Boolean> started = new Pair<>(Boolean.class, STARTED, false);
     private Pair<Long> transferred = new Pair<>(Long.class, TRANSFERRED, 0L);
     private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED, false);
+    private Pair<Boolean> available = new Pair<>(Boolean.class, AVAILABLE);
+
 
     public TransferDetails() {
         init();
@@ -36,8 +40,12 @@ public class TransferDetails extends SQLTableObject {
 
     @Override
     protected void init() {
-        populateInsert(hash, certId, serviceUuid, size, started, transferred, deleted);
+        populateInsert(hash, certId, serviceUuid, size, started, transferred, deleted,available);
         populateAll(id);
+    }
+
+    public Pair<Boolean> getAvailable() {
+        return available;
     }
 
     public Pair<Long> getTransferred() {

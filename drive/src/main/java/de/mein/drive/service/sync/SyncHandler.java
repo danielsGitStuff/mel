@@ -128,32 +128,25 @@ public abstract class SyncHandler {
     }
 
     /**
-     * @param file File in working directory
-     * @param v
+     * @param file file in working directory
+     * @param hash
+     * @return true if the file is new on the device (not a copy). so it can be transferred to other devices.
      * @throws SqlQueriesException
      */
-    public void onFileTransferred(AFile file, String hash) throws SqlQueriesException, IOException {
+    public boolean onFileTransferred(AFile file, String hash) throws SqlQueriesException, IOException {
         try {
             fsDao.lockWrite();
-            //todo debug
-            if (hash.equals("fdcbc1aca23cfebaa128bac31df20969"))
-                Lok.debug("SyncHandler.onFileTransferred.debug23423r");
-            if (hash.equals("238810397cd86edae7957bca350098bc")) {
-                Lok.debug("SyncHandler.onFileTransferred.debugjivf3hi8o");
-            }
-            if (hash.equals("0610338abac66dc659f5c04dc95a480a"))
-                Lok.debug("SyncHandler.onFileTransferred.debugf43fh30w");
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
+            boolean isNew = fsFiles.size() > 0;
             if (fsFiles.size() > 0) {
                 //TODO check if file is in transfer dir, then move, else copy
                 if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getRootDirectory().getPath())) {
                     FsFile fsFile = fsFiles.get(0);
                     file = moveFile(file, fsFile);
-                    //todo debug
-                    if (file == null)
-                        Lok.debug("SyncHandler.onFileTransferred.debug.ja09gf4");
                     fsFile.getSynced().v(true);
                     fsDao.setSynced(fsFile.getId().v(), true);
+                } else {
+                    Lok.error("NOT:IMPLEMENTED:YET");
                 }
             }
             if (fsFiles.size() > 1) {
@@ -164,12 +157,13 @@ public abstract class SyncHandler {
                     fsDao.setSynced(fsFile.getId().v(), true);
                 }
             }
+            return isNew;
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             fsDao.unlockWrite();
         }
-
+        return false;
     }
 
     private void copyFile(AFile source, FsFile fsTarget) throws SqlQueriesException, IOException {
@@ -294,6 +288,15 @@ public abstract class SyncHandler {
                             fsFile.getSize().v(stage.getSize());
                             fsFile.getSynced().v(stage.getSynced());
                             fsDao.insert(fsFile);
+                            TransferDetails details = new TransferDetails();
+                            details.getAvailable().v(stage.getSynced());
+                            details.getCertId().v(stageSet.getOriginCertId());
+                            details.getServiceUuid().v(stageSet.getOriginServiceUuid());
+                            details.getHash().v(stage.getContentHash());
+                            details.getDeleted().v(false);
+                            details.getSize().v(stage.getSize());
+                            N.r(() -> transferManager.createTransfer(details));
+                            transferManager.createTransfer(details);
                             if (stageIdFsIdMap != null) {
                                 stageIdFsIdMap.put(stage.getId(), fsFile.getId().v());
                             }
@@ -347,6 +350,14 @@ public abstract class SyncHandler {
 //                            File file = stageDao.getFileByStage(stage);
 //                            fsEntry.getSynced().v(file.exists());
                             fsDao.insertOrUpdate(fsEntry);
+                            TransferDetails details = new TransferDetails();
+                            details.getAvailable().v(fsEntry.getSynced());
+                            details.getCertId().v(stageSet.getOriginCertId());
+                            details.getServiceUuid().v(stageSet.getOriginServiceUuid());
+                            details.getHash().v(fsEntry.getContentHash());
+                            details.getDeleted().v(false);
+                            details.getSize().v(fsEntry.getSize());
+                            N.r(() -> transferManager.createTransfer(details));
                             this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
                         }
                     }

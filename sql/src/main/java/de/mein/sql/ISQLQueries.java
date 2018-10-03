@@ -2,6 +2,7 @@ package de.mein.sql;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -14,6 +15,19 @@ public abstract class ISQLQueries {
     public static final boolean SYSOUT = false;
     protected RWLock lock;
     protected ReentrantLock reentrantWriteLock;
+
+    public static String buildPartIn(Iterable<?> set) {
+        StringBuilder stringBuilder = new StringBuilder("(");
+        Iterator<?> iterator = set.iterator();
+        while (iterator.hasNext()) {
+            Object o = iterator.next();
+            stringBuilder.append("?");
+            if (iterator.hasNext())
+                stringBuilder.append(",");
+        }
+        stringBuilder.append(")");
+        return stringBuilder.toString();
+    }
 
     public static <T extends SQLTableObject> String buildQueryFrom(List<Pair<?>> columns, Class<T> clazz, String where) throws SqlQueriesException {
         try {
@@ -45,6 +59,7 @@ public abstract class ISQLQueries {
         }
         return cols;
     }
+
 
     protected void out(String msg) {
         if (SYSOUT) {
@@ -98,6 +113,7 @@ public abstract class ISQLQueries {
 
     /**
      * loads a resource with where clause. if you need more fancy stuff look at loadQueryResource().
+     *
      * @param columns
      * @param clazz
      * @param where
@@ -134,7 +150,6 @@ public abstract class ISQLQueries {
     public abstract <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException;
 
     /**
-     *
      * @param query
      * @param clazz
      * @param args
@@ -144,7 +159,7 @@ public abstract class ISQLQueries {
      */
     public abstract <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException;
 
-    public abstract void execute(String statement, List<Object> whereArgs) throws SqlQueriesException;
+    public abstract void execute(String statement, List<Object> args) throws SqlQueriesException;
 
     public abstract Long insert(SQLTableObject sqlTableObject) throws SqlQueriesException;
 
@@ -165,6 +180,7 @@ public abstract class ISQLQueries {
 
     /**
      * lets you load a custom query. no separation of where clause and stuff
+     *
      * @param query
      * @param allAttributes
      * @param clazz

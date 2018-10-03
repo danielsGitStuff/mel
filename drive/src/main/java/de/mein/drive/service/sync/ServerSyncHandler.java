@@ -1,12 +1,14 @@
 package de.mein.drive.service.sync;
 
 import de.mein.Lok;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.data.AvailableHashes;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.GenericFSEntry;
@@ -15,6 +17,7 @@ import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.TransferDetails;
 import de.mein.sql.SqlQueriesException;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +27,13 @@ import java.util.Map;
  * Created by xor on 1/26/17.
  */
 public class ServerSyncHandler extends SyncHandler {
+    private HashAvailTimer hashAvailTimer = new HashAvailTimer(() -> {
+        AvailableHashes hashesAvailable = ServerSyncHandler.this.hashAvailTimer.getHashesAvailableCopy();
+        N.forEachIgnorantly(driveSettings.getServerSettings().getClients(),
+                clientData -> meinAuthService.connect(clientData.getCertId()).done(
+                        mvp -> N.r(() -> mvp.message(clientData.getServiceUuid(), DriveStrings.INTENT_HASH_AVAILABLE, hashesAvailable))));
+    });
+
     public ServerSyncHandler(MeinAuthService meinAuthService, MeinDriveService meinDriveService) {
         super(meinAuthService, meinDriveService);
     }
@@ -91,6 +101,7 @@ public class ServerSyncHandler extends SyncHandler {
                     details.getHash().v(genericFSEntry.getContentHash().v());
                     details.getSize().v(genericFSEntry.getSize().v());
                     details.getServiceUuid().v(commit.getServiceUuid());
+                    details.getAvailable().v(true);// client must have that file
                     //insert fails if there already is a transfer with that hash
                     N.r(() -> transferManager.createTransfer(details));
                 }
@@ -100,5 +111,13 @@ public class ServerSyncHandler extends SyncHandler {
         }
         transferManager.research();
         Lok.debug("MeinDriveServerService.handleCommit");
+    }
+
+    @Override
+    public boolean onFileTransferred(AFile file, String hash) throws SqlQueriesException, IOException {
+        boolean isNew = super.onFileTransferred(file, hash);
+        if (isNew)
+            N.r(() -> hashAvailTimer.start());
+        return isNew;
     }
 }

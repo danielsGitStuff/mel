@@ -19,7 +19,7 @@ public class GenericFSEntry extends FsEntry  {
                 .setStageSet(stageSetId)
                 .setSize(genericFSEntry.getSize().v())
                 .setVersion(genericFSEntry.getVersion().v())
-                .setDeleted(false);
+                .setDeleted(false) ;
     }
 
     @Override

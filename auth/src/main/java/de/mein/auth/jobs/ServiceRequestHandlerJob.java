@@ -5,6 +5,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.socket.process.val.Request;
 
 /**
+ * Used to tell the service that it has to do some work
  * Created by xor on 9/25/16.
  */
 public class ServiceRequestHandlerJob extends Job {

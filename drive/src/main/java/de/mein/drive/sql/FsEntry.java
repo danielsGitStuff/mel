@@ -33,7 +33,6 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     protected Pair<Long> iNode = new Pair<>(Long.class, INODE);
     @JsonIgnore
     protected Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
-    @JsonIgnore
     protected Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);
     protected Pair<Long> size = new Pair<>(Long.class, SIZE);
 

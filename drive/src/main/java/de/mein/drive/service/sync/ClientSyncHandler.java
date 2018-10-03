@@ -64,30 +64,32 @@ public class ClientSyncHandler extends SyncHandler {
     /**
      * call this if you are the receiver
      */
+    @Deprecated
     private void setupTransfer() {
         try {
-            N.sqlResource(fsDao.getNonSyncedFilesResource(), resource -> {
-                FsFile fsFile = resource.getNext();
-                while (fsFile != null) {
-                    //todo debug
-                    if (fsFile.getContentHash().v().equals("238810397cd86edae7957bca350098bc"))
-                        Lok.debug("TransferDao.insert.debugmic3n0fv");
-                    TransferDetails transfer = new TransferDetails();
-                    transfer.getServiceUuid().v(driveSettings.getClientSettings().getServerServiceUuid());
-                    transfer.getCertId().v(driveSettings.getClientSettings().getServerCertId());
-                    transfer.getHash().v(fsFile.getContentHash());
-                    transfer.getSize().v(fsFile.getSize());
-                    // this might fail due to unique constraint violation.
-                    // happens if you created two identical files at once.
-                    // no problem here
-                    try {
-                        transferManager.createTransfer(transfer);
-                    } catch (SqlQueriesException e) {
-                        System.err.println("ClientSyncHandler.setupTransfer.exception: " + e.getMessage());
-                    }
-                    fsFile = resource.getNext();
-                }
-            });
+            Lok.warn("DEPRECATED");
+//            N.sqlResource(fsDao.getNonSyncedFilesResource(), resource -> {
+//                FsFile fsFile = resource.getNext();
+//                while (fsFile != null) {
+//                    //todo debug
+//                    if (fsFile.getContentHash().v().equals("238810397cd86edae7957bca350098bc"))
+//                        Lok.debug("TransferDao.insert.debugmic3n0fv");
+//                    TransferDetails transfer = new TransferDetails();
+//                    transfer.getServiceUuid().v(driveSettings.getClientSettings().getServerServiceUuid());
+//                    transfer.getCertId().v(driveSettings.getClientSettings().getServerCertId());
+//                    transfer.getHash().v(fsFile.getContentHash());
+//                    transfer.getSize().v(fsFile.getSize());
+//                    // this might fail due to unique constraint violation.
+//                    // happens if you created two identical files at once.
+//                    // no problem here
+//                    try {
+//                        transferManager.createTransfer(transfer);
+//                    } catch (SqlQueriesException e) {
+//                        System.err.println("ClientSyncHandler.setupTransfer.exception: " + e.getMessage());
+//                    }
+//                    fsFile = resource.getNext();
+//                }
+//            });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -328,8 +330,8 @@ public class ClientSyncHandler extends SyncHandler {
                 // method should create a new CommitJob with conflict solving details
                 handleConflict(updateSets.get(0), stagedFromFs.get(0));
                 setupTransfer();
+                Lok.debug("setupTransfers() was here before");
                 //transferManager.research();
-                Lok.debug("ClientSyncHandler.commitJob.fwq3j0");
                 return;
             } else if (stagedFromFs.size() == 1) {
                 //method should create a new CommitJob ? method blocks
@@ -749,8 +751,6 @@ public class ClientSyncHandler extends SyncHandler {
             } else {
                 stage.setSynced(false);
             }
-//            if (!stage.getIsDirectory())
-//                stage.setSynced(false);
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
         syncTask.cleanUp();
