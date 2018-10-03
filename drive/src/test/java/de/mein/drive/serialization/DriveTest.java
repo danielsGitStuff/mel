@@ -1,11 +1,13 @@
 package de.mein.drive.serialization;
 
+import de.mein.Lok;
 import de.mein.auth.TestFileCreator;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.file.AFile;
 import de.mein.auth.file.FFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
@@ -16,7 +18,6 @@ import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.sql.Hash;
-import de.mein.auth.tools.Lok;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.DriveBootLoader;
@@ -77,8 +78,8 @@ public class DriveTest {
     public void complexClientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final DriveSyncListener syncListener = new DriveSyncListener() {
-            File file2;
-            File file1;
+            AFile file2;
+            AFile file1;
             String rootPath;
             MeinDriveClientService meinDriveClientService;
             private DriveSyncListener ins = this;
@@ -121,18 +122,18 @@ public class DriveTest {
                         meinAuthService1.shutDown();
                         meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
                         rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
-                        file1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
-                        file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        file1 =AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+                        file2 = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
                         TestFileCreator.saveFile("same1.client".getBytes(), file1);
                         TestFileCreator.saveFile("same2.client".getBytes(), file2);
                         File subDir = new File(rootPath + File.separator + "samedir" + File.separator + "samesub");
                         subDir.mkdirs();
-                        File subFile = new File(subDir.getAbsolutePath() + File.separator + "samesub1.txt");
+                        AFile subFile = AFile.instance(subDir.getAbsolutePath() + File.separator + "samesub1.txt");
                         TestFileCreator.saveFile("samesub1.client".getBytes(), subFile);
 
-                        String hash = Hash.md5(new FFile(file1).inputStream());
+                        String hash = Hash.md5(file1.inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
-                        hash = Hash.md5(new FFile(file2).inputStream());
+                        hash = Hash.md5((file2).inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
                     });
 
@@ -195,8 +196,8 @@ public class DriveTest {
     public void clientConflictImpl(MeinBoot clientMeinBoot, MeinBoot restartMeinBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final DriveSyncListener syncListener = new DriveSyncListener() {
-            File file2;
-            File file1;
+            AFile file2;
+            AFile file1;
             String rootPath;
             MeinDriveClientService meinDriveClientService;
             private DriveSyncListener ins = this;
@@ -211,15 +212,15 @@ public class DriveTest {
                         //if (!file2.exists())
                         Lok.debug("DriveTest.onSyncFailed.creating new file...");
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
-                        File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
-                        File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
-                        File f1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+                        AFile newFile = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
+                        AFile delFile =AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        AFile f1 = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
                         delFile.delete();
                         TestFileCreator.saveFile("same3.server".getBytes(), newFile);
                         TestFileCreator.saveFile("same1.server".getBytes(), f1);
-                        String hash = Hash.md5(new FFile(f1).inputStream());
+                        String hash = Hash.md5(f1.inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
-                        hash = Hash.md5(new FFile(newFile).inputStream());
+                        hash = Hash.md5(newFile.inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
                         MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
@@ -247,13 +248,13 @@ public class DriveTest {
                         meinAuthService1.shutDown();
                         meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
                         rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
-                        file1 = new File(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
-                        file2 = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        file1 = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+                        file2 = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
                         TestFileCreator.saveFile("same1.client".getBytes(), file1);
                         TestFileCreator.saveFile("same2.client".getBytes(), file2);
-                        String hash = Hash.md5(new FFile(file1).inputStream());
+                        String hash = Hash.md5(file1.inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + file1 + " -> " + hash);
-                        hash = Hash.md5(new FFile(file2).inputStream());
+                        hash = Hash.md5(file2.inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + file2 + " -> " + hash);
                     });
 
@@ -364,7 +365,6 @@ public class DriveTest {
 
     @Test
     public void firstTransfer() throws Exception {
-        System.setOut(new Lok(System.out).setPrint(false));
         setup(new DriveSyncListener() {
 
             @Override
@@ -439,8 +439,8 @@ public class DriveTest {
     public void clientMergeStages() throws Exception {
         // start both instances, shutdown server, change something in client directory
         setup(new DriveSyncListener() {
-            File file2;
-            File file1;
+            AFile file2;
+            AFile file1;
             String rootPath;
             MeinDriveClientService meinDriveClientService;
             private DriveSyncListener ins = this;
@@ -464,8 +464,8 @@ public class DriveTest {
                         meinAuthService1.shutDown();
                         meinDriveClientService = (MeinDriveClientService) meinAuthService2.getMeinServices().iterator().next();
                         rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
-                        file1 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.1");
-                        file2 = new File(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
+                        file1 = AFile.instance(rootPath + File.separator + "sub1" + File.separator + "newfile.1");
+                        file2 = AFile.instance(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
                         if (!file1.exists())
                             TestFileCreator.saveFile("newfile".getBytes(), file1);
                     });
@@ -489,8 +489,8 @@ public class DriveTest {
     @Test
     public void restartServerAfterChangingFiles() throws Exception {
         CertificateManager.deleteDirectory(new FFile(MeinBoot.defaultWorkingDir1));
-        File testdir1 = new File("testdir1");
-        CertificateManager.deleteDirectory(new FFile(testdir1));
+        AFile testdir1 = AFile.instance("testdir1");
+        CertificateManager.deleteDirectory(testdir1);
         TestDirCreator.createTestDir(testdir1);
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
@@ -502,7 +502,7 @@ public class DriveTest {
         promise.done(result -> N.r(() -> {
             mas[0] = result;
             Promise<MeinDriveServerService, Exception, Void> driveBootedPromise = new DriveCreateController(result)
-                    .createDriveServerServiceDeferred("server test", testdir1.getAbsolutePath(),0.01f,30);
+                    .createDriveServerServiceDeferred("server test", testdir1,0.01f,30);
             driveBootedPromise.done(result1 -> N.r(() -> {
                 result1.getIndexer().getIndexerStartedDeferred().done(result2 -> N.r(() -> {
                     result.shutDown();
@@ -514,8 +514,8 @@ public class DriveTest {
         waitLock.lock();
         MeinDriveServerService driveServerService = (MeinDriveServerService) mas[0].getMeinServices().iterator().next();
         String rootPath = driveServerService.getDriveSettings().getRootDirectory().getPath();
-        File newFile = new File(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
-        File delFile = new File(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+        AFile newFile = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
+        AFile delFile = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
         delFile.delete();
         TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
         boot = new MeinBoot(json1, new PowerManager(json1));
@@ -723,12 +723,12 @@ public class DriveTest {
 
     private void startServer() throws Exception {
         //setup working directories & directories with test data
-        File testdir1 = new File("testdir1");
-        File testdir2 = new File("testdir2");
+        AFile testdir1 = AFile.instance("testdir1");
+        AFile testdir2 = AFile.instance("testdir2");
         CertificateManager.deleteDirectory(new FFile(MeinBoot.defaultWorkingDir1));
         //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
-        CertificateManager.deleteDirectory(new FFile(testdir1));
-        CertificateManager.deleteDirectory(new FFile(testdir1));
+        CertificateManager.deleteDirectory(testdir1);
+        CertificateManager.deleteDirectory(testdir1);
         TestDirCreator.createTestDir(testdir1);
 
 
@@ -788,7 +788,7 @@ public class DriveTest {
                 meinAuthService1.addRegisterHandler(allowRegisterHandler);
                 meinAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath(),0.01f,30);
+                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1,0.01f,30);
                 Lok.debug("DriveTest.startServer.booted");
             });
         });
@@ -803,8 +803,8 @@ public class DriveTest {
      */
     private void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot) throws Exception {
         //setup working directories & directories with test data
-        File testdir1 = new File("testdir1");
-        File testdir2 = new File("testdir2");
+        AFile testdir1 =AFile.instance("testdir1");
+        AFile testdir2 =AFile.instance("testdir2");
         CertificateManager.deleteDirectory(new FFile(MeinBoot.defaultWorkingDir1));
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         CertificateManager.deleteDirectory(testdir1);
@@ -877,7 +877,7 @@ public class DriveTest {
                 meinAuthService1.addRegisterHandler(allowRegisterHandler);
                 meinAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1.getAbsolutePath(),0.01f,30);
+                MeinDriveServerService serverService = new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1,0.01f,30);
                 boot2.boot().done(ma2 -> {
                     Lok.debug("DriveFXTest.driveGui.2.booted");
                     meinAuthService2 = ma2;
@@ -889,7 +889,7 @@ public class DriveTest {
                             runner.runTry(() -> {
                                 Lok.debug("DriveFXTest.driveGui.connected");
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(),0.01f,30);
+                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(),0.01f,30);
                                 promise.done(clientDriveService -> runner.runTry(() -> {
                                             Lok.debug("DriveFXTest attempting first syncFromServer");
                                             clientSyncListener.testStructure.setMaClient(meinAuthService2)

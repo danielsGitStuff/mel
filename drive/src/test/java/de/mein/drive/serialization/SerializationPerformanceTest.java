@@ -1,6 +1,7 @@
 package de.mein.drive.serialization;
 
 
+import de.mein.Lok;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;

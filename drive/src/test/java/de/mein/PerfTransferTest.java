@@ -9,11 +9,11 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
-import de.mein.auth.socket.MeinAuthSocketOpener;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
@@ -146,7 +146,7 @@ public class PerfTransferTest {
         Promise<PerfTransferTest, Void, Void> promise = create();
         promise.done(test -> N.r(() -> {
             DriveCreateController createController = new DriveCreateController(test.mas);
-            createController.createDriveServerService("server", PerfTransferTest.SOURCE_PATH, 0.1f, 30);
+            createController.createDriveServerService("server", AFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30);
             Lok.debug("PerfTransferTest.startSource.done");
         }));
         lock.lockWrite().lockWrite();
@@ -168,7 +168,7 @@ public class PerfTransferTest {
                         List<ServiceJoinServiceType> services = nve.getServices(mvp.getConnectedId());
                         if (services.size() > 0) {
                             DriveCreateController createController = new DriveCreateController(test.mas);
-                            Promise<MeinDriveClientService, Exception, Void> allDone = createController.createDriveClientService("client", PerfTransferTest.TARGET_PATH, mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30);
+                            Promise<MeinDriveClientService, Exception, Void> allDone = createController.createDriveClientService("client", AFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30);
                             allDone.done(result -> {
                                 Lok.debug("PerfTransferTest.startTarget.done");
                             });

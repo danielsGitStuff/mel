@@ -8,6 +8,7 @@ import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
+import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.file.FFile;
 import de.mein.auth.gui.RegisterHandlerFX;
 import de.mein.auth.service.MeinAuthFxLoader;
@@ -18,7 +19,6 @@ import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.MeinLogger;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.ContactsBootloader;
@@ -209,7 +209,7 @@ public class FxTest {
     }
 
     private void connectAcceptingClient() throws Exception {
-        File testdir = new File("testdir2");
+        AFile testdir = AFile.instance(new File("testdir2"));
         CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         TestDirCreator.createTestDir(testdir);
@@ -269,7 +269,7 @@ public class FxTest {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
                     DriveCreateController createController = new DriveCreateController(meinAuthService);
-                    Promise<MeinDriveClientService, Exception, Void> clientBooted = createController.createDriveClientService("drive client", testdir.getAbsolutePath(), 1L, tmp, 0.1f, 30);
+                    Promise<MeinDriveClientService, Exception, Void> clientBooted = createController.createDriveClientService("drive client", testdir, 1L, tmp, 0.1f, 30);
                     Lok.debug("FxTest.connectAcceptingClient");
                     clientBooted.done(result1 -> Lok.debug("FxTest.connectAcceptingClient.j89veaj4"));
                 }));
@@ -282,8 +282,7 @@ public class FxTest {
 
     @Test
     public void connectAccepting() throws Exception {
-        MeinLogger.redirectSysOut(100, true);
-        File testdir = new File("testdir1");
+        AFile testdir = AFile.instance(new File("testdir1"));
         CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         TestDirCreator.createTestDir(testdir);
@@ -341,7 +340,7 @@ public class FxTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                MeinDriveServerService serverService = createController.createDriveServerService("testiServer", testdir.getAbsolutePath(), 0.1f, 30);
+                MeinDriveServerService serverService = createController.createDriveServerService("testiServer", testdir, 0.1f, 30);
                 FxTest.tmp = serverService.getUuid();
                 connectAcceptingClient();
             });
@@ -354,8 +353,7 @@ public class FxTest {
 
     @Test
     public void startAcceptingServer() throws Exception {
-        AFile.setClass(FFile.class);
-        File testdir = new File("testdir1");
+        AFile testdir = AFile.instance(new File("testdir1"));
         CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         TestDirCreator.createTestDir(testdir);
@@ -417,7 +415,7 @@ public class FxTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                createController.createDriveServerService("testiServer", testdir.getAbsolutePath(), 0.1f, 30);
+                createController.createDriveServerService("testiServer", testdir, 0.1f, 30);
                 // create contacts server too
 
                 ContactsSettings settings = new ContactsSettings();
@@ -656,8 +654,8 @@ public class FxTest {
 
     public void setup(DriveSyncListener clientSyncListener) throws Exception, SqlQueriesException {
         //setup working directories & directories with test data
-        File testdir1 = new File("testdir1");
-        File testdir2 = new File("testdir2");
+        AFile testdir1 = AFile.instance(new File("testdir1"));
+        AFile testdir2 = AFile.instance(new File("testdir2"));
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         CertificateManager.deleteDirectory(testdir1);
@@ -724,7 +722,7 @@ public class FxTest {
                 Lok.debug("FxTest.driveGui.1.booted");
                 standAloneAuth1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1.getAbsolutePath(), 0.1f, 30);
+                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30);
                 boot2.boot().done(standAloneAuth2 -> {
                     Lok.debug("FxTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(allowRegisterHandler);
@@ -736,7 +734,7 @@ public class FxTest {
                             runner.r(() -> {
                                 Lok.debug("FxTest.driveGui.connected");
                                 // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2.getAbsolutePath(), 1l, serverService.getUuid(), 0.1f, 30);
+                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30);
                                 promise.done(clientDriveService -> runner.r(() -> {
                                             Lok.debug("FxTest attempting first syncFromServer");
                                             clientSyncListener.testStructure.setMaClient(standAloneAuth2)
@@ -837,6 +835,7 @@ public class FxTest {
     @Before
     public void before() {
         lock = new RWLock();
+        AFile.configure(new DefaultFileConfiguration());
     }
 
 

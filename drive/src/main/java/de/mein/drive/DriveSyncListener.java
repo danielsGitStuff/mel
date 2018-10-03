@@ -1,5 +1,6 @@
 package de.mein.drive;
 
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
@@ -27,8 +28,8 @@ public abstract class DriveSyncListener {
         public MeinAuthService maServer, maClient;
         public MeinDriveClientService clientDriveService;
         public MeinDriveServerService serverDriveService;
-        public File testdir1;
-        public File testdir2;
+        public AFile testdir1;
+        public AFile testdir2;
 
         public DTestStructure setClientDriveService(MeinDriveClientService clientDriveService) {
             this.clientDriveService = clientDriveService;
@@ -50,12 +51,12 @@ public abstract class DriveSyncListener {
             return this;
         }
 
-        public DTestStructure setTestdir1(File testdir1) {
+        public DTestStructure setTestdir1(AFile testdir1) {
             this.testdir1 = testdir1;
             return this;
         }
 
-        public DTestStructure setTestdir2(File testdir2) {
+        public DTestStructure setTestdir2(AFile testdir2) {
             this.testdir2 = testdir2;
             return this;
         }

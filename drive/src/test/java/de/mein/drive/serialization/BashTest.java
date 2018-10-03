@@ -1,5 +1,6 @@
 package de.mein.drive.serialization;
 
+import de.mein.Lok;
 import de.mein.auth.file.FFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
