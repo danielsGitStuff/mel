@@ -8,16 +8,16 @@ import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.drive.data.AvailableHashes;
+import de.mein.drive.data.DriveClientSettingsDetails;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
-import de.mein.drive.data.AvailableHashes;
 import de.mein.drive.data.conflict.Conflict;
+import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
-import de.mein.drive.jobs.UpdateHashesJob;
 import de.mein.drive.service.sync.ClientSyncHandler;
-import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.StageSet;
@@ -25,7 +25,6 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
@@ -115,16 +114,12 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         TransferDao transferDao = driveDatabaseManager.getTransferDao();
         fsDao.lockWrite();
         N.forEach(hashes, s -> {
-            // if is stage from server or is transfer -> flag as avail
-
-
+            // if is stage from server or is transfer -> flag as available
             N.forEach(stageDao.getUpdateStageSetsFromServer(), stageSet -> {
                 stageDao.devUpdateSyncedByHashSet(stageSet.getId().v(), hashes);
-                transferDao.devUpdateAvailableByHashSet(stageSet.getOriginCertId().v(), stageSet.getOriginServiceUuid().v(), hashes);
-//                N.readSqlResource(stageDao.getStagesByStageSet(stageSet.getId().v()), (sqlResource, stage) -> {
-//
-//                });
             });
+            DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
+            transferDao.devUpdateAvailableByHashSet(clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), hashes);
         });
         fsDao.unlockWrite();
     }

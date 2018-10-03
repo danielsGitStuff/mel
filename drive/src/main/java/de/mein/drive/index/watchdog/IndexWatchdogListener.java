@@ -44,7 +44,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         return watchdogListener;
     };
     protected String name;
-    protected WatchDogTimer watchDogTimer = new WatchDogTimer(this, 20, 100, 150);
+    protected WatchDogTimer watchDogTimer = new WatchDogTimer("Indexer",this, 20, 100, 150);
     protected MeinDriveService meinDriveService;
     protected PathCollection pathCollection = new PathCollection();
     protected Map<String, Integer> ignoredMap = new ConcurrentHashMap<>();

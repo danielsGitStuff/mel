@@ -1,10 +1,11 @@
 package de.mein.drive.service.sync;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WatchDogTimer;
 import de.mein.drive.data.AvailableHashes;
+
+import java.util.HashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class HashAvailTimer extends WatchDogTimer {
 
@@ -15,7 +16,7 @@ public class HashAvailTimer extends WatchDogTimer {
      * @param watchDogTimerFinished
      */
     public HashAvailTimer(WatchDogTimerFinished watchDogTimerFinished) {
-        super(watchDogTimerFinished, 10, 100, 1000);
+        super(HashAvailTimer.class.getSimpleName(), watchDogTimerFinished, 10, 100, 1000);
         setWatchDogTimerFinished(() -> {
             stateLock.lock();
             watchDogTimerFinished.onTimerStopped();

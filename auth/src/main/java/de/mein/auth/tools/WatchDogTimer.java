@@ -1,30 +1,27 @@
 package de.mein.auth.tools;
 
+import de.mein.Lok;
+
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import de.mein.Lok;
-
 /**
  * Created by xor on 03.09.2016.
  */
 public class WatchDogTimer extends Timer {
-    private  WatchDogTimerFinished watchDogTimerFinished;
+    private final String name;
     private final int repetitions;
     private final int delay;
     private final int period;
+    private WatchDogTimerFinished watchDogTimerFinished;
     private Timer timer = new Timer("WatchDogTimer");
     private WatchDogTimerTask task;
     private boolean runs = false;
     private Semaphore lock = new Semaphore(1, true);
     private int waitCounter = 0;
-
-    protected void setWatchDogTimerFinished(WatchDogTimerFinished watchDogTimerFinished) {
-        this.watchDogTimerFinished = watchDogTimerFinished;
-    }
 
     /**
      * @param watchDogTimerFinished
@@ -32,11 +29,16 @@ public class WatchDogTimer extends Timer {
      * @param delay                 starts after n ms
      * @param period                wait for n ms after each period
      */
-    public WatchDogTimer(WatchDogTimerFinished watchDogTimerFinished, int repetitions, int delay, int period) {
+    public WatchDogTimer(String name, WatchDogTimerFinished watchDogTimerFinished, int repetitions, int delay, int period) {
         this.watchDogTimerFinished = watchDogTimerFinished;
         this.repetitions = repetitions;
         this.delay = delay;
         this.period = period;
+        this.name = name;
+    }
+
+    protected void setWatchDogTimerFinished(WatchDogTimerFinished watchDogTimerFinished) {
+        this.watchDogTimerFinished = watchDogTimerFinished;
     }
 
     /**
@@ -52,8 +54,8 @@ public class WatchDogTimer extends Timer {
             task.reset();
         if (!runs) {
             //Lok.debug("WatchDogTimer.start.NEWTASK");
-            task = new WatchDogTimerTask(() -> {
-                Lok.warn("WatchDogTimer.STOPPPPED");
+            task = new WatchDogTimerTask(name, () -> {
+                Lok.warn(name + ".STOPPPPED");
                 lock.acquire();
                 WatchDogTimer.this.runs = false;
                 lock.release();
@@ -107,20 +109,22 @@ public class WatchDogTimer extends Timer {
     }
 
     /**
+     * counts down. not needed outside of this class
      * Created by xor on 03.09.2016.
      */
     static class WatchDogTimerTask extends TimerTask {
+        private final String name;
         private WatchDogTimerFinished watchDogTimerFinished;
-
-        public WatchDogTimerTask(WatchDogTimerFinished watchDogTimerFinished, int startValue) {
-            this.startValue = startValue;
-            this.watchDogTimerFinished = watchDogTimerFinished;
-            count = new AtomicInteger(startValue);
-        }
-
         private int startValue = 20;
         private AtomicInteger count;
         private AtomicBoolean wait = new AtomicBoolean(false);
+
+        public WatchDogTimerTask(String name, WatchDogTimerFinished watchDogTimerFinished, int startValue) {
+            this.startValue = startValue;
+            this.watchDogTimerFinished = watchDogTimerFinished;
+            this.name = name;
+            count = new AtomicInteger(startValue);
+        }
 
         void waite() {
             wait.set(true);
@@ -135,10 +139,10 @@ public class WatchDogTimer extends Timer {
             int count = this.count.decrementAndGet();
             boolean wait = this.wait.get();
             if (wait) {
-                Lok.warn("WatchDogTimerTask.runTry.wait");
+                Lok.warn(name + ".runTry.wait");
                 reset();
             } else {
-                Lok.warn("WatchDogTimerTask.runTry." + count);
+                Lok.warn(name + ".runTry." + count);
                 if (count == 0) {
                     this.cancel();
                     try {
@@ -154,5 +158,9 @@ public class WatchDogTimer extends Timer {
             Lok.warn("WatchDogTimerTask.reset");
             count.set(startValue);
         }
+    }
+
+    private String getName() {
+        return name;
     }
 }
