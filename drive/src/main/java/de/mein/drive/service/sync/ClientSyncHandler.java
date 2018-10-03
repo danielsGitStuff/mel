@@ -51,7 +51,7 @@ public class ClientSyncHandler extends SyncHandler {
                 stageDao.devUpdateSyncedByHashSet(stageSet.getId().v(), hashes);
             });
             DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
-            transferDao.devUpdateAvailableByHashSet(clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), hashes);
+            transferDao.updateAvailableByHashSet(clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), hashes);
         });
         fsDao.unlockWrite();
         transferManager.research();
@@ -759,11 +759,16 @@ public class ClientSyncHandler extends SyncHandler {
         while (iterator.hasNext()) {
             GenericFSEntry genericFSEntry = iterator.next();
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
+            //todo debug
+//            if (stage.getContentHashPair().equalsValue("fdcbc1aca23cfebaa128bac31df20969"))
+//                Lok.warn("debug");
             stage.setOrder(order.ord());
             //todo duplicate
-            if (stage.getFsId() != null && !stage.getIsDirectory() && fsDao.hasId(stage.getFsId())) {
+            if (stage.getFsIdPair().notNull() && !stage.getIsDirectory() && fsDao.hasId(stage.getFsId())) {
                 FsEntry fsEntry = fsDao.getFile(stage.getFsId());
                 stage.setSynced(fsEntry.getSynced().v());
+            } else if (genericFSEntry.getSynced().v()) {
+                stage.setSynced(true);
             } else {
                 stage.setSynced(false);
             }

@@ -1,6 +1,8 @@
 package de.mein;
 
 
+import de.mein.auth.MeinAuthAdmin;
+import de.mein.auth.MeinNotification;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
@@ -11,9 +13,7 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.file.FFile;
 import de.mein.auth.gui.RegisterHandlerFX;
-import de.mein.auth.service.MeinAuthFxLoader;
-import de.mein.auth.service.MeinBoot;
-import de.mein.auth.service.MeinStandAloneAuthFX;
+import de.mein.auth.service.*;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
@@ -28,6 +28,7 @@ import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.service.ContactsService;
+import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.boot.DriveFXBootLoader;
@@ -763,7 +764,27 @@ public class FxTest {
         DriveTest driveTest = new DriveTest();
         MeinAuthSettings json1 = new DriveTest().createJson1();
         MeinAuthSettings json2 = new DriveTest().createJson2();
-        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveBootLoader.class).addMeinAuthAdmin(new MeinAuthAdmin() {
+            @Override
+            public void start(MeinAuthService meinAuthService) {
+
+            }
+
+            @Override
+            public void onNotificationFromService(IMeinService meinService, MeinNotification notification) {
+
+            }
+
+            @Override
+            public void onChanged() {
+
+            }
+
+            @Override
+            public void shutDown() {
+
+            }
+        });
         driveTest.simpleTransferFromServerToClient(meinBoot);
         new WaitLock().lock().lock();
     }

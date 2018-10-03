@@ -7,6 +7,7 @@ import de.mein.auth.tools.N;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveSettings;
+import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.quota.OutOfSpaceException;
@@ -289,9 +290,12 @@ public abstract class SyncHandler {
                             fsFile.getModified().v(stage.getModified());
                             fsFile.getiNode().v(stage.getiNode());
                             fsFile.getSize().v(stage.getSize());
-                            fsFile.getSynced().v(stage.getSynced());
+                            if (stageSet.getSource().notEqualsValue(DriveStrings.STAGESET_SOURCE_FS))
+                                fsFile.getSynced().v(false);
+                            else
+                                fsFile.getSynced().v(stage.getSynced());
                             fsDao.insert(fsFile);
-                            if (stageSet.getOriginCertId().notNull()) {
+                            if (!stageSet.fromFs() && !stage.getIsDirectory()) {
                                 TransferDetails details = new TransferDetails();
                                 details.getAvailable().v(stage.getSynced());
                                 details.getCertId().v(stageSet.getOriginCertId());
@@ -351,17 +355,23 @@ public abstract class SyncHandler {
                                 Lok.debug("SyncHandler.commitStage.isnull");
                             if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
                                 fsEntry.getSynced().v(false);
+                            // its remote -> not in place
+                            if (!stage.getIsDirectory() && !stageSet.fromFs())
+                                fsEntry.getSynced().v(false);
+                            else if (stageSet.fromFs()) {
+                                fsEntry.getSynced().v(true);
+                            }
 //                            File file = stageDao.getFileByStage(stage);
 //                            fsEntry.getSynced().v(file.exists());
                             fsDao.insertOrUpdate(fsEntry);
-                            if (stageSet.getOriginCertId().notNull()) {
+                            if (stageSet.getOriginCertId().notNull() && !stage.getIsDirectory()) {
                                 TransferDetails details = new TransferDetails();
-                                details.getAvailable().v(fsEntry.getSynced());
+                                details.getAvailable().v(stage.getSynced());
                                 details.getCertId().v(stageSet.getOriginCertId());
                                 details.getServiceUuid().v(stageSet.getOriginServiceUuid());
-                                details.getHash().v(fsEntry.getContentHash());
+                                details.getHash().v(stage.getContentHash());
                                 details.getDeleted().v(false);
-                                details.getSize().v(fsEntry.getSize());
+                                details.getSize().v(stage.getSize());
                                 N.r(() -> transferManager.createTransfer(details));
                             }
                             this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);

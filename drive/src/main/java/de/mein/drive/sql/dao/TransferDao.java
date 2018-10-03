@@ -3,16 +3,10 @@ package de.mein.drive.sql.dao;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.SqliteConverter;
 import de.mein.drive.sql.TransferDetails;
-import de.mein.sql.Dao;
-import de.mein.sql.ISQLQueries;
-import de.mein.sql.ISQLResource;
-import de.mein.sql.SQLResource;
-import de.mein.sql.SqlQueriesException;
+import de.mein.sql.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by xor on 12/16/16.
@@ -69,9 +63,9 @@ public class TransferDao extends Dao {
 
     public List<TransferDetails> getNotStartedTransfers(Long certId, String serviceUuid, int limit) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
-        String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=? and " + dummy.getStarted().k() + "=? and " + dummy.getDeleted().k() + "=?";
+        String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=? and " + dummy.getStarted().k() + "=? and " + dummy.getDeleted().k() + "=? and " + dummy.getAvailable().k() + "=? ";
         String whatElse = " limit ?";
-        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, false, false, limit), whatElse);
+        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, false, false, true, limit), whatElse);
         return result;
     }
 
@@ -133,7 +127,7 @@ public class TransferDao extends Dao {
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(flag));
     }
 
-    public void devUpdateAvailableByHashSet(Long certId, String serviceUUID, Collection<String> hashes) throws SqlQueriesException {
+    public void updateAvailableByHashSet(Long certId, String serviceUUID, Collection<String> hashes) throws SqlQueriesException {
         TransferDetails t = new TransferDetails();
         String statement = "update " + t.getTableName() + " set " + t.getAvailable().k() + "=? where " + t.getCertId().k() + "=? and " + t.getServiceUuid().k() + "=? and "
                 + t.getHash().k() + " in ";
