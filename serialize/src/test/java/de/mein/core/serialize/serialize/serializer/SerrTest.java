@@ -7,7 +7,9 @@ import de.mein.core.serialize.exceptions.InvalidPathException;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
+import de.mein.core.serialize.serialize.reflection.classes.PrimitiveSet;
 import de.mein.core.serialize.serialize.trace.TraceManager;
+
 import org.junit.Test;
 
 import java.util.*;
@@ -43,12 +45,22 @@ public class SerrTest {
 //        assertEquals("{\"$id\":1,\"__type\":\"de.mein.core.serialize.classes.WithPrimitiveCollection\",\"strings\":[\"bla\"],\"primitive\":\"primitive\"}", json);
 //    }
 
+    @Test
+    public void primitiveCollection() throws Exception {
+        PrimitiveSet hashesAvailable = new PrimitiveSet().addInt(22).addString("aa").addString("bb").addInt(33).addInt(44);
+        String json = SerializableEntitySerializer.serialize(hashesAvailable);
+        System.out.println(json);
+        PrimitiveSet copy = (PrimitiveSet) SerializableEntityDeserializer.deserialize(json);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mein.core.serialize.serialize.reflection.classes.PrimitiveSet\",\"strings\":[\"aa\",\"bb\"],\"ints\":[33,22,44]}",json);
+    }
+
 
     @Test
     public void set() throws JsonSerializationException, IllegalAccessException {
         S s = new S();
         s.set.add(new SimpleSerializableEntity().setPrimitive("bla"));
         String json = SerializableEntitySerializer.serialize(s);
+        System.out.println(json);
         assertEquals("{\"$id\":1,\"__type\":\"de.mein.core.serialize.serialize.serializer.SerrTest$S\",\"set\":[{\"$id\":2,\"__type\":\"de.mein.core.serialize.classes.SimpleSerializableEntity\",\"primitive\":\"bla\"}]}", json);
     }
 

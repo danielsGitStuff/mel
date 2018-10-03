@@ -28,7 +28,7 @@ public class PrimitiveCollectionSerializer extends FieldSerializer {
         b.arrBegin();
         Iterator iterator = iterable.iterator();
         while (iterator.hasNext()) {
-            b.append(iterator.next());
+            b.value(iterator.next());
             if (iterator.hasNext())
                 b.comma();
         }
