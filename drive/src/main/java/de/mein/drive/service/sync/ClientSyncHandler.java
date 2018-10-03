@@ -480,10 +480,10 @@ public class ClientSyncHandler extends SyncHandler {
 
     private void putConflictSolver(ConflictSolver conflictSolver) {
         // search for related ConflictSolvers before. they deprecate as we insert the new one.
-        deleteRelated(conflictSolver.getlStageSet().getId().v());
-        deleteRelated(conflictSolver.getrStageSet().getId().v());
-        addRelated(conflictSolver, conflictSolver.getrStageSet().getId().v());
-        addRelated(conflictSolver, conflictSolver.getlStageSet().getId().v());
+        deleteRelated(conflictSolver.getServerStageSet().getId().v());
+        deleteRelated(conflictSolver.getLocalStageSet().getId().v());
+        addRelated(conflictSolver, conflictSolver.getLocalStageSet().getId().v());
+        addRelated(conflictSolver, conflictSolver.getServerStageSet().getId().v());
         conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
     }
 

@@ -22,7 +22,7 @@ import java.util.concurrent.Semaphore;
  */
 public class ConflictSolver extends SyncStageMerger {
     private final String identifier;
-    private final StageSet lStageSet, rStageSet;
+    private final StageSet serverStageSet, localStageSet;
     private final RootDirectory rootDirectory;
     protected Map<String, Conflict> deletedParents = new HashMap<>();
     private Map<String, Conflict> conflicts = new HashMap<>();
@@ -42,24 +42,24 @@ public class ConflictSolver extends SyncStageMerger {
     private boolean obsolete = false;
     private boolean solving = false;
 
-    public ConflictSolver(DriveDatabaseManager driveDatabaseManager, StageSet lStageSet, StageSet rStageSet) throws SqlQueriesException {
-        super(lStageSet.getId().v(), rStageSet.getId().v());
+    public ConflictSolver(DriveDatabaseManager driveDatabaseManager, StageSet serverStageSet, StageSet localStageSet) throws SqlQueriesException {
+        super(serverStageSet.getId().v(), localStageSet.getId().v());
         this.rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
-        this.lStageSet = lStageSet;
-        this.rStageSet = rStageSet;
+        this.serverStageSet = serverStageSet;
+        this.localStageSet = localStageSet;
         stageDao = driveDatabaseManager.getStageDao();
         fsDao = driveDatabaseManager.getFsDao();
-        identifier = createIdentifier(lStageSet.getId().v(), rStageSet.getId().v());
-        obsoleteStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_DELETE, lStageSet.getOriginCertId().v(), lStageSet.getOriginServiceUuid().v(), lStageSet.getVersion().v());
+        identifier = createIdentifier(serverStageSet.getId().v(), localStageSet.getId().v());
+        obsoleteStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_DELETE, serverStageSet.getOriginCertId().v(), serverStageSet.getOriginServiceUuid().v(), serverStageSet.getVersion().v());
         obsoleteOrder = new Order();
     }
 
-    public StageSet getlStageSet() {
-        return lStageSet;
+    public StageSet getServerStageSet() {
+        return serverStageSet;
     }
 
-    public StageSet getrStageSet() {
-        return rStageSet;
+    public StageSet getLocalStageSet() {
+        return localStageSet;
     }
 
     public StageSet getObsoleteStageSet() {
@@ -187,7 +187,7 @@ public class ConflictSolver extends SyncStageMerger {
         oldeNewIdMap = new HashMap<>();
         this.fsDao = fsDao;
         N.r(() -> {
-            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v(), remoteStageSet.getVersion().v());
+            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v(), remoteStageSet.getVersion().v());
         });
         // now lets find directories that have been deleted. so we can build nice dependencies between conflicts
         List<Stage> leftDirs = stageDao.getDeletedDirectories(lStageSetId);

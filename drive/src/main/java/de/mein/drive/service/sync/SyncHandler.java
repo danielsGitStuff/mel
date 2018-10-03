@@ -7,7 +7,6 @@ import de.mein.auth.tools.N;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveSettings;
-import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.quota.OutOfSpaceException;
@@ -221,6 +220,9 @@ public abstract class SyncHandler {
      * @param stageSetId
      */
     public void commitStage(Long stageSetId, boolean lockFsEntry, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException {
+        /**
+         * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
+         */
         //todo debug
         if (stageSetId == 6 || stageSetId == 13)
             Lok.debug("SyncHandler.commitStage.debugj9v0jaseß");
@@ -290,10 +292,11 @@ public abstract class SyncHandler {
                             fsFile.getModified().v(stage.getModified());
                             fsFile.getiNode().v(stage.getiNode());
                             fsFile.getSize().v(stage.getSize());
-                            if (stageSet.getSource().notEqualsValue(DriveStrings.STAGESET_SOURCE_FS))
-                                fsFile.getSynced().v(false);
-                            else
+                            if (stageSet.fromFs()) {
+                                fsFile.getSynced().v(true);
+                            } else {
                                 fsFile.getSynced().v(stage.getSynced());
+                            }
                             fsDao.insert(fsFile);
                             if (!stageSet.fromFs() && !stage.getIsDirectory()) {
                                 TransferDetails details = new TransferDetails();
