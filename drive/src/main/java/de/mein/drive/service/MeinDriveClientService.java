@@ -81,7 +81,8 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                     }
                 } else if (job.getIntent().equals(DriveStrings.INTENT_HASH_AVAILABLE)) {
                     AvailableHashes availableHashes = (AvailableHashes) job.getPayLoad();
-                    updateHashes(availableHashes.getHashes());
+                    syncHandler.updateHashes(availableHashes.getHashes());
+                    availableHashes.clear();
                     //addJob(new UpdateHashesJob(availableHashes.getHashes()));
                 }
             }
@@ -108,21 +109,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         return false;
     }
 
-    private void updateHashes(Set<String> hashes) {
-        FsDao fsDao = driveDatabaseManager.getFsDao();
-        StageDao stageDao = driveDatabaseManager.getStageDao();
-        TransferDao transferDao = driveDatabaseManager.getTransferDao();
-        fsDao.lockWrite();
-        N.forEach(hashes, s -> {
-            // if is stage from server or is transfer -> flag as available
-            N.forEach(stageDao.getUpdateStageSetsFromServer(), stageSet -> {
-                stageDao.devUpdateSyncedByHashSet(stageSet.getId().v(), hashes);
-            });
-            DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
-            transferDao.devUpdateAvailableByHashSet(clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), hashes);
-        });
-        fsDao.unlockWrite();
-    }
+
 
     @Override
     public void addJob(Job job) {

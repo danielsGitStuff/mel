@@ -19,6 +19,7 @@ import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
+import de.mein.drive.sql.dao.TransferDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
@@ -38,6 +39,23 @@ public class ClientSyncHandler extends SyncHandler {
     private MeinDriveClientService meinDriveService;
     private Map<String, ConflictSolver> conflictSolverMap = new keks<>();
     private Map<Long, Set<ConflictSolver>> relatedSolvers = new HashMap<>();
+
+    public void updateHashes(Set<String> hashes) {
+        FsDao fsDao = driveDatabaseManager.getFsDao();
+        StageDao stageDao = driveDatabaseManager.getStageDao();
+        TransferDao transferDao = driveDatabaseManager.getTransferDao();
+        fsDao.lockWrite();
+        N.forEach(hashes, s -> {
+            // if is stage from server or is transfer -> flag as available
+            N.forEach(stageDao.getUpdateStageSetsFromServer(), stageSet -> {
+                stageDao.devUpdateSyncedByHashSet(stageSet.getId().v(), hashes);
+            });
+            DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
+            transferDao.devUpdateAvailableByHashSet(clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), hashes);
+        });
+        fsDao.unlockWrite();
+        transferManager.research();
+    }
 
     private class keks<K, V> extends HashMap<K, V> {
         @Override
