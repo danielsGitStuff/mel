@@ -224,7 +224,7 @@ public abstract class SyncHandler {
          * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
          */
         //todo debug
-        if (stageSetId == 6 || stageSetId == 13)
+        if (stageSetId == 2 || stageSetId == 13)
             Lok.debug("SyncHandler.commitStage.debugj9v0jaseß");
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
@@ -347,13 +347,14 @@ public abstract class SyncHandler {
                                         if (stage.getiNode() == null || stage.getModified() == null ||
                                                 !(modifiedAndInode.getiNode().equals(stage.getiNode()) && modifiedAndInode.getModified().equals(stage.getModified()))) {
                                             wastebin.deleteUnknown(stageFile);
-                                            stage.setSynced(false);
+//                                            stage.setSynced(false);
                                             // we could search more recent stagesets to find some clues here and prevent deleteUnknown().
                                         }
                                         // else: the file is as we want it to be
                                     }
                                 }
                             }
+                            //todo debug
                             if (fsEntry.getSynced().isNull())
                                 Lok.debug("SyncHandler.commitStage.isnull");
                             if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
@@ -369,12 +370,14 @@ public abstract class SyncHandler {
                             fsDao.insertOrUpdate(fsEntry);
                             if (stageSet.getOriginCertId().notNull() && !stage.getIsDirectory()) {
                                 TransferDetails details = new TransferDetails();
-                                details.getAvailable().v(stage.getSynced());
                                 details.getCertId().v(stageSet.getOriginCertId());
                                 details.getServiceUuid().v(stageSet.getOriginServiceUuid());
                                 details.getHash().v(stage.getContentHash());
                                 details.getDeleted().v(false);
                                 details.getSize().v(stage.getSize());
+                                if (!stage.getIsDirectory() && stage.getStageSetPair().notNull()) {
+                                    details.getAvailable().v(stage.getSynced());
+                                }
                                 N.r(() -> transferManager.createTransfer(details));
                             }
                             this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);

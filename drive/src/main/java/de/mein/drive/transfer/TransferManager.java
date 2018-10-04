@@ -338,7 +338,6 @@ public class TransferManager extends DeferredRunnable {
                 fileProcess.cancelByHash(transferDetails.getHash().v());
             }
             cancelActiveTransfer(transferDetails);
-
         }));
         lock.unlock();
     }
