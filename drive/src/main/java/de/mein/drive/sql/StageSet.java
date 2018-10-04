@@ -100,4 +100,9 @@ public class StageSet extends SQLTableObject {
     public boolean fromFs() {
         return source.v().equals(DriveStrings.STAGESET_SOURCE_FS);
     }
+
+    @Override
+    public String toString() {
+        return "id: " + id.v() + " src: " + source.v() + " status: " + status.v();
+    }
 }

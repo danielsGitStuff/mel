@@ -809,7 +809,7 @@ public class DriveTest {
         CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         CertificateManager.deleteDirectory(testdir1);
         CertificateManager.deleteDirectory(testdir2);
-        TestDirCreator.createTestDir(testdir1,25);
+        TestDirCreator.createTestDir(testdir1,1);
         if (identicalTestDirs != null) {
             if (identicalTestDirs)
                 TestDirCreator.createTestDir(testdir2);

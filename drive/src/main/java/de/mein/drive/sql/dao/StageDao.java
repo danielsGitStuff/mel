@@ -245,9 +245,21 @@ StageDao extends Dao.LockingDao {
     public Stage insert(Stage stage) throws SqlQueriesException {
         try {
             //todo debug
-//            if (stage.getContentHashPair().equalsValue("fdcbc1aca23cfebaa128bac31df20969"))
-//                Lok.warn("debug");
+            StageSet stageSet = this.getStageSetById(stage.getStageSet());
+            if ((stageSet.fromFs() || stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_MERGED)) && stage.getSyncedPair().notNull())
+                Lok.warn("debug");
+            if (!stageSet.fromFs() && stage.getSyncedPair().notNull() && stage.getNamePair().equalsValue("same1.txt"))
+                Lok.warn("debih");
+            if (stage.getNamePair().equalsValue("same1.txt") && stage.getSyncedPair().notNull())
+                Lok.warn("debug1");
+            if (stage.getContentHashPair().equalsValue("244fc40b2dc42019c05fb363ecf28416") && stage.getStageSetPair().equalsValue(6L))
+                Lok.warn("debug2");
+            if (stageSet.getId().v().toString().equals("5") && stage.getSyncedPair().notNull())
+                Lok.warn("asd");
+            Lok.debug("l "+stageSet.getId().v().toString());
             Long id = sqlQueries.insert(stage);
+            if (id==26L)
+                Lok.warn("ddeebbuugg");
             return stage.setId(id);
         } catch (Exception e) {
             e.printStackTrace();
@@ -340,6 +352,11 @@ StageDao extends Dao.LockingDao {
             Lok.debug("StageDao.update.debug.2");
         if (stage.getId() == 63)
             Lok.debug("StageDao.update.debug.3");
+        StageSet stageSet = this.getStageSetById(stage.getStageSet());
+        if (!stageSet.fromFs() && stage.getSyncedPair().notNull() && stage.getNamePair().equalsValue("same1.txt"))
+            Lok.warn("debip");
+        if (stageSet.getId().v().toString().equals("5") && stage.getSyncedPair().notNull() && stage.getNamePair().equalsValue("same1.txt"))
+            Lok.warn("asod");
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(stage.getId());

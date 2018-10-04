@@ -1,5 +1,6 @@
 package de.mein.contacts;
 
+import de.mein.Lok;
 import de.mein.contacts.data.db.ContactAppendix;
 import org.junit.Test;
 

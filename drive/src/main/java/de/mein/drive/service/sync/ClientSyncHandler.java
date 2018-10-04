@@ -760,18 +760,20 @@ public class ClientSyncHandler extends SyncHandler {
             GenericFSEntry genericFSEntry = iterator.next();
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             //todo debug
-//            if (stage.getContentHashPair().equalsValue("fdcbc1aca23cfebaa128bac31df20969"))
-//                Lok.warn("debug");
+            if (stage.getContentHashPair().equalsValue("51037a4a37730f52c8732586d3aaa316") && stageSet.getId().equalsValue(2L))
+                Lok.warn("debug1");
             stage.setOrder(order.ord());
-            //todo duplicate
-            if (stage.getFsIdPair().notNull() && !stage.getIsDirectory() && fsDao.hasId(stage.getFsId())) {
-                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
-                stage.setSynced(fsEntry.getSynced().v());
-            } else if (genericFSEntry.getSynced().v()) {
-                stage.setSynced(true);
-            } else {
-                stage.setSynced(false);
-            }
+
+//            //todo duplicate
+//            if (stage.getFsIdPair().notNull() && !stage.getIsDirectory() && fsDao.hasId(stage.getFsId())) {
+//                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
+//                if (fsEntry.getContentHash().equalsValue())
+//                stage.setSynced(fsEntry.getSynced().v());
+//            } else if (genericFSEntry.getSynced().v()) {
+//                stage.setSynced(true);
+//            } else {
+//                stage.setSynced(false);
+//            }
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
         syncTask.cleanUp();
@@ -850,13 +852,14 @@ public class ClientSyncHandler extends SyncHandler {
                             Stage stage = GenericFSEntry.generic2Stage(genSub, stageSet.getId().v());
                             stage.setDeleted(true);
                             stage.setOrder(order.ord());
-                            //todo dubplicate 2
-                            if (stage.getFsId() != null && !stage.getIsDirectory() && fsDao.hasId(stage.getFsId())) {
-                                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
-                                stage.setSynced(fsEntry.getSynced().v());
-                            } else {
-                                stage.setSynced(false);
-                            }
+//                            //todo dubplicate 2
+//                            if (stage.getFsId() != null && !stage.getIsDirectory() && fsDao.hasId(stage.getFsId())) {
+//                                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
+//                                stage.setSynced(fsEntry.getSynced().v());
+//                            } else {
+//                                stage.setSynced(false);
+//                            }
+                            stage.setSynced(false);
                             insertWithParentId(entryIdStageIdMap, genSub, stage);
                             recursiveDeleteOnStage(entryIdStageIdMap, order, genSub, stage);
                         }

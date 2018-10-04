@@ -31,7 +31,7 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
     protected HBox indentSpacer = new HBox();
     protected Button button = new Button("x");
     protected VBox vBox = new VBox();
-    protected Label label = new Label("..not set..");
+    protected Label label = new Label("-");
     protected Label lblHash = new Label("-");
     protected Conflict lastSelected;
     protected int indent = 0;
@@ -107,7 +107,7 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
                         lblHash.setText("-");
                     }
                     else
-                        System.err.println("j9034n3of");
+                        Lok.error("j9034n3of");
                     setGraphic(hbox);
                 } else {
                     setGraphic(null);

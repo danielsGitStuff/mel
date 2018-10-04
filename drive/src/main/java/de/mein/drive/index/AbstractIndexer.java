@@ -191,10 +191,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             stage.setStageSet(stageSet.getId().v());
             stage.setDeleted(!f.exists());
             if (stage.getIsDirectory()) {
-                stage.setSynced(true);
                 indexWatchdogListener.watchDirectory(f);
-            } else
-                stage.setSynced(true);
+            }
             stage.setOrder(order.ord());
             stageDao.insert(stage);
 
@@ -327,7 +325,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                         .setVersion(gen.getVersion().v())
                         .setiNode(gen.getiNode().v())
                         .setModified(gen.getModified().v())
-                        .setSynced(gen.getSynced().v())
+//                        .setSynced(gen.getSynced().v())
+                        .setSynced(true)
                         .setParentId(stage.getId());
                 stageDao.insert(delStage);
             } else {
@@ -382,8 +381,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                             .setFsParentId(stage.getFsId())
                             .setName(subDir.getName())
                             .setIsDirectory(true)
-                            .setDeleted(!subDir.exists())
-                            .setSynced(true);
+                            .setDeleted(!subDir.exists());
                     Lok.debug("StageIndexerRunnable[" + stageSetId + "].roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
                     subStage.setOrder(order.ord());
                     //todo debug
@@ -442,7 +440,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             stage.setiNode(modifiedAndInode.getiNode());
             stage.setModified(modifiedAndInode.getModified());
             stage.setSize(stageFile.length());
-            stage.setSynced(true);
             // stage can be deleted if nothing changed
             if (stage.getFsId() != null) {
                 FsEntry fsEntry = fsDao.getFile(stage.getFsId());

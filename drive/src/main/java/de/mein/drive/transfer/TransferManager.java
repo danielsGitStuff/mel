@@ -349,8 +349,8 @@ public class TransferManager extends DeferredRunnable {
 
     public void createTransfer(TransferDetails transfer) throws SqlQueriesException {
         //todo debug
-//        if (transfer.getHash().equalsValue("fdcbc1aca23cfebaa128bac31df20969"))
-//            Lok.debug("debug");
+        if (transfer.getHash().equalsValue("51037a4a37730f52c8732586d3aaa316"))
+            Lok.debug("debug");
         transferDao.insert(transfer);
     }
 

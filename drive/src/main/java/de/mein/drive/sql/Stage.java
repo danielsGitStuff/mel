@@ -1,5 +1,6 @@
 package de.mein.drive.sql;
 
+import de.mein.Lok;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.sql.Pair;
@@ -186,7 +187,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         return deleted.v();
     }
 
-    public Pair<Boolean> getDeletedPair(){
+    public Pair<Boolean> getDeletedPair() {
         return deleted;
     }
 
@@ -234,7 +235,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     public String toString() {
-        return "dir: " + isDirectory.v() + " name: " + name.v() + " id: " + id.v()+" stageSet: "+stageSet.v();
+        return "n: " + name.v() + " id:" + id.v() + " set: " + stageSet.v() + " d: " + isDirectory.v() + " s: " + synced.v();
     }
 
     public Stage setSize(Long size) {
@@ -259,6 +260,9 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     }
 
     public Stage setSynced(Boolean synced) {
+        //todo debug
+        if (!synced && stageSet.equalsValue(2L) && contentHash.equalsValue("51037a4a37730f52c8732586d3aaa316"))
+            Lok.warn("debug11");
         this.synced.v(synced);
         return this;
     }

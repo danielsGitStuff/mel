@@ -298,55 +298,55 @@ public class ConflictSolver extends SyncStageMerger {
     }
 
     /**
-     * @param left  from server
-     * @param right from fs
+     * @param serverStage  from server
+     * @param fsStage from fs
      * @throws SqlQueriesException
      */
-    public void solve(Stage left, Stage right) throws SqlQueriesException {
+    public void solve(Stage serverStage, Stage fsStage) throws SqlQueriesException {
         Stage solvedStage = null;
-        final String key = Conflict.createKey(left, right);
+        final String key = Conflict.createKey(serverStage, fsStage);
         final Conflict conflict = conflicts.remove(key);
-        final Long oldeRightId = right == null ? null : right.getId();
-        final Long oldeLeftId = left == null ? null : left.getId();
+        final Long oldeRightId = fsStage == null ? null : fsStage.getId();
+        final Long oldeLeftId = serverStage == null ? null : serverStage.getId();
         // if a conflict is present, apply its solution. if not, apply the left or right.
         // they must have the same hashes.
         if (conflict != null) {
             if (conflict.isLeft()) {
-                solvedStage = left;
+                solvedStage = serverStage;
                 // entry exists locally, delete
-                if (right != null && !right.getDeleted() && solvedStage == null) {
-                    if (right.getParentIdPair().notNull()) {
-                        right.setParentId(oldeNewIdMap.get(right.getParentId()));
+                if (fsStage != null && !fsStage.getDeleted() && solvedStage == null) {
+                    if (fsStage.getParentIdPair().notNull()) {
+                        fsStage.setParentId(oldeNewIdMap.get(fsStage.getParentId()));
                     }
-                    right.setDeleted(true)
+                    fsStage.setDeleted(true)
                             .setId(null)
                             .setStageSet(mergeStageSet.getId().v())
                             .setOrder(order.ord());
-                    stageDao.insert(right);
+                    stageDao.insert(fsStage);
                 }
             } else {
-                solvedStage = right;
+                solvedStage = fsStage;
                 // left always comes with fs ids. copy if available
-                if (left != null && solvedStage != null) {
-                    solvedStage.setFsId(left.getFsId());
-                    solvedStage.setFsParentId(left.getFsParentId());
+                if (serverStage != null && solvedStage != null) {
+                    solvedStage.setFsId(serverStage.getFsId());
+                    solvedStage.setFsParentId(serverStage.getFsParentId());
                 }
                 // if it does not exist locally and we rejected the remote file: copy left to delete it.
-                if (!left.getDeleted() && solvedStage == null) {
-                    if (left.getParentIdPair().notNull()) {
-                        left.setParentId(oldeNewIdMap.get(left.getParentId()));
+                if (!serverStage.getDeleted() && solvedStage == null) {
+                    if (serverStage.getParentIdPair().notNull()) {
+                        serverStage.setParentId(oldeNewIdMap.get(serverStage.getParentId()));
                     }
-                    left.setStageSet(mergeStageSet.getId().v())
+                    serverStage.setStageSet(mergeStageSet.getId().v())
                             .setId(null)
                             .setOrder(order.ord())
                             .setDeleted(true);
-                    stageDao.insert(left);
+                    stageDao.insert(serverStage);
                 }
             }
-        } else if (left != null) {
-            solvedStage = left;
-        } else if (right != null) {
-            solvedStage = right;
+        } else if (serverStage != null) {
+            solvedStage = serverStage;
+        } else if (fsStage != null) {
+            solvedStage = fsStage;
         } else {
             System.err.println("ConflictSolver.solve:ERRRR");
         }
@@ -472,6 +472,8 @@ public class ConflictSolver extends SyncStageMerger {
                 if (left.getiNode() == null && left.getModified() == null && left.getContentHash().equals(right.getContentHash())) {
                     solvedStage.setModified(right.getModified());
                     solvedStage.setiNode(right.getiNode());
+                    if (solvedStage.getContentHashPair().equalsValue("51037a4a37730f52c8732586d3aaa316"))
+                        Lok.warn("debug");
                     solvedStage.setSynced(right.getSynced());
                     stageDao.updateInodeAndModifiedAndSynced(solvedStage.getId(), right.getiNode(), right.getModified(), right.getSynced());
                 }
@@ -511,8 +513,11 @@ public class ConflictSolver extends SyncStageMerger {
 //                if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
 //                    solvedStage.setFsParentId(null);
 //                }
-                if (!solvedStage.getIsDirectory())
+                if (!solvedStage.getIsDirectory()) {
+                    if (solvedStage.getContentHashPair().equalsValue("51037a4a37730f52c8732586d3aaa316"))
+                        Lok.warn("debug");
                     solvedStage.setSynced(false);
+                }
             }
             // adjust ids
             Long oldeId = solvedStage.getId();
