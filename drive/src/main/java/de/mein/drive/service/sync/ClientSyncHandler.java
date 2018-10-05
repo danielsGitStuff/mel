@@ -443,6 +443,9 @@ public class ClientSyncHandler extends SyncHandler {
             } else {
                 // todo FsDir hash conflicts
                 conflictSolver.directoryStuff();
+                //todo debug
+                if (conflictSolver.getMergeStageSet().getId().v() == 8)
+                    Lok.warn("debug");
                 try {
                     this.commitStage(serverStageSet.getId().v());
                     this.deleteObsolete(conflictSolver);

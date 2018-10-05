@@ -240,11 +240,11 @@ public class ConflictSolver extends SyncStageMerger {
         order = new Order();
         StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v(), mergeStageSet.getVersion().v());
         N.sqlResource(stageDao.getStagesResource(oldeMergedSetId), stageSet -> {
-            //todo debug
-            if (oldeMergedSetId == 8)
-                Lok.warn("debug");
             Stage rightStage = stageSet.getNext();
             while (rightStage != null) {
+                //todo debug
+                if (oldeMergedSetId == 8 && rightStage.getNamePair().equalsValue("samesub"))
+                    Lok.warn("debug");
                 if (rightStage.getIsDirectory()) {
                     FsDirectory contentHashDummy = fsDao.getDirectoryById(rightStage.getFsId());
                     if (contentHashDummy == null) {
@@ -331,7 +331,7 @@ public class ConflictSolver extends SyncStageMerger {
                             .setStageSet(mergeStageSet.getId().v())
                             .setOrder(order.ord());
                     stageDao.insert(fsStage);
-                    oldeNewIdMap.put(oldeRightId,fsStage.getId());
+                    oldeNewIdMap.put(oldeRightId, fsStage.getId());
                 }
             } else {
                 solvedStage = fsStage;

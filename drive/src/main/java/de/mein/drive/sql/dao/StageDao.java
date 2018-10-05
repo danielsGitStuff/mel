@@ -246,9 +246,9 @@ StageDao extends Dao.LockingDao {
         try {
             //todo debug
             StageSet stageSet = this.getStageSetById(stage.getStageSet());
-            if ((stageSet.fromFs() || stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_MERGED)) && stage.getSyncedPair().notNull())
+            if (stageSet.getId().v() == 9 && stage.getNamePair().equalsValue("samesub"))
                 Lok.warn("debug");
-            if (!stageSet.fromFs() && stage.getSyncedPair().notNull() && stage.getNamePair().equalsValue("same1.txt"))
+            if (stageSet.getId().v() == 8 && stage.getNamePair().equalsValue("samesub"))
                 Lok.warn("debih");
             if (stage.getNamePair().equalsValue("same1.txt") && stage.getSyncedPair().notNull())
                 Lok.warn("debug1");
@@ -262,9 +262,9 @@ StageDao extends Dao.LockingDao {
                 Lok.warn("directory cannot be flagged as 'synced'");
             if (stage.getStageSet() == 8 && stage.getNamePair().equalsValue("samesub1.txt"))
                 Lok.warn("erre?");
-            Lok.debug("l "+stageSet.getId().v().toString());
+            Lok.debug("l " + stageSet.getId().v().toString());
             Long id = sqlQueries.insert(stage);
-            if (id==26L)
+            if (id == 26L)
                 Lok.warn("ddeebbuugg");
             return stage.setId(id);
         } catch (Exception e) {
