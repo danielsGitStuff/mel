@@ -314,8 +314,11 @@ public class ConflictSolver extends SyncStageMerger {
         final Long oldeRightId = fsStage == null ? null : fsStage.getId();
         final Long oldeLeftId = serverStage == null ? null : serverStage.getId();
         //todo debug
-//        if (mergeStageSet.getId().v() == 8 && fsStage.getNamePair().equalsValue("samesub"))
-//            Lok.warn("nope");
+        N.s(() -> {
+            if (mergeStageSet.getId().v() == 8 && fsStage.getNamePair().equalsValue("samesub"))
+                Lok.warn("nope");
+        });
+
         // if a conflict is present, apply its solution. if not, apply the left or right.
         // they must have the same hashes.
         if (conflict != null) {

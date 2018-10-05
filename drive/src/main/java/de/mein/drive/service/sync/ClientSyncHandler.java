@@ -462,6 +462,9 @@ public class ClientSyncHandler extends SyncHandler {
                 this.minimizeStage(mergedId);
                 if (stageDao.stageSetHasContent(mergedId))
                     meinDriveService.addJob(new CommitJob());
+                else {
+                    stageDao.deleteStageSet(mergedId);
+                }
             }
         }
     }
@@ -510,6 +513,8 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     private void minimizeStage(Long stageSetId) throws SqlQueriesException {
+        if (stageSetId == 9)
+            Lok.warn("debug");
         N.sqlResource(stageDao.getStagesResource(stageSetId), stages -> {
             Stage stage = stages.getNext();
             while (stage != null) {
