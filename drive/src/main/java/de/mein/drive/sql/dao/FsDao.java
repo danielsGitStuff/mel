@@ -12,6 +12,7 @@ import de.mein.sql.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -59,9 +60,15 @@ public class FsDao extends Dao {
         printGotLock("lockRead", n);
     }
 
+    public  void unlockRead() {
+        printLock("unlockRead", urcount);
+        rwLock.readLock().unlock();
+    }
 
     public void lockWrite() {
         int n = printLock("lockWrite", wcount);
+        if (n== 5)
+            Lok.warn("debug");
         rwLock.writeLock().lock();
         printGotLock("lockWrite", n);
         //todo debug
@@ -69,14 +76,7 @@ public class FsDao extends Dao {
             Lok.debug("FsDao.lockWrite.debugj8ivj450v");
     }
 
-
-    public void unlockRead() {
-        printLock("unlockRead", urcount);
-        rwLock.readLock().unlock();
-    }
-
-
-    public void unlockWrite() {
+    public  void unlockWrite() {
         printLock("unlockWrite", uwcount);
         rwLock.writeLock().unlock();
     }

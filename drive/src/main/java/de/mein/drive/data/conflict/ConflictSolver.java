@@ -238,8 +238,11 @@ public class ConflictSolver extends SyncStageMerger {
         final long oldeMergedSetId = mergeStageSet.getId().v();
         Map<Long, Long> oldeIdNewIdMapForDirectories = new HashMap<>();
         order = new Order();
-        StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v(), mergeStageSet.getVersion().v());
+        StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v(), mergeStageSet.getVersion().v());
         N.sqlResource(stageDao.getStagesResource(oldeMergedSetId), stageSet -> {
+            //todo debug
+            if (oldeMergedSetId == 8)
+                Lok.warn("debug");
             Stage rightStage = stageSet.getNext();
             while (rightStage != null) {
                 if (rightStage.getIsDirectory()) {
@@ -248,8 +251,10 @@ public class ConflictSolver extends SyncStageMerger {
                         // it is not in fs. just add every child from the Stage
                         contentHashDummy = new FsDirectory();
                         List<Stage> content = stageDao.getStageContent(rightStage.getId());
-                        for (Stage stage : content)
+                        for (Stage stage : content) {
                             contentHashDummy.addDummyFsFile(stage.getName());
+                            stageDao.flagMerged(stage.getId(), true);
+                        }
                     } else {
                         // fill with info from FS
                         List<GenericFSEntry> fsContent = fsDao.getContentByFsDirectory(contentHashDummy.getId().v());
@@ -298,8 +303,8 @@ public class ConflictSolver extends SyncStageMerger {
     }
 
     /**
-     * @param serverStage  from server
-     * @param fsStage from fs
+     * @param serverStage from server
+     * @param fsStage     from fs
      * @throws SqlQueriesException
      */
     public void solve(Stage serverStage, Stage fsStage) throws SqlQueriesException {
@@ -308,6 +313,9 @@ public class ConflictSolver extends SyncStageMerger {
         final Conflict conflict = conflicts.remove(key);
         final Long oldeRightId = fsStage == null ? null : fsStage.getId();
         final Long oldeLeftId = serverStage == null ? null : serverStage.getId();
+        //todo debug
+//        if (mergeStageSet.getId().v() == 8 && fsStage.getNamePair().equalsValue("samesub"))
+//            Lok.warn("nope");
         // if a conflict is present, apply its solution. if not, apply the left or right.
         // they must have the same hashes.
         if (conflict != null) {
@@ -323,6 +331,7 @@ public class ConflictSolver extends SyncStageMerger {
                             .setStageSet(mergeStageSet.getId().v())
                             .setOrder(order.ord());
                     stageDao.insert(fsStage);
+                    oldeNewIdMap.put(oldeRightId,fsStage.getId());
                 }
             } else {
                 solvedStage = fsStage;

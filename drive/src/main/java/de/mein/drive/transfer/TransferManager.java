@@ -49,7 +49,7 @@ public class TransferManager extends DeferredRunnable {
     private final Wastebin wastebin;
     private final FsDao fsDao;
     private Future<?> future;
-    private CountLock lock = new CountLock();
+    private RWLock lock = new RWLock();
     //private TransferDetails currentTransfer;
     private File transferDir;
     private Map<String, MeinNotification> activeTransfers;
@@ -78,7 +78,7 @@ public class TransferManager extends DeferredRunnable {
     @Override
     public void suspend() {
         super.suspend();
-        lock.unlock();
+        lock.unlockWrite();
     }
 
     public void resume(){
@@ -100,10 +100,10 @@ public class TransferManager extends DeferredRunnable {
                 if (groupedTransferSets.size() == 0 || allTransferSetsAreActive(groupedTransferSets)) {
                     Lok.debug("TransferManager.WAIT");
                     meinDriveService.onTransfersDone();
-                    lock.lock();
+                    lock.lockWrite();
                 } else {
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {
-                        Lok.debug("TransferManager.run.2222");
+                        Lok.debug("TransferManager.run.22222");
                         // skip if already active
                         activeTransfersLock.lock();
                         if (activeTransfers.containsKey(activeTransferKey(groupedTransferSet))) {
@@ -339,7 +339,7 @@ public class TransferManager extends DeferredRunnable {
             }
             cancelActiveTransfer(transferDetails);
         }));
-        lock.unlock();
+        lock.unlockWrite();
     }
 
     public void start() {

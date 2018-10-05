@@ -1,6 +1,5 @@
 package de.mein.drive.sql;
 
-import de.mein.drive.data.fs.RootDirectory;
 import de.mein.sql.Pair;
 
 import java.util.List;
@@ -8,9 +7,9 @@ import java.util.List;
 /**
  * Created by xor on 10/27/16.
  */
-public class GenericFSEntry extends FsEntry  {
+public class GenericFSEntry extends FsEntry {
     public static Stage generic2Stage(GenericFSEntry genericFSEntry, Long stageSetId) {
-        return new Stage()
+        Stage stage = new Stage()
                 .setFsId(genericFSEntry.getId().v())
                 .setFsParentId(genericFSEntry.getParentId().v())
                 .setName(genericFSEntry.getName().v())
@@ -19,8 +18,11 @@ public class GenericFSEntry extends FsEntry  {
                 .setStageSet(stageSetId)
                 .setSize(genericFSEntry.getSize().v())
                 .setVersion(genericFSEntry.getVersion().v())
-                .setSynced(genericFSEntry.getSynced().v())
-                .setDeleted(false) ;
+                .setDeleted(false);
+        if (!stage.getIsDirectory())
+            stage.setSynced(genericFSEntry.getSynced().v());
+        return stage;
+
     }
 
     @Override

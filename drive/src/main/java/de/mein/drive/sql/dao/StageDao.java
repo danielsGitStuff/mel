@@ -256,6 +256,12 @@ StageDao extends Dao.LockingDao {
                 Lok.warn("debug2");
             if (stageSet.getId().v().toString().equals("5") && stage.getSyncedPair().notNull())
                 Lok.warn("asd");
+            if (stageSet.fromFs() && stage.getContentHashPair().equalsValue("9471e9c1779a51bb6fcb5735127c0701"))
+                Lok.warn("lel");
+            if (stage.getIsDirectory() && stage.getSyncedPair().notNull() && stage.getSynced())
+                Lok.warn("directory cannot be flagged as 'synced'");
+            if (stage.getStageSet() == 8 && stage.getNamePair().equalsValue("samesub1.txt"))
+                Lok.warn("erre?");
             Lok.debug("l "+stageSet.getId().v().toString());
             Long id = sqlQueries.insert(stage);
             if (id==26L)
@@ -309,6 +315,10 @@ StageDao extends Dao.LockingDao {
         StageSet stageSet = new StageSet().setSource(type).setOriginCertId(originCertId)
                 .setOriginServiceUuid(originServiceUuid).setStatus(status).setVersion(version);
         Long id = sqlQueries.insert(stageSet);
+//        if (type.equals(DriveStrings.STAGESET_SOURCE_FS) && originCertId!= null){
+//            //this mustn't happen
+//            Lok.error("debug");
+//        }
         //todo debug
         if (type.equals(DriveStrings.STAGESET_SOURCE_SERVER) && (originCertId == null || originServiceUuid == null))
             Lok.debug("StageDao.createStageSet.debug1");
