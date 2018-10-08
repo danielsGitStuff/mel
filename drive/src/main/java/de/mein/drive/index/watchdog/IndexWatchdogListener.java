@@ -91,6 +91,9 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     }
 
     public void ignore(String path, int amount) throws InterruptedException {
+        //todo debug
+        if (path.equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir2/samedir"))
+            Lok.warn("debug");
         Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getDriveDetails().getRole()
                 + "].ignore(" + path + ")");
         ignoredSemaphore.acquire();

@@ -168,10 +168,6 @@ public class ConflictSolver extends SyncStageMerger {
     private Conflict createConflict(Stage left, Stage right) {
         String key = Conflict.createKey(left, right);
         Conflict conflict = new Conflict(stageDao, left, right);
-        //todo debug
-        if ((left != null && left.getName().equals("sub22")) || right != null && right.getName().equals("sub22")) {
-            Lok.debug("ConflictSolver.createConflict.debugd23");
-        }
         conflicts.put(key, conflict);
         if (left != null)
             leftIdConflictsMap.put(left.getId(), conflict);
@@ -243,15 +239,6 @@ public class ConflictSolver extends SyncStageMerger {
         N.sqlResource(stageDao.getStagesResource(oldeMergedSetId), stageSet -> {
             Stage rightStage = stageSet.getNext();
             while (rightStage != null) {
-                //todo debug
-                try {
-                    if ((mergeStageSet.getId().v() == 9 || mergeStageSet.getId().v() == 8) && rightStage.getNamePair().equalsValue("samedir"))
-                        Lok.warn("debug");
-                } catch (Exception e) {
-                }
-                ;
-                if (oldeMergedSetId == 8 && rightStage.getNamePair().equalsValue("samesub"))
-                    Lok.warn("debug");
                 if (rightStage.getIsDirectory()) {
                     FsDirectory contentHashDummy = fsDao.getDirectoryById(rightStage.getFsId());
                     if (contentHashDummy == null) {
@@ -329,24 +316,6 @@ public class ConflictSolver extends SyncStageMerger {
         final Conflict conflict = conflicts.remove(key);
         final Long oldeRightId = fsStage == null ? null : fsStage.getId();
         final Long oldeLeftId = serverStage == null ? null : serverStage.getId();
-        //todo debug
-        N.s(() -> {
-            if (mergeStageSet.getId().v() == 8 && fsStage.getNamePair().equalsValue("samesub"))
-                Lok.warn("nope");
-        });
-        N.s(() -> {
-            if (fsStage.getStageSet() == 6 && fsStage.getNamePair().equalsValue("samesub"))
-                Lok.warn("debug");
-        });
-        N.s(() -> {
-            if (fsStage.getStageSet() == 6 && fsStage.getNamePair().equalsValue("samesub1.txt"))
-                Lok.warn("debug");
-        });
-        N.s(() -> {
-            if (fsStage.getStageSet() == 6 && fsStage.getNamePair().equalsValue("samedir"))
-                Lok.warn("debug");
-        });
-
 
         // if a conflict is present, apply its solution. if not, apply the left or right.
         // they must have the same hashes.
@@ -438,9 +407,6 @@ public class ConflictSolver extends SyncStageMerger {
 
         if (conflicts.containsKey(key)) {
             Conflict conflict = conflicts.remove(key);
-            //todo debug
-            if (conflict.hasRight() && conflict.hasDecision() && conflict.getRight().getName().equals("samesub"))
-                Lok.debug("ConflictSolver.solve.debug1231");
             if (conflict.isRight() && conflict.hasRight()) {
                 solvedStage = right;
                 if (left != null) {
@@ -538,9 +504,6 @@ public class ConflictSolver extends SyncStageMerger {
 
             AFile solvedFile = stageDao.getFileByStage(solvedStage);
             AFile solvedParent = solvedFile.getParentFile();
-            //todo debug
-            if (solvedParent.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir"))
-                Lok.debug("ConflictSolver.solve.debugj0f2n4");
             Stage solvedParentStage = stageDao.getStageByPath(solvedStage.getStageSet(), solvedParent);
             if (solvedParentStage != null) {
                 if (right != null && right.getFsParentId() == null) {
@@ -548,19 +511,7 @@ public class ConflictSolver extends SyncStageMerger {
                 }
                 solvedStage.setParentId(solvedParentStage.getId());
             }
-//            if (deletedParents.containsKey(solvedFile.getAbsolutePath()) && (left != null && left.getDeleted())) {
-//                solvedStage.setFsId(null);
-//            }
-//            if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
-//                Conflict parentConflict = deletedParents.get(solvedParent.getAbsolutePath());
-//                if (parentConflict.hasLeft() && parentConflict.getLeft().getDeleted())
-//                    solvedStage.setFsParentId(null);
-//            }
             if (deletedParents.containsKey(solvedParent.getAbsolutePath()) || deletedParents.containsKey(solvedFile.getAbsolutePath())) {
-//                solvedStage.setFsId(null);
-//                if (deletedParents.containsKey(solvedParent.getAbsolutePath())) {
-//                    solvedStage.setFsParentId(null);
-//                }
                 if (!solvedStage.getIsDirectory()) {
                     if (solvedStage.getContentHashPair().equalsValue("51037a4a37730f52c8732586d3aaa316"))
                         Lok.warn("debug");

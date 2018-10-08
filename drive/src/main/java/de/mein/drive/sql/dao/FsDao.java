@@ -2,17 +2,17 @@
 package de.mein.drive.sql.dao;
 
 import de.mein.Lok;
+import de.mein.auth.file.AFile;
+import de.mein.auth.tools.N;
 import de.mein.auth.tools.RWSemaphore;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
-import de.mein.auth.file.AFile;
 import de.mein.drive.sql.*;
 import de.mein.sql.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -60,23 +60,28 @@ public class FsDao extends Dao {
         printGotLock("lockRead", n);
     }
 
-    public  void unlockRead() {
+    public void unlockRead() {
         printLock("unlockRead", urcount);
         rwLock.readLock().unlock();
     }
 
+    private String[] lockedAt;
+    private Thread lockedThread;
+
     public void lockWrite() {
         int n = printLock("lockWrite", wcount);
-        if (n== 5)
+        if (n == 6)
             Lok.warn("debug");
         rwLock.writeLock().lock();
+        lockedThread = Thread.currentThread();
+        lockedAt = N.arr.cast(lockedThread.getStackTrace(), N.converter(String.class, element -> element.getClassName() + "." + element.getMethodName() + "/" + element.getLineNumber()));
         printGotLock("lockWrite", n);
         //todo debug
         if (n == 22)
             Lok.debug("FsDao.lockWrite.debugj8ivj450v");
     }
 
-    public  void unlockWrite() {
+    public void unlockWrite() {
         printLock("unlockWrite", uwcount);
         rwLock.writeLock().unlock();
     }
@@ -317,7 +322,7 @@ public class FsDao extends Dao {
     public Long getLatestVersion() throws SqlQueriesException {
         FsDirectory directory = new FsDirectory();
         String sql = "select max(" + directory.getVersion().k() + ") from " + directory.getTableName();
-        Long v = sqlQueries.queryValue(sql,Long.class,null);
+        Long v = sqlQueries.queryValue(sql, Long.class, null);
         if (v == null)
             return 0L;
         else
@@ -342,7 +347,7 @@ public class FsDao extends Dao {
         String where = fsEntry.getVersion().k() + ">?";
         List<Object> args = new ArrayList<>();
         args.add(version);
-        ISQLResource<GenericFSEntry> result = sqlQueries.loadResource(fsEntry.getAllAttributes(),GenericFSEntry.class,where,args);
+        ISQLResource<GenericFSEntry> result = sqlQueries.loadResource(fsEntry.getAllAttributes(), GenericFSEntry.class, where, args);
         return result;
     }
 
@@ -584,7 +589,7 @@ public class FsDao extends Dao {
     public boolean desiresHash(String hash) throws SqlQueriesException {
         FsFile fsFile = new FsFile();
         String query = "select count(*)>0 from " + fsFile.getTableName() + " where " + fsFile.getSynced().k() + "=? and " + fsFile.getContentHash().k() + "=?";
-        Integer result = sqlQueries.queryValue(query, Integer.class,ISQLQueries.whereArgs(false, hash));
+        Integer result = sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(false, hash));
         return SqliteConverter.intToBoolean(result);
     }
 }

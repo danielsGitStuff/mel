@@ -11,6 +11,7 @@ import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.CountLock;
+import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
@@ -331,7 +332,15 @@ public class TransferManager extends DeferredRunnable {
     }
 
     public void research() {
+        Eva.eva((eva, count) -> {
+            Lok.error(count);
+            if (count== 8)
+                Lok.warn("debug");
+        });
         N.r(() -> N.readSqlResourceIgnorantly(transferDao.getUnnecessaryTransfers(), (sqlResource, transferDetails) -> {
+            //todo debug
+            if (transferDetails.getHash().equalsValue("238810397cd86edae7957bca350098bc"))
+                Lok.warn("debug");
             transferDao.flagDeleted(transferDetails.getId().v(), true);
             MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
             if (fileProcess != null) {
@@ -344,12 +353,10 @@ public class TransferManager extends DeferredRunnable {
 
     public void start() {
         meinDriveService.execute(this);
+        this.lock.unlockWrite();
     }
 
     public void createTransfer(TransferDetails transfer) throws SqlQueriesException {
-        //todo debug
-        if (transfer.getHash().equalsValue("51037a4a37730f52c8732586d3aaa316"))
-            Lok.debug("debug");
         transferDao.insert(transfer);
     }
 

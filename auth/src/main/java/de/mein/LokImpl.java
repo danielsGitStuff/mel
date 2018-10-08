@@ -68,11 +68,11 @@ public class LokImpl {
         return "[" + stackTrace.getMethodName() + "] [" + stackTrace.getLineNumber() + "]." + mode + " == " + (msg == null ? "null" : msg.toString());
     }
 
-    protected String fabricate(StackTraceElement stackTrace, String mode, Object msg, boolean insertTag) {
+    protected synchronized String fabricate(StackTraceElement stackTrace, String mode, Object msg, boolean insertTag) {
         String tag = stackTrace.getFileName();
         String fabricateLine = fabricateLine(stackTrace, mode, msg);
 
-        reentrantLock.lock();
+//        reentrantLock.lock();
         lineCount++;
         Date date = new Date();
         String line = "";
@@ -93,7 +93,7 @@ public class LokImpl {
         }
         if (lokListener != null)
             lokListener.onPrintLn(line);
-        reentrantLock.unlock();
+//        reentrantLock.unlock();
         return line;
     }
 

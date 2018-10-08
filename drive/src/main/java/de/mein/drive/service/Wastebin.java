@@ -1,13 +1,13 @@
 package de.mein.drive.service;
 
 import de.mein.Lok;
+import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
-import de.mein.auth.file.AFile;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
@@ -44,7 +44,7 @@ public class Wastebin {
         this.indexer = meinDriveService.getIndexer();
         this.wasteDao = driveDatabaseManager.getWasteDao();
         this.wasteDir = AFile.instance(driveSettings.getTransferDirectoryFile(), DriveStrings.WASTEBIN);
-        this.deferredDir =AFile.instance(wasteDir, "deferred");
+        this.deferredDir = AFile.instance(wasteDir, "deferred");
         wasteDir.mkdirs();
         deferredDir.mkdirs();
     }
@@ -141,7 +141,7 @@ public class Wastebin {
      */
     public AFile moveToBin(Waste waste, AFile file) throws SqlQueriesException {
         try {
-            AFile target = AFile.instance(wasteDir,waste.getHash().v() + "." + waste.getId().v());
+            AFile target = AFile.instance(wasteDir, waste.getHash().v() + "." + waste.getId().v());
             file.move(target);
             waste.getInplace().v(true);
             wasteDao.update(waste);
@@ -264,22 +264,26 @@ public class Wastebin {
     public void restoreFsFiles(SyncHandler syncHandler) throws SqlQueriesException, IOException {
         List<String> availableHashes = searchTransfer();
         fsDao.lockWrite();
-        for (String hash : availableHashes) {
-            List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
-            for (FsFile fsFile : fsFiles) {
-                Waste waste = wasteDao.getWasteByHash(fsFile.getContentHash().v());
-                if (waste != null) {
-                    AFile wasteFile = AFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
-                    wasteDao.delete(waste.getId().v());
-                    fsDao.setSynced(fsFile.getId().v(), true);
-                    syncHandler.moveFile(wasteFile, fsFile);
-                } else {
-                    //todo debug
-                    System.err.println("Wastebin.restoreFsFiles.degubgseo5ß");
+        try {
+            for (String hash : availableHashes) {
+                List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
+                for (FsFile fsFile : fsFiles) {
+                    Waste waste = wasteDao.getWasteByHash(fsFile.getContentHash().v());
+                    if (waste != null) {
+                        AFile wasteFile = AFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
+                        wasteDao.delete(waste.getId().v());
+                        fsDao.setSynced(fsFile.getId().v(), true);
+                        syncHandler.moveFile(wasteFile, fsFile);
+                    } else {
+                        //todo debug
+                        System.err.println("Wastebin.restoreFsFiles.degubgseo5ß");
+                    }
                 }
             }
+        } finally {
+            fsDao.unlockWrite();
         }
-        fsDao.unlockWrite();
+
     }
 
 

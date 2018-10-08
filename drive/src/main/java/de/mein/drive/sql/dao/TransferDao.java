@@ -1,5 +1,6 @@
 package de.mein.drive.sql.dao;
 
+import de.mein.Lok;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.SqliteConverter;
 import de.mein.drive.sql.TransferDetails;
@@ -21,6 +22,9 @@ public class TransferDao extends Dao {
     }
 
     public void insert(TransferDetails transferDetails) throws SqlQueriesException {
+        //todo debug
+        if (transferDetails.getHash().equalsValue("238810397cd86edae7957bca350098bc"))
+            Lok.warn("debug");
         Long id = sqlQueries.insert(transferDetails);
         transferDetails.getId().v(id);
     }
@@ -123,8 +127,8 @@ public class TransferDao extends Dao {
 
     public void flagDeleted(Long transferId, boolean flag) throws SqlQueriesException {
         TransferDetails t = new TransferDetails();
-        String stmt = "update " + t.getTableName() + " set " + t.getDeleted().k() + "=?";
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(flag));
+        String stmt = "update " + t.getTableName() + " set " + t.getDeleted().k() + "=? where " + t.getId().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(flag, transferId));
     }
 
     public void updateAvailableByHashSet(Long certId, String serviceUUID, Collection<String> hashes) throws SqlQueriesException {

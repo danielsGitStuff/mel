@@ -66,9 +66,6 @@ public abstract class SyncHandler {
         try {
             //fsDao.lockWrite();
             target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
-            //todo debug
-            if (target.getName().equals("sub2.txt"))
-                Lok.debug("SyncHandler.moveFile.debugr23hr03w");
             Lok.debug("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
             // check if there already is a file & delete
             if (target.exists()) {
@@ -154,7 +151,6 @@ public abstract class SyncHandler {
             }
             if (fsFiles.size() > 1) {
                 for (int i = 1; i < fsFiles.size(); i++) {
-                    //TODO debug stopped here last night
                     FsFile fsFile = fsFiles.get(i);
                     copyFile(file, fsFile);
                     fsDao.setSynced(fsFile.getId().v(), true);
@@ -174,9 +170,6 @@ public abstract class SyncHandler {
         AFile target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
         fsDao.unlockRead();
         indexer.ignorePath(target.getAbsolutePath(), 2);
-        //todo debug
-        if (source == null)
-            Lok.debug("SyncHandler.copyFile.debug1");
         InputStream in = source.inputStream();
         try {
             OutputStream out = target.outputStream();
@@ -223,9 +216,7 @@ public abstract class SyncHandler {
         /**
          * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
          */
-        //todo debug
-        if (stageSetId == 2 || stageSetId == 13)
-            Lok.debug("SyncHandler.commitStage.debugj9v0jaseß");
+
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         try {
@@ -239,11 +230,6 @@ public abstract class SyncHandler {
             N.sqlResource(stageDao.getStagesByStageSet(stageSetId), stages -> {
                 Stage stage = stages.getNext();
                 while (stage != null) {
-                    //todo debug
-                    if (stage.getName().equals("samedir"))
-                        Lok.debug("SyncHandler.commitStag.debugn3uivw34e");
-                    if (stage.getName().equals("sub2.txt"))
-                        Lok.debug("SyncHandler.commitStag.debugl,b45ni");
                     if (stage.getFsId() == null) {
                         if (stage.getIsDirectory()) {
                             if (stage.getFsId() != null) {
@@ -318,11 +304,6 @@ public abstract class SyncHandler {
                             stage = stages.getNext();
                             continue;
                         }
-                        //todo debug
-                        if (stage.getSyncedPair().isNull())
-                            Lok.debug("SyncHandler.commitStage.debugebguse0");
-//                        if (stage.getDeleted() != null && stage.getDeleted() && stage.getIsDirectory())
-//                            wastebin.delete(stage.getFsId()););
                         if ((stage.getDeleted() != null && stage.getDeleted() && stage.getSynced() != null && stage.getSynced()) || (stage.getIsDirectory() && stage.getDeleted())) {
                             //if (stage.getDeleted() != null && stage.getSynced() != null && (stage.getDeleted() && stage.getSynced())) {
                             //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
@@ -354,9 +335,6 @@ public abstract class SyncHandler {
                                     }
                                 }
                             }
-                            //todo debug
-                            if (fsEntry.getSynced().isNull())
-                                Lok.debug("SyncHandler.commitStage.isnull");
                             if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
                                 fsEntry.getSynced().v(false);
                             // its remote -> not in place
@@ -365,8 +343,6 @@ public abstract class SyncHandler {
                             else if (stageSet.fromFs()) {
                                 fsEntry.getSynced().v(true);
                             }
-//                            File file = stageDao.getFileByStage(stage);
-//                            fsEntry.getSynced().v(file.exists());
                             fsDao.insertOrUpdate(fsEntry);
                             if (stageSet.getOriginCertId().notNull() && !stage.getIsDirectory()) {
                                 TransferDetails details = new TransferDetails();

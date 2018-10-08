@@ -244,28 +244,28 @@ StageDao extends Dao.LockingDao {
 
     public Stage insert(Stage stage) throws SqlQueriesException {
         try {
-            //todo debug
-            StageSet stageSet = this.getStageSetById(stage.getStageSet());
-            if (stageSet.getId().v() == 9 && stage.getNamePair().equalsValue("samedir"))
-                Lok.warn("debug");
-            if (stageSet.getId().v() == 8 && stage.getNamePair().equalsValue("samesub"))
-                Lok.warn("debih");
-            if (stage.getNamePair().equalsValue("same1.txt") && stage.getSyncedPair().notNull())
-                Lok.warn("debug1");
-            if (stage.getContentHashPair().equalsValue("244fc40b2dc42019c05fb363ecf28416") && stage.getStageSetPair().equalsValue(6L))
-                Lok.warn("debug2");
-            if (stageSet.getId().v().toString().equals("5") && stage.getSyncedPair().notNull())
-                Lok.warn("asd");
-            if (stageSet.fromFs() && stage.getContentHashPair().equalsValue("9471e9c1779a51bb6fcb5735127c0701"))
-                Lok.warn("lel");
-            if (stage.getIsDirectory() && stage.getSyncedPair().notNull() && stage.getSynced())
-                Lok.warn("directory cannot be flagged as 'synced'");
-            if (stage.getStageSet() == 8 && stage.getNamePair().equalsValue("samesub1.txt"))
-                Lok.warn("erre?");
-            Lok.debug("l " + stageSet.getId().v().toString());
+//            //todo debug
+//            StageSet stageSet = this.getStageSetById(stage.getStageSet());
+//            if (stageSet.getId().v() == 9 && stage.getNamePair().equalsValue("samedir"))
+//                Lok.warn("debug");
+//            if (stageSet.getId().v() == 8 && stage.getNamePair().equalsValue("samesub"))
+//                Lok.warn("debih");
+//            if (stage.getNamePair().equalsValue("same1.txt") && stage.getSyncedPair().notNull())
+//                Lok.warn("debug1");
+//            if (stage.getContentHashPair().equalsValue("51037a4a37730f52c8732586d3aaa316"))
+//                Lok.warn("debug2");
+//            if (stageSet.getId().v().toString().equals("5") && stage.getSyncedPair().notNull())
+//                Lok.warn("asd");
+//            if (stageSet.fromFs() && stage.getContentHashPair().equalsValue("9471e9c1779a51bb6fcb5735127c0701"))
+//                Lok.warn("lel");
+//            if (stage.getIsDirectory() && stage.getSyncedPair().notNull() && stage.getSynced())
+//                Lok.warn("directory cannot be flagged as 'synced'");
+//            if (stage.getStageSet() == 8 && stage.getNamePair().equalsValue("samesub1.txt"))
+//                Lok.warn("erre?");
+//            Lok.debug("l " + stageSet.getId().v().toString());
             Long id = sqlQueries.insert(stage);
-            if (id == 26L)
-                Lok.warn("ddeebbuugg");
+//            if (id == 26L)
+//                Lok.warn("ddeebbuugg");
             return stage.setId(id);
         } catch (Exception e) {
             e.printStackTrace();
