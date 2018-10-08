@@ -22,7 +22,7 @@ public class MapSerializerFactory implements FieldSerializerFactory {
 
     @Override
     public FieldSerializer createSerializer(SerializableEntitySerializer parentSerializer, Field field) throws IllegalAccessException, JsonSerializationException {
-        System.out.println("MapSerializerFactory.createSerializerOnClass.field: " + field);
+//        System.out.println("MapSerializerFactory.createSerializerOnClass.field: " + field);
         field.setAccessible(true);
         return new MapSerializer(parentSerializer, field);
     }

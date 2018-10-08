@@ -349,7 +349,7 @@ public class ConflictSolver extends SyncStageMerger {
                     solvedStage.setFsParentId(serverStage.getFsParentId());
                 }
                 // if it does not exist locally and we rejected the remote file: copy left to delete it.
-                if (!serverStage.getDeleted() && solvedStage == null) {
+                if (serverStage != null && !serverStage.getDeleted() && solvedStage == null) {
                     if (serverStage.getParentIdPair().notNull()) {
                         serverStage.setParentId(oldeNewIdMap.get(serverStage.getParentId()));
                     }

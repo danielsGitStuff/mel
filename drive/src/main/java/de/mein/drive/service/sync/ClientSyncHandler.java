@@ -508,7 +508,8 @@ public class ClientSyncHandler extends SyncHandler {
         if (relatedSolvers.containsKey(stageSetId)) {
             Set<ConflictSolver> solvers = relatedSolvers.remove(stageSetId);
             for (ConflictSolver solver : solvers) {
-                conflictSolverMap.remove(solver.getIdentifier());
+                ConflictSolver relatedSolver = conflictSolverMap.remove(solver.getIdentifier());
+                N.r(relatedSolver::cleanup);
             }
         }
     }

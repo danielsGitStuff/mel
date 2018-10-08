@@ -2,6 +2,7 @@ package de.mein.drive.sql.dao;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.Eva;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
@@ -264,8 +265,6 @@ StageDao extends Dao.LockingDao {
 //                Lok.warn("erre?");
 //            Lok.debug("l " + stageSet.getId().v().toString());
             Long id = sqlQueries.insert(stage);
-//            if (id == 26L)
-//                Lok.warn("ddeebbuugg");
             return stage.setId(id);
         } catch (Exception e) {
             e.printStackTrace();
@@ -315,13 +314,19 @@ StageDao extends Dao.LockingDao {
         StageSet stageSet = new StageSet().setSource(type).setOriginCertId(originCertId)
                 .setOriginServiceUuid(originServiceUuid).setStatus(status).setVersion(version);
         Long id = sqlQueries.insert(stageSet);
-//        if (type.equals(DriveStrings.STAGESET_SOURCE_FS) && originCertId!= null){
-//            //this mustn't happen
-//            Lok.error("debug");
-//        }
-        //todo debug
-        if (type.equals(DriveStrings.STAGESET_SOURCE_SERVER) && (originCertId == null || originServiceUuid == null))
-            Lok.debug("StageDao.createStageSet.debug1");
+
+        if (id == 3) {
+            Lok.warn("debugl");
+            Eva.eva((eva, count) -> {
+                Lok.debug("ins "+count);
+            });
+        }
+        if (id == 4) {
+            Lok.warn("debug");
+            Eva.eva((eva, count) -> {
+                Lok.debug("ins "+count);
+            });
+        }
         return stageSet.setId(id);
     }
 
