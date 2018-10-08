@@ -65,6 +65,11 @@ public class Conflict {
         return isRight != null && isRight;
     }
 
+    /**
+     * get you the stage that was chosen. that might be a directory higher in the hierarchy.
+     * it isn't necessarily the parent stage.
+     * @return
+     */
     public Stage getChoice() {
         if (isRight == null)
             return null;

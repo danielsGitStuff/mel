@@ -9,7 +9,9 @@ import de.mein.drive.sql.FsDirectory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by xor on 7/11/16.
@@ -84,12 +86,15 @@ class IndexWatchdogListenerUnix2 extends IndexWatchdogListenerPC {
         }
     }
 
+//    todo debug, remove
+//    private Set<String> debugKeys = new HashSet<>();
 
     @Override
     public void watchDirectory(AFile dir) {
         try {
             Path path = Paths.get(dir.getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
+//            debugKeys.add(dir.getAbsolutePath());
 //            Lok.debug("IndexWatchdogListener.watchDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();

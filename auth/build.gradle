@@ -5,6 +5,10 @@ compileJava {
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
 }
+compileTestJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 
 dependencies {
     compile project(path: ':sql')
