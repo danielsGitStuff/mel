@@ -482,6 +482,7 @@ public class ClientSyncHandler extends SyncHandler {
                 wastebin.deleteUnknown(file);
             }
         });
+        stageDao.deleteStageSet(conflictSolver.getObsoleteStageSet().getId().v());
     }
 
     private void putConflictSolver(ConflictSolver conflictSolver) {

@@ -246,7 +246,7 @@ StageDao extends Dao.LockingDao {
         try {
             //todo debug
             StageSet stageSet = this.getStageSetById(stage.getStageSet());
-            if (stageSet.getId().v() == 9 && stage.getNamePair().equalsValue("samesub"))
+            if (stageSet.getId().v() == 9 && stage.getNamePair().equalsValue("samedir"))
                 Lok.warn("debug");
             if (stageSet.getId().v() == 8 && stage.getNamePair().equalsValue("samesub"))
                 Lok.warn("debih");

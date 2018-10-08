@@ -217,12 +217,14 @@ public class FsDirectory extends FsEntry {
         }
     }
 
-    public void addDummySubFsDirectory(String name) {
+    public FsDirectory addDummySubFsDirectory(String name) {
         addSubDirectory(new FsDirectory().setName(name));
+        return this;
     }
 
-    public void addDummyFsFile(String name) {
+    public FsDirectory addDummyFsFile(String name) {
         addFile(new FsFile().setName(name));
+        return this;
     }
 
     public void removeSubFsDirecoryByName(String name) {

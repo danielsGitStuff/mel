@@ -244,6 +244,12 @@ public class ConflictSolver extends SyncStageMerger {
             Stage rightStage = stageSet.getNext();
             while (rightStage != null) {
                 //todo debug
+                try {
+                    if ((mergeStageSet.getId().v() == 9 || mergeStageSet.getId().v() == 8) && rightStage.getNamePair().equalsValue("samedir"))
+                        Lok.warn("debug");
+                } catch (Exception e) {
+                }
+                ;
                 if (oldeMergedSetId == 8 && rightStage.getNamePair().equalsValue("samesub"))
                     Lok.warn("debug");
                 if (rightStage.getIsDirectory()) {
@@ -253,7 +259,8 @@ public class ConflictSolver extends SyncStageMerger {
                         contentHashDummy = new FsDirectory();
                         List<Stage> content = stageDao.getStageContent(rightStage.getId());
                         for (Stage stage : content) {
-                            contentHashDummy.addDummyFsFile(stage.getName());
+                            if (!stage.getDeleted())
+                                contentHashDummy.addDummyFsFile(stage.getName());
                             stageDao.flagMerged(stage.getId(), true);
                         }
                     } else {
@@ -335,6 +342,10 @@ public class ConflictSolver extends SyncStageMerger {
             if (fsStage.getStageSet() == 6 && fsStage.getNamePair().equalsValue("samesub1.txt"))
                 Lok.warn("debug");
         });
+        N.s(() -> {
+            if (fsStage.getStageSet() == 6 && fsStage.getNamePair().equalsValue("samedir"))
+                Lok.warn("debug");
+        });
 
 
         // if a conflict is present, apply its solution. if not, apply the left or right.
@@ -345,18 +356,12 @@ public class ConflictSolver extends SyncStageMerger {
                 // entry exists locally, delete
                 if (fsStage != null && !fsStage.getDeleted() && solvedStage == null) {
                     if (fsStage.getParentIdPair().notNull()) {
-                        fsStage.setParentId(oldeNewIdMap.get(fsStage.getParentId()));
+                        fsStage.setParentId(oldeObsoleteMap.get(fsStage.getParentId()));
                     }
                     // connect to the bottom fs id available in the server stageset
                     if (fsStage.getFsIdPair().isNull() && fsStage.getFsParentIdPair().isNull()) {
                         // look for oldeId first
-                        Stage parent;
-//                        if (conflict.getDependsOn().isLeft()) {
-//                            parent = conflict.getDependsOn().getLeft();
-//                        } else {
-//                            parent = conflict.getDependsOn().getRight();
-//                        }
-                        parent = conflict.getDependsOn().getLeft();
+                        Stage parent = conflict.getDependsOn().getLeft();
                         if (parent != null)
                             fsStage.setFsParentId(parent.getFsId());
                     }
@@ -365,7 +370,7 @@ public class ConflictSolver extends SyncStageMerger {
                             .setStageSet(obsoleteStageSet.getId().v())
                             .setOrder(obsoleteOrder.ord());
                     stageDao.insert(fsStage);
-                    oldeNewIdMap.put(oldeRightId, fsStage.getId());
+                    oldeObsoleteMap.put(oldeRightId, fsStage.getId());
                 }
             } else {
                 solvedStage = fsStage;

@@ -7,6 +7,7 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
+import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinTestBootloader;
@@ -26,11 +27,12 @@ import org.jdeferred.impl.DeferredObject;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.net.URL;
 import java.util.List;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by xor on 12/15/16.
@@ -56,6 +58,7 @@ public class LotsOfTests {
 
         public abstract void onConnected();
     }
+
 
     @Test
     public void isolation() throws Exception {
@@ -93,7 +96,7 @@ public class LotsOfTests {
             public void onConnected() {
                 run(() -> {
                     URL otters = getClass().getClassLoader().getResource("otters.jpg");
-                    AFile source =AFile.instance(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
+                    AFile source = AFile.instance(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
                     FileTransferDetail fileTransferDetail1 = new FileTransferDetail(source, 7, 0, source.length());
                     fileTransferDetail1.openRead();
                     FileTransferDetail fileTransferDetail2 = new FileTransferDetail(target, 7, 0, source.length());
@@ -142,7 +145,7 @@ public class LotsOfTests {
             public void onConnected() {
                 run(() -> {
                     URL otters = getClass().getClassLoader().getResource("otters.jpg");
-                    AFile source =AFile.instance(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
+                    AFile source = AFile.instance(otters.getFile());//= new File(testdir1.getAbsolutePath() + File.separator + "blob.file");
                     FileTransferDetail fileTransferDetail1 = new FileTransferDetail(source, 7, 0, source.length());
                     fileTransferDetail1.setError(true);
                     fileTransferDetail1.openRead();
@@ -261,7 +264,7 @@ public class LotsOfTests {
                     meinTestService2 = (MeinTestService) standAloneAuth2.getMeinService("test uuid no. 1");
                     runner.runTry(() -> {
                         // connect first. this step will register
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect( "localhost", 8888, 8889, true);
+                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect("localhost", 8888, 8889, true);
                         connectPromise.done(meinValidationProcess -> {
                             runner.runTry(() -> {
                                 Lok.debug("LotsOfTests.setup.connected");
