@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS fsentry;
 DROP TABLE IF EXISTS stage;
 DROP TABLE IF EXISTS stageset;
 DROP TABLE IF EXISTS transfer;
+drop table if exists  missinghash;
 CREATE TABLE fsentry (
   id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name        TEXT    NOT NULL,
@@ -89,6 +90,10 @@ CREATE TABLE transfer (
   avail INTEGER,
   f_delete integer,
   UNIQUE (certid, serviceuuid, hash)
+);
+CREATE TABLE missinghash (
+	`hash`	TEXT NOT NULL,
+	PRIMARY KEY(`hash`)
 );
 CREATE TABLE waste (
   id       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

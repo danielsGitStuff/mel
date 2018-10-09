@@ -12,13 +12,15 @@ import java.util.List;
 public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
     private final Class<T> clazz;
     private final PreparedStatement preparedStatement;
+    private final List<Pair<?>> columns;
     private ResultSet resultSet;
 
 
-    public SQLResource(PreparedStatement preparedStatement, Class<T> clazz) throws SQLException {
+    public SQLResource(PreparedStatement preparedStatement, Class<T> clazz, List<Pair<?>> columns) throws SQLException {
         this.clazz = clazz;
         this.preparedStatement = preparedStatement;
         this.resultSet = preparedStatement.getResultSet();
+        this.columns = columns;
     }
 
 
@@ -28,8 +30,7 @@ public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
         try {
             if (resultSet.next()) {
                 sqlTable = clazz.newInstance();
-                List<Pair<?>> attributes = sqlTable.getAllAttributes();
-                for (Pair<?> pair : attributes) {
+                for (Pair<?> pair : columns) {
                     try {
                         Object res = resultSet.getObject(pair.k());
                         pair.setValueUnsecure(res);

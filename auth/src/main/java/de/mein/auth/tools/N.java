@@ -194,7 +194,7 @@ public class N {
      */
     public static boolean forLoop(int start, int stop, ForLoop forLoop) {
         Stoppable stoppable = new Stoppable();
-        for (int index = start; index < stop; index++) {
+        for (Integer index = start; index < stop; index++) {
             try {
                 forLoop.forloop(stoppable, index);
             } catch (Exception e) {
@@ -414,11 +414,11 @@ public class N {
 
 
     public interface ForLoop {
-        void forloop(Stoppable stoppable, int index) throws Exception;
+        void forloop(Stoppable stoppable, Integer index) throws Exception;
     }
 
     public interface ForEachLoopAdv<T> {
-        void foreach(Stoppable stoppable, int index, T t) throws Exception;
+        void foreach(Stoppable stoppable, Integer index, T t) throws Exception;
     }
 
     public interface ForEachLoop<T> {
@@ -426,7 +426,7 @@ public class N {
     }
 
     public interface MapForEachLoop<K, V> {
-        void foreach(Stoppable stoppable, int index, K k, V v) throws Exception;
+        void foreach(Stoppable stoppable, Integer index, K k, V v) throws Exception;
     }
 
     private static class Converter<T, R> {

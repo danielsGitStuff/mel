@@ -126,7 +126,7 @@ public class SQLQueries extends ISQLQueries {
                 insertArguments(pstmt, whereArgs);
             }
             pstmt.execute();
-            return new SQLResource<T>(pstmt, clazz);
+            return new SQLResource<>(pstmt, clazz, columns);
         } catch (Exception e) {
             throw new SqlQueriesException(e);
         }
@@ -488,7 +488,7 @@ public class SQLQueries extends ISQLQueries {
     }
 
     @Override
-    public <T extends SQLTableObject> ISQLResource<T> loadQueryResource(String query, List<Pair<?>> allAttributes, Class<T> clazz, List<Object> args) throws SqlQueriesException {
+    public <T extends SQLTableObject> ISQLResource<T> loadQueryResource(String query, List<Pair<?>> columns, Class<T> clazz, List<Object> args) throws SqlQueriesException {
         if (connection == null) {
             return null;
         }
@@ -498,7 +498,7 @@ public class SQLQueries extends ISQLQueries {
                 insertArguments(pstmt, args);
             }
             pstmt.execute();
-            return new SQLResource<T>(pstmt, clazz);
+            return new SQLResource<T>(pstmt, clazz, columns);
         } catch (Exception e) {
             throw new SqlQueriesException(e);
         }

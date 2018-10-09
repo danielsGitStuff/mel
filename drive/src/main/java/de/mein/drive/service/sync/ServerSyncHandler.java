@@ -5,19 +5,19 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
-import de.mein.drive.data.AvailableHashes;
-import de.mein.drive.data.Commit;
-import de.mein.drive.data.CommitAnswer;
-import de.mein.drive.data.DriveStrings;
+import de.mein.core.serialize.exceptions.JsonDeserializationException;
+import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.drive.data.*;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.sql.GenericFSEntry;
-import de.mein.drive.sql.Stage;
-import de.mein.drive.sql.StageSet;
-import de.mein.drive.sql.TransferDetails;
+import de.mein.drive.sql.*;
+import de.mein.drive.tasks.AvailHashEntry;
+import de.mein.drive.tasks.AvailableHashesContainer;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -127,8 +127,30 @@ public class ServerSyncHandler extends SyncHandler {
         return isNew;
     }
 
-    public void handleAvailableHashesRequest(Request request) {
+    public void handleAvailableHashesRequest(Request request) throws InvocationTargetException, IllegalAccessException {
         //todo stopped here
-        Lok.error("NOT:IMPLEMENTED:YET");
+        AvailableHashesContainer availableHashesContainer = (AvailableHashesContainer) request.getPayload();
+        Lok.error("NOT:IMPLEMENTED:YET.");
+        try {
+            ISQLResource<FsFile> availableHashes = driveDatabaseManager.getTransferDao().getAvailableTransfersFromHashes(availableHashesContainer.iterator());
+            AvailableHashesContainer result = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
+            result.setCacheId(availableHashesContainer.getCacheId());
+//            N.sqlResource(availableHashes,sqlResource -> {
+//                FsFile fsFile = sqlResource.getNext();
+//                while (fsFile!= null){
+//                    result.add(new AvailHashEntry(fsFile.getContentHash().v()));
+//                    fsFile = sqlResource.getNext();
+//                }
+//            });
+            N.readSqlResource(availableHashes, (sqlResource, fsFile) -> result.add(new AvailHashEntry(fsFile.getContentHash().v())));
+            availableHashesContainer.cleanUp();
+            result.toDisk();
+            result.loadFirstCached();
+            request.resolve(result);
+        } catch (SqlQueriesException | IOException | InstantiationException | NoSuchMethodException | JsonDeserializationException | JsonSerializationException e) {
+            e.printStackTrace();
+            request.reject(e);
+            availableHashesContainer.cleanUp();
+        }
     }
 }

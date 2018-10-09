@@ -1,7 +1,5 @@
 package de.mein.core.serialize.exceptions;
 
-import org.json.JSONObject;
-
 /**
  * You can return this one if you want to inform the client about what went
  * wrong. It also takes care about logging the error when calling the
@@ -35,6 +33,6 @@ public abstract class AbstractException extends Exception {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + ": msg: " + (exception == null ? "null " : exception.getMessage());
+        return getClass().getSimpleName() + ": msg: " + (exception == null ? "null " : (exception.getClass().getSimpleName() + "/" + exception.getMessage()));
     }
 }

@@ -99,6 +99,7 @@ public class DriveCreateController {
         de.mein.drive.data.DriveSettings driveSettingsCfg = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
         driveSettingsCfg.setTransferDirectory(AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR));
         driveSettingsCfg.setMaxWastebinSize((long) (driveSettingsCfg.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
+//        driveSettingsCfg.getClientSettings().setServerCertId(certId).setServerServiceUuid(serviceUuid);
         boot(service, driveSettingsCfg);
         MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinAuthService.getMeinService(service.getUuid().v());
         de.mein.drive.data.DriveSettings driveSettings = meinDriveClientService.getDriveSettings();

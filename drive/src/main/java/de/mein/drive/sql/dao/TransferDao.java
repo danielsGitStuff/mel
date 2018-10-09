@@ -1,12 +1,17 @@
 package de.mein.drive.sql.dao;
 
 import de.mein.Lok;
+import de.mein.auth.data.db.MissingHash;
+import de.mein.auth.tools.N;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.SqliteConverter;
 import de.mein.drive.sql.TransferDetails;
+import de.mein.drive.tasks.AvailHashEntry;
 import de.mein.sql.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -139,5 +144,51 @@ public class TransferDao extends Dao {
         List<Object> whereArgs = ISQLQueries.whereArgs(true, certId, serviceUUID);
         whereArgs.addAll(hashes);
         sqlQueries.execute(statement, whereArgs);
+    }
+
+    public ISQLResource<TransferDetails> getNotStartedNotAvailableTransfers(Long certId) throws SqlQueriesException {
+        TransferDetails t = new TransferDetails();
+        FsFile f = new FsFile();
+        List<Pair<?>> attributes = new ArrayList<>();
+        attributes.add(t.getHash());
+        String query = "select t." + t.getHash().k() + " from " + t.getTableName() + " t left join " + f.getTableName() + " f on f." + f.getContentHash().k() + " = t." + t.getHash().k() + " " +
+                "where t." + t.getStarted().k() + "=? and t." + t.getAvailable().k() + "=? and t." + t.getCertId().k() + "=? group by t." + t.getHash().k();
+        ISQLResource<TransferDetails> result = sqlQueries.loadQueryResource(query, attributes, TransferDetails.class, ISQLQueries.whereArgs(false, false, certId));
+        return result;
+    }
+
+
+    public synchronized ISQLResource<FsFile> getAvailableTransfersFromHashes(Iterator<AvailHashEntry> iterator) throws SqlQueriesException {
+        /**
+         * this shovels all hashes into a temporary table and joins it with the fs table.
+         */
+        MissingHash m = new MissingHash();
+        TransferDetails t = new TransferDetails();
+        FsFile f = new FsFile();
+        sqlQueries.delete(m, null, null);
+        N.forEach(iterator, availHashEntry -> {
+            this.insertHashTmp(availHashEntry.getHash());
+        });
+        List<Pair<?>> attributes = new ArrayList<>();
+        attributes.add(f.getContentHash());
+        String query = "select f." + f.getContentHash().k() + " from " + m.getTableName() + " m left join " + f.getTableName() + " f on m." + m.getHash().k() + "=" + f.getContentHash().k()
+                + " where f." + f.getSynced().k() + "=? and f." + f.getIsDirectory().k() + "=?";
+        ISQLResource<FsFile> resource = sqlQueries.loadQueryResource(query, attributes, FsFile.class, ISQLQueries.whereArgs(true, false));
+        return resource;
+    }
+
+    /**
+     * insert hashes to temporary table
+     *
+     * @param hash
+     */
+    private void insertHashTmp(String hash) throws SqlQueriesException {
+        sqlQueries.insert(new MissingHash(hash));
+    }
+
+    public void flagNotStartedHashAvailable(String hash) throws SqlQueriesException {
+        TransferDetails t = new TransferDetails();
+        String stmt = "update " + t.getTableName() + " set " + t.getAvailable().k() + "=? where " + t.getStarted().k() + "=? and " + t.getHash().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true, false, hash));
     }
 }

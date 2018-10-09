@@ -20,7 +20,10 @@ import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
+import de.mein.drive.tasks.AvailHashEntry;
+import de.mein.drive.tasks.AvailableHashesContainer;
 import de.mein.drive.tasks.SyncTask;
+import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -55,6 +58,55 @@ public class ClientSyncHandler extends SyncHandler {
         });
         fsDao.unlockWrite();
         transferManager.research();
+    }
+    private boolean debugFlag = true;
+    public void askForAvailableTransfers() {
+        try {
+            if (driveSettings.getClientSettings().getServerCertId() == null)
+                return;
+            TransferDao transferDao = driveDatabaseManager.getTransferDao();
+            ISQLResource<TransferDetails> transfers = transferDao.getNotStartedNotAvailableTransfers(driveSettings.getClientSettings().getServerCertId());
+            AvailableHashesContainer availableHashesTask = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
+            N.readSqlResource(transfers, (sqlResource, transfer) -> {
+                availableHashesTask.add(new AvailHashEntry(transfer.getHash().v()));
+            });
+            // uncomment to see some communication happen. but be warned: will cause infinite loop!
+            N.r(() -> {
+                availableHashesTask.add(new AvailHashEntry("51037a4a37730f52c8732586d3aaa316"));
+                availableHashesTask.add(new AvailHashEntry("238810397cd86edae7957bca350098bc"));
+                availableHashesTask.add(new AvailHashEntry("fdcbc1aca23cfebaa128bac31df20969"));
+            });
+            if (availableHashesTask.getSize() > 0 && debugFlag) {
+                meinAuthService.connect(driveSettings.getClientSettings().getServerCertId())
+                        .done(mvp -> {
+                            N.r(() -> {
+                                availableHashesTask.toDisk();
+                                availableHashesTask.loadFirstCached();
+                                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_ASK_HASHES_AVAILABLE, availableHashesTask)
+                                        .done(result -> {
+                                            debugFlag = false;
+                                            Lok.debug("got available hashes.");
+                                            AvailableHashesContainer availHashesContainer = (AvailableHashesContainer) result;
+                                            N.forEachIgnorantly(availHashesContainer, hashEntry -> {
+                                                transferDao.flagNotStartedHashAvailable(hashEntry.getHash());
+                                            });
+                                            availHashesContainer.cleanUp();
+                                            if (availHashesContainer.getSize() > 0)
+                                                transferManager.research();
+                                        });
+                                availableHashesTask.cleanUp();
+                            });
+                        }).fail(result -> {
+                    availableHashesTask.cleanUp();
+                    Lok.debug("fail");
+                });
+            } else {
+                availableHashesTask.cleanUp();
+            }
+            Lok.debug("asking for new available hashes....");
+        } catch (SqlQueriesException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private class keks<K, V> extends HashMap<K, V> {

@@ -128,8 +128,8 @@ public class EntityAnalyzer {
 
 
     public static SerializableEntity instance(String simpleClassName)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-        SerializableEntity entity = EntityAnalyzer.clazz(simpleClassName).newInstance();
+            throws ReflectiveOperationException {
+        SerializableEntity entity = EntityAnalyzer.clazz(simpleClassName).getDeclaredConstructor().newInstance();
         return entity;
     }
 

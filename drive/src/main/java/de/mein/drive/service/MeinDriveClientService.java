@@ -63,6 +63,13 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
 
     @Override
+    public void onTransfersDone() {
+        super.onTransfersDone();
+        // check if we stored not-available transfers. if so ask the server if they are available now
+        syncHandler.askForAvailableTransfers();
+    }
+
+    @Override
     protected boolean workWorkWork(Job unknownJob) {
         Lok.debug(meinAuthService.getName() + ".MeinDriveClientService.workWorkWork :)");
         if (unknownJob instanceof ServiceRequestHandlerJob) {
