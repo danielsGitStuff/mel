@@ -1,5 +1,6 @@
 package de.mein.auth.data.access;
 
+import de.mein.Lok;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.db.*;
@@ -44,6 +45,10 @@ public final class DatabaseManager extends FileRelatedManager {
         return name;
     }
 
+    public void shutDown() {
+        getSqlQueries().onShutDown();
+    }
+
     public interface SqlInputStreamInjector {
         InputStream createSqlFileInputStream();
     }
@@ -62,10 +67,11 @@ public final class DatabaseManager extends FileRelatedManager {
 
     private static SQLConnectionCreator sqlConnectionCreator = databaseManager -> {
         File f = new File(databaseManager.createWorkingPath() + DB_FILENAME);
+        Lok.debug("opening database: " + f.getAbsolutePath());
         SQLQueries sqlQueries = new SQLQueries(SQLConnector.createSqliteConnection(f), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
         // turn on foreign keys
         try {
-            sqlQueries.execute("PRAGMA foreign_keys = ON;",null);
+            sqlQueries.execute("PRAGMA foreign_keys = ON;", null);
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         }

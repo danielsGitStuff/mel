@@ -91,10 +91,17 @@ StageDao extends Dao.LockingDao {
         sqlQueries.update(stageSet, stageSet.getId().k() + "=?", ISQLQueries.whereArgs(stageSet.getId().v()));
     }
 
+    /**
+     * gets you StageSets that have their origin in things happened on your file system.
+     * this also includes previously merged StageSets
+     *
+     * @return
+     * @throws SqlQueriesException
+     */
     public List<StageSet> getStagedStageSetsFromFS() throws SqlQueriesException {
         StageSet stageSet = new StageSet();
-        String where = stageSet.getSource().k() + "=? and " + stageSet.getStatus().k() + "=?";
-        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_SOURCE_FS, DriveStrings.STAGESET_STATUS_STAGED));
+        String where = "(" + stageSet.getSource().k() + "=? or " + stageSet.getSource().k() + "=?) and " + stageSet.getStatus().k() + "=?";
+        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.whereArgs(DriveStrings.STAGESET_SOURCE_FS, DriveStrings.STAGESET_SOURCE_MERGED, DriveStrings.STAGESET_STATUS_STAGED));
     }
 
     public List<StageSet> getUpdateStageSetsFromServer() throws SqlQueriesException {
@@ -245,9 +252,9 @@ StageDao extends Dao.LockingDao {
 
     public Stage insert(Stage stage) throws SqlQueriesException {
         try {
-//            //todo debug
+            //todo debug
 //            StageSet stageSet = this.getStageSetById(stage.getStageSet());
-//            if (stageSet.getId().v() == 9 && stage.getNamePair().equalsValue("samedir"))
+//            if (stageSet.getId().v() == 3 && stageSet.getSource().equalsValue("client") && stage.getNamePair().equalsValue("same1.txt"))
 //                Lok.warn("debug");
 //            if (stageSet.getId().v() == 8 && stage.getNamePair().equalsValue("samesub"))
 //                Lok.warn("debih");
@@ -318,13 +325,13 @@ StageDao extends Dao.LockingDao {
         if (id == 3) {
             Lok.warn("debugl");
             Eva.eva((eva, count) -> {
-                Lok.debug("ins "+count);
+                Lok.debug("ins " + count);
             });
         }
         if (id == 4) {
             Lok.warn("debug");
             Eva.eva((eva, count) -> {
-                Lok.debug("ins "+count);
+                Lok.debug("ins " + count);
             });
         }
         return stageSet.setId(id);

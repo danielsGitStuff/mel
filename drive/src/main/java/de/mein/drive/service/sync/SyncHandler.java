@@ -281,7 +281,7 @@ public abstract class SyncHandler {
                             if (stageSet.fromFs()) {
                                 fsFile.getSynced().v(true);
                             } else {
-                                fsFile.getSynced().v(stage.getSynced());
+                                fsFile.getSynced().v(false);
                             }
                             fsDao.insert(fsFile);
                             if (!stageSet.fromFs() && !stage.getIsDirectory()) {
@@ -292,6 +292,7 @@ public abstract class SyncHandler {
                                 details.getHash().v(stage.getContentHash());
                                 details.getDeleted().v(false);
                                 details.getSize().v(stage.getSize());
+                                setupTransferAvailable(details, stageSet, stage);
                                 N.r(() -> transferManager.createTransfer(details));
                             }
                             if (stageIdFsIdMap != null) {
@@ -318,7 +319,7 @@ public abstract class SyncHandler {
                             }
                             if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
                                 FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
-                                if (oldeFsFile != null && !stageSet.fromFs() && !fsEntry.getSynced().v()) {
+                                if (oldeFsFile != null && !stageSet.fromFs() && fsEntry.getSynced().notNull() && !fsEntry.getSynced().v()) {
                                     wastebin.deleteFsFile(oldeFsFile);
                                 } else {
                                     // delete file. consider that it might be in the same state as the stage
@@ -351,9 +352,7 @@ public abstract class SyncHandler {
                                 details.getHash().v(stage.getContentHash());
                                 details.getDeleted().v(false);
                                 details.getSize().v(stage.getSize());
-                                if (!stage.getIsDirectory() && stage.getStageSetPair().notNull()) {
-                                    details.getAvailable().v(stage.getSynced());
-                                }
+                                setupTransferAvailable(details, stageSet, stage);
                                 N.r(() -> transferManager.createTransfer(details));
                             }
                             this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
@@ -372,6 +371,12 @@ public abstract class SyncHandler {
         } finally {
             if (lockFsEntry)
                 fsDao.unlockWrite();
+        }
+    }
+
+    protected void setupTransferAvailable(TransferDetails details, StageSet stageSet, Stage stage) {
+        if (!stage.getIsDirectory() && stage.getStageSetPair().notNull()) {
+            details.getAvailable().v(stage.getSynced());
         }
     }
 

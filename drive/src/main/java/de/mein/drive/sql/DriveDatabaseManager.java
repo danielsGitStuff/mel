@@ -2,11 +2,11 @@ package de.mein.drive.sql;
 
 import de.mein.Lok;
 import de.mein.auth.data.access.FileRelatedManager;
+import de.mein.auth.file.AFile;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
-import de.mein.auth.file.AFile;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -55,7 +55,10 @@ public class DriveDatabaseManager extends FileRelatedManager {
         ISQLQueries createConnection(DriveDatabaseManager driveDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
     }
 
-    private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME)), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
+    private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> {
+        File f = new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME);
+        return new SQLQueries(SQLConnector.createSqliteConnection(f), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer())        ;
+    };
 
     public static void setSqlqueriesCreator(SQLConnectionCreator sqlqueriesCreator) {
         DriveDatabaseManager.sqlqueriesCreator = sqlqueriesCreator;
@@ -111,7 +114,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         this.driveSettings = DriveSettings.load(fsDao, driveSettingsFile, driveSettingsCfg).setRole(driveSettingsCfg.getRole()).setRootDirectory(driveSettingsCfg.getRootDirectory());
         this.driveSettings.getRootDirectory().backup();
         this.driveSettings.getRootDirectory().setOriginalFile(driveSettingsCfg.getRootDirectory().getOriginalFile());
-        this.driveSettings.setTransferDirectory(AFile.instance(this.driveSettings.getRootDirectory().getOriginalFile(),DriveStrings.TRANSFER_DIR));
+        this.driveSettings.setTransferDirectory(AFile.instance(this.driveSettings.getRootDirectory().getOriginalFile(), DriveStrings.TRANSFER_DIR));
         this.driveSettings.setMaxWastebinSize(driveSettingsCfg.getMaxWastebinSize());
         this.driveSettings.setMaxAge(driveSettingsCfg.getMaxAge());
 

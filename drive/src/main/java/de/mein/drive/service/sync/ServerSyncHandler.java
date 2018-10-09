@@ -5,10 +5,10 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.drive.data.AvailableHashes;
 import de.mein.drive.data.Commit;
 import de.mein.drive.data.CommitAnswer;
 import de.mein.drive.data.DriveStrings;
-import de.mein.drive.data.AvailableHashes;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.GenericFSEntry;
@@ -38,6 +38,12 @@ public class ServerSyncHandler extends SyncHandler {
         super(meinAuthService, meinDriveService);
     }
 
+    @Override
+    protected void setupTransferAvailable(TransferDetails details, StageSet stageSet, Stage stage) {
+        if (stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_CLIENT))
+            details.getAvailable().v(true);
+    }
+
     public void handleCommit(Request request) throws SqlQueriesException {
         // todo threading issues? check for unlocking DAOs after the connection/socket died.
         Commit commit = (Commit) request.getPayload();
@@ -55,12 +61,12 @@ public class ServerSyncHandler extends SyncHandler {
             while (iterator.hasNext()) {
                 Stage stage = iterator.next();
                 stage.setStageSet(stageSet.getId().v());
-                if (!stage.getIsDirectory()) {
-                    if (stage.getDeleted())
-                        stage.setSynced(true);
-                    else
-                        stage.setSynced(false);
-                }
+//                if (!stage.getIsDirectory()) {
+//                    if (stage.getDeleted())
+//                        stage.setSynced(true);
+//                    else
+//                        stage.setSynced(false);
+//                }
                 // set "new" parent id
                 if (stage.getParentId() != null && oldStageIdStageIdMap.containsKey(stage.getParentId())) {
                     stage.setParentId(oldStageIdStageIdMap.get(stage.getParentId()));

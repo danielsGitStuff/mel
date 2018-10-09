@@ -520,6 +520,7 @@ public class MeinAuthService {
         }
         meinAuthWorker.shutDown();
         N.r(meinBoot::shutDown);
+        databaseManager.shutDown();
     }
 
     public void suspend() {

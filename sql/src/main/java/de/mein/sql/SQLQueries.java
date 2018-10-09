@@ -20,7 +20,7 @@ public class SQLQueries extends ISQLQueries {
     private RWLock lock;
     public static final boolean SYSOUT = false;
     private final JDBCConnection sqlConnection;
-    private final Connection connection;
+    private Connection connection;
     private final SqlResultTransformer resultTransformer;
 
 
@@ -478,8 +478,10 @@ public class SQLQueries extends ISQLQueries {
     @Override
     public void onShutDown() {
         try {
-            if (connection != null)
+            if (connection != null) {
                 connection.close();
+                connection = null;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
