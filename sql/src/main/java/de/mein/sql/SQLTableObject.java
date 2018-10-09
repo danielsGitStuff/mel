@@ -3,7 +3,9 @@ package de.mein.sql;
 import de.mein.core.serialize.JsonIgnore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * basically represents a row in a database table.
@@ -16,6 +18,8 @@ public abstract class SQLTableObject {
     protected transient List<Pair<?>> allAttributes;
     @JsonIgnore
     protected transient List<Pair<?>> insertAttributes;
+    @JsonIgnore
+    protected transient Map<String, Pair<?>> pairs;
 
     public abstract String getTableName();
 
@@ -31,6 +35,7 @@ public abstract class SQLTableObject {
 
     /**
      * put everything in here which is not auto filled by the database. afterwards insert the rest with populateAll()
+     *
      * @param pairs
      */
     protected void populateInsert(Pair... pairs) {
@@ -41,6 +46,7 @@ public abstract class SQLTableObject {
 
     /**
      * insert IDs and other stuff that is auto filled by the database. call populateInsert() first
+     *
      * @param pairs
      */
     protected void populateAll(Pair... pairs) {
@@ -80,4 +86,12 @@ public abstract class SQLTableObject {
         return result;
     }
 
+    public Pair<?> getPair(String k) {
+        if (pairs == null) {
+            pairs = new HashMap<>();
+            for (Pair<?> pair : allAttributes)
+                pairs.put(pair.k(), pair);
+        }
+        return pairs.get(k);
+    }
 }

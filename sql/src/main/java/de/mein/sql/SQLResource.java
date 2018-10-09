@@ -33,7 +33,7 @@ public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
                 for (Pair<?> pair : columns) {
                     try {
                         Object res = resultSet.getObject(pair.k());
-                        pair.setValueUnsecure(res);
+                        sqlTable.getPair(pair.k()).setValueUnsecure(res);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
