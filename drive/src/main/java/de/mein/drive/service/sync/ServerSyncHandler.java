@@ -126,4 +126,9 @@ public class ServerSyncHandler extends SyncHandler {
             N.r(() -> hashAvailTimer.start());
         return isNew;
     }
+
+    public void handleAvailableHashesRequest(Request request) {
+        //todo stopped here
+        Lok.error("NOT:IMPLEMENTED:YET");
+    }
 }

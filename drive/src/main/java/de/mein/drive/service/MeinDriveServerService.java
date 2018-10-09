@@ -86,6 +86,9 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                     } else if (checkIntent(request, DriveStrings.INTENT_COMMIT)) {
                         syncHandler.handleCommit(request);
                         return true;
+                    }else if (checkIntent(request,DriveStrings.INTENT_ASK_HASHES_AVAILABLE)){
+                        syncHandler.handleAvailableHashesRequest(request);
+                        return true;
                     }
                 } else if (job.isMessage()) {
 

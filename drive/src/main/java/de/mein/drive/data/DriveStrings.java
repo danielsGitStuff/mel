@@ -17,6 +17,8 @@ public abstract class DriveStrings {
     public static final String INTENT_PLEASE_TRANSFER = "transfer";
     public static final String INTENT_PROPAGATE_NEW_VERSION = "nVersion";
     public static final String INTENT_COMMIT = "commit";
+    public static final String INTENT_HASH_AVAILABLE = "hash.avail";
+    public static final String INTENT_ASK_HASHES_AVAILABLE = "hash.please";
 
     // file system related stuff
     public static final String WASTEBIN = "wastebin";
@@ -31,7 +33,6 @@ public abstract class DriveStrings {
     public static final String STAGESET_STATUS_SERVER_COMMITED = "server.com.done";
     public static final String STAGESET_STATUS_DELETE = "del";
     public static final String TRANSFER_DIR = "ttransfer";
-    public static final String INTENT_HASH_AVAILABLE = "hash.avail";
 
     public class Notifications {
         public static final String INTENTION_CONFLICT_DETECTED = "drive.conflict.detected";
