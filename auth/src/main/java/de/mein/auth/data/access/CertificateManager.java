@@ -284,13 +284,13 @@ public class CertificateManager extends FileRelatedManager {
         try {
             kmf = KeyManagerFactory.getInstance("X509");
         } catch (Exception e) {
-            Lok.error("CertificateManager.getSSLContext(X509).failed.trying(SunX509)");
+            Lok.error("X509 failed. trying(SunX509)");
         }
         if (kmf == null)
             try {
                 kmf = KeyManagerFactory.getInstance("SunX509");
             } catch (Exception e) {
-                Lok.error("CertificateManager.getSSLContext(SunX509).failed");
+                Lok.error("SunX509 failed");
             }
         kmf.init(keyStore, PASS.toCharArray());
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
@@ -365,6 +365,7 @@ public class CertificateManager extends FileRelatedManager {
         return certificate;
     }
 
+    @SuppressWarnings("Duplicates")
     public Socket createSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         SSLSocket socket = (SSLSocket) getSSLContext().getSocketFactory().createSocket();
         try {
@@ -379,6 +380,7 @@ public class CertificateManager extends FileRelatedManager {
         return socket;
     }
 
+    @SuppressWarnings("Duplicates")
     public ServerSocket createServerSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         SSLServerSocket socket = (SSLServerSocket) getSSLContext().getServerSocketFactory().createServerSocket();
         try {
