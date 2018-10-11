@@ -1,10 +1,10 @@
 import de.mein.Lok;
+import de.mein.auth.socket.MeinSocket;
 import de.mein.sql.Hash;
 import de.miniserver.MiniServer;
 import de.miniserver.socket.BinarySocket;
 import org.junit.After;
 import org.junit.Before;
-import static org.junit.Assert.*;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -13,6 +13,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
+@SuppressWarnings("Duplicates")
 public class Test {
     private static final File TEST_DIR = new File("miniserver.w.test");
 
@@ -54,15 +58,47 @@ public class Test {
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         FileOutputStream fos = new FileOutputStream(receivedTestFile);
         out.writeUTF(BinarySocket.QUERY_FILE + hash);
-        while (!socket.isClosed()) {
-            byte[] bytes = new byte[ 2];
-            in.readFully(bytes);
-            fos.write(bytes);
+        byte[] bytes;
+        try {
+            bytes = new byte[MeinSocket.BLOCK_SIZE];
+            int read;
+            do {
+                read = in.read(bytes);
+                if (read > 0)
+                    fos.write(bytes, 0, read);
+            } while (read > 0);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         String receivedHash = Hash.sha256(new FileInputStream(receivedTestFile));
         assertEquals(hash, receivedHash);
-//        Lok.debug("done");
-//        while (true) {
-//        }
+        Lok.debug("done");
+    }
+
+    @org.junit.Test
+    public void binaryFail() throws Exception {
+        Lok.debug(hash);
+        Socket socket = new Socket();
+        socket.connect(new InetSocketAddress("localhost", MiniServer.DEFAULT_BINARY_PORT));
+        DataInputStream in = new DataInputStream(socket.getInputStream());
+        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+        FileOutputStream fos = new FileOutputStream(receivedTestFile);
+        out.writeUTF(BinarySocket.QUERY_FILE + "rubbish");
+        byte[] bytes;
+        try {
+            bytes = new byte[MeinSocket.BLOCK_SIZE];
+            int read;
+            do {
+                read = in.read(bytes);
+                if (read > 0)
+                    fos.write(bytes, 0, read);
+            } while (read > 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String receivedHash = Hash.sha256(new FileInputStream(receivedTestFile));
+        assertNotEquals(hash, receivedHash);
+        assertEquals(0L,receivedTestFile.length());
+        Lok.debug("done");
     }
 }

@@ -1,5 +1,6 @@
 package de.miniserver.socket;
 
+import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.auth.tools.N;
 
@@ -23,8 +24,9 @@ public abstract class SimpleSocket implements MeinRunnable {
     }
 
     protected void shutdown() {
+        Lok.debug("shutting down");
         N.s(() -> in.close());
         N.s(() -> out.close());
-        N.s(() -> socket.close());
+        N.r(() -> socket.close());
     }
 }
