@@ -50,6 +50,10 @@ android {
 //        }
     }
     buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -77,30 +81,23 @@ task copyFiles(type: Copy) {
     include('*.sql')
     logger.error(f.getAbsolutePath())
     logger.error(t.getAbsolutePath())
+
+    File versionsTxt = new File('version.apk.txt')
+    Long oldeVersion = null;
+    if (versionsTxt.exists()) {
+        String fileContents = versionsTxt.getText('UTF-8')
+        oldeVersion = Long.parseLong(fileContents)
+    } else
+        oldeVersion = 0
+    Long version = oldeVersion + 1
+    logger.error("updating version from " + oldeVersion + " to " + version)
+    versionsTxt.text = version.toString()
 }
 
 preBuild.dependsOn(copyFiles)
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-//    implementation 'androidx.multidex:multidex:2.0.0'
-//    implementation project(':json')
-//    implementation project(':serialize')
-//    implementation project(':sql')
-//    implementation project(':auth')
-//    implementation project(':drive')
-//    testImplementation project(':drive')
-//    implementation project(':contacts')
-//    implementation 'androidx.appcompat:appcompat:1.0.0'
-//    implementation 'com.google.android.material:material:1.0.0'
-//    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
-//    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-//    implementation 'androidx.gridlayout:gridlayout:1.0.0'
-//    androidTestImplementation 'androidx.annotation:annotation:1.0.0'
-//    androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
-//    androidTestImplementation 'androidx.test:rules:1.1.0-alpha4'
-//    testImplementation 'junit:junit:4.12'
-
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:multidex:1.0.3'
     implementation project(':json')
     implementation project(':serialize')
@@ -118,20 +115,23 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
     testImplementation 'junit:junit:4.12'
-
     def work_version = "1.0.0-alpha09"
-
-//    implementation "android.arch.work:work-runtime:$work_version"
+    //    implementation "android.arch.work:work-runtime:$work_version"
 }
 
-task updateVersion(type: DefaultTask) {
-    File versionsTxt = new File('app/version.txt')
-    String fileContents = versionsTxt.getText('UTF-8')
-    Long oldeVersion = Long.parseLong(fileContents)
+task updateVersion(type: DefaultTask) << {
+    File versionsTxt = new File('version.apk.txt')
+    Long oldeVersion = null;
+    if (versionsTxt.exists()) {
+        String fileContents = versionsTxt.getText('UTF-8')
+        oldeVersion = Long.parseLong(fileContents)
+    } else
+        oldeVersion = 0
     Long version = oldeVersion + 1
     logger.error("updating version from " + oldeVersion + " to " + version)
     versionsTxt.text = version.toString()
 }
+
 
 repositories {
     mavenCentral()

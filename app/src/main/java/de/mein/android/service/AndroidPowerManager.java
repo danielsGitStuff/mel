@@ -37,7 +37,7 @@ public class AndroidPowerManager extends PowerManager {
         noPowerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_NO_WIFI, false);
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
         wakeLock(this);
-        wakeTimer = new WatchDogTimer(() -> {
+        wakeTimer = new WatchDogTimer("android power manager",() -> {
             stateLock.lock();
             changeState();
             wakeTimer.cancel();

@@ -163,7 +163,7 @@ public class AndroidServiceMethods {
     }
 
     public void listenForContactsChanges() {
-        watchDogTimer = new WatchDogTimer(() -> service.addJob(new ExamineJob()), 20, 100, 100);
+        watchDogTimer = new WatchDogTimer("contact changes",() -> service.addJob(new ExamineJob()), 20, 100, 100);
         Context context = Tools.getApplicationContext();
         observer = new ContentObserver(null) {
             @Override

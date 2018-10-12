@@ -42,7 +42,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         this.setStageIndexer(meinDriveService.getStageIndexer());
         this.transferDirectory = meinDriveService.getDriveSettings().getTransferDirectoryFile();
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
-        this.watchDogTimer = new WatchDogTimer(this::onTimerStopped, 15, 100, 1000);
+        this.watchDogTimer = new WatchDogTimer("recursive watcher",this::onTimerStopped, 15, 100, 1000);
         unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), target, meinDriveService.getDriveSettings().getTransferDirectory());
         unixReferenceFileHandler.onStart();
     }
