@@ -1,3 +1,5 @@
+import java.time.LocalDateTime
+
 apply plugin: 'java'
 //apply plugin: 'gradle-one-jar'
 
@@ -24,15 +26,30 @@ dependencies {
 //task awesomeFunJar(type: OneJar) {
 //    mainClass = 'com.github.rholder.awesome.MyAwesomeMain'
 //}
-task updateVersion(type: DefaultTask) {
-    File versionsTxt = new File('fxbundle/version.txt')
-    String fileContents = versionsTxt.getText('UTF-8')
-    Long oldeVersion = Long.parseLong(fileContents)
-    Long version = oldeVersion + 1
-    logger.error("updating version from " + oldeVersion + " to " + version)
-    versionsTxt.text = version.toString()
-}
-buildDependents {
+//task updateVersion(type: DefaultTask) {
+//    File versionsTxt = new File('fxbundle/version.txt')
+//    String fileContents = versionsTxt.getText('UTF-8')
+//    Long oldeVersion = Long.parseLong(fileContents)
+//    Long version = oldeVersion + 1
+//    logger.error("updating version from " + oldeVersion + " to " + version)
+//    versionsTxt.text = version.toString()
+//}
+build{
+    File versionTxt = new File('version.jar.txt')
+    File versionAsset = new File('auth'+File.separator+"src"+File.separator+"main"+File.separator+"resources"+File.separator+"version.txt")
+    LocalDateTime oldeVersion = null;
+    try{
+        String fileContents = versionTxt.getText('UTF-8')
+        logger.error(fileContents)
+        //oldeVersion = Long.parseLong(fileContents)
+        oldeVersion = LocalDateTime.parse(fileContents)
+    }catch (Exception e){
+        oldeVersion = LocalDateTime.now()
+    }
+    LocalDateTime version = LocalDateTime.now()
+    logger.error("updating version from " + oldeVersion.toString() + " to " + version.toString())
+    versionTxt.text = version.toString()
+    versionAsset.text = version.toString()
 }
 
 task bundledJar(type: Jar) {

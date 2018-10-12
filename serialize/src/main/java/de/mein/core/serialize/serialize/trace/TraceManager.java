@@ -5,8 +5,7 @@ import de.mein.core.serialize.exceptions.InvalidPathException;
 import de.mein.core.serialize.serialize.trace.paths.ClassPathPart;
 import de.mein.core.serialize.serialize.trace.paths.IPathPart;
 import de.mein.core.serialize.serialize.trace.paths.PathFinder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

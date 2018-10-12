@@ -9,6 +9,9 @@ compileTestJava {
     targetCompatibility = '1.8'
 }
 dependencies {
+    // its a dark theme
+//    compile group: 'org.jfxtras', name: 'jmetro', version: '4.6'
+//    testCompile group: 'org.jfxtras', name: 'jmetro', version: '4.6'
     compile project(path: ':auth')
     testCompile project(path: ':auth')
     testCompile 'junit:junit:4.12'

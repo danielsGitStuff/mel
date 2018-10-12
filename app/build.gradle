@@ -1,3 +1,5 @@
+import java.time.LocalDateTime
+
 apply plugin: 'com.android.application'
 //apply plugin: 'kotlin-android'
 //apply plugin: 'me.tatarka.retrolambda'
@@ -82,16 +84,21 @@ task copyFiles(type: Copy) {
     logger.error(f.getAbsolutePath())
     logger.error(t.getAbsolutePath())
 
-    File versionsTxt = new File('version.apk.txt')
-    Long oldeVersion = null;
-    if (versionsTxt.exists()) {
-        String fileContents = versionsTxt.getText('UTF-8')
-        oldeVersion = Long.parseLong(fileContents)
-    } else
-        oldeVersion = 0
-    Long version = oldeVersion + 1
-    logger.error("updating version from " + oldeVersion + " to " + version)
-    versionsTxt.text = version.toString()
+    File versionTxt = new File('version.apk.txt')
+    File versionAsset = new File('auth'+File.separator+"src"+File.separator+"main"+File.separator+"assets"+File.separator+"version.txt")
+    LocalDateTime oldeVersion = null;
+    try{
+        String fileContents = versionTxt.getText('UTF-8')
+        logger.error(fileContents)
+        //oldeVersion = Long.parseLong(fileContents)
+        oldeVersion = LocalDateTime.parse(fileContents)
+    }catch (Exception e){
+        oldeVersion = LocalDateTime.now()
+    }
+    LocalDateTime version = LocalDateTime.now()
+    logger.error("updating version from " + oldeVersion.toString() + " to " + version.toString())
+    versionTxt.text = version.toString()
+    versionAsset.text = version.toString()
 }
 
 preBuild.dependsOn(copyFiles)

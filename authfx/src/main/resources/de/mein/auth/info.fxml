@@ -13,7 +13,7 @@
         <Label fx:id="lblStatus" text="status goes here" GridPane.columnIndex="1" GridPane.rowIndex="0" />
         <Label styleClass="prop" text="Name:" GridPane.rowIndex="1" />
         <Label fx:id="lblName" text="name goes here" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="propsection" text="Your network interfaces and IP addresses: " GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
+        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="label center" text="Your network interfaces and IP addresses: " GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
             <padding>
                 <Insets top="5" />
             </padding>

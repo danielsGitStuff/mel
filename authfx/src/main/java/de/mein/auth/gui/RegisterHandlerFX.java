@@ -4,6 +4,7 @@ import de.mein.Lok;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import javafx.application.Platform;
@@ -105,7 +106,7 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
             controller.setListener(listener);
             controller.setRequest(request);
             Scene scene = new Scene(root);
-            scene.getStylesheets().add("de/mein/modena_dark.css");
+            scene.getStylesheets().add(MeinAuthAdminFX.GLOBAL_STYLE_CSS);
             Stage stage = new Stage();
             stage.setTitle("UML");
             stage.setScene(scene);

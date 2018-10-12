@@ -2,22 +2,60 @@
     -fx-padding: 5;
 }
 
-.label-positive{
+.label-positive {
     -fx-background-color: #57bf40;
 }
-.label-negative{
+
+.label-negative {
     -fx-background-color: rgb(204, 0, 0);
 }
 
 .prop {
-@extend label;
-    -fx-background-color: #7e7e7e;
-    -fx-background-radius: 5;
+    /*@extend label;*/
+    /*-fx-background-color: #7e7e7e;*/
+    /*-fx-background-radius: 5;*/
 }
 
 .propsection {
-@extend prop;
-    -fx-padding: 10 5 10 5;
+    /*@extend prop;*/
+    /*-fx-padding: 10 5 10 5;*/
+    /*-fx-background-color: #4f4f4f;*/
+    /*-fx-background-radius: 0;*/
+}
+
+.label center {
+    -fx-alignment: center;
+}
+
+.label-center {
+@extends label;
+    -fx-alignment: center;
+    -fx-pref-width: Infinity;
+}
+
+.section {
     -fx-background-color: #4f4f4f;
-    -fx-background-radius: 0;
+}
+
+.darkweb {
+    -fx-background-color: #000000;
+    -webkit-background: #000;
+    -moz-background: #000;
+    -ms-background: #000;
+    -o-background: #000;
+    -khtml-background: #000;
+    background: #000;
+}
+
+.label-title {
+/*@extends label;*/
+    /*-fx-pref-width: Infinity;*/
+    /*-fx-alignment: center;*/
+}
+.tittle{
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+    /*-fx-background-color: #545454;*/
+    /*-fx-pref-width: Infinity;*/
+    /*-fx-alignment: center;*/
 }

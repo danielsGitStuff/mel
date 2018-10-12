@@ -52,13 +52,15 @@ import java.util.Set;
 public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotification.MeinProgressListener {
 
     private static final int IMAGE_SIZE = 22;
+    public static final String GLOBAL_STYLE_CSS = "/de/mein/modena_dark.css";
+//    public static final String GLOBAL_STYLE_CSS = "/de/mein/jmetro.dark.css";
     private MeinAuthService meinAuthService;
     private Stage stage;
 
     @FXML
     private TextField txtServiceFilter, txtCertificateFilter;
     @FXML
-    private Button btnSecondary, btnPrimary, btnAccess, btnCreateService, btnOthers, btnSettings;
+    private Button btnSecondary, btnPrimary, btnAccess, btnCreateService, btnOthers, btnSettings, btnAbout;
     @FXML
     private Button btnInfo, btnPairing, btnNotifications;
     @FXML
@@ -76,7 +78,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     private VBox vboxServices;
 
     @FXML
-    private ImageView imgInfo, imgAccess, imgOthers, imgPairing, imgSettings;
+    private ImageView imgInfo, imgAccess, imgOthers, imgPairing, imgSettings, imgAbout;
     private TrayIcon trayIcon;
     private NotificationCenter notificationCenter;
     private ResourceBundle resourceBundle;
@@ -184,6 +186,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        btnAbout.setOnAction(e-> loadSettingsFX("de/mein/auth/about.fxml"));
         btnSettings.setOnAction(event -> loadSettingsFX("de/mein/auth/settings.fxml"));
         btnInfo.setOnAction(event -> loadSettingsFX("de/mein/auth/info.fxml"));
         btnSecondary.setOnAction(event -> {
@@ -221,6 +224,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         imgOthers.setImage(new Image("/de/mein/icon/connected.n.png", IMAGE_SIZE, IMAGE_SIZE, true, true));
         imgPairing.setImage(new Image("/de/mein/icon/pairing.n.png", IMAGE_SIZE, IMAGE_SIZE, true, true));
         imgSettings.setImage(new Image("/de/mein/icon/settings.n.png", IMAGE_SIZE, IMAGE_SIZE, true, true));
+        imgAbout.setImage(new Image("/de/mein/icon/about.png", IMAGE_SIZE, IMAGE_SIZE, true, true));
     }
 
     private ObservableList<MeinNotification> notifications = FXCollections.observableArrayList();
@@ -322,6 +326,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     /**
      * loads with this instances resource bundle
+     *
      * @param resource
      */
     private void loadSettingsFX(String resource) {
@@ -330,6 +335,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     /**
      * loads with a given resource bundle
+     *
      * @param resource
      * @param resourceBundle
      */
@@ -386,7 +392,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                         meinAuthAdminFXES[0].start(meinAuthService);
                         Scene scene = new Scene(root);
                         //apply theme
-                        scene.getStylesheets().add(MeinAuthAdmin.class.getResource("/de/mein/modena_dark.css").toExternalForm());
+                        scene.getStylesheets().add(MeinAuthAdmin.class.getResource(GLOBAL_STYLE_CSS).toExternalForm());
+
                         Stage stage = createStage(scene);
                         stage.setTitle(resourceBundle.getString("window_title") + " '" + meinAuthService.getName() + "'");
                         stage.show();
@@ -410,7 +417,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         Image image = new Image("/de/mein/icon/app_square.png");
         Stage stage = new Stage();
         stage.getIcons().add(image);
-        scene.getStylesheets().add("de/mein/modena_dark.css");
+        scene.getStylesheets().add(GLOBAL_STYLE_CSS);
         stage.setScene(scene);
         return stage;
     }

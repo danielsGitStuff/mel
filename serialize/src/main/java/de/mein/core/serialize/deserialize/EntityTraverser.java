@@ -1,8 +1,7 @@
 package de.mein.core.serialize.deserialize;
 
 import de.mein.core.serialize.SerializableEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings({ "rawtypes" })
 public class EntityTraverser {
 
-	protected final Logger logger = LoggerFactory.getLogger(getClass());
 	private Map<Long, SerializableEntity> idEntityMap = new HashMap<>();
 	private Map<Long, SerializableEntity> idDBEntityMap = new HashMap<>();
 	private Map<SerializableEntity, Boolean> newEntitiesMap = new HashMap<>();
