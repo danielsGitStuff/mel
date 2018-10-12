@@ -2,16 +2,10 @@
 
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minWidth="-Infinity"  xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.contacts.gui.ContactsFXCreateController">
-    <children>
-        <GridPane maxWidth="1.7976931348623157E308">
-            <Label text="Name" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-            <TextField fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" />
-        </GridPane>
-    </children>
+<VBox xmlns="http://javafx.com/javafx/8.0.121"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.contacts.gui.ContactsFXCreateController">
+    <Label styleClass="lbl-center-section" text="Name"/>
+    <TextField styleClass="txt-edit" fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name"/>
+    <Label styleClass="lbl-center-section" text="Choose Role"/>
 </VBox>

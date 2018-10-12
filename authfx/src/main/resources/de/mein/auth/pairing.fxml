@@ -1,30 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
-
-<VBox maxHeight="Infinity" maxWidth="Infinity" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="de.mein.auth.gui.PairingFX" stylesheets="@info.css">
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox prefWidth="600" prefHeight="400" xmlns="http://javafx.com/javafx/8.0.121"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="de.mein.auth.gui.PairingFX" stylesheets="@mein.css">
     <GridPane VBox.vgrow="ALWAYS">
-        <children>
-            <Label text="Unknown Reachable Instances" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-            <ListView fx:id="listAll" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" />
-            <Label text="Known &amp; Connected" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-            <ListView fx:id="listKnown" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" />
-            <Label text="Manual Input" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-            <Label text="Address" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-            <TextField styleClass="txt-edit" fx:id="txtAddress" text="192.168.43.1" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="4" />
-            <Label text="Port" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
-            <TextField styleClass="txt-edit" fx:id="txtPort" text="8888" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6" />
-            <Label text="Certificate Port" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="7" />
-            <TextField styleClass="txt-edit" fx:id="txtCertDeliveryPort" text="8889" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8" />
-        </children>
-
+        <Label styleClass="lbl" text="Unknown Reachable Instances" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <ListView styleClass="lst" style="-fx-padding: 0px 3px 0px 0px" fx:id="listAll" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"
+                  GridPane.vgrow="ALWAYS"/>
+        <Label styleClass="lbl" text="Known &amp; Connected" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <ListView styleClass="lst" style="-fx-padding: 0px 0px 0px 3px" fx:id="listKnown" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"
+                  GridPane.vgrow="ALWAYS"/>
+        <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
+            <Label styleClass="lbl-center-section" text="Address" />
+            <TextField styleClass="txt-edit" fx:id="txtAddress" text="192.168.43.1" />
+            <Label styleClass="lbl-center-section" text="Port"/>
+            <TextField styleClass="txt-edit" fx:id="txtPort" text="8888" />
+            <Label styleClass="lbl-center-section" text="Certificate Port"/>
+            <TextField styleClass="txt-edit" fx:id="txtCertDeliveryPort" text="8889" />
+        </VBox>
     </GridPane>
 </VBox>

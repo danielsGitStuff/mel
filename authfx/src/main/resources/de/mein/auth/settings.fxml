@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="de.mein.auth.gui.GeneralSettingsFX" stylesheets="@info.css" prefHeight="400" prefWidth="600">
+      fx:controller="de.mein.auth.gui.GeneralSettingsFX" stylesheets="@mein.css" prefHeight="400" prefWidth="600">
 
     <Label styleClass="lbl-center-section" text="SSL-Port"/>
     <TextField styleClass="txt-edit" fx:id="txtSslPort"/>
@@ -18,7 +18,7 @@
     <HBox prefHeight="100.0" prefWidth="200.0">
         <children>
             <TextField styleClass="txt-edit" fx:id="txtWorkingDirectory" HBox.hgrow="ALWAYS"/>
-            <Button fx:id="btnChoosedir" mnemonicParsing="false" text="Choose"/>
+            <Button styleClass="btn" fx:id="btnChoosedir" mnemonicParsing="false" text="Choose"/>
         </children>
     </HBox>
 </VBox>

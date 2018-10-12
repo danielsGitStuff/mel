@@ -342,6 +342,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     private void loadSettingsFX(String resource, ResourceBundle resourceBundle) {
         N runner = new N(e -> e.printStackTrace());
         runner.r(() -> {
+            lblTitle.setVisible(true);
             contentController = null;
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
             if (resourceBundle != null)

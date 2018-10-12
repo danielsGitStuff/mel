@@ -5,8 +5,7 @@
 <?import javafx.scene.layout.VBox?>
 
 
-<VBox xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.OthersSettingsFX">
-   <children>
-      <ListView VBox.vgrow="ALWAYS" fx:id="listCerts"/>
-   </children>
+<VBox xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="de.mein.auth.gui.OthersSettingsFX">
+   <ListView styleClass="lst" VBox.vgrow="ALWAYS" fx:id="listCerts"/>
 </VBox>

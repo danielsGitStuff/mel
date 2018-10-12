@@ -8,7 +8,7 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="de.mein.auth.gui.notification.NotificationCenter"
       prefHeight="400.0" prefWidth="600.0">
-    <ListView fx:id="list" VBox.vgrow="ALWAYS"/>
+    <ListView styleClass="lst" fx:id="list" VBox.vgrow="ALWAYS"/>
     <HBox>
         <Button fx:id="btnClose" text="Close" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
     </HBox>

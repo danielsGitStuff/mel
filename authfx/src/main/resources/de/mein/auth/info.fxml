@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 
 <?import javafx.scene.layout.VBox?>
-<VBox stylesheets="@info.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.InfoController">
+<VBox stylesheets="@mein.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.InfoController">
 
         <Label styleClass="lbl-center-section" text="Status:"  />
         <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblStatus" text="status goes here"/>
