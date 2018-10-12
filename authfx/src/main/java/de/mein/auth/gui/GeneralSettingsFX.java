@@ -21,7 +21,7 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
     @FXML
     protected TextField txtWorkingDirectory;
     @FXML
-    private TextField txtName, txtPort, txtSslPort, txtGreeting;
+    private TextField txtName, txtPort, txtSslPort;
 
     @Override
     public void onPrimaryClicked() {
@@ -31,7 +31,6 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
         settings.setPort(Integer.parseInt(txtSslPort.getText()));
         settings.setDeliveryPort(Integer.parseInt(txtPort.getText()));
         settings.setWorkingDirectory(new File(txtWorkingDirectory.getText()));
-        settings.setGreeting(txtGreeting.getText());
         try {
             settings.save();
         } catch (Exception e) {
@@ -62,7 +61,6 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
         txtName.setText(settings.getName());
         txtPort.setText(String.valueOf(settings.getDeliveryPort()));
         txtSslPort.setText(String.valueOf(settings.getPort()));
-        txtGreeting.setText(settings.getGreeting());
     }
 
     @Override

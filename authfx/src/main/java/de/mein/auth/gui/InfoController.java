@@ -46,7 +46,7 @@ public class InfoController extends AuthSettingsFX {
 
                     if (!address.isAnyLocalAddress() && !address.isLoopbackAddress() && !address.isMulticastAddress()) {
                         Label netInterface = new Label(network.getName() + ": ");
-                        netInterface.getStyleClass().add("prop");
+                        netInterface.getStyleClass().add("lbl");
                         table.add(netInterface, 0, rowCount);
 
                         Label netAddress = new Label(address.getHostAddress());
@@ -61,13 +61,13 @@ public class InfoController extends AuthSettingsFX {
             if (meinAuthService != null) {
                 lblStatus.setText("working!");
                 lblStatus.getStyleClass().clear();
-                lblStatus.getStyleClass().add("label-positive");
+                lblStatus.getStyleClass().add("lbl-positive");
                 lblName.setText(meinAuthService.getName());
             } else {
                 lblStatus.setText("not working!");
                 lblName.setText("-");
                 lblStatus.getStyleClass().clear();
-                lblStatus.getStyleClass().add("label-negative");
+                lblStatus.getStyleClass().add("lbl-negative");
             }
         });
     }

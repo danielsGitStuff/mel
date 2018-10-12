@@ -360,6 +360,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     private void setContentPane(Pane pane) {
         paneContainer.getChildren().clear();
         paneContainer.getChildren().add(pane);
+        pane.prefWidthProperty().bind(paneContainer.widthProperty());
+        pane.prefHeightProperty().bind(paneContainer.heightProperty());
         AnchorPane.setBottomAnchor(pane, 0.0);
         AnchorPane.setLeftAnchor(pane, 0.0);
         AnchorPane.setRightAnchor(pane, 0.0);

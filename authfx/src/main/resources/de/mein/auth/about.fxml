@@ -5,13 +5,9 @@
 <?import javafx.scene.web.WebView?>
 
 <VBox maxHeight="1.7976931348623157E308" prefHeight="400.0" prefWidth="600.0" stylesheets="@info.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.AboutFX">
-    <children>
-        <Label text="Version" styleClass="label-center, section" />
-        <Label fx:id="lblVersion" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="" text="could not read" />
-        <Label text="Licenses" styleClass="label-center, section"/>
+        <Label text="Version" styleClass="lbl-center-section"/>
+        <Label fx:id="lblVersion" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl" text="could not read" />
+        <Label text="Licenses" styleClass="lbl-center-section" />
 
         <WebView fx:id="webView" maxWidth="1.7976931348623157E308" minHeight="-1.0" minWidth="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS" />
-
-    </children>
-
 </VBox>

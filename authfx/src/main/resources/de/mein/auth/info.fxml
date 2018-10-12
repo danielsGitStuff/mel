@@ -6,30 +6,20 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<GridPane stylesheets="@info.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.InfoController">
+<?import javafx.scene.layout.VBox?>
+<VBox stylesheets="@info.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.InfoController">
 
-    <children>
-        <Label styleClass="prop" text="Status:" GridPane.rowIndex="0" />
-        <Label fx:id="lblStatus" text="status goes here" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-        <Label styleClass="prop" text="Name:" GridPane.rowIndex="1" />
-        <Label fx:id="lblName" text="name goes here" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="label center" text="Your network interfaces and IP addresses: " GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
+        <Label styleClass="lbl-center-section" text="Status:"  />
+        <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblStatus" text="status goes here"/>
+        <Label styleClass="lbl-center-section" text="Name:" />
+        <Label styleClass="lbl" fx:id="lblName" text="name goes here"  />
+        <Label styleClass="lbl-center-section" alignment="CENTER" maxWidth="1.7976931348623157E308" text="Your network interfaces and IP addresses: ">
             <padding>
                 <Insets top="5" />
             </padding>
         </Label>
-        <GridPane fx:id="table" GridPane.columnSpan="2" GridPane.rowIndex="3">
+        <GridPane fx:id="table">
 
         </GridPane>
-    </children>
-   <columnConstraints>
-      <ColumnConstraints />
-      <ColumnConstraints />
-   </columnConstraints>
-   <rowConstraints>
-      <RowConstraints />
-      <RowConstraints />
-      <RowConstraints />
-      <RowConstraints />
-   </rowConstraints>
-</GridPane>
+
+</VBox>

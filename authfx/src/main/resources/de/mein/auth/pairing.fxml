@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox maxHeight="Infinity" maxWidth="Infinity" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="de.mein.auth.gui.PairingFX">
+      fx:controller="de.mein.auth.gui.PairingFX" stylesheets="@info.css">
     <GridPane VBox.vgrow="ALWAYS">
         <children>
             <Label text="Unknown Reachable Instances" GridPane.columnIndex="0" GridPane.rowIndex="0" />
@@ -19,11 +19,11 @@
             <ListView fx:id="listKnown" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" />
             <Label text="Manual Input" GridPane.columnIndex="0" GridPane.rowIndex="2" />
             <Label text="Address" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-            <TextField fx:id="txtAddress" text="192.168.43.1" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="4" />
+            <TextField styleClass="txt-edit" fx:id="txtAddress" text="192.168.43.1" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="4" />
             <Label text="Port" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
-            <TextField fx:id="txtPort" text="8888" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6" />
+            <TextField styleClass="txt-edit" fx:id="txtPort" text="8888" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6" />
             <Label text="Certificate Port" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="7" />
-            <TextField fx:id="txtCertDeliveryPort" text="8889" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8" />
+            <TextField styleClass="txt-edit" fx:id="txtCertDeliveryPort" text="8889" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8" />
         </children>
 
     </GridPane>
