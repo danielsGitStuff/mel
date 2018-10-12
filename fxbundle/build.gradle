@@ -15,22 +15,28 @@ repositories {
 
 
 dependencies {
-//    classpath 'com.github.rholder:gradle-one-jar:1.0.4'
     compile project(path: ':drivefx')
     compile project(path: ':contactsfx')
-    testCompile project(path: ':drive',configuration :'driveTestOutput')
-//    compile project(path: ':authfx')
-//    testCompile project(path: ':authfx')
+    testCompile project(path: ':drive', configuration: 'driveTestOutput')
     testCompile 'junit:junit:4.12'
-    //compile 'org.jdeferred:jdeferred-core:1.2.4'
 }
 
 //task awesomeFunJar(type: OneJar) {
 //    mainClass = 'com.github.rholder.awesome.MyAwesomeMain'
 //}
+task updateVersion(type: DefaultTask) {
+    File versionsTxt = new File('fxbundle/version.txt')
+    String fileContents = versionsTxt.getText('UTF-8')
+    Long oldeVersion = Long.parseLong(fileContents)
+    Long version = oldeVersion + 1
+    logger.error("updating version from " + oldeVersion + " to " + version)
+    versionsTxt.text = version.toString()
+}
+buildDependents {
+}
 
-task bundledJar(type: Jar){
-    manifest{
+task bundledJar(type: Jar) {
+    manifest {
         attributes
     }
 }

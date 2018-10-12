@@ -124,6 +124,15 @@ dependencies {
 //    implementation "android.arch.work:work-runtime:$work_version"
 }
 
+task updateVersion(type: DefaultTask) {
+    File versionsTxt = new File('app/version.txt')
+    String fileContents = versionsTxt.getText('UTF-8')
+    Long oldeVersion = Long.parseLong(fileContents)
+    Long version = oldeVersion + 1
+    logger.error("updating version from " + oldeVersion + " to " + version)
+    versionsTxt.text = version.toString()
+}
+
 repositories {
     mavenCentral()
     google()
