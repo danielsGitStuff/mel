@@ -2,7 +2,7 @@ package de.mein.drive.data;
 
 import de.mein.Lok;
 import de.mein.auth.data.IPayload;
-import de.mein.auth.data.cached.data.CachedIterable;
+import de.mein.auth.data.cached.CachedIterable;
 import de.mein.drive.sql.Stage;
 
 import java.io.File;

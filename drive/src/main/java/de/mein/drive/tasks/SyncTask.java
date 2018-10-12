@@ -3,7 +3,7 @@ package de.mein.drive.tasks;
 
 import de.mein.auth.data.IPayload;
 import de.mein.core.serialize.JsonIgnore;
-import de.mein.auth.data.cached.data.CachedIterable;
+import de.mein.auth.data.cached.CachedIterable;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.StageSet;
 

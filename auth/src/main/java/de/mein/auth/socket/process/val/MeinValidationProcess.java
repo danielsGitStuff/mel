@@ -3,8 +3,8 @@ package de.mein.auth.socket.process.val;
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
-import de.mein.auth.data.cached.data.CachedData;
-import de.mein.auth.data.cached.data.CachedPart;
+import de.mein.auth.data.cached.CachedData;
+import de.mein.auth.data.cached.CachedPart;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.MeinService;
@@ -111,7 +111,9 @@ public class MeinValidationProcess extends MeinProcess {
                                 e.printStackTrace();
                             }
                             CachedData receivedData = (CachedData) response.getPayload();
-                            CachedData cached = cachedForRetrieving.get(receivedData.getCacheId());
+                            CachedData cached = cachedForRetrieving.remove(receivedData.getCacheId());
+                            receivedData.setCacheDirectory(cached.getCacheDir());
+                            cachedForRetrieving.put(receivedData.getCacheId(), receivedData);
                             cached.initPartsMissed(receivedData.getPartCount());
                             cachedAnswers.put(cached.getCacheId(), response);
                             handleReceiveCachedPart(receivedData.getPart());

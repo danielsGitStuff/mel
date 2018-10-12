@@ -1,5 +1,6 @@
-package de.mein.auth.data.cached.data;
+package de.mein.auth.data.cached;
 
+import de.mein.Lok;
 import de.mein.auth.data.IPayload;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -24,6 +25,10 @@ public abstract class CachedData implements IPayload {
     protected CachedPart part;
     protected File cacheDir;
     protected int partSize;
+
+    public File getCacheDir() {
+        return cacheDir;
+    }
 
     @JsonIgnore
     protected Set<Integer> partsMissed;
@@ -102,6 +107,9 @@ public abstract class CachedData implements IPayload {
         String json = SerializableEntitySerializer.serialize(part);
         //save to file
         File file = createCachedPartFile(part.getPartNumber());
+        // todo debug
+        if (file.getName().equals("null.0.json"))
+            Lok.debug("");
         BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
         out.write(json.getBytes());
         out.close();

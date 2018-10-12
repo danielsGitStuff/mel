@@ -1,4 +1,4 @@
-package de.mein.auth.data.cached.data;
+package de.mein.auth.data.cached;
 
 import de.mein.Lok;
 import de.mein.core.serialize.SerializableEntity;

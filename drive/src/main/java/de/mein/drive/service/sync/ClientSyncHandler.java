@@ -80,20 +80,20 @@ public class ClientSyncHandler extends SyncHandler {
                 meinAuthService.connect(driveSettings.getClientSettings().getServerCertId())
                         .done(mvp -> {
                             N.r(() -> {
-                                availableHashesTask.toDisk();
-                                availableHashesTask.loadFirstCached();
                                 mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_ASK_HASHES_AVAILABLE, availableHashesTask)
-                                        .done(result -> {
+                                        .done(result -> N.r(()-> {
                                             debugFlag = false;
                                             Lok.debug("got available hashes.");
                                             AvailableHashesContainer availHashesContainer = (AvailableHashesContainer) result;
+                                            availHashesContainer.toDisk();
+                                            availHashesContainer.loadFirstCached();
                                             N.forEachIgnorantly(availHashesContainer, hashEntry -> {
                                                 transferDao.flagNotStartedHashAvailable(hashEntry.getHash());
                                             });
                                             availHashesContainer.cleanUp();
                                             if (availHashesContainer.getSize() > 0)
                                                 transferManager.research();
-                                        });
+                                        }));
                                 availableHashesTask.cleanUp();
                             });
                         }).fail(result -> {
