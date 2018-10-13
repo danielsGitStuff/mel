@@ -54,7 +54,7 @@ android {
     buildTypes {
         debug {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
             minifyEnabled false
@@ -80,19 +80,20 @@ task copyFiles(type: Copy) {
     from(f2)
     from(f3)
     into(t)
-    include('*.sql')
+    //include('*.sql')
     logger.error(f.getAbsolutePath())
     logger.error(t.getAbsolutePath())
 
     File versionTxt = new File('version.apk.txt')
-    File versionAsset = new File('auth'+File.separator+"src"+File.separator+"main"+File.separator+"assets"+File.separator+"version.txt")
+    File versionAsset = new File('app' + File.separator + "src" + File.separator + "main" + File.separator + "assets" + File.separator + "version.apk.txt")
+    logger.error("asset file: " + versionAsset.getAbsolutePath())
     LocalDateTime oldeVersion = null;
-    try{
+    try {
         String fileContents = versionTxt.getText('UTF-8')
         logger.error(fileContents)
         //oldeVersion = Long.parseLong(fileContents)
         oldeVersion = LocalDateTime.parse(fileContents)
-    }catch (Exception e){
+    } catch (Exception e) {
         oldeVersion = LocalDateTime.now()
     }
     LocalDateTime version = LocalDateTime.now()

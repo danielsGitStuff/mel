@@ -4,14 +4,18 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import de.mein.Lok;
 import de.mein.R;
+import de.mein.Versioner;
 import de.mein.android.MainActivity;
 import de.mein.android.PreferenceStrings;
 import de.mein.android.Tools;
@@ -27,7 +31,7 @@ import de.mein.auth.tools.N;
 
 public class SettingsController extends GuiController {
     private AndroidPowerManager powerManager;
-    private Button btnStartStop, btnApply, btnShow, btnPowerMobile, btnPowerServer;
+    private Button btnStartStop, btnApply, btnShow, btnPowerMobile, btnPowerServer, btnAbout;
     private EditText txtPort, txtCertPort, txtName;
     private CheckBox cbShowFirstStartDialog, cbRedirectSysOut;
     private PowerView powerView;
@@ -46,6 +50,7 @@ public class SettingsController extends GuiController {
         btnPowerMobile = rootView.findViewById(R.id.btnPowerMobile);
         btnPowerServer = rootView.findViewById(R.id.btnPowerServer);
         powerView = rootView.findViewById(R.id.powerView);
+        btnAbout = rootView.findViewById(R.id.btnAbout);
         btnStartStop.setOnClickListener(v1 -> {
             //service
             Intent serviceIntent = new Intent(rootView.getContext(), AndroidService.class);
@@ -70,6 +75,29 @@ public class SettingsController extends GuiController {
             powerManager.configure(true, false, false, false);
             powerView.update();
         });
+        btnAbout.setOnClickListener(v -> N.r(() -> {
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(activity);
+            String version = activity.getString(R.string.version);
+            version += Versioner.getBuildVersion();
+            builder.setMessage(version)
+                    .setTitle(R.string.titleAbout)
+                    .setPositiveButton(R.string.btnOk, null);
+            WebView webView = new WebView(activity);
+            WebSettings settings = webView.getSettings();
+            boolean dom = settings.getDomStorageEnabled();
+            boolean js = settings.getJavaScriptEnabled();
+            settings.setDomStorageEnabled(true);
+            settings.setJavaScriptEnabled(true);
+//            settings.setSupportZoom(true);
+//            settings.setBuiltInZoomControls(true);
+            webView.loadUrl("file:///android_asset/licenses.html");
+            ScrollView scrollView = new ScrollView(activity);
+            scrollView.addView(webView);
+            builder.setView(scrollView);
+            builder.setNegativeButton("Close", (dialog, id) -> dialog.dismiss());
+            androidx.appcompat.app.AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        }));
     }
 
     private void showAll() {

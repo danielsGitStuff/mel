@@ -126,4 +126,7 @@
     <string name="intro_4_caption2" >Sicherheit</string>
     <string name="intro_4_explanation2" >Die App funktioniert nur über SSL-verschlüsselte Verbindungen. An einem Beispiel erklärt: stell dir vor, du möchtest zwei Geräte synchronisiert halten. Damit die Verschlüsselung aufgebaut werden kann, muss erst ein Schlüsselaustausch stattfinden. Dieser funktioniert ungefähr so als würdest du ein neues Bluetoothgerät koppeln. Danach kommunizieren diese Geäte ausschließlich verschlüsselt miteinander. Der Schlüsselaustausch ist die einzige unverschlüsselte Prozess, den diese App beherrscht.</string>
     <string name="loading">Starte...</string>
+    <string name="btnAbout">Zeige \"Über\"</string>
+    <string name="titleAbout">Über</string>
+    <string name="version">Version: </string>
 </resources>
