@@ -120,7 +120,7 @@
     <string name="intro_3_lblPresets">Choose a preset</string>
     <string name="intro_3_btnPowerMobile">Mobile</string>
     <string name="intro_3_btnPowerServer">Server</string>
-    <string name="intro_3_explanation">Hier kannst du die Krafteinstellungen vornehmen. Zur Auswahl stehen zwei Voreinstellungen. Diese können in utenliegender Tabelle verfeinert werden. Wenn der Zustand zu einem \'stop\' führt, wird sämtliche Hintergrundarbeit und Kommunikation unterbrochen. Wenn du dieses Gerät im Alltag verwendes, solltest du die \'mobil\'-Voreinstellung wählen. Die blaue Umrandung zeigt den aktuellen Zustand.</string>
+    <string name="intro_3_explanation">Hier kannst du die Krafteinstellungen vornehmen. Zur Auswahl stehen zwei Voreinstellungen. Diese können in utenliegender Tabelle verfeinert werden. Wenn der Zustand zu einem \'stop\' führt, wird sämtliche Hintergrundarbeit und Kommunikation unterbrochen. Wenn du dieses Gerät im Alltag verwendes, solltest du die \'mobil\'-Voreinstellung wählen. Die blaue Umrandung zeigt den aktuellen Zustand. Die obere Toolbar nimmt die Farbe des aktuellen Zustands an. Wenn er auf \"Stop\" steht, ist keine Kommunikation möglich.</string>
     <string name="intro_4_caption1" >Was kann das hier?</string>
     <string name="intro_4_explanation1" >Dieses Programm synchronisiert Daten über mehrere Geräte. Jeder Datentyp hat einen eigenen Dienst, der sich im Hintergrund um die Synchronisierung kümmert. Zur Zeit funktionieren alle Dienste nach dem Client-Server-Prinzip. Du solltest ein weiteres Gerät haben, dass du als Server einsetzt, da dieser Einsatz die Akkulaufzeit drastisch verkürzt. Es sollte am Ladegeät hängen und mit dem W-LAN verbunden bleiben.</string>
     <string name="intro_4_caption2" >Sicherheit</string>

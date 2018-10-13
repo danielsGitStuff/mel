@@ -60,6 +60,7 @@ import de.mein.android.controller.intro.IntroWrapper;
 import de.mein.android.controller.intro.LoadingWrapper;
 import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.android.file.SAFAccessor;
+import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
 import de.mein.android.service.AndroidServiceBind;
 import de.mein.auth.data.MeinRequest;
@@ -71,6 +72,7 @@ import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
@@ -84,7 +86,7 @@ import de.mein.drive.data.DriveSettings;
 import de.mein.drive.service.MeinDriveClientService;
 
 
-public class MainActivity extends MeinActivity {
+public class MainActivity extends MeinActivity implements PowerManager.IPowerStateListener<AndroidPowerManager> {
     private static final String SHOW_INTRO = "shwntr";
     private LinearLayout content;
     private Toolbar toolbar;
@@ -94,6 +96,18 @@ public class MainActivity extends MeinActivity {
     private NavigationView navigationView;
     private AFile driveDir;
     private ImageButton btnHelp;
+    private int stoppedColor;
+    private int runningColor;
+    private AndroidPowerManager powerManager;
+
+    public static void showMessage(Context context, int message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(message)
+                .setTitle(R.string.titleHelp)
+                .setPositiveButton(R.string.btnOk, null);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
 
     protected void startService() {
         if (androidService == null) {
@@ -109,13 +123,14 @@ public class MainActivity extends MeinActivity {
         }
     }
 
-
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
         Lok.debug("MainActivity.onAndroidServiceAvailable");
         if (serviceBind != null)
             serviceBind.onAndroidServiceAvailable(androidService);
+        this.powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
+        powerManager.addStateListener(this);
     }
 
     private void dev() {
@@ -126,12 +141,21 @@ public class MainActivity extends MeinActivity {
         Lok.debug("ExampleUnitTest.uriTest " + a + " // " + b);
     }
 
+    private void updateBarColor() {
+        if (powerManager != null && toolbar != null) {
+            boolean run = powerManager.runWhen(powerManager.isPowered(), powerManager.isWifi());
+            int color = run ? runningColor : stoppedColor;
+            runOnUiThread(() -> toolbar.setBackgroundColor(color));
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //dev();
         Tools.init(this.getApplicationContext());
+        runningColor = getResources().getColor(R.color.stateRunning);
+        stoppedColor = getResources().getColor(R.color.stateDeactivated);
         Versioner.configure(() -> {
             try {
                 InputStream in = MainActivity.this.getAssets().open("version.apk.txt");
@@ -175,7 +199,6 @@ public class MainActivity extends MeinActivity {
         }
         startService();
     }
-
 
     public void showLoadingGui() {
         LoadingWrapper loadingWrapper = new LoadingWrapper(this);
@@ -257,17 +280,8 @@ public class MainActivity extends MeinActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+        updateBarColor();
     }
-
-    public static void showMessage(Context context, int message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setMessage(message)
-                .setTitle(R.string.titleHelp)
-                .setPositiveButton(R.string.btnOk, null);
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
-    }
-
 
     public void debugStuff3() {
         try {
@@ -463,11 +477,15 @@ public class MainActivity extends MeinActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        if (powerManager != null)
+            powerManager.addStateListener(this);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        if (powerManager != null)
+            powerManager.removeListener(this);
     }
 
     private void debugStuff() throws InterruptedException {
@@ -577,7 +595,6 @@ public class MainActivity extends MeinActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        showFirstStart();
     }
 
     public void showFirstStart() {
@@ -698,5 +715,10 @@ public class MainActivity extends MeinActivity {
                 }
             }
         }
+    }
+
+    @Override
+    public void onStateChanged(PowerManager powerManager) {
+        updateBarColor();
     }
 }
