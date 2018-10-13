@@ -301,12 +301,15 @@ public class MeinSocket extends DeferredRunnable {
     public void stop() {
         try {
             Lok.debug(getClass().getSimpleName() + ".stop() on " + Thread.currentThread().getName());
-            if (this.thread != null) {
+//            if (this.thread != null) {
                 in.close();
                 out.close();
                 queueLock.unlock();
                 this.thread.interrupt();
-            }
+                if (socketWorker!=null){
+                    socketWorker.onShutDown();
+                }
+//            }
         } catch (Exception e) {
             e.printStackTrace();
         }

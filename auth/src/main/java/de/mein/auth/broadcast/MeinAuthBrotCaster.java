@@ -142,6 +142,13 @@ public class MeinAuthBrotCaster extends BrotCaster {
         }
     }
 
+    @Override
+    public void onShutDown() {
+        super.onShutDown();
+        brotCasterListener = null;
+
+    }
+
     @SuppressWarnings("Duplicates")
     private boolean handleDiscover(DatagramPacket packet) throws IOException {
         String brotCast = new String(packet.getData()).trim();

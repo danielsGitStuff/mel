@@ -1,11 +1,17 @@
 package de.mein.auth.data;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Set;
+
 import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.sql.RWLock;
-
-import java.util.*;
 
 /**
  * Created by xor on 01.10.2016.
@@ -18,21 +24,32 @@ public class NetworkEnvironment extends Observable {
     private Map<String, ServiceJoinServiceType> serviceMap = new HashMap<>();
     private Map<Long, List<ServiceJoinServiceType>> certificateServicesMap = new HashMap<>();
     private Map<ServiceJoinServiceType, Long> serviceCertificateMap = new HashMap<>();
-    private List<UnknownAuthInstance> unknownAuthInstances = new ArrayList<>();
+    private Map<Integer, UnknownAuthInstance> unknownAuthInstances = new HashMap<>();
     private RWLock unknownInstancesLock = new RWLock();
-    public interface NetworkEnvironmentListener{
+
+    public interface NetworkEnvironmentListener {
         void onUnknownFound(UnknownAuthInstance unknownAuthInstance);
+
         void onKownFound();
     }
-    public static class UnknownAuthInstance {
-        private final int portCert;
-        private final int port;
-        private final String address;
 
-        public UnknownAuthInstance(String address, int port, int portCert) {
+    public static class UnknownAuthInstance {
+        private final Integer portCert;
+        private final Integer port;
+        private final String address;
+        private int hash;
+
+        public UnknownAuthInstance(String address, Integer port, Integer portCert) {
             this.address = address;
             this.port = port;
             this.portCert = portCert;
+            hash = 0;
+            if (port != null)
+                hash += port.hashCode();
+            if (portCert != null)
+                hash += portCert.hashCode();
+            if (address != null)
+                hash += address.hashCode();
         }
 
         public int getPort() {
@@ -45,6 +62,11 @@ public class NetworkEnvironment extends Observable {
 
         public String getAddress() {
             return address;
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
         }
     }
 
@@ -70,8 +92,8 @@ public class NetworkEnvironment extends Observable {
         return this;
     }
 
-    public List<UnknownAuthInstance> getUnknownAuthInstances() {
-        return unknownAuthInstances;
+    public Collection<UnknownAuthInstance> getUnknownAuthInstances() {
+        return unknownAuthInstances.values();
     }
 
     public Long getCertificateId(ServiceJoinServiceType service) {
@@ -100,10 +122,17 @@ public class NetworkEnvironment extends Observable {
 
     public NetworkEnvironment addUnkown(String address, int port, int portCert) {
         unknownInstancesLock.lockWrite();
-        unknownAuthInstances.add(new UnknownAuthInstance(address, port, portCert));
+        UnknownAuthInstance ins = new UnknownAuthInstance(address, port, portCert);
+        boolean added = false;
+        if (!unknownAuthInstances.containsKey(ins.hash)) {
+            unknownAuthInstances.put(ins.hash, ins);
+            added = true;
+        }
         unknownInstancesLock.unlockWrite();
-        setChanged();
-        notifyObservers();
+        if (added) {
+            setChanged();
+            notifyObservers();
+        }
         return this;
     }
 

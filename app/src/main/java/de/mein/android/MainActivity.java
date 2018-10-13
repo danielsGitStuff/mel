@@ -486,6 +486,8 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         super.onStop();
         if (powerManager != null)
             powerManager.removeListener(this);
+        if (this.guiController!= null)
+            this.guiController.onStop();
     }
 
     private void debugStuff() throws InterruptedException {

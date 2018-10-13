@@ -46,7 +46,7 @@ public abstract class MeinListAdapter<T> extends BaseAdapter {
     }
 
     public MeinListAdapter<T> clear() {
-        items = new ArrayList<>();
+        items.clear();
         return this;
     }
 

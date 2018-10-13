@@ -6,16 +6,16 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
-
 import de.mein.Lok;
 import de.mein.R;
-import de.mein.android.service.AndroidService;
 import de.mein.android.MeinActivity;
+import de.mein.android.service.AndroidPowerManager;
+import de.mein.android.service.AndroidService;
+import de.mein.android.view.KnownCertListAdapter;
+import de.mein.android.view.UnknownAuthListAdapter;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
-import de.mein.android.view.KnownCertListAdapter;
-import de.mein.android.view.UnknownAuthListAdapter;
 import de.mein.auth.tools.N;
 
 /**
@@ -29,6 +29,7 @@ public class NetworkDiscoveryController extends GuiController {
     private UnknownAuthListAdapter unkownListAdapter;
     private final EditText txtAddress, txtPort, txtDeliveryPort;
     private final Button btnConnect;
+    private AndroidPowerManager powerManager;
 
     public NetworkDiscoveryController(MeinActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_discover);
@@ -47,7 +48,9 @@ public class NetworkDiscoveryController extends GuiController {
         environment.deleteObservers();
         environment.deleteObservers();
         environment.addObserver((observable, o) -> {
-            Lok.debug("NetworkDiscoveryController.discover");
+            Lok.debug("NetworkDiscoveryController.discover.adds: "+environment.getUnknownAuthInstances().size());
+            if(environment.getUnknownAuthInstances().size()==2)
+                Lok.debug("debug");
             unkownListAdapter.clear().addAll(environment.getUnknownAuthInstances());
             knownCertListAdapter.clear();
             for (Long certId : environment.getCertificateIds()) {
@@ -88,8 +91,34 @@ public class NetworkDiscoveryController extends GuiController {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Lok.debug("destroy");
+        if (powerManager != null) {
+            powerManager.releaseWakeLock(this);
+            powerManager.overrideState(false);
+        }
+        if (environment != null)
+            environment.deleteObservers();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (powerManager != null) {
+            powerManager.releaseWakeLock(this);
+            powerManager.overrideState(false);
+        }
+        if (environment != null)
+            environment.deleteObservers();
+    }
+
+    @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
+        powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
+        powerManager.wakeLock(this);
+        powerManager.overrideState(true);
         environment = androidService.getMeinAuthService().getNetworkEnvironment();
         unkownListAdapter = new UnknownAuthListAdapter(rootView.getContext(), environment);
         listUnkown.setOnItemClickListener((parent, view, position, id) -> {
@@ -128,7 +157,7 @@ public class NetworkDiscoveryController extends GuiController {
     }
 
     @Override
-    public void onAndroidServiceUnbound( ) {
+    public void onAndroidServiceUnbound() {
 
     }
 

@@ -1,13 +1,14 @@
 package de.mein.auth.broadcast;
 
-import de.mein.DeferredRunnable;
-import de.mein.Lok;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
+
+import de.mein.DeferredRunnable;
+import de.mein.Lok;
 
 /**
  * Sends and retrieves small messages from the broadcast network address
@@ -16,25 +17,53 @@ public abstract class BrotCaster extends DeferredRunnable {
     protected final Integer listenerPort;
     private final Integer brotcastPort;
     protected MulticastSocket socket;
+    private InetAddress group;
 
     public BrotCaster(Integer listenerPort, Integer brotcastPort) {
         this.listenerPort = listenerPort;
         this.brotcastPort = brotcastPort;
+        try {
+            group = InetAddress.getByName("224.0.0.1");
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onShutDown() {
         socket.close();
+        socket = null;
+    }
+
+    @Override
+    public void suspend() {
+        super.suspend();
+        socket.close();
+        socket = null;
+    }
+
+    public void resume() {
+        try {
+            if (socket != null) {
+                socket = new MulticastSocket(listenerPort);
+//            InetAddress group = InetAddress.getByName("localhost");
+                socket.joinGroup(group);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void runImpl() {
         if (listenerPort != null) {
             try {
-                socket = new MulticastSocket(listenerPort);
-                InetAddress group = InetAddress.getByName("224.0.0.1");
+
+                if (socket == null) {
+                    socket = new MulticastSocket(listenerPort);
 //            InetAddress group = InetAddress.getByName("localhost");
-                socket.joinGroup(group);
+                    socket.joinGroup(group);
+                }
                 startedPromise.resolve(this);
                 while (!Thread.currentThread().isInterrupted()) {
                     byte[] buf = new byte[300];
@@ -42,7 +71,8 @@ public abstract class BrotCaster extends DeferredRunnable {
                     socket.receive(packet);
                     this.handleMessage(packet, buf);
                 }
-                socket.leaveGroup(group);
+                if (socket != null)
+                    socket.leaveGroup(group);
             } catch (SocketException e) {
                 // network seems to be down
                 if (!isStopped()) {
@@ -56,7 +86,9 @@ public abstract class BrotCaster extends DeferredRunnable {
                 }
             } finally {
                 try {
-                    socket.close();
+                    if (socket != null)
+                        socket.close();
+                    socket = null;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -65,6 +97,7 @@ public abstract class BrotCaster extends DeferredRunnable {
         } else
             startedPromise.resolve(this);
     }
+
 
     protected abstract void handleMessage(DatagramPacket packet, byte[] buf);
 

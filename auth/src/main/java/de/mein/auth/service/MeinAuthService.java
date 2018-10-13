@@ -536,6 +536,7 @@ public class MeinAuthService {
             socket.shutDown();
         }
         meinAuthWorker.shutDown();
+
     }
 
     public void resume() {

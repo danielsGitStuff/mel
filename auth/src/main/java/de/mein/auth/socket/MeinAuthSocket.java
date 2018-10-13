@@ -161,6 +161,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         N runner = new N(e -> {
             result.reject(e);
             meinAuthService.getPowerManager().releaseWakeLock(this);
+            stop();
         });
         DeferredObject<Void, Exception, Void> firstAuth = this.auth(job);
         firstAuth.done(result1 -> {
@@ -170,10 +171,12 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             if (except instanceof ShamefulSelfConnectException) {
                 result.reject(except);
                 meinAuthService.getPowerManager().releaseWakeLock(this);
+                stop();
             } else if (except instanceof ConnectException) {
                 Lok.error(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
                 result.reject(except);
                 meinAuthService.getPowerManager().releaseWakeLock(this);
+                stop();
             } else if (regOnUnknown && remoteCertId == null) {
                 // try to register
                 DeferredObject<Certificate, Exception, Object> importPromise = new DeferredObject<>();
@@ -195,6 +198,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
                                     ((Exception) exception).printStackTrace();
                                     result.reject(exception);
                                     meinAuthService.getPowerManager().releaseWakeLock(this);
+                                    stop();
                                 }
                         );
                     });
@@ -202,6 +206,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
                     ee.printStackTrace();
                     result.reject(ee);
                     meinAuthService.getPowerManager().releaseWakeLock(this);
+                    stop();
                 });
             } else {
                 if (!(except instanceof ShamefulSelfConnectException)) {
@@ -210,6 +215,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
                     result.reject(except);
                 }
                 meinAuthService.getPowerManager().releaseWakeLock(this);
+                stop();
             }
         }));
 

@@ -26,6 +26,7 @@ public class AndroidPowerManager extends PowerManager {
     private boolean powerNoWifi = false;
     private boolean noPowerWifi = false;
     private boolean noPowerNoWifi = false;
+    private boolean overrideState = false;
 
 
     public AndroidPowerManager(MeinAuthSettings meinAuthSettings, android.os.PowerManager osPowerManager) {
@@ -37,7 +38,7 @@ public class AndroidPowerManager extends PowerManager {
         noPowerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_NO_WIFI, false);
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
         wakeLock(this);
-        wakeTimer = new WatchDogTimer("android power manager",() -> {
+        wakeTimer = new WatchDogTimer("android power manager", () -> {
             stateLock.lock();
             changeState();
             wakeTimer.cancel();
@@ -49,7 +50,7 @@ public class AndroidPowerManager extends PowerManager {
      * changes state, takes or releases wakelock if necessary.
      */
     private void changeState() {
-        boolean shouldRun = runWhen(powered, wifi);
+        boolean shouldRun = runWhen(powered, wifi) || overrideState;
         if (shouldRun != running && meinAuthService != null) {
             if (shouldRun) {
                 Lok.debug("resuming...");
@@ -92,6 +93,8 @@ public class AndroidPowerManager extends PowerManager {
     }
 
     public boolean runWhen(boolean onPower, boolean onWifi) {
+        if (overrideState)
+            return true;
         if (onPower && onWifi)
             return powerWifi;
         else if (onPower)
@@ -163,6 +166,11 @@ public class AndroidPowerManager extends PowerManager {
         stateLock.lock();
         updatePowered(false);
         stateLock.unlock();
+    }
+
+    public void overrideState(boolean override){
+        this.overrideState = override;
+        changeState();
     }
 
     @Override

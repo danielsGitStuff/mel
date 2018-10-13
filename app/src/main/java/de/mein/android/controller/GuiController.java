@@ -32,6 +32,13 @@ public abstract class GuiController implements AndroidServiceBind {
         androidService = null;
     }
 
+    /**
+     * called when the app goes in background
+     */
+    public void onStop(){
+
+    }
+
     public abstract Integer getTitle();
 
     @Override
