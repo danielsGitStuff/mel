@@ -58,7 +58,7 @@
     <string name="editServiceDriveChoose">Choose</string>
     <string name="settingsMisc">Miscellaneous</string>
     <string name="settingsStartDialog">Show startup dialog again</string>
-    <string name="settingsShow">Show</string>
+    <string name="settingsShow">Intro</string>
     <string name="settingsRedirectSysOut">Show Sysout</string>
     <string name="infoSSID">Wifi</string>
     <string name="infoNotConnected">not connected to Wifi</string>
@@ -116,17 +116,28 @@
     <string name="intro_2_explanation">This is the name this device will have when it is connected to other devices. For privacy reasons your name will not be send to unknown devices.</string>
     <string name="intro_2_error_too_short">The name is too short.</string>
     <string name="intro_3_title">Save Battery?</string>
-    <string name="intro_4_title">One last point...</string>
     <string name="intro_3_lblPresets">Choose a preset:</string>
     <string name="intro_3_btnPowerMobile">Mobile</string>
     <string name="intro_3_btnPowerServer">Server</string>
     <string name="intro_3_explanation">Here you can adjust your power settings. You have two presets that you can fine tune in the table below. If the state changes to \'stop\' all background work and communications will be suspended to save some battery. If you plan to use this device as a daily driver stick to the \'mobile\' preset. The blue border is the current state. The toolbar will change its colour according to the state. Communications are down when the state is \'off\'.</string>
-    <string name="intro_4_caption1" >Things this can do</string>
-    <string name="intro_4_explanation1" >This program syncs data to multiple devices. Each type of data requires a Services that handles the synchronisation process. Currently all services rely on a client server scheme. You should have another device running as a server and sync your other devices to it. Running as a server ruins your battery life so plug it in an let it stay connected to Wifi.</string>
-    <string name="intro_4_caption2" >Security</string>
-    <string name="intro_4_explanation2" >The app requires SSL encrypted connections to work properly. To keep things simple: imagine you want two devices to sync. To get that to work you have to exchange keys with the other device first. It works like pairing a new Bluetooth device. From that point on the two devices will communicate encrypted only. The certificate exchange process is the only unencrypted connection the app supports.</string>
+    <string name="intro_4_title">What to do now?</string>
+    <string name="intro_4_caption1">1) Install on another device</string>
+    <string name="intro_4_explanation1">If you want to synchronize data you have to install this software on another Android phone or Laptop/PC. Install Synchronisator there as well, set it up like this instance and continue with the next step.</string>
+    <string name="intro_4_caption2">2) Pair your Devices</string>
+    <string name="intro_4_explanation2">Before your Devices can talk to each other you have to pair them. To do so both must be in the same network. Go to the menu \'Pair\'. The help button provides further assistance.</string>
+    <string name="intro_4_caption3">3) Synchronize something</string>
+    <string name="intro_4_explanation3">Tip on \'New Service\' in the menu. A Services provides data your devices can synchronize to others. Currently you can sync your phone book or whole directories.</string>
+    <string name="intro_4_caption4">4) Allow access</string>
+    <string name="intro_4_explanation4">Tap on \'Access\' and grant a paired device access to a service. (When you just created a service it is not allowed to talk to any device. This also means that it is invisible for those devices.)</string>
+    <string name="intro_4_caption5">Info</string>
+    <string name="intro_4_explanation5">You can re-run this dialog by going to \'Settings\' and tip \'Show Intro dialog\'.</string>
     <string name="loading">Starting...</string>
     <string name="btnAbout">About</string>
     <string name="titleAbout">About</string>
     <string name="version">Version: </string>
+    <string name="powergrid_wifi_off">Wifi Off</string>
+    <string name="powergrid_wifi_on">Wifi On</string>
+    <string name="powergrid_power_off">AC Off</string>
+    <string name="powergrid_power_on">AC On</string>
+
 </resources>

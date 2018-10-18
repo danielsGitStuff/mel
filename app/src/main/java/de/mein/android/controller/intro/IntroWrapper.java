@@ -80,6 +80,7 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
             }
             if (index == 1) {
                 btnPrevious.setEnabled(false);
+                btnPrevious.setVisibility(INVISIBLE);
             } else if (index < maxIndex) {
                 meinActivity.runOnUiThread(() -> {
                     btnForward.setImageResource(R.drawable.icon_next);

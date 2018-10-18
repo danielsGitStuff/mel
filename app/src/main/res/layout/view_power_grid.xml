@@ -28,28 +28,28 @@
 
     <TextView
         android:id="@+id/lblAon"
-        android:text="Wifi on"
+        android:text="@string/powergrid_wifi_on"
         grid:layout_column="2"
         grid:layout_gravity="fill_horizontal"
         grid:layout_row="0" />
 
     <TextView
         android:id="@+id/lblAoff"
-        android:text="Wifi off"
+        android:text="@string/powergrid_wifi_off"
         grid:layout_column="3"
         grid:layout_gravity="fill_horizontal"
         grid:layout_row="0" />
 
     <TextView
         android:id="@+id/lblBon"
-        android:text="AC on"
+        android:text="@string/powergrid_power_on"
         grid:layout_column="1"
         grid:layout_gravity="fill_horizontal"
         grid:layout_row="1" />
 
     <TextView
         android:id="@+id/lblBoff"
-        android:text="AC off"
+        android:text="@string/powergrid_power_off"
         grid:layout_column="1"
         grid:layout_gravity="fill_horizontal"
         grid:layout_row="2" />

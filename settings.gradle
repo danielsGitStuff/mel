@@ -1,5 +1,5 @@
 //include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx' ,':fxbundle' ,':miniserver'
-include ':app',':json', ':serialize', ':sql', ':auth', ':drive', ':contacts' //,':authfx', ':drivefx'
+include ':app',':json', ':serialize', ':sql', ':auth', ':drive', ':contacts',':icons' //,':authfx', ':drivefx'
 
 project(':json').projectDir = new File('json')
 project(':serialize').projectDir = new File('serialize')
@@ -7,7 +7,7 @@ project(':sql').projectDir = new File('sql')
 project(':auth').projectDir = new File('auth')
 project(':drive').projectDir = new File('drive')
 project(':contacts').projectDir = new File('contacts')
-
+project(':icons').projectDir = new File('icons')
 
 
 project(':app').projectDir = new File('app')

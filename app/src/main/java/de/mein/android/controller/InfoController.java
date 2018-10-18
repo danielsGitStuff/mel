@@ -96,12 +96,12 @@ public class InfoController extends GuiController implements PowerManager.IPower
     private void updateGui() {
         activity.runOnUiThread(() -> {
             if (androidService.isRunning()) {
-                lblStatus.setText("Running");
+                lblStatus.setText(R.string.stateRunning);
                 lblStatus.setBackgroundColor(Color.parseColor("#ff99cc00"));
                 powerView.setPowerManager((AndroidPowerManager) androidService.getMeinAuthService().getPowerManager());
                 powerView.update();
             } else {
-                lblStatus.setText("Stopped");
+                lblStatus.setText(R.string.stateStopped);
                 lblStatus.setBackgroundColor(Color.parseColor("#ffcc0000"));
                 powerView.disable();
             }

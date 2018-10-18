@@ -7,13 +7,16 @@ import de.mein.R;
 
 
 class FourthPage extends IntroPageController {
-    private TextView lblCaption1, lblCaption2;
+    private TextView lblCaption1, lblCaption2, lblCaption3, lblCaption4, lblCaption5;
 
     public FourthPage(IntroWrapper introWrapper) {
         super(introWrapper, R.layout.intro_fourth);
         lblCaption1 = rootView.findViewById(R.id.lblCaption1);
         lblCaption2 = rootView.findViewById(R.id.lblCaption2);
-        underline(lblCaption1, lblCaption2);
+        lblCaption3 = rootView.findViewById(R.id.lblCaption3);
+        lblCaption4 = rootView.findViewById(R.id.lblCaption4);
+        lblCaption5 = rootView.findViewById(R.id.lblCaption5);
+        underline(lblCaption1, lblCaption2, lblCaption3, lblCaption4);
     }
 
     private void underline(TextView... labels) {

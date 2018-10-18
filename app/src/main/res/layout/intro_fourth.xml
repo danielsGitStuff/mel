@@ -18,9 +18,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="30dp"
                 android:layout_marginTop="20dp"
-                android:textStyle="bold"
                 android:text="@string/intro_4_caption1"
-                android:textSize="22sp" />
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/lblExplain1"
@@ -34,15 +34,15 @@
 
             <TextView
                 android:id="@+id/lblCaption2"
-                android:layout_alignParentEnd="true"
-                android:textStyle="bold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/lblExplain1"
-                android:layout_marginRight="30dp"
+                android:layout_alignParentEnd="true"
                 android:layout_marginTop="20dp"
+                android:layout_marginRight="30dp"
                 android:text="@string/intro_4_caption2"
-                android:textSize="22sp" />
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/lblExplain2"
@@ -52,6 +52,68 @@
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginTop="10dp"
                 android:text="@string/intro_4_explanation2"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/lblCaption3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lblExplain2"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="18dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/intro_4_caption3"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/lblExplain3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lblCaption3"
+                android:layout_marginTop="10dp"
+                android:text="@string/intro_4_explanation3"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/lblCaption4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lblExplain3"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="23dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/intro_4_caption4"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/lblExplain4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lblCaption4"
+                android:layout_marginTop="10dp"
+                android:text="@string/intro_4_explanation4"
+                android:textSize="18sp" />
+            <TextView
+                android:id="@+id/lblCaption5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lblExplain4"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="23dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/intro_4_caption5"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/lblExplain5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lblCaption5"
+                android:layout_marginTop="10dp"
+                android:text="@string/intro_4_explanation5"
                 android:textSize="18sp" />
         </RelativeLayout>
     </ScrollView>
