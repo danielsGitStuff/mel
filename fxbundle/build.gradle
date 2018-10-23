@@ -46,13 +46,13 @@ build {
 task bundledJar(type: Jar) {
     group "meins"
     description "build a fucking jar filled with candies!"
-    dependsOn clean
     manifest {
         attributes "version": 1, "Main-Class": "de.mein.fxbundle.Main"
     }
 
     baseName = project.name + '-all'
     from(configurations.compile.collect { entry ->
+        println(entry.getAbsolutePath())
         if (entry.isDirectory())
             entry
         else
