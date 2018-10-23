@@ -45,17 +45,6 @@ public class ThreadTest {
             return super.isInterrupted();
         }
 
-        @Override
-        public void destroy() {
-            Lok.debug("TestThread.destroy");
-            super.destroy();
-        }
-
-        @Override
-        public int countStackFrames() {
-            Lok.debug("TestThread.countStackFrames");
-            return super.countStackFrames();
-        }
     }
 
     private ExecutorService executorService;

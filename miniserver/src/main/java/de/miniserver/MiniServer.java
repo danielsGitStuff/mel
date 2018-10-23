@@ -1,5 +1,6 @@
 package de.miniserver;
 
+import de.mein.KonsoleHandler;
 import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
