@@ -38,7 +38,8 @@ build {
     LocalDateTime version = LocalDateTime.now()
     println("updating version from " + oldeVersion.toString() + " to " + version.toString())
     versionTxt.text = version.toString()
-    versionAsset.text = version.toString()
+    //println("version asset file: "+versionAsset.getAbsolutePath())
+    //versionAsset.text = version.toString()
 
 }
 
@@ -49,15 +50,17 @@ task bundledJar(type: Jar) {
     manifest {
         attributes "version": 1, "Main-Class": "de.mein.fxbundle.Main"
     }
+    dependsOn jar
 
     baseName = project.name + '-all'
-    from(configurations.compile.collect { entry ->
+    List paths = configurations.compile.collect { entry ->
         println(entry.getAbsolutePath())
         if (entry.isDirectory())
             entry
         else
             zipTree(entry)
-    }){
+    }
+    from(paths){
         exclude 'META-INF/MANIFEST.MF'
         exclude 'META-INF/*.SF'
         exclude 'META-INF/*.DSA'
