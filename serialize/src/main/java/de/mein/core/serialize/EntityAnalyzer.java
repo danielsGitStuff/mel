@@ -3,10 +3,7 @@ package de.mein.core.serialize;
 import de.mein.core.serialize.serialize.reflection.FieldAnalyzer;
 import de.mein.core.serialize.serialize.tools.StringBuilder;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.*;
 
 public class EntityAnalyzer {
@@ -129,7 +126,8 @@ public class EntityAnalyzer {
 
     public static SerializableEntity instance(String simpleClassName)
             throws ReflectiveOperationException {
-        SerializableEntity entity = EntityAnalyzer.clazz(simpleClassName).getDeclaredConstructor().newInstance();
+        Constructor<? extends SerializableEntity> constructor = EntityAnalyzer.clazz(simpleClassName).getDeclaredConstructor();
+        SerializableEntity entity = constructor.newInstance();
         return entity;
     }
 

@@ -1,4 +1,4 @@
-package de.mein.auth;
+package de.mein.auth.cached;
 
 import de.mein.Lok;
 import de.mein.auth.data.cached.CachedIterable;

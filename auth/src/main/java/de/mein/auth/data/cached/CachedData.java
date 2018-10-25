@@ -94,7 +94,7 @@ public abstract class CachedData implements IPayload {
         int skip = -1;
         if (part != null)
             skip = part.getPartNumber();
-        for (int i = 0; i <= amount; i++) {
+        for (int i = 1; i <= amount; i++) {
             if (i != skip)
                 partsMissed.add(i);
         }
