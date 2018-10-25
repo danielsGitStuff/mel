@@ -53,7 +53,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     private static final int IMAGE_SIZE = 22;
     public static final String GLOBAL_STYLE_CSS = "/de/mein/modena_dark.css";
-//    public static final String GLOBAL_STYLE_CSS = "/de/mein/jmetro.dark.css";
+    //    public static final String GLOBAL_STYLE_CSS = "/de/mein/jmetro.dark.css";
     private MeinAuthService meinAuthService;
     private Stage stage;
 
@@ -186,7 +186,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        btnAbout.setOnAction(e-> loadSettingsFX("de/mein/auth/about.fxml"));
+        btnAbout.setOnAction(e -> loadSettingsFX("de/mein/auth/about.fxml"));
         btnSettings.setOnAction(event -> loadSettingsFX("de/mein/auth/settings.fxml"));
         btnInfo.setOnAction(event -> loadSettingsFX("de/mein/auth/info.fxml"));
         btnSecondary.setOnAction(event -> {
@@ -235,16 +235,6 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
             notifications.add(meinNotification);
             meinNotification.addProgressListener(this);
             trayIcon.displayMessage(meinNotification.getTitle(), meinNotification.getText(), TrayIcon.MessageType.INFO);
-//            Service service = meinAuthService.getDatabaseManager().getServiceByUuid(meinService.getUuid());
-//            ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeById(service.getTypeId().v());
-//            BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(type.getType().v());
-//            if (bootloader instanceof BootLoaderFX) {
-//                BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
-//                String containingPath = bootLoaderFX.getPopupFXML(meinService, meinNotification);
-//                loadPopup(containingPath).done(popupContentFX -> {
-//                    popupContentFX.init(meinService, meinNotification);
-//                });
-//            }
         });
     }
 
@@ -271,10 +261,19 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
             loadNotificationCenter();
         };
         PopupMenu menu = new PopupMenu();
-        java.awt.MenuItem menuItem = new java.awt.MenuItem();
-        menuItem.setLabel("NotificationCenter");
-        menuItem.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
-        menu.add(menuItem);
+        java.awt.MenuItem menuNotification = new java.awt.MenuItem();
+        menuNotification.setLabel("NotificationCenter");
+        menuNotification.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
+
+        java.awt.MenuItem menuExit = new java.awt.MenuItem();
+        menuExit.setLabel("Exit");
+        menuExit.addActionListener(e -> Platform.runLater(() -> {
+            shutDown();
+            System.exit(0);
+        }));
+
+        menu.add(menuNotification);
+        menu.add(menuExit);
         trayIcon.setPopupMenu(menu);
         trayIcon.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
         tray.add(trayIcon);
