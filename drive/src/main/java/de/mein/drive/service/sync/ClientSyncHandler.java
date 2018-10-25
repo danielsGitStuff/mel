@@ -60,7 +60,9 @@ public class ClientSyncHandler extends SyncHandler {
         fsDao.unlockWrite();
         transferManager.research();
     }
+
     private boolean debugFlag = true;
+
     public void askForAvailableTransfers() {
         try {
             if (driveSettings.getClientSettings().getServerCertId() == null)
@@ -68,21 +70,22 @@ public class ClientSyncHandler extends SyncHandler {
             TransferDao transferDao = driveDatabaseManager.getTransferDao();
             ISQLResource<TransferDetails> transfers = transferDao.getNotStartedNotAvailableTransfers(driveSettings.getClientSettings().getServerCertId());
             AvailableHashesContainer availableHashesTask = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
+            availableHashesTask.setCacheId(CachedData.randomId());
             N.readSqlResource(transfers, (sqlResource, transfer) -> {
                 availableHashesTask.add(new AvailHashEntry(transfer.getHash().v()));
             });
             // uncomment to see some communication happen. but be warned: will cause infinite loop!
-            N.r(() -> {
-                availableHashesTask.add(new AvailHashEntry("51037a4a37730f52c8732586d3aaa316"));
-                availableHashesTask.add(new AvailHashEntry("238810397cd86edae7957bca350098bc"));
-                availableHashesTask.add(new AvailHashEntry("fdcbc1aca23cfebaa128bac31df20969"));
-            });
+//            N.r(() -> {
+//                availableHashesTask.add(new AvailHashEntry("51037a4a37730f52c8732586d3aaa316"));
+//                availableHashesTask.add(new AvailHashEntry("238810397cd86edae7957bca350098bc"));
+//                availableHashesTask.add(new AvailHashEntry("fdcbc1aca23cfebaa128bac31df20969"));
+//            });
             if (availableHashesTask.getSize() > 0 && debugFlag) {
                 meinAuthService.connect(driveSettings.getClientSettings().getServerCertId())
                         .done(mvp -> {
                             N.r(() -> {
                                 mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_ASK_HASHES_AVAILABLE, availableHashesTask)
-                                        .done(result -> N.r(()-> {
+                                        .done(result -> N.r(() -> {
                                             debugFlag = false;
                                             Lok.debug("got available hashes.");
                                             AvailableHashesContainer availHashesContainer = (AvailableHashesContainer) result;
@@ -763,8 +766,6 @@ public class ClientSyncHandler extends SyncHandler {
                 if (requestResult.successful()) runner.runTry(() -> {
                     SyncTask syncTask = requestResult.getResponse();
                     syncTask.setStageSet(stageSet);
-                    syncTask.setSourceCertId(clientSttings.getServerCertId());
-                    syncTask.setSourceServiceUuid(clientSttings.getServerServiceUuid());
                     //server might have gotten a new version in the mean time and sent us that
                     stageSet.setVersion(syncTask.getNewVersion());
                     stageDao.updateStageSet(stageSet);

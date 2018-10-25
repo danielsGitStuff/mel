@@ -4,19 +4,18 @@ import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.data.ClientData;
 import de.mein.auth.data.cached.CachedData;
-import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveDetails;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.service.sync.ServerSyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
@@ -47,13 +46,11 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     protected void onSyncReceived(Request request) {
         logger.log(Level.FINEST, "MeinDriveServerService.onSyncReceived");
         SyncTask task = (SyncTask) request.getPayload();
-        SyncTask answer = new SyncTask();
+        SyncTask answer = new SyncTask(cacheDirectory, DriveSettings.CACHE_LIST_SIZE);
         answer.setCacheId(CachedData.randomId());
-        answer.setSourceServiceUuid("lel");
         driveDatabaseManager.getFsDao().lockRead();
         try {
             ISQLResource<GenericFSEntry> delta = driveDatabaseManager.getDeltaResource(task.getOldVersion());
-            answer.setCacheDirectory(cacheDirectory);
             GenericFSEntry next = delta.getNext();
             while (next != null) {
                 answer.add(next);
@@ -90,7 +87,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                     } else if (checkIntent(request, DriveStrings.INTENT_COMMIT)) {
                         syncHandler.handleCommit(request);
                         return true;
-                    }else if (checkIntent(request,DriveStrings.INTENT_ASK_HASHES_AVAILABLE)){
+                    } else if (checkIntent(request, DriveStrings.INTENT_ASK_HASHES_AVAILABLE)) {
                         syncHandler.handleAvailableHashesRequest(request);
                         return true;
                     }
@@ -180,7 +177,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                     if (stageSetId != null) {
                         if (driveDatabaseManager.getMeinDriveService() instanceof MeinDriveServerService)
                             syncHandler.commitStage(stageSetId);
-                    }else {
+                    } else {
                         Lok.debug("MeinDriveServerService.done(). StageSet was empty");
                     }
                 });

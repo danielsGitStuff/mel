@@ -20,10 +20,6 @@ public class SyncTask extends CachedIterable<GenericFSEntry> implements IPayload
     private long oldVersion;
     private Long newVersion;
     @JsonIgnore
-    private Long sourceCertId;
-    @JsonIgnore
-    private String sourceServiceUuid;
-    @JsonIgnore
     private Long stageSetId;
     @JsonIgnore
     private boolean retrieveMissingInformation = true;
@@ -78,21 +74,7 @@ public class SyncTask extends CachedIterable<GenericFSEntry> implements IPayload
         return oldVersion;
     }
 
-    public void setSourceCertId(Long sourceCertId) {
-        this.sourceCertId = sourceCertId;
-    }
 
-    public void setSourceServiceUuid(String sourceServiceUuid) {
-        this.sourceServiceUuid = sourceServiceUuid;
-    }
-
-    public Long getSourceCertId() {
-        return sourceCertId;
-    }
-
-    public String getSourceServiceUuid() {
-        return sourceServiceUuid;
-    }
 
     public void setStageSet(StageSet stageSet) {
         this.stageSet = stageSet;

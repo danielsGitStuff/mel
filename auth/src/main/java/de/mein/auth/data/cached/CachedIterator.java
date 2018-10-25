@@ -18,6 +18,7 @@ public class CachedIterator<T extends SerializableEntity> extends CachedData imp
 
     public CachedIterator(CachedIterable iterable) {
         this.iterable = iterable;
+        partCount = 1;
     }
 
     @Override

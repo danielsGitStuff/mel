@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Iterator;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -51,6 +52,43 @@ public class CachedDataTest {
             N.forEach(dir.listFiles((dir1, name) -> dir1.isFile()), file -> file.delete());
             dir.delete();
         }
+    }
+
+    @Test
+    public void iterateNoDisk() throws Exception {
+        final int SIZE = PART_SIZE - 1;
+        fill(SIZE);
+        iterable.toDisk();
+        emptyIterable.initPartsMissed(1);
+        emptyIterable.onReceivedPart(iterable.getPart(1));
+        Iterator<A> iterator = emptyIterable.iterator();
+        int countdown = SIZE;
+        while (iterator.hasNext()) {
+            A a = iterator.next();
+            Lok.debug(a.name);
+            countdown--;
+        }
+        assertEquals(0, countdown);
+        Lok.debug("");
+    }
+
+    @Test
+    public void iterateWithDisk() throws Exception {
+        final int SIZE = PART_SIZE + 1;
+        fill(SIZE);
+        iterable.toDisk();
+        emptyIterable.initPartsMissed(2);
+        emptyIterable.onReceivedPart(iterable.getPart(1));
+        emptyIterable.onReceivedPart(iterable.getPart(2));
+        Iterator<A> iterator = emptyIterable.iterator();
+        int countdown = SIZE;
+        while (iterator.hasNext()) {
+            A a = iterator.next();
+            Lok.debug(a.name);
+            countdown--;
+        }
+        assertEquals(0, countdown);
+        Lok.debug("");
     }
 
 
@@ -123,6 +161,7 @@ public class CachedDataTest {
         assertTrue(partsMissed.isEmpty());
         Lok.debug("done");
     }
+
 
     @Test
     public void missingPartsRequested() throws Exception {

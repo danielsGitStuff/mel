@@ -143,6 +143,7 @@ public abstract class CachedData implements IPayload {
         if (partsMissed == null)
             Lok.debug("debu4g");
         partsMissed.remove(cachedPart.getPartNumber());
+        partCount++;
     }
 
     public boolean isComplete() {
