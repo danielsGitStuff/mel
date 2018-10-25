@@ -14,12 +14,6 @@ import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings("Duplicates")
 public class KonsoleTest {
-    public static class Dummy extends KResult {
-        String string;
-        int number;
-        List<String> manyArgs = new ArrayList<>();
-    }
-
     private String[] arguments;
     private Konsole<Dummy> konsole;
     private Dummy dummy;
@@ -109,7 +103,7 @@ public class KonsoleTest {
     }
 
     @Test
-    public void norArgs() throws Exception {
+    public void noArgs() throws Exception {
         arguments = new String[]{};
         konsole.handle(arguments);
     }
@@ -118,5 +112,11 @@ public class KonsoleTest {
     public void gibberish() throws Exception {
         arguments = new String[]{"one", "two"};
         konsole.handle(arguments);
+    }
+
+    public static class Dummy extends KResult {
+        String string;
+        int number;
+        List<String> manyArgs = new ArrayList<>();
     }
 }

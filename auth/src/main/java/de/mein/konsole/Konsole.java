@@ -68,7 +68,11 @@ public class Konsole<T extends KResult> {
      * @return
      * @throws KonsoleWrongArgumentsException when not all mandatory arguments are set or parsing went wrong.
      */
-    public Konsole handle(String[] args) throws KonsoleWrongArgumentsException {
+    public Konsole handle(String[] args) throws KonsoleWrongArgumentsException, HelpException {
+        if (args.length>0&& args[0].equals("--help")){
+            printHelp();
+            throw new HelpException();
+        }
         while (pos < args.length) {
             currentArg = args[pos];
             KReader reader = argsMap.get(currentArg);

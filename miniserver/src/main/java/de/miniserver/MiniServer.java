@@ -6,7 +6,9 @@ import de.mein.MeinThread;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.execute.SqliteExecutor;
+import de.mein.konsole.HelpException;
 import de.mein.konsole.Konsole;
+import de.mein.konsole.KonsoleWrongArgumentsException;
 import de.mein.konsole.ParseArgumentException;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
@@ -104,7 +106,7 @@ public class MiniServer {
         String certPath;
     }
 
-    public static void main(String[] arguments) throws Exception {
+    public static void main(String[] arguments) {
         Konsole<ServerConfig> konsole = new Konsole(new ServerConfig());
         konsole.optional("-cert", "path to certificate", (result, args) -> result.setCertPath(args[0]))
                 .optional("-dir", "path to working directory", (result, args) -> result.setWorkingDirectory(args[0]))
@@ -115,18 +117,30 @@ public class MiniServer {
                         result.addEntry(Konsole.check.checkRead(args[0]), Konsole.check.checkRead(args[i + 1]));
                     }
                 }));
-        konsole.handle(arguments);
+        try {
+            konsole.handle(arguments);
+        } catch (KonsoleWrongArgumentsException e) {
+            Lok.error(e.getClass().getSimpleName() + ": " + e.getMessage());
+            System.exit(1);
+        } catch (HelpException e) {
+            System.exit(0);
+        }
         ServerConfig config = konsole.getResult();
         File workingDir = DEFAULT_WORKING_DIR;
         if (config.getWorkingDirectory() != null) {
             Path path = Paths.get(config.getWorkingDirectory());
             workingDir = path.toFile();
         }
-        Lok.debug("dir: " + workingDir.getCanonicalPath());
-        MiniServer miniServer = new MiniServer(workingDir);
-        miniServer.start();
-        while (true) {
+        Lok.debug("dir: " + workingDir.getAbsolutePath());
+        MiniServer miniServer = null;
+        try {
+            miniServer = new MiniServer(workingDir);
+            miniServer.start();
+            while (true) {
 
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
