@@ -65,7 +65,7 @@ public class LokImpl {
     }
 
     protected String fabricateLine(StackTraceElement stackTrace, String mode, Object msg) {
-        return "[" + stackTrace.getMethodName() + "] [" + stackTrace.getLineNumber() + "]." + mode + " == " + (msg == null ? "null" : msg.toString());
+        return "[" + stackTrace.getMethodName() + "][" + stackTrace.getLineNumber() + "].[" + mode + "] = " + (msg == null ? "null" : msg.toString());
     }
 
     protected synchronized String fabricate(StackTraceElement stackTrace, String mode, Object msg, boolean insertTag) {
