@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,24 +22,21 @@ import java.util.Set;
  */
 public abstract class CachedData implements IPayload {
     protected Long cacheId;
+    /**
+     * the number of parts which are present (on disk or in memory)
+     */
     protected int partCount = 0;
     protected CachedPart part;
     protected File cacheDir;
     protected int partSize;
-
-    public File getCacheDir() {
-        return cacheDir;
-    }
-
     @JsonIgnore
     protected Set<Integer> partsMissed;
-    @JsonIgnore
     private String serviceUuid;
-
 
     public CachedData(int partSize) {
         this.partSize = partSize;
     }
+
 
     public CachedData(String serviceUuid, long cacheId, File cacheDir, int partSize) {
         this.partSize = partSize;
@@ -55,13 +53,21 @@ public abstract class CachedData implements IPayload {
         this.partSize = partSize;
     }
 
-    public CachedData setServiceUuid(String serviceUuid) {
-        this.serviceUuid = serviceUuid;
-        return this;
+    public static Long randomId() {
+        return new SecureRandom().nextLong();
+    }
+
+    public File getCacheDir() {
+        return cacheDir;
     }
 
     public String getServiceUuid() {
         return serviceUuid;
+    }
+
+    public CachedData setServiceUuid(String serviceUuid) {
+        this.serviceUuid = serviceUuid;
+        return this;
     }
 
     public Long getCacheId() {
@@ -85,8 +91,12 @@ public abstract class CachedData implements IPayload {
 
     public void initPartsMissed(int amount) {
         partsMissed = new HashSet<>();
-        for (int i = 1; i <= amount; i++) {
-            partsMissed.add(i);
+        int skip = -1;
+        if (part != null)
+            skip = part.getPartNumber();
+        for (int i = 0; i <= amount; i++) {
+            if (i != skip)
+                partsMissed.add(i);
         }
     }
 
@@ -130,12 +140,21 @@ public abstract class CachedData implements IPayload {
 
     public void onReceivedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         write(cachedPart);
+        if (partsMissed == null)
+            Lok.debug("debu4g");
         partsMissed.remove(cachedPart.getPartNumber());
     }
 
     public boolean isComplete() {
+
         return partsMissed.size() == 0;
     }
+
+    /**
+     * writes everything to disk to save memory.
+     * call this when done with adding all elements.
+     */
+    public abstract void toDisk() throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException;
 
     public void cleanUp() {
 //        Lok.debug("CachedData.cleanUp(). SKIPPING DELETE for debug reaons");
@@ -159,5 +178,9 @@ public abstract class CachedData implements IPayload {
     public CachedPart getPart(int partNumber) throws IOException, JsonDeserializationException {
         CachedPart part = CachedPart.read(createCachedPartFile(partNumber));
         return part;
+    }
+
+    public boolean partsMissedInitialized() {
+        return partsMissed != null;
     }
 }

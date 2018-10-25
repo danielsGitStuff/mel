@@ -28,7 +28,7 @@ public class ResourceList {
     public static Collection<String> getResources(final Pattern pattern) {
         final ArrayList<String> retval = new ArrayList<String>();
         final String classPath = System.getProperty("java.class.path", ".");
-        Lok.debug("ResourceList.getResources.from: "+classPath);
+//        Lok.debug("ResourceList.getResources.from: "+classPath);
         final String[] classPathElements = classPath.split(System.getProperty("path.separator"));
         for (final String element : classPathElements) {
             retval.addAll(getResources(element, pattern));
@@ -104,8 +104,8 @@ public class ResourceList {
      *             there are no args
      */
     public static void main(final String[] args) {
-        URL r = ResourceList.class.getClassLoader().getResource("sql.sql");
-        Lok.debug("url: "+r);
+//        URL r = ResourceList.class.getClassLoader().getResource("sql.sql");
+//        Lok.debug("url: "+r);
         Pattern pattern;
         if (args.length < 1) {
             pattern = Pattern.compile(".*sql$");
@@ -113,8 +113,8 @@ public class ResourceList {
             pattern = Pattern.compile(args[0]);
         }
         final Collection<String> list = ResourceList.getResources(pattern);
-        for (final String name : list) {
-            Lok.debug(name);
-        }
+//        for (final String name : list) {
+//            Lok.debug(name);
+//        }
     }
 }

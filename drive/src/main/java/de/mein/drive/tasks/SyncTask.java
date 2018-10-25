@@ -1,13 +1,17 @@
 package de.mein.drive.tasks;
 
 
+import de.mein.Lok;
 import de.mein.auth.data.IPayload;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.auth.data.cached.CachedIterable;
+import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.StageSet;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Created by xor on 10/27/16.
@@ -29,8 +33,13 @@ public class SyncTask extends CachedIterable<GenericFSEntry> implements IPayload
         super(cacheDir, partSize);
     }
 
-    public SyncTask() {
+    @Override
+    public void add(GenericFSEntry elem) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InstantiationException, InvocationTargetException {
+        super.add(elem);
+    }
 
+    public SyncTask() {
+        Lok.debug("debug");
     }
 
     public Long getStageSetId() {

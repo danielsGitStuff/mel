@@ -1,6 +1,7 @@
 package de.mein.drive.service.sync;
 
 import de.mein.Lok;
+import de.mein.auth.data.cached.CachedData;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.ConnectResult;
@@ -279,6 +280,7 @@ public class ClientSyncHandler extends SyncHandler {
                 if (connectResult.successful()) N.r(() -> {
                     // load to cached data structure
                     Commit commit = new Commit(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
+                    commit.setCacheId(CachedData.randomId());
                     N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
                     commit.setServiceUuid(meinDriveService.getUuid());
                     commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
@@ -756,6 +758,7 @@ public class ClientSyncHandler extends SyncHandler {
                 SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE)
                         .setOldVersion(version);
                 sentSyncTask.setServiceUuid(this.clientSttings.getServerServiceUuid());
+                sentSyncTask.setCacheId(CachedData.randomId());
                 LockedRequest<SyncTask> requestResult = mvp.requestLocked(clientSttings.getServerServiceUuid(), DriveStrings.INTENT_SYNC, sentSyncTask);
                 if (requestResult.successful()) runner.runTry(() -> {
                     SyncTask syncTask = requestResult.getResponse();

@@ -1,7 +1,6 @@
 package de.mein.auth.socket.process.reg;
 
 import de.mein.Lok;
-import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.access.CertificateManager;
@@ -13,7 +12,6 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.sql.SqlQueriesException;
-
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -22,12 +20,12 @@ import org.jdeferred.multiple.OneReject;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.UUID;
 
 /**
  * handles registration of incoming and outgoing connections
@@ -56,7 +54,9 @@ public class MeinRegisterProcess extends MeinProcess {
                     Lok.debug(meinAuthSocket.getMeinAuthService().getName() + ".MeinRegisterProcess.MeinRegisterProcess");
                     MeinRegisterConfirm confirm = (MeinRegisterConfirm) results.get(0).getResult();
                     Certificate certificate = (Certificate) results.get(1).getResult();
-                    certificate.getAnswerUuid().v(confirm.getAnswerUuid());
+                    //check if is UUID
+                    UUID answerUuid = UUID.fromString(confirm.getAnswerUuid());
+                    certificate.getAnswerUuid().v(answerUuid.toString());
                     certificateManager.updateCertificate(certificate);
                     certificateManager.trustCertificate(certificate.getId().v(), true);
                     for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
@@ -72,7 +72,7 @@ public class MeinRegisterProcess extends MeinProcess {
                     Lok.debug("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
                     for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
                         registerHandler.onRemoteRejected(partnerCertificate);
-                }else if (results.getReject() instanceof UserDidNotTrustException){
+                } else if (results.getReject() instanceof UserDidNotTrustException) {
                     Lok.debug("MeinRegisterProcess.MeinRegisterProcess.user.did.not.trust");
                     for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
                         registerHandler.onLocallyRejected(partnerCertificate);

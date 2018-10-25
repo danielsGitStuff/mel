@@ -3,6 +3,7 @@ package de.mein.drive.service;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.data.ClientData;
+import de.mein.auth.data.cached.CachedData;
 import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
@@ -46,19 +47,22 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     protected void onSyncReceived(Request request) {
         logger.log(Level.FINEST, "MeinDriveServerService.onSyncReceived");
         SyncTask task = (SyncTask) request.getPayload();
+        SyncTask answer = new SyncTask();
+        answer.setCacheId(CachedData.randomId());
+        answer.setSourceServiceUuid("lel");
         driveDatabaseManager.getFsDao().lockRead();
         try {
             ISQLResource<GenericFSEntry> delta = driveDatabaseManager.getDeltaResource(task.getOldVersion());
-            task.setCacheDirectory(cacheDirectory);
+            answer.setCacheDirectory(cacheDirectory);
             GenericFSEntry next = delta.getNext();
             while (next != null) {
-                task.add(next);
+                answer.add(next);
                 next = delta.getNext();
             }
-            task.toDisk();
-            task.loadFirstCached();
-            task.setNewVersion(driveDatabaseManager.getLatestVersion());
-            request.resolve(task);
+            answer.toDisk();
+            answer.loadFirstCached();
+            answer.setNewVersion(driveDatabaseManager.getLatestVersion());
+            request.resolve(answer);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

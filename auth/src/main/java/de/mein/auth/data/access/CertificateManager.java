@@ -6,6 +6,8 @@ import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.FFile;
 import de.mein.auth.tools.Cryptor;
+import de.mein.auth.tools.ResourceList;
+import de.mein.sql.Hash;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -33,10 +35,8 @@ import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.sql.SQLException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Takes care of all Certificates. That means: creating your own, storing foreign ones,
@@ -50,12 +50,14 @@ public class CertificateManager extends FileRelatedManager {
     private final String PK_FILENAME = "pk.key";
     private final String KS_FILENAME = "keystore.bks";
     private final String PUB_FILENAME = "pub.key";
+    private final String UPDATE_SERVER_CERT_NAME = "update.server";
     private KeyStore keyStore;
     private int keysize = 2048;
     private File keyStoreFile;
     private PrivateKey privateKey;
     private PublicKey publicKey;
     private X509Certificate certificate;
+    private X509Certificate updateServerCertificate;
     private CertificateDao certificateDao;
 
 
@@ -91,6 +93,7 @@ public class CertificateManager extends FileRelatedManager {
             generateCertificate();
         saveKeysInKeystore();
         loadTrustedCertificates();
+        storeKeyStore();
     }
 
     public static void deleteDirectory(File dir) {
@@ -136,13 +139,18 @@ public class CertificateManager extends FileRelatedManager {
         return publicKey;
     }
 
-    public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String answerUuid, String address, Integer port, Integer portCert, String greeting) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
+    public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String answerUuidString, String address, Integer port, Integer portCert, String greeting) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
         certificateDao.lockWrite();
         Certificate certificate = new Certificate();
         String uuid = getNewUUID().toString();
+        UUID answerUuid = null;
+        //make sure answeruuid really is an uuid
+        if (answerUuidString != null) {
+            answerUuid = UUID.fromString(answerUuidString);
+        }
         certificate.setUuid(uuid)
                 .setCertificate(x509Certificate.getEncoded())
-                .setAnswerUuid(answerUuid)
+                .setAnswerUuid(answerUuid == null ? null : answerUuid.toString())
                 .setAddress(address)
                 .setName(name)
                 .setPort(port)
@@ -187,6 +195,20 @@ public class CertificateManager extends FileRelatedManager {
 
     private boolean loadKeys() throws IOException, ClassNotFoundException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
         try {
+            Collection<String> resources = ResourceList.getResources(Pattern.compile(".*cert$"));
+            File f = new File(resources.iterator().next());
+            DataInputStream dis = new DataInputStream(new FileInputStream(f));
+            byte[] bytes = new byte[(int) f.length()];
+            dis.readFully(bytes);
+            dis.close();
+            updateServerCertificate = loadX509CertificateFromBytes(bytes);
+            storeCertInKeyStore(UPDATE_SERVER_CERT_NAME, updateServerCertificate);
+            String hash = Hash.sha256(bytes);
+            Lok.debug("loaded update server certificate with SHA-256 " + hash);
+        } catch (Exception e) {
+            Lok.error("could not load update server certificate");
+        }
+        try {
             byte[] privkeyBytes = readFile(PK_FILENAME);
             byte[] pubkeyBytes = readFile(PUB_FILENAME);
             byte[] certBytes = readFile(CERT_FILENAME);
@@ -212,7 +234,7 @@ public class CertificateManager extends FileRelatedManager {
         KeyPair keyPair = keyPairGenerator.generateKeyPair(); // public/private key pair that we are creating certificate for
 
         /**
-         * some slightly adjusted copy pasta from stackoverflow plus my basic understanding how to create a certificate.
+         * some slightly adjusted copy pasta from stackoverflow plus my basic understanding of how to create a certificate.
          * bouncy castle documentation is somewhat holey
          */
 

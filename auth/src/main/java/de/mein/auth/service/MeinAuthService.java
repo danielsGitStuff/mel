@@ -38,8 +38,6 @@ import de.mein.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairCollectionSerializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
-
-import org.jdeferred.DeferredManager;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -47,7 +45,6 @@ import org.jdeferred.impl.DeferredObject;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -83,6 +80,7 @@ public class MeinAuthService {
     private MeinBoot meinBoot;
     private DeferredObject<DeferredRunnable, Exception, Void> startedPromise;
     private PowerManager powerManager;
+    private File cacheDir;
 
 
     MeinAuthService(MeinAuthSettings meinAuthSettings, PowerManager powerManager, IDBCreatedListener dbCreatedListener) throws Exception {
@@ -93,6 +91,8 @@ public class MeinAuthService {
         FieldSerializerFactoryRepository.printSerializers();
         this.powerManager = powerManager;
         this.workingDirectory = meinAuthSettings.getWorkingDirectory();
+        this.cacheDir = new File(workingDirectory, "auth.cache");
+        this.cacheDir.mkdirs();
         this.databaseManager = new DatabaseManager(meinAuthSettings);
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 2048);
         this.certificateManager.maintenance();
@@ -626,5 +626,9 @@ public class MeinAuthService {
             deferred.resolve(meinAuthWorker);
         }
         return deferred;
+    }
+
+    public File getCacheDir() {
+        return cacheDir;
     }
 }

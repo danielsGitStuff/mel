@@ -11,7 +11,6 @@ import java.io.File;
  * Created by xor on 1/14/17.
  */
 public class Commit extends CachedIterable<Stage> implements IPayload{
-    private String serviceUuid;
     private Long basedOnVersion;
 
     public Commit(){
@@ -23,24 +22,12 @@ public class Commit extends CachedIterable<Stage> implements IPayload{
     }
 
     public Commit setBasedOnVersion(Long basedOnVersion) {
-        //todo debug
-        if (basedOnVersion == 2)
-            Lok.debug("Commit.setBasedOnVersion.debug23");
         this.basedOnVersion = basedOnVersion;
         return this;
     }
 
     public Long getBasedOnVersion() {
         return basedOnVersion;
-    }
-
-    public Commit setServiceUuid(String serviceUuid) {
-        this.serviceUuid = serviceUuid;
-        return this;
-    }
-
-    public String getServiceUuid() {
-        return serviceUuid;
     }
 
 }

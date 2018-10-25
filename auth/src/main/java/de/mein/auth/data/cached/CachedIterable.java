@@ -19,7 +19,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
 
 
     public CachedIterable(File cacheDir, int partSize) {
-        super(cacheDir,partSize);
+        super(cacheDir, partSize);
     }
 
     public CachedIterable() {
@@ -27,6 +27,8 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
 
     public void add(T elem) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InstantiationException, InvocationTargetException {
         //todo debug
+        if (partCount == 0)
+            partCount = 1;
         if (part == null) {
             this.part = new CachedListPart(cacheId, partCount, partSize);
         }
@@ -37,6 +39,9 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
         }
         part.add(elem);
         size++;
+        //todo debug
+        if (size == 11)
+            Lok.debug("debug");
     }
 
     protected void createNewPart() {
@@ -48,10 +53,14 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
      * writes everything to disk to save memory.
      * call this when done with adding all elements.
      */
+    @Override
     public void toDisk() throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         if (part == null) {
             this.part = new CachedListPart(cacheId, partCount, partSize);
         }
+        // todo debug
+        if (cacheDir == null)
+            Lok.debug("debug");
         write(part);
     }
 
@@ -87,8 +96,13 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
 
     @Override
     public void onReceivedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super.onReceivedPart(cachedPart);
-        size += cachedPart.size();
+        if (cachedPart != null) {
+            super.onReceivedPart(cachedPart);
+            size += cachedPart.size();
+            //todo debug
+            if (size == 11 || size == 22)
+                Lok.debug("debug");
+        }
     }
 
     public long getSize() {
