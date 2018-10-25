@@ -1,6 +1,5 @@
 package de.miniserver;
 
-import de.mein.KonsoleHandler;
 import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
@@ -8,6 +7,7 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.execute.SqliteExecutor;
 import de.mein.konsole.Konsole;
+import de.mein.konsole.ParseArgumentException;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
 import de.mein.sql.transform.SqlResultTransformer;
@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
@@ -103,15 +104,26 @@ public class MiniServer {
         String certPath;
     }
 
-    public static void main(String[] args) throws Exception {
-        ArgumentsBundle argumentsBundle = new ArgumentsBundle();
-        Konsole konsole = new Konsole();
-        konsole.addDefinition("-cert", "path to certificate file", (args1, pos) -> {
-            argumentsBundle.certPath = args1[pos];
-            return 1;
-        });
-        konsole.handle(args);
-        MiniServer miniServer = new MiniServer(DEFAULT_WORKING_DIR);
+    public static void main(String[] arguments) throws Exception {
+        Konsole<ServerConfig> konsole = new Konsole(new ServerConfig());
+        konsole.optional("-cert", "path to certificate", (result, args) -> result.setCertPath(args[0]))
+                .optional("-dir", "path to working directory", (result, args) -> result.setWorkingDirectory(args[0]))
+                .optional("-files", "pairs of files and versions. eg: '-files -f1 v1 -f2 v12'", ((result, args) -> {
+                    if (args.length % 2 != 0)
+                        throw new ParseArgumentException("even number of entries");
+                    for (int i = 0; i < args.length; i += 2) {
+                        result.addEntry(Konsole.check.checkRead(args[0]), Konsole.check.checkRead(args[i + 1]));
+                    }
+                }));
+        konsole.handle(arguments);
+        ServerConfig config = konsole.getResult();
+        File workingDir = DEFAULT_WORKING_DIR;
+        if (config.getWorkingDirectory() != null) {
+            Path path = Paths.get(config.getWorkingDirectory());
+            workingDir = path.toFile();
+        }
+        Lok.debug("dir: " + workingDir.getCanonicalPath());
+        MiniServer miniServer = new MiniServer(workingDir);
         miniServer.start();
         while (true) {
 

@@ -218,6 +218,8 @@ public class CertificateManager extends FileRelatedManager {
             privateKey = kf.generatePrivate(privSpec);
             publicKey = kf.generatePublic(pubSpec);
             certificate = loadX509CertificateFromBytes(certBytes);
+            String hash = Hash.sha256(certBytes);
+            Lok.debug("loaded own certificate with SHA-256 " + hash);
             return true;
         } catch (Exception e) {
             privateKey = null;
