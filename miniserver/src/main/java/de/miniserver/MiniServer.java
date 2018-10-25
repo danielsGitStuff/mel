@@ -7,6 +7,7 @@ import de.mein.MeinThread;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.execute.SqliteExecutor;
+import de.mein.konsole.Konsole;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
 import de.mein.sql.transform.SqlResultTransformer;
@@ -98,9 +99,18 @@ public class MiniServer {
         }
     }
 
+    static class ArgumentsBundle {
+        String certPath;
+    }
+
     public static void main(String[] args) throws Exception {
-
-
+        ArgumentsBundle argumentsBundle = new ArgumentsBundle();
+        Konsole konsole = new Konsole();
+        konsole.addDefinition("-cert", "path to certificate file", (args1, pos) -> {
+            argumentsBundle.certPath = args1[pos];
+            return 1;
+        });
+        konsole.handle(args);
         MiniServer miniServer = new MiniServer(DEFAULT_WORKING_DIR);
         miniServer.start();
         while (true) {
