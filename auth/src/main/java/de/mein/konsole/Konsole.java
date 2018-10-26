@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * This class digests the input arguments of the main()-method. Everything argument
  * with a leading '-' is considered as an attribute you want to set (or a flag).
- * This can be fed with optional and mandatory argument definitions.
+ * This can be fed with optional and mandatory argument definitions. The whole Konsole has fun with Lambdas and Stream API.
  * Created by xor on 3/12/17.
  */
 public class Konsole<T extends KResult> {

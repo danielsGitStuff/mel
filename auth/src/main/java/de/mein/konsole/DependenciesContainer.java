@@ -25,7 +25,7 @@ public class DependenciesContainer {
         }));
         List<String> violated = dependencySetMap.values().stream().filter(dependencySet -> usedAttributes.contains(dependencySet.trigger) && dependencySet.notFulfilled()).map(DependencySet::getTrigger).sorted().collect(Collectors.toList());
         if (!violated.isEmpty()) {
-            Lok.error("dependsOn violated");
+            Lok.error("dependencies violated");
             for (String attr : violated) {
                 Lok.error("'" + attr + "' was set and requires: ");
                 List<String> required = dependencySetMap.get(attr).fulfilledMap.keySet().stream().sorted().collect(Collectors.toList());
