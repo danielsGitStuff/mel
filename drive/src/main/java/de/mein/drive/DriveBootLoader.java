@@ -5,7 +5,6 @@ import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.db.Service;
-import de.mein.auth.file.AFile;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.MeinDeferredManager;

@@ -10,6 +10,7 @@ configurations{
     driveTestOutput
 }
 dependencies {
+    implementation project(path: ':konsole')
     driveTestOutput sourceSets.test.output
     compile project(path: ':auth')
     testCompile project(path: ':auth')

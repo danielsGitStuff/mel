@@ -12,7 +12,6 @@ import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.sql.SqlQueriesException;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

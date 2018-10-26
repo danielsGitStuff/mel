@@ -4,7 +4,6 @@ import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.IPayload;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.val.Request;
 

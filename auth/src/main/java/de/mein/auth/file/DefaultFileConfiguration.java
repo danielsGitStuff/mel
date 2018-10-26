@@ -3,8 +3,6 @@ package de.mein.auth.file;
 import java.io.File;
 
 import de.mein.Lok;
-import de.mein.auth.file.AFile;
-import de.mein.auth.file.FFile;
 
 public class DefaultFileConfiguration extends AFile.Configuration {
     @Override

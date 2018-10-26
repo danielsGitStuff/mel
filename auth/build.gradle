@@ -11,6 +11,7 @@ compileTestJava {
 }
 
 dependencies {
+    compile project(path: ':konsole')
     compile project(path: ':sql')
     compile project(path: ':serialize')
     testCompile project(path: ':sql')

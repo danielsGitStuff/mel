@@ -22,7 +22,6 @@ import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 

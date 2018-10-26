@@ -105,7 +105,8 @@ public class MiniServer {
 
     public static void main(String[] arguments) {
         Konsole<ServerConfig> konsole = new Konsole(new ServerConfig());
-        konsole.optional("-cert", "path to certificate", (result, args) -> result.setCertPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-pubkey", "-privkey"))
+        konsole.optional("-create-cert", "name of the certificate", (result, args) -> result.setCertName(args[0]), Konsole.dependsOn("-pubkey", "-privkey"))
+                .optional("-cert", "path to certificate", (result, args) -> result.setCertPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-pubkey", "-privkey"))
                 .optional("-pubkey", "path to public key", (result, args) -> result.setPubKeyPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-privkey", "-cert"))
                 .optional("-privkey", "path to private key", (result, args) -> result.setPrivKeyPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-pubkey", "-cert"))
                 .optional("-dir", "path to working directory", (result, args) -> result.setWorkingDirectory(args[0]))
@@ -135,9 +136,7 @@ public class MiniServer {
         try {
             miniServer = new MiniServer(workingDir);
             miniServer.start();
-            while (true) {
-
-            }
+            new RWLock().lockWrite().lockWrite();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1,9 +1,7 @@
 package de.mein.auth.service;
 
-import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
-import de.mein.auth.file.AFile;
 
 import java.io.File;
 import java.util.LinkedList;

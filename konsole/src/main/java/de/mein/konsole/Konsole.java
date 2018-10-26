@@ -1,7 +1,6 @@
 package de.mein.konsole;
 
 import de.mein.Lok;
-import de.mein.core.serialize.serialize.tools.StringBuilder;
 
 import java.io.File;
 import java.util.Arrays;
@@ -142,8 +141,8 @@ public class Konsole<T extends KResult> {
     }
 
     private void printMissingArgs() {
-        StringBuilder b = new StringBuilder().arrBegin().append("not specified attributes").arrEnd().append(":").lineBreak();
-        mandatory.keySet().stream().filter(s -> !mandatory.get(s)).sorted().forEach(s -> b.append(s).lineBreak());
+        StringBuilder b = new StringBuilder().append("[not specified attributes]").append(":\n");
+        mandatory.keySet().stream().filter(s -> !mandatory.get(s)).sorted().forEach(s -> b.append(s).append("\n"));
         Lok.error(b.toString());
     }
 
@@ -163,7 +162,7 @@ public class Konsole<T extends KResult> {
         if (dependenciesContainer.hasDependency(attr)) {
             b.append(", depends on: ");
             DependenciesContainer.DependencySet dependencies = dependenciesContainer.getDependencySet(attr);
-            dependencies.getDependencies().forEach(s -> b.append("'" + s + "'"));
+            dependencies.getDependencies().forEach(s -> b.append("'" + s + "' "));
         }
         Lok.error(b.toString());
     }
@@ -172,7 +171,7 @@ public class Konsole<T extends KResult> {
      * prints all configures attributes
      */
     private void printHelp() {
-        Lok.error("Help");
+        Lok.error("---Help---");
         Lok.error("mandatory attributes:");
         mandatory.keySet().stream().sorted().forEach(this::printLine);
         Lok.error("optional attributes:");

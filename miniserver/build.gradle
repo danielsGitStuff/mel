@@ -12,6 +12,7 @@ repositories {
 }
 
 dependencies {
+    implementation project(path: ':konsole')
     compile project(path: ':auth')
     testCompile project(path: ':auth')
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'

@@ -4,7 +4,6 @@ import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
-import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 

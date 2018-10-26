@@ -3,7 +3,6 @@ package de.mein.fxbundle;
 import de.mein.KonsoleHandler;
 import de.mein.Lok;
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.gui.RegisterHandlerFX;
@@ -22,7 +21,6 @@ import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import javafx.embed.swing.JFXPanel;
 
-import java.io.File;
 import java.io.IOException;
 
 /**

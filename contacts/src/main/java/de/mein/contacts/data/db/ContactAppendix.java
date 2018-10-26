@@ -16,7 +16,6 @@ import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mein.sql.deserialize.PairDeserializerFactory;
-import de.mein.sql.serialize.PairCollectionSerializer;
 import de.mein.sql.serialize.PairCollectionSerializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 

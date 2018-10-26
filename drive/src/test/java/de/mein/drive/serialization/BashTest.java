@@ -4,8 +4,6 @@ import de.mein.Lok;
 import de.mein.auth.file.FFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
-import de.mein.drive.bash.BashToolsImpl;
-import de.mein.drive.bash.BashToolsUnix;
 import org.junit.Test;
 
 import java.io.BufferedReader;

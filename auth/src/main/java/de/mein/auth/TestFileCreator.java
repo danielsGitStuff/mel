@@ -4,7 +4,6 @@ import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.core.serialize.serialize.tools.StringBuilder;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 

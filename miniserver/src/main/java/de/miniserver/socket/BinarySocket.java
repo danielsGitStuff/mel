@@ -2,7 +2,6 @@ package de.miniserver.socket;
 
 import de.mein.Lok;
 import de.mein.auth.socket.MeinSocket;
-import de.mein.auth.tools.N;
 import de.miniserver.data.FileRepository;
 
 import java.io.File;

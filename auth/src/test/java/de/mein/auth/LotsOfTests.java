@@ -7,7 +7,6 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
-import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinTestBootloader;

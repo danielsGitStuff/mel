@@ -231,43 +231,15 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public void generateCertificate() throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, CertificateException, KeyStoreException, OperatorCreationException {
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(keysize, new SecureRandom());
-        KeyPair keyPair = keyPairGenerator.generateKeyPair(); // public/private key pair that we are creating certificate for
-
-        /**
-         * some slightly adjusted copy pasta from stackoverflow plus my basic understanding of how to create a certificate.
-         * bouncy castle documentation is somewhat holey
-         */
-
-        Provider bcProvider = new BouncyCastleProvider();
-        Security.addProvider(bcProvider);
-        long now = System.currentTimeMillis();
-        Date startDate = new Date(now);
-        X500Name dnName = new X500Name("CN=Auth");
-        BigInteger certSerialNumber = new BigInteger(Long.toString(now)); // <-- Using the current timestamp as the certificate serial number
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(startDate);
-        calendar.add(Calendar.YEAR, 25); // <-- 1 Yr validity
-        Date endDate = calendar.getTime();
-        String signatureAlgorithm = "SHA256WithRSA"; // <-- Use appropriate signature algorithm based on your keyPair algorithm.
-        ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithm).build(keyPair.getPrivate());
-        JcaX509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(dnName, certSerialNumber, startDate, endDate, dnName, keyPair.getPublic());
-        // Extensions --------------------------
-        // Basic Constraints
-        BasicConstraints basicConstraints = new BasicConstraints(false); // <-- true for CA, false for EndEntity
-        certBuilder.addExtension(new ASN1ObjectIdentifier("2.5.29.19"), true, basicConstraints); // Basic Constraints is usually marked as critical.
-        // -------------------------------------
-        this.certificate = new JcaX509CertificateConverter().setProvider(bcProvider).getCertificate(certBuilder.build(contentSigner));
-
+        KeyPair keyPair = CertificateCreator.generateKeyPair(keysize);
+        this.certificate = CertificateCreator.generateCertificate(keyPair,"default auth");
         this.privateKey = keyPair.getPrivate();
         this.publicKey = keyPair.getPublic();
 
-
         // save cert & PK
-        saveFile(certificate.getEncoded(), CERT_FILENAME);
-        saveFile(this.privateKey.getEncoded(), PK_FILENAME);
-        saveFile(this.publicKey.getEncoded(), PUB_FILENAME);
+        CertificateCreator.saveFile(new File(CERT_FILENAME),certificate.getEncoded());
+        CertificateCreator.saveFile(new File(PK_FILENAME),privateKey.getEncoded());
+        CertificateCreator.saveFile(new File(PUB_FILENAME),publicKey.getEncoded());
 
         // save KeyStore
         storeKeyStore();
@@ -282,14 +254,6 @@ public class CertificateManager extends FileRelatedManager {
         char[] pwd = PASS.toCharArray();
         keyStore.store(new FileOutputStream(keyStoreFile), pwd);
     }
-
-    private void saveFile(byte[] data, String fileName) throws IOException {
-        String path = createWorkingPath() + fileName;
-        FileOutputStream fos = new FileOutputStream(path);
-        fos.write(data);
-        fos.close();
-    }
-
 
     public X509Certificate getMyX509Certificate() {
         return certificate;

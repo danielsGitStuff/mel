@@ -1,8 +1,6 @@
 package de.mein;
 
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.file.AFile;
-import de.mein.auth.service.power.PowerManager;
 import de.mein.sql.Pair;
 
 import java.io.File;

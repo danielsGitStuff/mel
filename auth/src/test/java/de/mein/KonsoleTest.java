@@ -107,6 +107,12 @@ public class KonsoleTest {
         konsole.handle(arguments);
     }
 
+    @Test(expected = Konsole.HelpException.class)
+    public void help() throws Exception {
+        arguments = new String[]{"--help"};
+        konsole.handle(arguments);
+    }
+
     @Test(expected = Konsole.KonsoleWrongArgumentsException.class)
     public void gibberish() throws Exception {
         arguments = new String[]{"one", "two"};

@@ -2,12 +2,10 @@ package de.mein.drive.index.watchdog;
 
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
-import de.mein.auth.service.power.PowerManager;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.IndexListener;
 import de.mein.auth.file.AFile;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.sql.FsFile;
 import de.mein.auth.tools.WatchDogTimer;
 
 import java.io.*;

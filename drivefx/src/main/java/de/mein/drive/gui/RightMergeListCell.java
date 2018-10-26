@@ -4,7 +4,6 @@ import de.mein.Lok;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.sql.Stage;
 import javafx.event.ActionEvent;
-import javafx.geometry.Pos;
 import javafx.scene.control.ListView;
 
 /**

@@ -1,8 +1,6 @@
 package de.mein.contacts;
 
 import de.mein.Lok;
-import de.mein.auth.data.ClientData;
-import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;

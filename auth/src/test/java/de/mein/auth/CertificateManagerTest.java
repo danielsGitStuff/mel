@@ -5,7 +5,6 @@ import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.file.AFile;
 import de.mein.sql.SqlQueriesException;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.operator.OperatorCreationException;

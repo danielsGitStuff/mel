@@ -2,7 +2,6 @@ package de.mein.auth.tools;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -10,8 +9,6 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-
-import de.mein.Lok;
 
 /**
  * list resources available from the classpath @ *

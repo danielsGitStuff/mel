@@ -8,12 +8,9 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.drive.service.MeinDriveService;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.*;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by xor on 2/6/17.

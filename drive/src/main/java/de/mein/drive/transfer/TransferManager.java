@@ -10,7 +10,6 @@ import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveStrings;

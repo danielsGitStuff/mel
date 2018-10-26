@@ -1,28 +1,12 @@
 package de.mein.auth;
 
-import org.junit.Test;
-import org.junit.experimental.max.MaxCore;
-
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.mein.Lok;
-import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.MeinAuthSocket;
-import de.mein.auth.socket.MeinAuthSocketOpener;
-import de.mein.auth.socket.MeinSocket;
-import de.mein.auth.tools.N;
-import de.mein.auth.tools.WaitLock;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by xor on 10/11/17.

@@ -9,9 +9,7 @@ import de.mein.drive.sql.FsDirectory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by xor on 7/11/16.

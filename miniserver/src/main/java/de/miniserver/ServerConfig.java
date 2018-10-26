@@ -9,6 +9,7 @@ public class ServerConfig extends KResult {
     private String certPath;
     private String workingDirectory;
     private String pubKeyPath;
+    private String certName;
 
     public String getPubKeyPath() {
         return pubKeyPath;
@@ -52,5 +53,13 @@ public class ServerConfig extends KResult {
 
     public String getWorkingDirectory() {
         return workingDirectory;
+    }
+
+    public void setCertName(String certName) {
+        this.certName = certName;
+    }
+
+    public String getCertName() {
+        return certName;
     }
 }

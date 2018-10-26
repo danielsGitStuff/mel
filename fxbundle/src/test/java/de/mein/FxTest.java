@@ -11,7 +11,6 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
-import de.mein.auth.file.FFile;
 import de.mein.auth.gui.RegisterHandlerFX;
 import de.mein.auth.service.*;
 import de.mein.auth.service.power.PowerManager;

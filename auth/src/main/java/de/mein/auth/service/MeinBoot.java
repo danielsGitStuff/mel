@@ -8,7 +8,6 @@ import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
-import de.mein.auth.file.AFile;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.BackgroundExecutor;
 import de.mein.auth.tools.MeinDeferredManager;

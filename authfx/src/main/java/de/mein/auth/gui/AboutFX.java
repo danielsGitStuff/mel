@@ -4,22 +4,14 @@ import de.mein.Lok;
 import de.mein.Versioner;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.tools.N;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.effect.BlendMode;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import org.w3c.dom.Document;
 
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Random;
 
 public class AboutFX extends AuthSettingsFX {
 

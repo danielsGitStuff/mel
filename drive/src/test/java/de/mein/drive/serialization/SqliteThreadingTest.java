@@ -3,7 +3,6 @@ package de.mein.drive.serialization;
 import de.mein.Lok;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.file.AFile;
-import de.mein.auth.file.FFile;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.data.DriveSettings;

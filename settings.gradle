@@ -1,4 +1,4 @@
-include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx' ,':fxbundle' ,':miniserver' ,':icons'
+include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx' ,':fxbundle' ,':miniserver' ,':icons' ,':konsole'
 //include ':app',':json', ':serialize', ':sql', ':auth', ':drive', ':contacts',':icons', ':miniserver' //,':authfx', ':drivefx'
 
 project(':json').projectDir = new File('json')
@@ -17,4 +17,6 @@ project(':authfx').projectDir = new File('authfx')
 project(':drivefx').projectDir = new File('drivefx')
 project(':contactsfx').projectDir = new File('contactsfx')
 project(':fxbundle').projectDir = new File('fxbundle')
+//project(':konsole').projectDir = new File('konsole')
+include 'konsole'
 

@@ -17,7 +17,6 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.Callback;
 
 import java.net.URL;
