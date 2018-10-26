@@ -21,11 +21,17 @@ public class Konsole<T extends KResult> {
     // set to false if not specified
     private Map<String, Boolean> mandatory = new HashMap<>();
     private int pos = 0;
-    private String currentArg;
+    private String currentAttr;
+    private DependenciesContainer dependenciesContainer = new DependenciesContainer();
 
     public Konsole(T result) {
         this.result = result;
         this.optional("--help", "prints help", (result1, args) -> printHelp());
+    }
+
+    public static DependenciesContainer.DependencySet dependsOn(String... attributes) {
+        DependenciesContainer.DependencySet set = new DependenciesContainer.DependencySet(attributes);
+        return set;
     }
 
     public T getResult() {
@@ -44,6 +50,20 @@ public class Konsole<T extends KResult> {
         argsMap.put(name, definition);
         descMap.put(name, description);
         return this;
+    }
+
+    /**
+     * Make assignments of the parsed values in the {@link KReader}. It is the {@link KReader} of the constructor.
+     *
+     * @param name         your attribute (eg: '-fun'). must start with a '-'
+     * @param description
+     * @param definition   parse the strings here
+     * @param dependencies attributes that are required when setting this one. Call {@link Konsole}.dependsOn("-a","-b") here.
+     * @return
+     */
+    public Konsole<T> optional(String name, String description, KReader<T> definition, DependenciesContainer.DependencySet dependencies) {
+        dependenciesContainer.add(dependencies.setTrigger(name));
+        return optional(name, description, definition);
     }
 
     /**
@@ -68,47 +88,55 @@ public class Konsole<T extends KResult> {
      * @return
      * @throws KonsoleWrongArgumentsException when not all mandatory arguments are set or parsing went wrong.
      */
-    public Konsole handle(String[] args) throws KonsoleWrongArgumentsException, HelpException {
-        if (args.length>0&& args[0].equals("--help")){
+    public Konsole handle(String[] args) throws KonsoleWrongArgumentsException, HelpException, DependenciesViolatedException {
+        if (args.length > 0 && args[0].equals("--help")) {
             printHelp();
             throw new HelpException();
         }
         while (pos < args.length) {
-            currentArg = args[pos];
-            KReader reader = argsMap.get(currentArg);
+            currentAttr = args[pos];
+            KReader reader = argsMap.get(currentAttr);
             int readerPos = ++pos;
-            String nextArg = null;
+            String nextAttr = null;
             for (; pos < args.length; pos++) {
                 String arg = args[pos];
                 if (arg.startsWith("-") && argsMap.containsKey(arg)) {
-                    nextArg = arg;
+                    nextAttr = arg;
                     break;
                 }
                 // that is how arguments start!
                 if (arg.startsWith("-")) {
-                    throw new KonsoleWrongArgumentsException("unknown attributes: " + currentArg);
+                    throw new KonsoleWrongArgumentsException("unknown attributes: " + currentAttr);
                 }
             }
             String[] argsForReader = Arrays.copyOfRange(args, readerPos, pos);
             if (reader == null) {
                 printHelp();
-                throw new KonsoleWrongArgumentsException("unknown argument: " + currentArg);
+                throw new KonsoleWrongArgumentsException("unknown argument: " + currentAttr);
             }
             try {
-                mandatory.put(currentArg, true);
+                if (mandatory.containsKey(currentAttr))
+                    mandatory.put(currentAttr, true);
+                dependenciesContainer.onHandleAttribute(currentAttr);
                 reader.handle(result, argsForReader);
             } catch (ParseArgumentException e) {
-                throw new KonsoleWrongArgumentsException("error when consuming: " + currentArg + ", message: " + e.getMessage());
+                throw new KonsoleWrongArgumentsException("error when consuming: " + currentAttr + ", message: " + e.getMessage());
             } catch (Exception e) {
                 throw new KonsoleWrongArgumentsException(e.getMessage());
             }
-            currentArg = nextArg;
+            currentAttr = nextAttr;
         }
 
         if (mandatory.values().stream().anyMatch(aBoolean -> !aBoolean)) {
             printMissingArgs();
             printHelp();
             throw new KonsoleWrongArgumentsException("you did not specify all mandatory attributes!");
+        }
+        try {
+            dependenciesContainer.checkDependencies();
+        } catch (DependenciesViolatedException e) {
+            printHelp();
+            throw e;
         }
         return this;
     }
@@ -121,6 +149,7 @@ public class Konsole<T extends KResult> {
 
     /**
      * prints an attributes definition
+     *
      * @param attr
      */
     private void printLine(String attr) {
@@ -131,6 +160,11 @@ public class Konsole<T extends KResult> {
                 .append(mandatory.containsKey(attr))
                 .append(", descr: ")
                 .append(descMap.get(attr));
+        if (dependenciesContainer.hasDependency(attr)) {
+            b.append(", depends on: ");
+            DependenciesContainer.DependencySet dependencies = dependenciesContainer.getDependencySet(attr);
+            dependencies.getDependencies().forEach(s -> b.append("'" + s + "'"));
+        }
         Lok.error(b.toString());
     }
 
@@ -144,6 +178,7 @@ public class Konsole<T extends KResult> {
         Lok.error("optional attributes:");
         argsMap.keySet().stream().filter(s -> !mandatory.containsKey(s)).sorted().forEach(this::printLine);
     }
+
 
     public static class check {
         /**
@@ -160,6 +195,30 @@ public class Konsole<T extends KResult> {
             if (!f.canRead())
                 throw new ParseArgumentException("cannot read file: " + path);
             return path;
+        }
+    }
+
+    public static class ParseArgumentException extends Exception {
+        public ParseArgumentException(String msg) {
+            super(msg);
+        }
+    }
+
+    /**
+     * Created by xor on 3/12/17.
+     */
+    public static class KonsoleWrongArgumentsException extends Exception {
+        public KonsoleWrongArgumentsException(String msg) {
+            super(msg);
+        }
+    }
+
+    public static class HelpException extends Exception {
+    }
+
+    public static class DependenciesViolatedException extends Exception {
+        public DependenciesViolatedException(String msg) {
+            super(msg);
         }
     }
 }

@@ -6,10 +6,7 @@ import de.mein.MeinThread;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.execute.SqliteExecutor;
-import de.mein.konsole.HelpException;
 import de.mein.konsole.Konsole;
-import de.mein.konsole.KonsoleWrongArgumentsException;
-import de.mein.konsole.ParseArgumentException;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
 import de.mein.sql.transform.SqlResultTransformer;
@@ -108,21 +105,23 @@ public class MiniServer {
 
     public static void main(String[] arguments) {
         Konsole<ServerConfig> konsole = new Konsole(new ServerConfig());
-        konsole.optional("-cert", "path to certificate", (result, args) -> result.setCertPath(args[0]))
+        konsole.optional("-cert", "path to certificate", (result, args) -> result.setCertPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-pubkey", "-privkey"))
+                .optional("-pubkey", "path to public key", (result, args) -> result.setPubKeyPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-privkey", "-cert"))
+                .optional("-privkey", "path to private key", (result, args) -> result.setPrivKeyPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-pubkey", "-cert"))
                 .optional("-dir", "path to working directory", (result, args) -> result.setWorkingDirectory(args[0]))
                 .optional("-files", "pairs of files and versions. eg: '-files -f1 v1 -f2 v12'", ((result, args) -> {
                     if (args.length % 2 != 0)
-                        throw new ParseArgumentException("even number of entries");
+                        throw new Konsole.ParseArgumentException("even number of entries");
                     for (int i = 0; i < args.length; i += 2) {
                         result.addEntry(Konsole.check.checkRead(args[0]), Konsole.check.checkRead(args[i + 1]));
                     }
                 }));
         try {
             konsole.handle(arguments);
-        } catch (KonsoleWrongArgumentsException e) {
+        } catch (Konsole.KonsoleWrongArgumentsException | Konsole.DependenciesViolatedException e) {
             Lok.error(e.getClass().getSimpleName() + ": " + e.getMessage());
             System.exit(1);
-        } catch (HelpException e) {
+        } catch (Konsole.HelpException e) {
             System.exit(0);
         }
         ServerConfig config = konsole.getResult();

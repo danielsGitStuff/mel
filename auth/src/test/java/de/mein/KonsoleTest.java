@@ -2,7 +2,6 @@ package de.mein;
 
 import de.mein.konsole.KResult;
 import de.mein.konsole.Konsole;
-import de.mein.konsole.KonsoleWrongArgumentsException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,7 +42,7 @@ public class KonsoleTest {
     }
 
     @Test
-    public void flagAndNumber() throws KonsoleWrongArgumentsException {
+    public void flagAndNumber() throws Konsole.KonsoleWrongArgumentsException, Konsole.HelpException, Konsole.DependenciesViolatedException {
         arguments = new String[]{"-f", "-n", "2"};
         konsole.mandatory("-f", "this is a flag", (result, args) -> result.string = "flag set!")
                 .mandatory("-n", "number", (result, args) -> result.number = Integer.parseInt(args[0]));
@@ -53,7 +52,7 @@ public class KonsoleTest {
     }
 
     @Test
-    public void twoFlags() throws KonsoleWrongArgumentsException {
+    public void twoFlags() throws Konsole.KonsoleWrongArgumentsException, Konsole.HelpException, Konsole.DependenciesViolatedException {
         arguments = new String[]{"-f", "-n"};
         konsole.mandatory("-f", "this is a flag", (result, args) -> result.string = "flag set!")
                 .mandatory("-n", "number", (result, args) -> result.number = 666);
@@ -63,7 +62,7 @@ public class KonsoleTest {
     }
 
     @Test
-    public void multipleSubArgs() throws KonsoleWrongArgumentsException {
+    public void multipleSubArgs() throws Konsole.KonsoleWrongArgumentsException, Konsole.DependenciesViolatedException, Konsole.HelpException {
         arguments = new String[]{"-f", "-multi", "m1", "m2", "-n", "2"};
         konsole.mandatory("-f", "this is a flag", (result, args) -> result.string = "flag set!")
                 .mandatory("-n", "number", (result, args) -> result.number = Integer.parseInt(args[0]))
@@ -76,7 +75,7 @@ public class KonsoleTest {
         assertEquals(2, dummy.manyArgs.size());
     }
 
-    @Test(expected = KonsoleWrongArgumentsException.class)
+    @Test(expected = Konsole.KonsoleWrongArgumentsException.class)
     public void mandatoryNotSpecified() throws Exception {
         arguments = new String[]{"-first", "FIRST", "-unrelated", "555"};
         konsole.mandatory("-first", "first descr", (result1, args) -> result1.string = args[0])
@@ -95,7 +94,7 @@ public class KonsoleTest {
         assertEquals(888, dummy.number);
     }
 
-    @Test(expected = KonsoleWrongArgumentsException.class)
+    @Test(expected = Konsole.KonsoleWrongArgumentsException.class)
     public void unknownArg() throws Exception {
         arguments = new String[]{"-first", "FIRST", "-unknown", "555"};
         konsole.mandatory("-first", "first descr", (result1, args) -> result1.string = args[0]);
@@ -108,10 +107,33 @@ public class KonsoleTest {
         konsole.handle(arguments);
     }
 
-    @Test(expected = KonsoleWrongArgumentsException.class)
+    @Test(expected = Konsole.KonsoleWrongArgumentsException.class)
     public void gibberish() throws Exception {
         arguments = new String[]{"one", "two"};
         konsole.handle(arguments);
+    }
+
+    @Test(expected = Konsole.DependenciesViolatedException.class)
+    public void dependsOnFail() throws Konsole.KonsoleWrongArgumentsException, Konsole.HelpException, Konsole.DependenciesViolatedException {
+        arguments = new String[]{"-a", "AA", "-b", "BB"};
+        konsole.mandatory("-a", "a desc", (result, args) -> result.manyArgs.add(args[0]))
+                .optional("-b", "b desc", (result, args) -> result.manyArgs.add(args[0]), Konsole.dependsOn("-c"))
+                .optional("-c", "c desc", (result, args) -> result.manyArgs.add(args[0]));
+        konsole.handle(arguments);
+        Lok.debug("");
+    }
+
+    @Test
+    public void dependsOn() throws Konsole.KonsoleWrongArgumentsException, Konsole.HelpException, Konsole.DependenciesViolatedException {
+        arguments = new String[]{"-a", "AA", "-b", "BB","-c","CC"};
+        konsole.mandatory("-a", "a desc", (result, args) -> result.manyArgs.add(args[0]))
+                .optional("-b", "b desc", (result, args) -> result.manyArgs.add(args[0]), Konsole.dependsOn("-c"))
+                .optional("-c", "c desc", (result, args) -> result.manyArgs.add(args[0]));
+        konsole.handle(arguments);
+        assertEquals("AA",dummy.manyArgs.get(0));
+        assertEquals("BB",dummy.manyArgs.get(1));
+        assertEquals("CC",dummy.manyArgs.get(2));
+        Lok.debug("");
     }
 
     public static class Dummy extends KResult {

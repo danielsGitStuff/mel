@@ -6,7 +6,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ServerConfig extends KResult {
-    private String certPath, workingDirectory;
+    private String certPath;
+    private String workingDirectory;
+    private String pubKeyPath;
+
+    public String getPubKeyPath() {
+        return pubKeyPath;
+    }
+
+    public void setPubKeyPath(String pubKeyPath) {
+        this.pubKeyPath = pubKeyPath;
+    }
+
+    public String getPrivKeyPath() {
+        return privKeyPath;
+    }
+
+    public void setPrivKeyPath(String privKeyPath) {
+        this.privKeyPath = privKeyPath;
+    }
+
+    private String privKeyPath;
     private Map<String, String> files = new HashMap<>();
 
     public String getCertPath() {
