@@ -15,6 +15,12 @@ repositories {
     mavenCentral()
 }
 
+version = 1.0
+
+ext {
+    buildDate = LocalDateTime.now().toString()
+    variant = "fx"
+}
 
 dependencies {
     compile project(path: ':drivefx')
@@ -24,25 +30,26 @@ dependencies {
 }
 
 
-build {
-    File moduleFolder = buildscript.sourceFile.getParentFile()
-    File versionTxt = new File(moduleFolder, 'version.jar.txt')
-    File versionAsset = new File('auth' + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "version.txt")
-    LocalDateTime oldeVersion = null;
-    try {
-        String fileContents = versionTxt.getText('UTF-8')
-        oldeVersion = LocalDateTime.parse(fileContents)
-    } catch (Exception e) {
-        oldeVersion = LocalDateTime.now()
-    }
-    LocalDateTime version = LocalDateTime.now()
-    println("updating version from " + oldeVersion.toString() + " to " + version.toString())
-    versionTxt.text = version.toString()
-    //println("version asset file: "+versionAsset.getAbsolutePath())
-    //versionAsset.text = version.toString()
 
+task createProperties(dependsOn: processResources) {
+    doLast {
+        Properties p = new Properties()
+        p['builddate'] = project.buildDate
+        p['variant'] = project.variant
+        //store in jar
+        new File("$buildDir/resources/main/version.properties").withWriter { w -> p.store(w, null) }
+        // store in build directory
+        new File("$buildDir/version.properties").withWriter { w -> p.store(w, null) }
+    }
 }
 
+//build{
+//    dependsOn createProperties
+//}
+
+classes {
+    dependsOn createProperties
+}
 
 task bundledJar(type: Jar) {
     group "meins"
@@ -52,7 +59,7 @@ task bundledJar(type: Jar) {
     }
     dependsOn jar
 
-    baseName = project.name + '-all'
+    baseName = project.name// + '-all'
     List paths = configurations.compile.collect { entry ->
         println(entry.getAbsolutePath())
         if (entry.isDirectory())
@@ -60,7 +67,7 @@ task bundledJar(type: Jar) {
         else
             zipTree(entry)
     }
-    from(paths){
+    from(paths) {
         exclude 'META-INF/MANIFEST.MF'
         exclude 'META-INF/*.SF'
         exclude 'META-INF/*.DSA'
@@ -69,13 +76,11 @@ task bundledJar(type: Jar) {
     with jar
     doLast {
         //write the version file in the output dir as well
-        File moduleFolder = buildscript.sourceFile.getParentFile()
-        File versionTxt = new File(moduleFolder, 'version.jar.txt')
-        File t = new File(moduleFolder, "build")
-        t = new File(t, "libs")
-        File target = new File(t, baseName+".jar.version.txt")
+        File jarFile = new File(jar.outputs.files.getAsPath());
+        File versionTxt = new File("$buildDir/version.properties")
+        File target = new File("$buildDir"+File.separator+"libs"+File.separator+jarFile.getName()+".properties")
         String version = versionTxt.getText('UTF-8')
         target.text = version
-        println("printing version to: "+target.getAbsolutePath())
+        println("printing version to: " + target.getAbsolutePath())
     }
 }

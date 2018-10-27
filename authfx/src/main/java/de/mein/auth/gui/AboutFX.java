@@ -4,6 +4,7 @@ import de.mein.Versioner;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.tools.F;
 import de.mein.auth.tools.N;
+import de.mein.update.VersionAnswer;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.web.WebEngine;
@@ -19,7 +20,7 @@ public class AboutFX extends AuthSettingsFX {
     @FXML
     private WebView webView;
     @FXML
-    private Label lblVersion;
+    private Label lblVersion, lblVariant;
 
     @Override
     public void onPrimaryClicked() {
@@ -37,7 +38,12 @@ public class AboutFX extends AuthSettingsFX {
             e.printStackTrace();
         }
         webengine.loadContent(content);
-        lblVersion.setText(Versioner.getBuildVersion());
+        try {
+            lblVersion.setText(Versioner.getBuildVersion());
+            lblVariant.setText(Versioner.getBuildVariant());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

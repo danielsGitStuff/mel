@@ -7,6 +7,7 @@ import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
+import de.mein.auth.tools.N;
 import de.mein.execute.SqliteExecutor;
 import de.mein.konsole.Konsole;
 import de.mein.sql.*;
@@ -25,10 +26,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.LinkedList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadFactory;
+import java.util.Properties;
+import java.util.concurrent.*;
 
 public class MiniServer {
     public static final File DEFAULT_WORKING_DIR = new File("miniserver.w");
@@ -52,8 +51,10 @@ public class MiniServer {
     };
     private ExecutorService executorService;
     private FileRepository fileRepository;
+    private EncSocketOpener encSocketOpener;
+    private BinarySocketOpener binarySocketOpener;
 
-    public X509Certificate getCertificate(){
+    public X509Certificate getCertificate() {
         return certificateManager.getMyX509Certificate();
     }
 
@@ -72,7 +73,7 @@ public class MiniServer {
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
             //find sql file in workingdir
-            InputStream resourceStream = DatabaseManager.class.getResourceAsStream("de/mein/auth/sql.sql");
+            InputStream resourceStream = DatabaseManager.class.getResourceAsStream("/de/mein/auth/sql.sql");
             sqliteExecutor.executeStream(resourceStream);
         }
         certificateManager = new CertificateManager(workingDir, sqlQueries, 2048);
@@ -85,24 +86,27 @@ public class MiniServer {
 
         //looking for jar, apk and their appropriate version.txt
         for (File f : filesDir.listFiles(f -> f.isFile() && (f.getName().endsWith(".jar") || f.getName().endsWith(".apk")))) {
-            String hash, version, name;
-            File versionFile;
-            byte[] bytes;
+            String hash, version, variant;
+            File propertiesFile;
 
-            name = f.getName();
-            versionFile = new File(filesDir, name + MeinStrings.update.INFO_APPENDIX);
+            propertiesFile = new File(filesDir, f.getName() + MeinStrings.update.INFO_APPENDIX);
+            Lok.debug("reading binary: " + f.getAbsolutePath());
+            Lok.debug("reading  props: " + propertiesFile.getAbsolutePath());
             hash = Hash.sha256(new FileInputStream(f));
-            bytes = Files.readAllBytes(Paths.get(versionFile.toURI()));
-            version = new String(bytes);
+            Properties properties = new Properties();
+            properties.load(new FileInputStream(propertiesFile));
 
+            variant = properties.getProperty("variant");
+            version = properties.getProperty("builddate");
             fileRepository.addEntry(hash, f);
-            versionAnswer.addEntry(hash, name, version);
+            versionAnswer.addEntry(hash, variant, version);
         }
 
     }
 
 
     public static void main(String[] arguments) {
+        Lok.debug("starting in: " + new File("").getAbsolutePath());
         Konsole<ServerConfig> konsole = new Konsole(new ServerConfig());
         konsole.optional("-create-cert", "name of the certificate", (result, args) -> result.setCertName(args[0]), Konsole.dependsOn("-pubkey", "-privkey"))
                 .optional("-cert", "path to certificate", (result, args) -> result.setCertPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-pubkey", "-privkey"))
@@ -158,14 +162,22 @@ public class MiniServer {
 
     public void start() {
         // starting sockets
-        EncSocketOpener encSocketOpener = new EncSocketOpener(certificateManager, MeinAuthSettings.UPDATE_MSG_PORT, this, versionAnswer);
+        encSocketOpener = new EncSocketOpener(certificateManager, MeinAuthSettings.UPDATE_MSG_PORT, this, versionAnswer);
         execute(encSocketOpener);
-        BinarySocketOpener binarySocketOpener = new BinarySocketOpener(MeinAuthSettings.UPDATE_BINARY_PORT, this, fileRepository);
+        binarySocketOpener = new BinarySocketOpener(MeinAuthSettings.UPDATE_BINARY_PORT, this, fileRepository);
         execute(binarySocketOpener);
         Lok.debug("I am up!");
     }
 
     public void shutdown() {
         executorService.shutdown();
+        N.r(() -> binarySocketOpener.onShutDown());
+        N.r(() -> encSocketOpener.onShutDown());
+        try {
+            executorService.awaitTermination(5, TimeUnit.SECONDS);
+            Lok.debug("is down: " + executorService.isShutdown());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

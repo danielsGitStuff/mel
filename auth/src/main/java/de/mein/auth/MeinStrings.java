@@ -10,9 +10,10 @@ public class MeinStrings {
     public static class update {
         public static final String QUERY_VERSION = "v?";
         public static final String QUERY_FILE = "f=";
-        public static final String VARIANT_FX = "latest.fx.jar";
-        public static final String VARIANT_JAR = "latest.jar";
-        public static final String INFO_APPENDIX = ".version.txt";
+        public static final String VARIANT_FX = "fx";
+        public static final String VARIANT_JAR = "konsole";
+        public static final String VARIANT_APK = "apk";
+        public static final String INFO_APPENDIX = ".properties";
     }
 
     public static class msg {

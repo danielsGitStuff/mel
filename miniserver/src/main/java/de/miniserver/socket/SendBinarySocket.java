@@ -49,7 +49,6 @@ public class SendBinarySocket extends SimpleSocket {
             try{
                 fin.close();
             }catch (Exception e){}
-            shutdown();
         }
     }
 

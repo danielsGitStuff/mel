@@ -20,7 +20,6 @@ public class Updater {
     private final MeinAuthService meinAuthService;
     private final CertificateManager cm;
     private final MeinAuthSettings settings;
-    private final String currentVersion;
     private final File target;
     private UpdateMessageSocket updateMessageSocket;
     private BinarySocket binarySocket;
@@ -29,15 +28,14 @@ public class Updater {
         this.meinAuthService = meinAuthService;
         this.cm = meinAuthService.getCertificateManager();
         this.settings = meinAuthService.getSettings();
-        this.currentVersion = Versioner.getBuildVersion();
         this.target = new File(settings.getWorkingDirectory(), settings.getVariant());
     }
 
     public void retrieveUpdate() throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         if (updateMessageSocket != null)
-            updateMessageSocket.shutdown();
+            updateMessageSocket.onShutDown();
         if (binarySocket != null)
-            binarySocket.shutdown();
+            binarySocket.onShutDown();
         target.delete();
         Socket socket = cm.createSocket();
         String url = settings.getUpdateUrl();

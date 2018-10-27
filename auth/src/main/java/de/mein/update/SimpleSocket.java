@@ -1,5 +1,6 @@
 package de.mein.update;
 
+import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.auth.tools.N;
@@ -9,7 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public abstract class SimpleSocket implements MeinRunnable {
+public abstract class SimpleSocket extends DeferredRunnable {
     protected final Socket socket;
     protected final DataOutputStream out;
     protected final DataInputStream in;
@@ -22,20 +23,19 @@ public abstract class SimpleSocket implements MeinRunnable {
     @Override
     public void run() {
         runImpl();
-        shutdown();
+        onShutDown();
     }
 
-    public abstract void runImpl();
+
+    @Override
+    public void onShutDown() {
+        N.s(() -> socket.close());
+    }
 
     @Override
     public String getRunnableName() {
         return getClass().getSimpleName();
     }
 
-    protected void shutdown() {
-        Lok.debug("shutting down");
-        N.s(() -> in.close());
-        N.s(() -> out.close());
-        N.r(() -> socket.close());
-    }
+
 }

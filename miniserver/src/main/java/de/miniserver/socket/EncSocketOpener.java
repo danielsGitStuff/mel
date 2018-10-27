@@ -1,5 +1,6 @@
 package de.miniserver.socket;
 
+import de.mein.DeferredRunnable;
 import de.mein.MeinRunnable;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.tools.N;
@@ -10,11 +11,12 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class EncSocketOpener implements MeinRunnable {
+public class EncSocketOpener extends DeferredRunnable {
     private final CertificateManager certificateManager;
     private final int port;
     private final MiniServer miniServer;
     private final VersionAnswer versionAnswer;
+    private ServerSocket serverSocket;
 
     public EncSocketOpener(CertificateManager certificateManager, int port, MiniServer miniServer, VersionAnswer versionAnswer) {
         this.certificateManager = certificateManager;
@@ -29,9 +31,15 @@ public class EncSocketOpener implements MeinRunnable {
     }
 
     @Override
-    public void run() {
+    public void onShutDown() {
+        N.s(() -> serverSocket.close());
+    }
+
+
+    @Override
+    public void runImpl() {
         N.r(() -> {
-            ServerSocket serverSocket = certificateManager.createServerSocket();
+            serverSocket = certificateManager.createServerSocket();
             serverSocket.bind(new InetSocketAddress(port));
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = serverSocket.accept();
@@ -39,6 +47,6 @@ public class EncSocketOpener implements MeinRunnable {
                 miniServer.execute(encSocket);
             }
         });
-
+        onShutDown();
     }
 }

@@ -11,6 +11,8 @@ import de.miniserver.MiniServer;
 import de.miniserver.ServerConfig;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.Timeout;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -22,13 +24,19 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 @SuppressWarnings("Duplicates")
 public class Test {
+
+    @Rule
+    public Timeout globalTimeout= Timeout.builder().withTimeout(15, TimeUnit.SECONDS).build();
+
     private static final File TEST_DIR = new File("miniserver.w.test");
 
     private MiniServer miniServer;
@@ -43,13 +51,17 @@ public class Test {
         filesDir = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME);
         filesDir.mkdirs();
         authDir = new File(TEST_DIR.getAbsolutePath() + File.separator + "meinauth.test");
-        File apkFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR);
-        File apkInfo = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR + MeinStrings.update.INFO_APPENDIX);
+        File binaryFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR+".jar");
+        File propertiesFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR+".jar" + MeinStrings.update.INFO_APPENDIX);
         byte[] manyBytes = new byte[10 * 1024 * 1024];
         new Random().nextBytes(manyBytes);
-        Files.write(Paths.get(apkInfo.toURI()), "555".getBytes());
-        Files.write(Paths.get(apkFile.toURI()), manyBytes);
-        hash = Hash.sha256(new FileInputStream(apkFile));
+        Properties properties = new Properties();
+        properties.setProperty("builddate","test version");
+        properties.setProperty("variant",MeinStrings.update.VARIANT_JAR);
+        properties.store(new FileWriter(propertiesFile),"");
+//        Files.write(Paths.get(propertiesFile.toURI()), properties..getBytes());
+        Files.write(Paths.get(binaryFile.toURI()), manyBytes);
+        hash = Hash.sha256(new FileInputStream(binaryFile));
         ServerConfig config = new ServerConfig();
         config.setWorkingDirectory(TEST_DIR.getAbsolutePath());
         miniServer = new MiniServer(config);
@@ -60,9 +72,9 @@ public class Test {
 
     @After
     public void after() {
-//        miniServer.shutdown();
-//        F.rmRf(TEST_DIR);
-//        F.rmRf(authDir);
+        miniServer.shutdown();
+        F.rmRf(TEST_DIR);
+        F.rmRf(authDir);
 
     }
 
@@ -96,7 +108,7 @@ public class Test {
     public void queryAndRetrieve() throws Exception {
         RWLock lock = new RWLock();
         Lok.devOnLineMatches("Success. I got Update!!!1!", lock::unlockWrite);
-        MeinAuthSettings meinAuthSettings = MeinAuthSettings.createDefaultSettings();
+        MeinAuthSettings meinAuthSettings = MeinAuthSettings.createDefaultSettings().setPort(8913).setBrotcastPort(8914).setDeliveryPort(8915).setBrotcastListenerPort(8916);
         meinAuthSettings.setWorkingDirectory(authDir);
         MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings));
         meinBoot.boot().done(meinAuthService -> {

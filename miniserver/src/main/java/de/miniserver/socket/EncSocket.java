@@ -33,8 +33,6 @@ public class EncSocket extends SimpleSocket {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            shutdown();
         }
     }
 }
