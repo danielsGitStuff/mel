@@ -14,12 +14,7 @@ import de.mein.TransferManagerDummy;
 
 public class FreeSpaceTest {
     @Test
-    public void run(){
-        new File("keks").getFreeSpace();
-        FsDummyDao fsDao = new FsDummyDao();
-        TransferManagerDummy transferManager = new TransferManagerDummy();
-        WastebinDummy wasteBin = new WastebinDummy();
-
-        //fsDao.get
+    public void todo(){
+        //todo implement
     }
 }

@@ -19,5 +19,4 @@ project(':contactsfx').projectDir = new File('contactsfx')
 project(':fxbundle').projectDir = new File('fxbundle')
 //project(':konsole').projectDir = new File('konsole')
 include 'konsole'
-include 'updater'
 

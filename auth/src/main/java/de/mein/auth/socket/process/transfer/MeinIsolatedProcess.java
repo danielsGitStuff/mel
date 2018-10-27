@@ -55,7 +55,7 @@ public abstract class MeinIsolatedProcess extends MeinProcess {
     }
 
     public static MeinIsolatedProcess instance(Class<? extends MeinIsolatedProcess> clazz, MeinAuthSocket meinAuthSocket, IMeinService meinService, Long partnerCertificateId, String partnerServiceUuid, String isolatedUuid) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        return clazz.getConstructor(MeinAuthSocket.class, IMeinService.class, Long.class, String.class, String.class).newInstance(meinAuthSocket, meinService, partnerCertificateId, partnerServiceUuid, isolatedUuid);
+        return clazz.getDeclaredConstructor(MeinAuthSocket.class, IMeinService.class, Long.class, String.class, String.class).newInstance(meinAuthSocket, meinService, partnerCertificateId, partnerServiceUuid, isolatedUuid);
     }
 
 

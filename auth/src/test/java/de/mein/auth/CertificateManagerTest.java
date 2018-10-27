@@ -5,6 +5,9 @@ import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.file.AFile;
+import de.mein.auth.file.DefaultFileConfiguration;
+import de.mein.auth.tools.F;
 import de.mein.sql.SqlQueriesException;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -54,8 +57,9 @@ public class CertificateManagerTest {
     private CertificateManager certificateManager;
 
     @Before
-    public void init() throws Exception, SqlQueriesException {
-        CertificateManager.deleteDirectory(new File("z_test"));
+    public void before() throws Exception, SqlQueriesException {
+        AFile.configure(new DefaultFileConfiguration());
+        F.rmRf(new File("z_test"));
         certificateManager = createCertificateManager(new MeinAuthSettings().setWorkingDirectory((new File("z_test"))));
     }
 
@@ -65,8 +69,8 @@ public class CertificateManagerTest {
     }
 
     @After
-    public void finish() throws IOException {
-        CertificateManager.deleteDirectory(new File("z_test"));
+    public void after() throws IOException {
+      F.rmRf(new File("z_test"));
     }
 
     @Test
@@ -77,12 +81,28 @@ public class CertificateManagerTest {
         assertEquals(x509Certificate, loadedCert);
     }
 
-    @Test
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void registerCertificateFail() throws Exception, SqlQueriesException {
+        X509Certificate x509Certificate = genCert();
+        byte[] byteCert = x509Certificate.getEncoded();
+        UUID uuid = UUID.randomUUID();
+        Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null, "huiii");
+        // the next line should return n zero length list, cause the certificate is not trusted now
+        Certificate dbCertificate = certificateManager.getTrustedCertificates().get(0);
+        X509Certificate dbX509Certificate = CertificateManager.loadX509CertificateFromBytes(dbCertificate.getCertificate().v());
+        assertEquals(x509Certificate, dbX509Certificate);
+        assertNotNull(buildCertificate.getId().v());
+        buildCertificate.setId(dbCertificate.getId().v());
+        assertEquals(Arrays.toString(byteCert), Arrays.toString(dbCertificate.getCertificate().v()));
+    }
+
+@Test
     public void registerCertificate() throws Exception, SqlQueriesException {
         X509Certificate x509Certificate = genCert();
         byte[] byteCert = x509Certificate.getEncoded();
         UUID uuid = UUID.randomUUID();
         Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null, "huiii");
+        certificateManager.trustCertificate(buildCertificate.getId().v(),true);
         Certificate dbCertificate = certificateManager.getTrustedCertificates().get(0);
         X509Certificate dbX509Certificate = CertificateManager.loadX509CertificateFromBytes(dbCertificate.getCertificate().v());
         assertEquals(x509Certificate, dbX509Certificate);

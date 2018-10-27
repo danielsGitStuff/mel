@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @SuppressWarnings("Duplicates")
 public class SqliteThreadingTest {
@@ -150,17 +151,16 @@ public class SqliteThreadingTest {
         callables.add(writer2);
         callables.add(updater);
         ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.submit(reader1);
-        executorService.submit(reader2);
-        executorService.submit(writer1);
-        executorService.submit(writer2);
+//        executorService.submit(reader1);
+//        executorService.submit(reader2);
+//        executorService.submit(writer1);
+//        executorService.submit(writer2);
 //        executorService.submit(updater);
-//        List<Future<Void>> res = executorService.invokeAll(callables);
-//        for (Future<Void> f : res) {
-//            f.get();
-//        }
+        List<Future<Void>> res = executorService.invokeAll(callables);
+        for (Future<Void> f : res) {
+            f.get();
+        }
         Lok.debug("SqliteThreadingTest.thread.end");
-        new WaitLock().lock().lock();
     }
 
     private StageSet fillNewStageSet(StageDao stageDao, int from, int to) throws SqlQueriesException {

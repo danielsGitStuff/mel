@@ -402,6 +402,14 @@ public class CertificateManager extends FileRelatedManager {
         certificateDao.maintenance();
     }
 
+    /**
+     * this sets a custom update server certificate. for security reasons this method must be disables in the release version.
+     * @param certificate
+     * @throws CertificateException
+     * @throws NoSuchAlgorithmException
+     * @throws KeyStoreException
+     * @throws IOException
+     */
     public void dev_SetUpdateCertificate(X509Certificate certificate) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         this.updateServerCertificate = certificate;
         storeCertInKeyStore(UPDATE_SERVER_CERT_NAME, updateServerCertificate);

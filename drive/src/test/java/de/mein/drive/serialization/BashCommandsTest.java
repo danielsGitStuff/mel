@@ -3,6 +3,7 @@ package de.mein.drive.serialization;
 import de.mein.Lok;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.file.AFile;
+import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.file.FFile;
 import de.mein.drive.bash.BashTools;
 import org.junit.After;
@@ -20,11 +21,13 @@ import java.util.List;
  * Created by thefa on 7/29/2017.
  */
 public class BashCommandsTest {
-    AFile testDir = AFile.instance("testdir1");
+    AFile testDir;
     List<String> paths;
 
     @Before
     public void before() throws IOException {
+        AFile.configure(new DefaultFileConfiguration());
+        testDir = AFile.instance("testdir1");
         BashTools.init();
         CertificateManager.deleteDirectory(testDir);
         paths = TestDirCreator.createTestDir(testDir);

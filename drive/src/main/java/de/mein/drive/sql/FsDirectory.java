@@ -28,15 +28,21 @@ public class FsDirectory extends FsEntry {
         return parentId.v() == null;
     }
 
-    public static String calcDirectoryContentHash(Collection<String> content) {
+    private static void feedToMessageDigest(MessageDigest digest, List<? extends FsEntry> entries, String appendix) {
+        List<String> sorted = new ArrayList<>(entries.size());
+        N.forEach(entries, fsDirectory -> sorted.add(fsDirectory.getName().v()));
+        Collections.sort(sorted);
+        N.forEach(sorted, name -> digest.update(name.getBytes()));
+        digest.update(appendix.getBytes());
+    }
+
+    private static String calcDirectoryContentHash(List<FsDirectory> dirs, List<FsFile> files) {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
             //since there is no guarantee that hashCode() delivers the same hashes on different machines the order inside of a Collection/Set
             //may vary. to work around this we sort the list before feeding the hash algorithm.
-            List<String> sorted = new ArrayList<>(content.size());
-            N.forEach(content, sorted::add);
-            Collections.sort(sorted);
-            N.forEach(sorted, name -> digest.update(name.getBytes()));
+            feedToMessageDigest(digest, dirs, "d");
+            feedToMessageDigest(digest, files, "f");
             return Hash.bytesToString(digest.digest());
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -47,7 +53,7 @@ public class FsDirectory extends FsEntry {
 
     @Override
     protected void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files) {
-        contentHash.v(calcDirectoryContentHash(contentSet).toString());
+        contentHash.v(calcDirectoryContentHash(subDirectories, files));
     }
 
     private static String calcCHash(List<FsDirectory> subDirectories, List<FsFile> files) {

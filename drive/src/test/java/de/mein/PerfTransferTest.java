@@ -138,7 +138,7 @@ public class PerfTransferTest {
         return result;
     }
 
-    @Test
+//    @Test
     public void startSource() {
         // put a really big file in this folder to test sync speed
         //CertificateManager.deleteDirectory(new File(PerfTransferTest.SOURCE_PATH));
@@ -152,7 +152,7 @@ public class PerfTransferTest {
         lock.lockWrite().lockWrite();
     }
 
-    @Test
+//    @Test
     public void startTarget() {
         CertificateManager.deleteDirectory(new File(PerfTransferTest.TARGET_PATH));
         RWLock lock = new RWLock();
@@ -182,7 +182,7 @@ public class PerfTransferTest {
 
     }
 
-    @Test
+//    @Test
     public void netServer() throws Exception {
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(new InetSocketAddress(8888));
@@ -200,7 +200,7 @@ public class PerfTransferTest {
         }
     }
 
-    @Test
+//    @Test
     public void netServerEncrypted() throws Exception {
         Promise<PerfTransferTest, Void, Void> started = create();
         started.done(test -> N.r(() -> {
@@ -231,7 +231,7 @@ public class PerfTransferTest {
         new RWLock().lockWrite().lockWrite();
     }
 
-    @Test
+//    @Test
     public void netClient() throws Exception {
         Socket socket = new Socket();
         socket.connect(new InetSocketAddress("192.168.1.109", 8888));
@@ -242,7 +242,7 @@ public class PerfTransferTest {
         }
     }
 
-    @Test
+//    @Test
     public void netClientEncrypted() throws Exception {
         Promise<PerfTransferTest, Void, Void> started = create();
         started.done(test -> N.r(() -> {

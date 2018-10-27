@@ -7,6 +7,7 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
+import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.MeinTestBootloader;
@@ -23,7 +24,9 @@ import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -130,6 +133,12 @@ public class LotsOfTests {
         Lok.debug("DriveTest.isolation.END");
     }
 
+    @Before
+    public void before(){
+        AFile.configure(new DefaultFileConfiguration());
+        MeinTestBootloader.count = 0;
+    }
+
     /**
      * instance 1 sends to 2 after exchanging FileTransferDetails
      *
@@ -185,6 +194,12 @@ public class LotsOfTests {
         return service;
     }
 
+    @After
+    public void after(){
+        standAloneAuth1.shutDown();
+        standAloneAuth2.shutDown();
+    }
+
     public void setup(OnConnectedListener onConnectedListener) throws Exception, SqlQueriesException {
         //setup working directories & directories with test data
         testdir1 = new File("testdir1");
@@ -200,11 +215,11 @@ public class LotsOfTests {
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory((MeinBoot.defaultWorkingDir1)).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory((MeinBoot.defaultWorkingDir1)).setName("MA1").setGreeting("greeting1").setVariant(MeinStrings.update.VARIANT_JAR);
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory((MeinBoot.defaultWorkingDir2)).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory((MeinBoot.defaultWorkingDir2)).setName("MA2").setGreeting("greeting2").setVariant(MeinStrings.update.VARIANT_JAR);
 
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
