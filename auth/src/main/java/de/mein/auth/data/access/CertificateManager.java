@@ -60,7 +60,7 @@ public class CertificateManager extends FileRelatedManager {
         return updateServerCertificateHash;
     }
 
-    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException, NoSuchProviderException {
+    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
         super(workingDirectory);
         Lok.debug("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
         if (keysize != null)
@@ -123,12 +123,12 @@ public class CertificateManager extends FileRelatedManager {
         return (num < 0) ? -num : num;
     }
 
-    public static X509Certificate loadX509CertificateFromBytes(byte[] data) throws CertificateException, NoSuchProviderException {
+    public static X509Certificate loadX509CertificateFromBytes(byte[] data) throws CertificateException {
         InputStream in = new ByteArrayInputStream(data);
         return loadX509CertificateFromStream(in);
     }
 
-    public static X509Certificate loadX509CertificateFromStream(InputStream in) throws CertificateException, NoSuchProviderException {
+    public static X509Certificate loadX509CertificateFromStream(InputStream in) throws CertificateException {
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
         X509Certificate result = (X509Certificate) certFactory.generateCertificate(in);
         return result;
@@ -170,7 +170,7 @@ public class CertificateManager extends FileRelatedManager {
         certificateDao.trustCertificate(certId, trusted);
     }
 
-    private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException {
+    private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         certificateDao.lockRead();
         for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
             X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
