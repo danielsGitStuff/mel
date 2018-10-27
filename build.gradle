@@ -31,6 +31,10 @@ allprojects {
         google()
     }
 }
+
+task kekse(){
+    println("keks")
+}
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

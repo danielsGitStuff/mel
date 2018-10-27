@@ -1,7 +1,8 @@
 package de.mein.drive;
 
-import de.mein.KonsoleHandler;
+import de.mein.AuthKonsoleReader;
 import de.mein.Lok;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.gui.RegisterHandlerFX;
@@ -38,7 +39,7 @@ public class Main {
         init();
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MeinAuthSettings meinAuthSettings = new KonsoleHandler().start(args);
+        MeinAuthSettings meinAuthSettings = AuthKonsoleReader.readKonsole(MeinStrings.update.VARIANT_FX,args);
         meinAuthSettings.save();
         MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootLoader.class);
         meinBoot.addMeinAuthAdmin(new MeinAuthFxLoader());

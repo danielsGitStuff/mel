@@ -6,7 +6,7 @@ import de.mein.sql.Pair;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ServerConfig extends KResult {
+public class ServerConfig implements KResult {
     private String certPath;
     private String workingDirectory;
     private String pubKeyPath;

@@ -6,28 +6,20 @@ import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.FFile;
 import de.mein.auth.tools.Cryptor;
-import de.mein.auth.tools.ResourceList;
 import de.mein.sql.Hash;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.*;
 import java.io.*;
-import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -36,7 +28,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Takes care of all Certificates. That means: creating your own, storing foreign ones,
@@ -198,8 +189,8 @@ public class CertificateManager extends FileRelatedManager {
 
     private boolean loadKeys() throws IOException, ClassNotFoundException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
         try {
-            Collection<String> resources = ResourceList.getResources(Pattern.compile(".*cert$"));
-            File f = new File(resources.iterator().next());
+            URL url = getClass().getResource("/de/mein/auth/update.server.cert");
+            File f = new File(url.getFile());
             DataInputStream dis = new DataInputStream(new FileInputStream(f));
             byte[] bytes = new byte[(int) f.length()];
             dis.readFully(bytes);

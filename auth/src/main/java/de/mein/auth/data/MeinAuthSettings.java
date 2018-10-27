@@ -4,6 +4,7 @@ import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
+import de.mein.konsole.KResult;
 
 import java.io.File;
 import java.security.SecureRandom;
@@ -11,8 +12,8 @@ import java.security.SecureRandom;
 /**
  * Created by xor on 6/10/16.
  */
-public class MeinAuthSettings extends JsonSettings {
-    public static final File DEFAULT_FILE = new File("meinauthsettings.json");
+public class MeinAuthSettings extends JsonSettings implements KResult {
+    public static final File DEFAULT_FILE = new File("settings.json");
     public static final int BROTCAST_PORT = 9966;
     public static final Integer UPDATE_MSG_PORT = 8956;
     public static final int UPDATE_BINARY_PORT = 8957;
@@ -79,7 +80,7 @@ public class MeinAuthSettings extends JsonSettings {
                 .setUpdateBinaryPort(UPDATE_BINARY_PORT)
                 .setUpdateUrl(UPDATE_DEFAULT_URL)
                 .setVariant(MeinStrings.update.VARIANT_JAR)
-                .setJsonFile(new File("meinAuth.settings.json"));
+                .setJsonFile(DEFAULT_FILE);
         return meinAuthSettings;
     }
 

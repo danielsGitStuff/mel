@@ -43,9 +43,9 @@ public class Timor {
     }
 
     public static void main(String[] args) throws JsonSerializationException, IllegalAccessException {
-        InputStream is = String.class.getResourceAsStream("/sql.sql");
+        InputStream is = String.class.getResourceAsStream("/de/mein/auth/sql.sql");
         URL url = String.class.getResource("foo.txt");
-        String text = new Scanner(String.class.getResourceAsStream("/sql.sql"), "UTF-8").useDelimiter("\\A").next();
+        String text = new Scanner(String.class.getResourceAsStream("/de/mein/auth/sql.sql"), "UTF-8").useDelimiter("\\A").next();
         String r = convertStreamToString(is);
         Lok.debug(r);
         //.getClassLoader().getResource("de/mein/auth/service/register.fxml"));

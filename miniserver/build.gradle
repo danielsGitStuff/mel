@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-version '1.8'
+version '1.88'
 
 sourceCompatibility = 1.8
 targetCompatibility = "1.8"
@@ -18,4 +18,41 @@ dependencies {
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
     testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
     testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task bundledJar(type: Jar) {
+    group "meins"
+    description "build a fucking jar filled with candies!"
+    baseName = project.name// + '-all'
+    manifest {
+        attributes "version": 1, "Main-Class": "de.miniserver.Main"
+    }
+    dependsOn jar
+
+    
+    List paths = configurations.compile.collect { entry ->
+        println(entry.getAbsolutePath())
+        if (entry.isDirectory())
+            entry
+        else
+            zipTree(entry)
+    }
+    from(paths){
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
+    }
+    with jar
+//    doLast {
+//        //write the version file in the output dir as well
+//        File moduleFolder = buildscript.sourceFile.getParentFile()
+//        File versionTxt = new File(moduleFolder, 'version.jar.txt')
+//        File t = new File(moduleFolder, "build")
+//        t = new File(t, "libs")
+//        File target = new File(t, baseName+".jar.version.txt")
+//        String version = versionTxt.getText('UTF-8')
+//        target.text = version
+//        println("printing version to: "+target.getAbsolutePath())
+//    }
 }

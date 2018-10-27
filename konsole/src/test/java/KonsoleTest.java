@@ -1,5 +1,4 @@
-package de.mein;
-
+import de.mein.Lok;
 import de.mein.konsole.KResult;
 import de.mein.konsole.Konsole;
 import org.junit.Before;
@@ -142,7 +141,7 @@ public class KonsoleTest {
         Lok.debug("");
     }
 
-    public static class Dummy extends KResult {
+    public static class Dummy implements KResult {
         String string;
         int number;
         List<String> manyArgs = new ArrayList<>();

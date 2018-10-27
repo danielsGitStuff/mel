@@ -1,10 +1,14 @@
 package de.mein;
 
+import de.mein.auth.tools.F;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 public class Versioner {
 
@@ -14,12 +18,8 @@ public class Versioner {
         @Override
         public String readBuildVersion() {
             if (buildVersion == null) {
-                URL url = getClass().getClassLoader().getResource("version.txt");
-                File versionFile = new File(url.getFile());// new File("auth" + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "version.txt");
-                byte[] bytes;
                 try {
-                    bytes = Files.readAllBytes(Paths.get(versionFile.toURI()));
-                    buildVersion = new String(bytes);
+                    buildVersion = F.readResourceToString("/version.txt");
                 } catch (IOException e) {
                     e.printStackTrace();
                     return "could not read";

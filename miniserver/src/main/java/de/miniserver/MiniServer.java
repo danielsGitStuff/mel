@@ -72,7 +72,7 @@ public class MiniServer {
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
             //find sql file in workingdir
-            InputStream resourceStream = DatabaseManager.class.getClassLoader().getResourceAsStream("sql.sql");
+            InputStream resourceStream = DatabaseManager.class.getResourceAsStream("de/mein/auth/sql.sql");
             sqliteExecutor.executeStream(resourceStream);
         }
         certificateManager = new CertificateManager(workingDir, sqlQueries, 2048);

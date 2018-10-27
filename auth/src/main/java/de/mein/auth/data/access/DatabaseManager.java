@@ -54,7 +54,7 @@ public final class DatabaseManager extends FileRelatedManager {
     }
 
 
-    private static SqlInputStreamInjector sqlInputStreamInjector = () -> DatabaseManager.class.getClassLoader().getResourceAsStream("sql.sql");
+    private static SqlInputStreamInjector sqlInputStreamInjector = () -> DatabaseManager.class.getResourceAsStream("/de/mein/auth/sql.sql");
 
 
     public static void setSqlInputStreamInjector(SqlInputStreamInjector sqlInputStreamInjector) {
