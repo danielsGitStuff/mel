@@ -2,6 +2,7 @@ package de.mein;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -13,7 +14,8 @@ public class Versioner {
         @Override
         public String readBuildVersion() {
             if (buildVersion == null) {
-                File versionFile = new File("auth" + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "version.txt");
+                URL url = getClass().getClassLoader().getResource("version.txt");
+                File versionFile = new File(url.getFile());// new File("auth" + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "version.txt");
                 byte[] bytes;
                 try {
                     bytes = Files.readAllBytes(Paths.get(versionFile.toURI()));

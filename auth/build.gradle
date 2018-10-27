@@ -13,6 +13,7 @@ compileTestJava {
 dependencies {
     compile project(path: ':konsole')
     compile project(path: ':sql')
+    compile project(':updater')
     compile project(path: ':serialize')
     testCompile project(path: ':sql')
 //    compile fileTree(include: ['*.jar'], dir: 'libs')
@@ -24,7 +25,7 @@ dependencies {
     compile 'org.jdeferred:jdeferred-core:1.2.4'
     compile project(path: ':serialize')
     testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
-    testCompile project(path: ':serialize',configuration :'serializeTestOutput')
+    testCompile project(path: ':serialize', configuration: 'serializeTestOutput')
 }
 compileJava.options.encoding = 'UTF-8'
 compileTestJava.options.encoding = 'UTF-8'

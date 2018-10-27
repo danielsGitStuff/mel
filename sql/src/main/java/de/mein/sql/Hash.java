@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by xor on 7/10/16.
@@ -68,7 +69,7 @@ public class Hash {
     public static String sha256(byte[] bytes) throws IOException {
         MessageDigest messageDigest;
         try {
-            messageDigest = MessageDigest.getInstance("SHA-256");
+            messageDigest = createSHA256MessageDigest();
             messageDigest.update(bytes, 0, bytes.length);
             byte[] hash = messageDigest.digest();
             return bytesToString(hash);
@@ -78,10 +79,14 @@ public class Hash {
         }
     }
 
+    public static MessageDigest createSHA256MessageDigest() throws NoSuchAlgorithmException {
+        return MessageDigest.getInstance("SHA-256");
+    }
+
     public static String sha256(InputStream inputStream) throws IOException {
         MessageDigest messageDigest;
         try {
-            messageDigest = MessageDigest.getInstance("SHA-256");
+            messageDigest = createSHA256MessageDigest();
             byte[] buffer = new byte[1024];
             int numRead;
             do {

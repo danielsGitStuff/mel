@@ -1,6 +1,7 @@
 package de.miniserver;
 
 import de.mein.konsole.KResult;
+import de.mein.sql.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class ServerConfig extends KResult {
     }
 
     private String privKeyPath;
-    private Map<String, String> files = new HashMap<>();
+    private Map<String, Pair<String>> files = new HashMap<>();
 
     public String getCertPath() {
         return certPath;
@@ -38,12 +39,12 @@ public class ServerConfig extends KResult {
         this.certPath = certPath;
     }
 
-    public Map<String, String> getFiles() {
+    public Map<String, Pair<String>> getFiles() {
         return files;
     }
 
-    public ServerConfig addEntry(String binaryFile, String versionFile) {
-        files.put(binaryFile, versionFile);
+    public ServerConfig addEntry(String binaryFile, String name, String versionFile) {
+        files.put(binaryFile, new Pair<>(String.class, name, versionFile));
         return this;
     }
 

@@ -3,8 +3,8 @@ package de.miniserver.socket;
 import de.mein.MeinRunnable;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.tools.N;
+import de.mein.update.VersionAnswer;
 import de.miniserver.MiniServer;
-import de.miniserver.data.VersionAnswer;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;

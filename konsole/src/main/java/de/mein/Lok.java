@@ -45,4 +45,8 @@ public class Lok {
     public static boolean isLineStorageActive() {
         return impl.isLineStorageActive();
     }
+
+    public static void devOnLineMatches(String line, Runnable r) {
+        impl.devOnLineMatches(line,r);
+    }
 }

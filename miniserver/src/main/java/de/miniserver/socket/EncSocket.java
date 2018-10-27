@@ -1,13 +1,14 @@
 package de.miniserver.socket;
 
+import de.mein.auth.MeinStrings;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-import de.miniserver.data.VersionAnswer;
+import de.mein.update.SimpleSocket;
+import de.mein.update.VersionAnswer;
 
 import java.io.IOException;
 import java.net.Socket;
 
 public class EncSocket extends SimpleSocket {
-    public static final String QUERY_VERSION = "v?";
     private final VersionAnswer versionAnswer;
 
     public EncSocket(Socket socket, VersionAnswer versionAnswer) throws IOException {
@@ -21,12 +22,12 @@ public class EncSocket extends SimpleSocket {
     }
 
     @Override
-    public void run() {
+    public void runImpl() {
         try {
             String jsonAnswer = SerializableEntitySerializer.serialize(versionAnswer);
             while (!Thread.currentThread().isInterrupted()) {
                 String s = in.readUTF();
-                if (s.equals(QUERY_VERSION)) {
+                if (s.equals(MeinStrings.update.QUERY_VERSION)) {
                     out.writeUTF(jsonAnswer);
                 }
             }

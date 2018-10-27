@@ -60,6 +60,9 @@ public class CertificateManager extends FileRelatedManager {
     private X509Certificate updateServerCertificate;
     private CertificateDao certificateDao;
 
+    public X509Certificate getUpdateServerCertificate() {
+        return updateServerCertificate;
+    }
 
     public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
         super(workingDirectory);
@@ -232,14 +235,14 @@ public class CertificateManager extends FileRelatedManager {
 
     public void generateCertificate() throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException, CertificateException, KeyStoreException, OperatorCreationException {
         KeyPair keyPair = CertificateCreator.generateKeyPair(keysize);
-        this.certificate = CertificateCreator.generateCertificate(keyPair,"default auth");
+        this.certificate = CertificateCreator.generateCertificate(keyPair, "default auth");
         this.privateKey = keyPair.getPrivate();
         this.publicKey = keyPair.getPublic();
 
         // save cert & PK
-        CertificateCreator.saveFile(new File(CERT_FILENAME),certificate.getEncoded());
-        CertificateCreator.saveFile(new File(PK_FILENAME),privateKey.getEncoded());
-        CertificateCreator.saveFile(new File(PUB_FILENAME),publicKey.getEncoded());
+        CertificateCreator.saveFile(new File(workingDirectory, CERT_FILENAME), certificate.getEncoded());
+        CertificateCreator.saveFile(new File(workingDirectory, PK_FILENAME), privateKey.getEncoded());
+        CertificateCreator.saveFile(new File(workingDirectory, PUB_FILENAME), publicKey.getEncoded());
 
         // save KeyStore
         storeKeyStore();
@@ -397,5 +400,10 @@ public class CertificateManager extends FileRelatedManager {
 
     public void maintenance() throws SqlQueriesException {
         certificateDao.maintenance();
+    }
+
+    public void dev_SetUpdateCertificate(X509Certificate certificate) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        this.updateServerCertificate = certificate;
+        storeCertInKeyStore(UPDATE_SERVER_CERT_NAME, updateServerCertificate);
     }
 }

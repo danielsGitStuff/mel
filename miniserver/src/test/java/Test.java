@@ -1,8 +1,14 @@
 import de.mein.Lok;
+import de.mein.auth.MeinStrings;
+import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.service.MeinBoot;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.MeinSocket;
+import de.mein.auth.tools.F;
 import de.mein.sql.Hash;
+import de.mein.sql.RWLock;
 import de.miniserver.MiniServer;
-import de.miniserver.socket.BinarySocket;
+import de.miniserver.ServerConfig;
 import org.junit.After;
 import org.junit.Before;
 
@@ -11,7 +17,12 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -24,17 +35,24 @@ public class Test {
     private String hash;
     private File receivedTestFile;
     private File filesDir;
+    private File authDir;
 
     @Before
     public void before() throws Exception {
+        F.rmRf(TEST_DIR);
         filesDir = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME);
         filesDir.mkdirs();
-        File apkFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MiniServer.LATEST_APK);
-        File apkInfo = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MiniServer.APK_INFO);
+        authDir = new File(TEST_DIR.getAbsolutePath() + File.separator + "meinauth.test");
+        File apkFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR);
+        File apkInfo = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR + MeinStrings.update.INFO_APPENDIX);
+        byte[] manyBytes = new byte[10 * 1024 * 1024];
+        new Random().nextBytes(manyBytes);
         Files.write(Paths.get(apkInfo.toURI()), "555".getBytes());
-        Files.write(Paths.get(apkFile.toURI()), "89089890".getBytes());
+        Files.write(Paths.get(apkFile.toURI()), manyBytes);
         hash = Hash.sha256(new FileInputStream(apkFile));
-        miniServer = new MiniServer(TEST_DIR);
+        ServerConfig config = new ServerConfig();
+        config.setWorkingDirectory(TEST_DIR.getAbsolutePath());
+        miniServer = new MiniServer(config);
         miniServer.start();
         receivedTestFile = new File(TEST_DIR + File.separator + "test.file.apk");
         receivedTestFile.delete();
@@ -42,22 +60,21 @@ public class Test {
 
     @After
     public void after() {
-        miniServer.shutdown();
-        Arrays.stream(filesDir.listFiles()).forEach(File::delete);
-        filesDir.delete();
-        Arrays.stream(TEST_DIR.listFiles()).forEach(File::delete);
-        TEST_DIR.delete();
+//        miniServer.shutdown();
+//        F.rmRf(TEST_DIR);
+//        F.rmRf(authDir);
+
     }
 
     @org.junit.Test
-    public void binary() throws Exception {
+    public void retrieveFile() throws Exception {
         Lok.debug(hash);
         Socket socket = new Socket();
-        socket.connect(new InetSocketAddress("localhost", MiniServer.DEFAULT_BINARY_PORT));
+        socket.connect(new InetSocketAddress("localhost", MeinAuthSettings.UPDATE_BINARY_PORT));
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         FileOutputStream fos = new FileOutputStream(receivedTestFile);
-        out.writeUTF(BinarySocket.QUERY_FILE + hash);
+        out.writeUTF(MeinStrings.update.QUERY_FILE + hash);
         byte[] bytes;
         try {
             bytes = new byte[MeinSocket.BLOCK_SIZE];
@@ -76,14 +93,33 @@ public class Test {
     }
 
     @org.junit.Test
-    public void binaryFail() throws Exception {
+    public void queryAndRetrieve() throws Exception {
+        RWLock lock = new RWLock();
+        Lok.devOnLineMatches("Success. I got Update!!!1!", lock::unlockWrite);
+        MeinAuthSettings meinAuthSettings = MeinAuthSettings.createDefaultSettings();
+        meinAuthSettings.setWorkingDirectory(authDir);
+        MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings));
+        meinBoot.boot().done(meinAuthService -> {
+            try {
+                meinAuthService.getCertificateManager().dev_SetUpdateCertificate(miniServer.getCertificate());
+                meinAuthService.updateProgram();
+                Lok.debug("");
+            } catch (UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException | IOException | KeyStoreException | CertificateException e) {
+                e.printStackTrace();
+            }
+        });
+        lock.lockWrite().lockWrite();
+    }
+
+    @org.junit.Test
+    public void retrieveFileFail() throws Exception {
         Lok.debug(hash);
         Socket socket = new Socket();
-        socket.connect(new InetSocketAddress("localhost", MiniServer.DEFAULT_BINARY_PORT));
+        socket.connect(new InetSocketAddress("localhost", MeinAuthSettings.UPDATE_BINARY_PORT));
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         FileOutputStream fos = new FileOutputStream(receivedTestFile);
-        out.writeUTF(BinarySocket.QUERY_FILE + "rubbish");
+        out.writeUTF(MeinStrings.update.QUERY_FILE + "rubbish");
         byte[] bytes;
         try {
             bytes = new byte[MeinSocket.BLOCK_SIZE];
@@ -98,7 +134,7 @@ public class Test {
         }
         String receivedHash = Hash.sha256(new FileInputStream(receivedTestFile));
         assertNotEquals(hash, receivedHash);
-        assertEquals(0L,receivedTestFile.length());
+        assertEquals(0L, receivedTestFile.length());
         Lok.debug("done");
     }
 }

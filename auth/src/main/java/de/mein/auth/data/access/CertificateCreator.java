@@ -46,7 +46,7 @@ public class CertificateCreator {
         long now = System.currentTimeMillis();
         Date startDate = new Date(now);
         X500Name dnName = new X500Name("CN=Auth");
-        X500Name certName = new X500Name(name);
+        X500Name certName = new X500Name("CN="+name);
         BigInteger certSerialNumber = new BigInteger(Long.toString(now)); // <-- Using the current timestamp as the certificate serial number
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(startDate);

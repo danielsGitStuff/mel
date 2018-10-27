@@ -1,7 +1,9 @@
 package de.miniserver.socket;
 
 import de.mein.Lok;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.socket.MeinSocket;
+import de.mein.update.SimpleSocket;
 import de.miniserver.data.FileRepository;
 
 import java.io.File;
@@ -12,23 +14,22 @@ import java.net.Socket;
 /**
  * delivers a binary file
  */
-public class BinarySocket extends SimpleSocket {
+public class SendBinarySocket extends SimpleSocket {
 
-    public static final String QUERY_FILE = "f=";
     private final FileRepository fileRepository;
 
-    public BinarySocket(Socket socket, FileRepository fileRepository) throws IOException {
+    public SendBinarySocket(Socket socket, FileRepository fileRepository) throws IOException {
         super(socket);
         this.fileRepository = fileRepository;
     }
 
     @Override
-    public void run() {
+    public void runImpl() {
         FileInputStream fin = null;
         try {
             String s = in.readUTF();
-            if (s.startsWith(QUERY_FILE)) {
-                String hash = s.substring(QUERY_FILE.length(), s.length());
+            if (s.startsWith(MeinStrings.update.QUERY_FILE)) {
+                String hash = s.substring(MeinStrings.update.QUERY_FILE.length(), s.length());
                 File f = fileRepository.getFile(hash);
                 Lok.debug("reading file: "+f.getAbsolutePath());
                 fin = new FileInputStream(f);

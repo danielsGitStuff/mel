@@ -19,6 +19,8 @@ public class LokImpl {
     protected boolean printWarn = true;
     protected boolean printInfo = true;
     protected int stackIndex = 4;
+    protected String devMatchLine;
+    protected Runnable devMatchRunnable;
     private LokListener lokListener;
 
     public void setLokListener(LokListener lokListener) {
@@ -37,6 +39,11 @@ public class LokImpl {
 
     public boolean isLineStorageActive() {
         return lines.length > 0;
+    }
+
+    public void devOnLineMatches(String line, Runnable r) {
+        devMatchLine = line;
+        devMatchRunnable = r;
     }
 
     public interface LokListener {
@@ -102,6 +109,8 @@ public class LokImpl {
             String line = fabricate(findStackElement(), "d", msg, true);
             System.out.println(line);
         }
+        if (devMatchLine!= null && devMatchLine.equals(msg))
+            devMatchRunnable.run();
     }
 
     protected StackTraceElement findStackElement() {

@@ -7,6 +7,14 @@ package de.mein.auth;
 public class MeinStrings {
     public static final String SERVICE_NAME = "meinauth";
 
+    public static class update {
+        public static final String QUERY_VERSION = "v?";
+        public static final String QUERY_FILE = "f=";
+        public static final String VARIANT_FX = "latest.fx.jar";
+        public static final String VARIANT_JAR = "latest.jar";
+        public static final String INFO_APPENDIX = ".version.txt";
+    }
+
     public static class msg {
         public static final String INTENT_REGISTER = "reg";
         public static final String INTENT_AUTH = "auth";
@@ -18,7 +26,7 @@ public class MeinStrings {
         public static final String STATE_ERR = "err";
     }
 
-    public static class Notifications{
+    public static class Notifications {
 
         public static final String SERVICE_UUID = "n.uuid";
         public static final String INTENTION = "n.intention";

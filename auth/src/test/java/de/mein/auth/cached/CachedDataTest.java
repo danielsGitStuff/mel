@@ -4,6 +4,7 @@ import de.mein.Lok;
 import de.mein.auth.data.cached.CachedData;
 import de.mein.auth.data.cached.CachedIterable;
 import de.mein.auth.data.cached.CachedPart;
+import de.mein.auth.tools.F;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -46,13 +47,7 @@ public class CachedDataTest {
     private final Long CACHE_ID = 666L;
     private Field partsMissedField;
 
-    private void rmRf(File dir) {
-        if (dir.exists()) {
-            N.forEach(dir.listFiles((dir1, name) -> dir1.isDirectory()), this::rmRf);
-            N.forEach(dir.listFiles((dir1, name) -> dir1.isFile()), file -> file.delete());
-            dir.delete();
-        }
-    }
+
 
     @Test
     public void iterateNoDisk() throws Exception {
@@ -94,7 +89,7 @@ public class CachedDataTest {
 
     @Before
     public void before() throws NoSuchFieldException {
-        rmRf(cacheDir);
+        F.rmRf(cacheDir);
         cacheDir.mkdirs();
         cache1.mkdirs();
         cache2.mkdirs();
@@ -189,6 +184,6 @@ public class CachedDataTest {
 
     @After
     public void after() {
-        rmRf(cacheDir);
+        F.rmRf(cacheDir);
     }
 }

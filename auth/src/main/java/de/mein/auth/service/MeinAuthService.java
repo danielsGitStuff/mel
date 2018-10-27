@@ -38,6 +38,7 @@ import de.mein.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairCollectionSerializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
+import de.mein.update.Updater;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -63,6 +64,7 @@ public class MeinAuthService {
 
     private static Logger logger = Logger.getLogger(MeinAuthService.class.getName());
     private final MeinAuthSettings settings;
+    private final Updater updater;
     private MeinAuthWorker meinAuthWorker;
     protected final CertificateManager certificateManager;
     private final IDBCreatedListener dbCreatedListener;
@@ -97,6 +99,7 @@ public class MeinAuthService {
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 2048);
         this.certificateManager.maintenance();
         this.settings = meinAuthSettings;
+        this.updater =  new Updater(this);
         this.dbCreatedListener = dbCreatedListener;
         if (this.databaseManager.hadToInitialize() && this.dbCreatedListener != null)
             this.dbCreatedListener.onDBcreated(this.databaseManager);
@@ -158,6 +161,9 @@ public class MeinAuthService {
         return startedPromise;
     }
 
+    public void updateProgram() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        updater.retrieveUpdate();
+    }
 
     public void start() {
         execute(meinAuthWorker);

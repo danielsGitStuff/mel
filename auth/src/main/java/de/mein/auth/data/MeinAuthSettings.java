@@ -1,6 +1,6 @@
 package de.mein.auth.data;
 
-import de.mein.auth.file.AFile;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
@@ -14,6 +14,9 @@ import java.security.SecureRandom;
 public class MeinAuthSettings extends JsonSettings {
     public static final File DEFAULT_FILE = new File("meinauthsettings.json");
     public static final int BROTCAST_PORT = 9966;
+    public static final Integer UPDATE_MSG_PORT = 8956;
+    public static final int UPDATE_BINARY_PORT = 8957;
+    public static final String UPDATE_DEFAULT_URL = "127.0.0.1";
     private int deliveryPort, port;
     private String workingdirectoryPath, name;
     private File workingDirectory;
@@ -24,6 +27,44 @@ public class MeinAuthSettings extends JsonSettings {
     private IDBCreatedListener idbCreatedListener;
     private PowerManagerSettings powerManagerSettings = new PowerManagerSettings();
     private Boolean redirectSysout = false;
+    private int updateMessagePort, updateBinaryPort;
+    private String updateUrl, variant;
+
+    public MeinAuthSettings setVariant(String variant) {
+        this.variant = variant;
+        return this;
+    }
+
+    public String getVariant() {
+        return variant;
+    }
+
+    public MeinAuthSettings setUpdateUrl(String updateUrl) {
+        this.updateUrl = updateUrl;
+        return this;
+    }
+
+    public String getUpdateUrl() {
+        return updateUrl;
+    }
+
+    public int getUpdateMessagePort() {
+        return updateMessagePort;
+    }
+
+    public int getUpdateBinaryPort() {
+        return updateBinaryPort;
+    }
+
+    public MeinAuthSettings setUpdateBinaryPort(int updateBinaryPort) {
+        this.updateBinaryPort = updateBinaryPort;
+        return this;
+    }
+
+    public MeinAuthSettings setUpdateMessagePort(int updateMessagePort) {
+        this.updateMessagePort = updateMessagePort;
+        return this;
+    }
 
     public static MeinAuthSettings createDefaultSettings() {
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings();
@@ -34,6 +75,10 @@ public class MeinAuthSettings extends JsonSettings {
                 .setBrotcastPort(BROTCAST_PORT)
                 .setWorkingDirectory(MeinBoot.defaultWorkingDir1)
                 .setGreeting(generateGreeting())
+                .setUpdateMessagePort(UPDATE_MSG_PORT)
+                .setUpdateBinaryPort(UPDATE_BINARY_PORT)
+                .setUpdateUrl(UPDATE_DEFAULT_URL)
+                .setVariant(MeinStrings.update.VARIANT_JAR)
                 .setJsonFile(new File("meinAuth.settings.json"));
         return meinAuthSettings;
     }
@@ -51,6 +96,7 @@ public class MeinAuthSettings extends JsonSettings {
 
     /**
      * TODO: rename me properly
+     *
      * @param redirectSysout
      * @return
      */
@@ -169,4 +215,6 @@ public class MeinAuthSettings extends JsonSettings {
     protected void init() {
         this.workingDirectory = new File(this.workingdirectoryPath);
     }
+
+
 }

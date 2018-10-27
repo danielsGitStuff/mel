@@ -32,8 +32,8 @@ public class BinarySocketOpener implements MeinRunnable {
             serverSocket.bind(new InetSocketAddress(port));
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = serverSocket.accept();
-                BinarySocket binarySocket = new BinarySocket(socket, fileRepository);
-                miniServer.execute(binarySocket);
+                SendBinarySocket sendBinarySocket = new SendBinarySocket(socket, fileRepository);
+                miniServer.execute(sendBinarySocket);
             }
         });
     }

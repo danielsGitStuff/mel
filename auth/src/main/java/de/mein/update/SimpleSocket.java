@@ -1,4 +1,4 @@
-package de.miniserver.socket;
+package de.mein.update;
 
 import de.mein.Lok;
 import de.mein.MeinRunnable;
@@ -18,6 +18,15 @@ public abstract class SimpleSocket implements MeinRunnable {
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
     }
+
+    @Override
+    public void run() {
+        runImpl();
+        shutdown();
+    }
+
+    public abstract void runImpl();
+
     @Override
     public String getRunnableName() {
         return getClass().getSimpleName();

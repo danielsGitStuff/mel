@@ -3,6 +3,8 @@ package de.miniserver;
 import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
+import de.mein.auth.MeinStrings;
+import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.execute.SqliteExecutor;
@@ -10,18 +12,18 @@ import de.mein.konsole.Konsole;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
 import de.mein.sql.transform.SqlResultTransformer;
+import de.mein.update.VersionAnswer;
 import de.miniserver.data.FileRepository;
-import de.miniserver.data.VersionAnswer;
 import de.miniserver.socket.BinarySocketOpener;
 import de.miniserver.socket.EncSocketOpener;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,12 +33,6 @@ import java.util.concurrent.ThreadFactory;
 public class MiniServer {
     public static final File DEFAULT_WORKING_DIR = new File("miniserver.w");
     public static final String DIR_FILES_NAME = "files";
-    public static final String LATEST_APK = "latest.apk";
-    public static final String APK_INFO = "apk.info";
-    public static final String LATEST_JAR = "latest.jar";
-    public static final String JAR_INFO = "jar.info";
-    public static final Integer DEFAULT_ENCRYPTED_PORT = 8956;
-    public static final int DEFAULT_BINARY_PORT = 8957;
     private final static Semaphore threadSemaphore = new Semaphore(1, true);
     private final static LinkedList<MeinThread> threadQueue = new LinkedList<>();
 
@@ -57,7 +53,12 @@ public class MiniServer {
     private ExecutorService executorService;
     private FileRepository fileRepository;
 
-    public MiniServer(File workingDir) throws Exception {
+    public X509Certificate getCertificate(){
+        return certificateManager.getMyX509Certificate();
+    }
+
+    public MiniServer(ServerConfig config) throws Exception {
+        File workingDir = new File(config.getWorkingDirectory());
         workingDir.mkdir();
         File dbFile = new File(workingDir, "db.db");
         SQLQueries sqlQueries = new SQLQueries(SQLConnector.createSqliteConnection(dbFile), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
@@ -74,7 +75,7 @@ public class MiniServer {
             InputStream resourceStream = DatabaseManager.class.getClassLoader().getResourceAsStream("sql.sql");
             sqliteExecutor.executeStream(resourceStream);
         }
-        certificateManager = new CertificateManager(new File("miniserver.w"), sqlQueries, 2048);
+        certificateManager = new CertificateManager(workingDir, sqlQueries, 2048);
 
         // loading and hashing files
         File filesDir = new File(workingDir, DIR_FILES_NAME);
@@ -82,26 +83,24 @@ public class MiniServer {
         versionAnswer = new VersionAnswer();
         fileRepository = new FileRepository();
 
-        File apkFile = new File(filesDir, LATEST_APK);
-        File androidInfoFile = new File(filesDir, APK_INFO);
-        Pair<Long> androidPair = readFiles(apkFile, androidInfoFile);
-        if (androidPair != null) {
-            versionAnswer.setAndroidVersion(androidPair.v()).setAndroidSHA256(androidPair.k());
-            fileRepository.addEntry(androidPair.k(), apkFile);
+        //looking for jar, apk and their appropriate version.txt
+        for (File f : filesDir.listFiles(f -> f.isFile() && (f.getName().endsWith(".jar") || f.getName().endsWith(".apk")))) {
+            String hash, version, name;
+            File versionFile;
+            byte[] bytes;
+
+            name = f.getName();
+            versionFile = new File(filesDir, name + MeinStrings.update.INFO_APPENDIX);
+            hash = Hash.sha256(new FileInputStream(f));
+            bytes = Files.readAllBytes(Paths.get(versionFile.toURI()));
+            version = new String(bytes);
+
+            fileRepository.addEntry(hash, f);
+            versionAnswer.addEntry(hash, name, version);
         }
 
-        File jarFile = new File(filesDir, LATEST_JAR);
-        File pcInfoFile = new File(filesDir, JAR_INFO);
-        Pair<Long> pcPair = readFiles(jarFile, pcInfoFile);
-        if (pcPair != null) {
-            versionAnswer.setPcVersion(pcPair.v()).setPcSHA256(pcPair.k());
-            fileRepository.addEntry(pcPair.k(), jarFile);
-        }
     }
 
-    static class ArgumentsBundle {
-        String certPath;
-    }
 
     public static void main(String[] arguments) {
         Konsole<ServerConfig> konsole = new Konsole(new ServerConfig());
@@ -109,14 +108,14 @@ public class MiniServer {
                 .optional("-cert", "path to certificate", (result, args) -> result.setCertPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-pubkey", "-privkey"))
                 .optional("-pubkey", "path to public key", (result, args) -> result.setPubKeyPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-privkey", "-cert"))
                 .optional("-privkey", "path to private key", (result, args) -> result.setPrivKeyPath(Konsole.check.checkRead(args[0])), Konsole.dependsOn("-pubkey", "-cert"))
-                .optional("-dir", "path to working directory", (result, args) -> result.setWorkingDirectory(args[0]))
-                .optional("-files", "pairs of files and versions. eg: '-files -f1 v1 -f2 v12'", ((result, args) -> {
-                    if (args.length % 2 != 0)
-                        throw new Konsole.ParseArgumentException("even number of entries");
-                    for (int i = 0; i < args.length; i += 2) {
-                        result.addEntry(Konsole.check.checkRead(args[0]), Konsole.check.checkRead(args[i + 1]));
-                    }
-                }));
+                .optional("-dir", "path to working directory", (result, args) -> result.setWorkingDirectory(args[0]));
+//                .optional("-files", "tuples of files, versions and names. eg: '-files -f1 v1 n1 -f2 v12 n2'", ((result, args) -> {
+//                    if (args.length % 2 != 0)
+//                        throw new Konsole.ParseArgumentException("even number of entries");
+//                    for (int i = 0; i < args.length; i += 2) {
+//                        result.addEntry(Konsole.check.checkRead(args[0]), args[i+2],Konsole.check.checkRead(args[i + 1]));
+//                    }
+//                }));
         try {
             konsole.handle(arguments);
         } catch (Konsole.KonsoleWrongArgumentsException | Konsole.DependenciesViolatedException e) {
@@ -131,31 +130,16 @@ public class MiniServer {
             Path path = Paths.get(config.getWorkingDirectory());
             workingDir = path.toFile();
         }
+        config.setWorkingDirectory(workingDir.getAbsolutePath());
         Lok.debug("dir: " + workingDir.getAbsolutePath());
         MiniServer miniServer = null;
         try {
-            miniServer = new MiniServer(workingDir);
+            miniServer = new MiniServer(config);
             miniServer.start();
             new RWLock().lockWrite().lockWrite();
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private static Pair<Long> readFiles(File dataFile, File infoFile) throws IOException {
-        try {
-            if (dataFile.exists() && infoFile.exists()) {
-                String hash = Hash.sha256(new FileInputStream(dataFile));
-                byte[] bytes = Files.readAllBytes(Paths.get(infoFile.toURI()));
-                String s = new String(bytes);
-                s = s.replaceAll("\n", "");
-                Long version = Long.parseLong(s);
-                return new Pair<>(Long.class, hash, version);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public void execute(MeinRunnable runnable) {
@@ -174,9 +158,9 @@ public class MiniServer {
 
     public void start() {
         // starting sockets
-        EncSocketOpener encSocketOpener = new EncSocketOpener(certificateManager, DEFAULT_ENCRYPTED_PORT, this, versionAnswer);
+        EncSocketOpener encSocketOpener = new EncSocketOpener(certificateManager, MeinAuthSettings.UPDATE_MSG_PORT, this, versionAnswer);
         execute(encSocketOpener);
-        BinarySocketOpener binarySocketOpener = new BinarySocketOpener(DEFAULT_BINARY_PORT, this, fileRepository);
+        BinarySocketOpener binarySocketOpener = new BinarySocketOpener(MeinAuthSettings.UPDATE_BINARY_PORT, this, fileRepository);
         execute(binarySocketOpener);
         Lok.debug("I am up!");
     }
