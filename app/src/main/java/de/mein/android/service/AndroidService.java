@@ -39,6 +39,7 @@ import de.mein.android.Notifier;
 import de.mein.android.Tools;
 import de.mein.android.contacts.AndroidContactsBootloader;
 import de.mein.android.drive.AndroidDriveBootloader;
+import de.mein.auth.MeinStrings;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
@@ -57,6 +58,8 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSyncListener;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
+import de.mein.update.UpdateHandler;
+import de.mein.update.VersionAnswer;
 
 
 /**
@@ -133,6 +136,29 @@ public class AndroidService extends Service {
                         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
                         X509Certificate cert = CertificateManager.loadX509CertificateFromStream(in);
                         meinAuthService.getCertificateManager().dev_SetUpdateCertificate(cert);
+                    });
+                    meinAuthService.getUpdater().addUpdateHandler(new UpdateHandler() {
+                        private int requestCode = 732458;
+                        private String title;
+
+                        @Override
+                        public void onUpdateFileReceived(VersionAnswer.VersionEntry versionEntry, File updateFile) {
+                            Notifier.cancel(null, requestCode);
+                        }
+
+                        @Override
+                        public void onProgress(Long done, Long length) {
+                            int p = 0;
+                            if (done > 0) {
+                                p = (int) (done / length * 100);
+                            }
+                            Notifier.progress(requestCode, R.drawable.icon_app, Notifier.CHANNEL_ID_SILENT, title, null, null, 100, p);
+                        }
+
+                        @Override
+                        public void onUpdateAvailable(VersionAnswer.VersionEntry versionEntry) {
+                            title = AndroidService.this.getString(R.string.titleUpdateAvail);
+                        }
                     });
                     meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
                     meinAuthService.getPowerManager().addCommunicationListener(communicationsListener);
@@ -229,7 +255,8 @@ public class AndroidService extends Service {
             } else {
                 meinAuthSettings = MeinAuthSettings.createDefaultSettings();
                 meinAuthSettings.setWorkingDirectory(workingDir)
-                        .setName("MeinAuthOnAndroid");
+                        .setName("MeinAuthOnAndroid")
+                        .setVariant(MeinStrings.update.VARIANT_APK);
                 meinAuthSettings.setJsonFile(settingsFile).save();
             }
         } catch (IOException | JsonDeserializationException | JsonSerializationException | IllegalAccessException e) {

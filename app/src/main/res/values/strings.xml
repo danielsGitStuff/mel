@@ -141,5 +141,6 @@
     <string name="powergrid_power_on">AC On</string>
     <string name="variant">Variant: </string>
     <string name="btnUpdate">Check Update</string>
+    <string name="titleUpdateAvail">Update available!</string>
 
 </resources>

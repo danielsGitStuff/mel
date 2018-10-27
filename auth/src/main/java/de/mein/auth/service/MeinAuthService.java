@@ -38,7 +38,10 @@ import de.mein.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairCollectionSerializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
+import de.mein.update.UpdateHandler;
 import de.mein.update.Updater;
+import de.mein.update.VersionAnswer;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -617,6 +620,10 @@ public class MeinAuthService {
         }
     }
 
+    public Updater getUpdater() {
+        return updater;
+    }
+
     public void shutDownCommunications() {
         this.meinAuthWorker.shutDown();
     }
@@ -637,4 +644,5 @@ public class MeinAuthService {
     public File getCacheDir() {
         return cacheDir;
     }
+
 }

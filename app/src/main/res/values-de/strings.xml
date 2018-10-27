@@ -141,5 +141,6 @@
     <string name="powergrid_power_on">Strom an</string>
     <string name="variant">Variante: </string>
     <string name="btnUpdate">Nach Update suchen</string>
+    <string name="titleUpdateAvail">Update available!</string>
 
 </resources>

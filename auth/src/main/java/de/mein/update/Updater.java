@@ -5,7 +5,7 @@ import de.mein.Versioner;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.F;
+import de.mein.auth.tools.N;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +15,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Updater {
     private final MeinAuthService meinAuthService;
@@ -39,13 +41,25 @@ public class Updater {
         target.delete();
         Socket socket = cm.createSocket();
         String url = settings.getUpdateUrl();
+        String variant = Versioner.getBuildVariant();
         int port = settings.getUpdateMessagePort();
         socket.connect(new InetSocketAddress(url, port));
-        updateMessageSocket = new UpdateMessageSocket(this, socket, settings.getVariant(),meinAuthService.getCertificateManager().getUpdateServerCertificateHash());
+        updateMessageSocket = new UpdateMessageSocket(this, socket, variant, meinAuthService.getCertificateManager().getUpdateServerCertificateHash());
         meinAuthService.execute(updateMessageSocket);
     }
 
     public void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
+        try {
+            Long currentVersion = Versioner.getBuildVersion();
+            if (currentVersion == versionEntry.getVersion()) {
+                Lok.debug("no update necessary :)");
+                return;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        N.forEachAdvIgnorantly(updateHandlers,(stoppable, index, updateHandler) -> updateHandler.onUpdateAvailable(versionEntry));
         String url = settings.getUpdateUrl();
         int port = settings.getUpdateBinaryPort();
         Socket socket = new Socket();
@@ -60,5 +74,26 @@ public class Updater {
 
     public void onUpdateReceived(VersionAnswer.VersionEntry versionEntry, File target) {
         Lok.debug("Success. I got Update!!!1!");
+        N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onUpdateFileReceived(versionEntry, target));
+    }
+
+
+
+    private Set<UpdateHandler> updateHandlers = new HashSet<>();
+
+
+
+    public Updater addUpdateHandler(UpdateHandler updateHandler) {
+        updateHandlers.add(updateHandler);
+        return this;
+    }
+
+    public Updater removeUpdateHandler(UpdateHandler updateHandler) {
+        updateHandlers.remove(updateHandler);
+        return this;
+    }
+
+    public void onSocketProgress(Long done, Long length) {
+        N.forEachAdvIgnorantly(updateHandlers,(stoppable, index, updateHandler) -> updateHandler.onProgress(done,length));
     }
 }

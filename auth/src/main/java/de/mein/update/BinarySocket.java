@@ -6,11 +6,9 @@ import de.mein.auth.socket.MeinSocket;
 import de.mein.sql.Hash;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -36,11 +34,14 @@ public class BinarySocket extends SimpleSocket {
             byte[] bytes;
             bytes = new byte[MeinSocket.BLOCK_SIZE];
             int read;
+            Long sum = 0L;
+            updater.onSocketProgress(sum,versionEntry.getLength());
             do {
                 read = in.read(bytes);
                 if (read > 0) {
                     fos.write(bytes, 0, read);
                     messageDigest.update(bytes, 0, read);
+                    sum+=read;
                 }
             } while (read > 0);
             String receivedHash = Hash.bytesToString(messageDigest.digest());

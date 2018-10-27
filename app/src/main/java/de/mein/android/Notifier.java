@@ -9,9 +9,11 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
 import android.widget.Toast;
 
 import de.mein.R;
@@ -58,9 +60,10 @@ public class Notifier {
         notificationManager.cancel(requestCode);
     }
 
-    public static void toast(Context context, int msgId){
-        toast(context,context.getString(msgId));
+    public static void toast(Context context, int msgId) {
+        toast(context, context.getString(msgId));
     }
+
     public static void toast(Context context, CharSequence message) {
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(() -> {
@@ -89,6 +92,20 @@ public class Notifier {
                 .build();
         Notifier.createNotificationManager(context).notify(requestCode, notification);
     }
+
+
+    public static void progress(int requestCode, int iconResource, @NonNull String channelId, CharSequence title, CharSequence text, CharSequence ticker, int max, int progress) {
+        Context context = Tools.getApplicationContext();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
+        Notification notification = builder.setSmallIcon(iconResource)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setTicker(ticker)
+                .setProgress(max, progress, false)
+                .build();
+        Notifier.createNotificationManager(context).notify(requestCode, notification);
+    }
+
 
     public static void notification(int requestCode, int iconResource, @NonNull String channelId, CharSequence title, CharSequence text, CharSequence ticker) {
         Context context = Tools.getApplicationContext();

@@ -18,7 +18,7 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
     public static final int BROTCAST_PORT = 9966;
     public static final Integer UPDATE_MSG_PORT = 8956;
     public static final int UPDATE_BINARY_PORT = 8957;
-    public static final String UPDATE_DEFAULT_URL = "127.0.0.1";
+    public static final String UPDATE_DEFAULT_URL = "192.168.1.111";
     private int deliveryPort, port;
     private String workingdirectoryPath, name;
     private File workingDirectory;

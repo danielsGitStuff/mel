@@ -13,11 +13,14 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
+import java.util.Date;
+
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.Versioner;
 import de.mein.android.MainActivity;
 import de.mein.android.PreferenceStrings;
+import de.mein.android.Threadder;
 import de.mein.android.Tools;
 import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
@@ -79,10 +82,11 @@ public class SettingsController extends GuiController {
         btnAbout.setOnClickListener(v -> N.r(() -> {
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(activity);
             String variant = activity.getString(R.string.variant);
-            String version = activity.getString(R.string.version);
-            version += Versioner.getBuildVersion() + "\n";
-            version += variant + Versioner.getBuildVariant();
-            builder.setMessage(version)
+            Date versionDate = new Date(Versioner.getBuildVersion());
+            String text = activity.getString(R.string.version);
+            text += versionDate.toString() + "\n";
+            text += variant + Versioner.getBuildVariant();
+            builder.setMessage(text)
                     .setTitle(R.string.titleAbout)
                     .setPositiveButton(R.string.btnOk, null);
             WebView webView = new WebView(activity);
@@ -93,7 +97,7 @@ public class SettingsController extends GuiController {
             settings.setJavaScriptEnabled(true);
 //            settings.setSupportZoom(true);
 //            settings.setBuiltInZoomControls(true);
-            webView.loadUrl("file:///android_asset/licenses.html");
+            webView.loadUrl("file:///android_asset/de/mein/auth/licenses.html");
             ScrollView scrollView = new ScrollView(activity);
             scrollView.addView(webView);
             builder.setView(scrollView);
@@ -102,7 +106,7 @@ public class SettingsController extends GuiController {
             alertDialog.show();
         }));
         btnUpdate.setOnClickListener(v -> N.r(() -> {
-            androidService.getMeinAuthService().updateProgram();
+            Threadder.runNoTryThread(() -> androidService.getMeinAuthService().updateProgram());
         }));
     }
 

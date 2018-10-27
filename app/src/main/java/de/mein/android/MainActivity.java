@@ -164,7 +164,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
                 InputStream in = MainActivity.this.getAssets().open("version.properties");
                 Properties properties = new Properties();
                 properties.load(in);
-                version = properties.getProperty("builddate");
+                version = Long.valueOf(properties.getProperty("version"));
                 variant = properties.getProperty("variant");
             }
         });

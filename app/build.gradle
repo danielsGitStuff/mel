@@ -128,7 +128,22 @@ dependencies {
 }
 
 
+assemble{
+    Properties p = new Properties()
+    p['version'] = project.buildVersion
+    p['variant'] = project.buildVariant
+    try {
+        File parent = new File("$buildDir/outputs/apk/debug");
+        parent.mkdirs();
+        new File(parent,"version.properties").withWriter { w -> p.store(w, null) }
+    }catch (Exception e){}
+    try {
+        File parent = new File("$buildDir/outputs/apk/release");
+        parent.mkdirs();
+        new File(parent,"version.properties").withWriter { w -> p.store(w, null) }
+    }catch (Exception e){}
 
+}
 
 repositories {
     mavenCentral()
