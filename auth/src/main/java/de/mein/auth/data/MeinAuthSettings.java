@@ -4,7 +4,7 @@ import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
-import de.mein.konsole.KResult;
+import de.mein.KResult;
 
 import java.io.File;
 import java.security.SecureRandom;

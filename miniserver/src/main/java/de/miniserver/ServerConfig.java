@@ -1,6 +1,6 @@
 package de.miniserver;
 
-import de.mein.konsole.KResult;
+import de.mein.KResult;
 import de.mein.sql.Pair;
 
 import java.util.HashMap;

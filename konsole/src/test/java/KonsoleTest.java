@@ -1,5 +1,5 @@
 import de.mein.Lok;
-import de.mein.konsole.KResult;
+import de.mein.KResult;
 import de.mein.konsole.Konsole;
 import org.junit.Before;
 import org.junit.Test;

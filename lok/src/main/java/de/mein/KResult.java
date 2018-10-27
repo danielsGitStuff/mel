@@ -1,4 +1,4 @@
-package de.mein.konsole;
+package de.mein;
 
 public interface KResult {
 }

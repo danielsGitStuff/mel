@@ -1,5 +1,7 @@
 package de.mein.konsole;
 
+import de.mein.KResult;
+
 public interface KReader<T extends KResult> {
     /**
      * Digest the arguments specified after your pre-defined attribute here.

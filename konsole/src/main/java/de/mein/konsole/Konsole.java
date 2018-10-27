@@ -1,5 +1,6 @@
 package de.mein.konsole;
 
+import de.mein.KResult;
 import de.mein.Lok;
 
 import java.io.File;
