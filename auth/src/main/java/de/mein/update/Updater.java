@@ -41,7 +41,7 @@ public class Updater {
         String url = settings.getUpdateUrl();
         int port = settings.getUpdateMessagePort();
         socket.connect(new InetSocketAddress(url, port));
-        updateMessageSocket = new UpdateMessageSocket(this, socket, settings.getVariant());
+        updateMessageSocket = new UpdateMessageSocket(this, socket, settings.getVariant(),meinAuthService.getCertificateManager().getUpdateServerCertificateHash());
         meinAuthService.execute(updateMessageSocket);
     }
 

@@ -140,5 +140,6 @@
     <string name="powergrid_power_off">Strom Aus</string>
     <string name="powergrid_power_on">Strom an</string>
     <string name="variant">Variante: </string>
+    <string name="btnUpdate">Nach Update suchen</string>
 
 </resources>

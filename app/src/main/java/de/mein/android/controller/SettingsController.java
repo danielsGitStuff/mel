@@ -31,7 +31,7 @@ import de.mein.auth.tools.N;
 
 public class SettingsController extends GuiController {
     private AndroidPowerManager powerManager;
-    private Button btnStartStop, btnApply, btnShow, btnPowerMobile, btnPowerServer, btnAbout;
+    private Button btnStartStop, btnApply, btnShow, btnPowerMobile, btnPowerServer, btnAbout, btnUpdate;
     private EditText txtPort, txtCertPort, txtName;
     private CheckBox cbShowFirstStartDialog, cbRedirectSysOut;
     private PowerView powerView;
@@ -49,6 +49,7 @@ public class SettingsController extends GuiController {
         btnApply = rootView.findViewById(R.id.btnApply);
         btnPowerMobile = rootView.findViewById(R.id.btnPowerMobile);
         btnPowerServer = rootView.findViewById(R.id.btnPowerServer);
+        btnUpdate = rootView.findViewById(R.id.btnUpdate);
         powerView = rootView.findViewById(R.id.powerView);
         btnAbout = rootView.findViewById(R.id.btnAbout);
         btnStartStop.setOnClickListener(v1 -> {
@@ -79,8 +80,8 @@ public class SettingsController extends GuiController {
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(activity);
             String variant = activity.getString(R.string.variant);
             String version = activity.getString(R.string.version);
-            version += Versioner.getBuildVersion()+"\n";
-            version += variant+Versioner.getBuildVariant();
+            version += Versioner.getBuildVersion() + "\n";
+            version += variant + Versioner.getBuildVariant();
             builder.setMessage(version)
                     .setTitle(R.string.titleAbout)
                     .setPositiveButton(R.string.btnOk, null);
@@ -99,6 +100,9 @@ public class SettingsController extends GuiController {
             builder.setNegativeButton("Close", (dialog, id) -> dialog.dismiss());
             androidx.appcompat.app.AlertDialog alertDialog = builder.create();
             alertDialog.show();
+        }));
+        btnUpdate.setOnClickListener(v -> N.r(() -> {
+            androidService.getMeinAuthService().updateProgram();
         }));
     }
 

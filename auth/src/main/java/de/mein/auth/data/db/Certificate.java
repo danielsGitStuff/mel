@@ -9,6 +9,7 @@ import de.mein.sql.SQLTableObject;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -73,7 +74,7 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
         init();
     }
 
-    public PublicKey getPublicKey() throws CertificateException {
+    public PublicKey getPublicKey() throws CertificateException, NoSuchProviderException {
         byte[] certBytes = certificate.v();
         X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(certBytes);
         PublicKey publicKey = x509Certificate.getPublicKey();
@@ -173,7 +174,7 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
         return this;
     }
 
-    public X509Certificate getX509Certificate() throws CertificateException {
+    public X509Certificate getX509Certificate() throws CertificateException, NoSuchProviderException {
         X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(certificate.v());
         return x509Certificate;
     }

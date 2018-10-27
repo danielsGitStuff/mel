@@ -62,7 +62,7 @@ public class AndroidInjector {
         });
         MeinInjector.setMeinAuthSqlInputStreamInjector(() -> {
             try {
-                return assetManager.open("sql.sql");
+                return assetManager.open("de/mein/auth/sql.sql");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -101,7 +101,7 @@ public class AndroidInjector {
         });
         DriveInjector.setDriveSqlInputStreamInjector(() -> {
             try {
-                return assetManager.open("drive.sql");
+                return assetManager.open("de/mein/drive/drive.sql");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -135,7 +135,7 @@ public class AndroidInjector {
         });
         ContactsInjector.setDriveSqlInputStreamInjector(() -> {
             try {
-                return assetManager.open("contacts.sql");
+                return assetManager.open("de/mein/contacts/contacts.sql");
             } catch (IOException e) {
                 e.printStackTrace();
             }

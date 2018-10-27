@@ -9,6 +9,7 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
@@ -18,7 +19,7 @@ import java.security.cert.CertificateException;
  */
 public class Cryptor {
 
-    public static byte[] encrypt(Certificate certificate, final String original) throws CertificateException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException {
+    public static byte[] encrypt(Certificate certificate, final String original) throws CertificateException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, NoSuchProviderException {
             return Cryptor.encrypt(certificate.getPublicKey(),original);
     }
 

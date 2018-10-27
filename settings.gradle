@@ -1,5 +1,5 @@
-include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx' ,':fxbundle' ,':miniserver' ,':icons' ,':konsole' ,':lok'
-//include ':app',':json', ':serialize', ':sql', ':auth', ':drive', ':contacts',':icons', ':lok' //':miniserver' //,':authfx', ':drivefx'
+//include  ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx' ,':fxbundle' ,':miniserver' ,':icons' ,':konsole' ,':lok'
+include ':app',':json', ':serialize', ':sql', ':auth', ':drive', ':contacts',':icons', ':lok' //':miniserver' //,':authfx', ':drivefx'
 
 project(':json').projectDir = new File('json')
 project(':serialize').projectDir = new File('serialize')
@@ -10,14 +10,14 @@ project(':contacts').projectDir = new File('contacts')
 project(':icons').projectDir = new File('icons')
 project(':lok').projectDir = new File('lok')
 
-//project(':app').projectDir = new File('app')
-project(':miniserver').projectDir = new File('miniserver')
+project(':app').projectDir = new File('app')
+//project(':miniserver').projectDir = new File('miniserver')
 
-project(':authfx').projectDir = new File('authfx')
-project(':drivefx').projectDir = new File('drivefx')
-project(':contactsfx').projectDir = new File('contactsfx')
-project(':fxbundle').projectDir = new File('fxbundle')
-project(':konsole').projectDir = new File('konsole')
-include 'konsole'
+//project(':authfx').projectDir = new File('authfx')
+//project(':drivefx').projectDir = new File('drivefx')
+//project(':contactsfx').projectDir = new File('contactsfx')
+//project(':fxbundle').projectDir = new File('fxbundle')
+//project(':konsole').projectDir = new File('konsole')
+//include 'konsole'
 //include 'lok'
 

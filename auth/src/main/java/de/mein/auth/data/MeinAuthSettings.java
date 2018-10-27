@@ -1,5 +1,6 @@
 package de.mein.auth.data;
 
+import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
@@ -154,6 +155,7 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
     }
 
     public MeinAuthSettings() {
+        Lok.debug("");
     }
 
     public String getDiscoverMessage() {

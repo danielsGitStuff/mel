@@ -15,9 +15,20 @@ import androidx.core.app.NotificationCompat;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import de.mein.Lok;
 import de.mein.R;
@@ -56,7 +67,7 @@ import de.mein.sql.SqlQueriesException;
 public class AndroidService extends Service {
 
 
-    private DeferredObject<MeinAuthService,Exception,Void> startedDeferred = new DeferredObject<>();
+    private DeferredObject<MeinAuthService, Exception, Void> startedDeferred = new DeferredObject<>();
     private static final int PERMANENT_REQUEST_CODE = 876;
     private final IBinder localBinder = new LocalBinder();
     private MeinAuthService meinAuthService;
@@ -112,11 +123,17 @@ public class AndroidService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (meinAuthService == null) {
-            Notifier.toast(getApplicationContext(),"booting auth service");
+            Notifier.toast(getApplicationContext(), "booting auth service");
             RWLock lock = new RWLock();
             try {
                 Promise<MeinAuthService, Exception, Void> bootedPromise = setup(null);
                 bootedPromise.done(result -> {
+                    N.r(() -> {
+                        InputStream in = getAssets().open("de/mein/auth/update.server.cert");
+                        CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+                        X509Certificate cert = CertificateManager.loadX509CertificateFromStream(in);
+                        meinAuthService.getCertificateManager().dev_SetUpdateCertificate(cert);
+                    });
                     meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
                     meinAuthService.getPowerManager().addCommunicationListener(communicationsListener);
                     // listen for connectivity changes

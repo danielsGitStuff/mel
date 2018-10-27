@@ -50,12 +50,17 @@ public class CertificateManager extends FileRelatedManager {
     private X509Certificate certificate;
     private X509Certificate updateServerCertificate;
     private CertificateDao certificateDao;
+    private String updateServerCertificateHash;
 
     public X509Certificate getUpdateServerCertificate() {
         return updateServerCertificate;
     }
 
-    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
+    public String getUpdateServerCertificateHash() {
+        return updateServerCertificateHash;
+    }
+
+    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException, NoSuchProviderException {
         super(workingDirectory);
         Lok.debug("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
         if (keysize != null)
@@ -118,8 +123,12 @@ public class CertificateManager extends FileRelatedManager {
         return (num < 0) ? -num : num;
     }
 
-    public static X509Certificate loadX509CertificateFromBytes(byte[] data) throws CertificateException {
+    public static X509Certificate loadX509CertificateFromBytes(byte[] data) throws CertificateException, NoSuchProviderException {
         InputStream in = new ByteArrayInputStream(data);
+        return loadX509CertificateFromStream(in);
+    }
+
+    public static X509Certificate loadX509CertificateFromStream(InputStream in) throws CertificateException, NoSuchProviderException {
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
         X509Certificate result = (X509Certificate) certFactory.generateCertificate(in);
         return result;
@@ -161,7 +170,7 @@ public class CertificateManager extends FileRelatedManager {
         certificateDao.trustCertificate(certId, trusted);
     }
 
-    private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+    private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException {
         certificateDao.lockRead();
         for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
             X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
@@ -197,10 +206,10 @@ public class CertificateManager extends FileRelatedManager {
             dis.close();
             updateServerCertificate = loadX509CertificateFromBytes(bytes);
             storeCertInKeyStore(UPDATE_SERVER_CERT_NAME, updateServerCertificate);
-            String hash = Hash.sha256(bytes);
-            Lok.debug("loaded update server certificate with SHA-256 " + hash);
+            updateServerCertificateHash = Hash.sha256(bytes);
+            Lok.debug("loaded update server certificate with SHA-256 " + updateServerCertificateHash);
         } catch (Exception e) {
-            Lok.error("could not load update server certificate");
+            Lok.error("could not load update server certificate. this is ok on Android.");
         }
         try {
             byte[] privkeyBytes = readFile(PK_FILENAME);
@@ -404,5 +413,6 @@ public class CertificateManager extends FileRelatedManager {
     public void dev_SetUpdateCertificate(X509Certificate certificate) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         this.updateServerCertificate = certificate;
         storeCertInKeyStore(UPDATE_SERVER_CERT_NAME, updateServerCertificate);
+        updateServerCertificateHash = Hash.sha256(certificate.getEncoded());
     }
 }
