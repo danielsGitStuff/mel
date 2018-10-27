@@ -33,6 +33,17 @@ public class NTest {
     }
 
     @Test
+    public void arrayMerge() {
+        Integer[] s1 = new Integer[]{1, 2, 3};
+        Integer[] s2 = new Integer[]{4, 5};
+        Integer[] s3 = new Integer[]{6, 7, 8};
+        Integer[] dest = N.arr.merge(s1, s2, s3);
+        for (Integer i = 0; i < s1.length + s2.length + s3.length; i++) {
+            assertEquals((Integer) (i + 1), dest[i]);
+        }
+    }
+
+    @Test
     public void failForEachArrayNull() {
         assertFalse(N.forEach(nullArray, resultBuilder::append));
     }

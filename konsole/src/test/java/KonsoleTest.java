@@ -141,6 +141,14 @@ public class KonsoleTest {
         Lok.debug("");
     }
 
+    @Test
+    public void stupid(){
+        int[] s1 = new int[]{1,2,3};
+        int[] s2 = new int[]{4,5};
+        int[] dest = new  int[s1.length+s2.length];
+
+    }
+
     public static class Dummy implements KResult {
         String string;
         int number;

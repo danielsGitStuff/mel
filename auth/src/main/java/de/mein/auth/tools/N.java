@@ -452,6 +452,23 @@ public class N {
      */
     public static class arr {
 
+        public static <T> T[] merge(T[]... arrays) {
+            T[] result = null;
+            if (arrays != null && arrays.length > 0) {
+                int length = 0;
+                for (T[] a : arrays)
+                    length += a.length;
+                Class<?> arrayType = arrays[0].getClass().getComponentType();
+                result = (T[]) Array.newInstance(arrayType, length);
+                int index = 0;
+                for (T[] a : arrays) {
+                    System.arraycopy(a, 0, result, index, a.length);
+                    index += a.length;
+                }
+            }
+            return result;
+        }
+
 
         public static <T, R> R[] cast(T[] source, Converter<T, R> converter) {
             if (source == null)
