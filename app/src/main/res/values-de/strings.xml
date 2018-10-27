@@ -139,5 +139,6 @@
     <string name="powergrid_wifi_on">W-Lan An</string>
     <string name="powergrid_power_off">Strom Aus</string>
     <string name="powergrid_power_on">Strom an</string>
+    <string name="variant">Variante: </string>
 
 </resources>

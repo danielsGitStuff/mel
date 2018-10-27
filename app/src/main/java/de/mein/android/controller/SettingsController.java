@@ -77,8 +77,10 @@ public class SettingsController extends GuiController {
         });
         btnAbout.setOnClickListener(v -> N.r(() -> {
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(activity);
+            String variant = activity.getString(R.string.variant);
             String version = activity.getString(R.string.version);
-            version += Versioner.getBuildVersion();
+            version += Versioner.getBuildVersion()+"\n";
+            version += variant+Versioner.getBuildVariant();
             builder.setMessage(version)
                     .setTitle(R.string.titleAbout)
                     .setPositiveButton(R.string.btnOk, null);

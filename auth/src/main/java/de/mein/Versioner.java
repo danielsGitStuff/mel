@@ -20,7 +20,7 @@ public class Versioner {
 
 
         @Override
-        void readProperties() throws IOException {
+        public void readProperties() throws IOException {
             Properties properties = new Properties();
 
 
@@ -36,7 +36,7 @@ public class Versioner {
     public static abstract class BuildReader {
         protected String version, variant;
 
-        abstract void readProperties() throws IOException;
+        public abstract void readProperties() throws IOException;
 
         public String getVariant() throws IOException {
             if (variant == null)

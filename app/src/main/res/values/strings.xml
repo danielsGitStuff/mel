@@ -139,5 +139,6 @@
     <string name="powergrid_wifi_on">Wifi On</string>
     <string name="powergrid_power_off">AC Off</string>
     <string name="powergrid_power_on">AC On</string>
+    <string name="variant">Variant: </string>
 
 </resources>

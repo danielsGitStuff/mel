@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -156,22 +157,15 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         Tools.init(this.getApplicationContext());
         runningColor = getResources().getColor(R.color.stateRunning);
         stoppedColor = getResources().getColor(R.color.stateDeactivated);
-        Versioner.configure(() -> {
-            try {
-                InputStream in = MainActivity.this.getAssets().open("version.apk.txt");
-                byte[] buffer = new byte[1024];
-                StringBuilder b = new StringBuilder();
-                int read;
-                do {
-                    read = in.read(buffer);
-                    if (read > 0) {
-                        b.append(new String(Arrays.copyOfRange(buffer, 0, read)));
-                    }
-                } while (read > 0);
-                return b.toString();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return "could not read version";
+        Versioner.configure(new Versioner.BuildReader() {
+
+            @Override
+            public void readProperties() throws IOException {
+                InputStream in = MainActivity.this.getAssets().open("version.properties");
+                Properties properties = new Properties();
+                properties.load(in);
+                version = properties.getProperty("builddate");
+                variant = properties.getProperty("variant");
             }
         });
         boolean timestamp = Tools.getSharedPreferences().getBoolean(PreferenceStrings.LOK_TIMESTAMP, true);
@@ -486,7 +480,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         super.onStop();
         if (powerManager != null)
             powerManager.removeListener(this);
-        if (this.guiController!= null)
+        if (this.guiController != null)
             this.guiController.onStop();
     }
 
