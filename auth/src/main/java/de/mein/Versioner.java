@@ -1,18 +1,8 @@
 package de.mein;
 
-import de.mein.auth.tools.ResourceList;
-
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.Properties;
-import java.util.Scanner;
-import java.util.regex.Pattern;
 
 public class Versioner {
 
@@ -22,19 +12,16 @@ public class Versioner {
         @Override
         public void readProperties() throws IOException {
             Properties properties = new Properties();
-
-
-            String ff = new File("").getAbsolutePath();
-
             InputStream in = getClass().getResourceAsStream("/version.properties");
             properties.load(in);
-            version = properties.getProperty("builddate");
+            version = Long.valueOf(properties.getProperty("version"));
             variant = properties.getProperty("variant");
         }
     };
 
     public static abstract class BuildReader {
-        protected String version, variant;
+        protected String variant;
+        protected Long version;
 
         public abstract void readProperties() throws IOException;
 
@@ -44,14 +31,14 @@ public class Versioner {
             return variant;
         }
 
-        public String getVersion() throws IOException {
+        public Long getVersion() throws IOException {
             if (version == null)
                 readProperties();
             return version;
         }
     }
 
-    public static String getBuildVersion() throws IOException {
+    public static Long getBuildVersion() throws IOException {
         return buildReader.getVersion();
     }
 

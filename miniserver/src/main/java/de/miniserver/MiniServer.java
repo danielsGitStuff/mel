@@ -86,7 +86,8 @@ public class MiniServer {
 
         //looking for jar, apk and their appropriate version.txt
         for (File f : filesDir.listFiles(f -> f.isFile() && (f.getName().endsWith(".jar") || f.getName().endsWith(".apk")))) {
-            String hash, version, variant;
+            String hash,  variant;
+            Long version;
             File propertiesFile;
 
             propertiesFile = new File(filesDir, f.getName() + MeinStrings.update.INFO_APPENDIX);
@@ -97,7 +98,7 @@ public class MiniServer {
             properties.load(new FileInputStream(propertiesFile));
 
             variant = properties.getProperty("variant");
-            version = properties.getProperty("builddate");
+            version = Long.valueOf(properties.getProperty("version"));
             fileRepository.addEntry(hash, f);
             versionAnswer.addEntry(hash, variant, version);
         }

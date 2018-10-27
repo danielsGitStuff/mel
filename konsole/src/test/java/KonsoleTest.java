@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -143,10 +144,11 @@ public class KonsoleTest {
 
     @Test
     public void stupid(){
-        int[] s1 = new int[]{1,2,3};
-        int[] s2 = new int[]{4,5};
-        int[] dest = new  int[s1.length+s2.length];
-
+        Date date = new Date();
+        Long time = date.getTime();
+        Date read = new Date(time);
+        Lok.debug(date.toString());
+        Lok.debug(read.toString());
     }
 
     public static class Dummy implements KResult {

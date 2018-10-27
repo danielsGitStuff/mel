@@ -7,7 +7,7 @@ public class SerTest {
     @Test
     public void serializeVersion() throws Exception {
         VersionAnswer answer = new VersionAnswer();
-        answer.addEntry("hash", "name", "version");
+        answer.addEntry("hash", "name", 666L);
         String json = SerializableEntitySerializer.serialize(answer);
         Lok.debug(json);
     }

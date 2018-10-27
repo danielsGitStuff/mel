@@ -18,8 +18,8 @@ repositories {
 version = 1.0
 
 ext {
-    buildDate = LocalDateTime.now().toString()
-    variant = "fx"
+    buildVersion = new Date().getTime().toString()
+    buildVariant = "fx"
 }
 
 dependencies {
@@ -35,18 +35,19 @@ dependencies {
 task createProperties(dependsOn: processResources) {
     doLast {
         Properties p = new Properties()
-        p['builddate'] = project.buildDate
-        p['variant'] = project.variant
+        p['version'] = buildVersion
+        p['variant'] = buildVariant
         //store in jar
         new File("$buildDir/resources/main/version.properties").withWriter { w -> p.store(w, null) }
         // store in build directory
         new File("$buildDir/version.properties").withWriter { w -> p.store(w, null) }
+        new File("src/main/resources/version.properties").withWriter {w -> p.store(w,null)}
     }
 }
 
-//build{
-//    dependsOn createProperties
-//}
+build{
+    dependsOn createProperties
+}
 
 classes {
     dependsOn createProperties

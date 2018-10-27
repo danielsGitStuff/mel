@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 
 public class AboutFX extends AuthSettingsFX {
 
@@ -39,9 +40,10 @@ public class AboutFX extends AuthSettingsFX {
         }
         webengine.loadContent(content);
         try {
-            lblVersion.setText(Versioner.getBuildVersion());
+            Date veriosnDate = new Date(Versioner.getBuildVersion());
+            lblVersion.setText(veriosnDate.toString());
             lblVariant.setText(Versioner.getBuildVariant());
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

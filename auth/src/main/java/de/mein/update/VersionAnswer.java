@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class VersionAnswer implements SerializableEntity {
 
-    public void addEntry(String hash, String variant, String version) {
+    public void addEntry(String hash, String variant, Long version) {
         entries.put(variant, new VersionEntry().setHash(hash).setVersion(version));
     }
 
@@ -22,7 +22,8 @@ public class VersionAnswer implements SerializableEntity {
     }
 
     public static class VersionEntry implements SerializableEntity {
-        private String version, hash;
+        private Long version;
+        private String hash;
 
         public VersionEntry setHash(String hash) {
             this.hash = hash;
@@ -33,13 +34,13 @@ public class VersionAnswer implements SerializableEntity {
             return hash;
         }
 
-        public VersionEntry setVersion(String version) {
+        public VersionEntry setVersion(Long version) {
             this.version = version;
             return this;
         }
 
 
-        public String getVersion() {
+        public Long getVersion() {
             return version;
         }
     }
