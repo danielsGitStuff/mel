@@ -23,6 +23,7 @@ ext {
 }
 
 dependencies {
+    compile project(':konsole')
     compile project(path: ':drivefx')
     compile project(path: ':contactsfx')
     testCompile project(path: ':drive', configuration: 'driveTestOutput')

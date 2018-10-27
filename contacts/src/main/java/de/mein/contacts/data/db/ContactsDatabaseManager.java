@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.sql.SQLException;
 
 import de.mein.auth.data.access.FileRelatedManager;
-import de.mein.auth.file.AFile;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.db.dao.ContactsDao;
@@ -113,7 +112,7 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         InputStream createSqlFileInputStream();
     }
 
-    private static ContactsSqlInputStreamInjector contactsSqlInputStreamInjector = () -> String.class.getResourceAsStream("/contacts.sql");
+    private static ContactsSqlInputStreamInjector contactsSqlInputStreamInjector = () -> String.class.getResourceAsStream("/de/mein/contacts/contacts.sql");
 
     public static void setContactsSqlInputStreamInjector(ContactsSqlInputStreamInjector contactsSqlInputStreamInjector) {
         ContactsDatabaseManager.contactsSqlInputStreamInjector = contactsSqlInputStreamInjector;

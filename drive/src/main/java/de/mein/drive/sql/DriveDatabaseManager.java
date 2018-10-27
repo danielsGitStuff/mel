@@ -73,7 +73,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         InputStream createSqlFileInputStream();
     }
 
-    private static DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> DriveDatabaseManager.class.getClassLoader().getResourceAsStream("drive.sql");
+    private static DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> DriveDatabaseManager.class.getClassLoader().getResourceAsStream("de/mein/drive/drive.sql");
 
     public static void setDriveSqlInputStreamInjector(DriveSqlInputStreamInjector driveSqlInputStreamInjector) {
         DriveDatabaseManager.driveSqlInputStreamInjector = driveSqlInputStreamInjector;

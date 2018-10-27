@@ -4,7 +4,6 @@ import de.mein.Lok;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.WaitLock;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
@@ -54,7 +53,7 @@ public class SqliteThreadingTest {
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
             //find sql file in workingdir
-            DriveDatabaseManager.DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> String.class.getResourceAsStream("/drive.sql");
+            DriveDatabaseManager.DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> String.class.getResourceAsStream("/de/mein/drive/drive.sql");
             sqliteExecutor.executeStream(driveSqlInputStreamInjector.createSqlFileInputStream());
         }
 
