@@ -53,9 +53,11 @@ public class Notifier {
 
     public static void cancel(Intent intent, int requestCode) {
         Context context = Tools.getApplicationContext();
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        if (pendingIntent != null)
-            pendingIntent.cancel();
+        if (intent!=null) {
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            if (pendingIntent != null)
+                pendingIntent.cancel();
+        }
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.cancel(requestCode);
     }
@@ -102,6 +104,17 @@ public class Notifier {
                 .setContentText(text)
                 .setTicker(ticker)
                 .setProgress(max, progress, false)
+                .build();
+        Notifier.createNotificationManager(context).notify(requestCode, notification);
+    }
+
+    public static void button(int requestCode, int iconResource, @NonNull String channelId, CharSequence title, CharSequence text, PendingIntent intent) {
+        Context context = Tools.getApplicationContext();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
+        Notification notification = builder.setSmallIcon(iconResource)
+                .setContentTitle(title)
+                .setContentText(text)
+                .addAction(R.drawable.new_icon,"Download",intent)
                 .build();
         Notifier.createNotificationManager(context).notify(requestCode, notification);
     }

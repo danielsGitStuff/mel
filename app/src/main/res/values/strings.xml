@@ -142,5 +142,6 @@
     <string name="variant">Variant: </string>
     <string name="btnUpdate">Check Update</string>
     <string name="titleUpdateAvail">Update available!</string>
+    <string name="titleReceiving">Downloading Update</string>
 
 </resources>

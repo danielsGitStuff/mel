@@ -4,6 +4,7 @@ import de.mein.Lok;
 import de.mein.Versioner;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.access.CertificateManager;
+import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
 
@@ -25,6 +26,7 @@ public class Updater {
     private final File target;
     private UpdateMessageSocket updateMessageSocket;
     private BinarySocket binarySocket;
+    private Set<UpdateHandler> updateHandlers = new HashSet<>();
 
     public Updater(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
@@ -59,29 +61,13 @@ public class Updater {
             e.printStackTrace();
             return;
         }
-        N.forEachAdvIgnorantly(updateHandlers,(stoppable, index, updateHandler) -> updateHandler.onUpdateAvailable(versionEntry));
-        String url = settings.getUpdateUrl();
-        int port = settings.getUpdateBinaryPort();
-        Socket socket = new Socket();
-        try {
-            socket.connect(new InetSocketAddress(url, port));
-            binarySocket = new BinarySocket(this, socket, versionEntry, target);
-            meinAuthService.execute(binarySocket);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onUpdateAvailable(this, versionEntry));
     }
 
     public void onUpdateReceived(VersionAnswer.VersionEntry versionEntry, File target) {
         Lok.debug("Success. I got Update!!!1!");
-        N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onUpdateFileReceived(versionEntry, target));
+        N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onUpdateFileReceived(this, versionEntry, target));
     }
-
-
-
-    private Set<UpdateHandler> updateHandlers = new HashSet<>();
-
-
 
     public Updater addUpdateHandler(UpdateHandler updateHandler) {
         updateHandlers.add(updateHandler);
@@ -94,6 +80,19 @@ public class Updater {
     }
 
     public void onSocketProgress(Long done, Long length) {
-        N.forEachAdvIgnorantly(updateHandlers,(stoppable, index, updateHandler) -> updateHandler.onProgress(done,length));
+        N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onProgress(this, done, length));
+    }
+
+    public void loadUpdate(VersionAnswer.VersionEntry versionEntry, File target) {
+        String url = settings.getUpdateUrl();
+        int port = settings.getUpdateBinaryPort();
+        Socket socket = new Socket();
+        try {
+            socket.connect(new InetSocketAddress(url, port));
+            binarySocket = new BinarySocket(this, socket, versionEntry, target);
+            meinAuthService.execute(binarySocket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

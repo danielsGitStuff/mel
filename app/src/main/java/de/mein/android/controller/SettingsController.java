@@ -1,5 +1,6 @@
 package de.mein.android.controller;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 
 import java.util.Date;
 
+import androidx.core.content.FileProvider;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.Versioner;
@@ -106,6 +108,7 @@ public class SettingsController extends GuiController {
             alertDialog.show();
         }));
         btnUpdate.setOnClickListener(v -> N.r(() -> {
+            activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             Threadder.runNoTryThread(() -> androidService.getMeinAuthService().updateProgram());
         }));
     }

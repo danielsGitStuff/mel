@@ -2,6 +2,7 @@ package de.mein.update;
 
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
+import de.mein.auth.file.AFile;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.sql.Hash;
 
@@ -20,7 +21,7 @@ public class BinarySocket extends SimpleSocket {
     public BinarySocket(Updater updater, Socket socket, VersionAnswer.VersionEntry versionEntry, File target) throws IOException {
         super(socket);
         this.versionEntry = versionEntry;
-        this.target = target;
+        this.target =target;
         this.updater = updater;
     }
 
@@ -28,7 +29,7 @@ public class BinarySocket extends SimpleSocket {
     public void runImpl() {
         String question = MeinStrings.update.QUERY_FILE + versionEntry.getHash();
         try {
-            FileOutputStream fos = new FileOutputStream(target);
+            FileOutputStream fos =new FileOutputStream(target);
             MessageDigest messageDigest = Hash.createSHA256MessageDigest();
             out.writeUTF(question);
             byte[] bytes;
@@ -42,6 +43,7 @@ public class BinarySocket extends SimpleSocket {
                     fos.write(bytes, 0, read);
                     messageDigest.update(bytes, 0, read);
                     sum+=read;
+                    updater.onSocketProgress(sum,versionEntry.getLength());
                 }
             } while (read > 0);
             String receivedHash = Hash.bytesToString(messageDigest.digest());

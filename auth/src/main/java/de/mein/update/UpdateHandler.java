@@ -2,11 +2,13 @@ package de.mein.update;
 
 import java.io.File;
 
+import de.mein.auth.file.AFile;
+
 public interface UpdateHandler {
 
-    void onUpdateFileReceived(VersionAnswer.VersionEntry versionEntry, File updateFile);
+    void onUpdateFileReceived(Updater updater, VersionAnswer.VersionEntry versionEntry, File updateFile);
 
-    void onProgress(Long done, Long length);
+    void onProgress(Updater updater, Long done, Long length);
 
-    void onUpdateAvailable(VersionAnswer.VersionEntry versionEntry);
+    void onUpdateAvailable(Updater updater, VersionAnswer.VersionEntry versionEntry);
 }
