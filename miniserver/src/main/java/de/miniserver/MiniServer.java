@@ -86,7 +86,7 @@ public class MiniServer {
 
         //looking for jar, apk and their appropriate version.txt
         for (File f : filesDir.listFiles(f -> f.isFile() && (f.getName().endsWith(".jar") || f.getName().endsWith(".apk")))) {
-            String hash,  variant;
+            String hash, variant;
             Long version;
             File propertiesFile;
 
@@ -100,7 +100,7 @@ public class MiniServer {
             variant = properties.getProperty("variant");
             version = Long.valueOf(properties.getProperty("version"));
             fileRepository.addEntry(hash, f);
-            versionAnswer.addEntry(hash, variant, version);
+            versionAnswer.addEntry(hash, variant, version, f.length());
         }
 
     }
@@ -137,6 +137,7 @@ public class MiniServer {
         }
         config.setWorkingDirectory(workingDir.getAbsolutePath());
         Lok.debug("dir: " + workingDir.getAbsolutePath());
+        Lok.debug("port: " + MeinAuthSettings.UPDATE_BINARY_PORT + ", msgport: " + MeinAuthSettings.UPDATE_MSG_PORT);
         MiniServer miniServer = null;
         try {
             miniServer = new MiniServer(config);
