@@ -21,6 +21,7 @@ import de.mein.Lok;
 import de.mein.R;
 import de.mein.Versioner;
 import de.mein.android.MainActivity;
+import de.mein.android.Notifier;
 import de.mein.android.PreferenceStrings;
 import de.mein.android.Threadder;
 import de.mein.android.Tools;
@@ -97,8 +98,6 @@ public class SettingsController extends GuiController {
             boolean js = settings.getJavaScriptEnabled();
             settings.setDomStorageEnabled(true);
             settings.setJavaScriptEnabled(true);
-//            settings.setSupportZoom(true);
-//            settings.setBuiltInZoomControls(true);
             webView.loadUrl("file:///android_asset/de/mein/auth/licenses.html");
             ScrollView scrollView = new ScrollView(activity);
             scrollView.addView(webView);
@@ -108,8 +107,12 @@ public class SettingsController extends GuiController {
             alertDialog.show();
         }));
         btnUpdate.setOnClickListener(v -> N.r(() -> {
-            activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            Threadder.runNoTryThread(() -> androidService.getMeinAuthService().updateProgram());
+            if (activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+                Threadder.runNoTryThread(() -> androidService.getMeinAuthService().updateProgram());
+            }else {
+                Notifier.toast(activity,R.string.permanentNotificationText);
+                activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
         }));
     }
 
