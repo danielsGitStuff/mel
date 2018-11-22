@@ -169,8 +169,13 @@ public class AndroidPowerManager extends PowerManager {
     }
 
     public void overrideState(boolean override){
-        this.overrideState = override;
-        changeState();
+        /**
+         * this is deactivated until suspended services have a sophisticated way to deal with messages and requests.
+         * for now all services are expected to be running when the auth instance is reachable.
+         *
+         */
+//        this.overrideState = override;
+//        changeState();
     }
 
     @Override

@@ -35,7 +35,7 @@ public class ContactsBootloader extends BootLoader {
 
     public ContactsService createService(String name, ContactsSettings contactsSettings) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException, IOException, ClassNotFoundException, SQLException, JsonDeserializationException {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
-        Service service = createService(name);
+        Service service = createDbService(name);
         File serviceDir = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
         serviceDir.mkdirs();
         File jsonFile = new File(serviceDir, "contacts.settings.json");
@@ -47,7 +47,7 @@ public class ContactsBootloader extends BootLoader {
             N runner = new N(e -> {
                 meinAuthService.unregisterMeinService(service.getUuid().v());
                 N.r(() -> meinAuthService.getDatabaseManager().deleteService(service.getId().v()));
-                Lok.debug("ContactsBootloader.createService.service.deleted:something.failed");
+                Lok.debug("ContactsBootloader.createDbService.service.deleted:something.failed");
                 waitLock.unlock();
             });
             runner.runTry(() -> meinAuthService.connect(contactsSettings.getClientSettings().getServerCertId())
@@ -94,7 +94,7 @@ public class ContactsBootloader extends BootLoader {
         return new ContactsServerService(meinAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings);
     }
 
-    private Service createService(String name) throws SqlQueriesException {
+    private Service createDbService(String name) throws SqlQueriesException {
         ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeByName(new ContactsBootloader().getName());
         Service service = meinAuthService.getDatabaseManager().createService(type.getId().v(), name);
         return service;
