@@ -68,7 +68,7 @@ class CalendarBootLoader : BootLoader() {
         return calendarService
     }
 
-    private fun createDbService(name: String, settings: CalendarSettings<*>): Service {
+    private fun createDbService(name: String): Service {
         val type = meinAuthService.databaseManager.getServiceTypeByName(this.name)
         return meinAuthService.databaseManager.createService(type.id.v(), name)
     }
