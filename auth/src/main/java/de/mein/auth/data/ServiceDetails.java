@@ -1,4 +1,4 @@
-package de.mein.contacts.data;
+package de.mein.auth.data;
 
 import de.mein.auth.data.IPayload;
 

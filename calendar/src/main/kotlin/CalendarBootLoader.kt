@@ -1,7 +1,11 @@
+import de.mein.Lok
 import de.mein.auth.data.JsonSettings
+import de.mein.auth.data.ServiceDetails
 import de.mein.auth.data.db.Service
 import de.mein.auth.service.BootLoader
 import de.mein.auth.service.MeinAuthService
+import de.mein.auth.tools.N
+import de.mein.auth.tools.WaitLock
 import org.jdeferred.Promise
 import java.io.File
 
@@ -14,13 +18,54 @@ class CalendarBootLoader : BootLoader() {
         services?.forEach { service ->
             val jsonFile = File(bootLoaderDir.absolutePath + File.separator + service.uuid.v() + File.separator + CalendarStrings.SETTINGS_FILE_NAME)
             val calendarSettings: CalendarSettings<*> = JsonSettings.load(jsonFile) as CalendarSettings<*>
-            boot(meinAuthService,service,calendarSettings);
+            boot(meinAuthService, service, calendarSettings)
         }
         return null
     }
 
-    private fun boot(meinAuthService: MeinAuthService, service: Service, calendarSettings: CalendarSettings<*>) {
+    private fun boot(meinAuthService: MeinAuthService, service: Service, calendarSettings: CalendarSettings<*>): CalendarService {
+        val workingDirectory = File(bootLoaderDir.getAbsolutePath() + File.separator + service.uuid.v())
+        val calendarService = if (calendarSettings.isServer()) {
+            CalendarServerService(meinAuthService, workingDirectory, service.typeId.v(), service.uuid.v(), calendarSettings)
+        } else {
+            CalendarClientService(meinAuthService, workingDirectory, service.typeId.v(), service.uuid.v(), calendarSettings)
+        }
+        meinAuthService.registerMeinService(calendarService)
+        meinAuthService.execute(calendarService)
+        return calendarService
+    }
 
+    fun createService(name: String, calendarSettings: CalendarSettings<*>): CalendarService {
+        val service: Service = createDbService(name)
+        val serviceDir = File(bootLoaderDir.absolutePath + File.separator + service.uuid.v())
+        serviceDir.mkdirs()
+        val jsonFile = File(serviceDir, CalendarStrings.SETTINGS_FILE_NAME)
+        calendarSettings.setJsonFile(jsonFile)
+        val calendarService = boot(meinAuthService, service, calendarSettings)
+        if (!calendarSettings.isServer()) {
+            val waitLock = WaitLock().lock()
+            val runner = N {
+                meinAuthService.unregisterMeinService(service.uuid.v())
+                meinAuthService.databaseManager.deleteService(service.id.v())
+                Lok.debug("creating calendar service failed")
+                waitLock.unlock()
+            }
+            val serverCertId: Long = calendarSettings.clientSettings!!.serverCertId!!
+            val serverServiceUuid: String = calendarSettings.clientSettings!!.serviceUuid!!
+            runner.runTry {
+                meinAuthService.connect(serverCertId)
+                        .done { mvp ->
+                            runner.runTry {
+                                mvp.request(serverServiceUuid, CalendarStrings.INTENT_REG_AS_CLIENT, ServiceDetails(service.uuid.v()))
+                                        .done { waitLock.unlock() }
+                                        .fail { runner.abort() }
+                            }
+                        }
+                        .fail { runner.abort() }
+                waitLock.lock()
+            }
+        }
+        return calendarService
     }
 
     private fun createDbService(name: String, settings: CalendarSettings<*>): Service {

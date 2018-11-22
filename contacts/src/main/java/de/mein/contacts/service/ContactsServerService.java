@@ -12,7 +12,7 @@ import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.NewVersionDetails;
-import de.mein.contacts.data.ServiceDetails;
+import de.mein.auth.data.ServiceDetails;
 import de.mein.contacts.data.db.PhoneBook;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.jobs.AnswerQueryJob;

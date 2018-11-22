@@ -5,7 +5,7 @@ import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
-import de.mein.contacts.data.ServiceDetails;
+import de.mein.auth.data.ServiceDetails;
 import de.mein.contacts.service.ContactsClientService;
 import de.mein.contacts.service.ContactsServerService;
 import de.mein.contacts.service.ContactsService;
