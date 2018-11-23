@@ -1,5 +1,3 @@
-import java.time.LocalDateTime
-
 apply plugin: 'com.android.application'
 //apply plugin: 'kotlin-android'
 //apply plugin: 'me.tatarka.retrolambda'
@@ -16,7 +14,6 @@ allprojects {
 }
 
 
-
 buildscript {
     repositories {
         jcenter()
@@ -31,20 +28,28 @@ buildscript {
         // in the individual module build.gradle files
     }
 }
-
+ext {
+    buildVersion = new Date().getTime().toString()
+    buildVariant = "apk"
+    taskName = "not yet"
+    TASK_RELEASE = "release"
+    TASK_DEBUG = "debug"
+}
 android {
     compileOptions.encoding = 'UTF-8'
     compileSdkVersion 28
     buildToolsVersion '28.0.3'
     defaultConfig {
-        applicationId "de.mein.meindrive"
+        applicationId "de.syncstuff"
         minSdkVersion 19
         targetSdkVersion 28
         versionCode 1
         versionName "0.1-beta"
-        multiDexEnabled false
+        multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        setProperty("archivesBaseName", "${applicationId}")
+
 //        javaCompileOptions {
 //            annotationProcessorOptions {
 //                arguments = [ eventBusIndex : 'com.example.myapp.MyEventBusIndex' ]
@@ -70,10 +75,7 @@ android {
         unitTests.returnDefaultValues = true
     }
 }
-ext {
-    buildVersion = new Date().getTime().toString()
-    buildVariant = "apk"
-}
+
 
 task createProperties() {
     doLast {
@@ -81,9 +83,13 @@ task createProperties() {
         p['version'] = project.buildVersion
         p['variant'] = project.buildVariant
         //store in jar
-        new File('app' + File.separator + "src" + File.separator + "main" + File.separator + "assets" + File.separator + "version.properties").withWriter { w -> p.store(w, null) }
+        File assetFile = new File("src" + File.separator + "main" + File.separator + "assets" + File.separator + "version.properties")
+        println("writing version asset file: ${assetFile.absolutePath}")
+        assetFile.withWriter { w -> p.store(w, null) }
         // store in build directory
-        new File("$buildDir/version.properties").withWriter { w -> p.store(w, null) }
+        File versionFile = new File("$buildDir/version.properties")
+        println("writing version file: ${versionFile.absolutePath}")
+        versionFile.withWriter { w -> p.store(w, null) }
     }
 }
 
@@ -100,11 +106,26 @@ task copyFiles(type: Copy) {
 }
 
 preBuild {
+//    Properties p = new Properties()
+//    p['version'] = project.buildVersion
+//    p['variant'] = project.buildVariant
+//    //store in jar
+//    File assetFile = new File( "src" + File.separator + "main" + File.separator + "assets" + File.separator + "version.properties")
+//    println("writing version asset file: ${assetFile.absolutePath}")
+//    assetFile.withWriter { w -> p.store(w, null) }
+//    // store in build directory
+//    File versionFile = new File("$buildDir/version.properties")
+//    println("writing version file: ${versionFile.absolutePath}")
+//    versionFile.withWriter { w -> p.store(w, null) }
     dependsOn copyFiles
     dependsOn createProperties
 }
 
 dependencies {
+    //multidex
+    implementation 'com.android.support:multidex:1.0.3'
+
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:multidex:1.0.3'
     implementation project(':json')
@@ -114,7 +135,7 @@ dependencies {
     implementation project(':drive')
     testImplementation project(':drive')
     implementation project(':contacts')
-    implementation 'com.android.support:support-compat:28.0.0-alpha1'
+    implementation 'com.android.support:support-compat:28.0.0'
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support:design:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
@@ -129,24 +150,33 @@ dependencies {
 }
 
 
-assemble{
+assemble {
+    println("buildVariant: ${gradle.startParameter.taskNames}")
     Properties p = new Properties()
     p['version'] = project.buildVersion
     p['variant'] = project.buildVariant
-    try {
+    if (gradle.startParameter.taskNames.size() != 1) {
+        println("confused by more than one startTaskName")
+        System.exit(-1)
+    }
+    taskName = gradle.startParameter.taskNames[0]
+    taskName = taskName.substring("assemble".length())
+    println("lel $taskName")
+    taskName = taskName.toLowerCase()
+    println("taskName: (assemble)$taskName")
+    if (taskName == TASK_DEBUG) {
         File parent = new File("$buildDir/outputs/apk/debug");
-        parent.mkdirs();
-        new File(parent,"version.properties").withWriter { w -> p.store(w, null) }
-    }catch (Exception e){}
-    try {
+        parent.mkdirs()
+        new File(parent, "${archivesBaseName}-${taskName}.apk.properties").withWriter { w -> p.store(w, null) }
+    } else if (taskName == TASK_RELEASE) {
         File parent = new File("$buildDir/outputs/apk/release");
-        parent.mkdirs();
-        new File(parent,"version.properties").withWriter { w -> p.store(w, null) }
-    }catch (Exception e){}
-
+        parent.mkdirs()
+        new File(parent, "${archivesBaseName}-${taskName}-unsigned.apk.properties").withWriter { w -> p.store(w, null) }
+    }
 }
 
 repositories {
     mavenCentral()
     google()
 }
+

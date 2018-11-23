@@ -13,9 +13,10 @@ class ServerConfig : KResult {
 
     var privKeyPath: String? = null
     private val files = HashMap<String, Pair<String>>()
-    var httpPort: Int = DEFAULT_HTTP
+    var httpPort: Int? = null
     var authPort: Int = DEFAULT_AUTH
     var transferPort: Int = DEFAULT_TRANSFER
+
 
     fun getFiles(): Map<String, Pair<String>> {
         return files

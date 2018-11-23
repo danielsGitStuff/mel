@@ -4,7 +4,6 @@ import de.mein.Lok
 import de.mein.MeinRunnable
 import de.mein.MeinThread
 import de.mein.auth.MeinStrings
-import de.mein.auth.data.MeinAuthSettings
 import de.mein.auth.data.access.CertificateManager
 import de.mein.auth.data.access.DatabaseManager
 import de.mein.auth.tools.N
@@ -133,8 +132,10 @@ constructor(private val config: ServerConfig) {
         binarySocketOpener = BinarySocketOpener(config.transferPort, this, fileRepository)
         execute(binarySocketOpener!!)
 
-        httpSocketOpener = HttpThingy(config.httpPort, this, fileRepository)
-        httpSocketOpener.start()
+        config.httpPort?.let {
+            httpSocketOpener = HttpThingy(it, this, fileRepository)
+            httpSocketOpener.start()
+        }
 
         Lok.debug("I am up!")
     }
@@ -170,9 +171,10 @@ constructor(private val config: ServerConfig) {
                     .optional("-pubkey", "path to public key", { result, args -> result.pubKeyPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-privkey", "-cert"))
                     .optional("-privkey", "path to private key", { result, args -> result.privKeyPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-pubkey", "-cert"))
                     .optional("-dir", "path to working directory") { result, args -> result.workingDirectory = args[0] }
-                    .optional("-http", "port the http server listens on. defaults to ${ServerConfig.DEFAULT_HTTP}.") { result, args -> result.httpPort = args[0].toInt() }
                     .optional("-auth", "port the authentication service listens on. defaults to ${ServerConfig.DEFAULT_AUTH}.") { result, args -> result.authPort = args[0].toInt() }
                     .optional("-ft", "port the file transfer listens on. defaults to ${ServerConfig.DEFAULT_TRANSFER}.") { result, args -> result.transferPort = args[0].toInt() }
+                    .optional("-http", "starts the http server. specifies the port it listens on.") { result, args -> result.httpPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTP }
+
             //                .optional("-files", "tuples of files, versions and names. eg: '-files -f1 v1 n1 -f2 v12 n2'", ((result, args) -> {
             //                    if (args.length % 2 != 0)
             //                        throw new Konsole.ParseArgumentException("even number of entries");

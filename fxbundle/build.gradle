@@ -53,7 +53,7 @@ classes {
     dependsOn createProperties
 }
 
-task bundledJar(type: Jar) {
+task buildFxJar(type: Jar) {
     group "meins"
     description "build a fucking jar filled with candies!"
     manifest {
