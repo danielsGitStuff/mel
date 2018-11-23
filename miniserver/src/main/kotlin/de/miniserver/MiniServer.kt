@@ -32,7 +32,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
 class MiniServer @Throws(Exception::class)
-constructor(config: ServerConfig) {
+constructor(val config: ServerConfig) {
 
     private val certificateManager: CertificateManager
     private val versionAnswer: VersionAnswer
@@ -56,7 +56,6 @@ constructor(config: ServerConfig) {
     val certificate: X509Certificate
         get() = certificateManager.myX509Certificate
 
-    var indexFile: File
 
     init {
         val workingDir = File(config.workingDirectory!!)
@@ -105,13 +104,9 @@ constructor(config: ServerConfig) {
             fileRepository.addEntry(hash, f)
             versionAnswer.addEntry(hash, variant, version, f.length())
         }
-        val htmlDir = File(workingDir, DIR_HTML_NAME)
-        htmlDir.mkdir()
-        indexFile = File(htmlDir,"index.html")
 
 
     }
-
 
 
     fun execute(runnable: MeinRunnable) {
@@ -138,8 +133,7 @@ constructor(config: ServerConfig) {
         binarySocketOpener = BinarySocketOpener(MeinAuthSettings.UPDATE_BINARY_PORT, this, fileRepository)
         execute(binarySocketOpener!!)
 
-        httpSocketOpener = HttpThingy(9888, this, fileRepository)
-//        execute(httpSocketOpener)
+        httpSocketOpener = HttpThingy(config.httpPort, this, fileRepository)
         httpSocketOpener.start()
 
 
@@ -177,6 +171,7 @@ constructor(config: ServerConfig) {
                     .optional("-pubkey", "path to public key", { result, args -> result.pubKeyPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-privkey", "-cert"))
                     .optional("-privkey", "path to private key", { result, args -> result.privKeyPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-pubkey", "-cert"))
                     .optional("-dir", "path to working directory") { result, args -> result.workingDirectory = args[0] }
+                    .optional("-http", "port the htttp server listens on. defaults to 8080.") { result, args -> result.httpPort = args[0].toInt() }
             //                .optional("-files", "tuples of files, versions and names. eg: '-files -f1 v1 n1 -f2 v12 n2'", ((result, args) -> {
             //                    if (args.length % 2 != 0)
             //                        throw new Konsole.ParseArgumentException("even number of entries");

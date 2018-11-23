@@ -13,6 +13,7 @@ class ServerConfig : KResult {
 
     var privKeyPath: String? = null
     private val files = HashMap<String, Pair<String>>()
+    var httpPort: Int = 8080
 
     fun getFiles(): Map<String, Pair<String>> {
         return files

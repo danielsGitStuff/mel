@@ -7,7 +7,6 @@ import de.mein.MeinThread
 import de.mein.auth.tools.N
 import de.miniserver.MiniServer
 import de.miniserver.data.FileRepository
-import java.io.File
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.*
@@ -52,26 +51,22 @@ class HttpThingy(private val port: Int, private val miniServer: MiniServer, priv
 
     private fun parseIndexHtml(): ByteArray? {
         val regex = "<\\\$=\\D+[\\w]*\\/>".toRegex()
-        val url = javaClass.getResource("/de/mein/miniserver/index.html")
-        val uuu = File(url.file)
-        if (uuu.exists()) {
-            val html = uuu.readText()
-            if (!html.contains(regex)) {
-                throw Exception("did not find '<$=files/>' tag to replace with file content")
-            }
-            val s = StringBuilder()
-            miniServer.fileRepository.hashFileMap.entries.forEach {
-                s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
-            }
-            val filesHtml = html.replace(regex, s.toString())
-            return filesHtml.toByteArray()
+        val resourceBytes = javaClass.getResourceAsStream("/de/miniserver/index.html").readBytes()
+        val html = String(resourceBytes)
+        if (!html.contains(regex)) {
+            throw Exception("did not find '<$=files/>' tag to replace with file content")
         }
-        throw Exception("did not find index file")
+        val s = StringBuilder()
+        miniServer.fileRepository.hashFileMap.entries.forEach {
+            s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
+        }
+        val filesHtml = html.replace(regex, s.toString())
+        return filesHtml.toByteArray()
     }
 
     fun start() {
         val indexBytes = parseIndexHtml()
-        server = HttpServer.create(InetSocketAddress(8080), 0)
+        server = HttpServer.create(InetSocketAddress(port), 0)
         // create the index page context
         server.createContext("/") {
             with(it) {
@@ -97,9 +92,9 @@ class HttpThingy(private val port: Int, private val miniServer: MiniServer, priv
                 /**
                  * does not work yet
                  */
-                with(it){
+                with(it) {
                     val response = "file not found".toByteArray()
-                    sendResponseHeaders(404,response.size.toLong())
+                    sendResponseHeaders(404, response.size.toLong())
                     responseBody.write(response)
                     responseBody.close()
                 }
