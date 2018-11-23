@@ -86,14 +86,14 @@ class HttpThingy(private val port: Int, private val miniServer: MiniServer, priv
             val hash = uri.path.substring("/files/".length, uri.path.length)
             Lok.debug("serving file: ${hash}")
             try {
-                val file = miniServer.fileRepository.getFile(hash)
+                val bytes = miniServer.fileRepository.getBytes(hash)
                 with(it) {
-                    sendResponseHeaders(200, file.length())
-                    val bytes = file.inputStream().readBytes()
+                    sendResponseHeaders(200, bytes.size.toLong())
                     responseBody.write(bytes)
                     responseBody.close()
                 }
             } catch (e: Exception) {
+                Lok.debug("did not find a file for ${hash}")
                 /**
                  * does not work yet
                  */
