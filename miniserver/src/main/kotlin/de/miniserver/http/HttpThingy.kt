@@ -66,10 +66,13 @@ class HttpThingy(private val port: Int, private val miniServer: MiniServer, priv
 
     fun start() {
         val indexBytes = parseIndexHtml()
+        Lok.debug("binding http to           : $port")
         server = HttpServer.create(InetSocketAddress(port), 0)
+        Lok.debug("successfully bound http to: $port")
         // create the index page context
         server.createContext("/") {
             with(it) {
+                Lok.debug("sending index to ${remoteAddress}")
                 sendResponseHeaders(200, indexBytes!!.size.toLong())
                 responseBody.write(indexBytes)
                 responseBody.close()

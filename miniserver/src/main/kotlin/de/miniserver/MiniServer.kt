@@ -32,7 +32,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
 class MiniServer @Throws(Exception::class)
-constructor(val config: ServerConfig) {
+constructor(private val config: ServerConfig) {
 
     private val certificateManager: CertificateManager
     private val versionAnswer: VersionAnswer
@@ -128,14 +128,13 @@ constructor(val config: ServerConfig) {
 
     fun start() {
         // starting sockets
-        encSocketOpener = EncSocketOpener(certificateManager, MeinAuthSettings.UPDATE_MSG_PORT, this, versionAnswer)
+        encSocketOpener = EncSocketOpener(certificateManager, config.authPort, this, versionAnswer)
         execute(encSocketOpener!!)
-        binarySocketOpener = BinarySocketOpener(MeinAuthSettings.UPDATE_BINARY_PORT, this, fileRepository)
+        binarySocketOpener = BinarySocketOpener(config.transferPort, this, fileRepository)
         execute(binarySocketOpener!!)
 
         httpSocketOpener = HttpThingy(config.httpPort, this, fileRepository)
         httpSocketOpener.start()
-
 
         Lok.debug("I am up!")
     }
@@ -171,7 +170,9 @@ constructor(val config: ServerConfig) {
                     .optional("-pubkey", "path to public key", { result, args -> result.pubKeyPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-privkey", "-cert"))
                     .optional("-privkey", "path to private key", { result, args -> result.privKeyPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-pubkey", "-cert"))
                     .optional("-dir", "path to working directory") { result, args -> result.workingDirectory = args[0] }
-                    .optional("-http", "port the htttp server listens on. defaults to 8080.") { result, args -> result.httpPort = args[0].toInt() }
+                    .optional("-http", "port the http server listens on. defaults to ${ServerConfig.DEFAULT_HTTP}.") { result, args -> result.httpPort = args[0].toInt() }
+                    .optional("-auth", "port the authentication service listens on. defaults to ${ServerConfig.DEFAULT_AUTH}.") { result, args -> result.authPort = args[0].toInt() }
+                    .optional("-ft", "port the file transfer listens on. defaults to ${ServerConfig.DEFAULT_TRANSFER}.") { result, args -> result.transferPort = args[0].toInt() }
             //                .optional("-files", "tuples of files, versions and names. eg: '-files -f1 v1 n1 -f2 v12 n2'", ((result, args) -> {
             //                    if (args.length % 2 != 0)
             //                        throw new Konsole.ParseArgumentException("even number of entries");
@@ -199,7 +200,7 @@ constructor(val config: ServerConfig) {
             }
             config.workingDirectory = workingDir.absolutePath
             Lok.debug("dir: " + workingDir.absolutePath)
-            Lok.debug("port: " + MeinAuthSettings.UPDATE_BINARY_PORT + ", msgport: " + MeinAuthSettings.UPDATE_MSG_PORT)
+            Lok.debug("auth port: ${config.authPort}, transfer port: ${config.transferPort}, http port: ${config.httpPort}")
             var miniServer: MiniServer? = null
             try {
                 miniServer = MiniServer(config)
