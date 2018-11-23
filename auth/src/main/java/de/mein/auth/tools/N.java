@@ -53,6 +53,15 @@ public class N {
     }
 
     /**
+     * fails silently
+     *
+     * @param noTryRunnable
+     */
+    public static void s(N.INoTryRunnable noTryRunnable) {
+        N.silentRunner.runTry(noTryRunnable);
+    }
+
+    /**
      * runs noTryRunnable in a new Thread
      *
      * @param noTryRunnable
@@ -69,6 +78,15 @@ public class N {
     public static void r(N.INoTryRunnable... noTryRunnables) {
         for (N.INoTryRunnable noTryRunnable : noTryRunnables)
             N.runner.runTry(noTryRunnable);
+    }
+
+    /**
+     * prints stacktrace when failing
+     *
+     * @param noTryRunnable
+     */
+    public static void r(N.INoTryRunnable noTryRunnable) {
+        N.runner.runTry(noTryRunnable);
     }
 
     /**

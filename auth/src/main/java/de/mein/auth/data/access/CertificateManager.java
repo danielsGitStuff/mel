@@ -244,6 +244,8 @@ public class CertificateManager extends FileRelatedManager {
         CertificateCreator.saveFile(new File(workingDirectory, PK_FILENAME), privateKey.getEncoded());
         CertificateCreator.saveFile(new File(workingDirectory, PUB_FILENAME), publicKey.getEncoded());
 
+        Lok.debug("generated certificate with SHA-256: "+Hash.sha256(certificate.getEncoded()));
+
         // save KeyStore
         storeKeyStore();
     }
