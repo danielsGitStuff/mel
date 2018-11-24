@@ -16,7 +16,7 @@ class Processor(private vararg val command: String) {
             return exitCode == 0
         }
 
-    private var errorLines: Stream<String>? = null
+    internal var errorLines: Stream<String>? = null
 
     fun run(): Processor {
         val process = ProcessBuilder(command.asList())

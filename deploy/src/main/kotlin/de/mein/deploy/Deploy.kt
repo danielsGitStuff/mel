@@ -15,9 +15,6 @@ class Deploy(private val deploySettings: DeploySettings) {
         props.load(secretFile.inputStream())
         fetch()
         val gradle = "./gradlew"
-        runProcesses("build", Processor(gradle, ":fxbundle:buildFxJar"),
-                Processor(gradle, ":app:assembleDebug"),
-                Processor(gradle, ":miniserver:buildServerJar"))
 
         runProcesses("test",
                 Processor(gradle, ":sql:test"),
@@ -30,6 +27,10 @@ class Deploy(private val deploySettings: DeploySettings) {
                 Processor(gradle, ":serialize:test"),
                 Processor(gradle, ":sql:test"))
 
+        runProcesses("build", Processor(gradle, ":fxbundle:buildFxJar"),
+                Processor(gradle, ":app:assembleDebug"),
+                Processor(gradle, ":miniserver:buildServerJar"))
+
 
         val serverDir = File("deploy${File.separator}server")
         serverDir.deleteRecursively()
@@ -37,6 +38,7 @@ class Deploy(private val deploySettings: DeploySettings) {
 
     private fun runProcesses(name: String, vararg processors: Processor) {
         processors.find { processor -> !processor.run().success }?.let {
+            it.errorLines?.forEach { Lok.debug(it) }
             error("'$name' failed: ${it.cmdLine}")
         }
         Lok.debug("'$name' successful")

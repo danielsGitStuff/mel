@@ -9,6 +9,7 @@ import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntit
 import de.mein.core.sql.classes.PairSerializableEntity;
 import de.mein.core.sql.classes.SqlTableTester;
 import de.mein.sql.Pair;
+import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -22,6 +23,7 @@ public class SerializationTest {
     public static void prepare() {
         // register pair serializerfactory
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
     }
 
 
@@ -35,7 +37,6 @@ public class SerializationTest {
         }
         return null;
     }
-
 
 
     @Test
@@ -67,8 +68,8 @@ public class SerializationTest {
         child.getPair().v("child");
         String json = serialize(child);
         SqlTableTester des = (SqlTableTester) SerializableEntityDeserializer.deserialize(json);
-        assertPair(child.getPair(),des.getPair());
-        assertPair(parent.getPair(),des.getParent().getPair());
+        assertPair(child.getPair(), des.getPair());
+        assertPair(parent.getPair(), des.getParent().getPair());
     }
 
     private void extendLeDirectory(SqlTableTester dir, int depth) {
@@ -91,15 +92,15 @@ public class SerializationTest {
         serializer.setTraversalDepth(1);
         String json = serializer.JSON();
         SqlTableTester des = (SqlTableTester) SerializableEntityDeserializer.deserialize(json);
-        assertEquals(root.getPair().k(),des.getPair().k());
-        assertEquals(root.getPair().v(),des.getPair().v());
-        assertPair(root.getChildren().iterator().next().getPair(),des.getChildren().iterator().next().getPair());
+        assertEquals(root.getPair().k(), des.getPair().k());
+        assertEquals(root.getPair().v(), des.getPair().v());
+        assertPair(root.getChildren().iterator().next().getPair(), des.getChildren().iterator().next().getPair());
         System.out.println("SerializationTest.testTraversalDepth");
     }
 
-    private void assertPair(Pair p1,Pair p2){
-        assertEquals(p1.k(),p2.k());
-        assertEquals(p1.v(),p2.v());
+    private void assertPair(Pair p1, Pair p2) {
+        assertEquals(p1.k(), p2.k());
+        assertEquals(p1.v(), p2.v());
     }
 
 
