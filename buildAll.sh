@@ -17,4 +17,4 @@ cp miniserver/build/libs/* "$targetDir"
 cp fxbundle/build/libs/* "$targetDir"
 cp app/build/outputs/apk/debug/* "$targetDir"
 
-echo "done!"
+echo "done! binaris copied to $targetDir"
