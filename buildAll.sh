@@ -16,5 +16,6 @@ echo "build android"
 cp miniserver/build/libs/* "$targetDir"
 cp fxbundle/build/libs/* "$targetDir"
 cp app/build/outputs/apk/debug/* "$targetDir"
+rm "$targetDir/output.json"
 
 echo "done! binaris copied to $targetDir"
