@@ -83,7 +83,8 @@ task createProperties() {
         p['version'] = project.buildVersion
         p['variant'] = project.buildVariant
         //store in jar
-        File assetFile = new File("src" + File.separator + "main" + File.separator + "assets" + File.separator + "version.properties")
+        println("lll " + projectDir.absolutePath)
+        File assetFile = new File("${projectDir.absolutePath}${File.separator}src${File.separator}main${File.separator}assets${File.separator}version.properties")
         println("writing version asset file: ${assetFile.absolutePath}")
         assetFile.withWriter { w -> p.store(w, null) }
         // store in build directory
@@ -92,6 +93,8 @@ task createProperties() {
         versionFile.withWriter { w -> p.store(w, null) }
     }
 }
+
+
 
 
 task copyFiles(type: Copy) {
@@ -105,20 +108,35 @@ task copyFiles(type: Copy) {
     into(t)
 }
 
+task propertiesFileHack(type: Copy){
+    println("KEKSE")
+    println("buildVariant: ${gradle.startParameter.taskNames}")
+    Properties p = new Properties()
+    p['version'] = project.buildVersion
+    p['variant'] = project.buildVariant
+    if (gradle.startParameter.taskNames.size() != 1) {
+        println("confused by more than one startTaskName")
+        System.exit(-1)
+    }
+    taskName = gradle.startParameter.taskNames[0]
+    if (taskName.contains(":"))
+        taskName = taskName.substring(taskName.lastIndexOf(":") + 1)
+    println("1 " + taskName)
+    if (taskName == "assemble") {
+        bDebug(p)
+        bRelease(p)
+    } else if (taskName == "assembleDebug") {
+        bDebug(p)
+    } else if (taskName == "assembleRelease") {
+        bRelease(p)
+    }
+}
+
+
 preBuild {
-//    Properties p = new Properties()
-//    p['version'] = project.buildVersion
-//    p['variant'] = project.buildVariant
-//    //store in jar
-//    File assetFile = new File( "src" + File.separator + "main" + File.separator + "assets" + File.separator + "version.properties")
-//    println("writing version asset file: ${assetFile.absolutePath}")
-//    assetFile.withWriter { w -> p.store(w, null) }
-//    // store in build directory
-//    File versionFile = new File("$buildDir/version.properties")
-//    println("writing version file: ${versionFile.absolutePath}")
-//    versionFile.withWriter { w -> p.store(w, null) }
     dependsOn copyFiles
     dependsOn createProperties
+    dependsOn propertiesFileHack
 }
 
 dependencies {
@@ -149,30 +167,21 @@ dependencies {
     //    implementation "android.arch.work:work-runtime:$work_version"
 }
 
+void bDebug(Properties p) {
+    File parent = new File("$buildDir/outputs/apk/debug")
+    parent.mkdirs()
+    new File(parent, "${archivesBaseName}-debug.apk.properties").withWriter { w -> p.store(w, null) }
+}
+
+void bRelease(Properties p) {
+    File parent = new File("$buildDir/outputs/apk/release")
+    parent.mkdirs()
+    new File(parent, "${archivesBaseName}-release-unsigned.apk.properties").withWriter { w -> p.store(w, null) }
+}
+
 
 assemble {
-    println("buildVariant: ${gradle.startParameter.taskNames}")
-    Properties p = new Properties()
-    p['version'] = project.buildVersion
-    p['variant'] = project.buildVariant
-    if (gradle.startParameter.taskNames.size() != 1) {
-        println("confused by more than one startTaskName")
-        System.exit(-1)
-    }
-    taskName = gradle.startParameter.taskNames[0]
-    taskName = taskName.substring("assemble".length())
-    println("lel $taskName")
-    taskName = taskName.toLowerCase()
-    println("taskName: (assemble)$taskName")
-    if (taskName == TASK_DEBUG) {
-        File parent = new File("$buildDir/outputs/apk/debug");
-        parent.mkdirs()
-        new File(parent, "${archivesBaseName}-${taskName}.apk.properties").withWriter { w -> p.store(w, null) }
-    } else if (taskName == TASK_RELEASE) {
-        File parent = new File("$buildDir/outputs/apk/release");
-        parent.mkdirs()
-        new File(parent, "${archivesBaseName}-${taskName}-unsigned.apk.properties").withWriter { w -> p.store(w, null) }
-    }
+
 }
 
 repositories {
