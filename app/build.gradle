@@ -116,7 +116,7 @@ task propertiesFileHack(type: Copy){
     p['variant'] = project.buildVariant
     if (gradle.startParameter.taskNames.size() != 1) {
         println("confused by more than one startTaskName")
-        System.exit(-1)
+        return null
     }
     taskName = gradle.startParameter.taskNames[0]
     if (taskName.contains(":"))

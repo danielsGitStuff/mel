@@ -16,6 +16,7 @@ class ServerConfig : KResult {
     var httpPort: Int? = null
     var authPort: Int = DEFAULT_AUTH
     var transferPort: Int = DEFAULT_TRANSFER
+    var pipes: Boolean = false
 
 
     fun getFiles(): Map<String, Pair<String>> {

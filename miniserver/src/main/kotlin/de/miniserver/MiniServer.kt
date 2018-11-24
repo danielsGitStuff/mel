@@ -18,6 +18,7 @@ import de.mein.sql.transform.SqlResultTransformer
 import de.mein.update.VersionAnswer
 import de.miniserver.data.FileRepository
 import de.miniserver.http.HttpThingy
+import de.miniserver.input.InputPipeReader
 import de.miniserver.socket.BinarySocketOpener
 import de.miniserver.socket.EncSocketOpener
 import java.io.File
@@ -125,7 +126,14 @@ constructor(private val config: ServerConfig) {
 
     private lateinit var httpSocketOpener: HttpThingy
 
+    private var inputReader: InputPipeReader? = null
+
     fun start() {
+        //setup pipes
+        if (config.pipes) {
+            inputReader = InputPipeReader.create(InputPipeReader.STOP_FILE_NAME)
+        }
+
         // starting sockets
         encSocketOpener = EncSocketOpener(certificateManager, config.authPort, this, versionAnswer)
         execute(encSocketOpener!!)
@@ -174,6 +182,7 @@ constructor(private val config: ServerConfig) {
                     .optional("-auth", "port the authentication service listens on. defaults to ${ServerConfig.DEFAULT_AUTH}.") { result, args -> result.authPort = args[0].toInt() }
                     .optional("-ft", "port the file transfer listens on. defaults to ${ServerConfig.DEFAULT_TRANSFER}.") { result, args -> result.transferPort = args[0].toInt() }
                     .optional("-http", "starts the http server. specifies the port it listens on.") { result, args -> result.httpPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTP }
+                    .optional("-pipes", "sets up pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = true }
 
             //                .optional("-files", "tuples of files, versions and names. eg: '-files -f1 v1 n1 -f2 v12 n2'", ((result, args) -> {
             //                    if (args.length % 2 != 0)
