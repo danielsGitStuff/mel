@@ -15,4 +15,5 @@ app/src/main/assets/sql.sql
 /sql/target
 /projectFilesBackup
 settings.gradle
+secret.properties
 /NetBeansSVGConverterProject/nbproject/private/

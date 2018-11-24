@@ -201,7 +201,7 @@ public class BashToolsUnix implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) {
+    public Iterator<AFile> stuffModifiedAfter(AFile directory, AFile pruneDir, long timeStamp) {
         System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(");
         return null;
     }
