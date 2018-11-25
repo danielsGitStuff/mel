@@ -5,7 +5,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 
-class InputPipeReader private constructor(val fileName: String) {
+class InputPipeReader private constructor(val workingDirectory: File, val fileName: String) {
 
 
     init {
@@ -33,8 +33,8 @@ class InputPipeReader private constructor(val fileName: String) {
 
     companion object {
         const val STOP_FILE_NAME = "stop.input"
-        fun create(fileName: String): InputPipeReader {
-            return InputPipeReader(fileName)
+        fun create(workingDirectory: File, fileName: String): InputPipeReader {
+            return InputPipeReader(workingDirectory, fileName)
         }
     }
 }

@@ -1,11 +1,11 @@
 package de.mein.auth.data;
 
+import de.mein.KResult;
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
-import de.mein.KResult;
 
 import java.io.File;
 import java.security.SecureRandom;
@@ -18,7 +18,7 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
     public static final int BROTCAST_PORT = 9966;
     public static final Integer UPDATE_MSG_PORT = 8448;
     public static final int UPDATE_BINARY_PORT = 8449;
-    public static final String UPDATE_DEFAULT_URL = "192.168.1.111";
+    public static final String UPDATE_DEFAULT_URL = "localhost";
     private int deliveryPort, port;
     private String workingdirectoryPath, name;
     private File workingDirectory;

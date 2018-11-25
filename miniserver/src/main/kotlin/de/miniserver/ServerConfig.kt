@@ -3,11 +3,12 @@ package de.miniserver
 import de.mein.KResult
 import de.mein.auth.data.MeinAuthSettings
 import de.mein.sql.Pair
+import java.io.File
 import java.util.*
 
 class ServerConfig : KResult {
     var certPath: String? = null
-    var workingDirectory: String? = null
+    var workingPath: String? = DEFAULT_WORKING_DIR.absolutePath
     var pubKeyPath: String? = null
     var certName: String? = null
 
@@ -17,6 +18,8 @@ class ServerConfig : KResult {
     var authPort: Int = DEFAULT_AUTH
     var transferPort: Int = DEFAULT_TRANSFER
     var pipes: Boolean = false
+    var workingDirectory: File? = null
+        get() = File(workingPath)
 
 
     fun getFiles(): Map<String, Pair<String>> {
@@ -29,6 +32,7 @@ class ServerConfig : KResult {
     }
 
     companion object {
+        val DEFAULT_WORKING_DIR = File("miniserver.w")
         val DEFAULT_AUTH: Int = MeinAuthSettings.UPDATE_MSG_PORT
         const val DEFAULT_TRANSFER: Int = MeinAuthSettings.UPDATE_BINARY_PORT
         const val DEFAULT_HTTP: Int = 8450

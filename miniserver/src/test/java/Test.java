@@ -1,4 +1,5 @@
 import de.mein.Lok;
+import de.mein.Versioner;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinBoot;
@@ -11,8 +12,6 @@ import de.miniserver.MiniServer;
 import de.miniserver.ServerConfig;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.Timeout;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -26,7 +25,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Properties;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -34,8 +32,8 @@ import static org.junit.Assert.assertNotEquals;
 @SuppressWarnings("Duplicates")
 public class Test {
 
-    @Rule
-    public Timeout globalTimeout= Timeout.builder().withTimeout(15, TimeUnit.SECONDS).build();
+//    @Rule
+//    public Timeout globalTimeout= Timeout.builder().withTimeout(15, TimeUnit.SECONDS).build();
 
     private static final File TEST_DIR = new File("miniserver.w.test");
 
@@ -51,14 +49,14 @@ public class Test {
         filesDir = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME);
         filesDir.mkdirs();
         authDir = new File(TEST_DIR.getAbsolutePath() + File.separator + "meinauth.test");
-        File binaryFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR+".jar");
-        File propertiesFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR+".jar" + MeinStrings.update.INFO_APPENDIX);
+        File binaryFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR + ".jar");
+        File propertiesFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR + ".jar" + MeinStrings.update.INFO_APPENDIX);
         byte[] manyBytes = new byte[10 * 1024 * 1024];
         new Random().nextBytes(manyBytes);
         Properties properties = new Properties();
-        properties.setProperty("builddate","test version");
-        properties.setProperty("variant",MeinStrings.update.VARIANT_JAR);
-        properties.store(new FileWriter(propertiesFile),"");
+        properties.setProperty("version", "666");
+        properties.setProperty("variant", MeinStrings.update.VARIANT_JAR);
+        properties.store(new FileWriter(propertiesFile), "");
 //        Files.write(Paths.get(propertiesFile.toURI()), properties..getBytes());
         Files.write(Paths.get(binaryFile.toURI()), manyBytes);
         hash = Hash.sha256(new FileInputStream(binaryFile));
@@ -68,6 +66,16 @@ public class Test {
         miniServer.start();
         receivedTestFile = new File(TEST_DIR + File.separator + "test.file.apk");
         receivedTestFile.delete();
+
+        Versioner.configure(new Versioner.BuildReader() {
+            @Override
+            public void readProperties() throws IOException {
+                properties.setProperty("version", "22");
+                properties.setProperty("variant", "konsole");
+                variant = "konsole";
+                version = 22L;
+            }
+        });
     }
 
     @After
@@ -104,11 +112,12 @@ public class Test {
         Lok.debug("done");
     }
 
-    @org.junit.Test
+    //todo disabled: no UpdateHandler for pc available now
+    //@org.junit.Test
     public void queryAndRetrieve() throws Exception {
         RWLock lock = new RWLock();
         Lok.devOnLineMatches("Success. I got Update!!!1!", lock::unlockWrite);
-        MeinAuthSettings meinAuthSettings = MeinAuthSettings.createDefaultSettings().setPort(8913).setBrotcastPort(8914).setDeliveryPort(8915).setBrotcastListenerPort(8916);
+        MeinAuthSettings meinAuthSettings = MeinAuthSettings.createDefaultSettings().setPort(8913).setBrotcastPort(8914).setDeliveryPort(8915).setBrotcastListenerPort(8916).setUpdateUrl("localhost");
         meinAuthSettings.setWorkingDirectory(authDir);
         MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings));
         meinBoot.boot().done(meinAuthService -> {

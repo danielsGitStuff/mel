@@ -32,7 +32,9 @@ public class MeinAuthSocketOpener extends DeferredRunnable {
     public void runImpl() {
         try {
             serverSocket = meinAuthService.getCertificateManager().createServerSocket();
+            Lok.debug("binding to " + port);
             serverSocket.bind(new InetSocketAddress(port));
+            Lok.debug("binding to " + port + " successful");
             startedPromise.resolve(this);
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = this.serverSocket.accept();
