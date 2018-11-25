@@ -61,7 +61,7 @@ public class Test {
         Files.write(Paths.get(binaryFile.toURI()), manyBytes);
         hash = Hash.sha256(new FileInputStream(binaryFile));
         ServerConfig config = new ServerConfig();
-        config.setWorkingDirectory(TEST_DIR.getAbsolutePath());
+        config.setWorkingDirectory(TEST_DIR);
         miniServer = new MiniServer(config);
         miniServer.start();
         receivedTestFile = new File(TEST_DIR + File.separator + "test.file.apk");

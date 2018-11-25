@@ -271,7 +271,7 @@ public class CertificateManager extends FileRelatedManager {
         return uuid.toString();
     }
 
-    private SSLContext getSSLContext() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public SSLContext getSSLContext() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         // todo android der Hurensohn
         KeyManagerFactory kmf = null;
         try {

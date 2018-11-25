@@ -17,7 +17,7 @@ import de.mein.sql.conn.SQLConnector
 import de.mein.sql.transform.SqlResultTransformer
 import de.mein.update.VersionAnswer
 import de.miniserver.data.FileRepository
-import de.miniserver.http.HttpThingy
+import de.miniserver.http.HttpsThingy
 import de.miniserver.input.InputPipeReader
 import de.miniserver.socket.BinarySocketOpener
 import de.miniserver.socket.EncSocketOpener
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit
 class MiniServer @Throws(Exception::class)
 constructor(private val config: ServerConfig) {
 
-    private val certificateManager: CertificateManager
+    val certificateManager: CertificateManager
     private val versionAnswer: VersionAnswer
     private val threadFactory = { r: Runnable ->
         var meinThread: MeinThread? = null
@@ -123,7 +123,7 @@ constructor(private val config: ServerConfig) {
 
     }
 
-    private lateinit var httpSocketOpener: HttpThingy
+    private lateinit var httpsSocketOpener: HttpsThingy
 
     private var inputReader: InputPipeReader? = null
 
@@ -140,8 +140,8 @@ constructor(private val config: ServerConfig) {
         execute(binarySocketOpener!!)
 
         config.httpPort?.let {
-            httpSocketOpener = HttpThingy(it, this, fileRepository)
-            httpSocketOpener.start()
+            httpsSocketOpener = HttpsThingy(it, this, fileRepository)
+            httpsSocketOpener.start()
         }
 
         Lok.debug("I am up!")
@@ -182,13 +182,6 @@ constructor(private val config: ServerConfig) {
                     .optional("-http", "starts the http server. specifies the port it listens on.") { result, args -> result.httpPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTP }
                     .optional("-pipes", "sets up pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = true }
 
-            //                .optional("-files", "tuples of files, versions and names. eg: '-files -f1 v1 n1 -f2 v12 n2'", ((result, args) -> {
-            //                    if (args.length % 2 != 0)
-            //                        throw new Konsole.ParseArgumentException("even number of entries");
-            //                    for (int i = 0; i < args.length; i += 2) {
-            //                        result.addEntry(Konsole.check.checkRead(args[0]), args[i+2],Konsole.check.checkRead(args[i + 1]));
-            //                    }
-            //                }));
             var workingDirectory: File? = null
             try {
                 konsole.handle(arguments)
