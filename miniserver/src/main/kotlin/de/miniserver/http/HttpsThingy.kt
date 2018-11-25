@@ -1,6 +1,6 @@
 package de.miniserver.http
 
-import com.sun.net.httpserver.HttpServer
+import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsConfigurator
 import com.sun.net.httpserver.HttpsParameters
 import com.sun.net.httpserver.HttpsServer
@@ -12,15 +12,11 @@ import de.miniserver.MiniServer
 import de.miniserver.data.FileRepository
 import java.net.InetSocketAddress
 import java.net.ServerSocket
+import java.net.URLDecoder
 import java.util.*
-import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 import javax.net.ssl.SSLContext
-import org.slf4j.LoggerFactory
-import org.bouncycastle.asn1.ua.DSTU4145NamedCurves.params
-
-
 
 
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : DeferredRunnable() {
@@ -38,6 +34,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     private lateinit var serverSocket: ServerSocket
     private val threadSemaphore = Semaphore(1, true)
     private val threadQueue = LinkedList<MeinThread>()
+    val pageProcessor = PageProcessor()
 
     private lateinit var server: HttpsServer
     private val threadFactory = { r: Runnable ->
@@ -53,60 +50,44 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
         meinThread
     }
-    private val executor: Executor = Executors.newFixedThreadPool(2)
+    private val executor = Executors.newFixedThreadPool(2)
 
-    private lateinit var pageBytes: ByteArray
-
-    private fun parseIndexHtml(): ByteArray? {
-        val regex = "<\\\$=\\D+[\\w]*\\/>".toRegex()
-        val resourceBytes = javaClass.getResourceAsStream("/de/miniserver/index.html").readBytes()
-        val html = String(resourceBytes)
-        if (!html.contains(regex)) {
-            throw Exception("did not find '<$=files/>' tag to replace with file content")
-        }
-        val s = StringBuilder()
-        miniServer.fileRepository.hashFileMap.entries.forEach {
-            s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
-        }
-        val filesHtml = html.replace(regex, s.toString())
-        return filesHtml.toByteArray()
+    private fun readPostValue(ex: HttpExchange, key: String, size: Int = 40): String? {
+        val bytes = ByteArray(size)
+        ex.requestBody.read(bytes)
+        val string = String(bytes)
+        val found = string.split("&").first { URLDecoder.decode(it).substring(0, it.indexOf("=")) == key }
+        val decoded = URLDecoder.decode(found).substring(key.length+1)
+        return decoded
     }
 
     fun start() {
-        val indexBytes = parseIndexHtml()
+        val pageHello = pageProcessor.load("/de/miniserver/hello.html",
+                Replacer("files") {
+                    val s = StringBuilder()
+                    miniServer.fileRepository.hashFileMap.entries.forEach { it ->
+                        s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
+                    }
+                    return@Replacer s.toString()
+                })
+        val pageIndexLogin = pageProcessor.load("/de/miniserver/index.html")
+
         Lok.debug("binding http to           : $port")
-        server = HttpsServer.create(InetSocketAddress(port), 0)
-        val configurator = object: HttpsConfigurator(miniServer.certificateManager.sslContext){
-            override fun configure(params: HttpsParameters) {
-                try {
-                    // initialise the SSL context
-                    val c = SSLContext.getDefault()
-                    val engine = c.createSSLEngine()
-                    params.needClientAuth = false
-                    params.cipherSuites = engine.enabledCipherSuites
-                    params.protocols = engine.enabledProtocols
-
-                    // get the default parameters
-                    val defaultSSLParameters = c.defaultSSLParameters
-                    params.setSSLParameters(defaultSSLParameters)
-                } catch (ex: Exception) {
-                    Lok.error(ex)
-                    Lok.error("Failed to create HTTPS port")
-                }
-
-            }
-        }
-        server.httpsConfigurator = configurator
+        server = createServer()
         Lok.debug("successfully bound http to: $port")
-        // create the index page context
         server.createContext("/") {
-            with(it) {
-                Lok.debug("sending index to ${remoteAddress}")
-                sendResponseHeaders(200, indexBytes!!.size.toLong())
-                responseBody.write(indexBytes)
-                responseBody.close()
-            }
+            if (it.requestMethod == "POST") {
+
+                val pw = readPostValue(it, "pw")
+
+                Lok.debug("k")
+            } else
+                answerPage(it, pageIndexLogin)
         }
+        server.createContext("/test") {
+            answerPage(it, pageHello)
+        }
+
         // add files context
         server.createContext("/files/") {
             val uri = it.requestURI
@@ -140,6 +121,41 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
 
         }
+    }
+
+    private fun answerPage(ex: HttpExchange, page: Page?) {
+        with(ex) {
+            Lok.debug("sending '${page?.path}' to $remoteAddress")
+            sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
+            responseBody.write(page?.bytes ?: "404".toByteArray())
+            responseBody.close()
+        }
+    }
+
+    private fun createServer(): HttpsServer {
+        val server = HttpsServer.create(InetSocketAddress(port), 0)
+        val configurator = object : HttpsConfigurator(miniServer.certificateManager.sslContext) {
+            override fun configure(params: HttpsParameters) {
+                try {
+                    // initialise the SSL context
+                    val c = SSLContext.getDefault()
+                    val engine = c.createSSLEngine()
+                    params.needClientAuth = false
+                    params.cipherSuites = engine.enabledCipherSuites
+                    params.protocols = engine.enabledProtocols
+
+                    // get the default parameters
+                    val defaultSSLParameters = c.defaultSSLParameters
+                    params.setSSLParameters(defaultSSLParameters)
+                } catch (ex: Exception) {
+                    Lok.error(ex)
+                    Lok.error("Failed to create HTTPS port")
+                }
+
+            }
+        }
+        server.httpsConfigurator = configurator
+        return server
     }
 
 
