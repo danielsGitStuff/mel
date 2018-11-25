@@ -1,9 +1,0 @@
-same1           
-same2           
-same3           
-
-same1.server    c72eb02c586d74bc41ad680ba5f184f3
-same3.server    b5d350b3caeeb5e27845be1591974c05
-
-same1.client    244fc40b2dc42019c05fb363ecf28416
-same2.client    2fec3ffbf41376510c4e7a3db34a66d9

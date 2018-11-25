@@ -12,8 +12,6 @@ class ServerConfig : KResult {
     var pubKeyPath: String? = null
     var certName: String? = null
 
-    var password: String? = null
-
     var privKeyPath: String? = null
     private val files = HashMap<String, Pair<String>>()
     var httpPort: Int? = null
@@ -22,6 +20,7 @@ class ServerConfig : KResult {
     var pipes: Boolean = false
     var workingDirectory: File? = null
         get() = File(workingPath)
+    var keySize: Int = 2048
 
 
     fun getFiles(): Map<String, Pair<String>> {
@@ -34,7 +33,7 @@ class ServerConfig : KResult {
     }
 
     companion object {
-        val DEFAULT_WORKING_DIR = File("miniserver.w")
+        val DEFAULT_WORKING_DIR = File("server")
         val DEFAULT_AUTH: Int = MeinAuthSettings.UPDATE_MSG_PORT
         const val DEFAULT_TRANSFER: Int = MeinAuthSettings.UPDATE_BINARY_PORT
         const val DEFAULT_HTTP: Int = 8450

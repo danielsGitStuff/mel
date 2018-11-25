@@ -23,7 +23,6 @@ import de.miniserver.socket.BinarySocketOpener
 import de.miniserver.socket.EncSocketOpener
 import java.io.File
 import java.io.FileInputStream
-import java.net.URLDecoder
 import java.security.cert.X509Certificate
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -57,10 +56,23 @@ constructor(private val config: ServerConfig) {
         get() = certificateManager.myX509Certificate
 
 
+    val secretProperties = Properties()
+
     init {
         val workingDir = config.workingDirectory!!
         workingDir.mkdir()
-        val dbFile = File(workingDir, "db.db")
+
+
+        val secretDir = File(workingDir, "secret")
+        secretDir.mkdirs()
+        val propFile = File(secretDir, "secret.properties")
+        if (!propFile.exists()) {
+            error("secret properties file not found at: ${propFile.absolutePath}")
+        }
+        secretProperties.load(propFile.inputStream())
+
+
+        val dbFile = File(secretDir, "db.db")
         val sqlQueries = SQLQueries(SQLConnector.createSqliteConnection(dbFile), true, RWLock(), SqlResultTransformer.sqliteResultSetTransformer())
         // turn on foreign keys
         try {
@@ -68,14 +80,14 @@ constructor(private val config: ServerConfig) {
         } catch (e: SqlQueriesException) {
             e.printStackTrace()
         }
-
         val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
         if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
             //find sql file in workingdir
             val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mein/auth/sql.sql")
             sqliteExecutor.executeStream(resourceStream)
         }
-        certificateManager = CertificateManager(workingDir, sqlQueries, 2048)
+
+        certificateManager = CertificateManager(secretDir, sqlQueries, config.keySize)
 
         // loading and hashing files
         val filesDir = File(workingDir, DIR_FILES_NAME)
@@ -171,7 +183,6 @@ constructor(private val config: ServerConfig) {
 
         @JvmStatic
         fun main(arguments: Array<String>) {
-
             val konsole = Konsole(ServerConfig())
             konsole.optional("-create-cert", "name of the certificate", { result, args -> result.certName = args[0] }, Konsole.dependsOn("-pubkey", "-privkey"))
                     .optional("-cert", "path to certificate", { result, args -> result.certPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-pubkey", "-privkey"))
@@ -182,6 +193,8 @@ constructor(private val config: ServerConfig) {
                     .optional("-ft", "port the file transfer listens on. defaults to ${ServerConfig.DEFAULT_TRANSFER}.") { result, args -> result.transferPort = args[0].toInt() }
                     .optional("-http", "starts the http server. specifies the port it listens on.") { result, args -> result.httpPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTP }
                     .optional("-pipes", "sets up pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = true }
+                    .optional("-keysize", "key length for certificate creation. defaults to 2048") { result, args -> result.keySize = args[0].toInt() }
+
 
             var workingDirectory: File? = null
             try {

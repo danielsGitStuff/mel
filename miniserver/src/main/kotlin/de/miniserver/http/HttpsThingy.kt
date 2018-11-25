@@ -53,11 +53,12 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     private val executor = Executors.newFixedThreadPool(2)
 
     private fun readPostValue(ex: HttpExchange, key: String, size: Int = 40): String? {
-        val bytes = ByteArray(size)
-        ex.requestBody.read(bytes)
+        var bytes = ByteArray(size)
+        val read = ex.requestBody.read(bytes)
+        bytes = ByteArray(read) { i -> bytes[i] }
         val string = String(bytes)
         val found = string.split("&").first { URLDecoder.decode(it).substring(0, it.indexOf("=")) == key }
-        val decoded = URLDecoder.decode(found).substring(key.length+1)
+        val decoded = URLDecoder.decode(found).substring(key.length + 1)
         return decoded
     }
 
@@ -79,6 +80,15 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             if (it.requestMethod == "POST") {
 
                 val pw = readPostValue(it, "pw")
+                val secret = miniServer.secretProperties["password"]
+                val b = secret == pw
+                val bb = secret!!.equals(pw)
+                val l = pw!!.length
+                if (pw!= null && pw == miniServer.secretProperties["password"]) {
+                    answerPage(it,pageHello)
+                }else{
+                    answerPage(it,pageIndexLogin)
+                }
 
                 Lok.debug("k")
             } else

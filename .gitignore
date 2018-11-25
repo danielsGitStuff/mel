@@ -5,6 +5,8 @@
 /build
 .idea/
 app/build
+
+
 app/src/main/assets/drive.sql
 app/src/main/assets/sql.sql
 /drivefx/meinauth.workingdir.1
@@ -17,3 +19,5 @@ app/src/main/assets/sql.sql
 settings.gradle
 secret.properties
 /NetBeansSVGConverterProject/nbproject/private/
+/miniserver/server/secret/*
+!/miniserver/server/secret/README.txt

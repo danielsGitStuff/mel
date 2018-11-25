@@ -1,5 +1,6 @@
 package de.mein.auth.data.access;
 
+import de.mein.auth.tools.ByteTools;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -24,7 +25,8 @@ public class CertificateCreator {
 
     public static KeyPair generateKeyPair(int keySize) throws NoSuchAlgorithmException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(keySize, new SecureRandom());
+        byte[] seed = ByteTools.longToBytes(System.currentTimeMillis() * new SecureRandom().nextLong());
+        keyPairGenerator.initialize(keySize, new SecureRandom(seed));
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         return keyPair;
     }
@@ -46,7 +48,7 @@ public class CertificateCreator {
         long now = System.currentTimeMillis();
         Date startDate = new Date(now);
         X500Name dnName = new X500Name("CN=Auth");
-        X500Name certName = new X500Name("CN="+name);
+        X500Name certName = new X500Name("CN=" + name);
         BigInteger certSerialNumber = new BigInteger(Long.toString(now)); // <-- Using the current timestamp as the certificate serial number
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(startDate);

@@ -106,7 +106,7 @@ public class Konsole<T extends KResult> {
                 }
                 // that is how arguments start!
                 if (arg.startsWith("-")) {
-                    throw new KonsoleWrongArgumentsException("unknown attributes: " + currentAttr);
+                    throw new KonsoleWrongArgumentsException("unknown attributes: " + arg);
                 }
             }
             String[] argsForReader = Arrays.copyOfRange(args, readerPos, pos);
