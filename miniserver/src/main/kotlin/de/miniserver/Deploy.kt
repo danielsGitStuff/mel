@@ -6,18 +6,22 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import java.io.File
+import java.security.SecureRandom
 import java.util.*
+import kotlin.system.exitProcess
 
 class Deploy(private val deploySettings: DeploySettings) {
     var props: Properties = Properties()
     fun run() {
-        val workingDir = File("")
 
-        Lok.debug("working dir ${workingDir.absolutePath}")
         val secretFile = File(deploySettings.secretFile)
         props.load(secretFile.inputStream())
         fetch()
-        val gradle = "./gradlew"
+        val p = File(props.getProperty("projectRootDir")).absolutePath
+        val projectRootDir = if (p.endsWith(File.separator)) p else p + File.separator
+        val gradle = "${projectRootDir}gradlew"
+        val workingDir = File(projectRootDir)
+        Lok.debug("working dir ${workingDir.absolutePath}")
 
 //        runProcesses("test",
 //                Processor(gradle, ":auth:test"),
@@ -36,19 +40,28 @@ class Deploy(private val deploySettings: DeploySettings) {
 
 //        runProcesses("debug", Processor(gradle, ":miniserver:buildServerJar"))
 
-        val serverDir = File("deploy${File.separator}server")
+        val serverDir = File("${projectRootDir}miniserver${File.separator}server")
         Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
         if (serverDir.exists()) {
             val stopFile = File(serverDir, "stop.input")
             if (stopFile.exists() && stopFile.canWrite()) {
                 GlobalScope.launch {
                     withTimeout(1000) {
-                        stopFile.outputStream().write("stop".toByteArray())
-                        stopFile.outputStream().close()
+//                        stopFile.outputStream().write("stop".toByteArray())
+//                        stopFile.outputStream().close()
                     }
                 }
             }
+            val secretDir = File(serverDir, "secret")
+            var secretMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
+            if (secretDir.exists()) {
+                secretDir.renameTo(secretMovedDir)
+            }
             serverDir.deleteRecursively()
+            if (secretMovedDir.exists()) {
+                serverDir.mkdirs()
+                secretMovedDir.renameTo(secretDir)
+            }
         }
         serverDir.mkdirs()
         val serverFilesDir = File(serverDir, "files")
@@ -68,29 +81,10 @@ class Deploy(private val deploySettings: DeploySettings) {
         // start first jar in serverDir
         val serverJar = serverDir.listFiles().first()
         Lok.debug("starting server jar ${serverJar.absolutePath}")
-//        runProcesses("launch",
-//                Processor("java", "-jar", serverJar.absolutePath, "-http", "-pipes","&"))
         Processor("java", "-jar", serverJar.absolutePath, "-http", "-pipes", "-dir", serverDir.absolutePath, "&", "detach").run(false)
-
-        //"-jar", serverJar.absolutePath, "-http", "-pipes", "&"
-//        Processor("/bin/sh", "-c", "java -jar ${serverJar.absolutePath}").run(wait = true)
-//        arrayOf()
-//        ProcessBuilder(*arrayOf("a","b"))
-//        val process = ProcessBuilder("/bin/sh", "-c", "java -jar ${serverJar.absolutePath}","&")
-//                .redirectOutput(ProcessBuilder.Redirect.PIPE)
-//                .redirectError(ProcessBuilder.Redirect.PIPE).start()
-//        process.waitFor()
-//        val exit = process.exitValue()
-//        process.inputStream.bufferedReader().lines().forEach { println(it) }
-//        if (exit != 0) {
-//            Lok.debug("command failed with $exit")
-//            process.inputStream.bufferedReader().lines().forEach { Lok.error(it) }
-//            process.errorStream.bufferedReader().lines().forEach { Lok.error(it) }
-//            error("failed")
-//        }
         Lok.debug("command succeeded")
-
         Lok.debug("done")
+        exitProcess(0)
     }
 
     private fun runProcesses(name: String, vararg processors: Processor) {

@@ -9,17 +9,17 @@ class InputPipeReader private constructor(val workingDirectory: File, val fileNa
 
 
     init {
-        val file = File(fileName)
+        val file = File(workingDirectory,fileName)
         if (file.exists())
             file.delete()
 
         /// build pipe
-        ProcessBuilder("mkfifo", fileName).start().waitFor()
+        ProcessBuilder("mkfifo", file.absolutePath).start().waitFor()
         Lok.debug("pipe created ${file.absolutePath}")
 
         GlobalScope.launch {
             //build cat
-            val b = ProcessBuilder("cat", fileName)
+            val b = ProcessBuilder("cat", file.absolutePath)
             b.redirectOutput(ProcessBuilder.Redirect.PIPE)
                     .redirectError(ProcessBuilder.Redirect.PIPE)
             val process = b.start()
