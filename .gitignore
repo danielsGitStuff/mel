@@ -20,4 +20,5 @@ settings.gradle
 secret.properties
 /NetBeansSVGConverterProject/nbproject/private/
 /miniserver/server/secret/*
+/miniserver/server/files/*
 !/miniserver/server/secret/README.txt

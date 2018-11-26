@@ -24,8 +24,10 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.os.BuildCompat;
 import com.google.android.material.navigation.NavigationView;
 
+import de.mein.BuildConfig;
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -161,11 +163,8 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
 
             @Override
             public void readProperties() throws IOException {
-                InputStream in = MainActivity.this.getAssets().open("version.properties");
-                Properties properties = new Properties();
-                properties.load(in);
-                version = Long.valueOf(properties.getProperty("version"));
-                variant = properties.getProperty("variant");
+                version = Long.parseLong(BuildConfig.BUILD_VERSION);
+                variant = BuildConfig.BUILD_VARIANT;
             }
         });
         boolean timestamp = Tools.getSharedPreferences().getBoolean(PreferenceStrings.LOK_TIMESTAMP, true);

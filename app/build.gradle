@@ -59,10 +59,20 @@ android {
     buildTypes {
         debug {
             minifyEnabled false
+            System.err.println("build version       " + buildVersion)
+            System.err.println("build version class " + buildVersion.getClass().getSimpleName())
+            buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
+            
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
+            System.err.println("build version       " + buildVersion)
+            System.err.println("build version class " + buildVersion.getClass().getSimpleName())
+            buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
+            
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -95,8 +105,6 @@ task createProperties() {
 }
 
 
-
-
 task copyFiles(type: Copy) {
     def f = rootProject.file('auth/src/main/resources')
     def f2 = rootProject.file('drive/src/main/resources')
@@ -108,8 +116,8 @@ task copyFiles(type: Copy) {
     into(t)
 }
 
-task propertiesFileHack(type: Copy){
-    println("KEKSE")
+task propertiesFileHack(type: Copy) {
+    println("propertiesFileHack()")
     println("buildVariant: ${gradle.startParameter.taskNames}")
     Properties p = new Properties()
     p['version'] = project.buildVersion
@@ -121,7 +129,7 @@ task propertiesFileHack(type: Copy){
     taskName = gradle.startParameter.taskNames[0]
     if (taskName.contains(":"))
         taskName = taskName.substring(taskName.lastIndexOf(":") + 1)
-    println("1 " + taskName)
+    println("taskName=$taskName")
     if (taskName == "assemble") {
         bDebug(p)
         bRelease(p)
@@ -130,6 +138,7 @@ task propertiesFileHack(type: Copy){
     } else if (taskName == "assembleRelease") {
         bRelease(p)
     }
+    println("propertiesFileHack().end")
 }
 
 
@@ -181,7 +190,7 @@ void bRelease(Properties p) {
 
 
 assemble {
-
+    println "assemble()"
 }
 
 repositories {

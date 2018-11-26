@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
+import de.mein.auth.tools.N;
 
 /**
  * Sends and retrieves small messages from the broadcast network address
@@ -31,14 +32,14 @@ public abstract class BrotCaster extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-        socket.close();
+        N.s(()->socket.close());
         socket = null;
     }
 
     @Override
     public void suspend() {
         super.suspend();
-        socket.close();
+        N.s(()->socket.close());
         socket = null;
     }
 

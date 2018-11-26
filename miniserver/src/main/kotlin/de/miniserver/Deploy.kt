@@ -23,28 +23,27 @@ class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySetti
         val gradle = File(projectRootDir, "gradlew")
         Lok.debug("working dir ${projectRootDir.absolutePath}")
 
+        Processor.runProcesses("pull from git", Processor("git", "pull"))
+
         val updateCertFile = File(File(File(serverDir, "secret"), "socket"), "cert.cert")
         // holy shit
         val updateCertTarget = File(File(File(File(File(File(File(File(projectRootDir, "auth"), "src"), "main"), "resources"), "de"), "mein"), "auth"), "update.server.cert")
-        Processor.runProcesses("copy cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
+        Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
 
-//        Processor.runProcesses("test",
-//                Processor(gradle, ":auth:test"),
-//                Processor(gradle, ":calendar:test"),
-//                Processor(gradle, ":contacts:test"),
-//                Processor(gradle, ":drive:test"),
-//                Processor(gradle, ":konsole:test"),
-//                Processor(gradle, ":miniserver:test"),
-//                Processor(gradle, ":serialize:test"),
-//                Processor(gradle, ":sql:test"))
+        Processor.runProcesses("run tests",
+                Processor(gradle.absolutePath, ":auth:test"),
+                Processor(gradle.absolutePath, ":calendar:test"),
+                Processor(gradle.absolutePath, ":contacts:test"),
+                Processor(gradle.absolutePath, ":drive:test"),
+                Processor(gradle.absolutePath, ":konsole:test"),
+                Processor(gradle.absolutePath, ":miniserver:test"),
+                Processor(gradle.absolutePath, ":serialize:test"),
+                Processor(gradle.absolutePath, ":sql:test"))
 
         Processor.runProcesses("build",
                 Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
-                Processor(gradle.absolutePath, ":app:assembleDebug"),
+                Processor(gradle.absolutePath, ":app:assembleRelease"),
                 Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
-
-//        runProcesses("debug", Processor(gradle, ":miniserver:buildServerJar"))
-
 
         Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
         if (serverDir.exists()) {
