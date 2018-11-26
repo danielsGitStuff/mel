@@ -248,6 +248,7 @@ public class CertificateManager extends FileRelatedManager {
 
         // save KeyStore
         storeKeyStore();
+        hadToInitialize = true;
     }
 
     private void saveKeysInKeystore() throws KeyStoreException {

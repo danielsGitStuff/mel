@@ -17,7 +17,7 @@ class ServerConfig : KResult {
     var httpPort: Int? = null
     var authPort: Int = DEFAULT_AUTH
     var transferPort: Int = DEFAULT_TRANSFER
-    var pipes: Boolean = false
+    var pipes: Boolean = true
     var workingDirectory: File? = null
         get() = File(workingPath)
     var keySize: Int = 2048

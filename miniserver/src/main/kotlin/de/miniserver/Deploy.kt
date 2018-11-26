@@ -1,7 +1,6 @@
 package de.miniserver
 
 import de.mein.Lok
-import de.mein.konsole.Konsole
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -10,7 +9,7 @@ import java.security.SecureRandom
 import java.util.*
 import kotlin.system.exitProcess
 
-class Deploy(private val deploySettings: DeploySettings) {
+class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySettings) {
     var props: Properties = Properties()
     fun run() {
 
@@ -18,12 +17,18 @@ class Deploy(private val deploySettings: DeploySettings) {
         props.load(secretFile.inputStream())
         fetch()
         val p = File(props.getProperty("projectRootDir")).absolutePath
-        val projectRootDir = if (p.endsWith(File.separator)) p else p + File.separator
-        val gradle = "${projectRootDir}gradlew"
-        val workingDir = File(projectRootDir)
-        Lok.debug("working dir ${workingDir.absolutePath}")
+        val projectRootDir = File(p)
+        val miniServerDir = File(projectRootDir, "miniserver")
+        val serverDir = File(miniServerDir, "server")//File("${projectRootDir}miniserver${File.separator}server")
+        val gradle = File(projectRootDir, "gradlew")
+        Lok.debug("working dir ${projectRootDir.absolutePath}")
 
-//        runProcesses("test",
+        val updateCertFile = File(File(File(serverDir, "secret"), "socket"), "cert.cert")
+        // holy shit
+        val updateCertTarget = File(File(File(File(File(File(File(File(projectRootDir, "auth"), "src"), "main"), "resources"), "de"), "mein"), "auth"), "update.server.cert")
+        Processor.runProcesses("copy cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
+
+//        Processor.runProcesses("test",
 //                Processor(gradle, ":auth:test"),
 //                Processor(gradle, ":calendar:test"),
 //                Processor(gradle, ":contacts:test"),
@@ -33,27 +38,27 @@ class Deploy(private val deploySettings: DeploySettings) {
 //                Processor(gradle, ":serialize:test"),
 //                Processor(gradle, ":sql:test"))
 
-        runProcesses("build",
-                Processor(gradle, ":fxbundle:buildFxJar"),
-                Processor(gradle, ":app:assembleDebug"),
-                Processor(gradle, ":miniserver:buildServerJar"))
+        Processor.runProcesses("build",
+                Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
+                Processor(gradle.absolutePath, ":app:assembleDebug"),
+                Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
 
 //        runProcesses("debug", Processor(gradle, ":miniserver:buildServerJar"))
 
-        val serverDir = File("${projectRootDir}miniserver${File.separator}server")
+
         Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
         if (serverDir.exists()) {
             val stopFile = File(serverDir, "stop.input")
             if (stopFile.exists() && stopFile.canWrite()) {
                 GlobalScope.launch {
                     withTimeout(1000) {
-//                        stopFile.outputStream().write("stop".toByteArray())
+                        //                        stopFile.outputStream().write("stop".toByteArray())
 //                        stopFile.outputStream().close()
                     }
                 }
             }
             val secretDir = File(serverDir, "secret")
-            var secretMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
+            val secretMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
             if (secretDir.exists()) {
                 secretDir.renameTo(secretMovedDir)
             }
@@ -67,15 +72,12 @@ class Deploy(private val deploySettings: DeploySettings) {
         val serverFilesDir = File(serverDir, "files")
         serverFilesDir.mkdirs()
         val target = serverFilesDir.absolutePath
-        val workPath = workingDir.absolutePath + File.separator
-//        runProcesses("debug copy",
-//                Processor("/bin/sh", "-c", "cp \"${workPath}miniserver/build/libs/\"* \"${serverDir.absolutePath}\""))
 
-        runProcesses("copying",
-                Processor("/bin/sh", "-c", "cp \"${workPath}miniserver/build/libs/\"* \"${serverDir.absolutePath}\""),
-                Processor("/bin/sh", "-c", "cp \"${workPath}fxbundle/build/libs/\"* \"$target\""),
-                Processor("/bin/sh", "-c", "cp \"${workPath}app/build/outputs/apk/debug/\"* \"$target\""),
-                Processor("/bin/sh", "-c", "rm \"$target/output.json\""
+        Processor.runProcesses("copying",
+                Processor("cp", "${projectRootDir.absolutePath}/miniserver/build/libs/*", serverDir.absolutePath),
+                Processor("cp", "${projectRootDir.absolutePath}/fxbundle/build/libs/*", target),
+                Processor("cp", "${projectRootDir.absolutePath}/app/build/outputs/apk/debug/*", target),
+                Processor("rm", "$target/output.json"
                 ))
 
         // start first jar in serverDir
@@ -87,29 +89,9 @@ class Deploy(private val deploySettings: DeploySettings) {
         exitProcess(0)
     }
 
-    private fun runProcesses(name: String, vararg processors: Processor) {
-        processors.find { processor -> !processor.run().success }?.let {
-            it.errorLines?.forEach { Lok.debug(it) }
-            error("'$name' failed: ${it.cmdLine}")
-        }
-        Lok.debug("'$name' successful")
-
-    }
 
     private fun fetch() {
         Lok.debug("skipping fetch for now...")
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val konsole = Konsole<DeploySettings>(DeploySettings())
-                    .mandatory("-secret", "path to secret file, wich contains passwords and so on") { result, args -> result.secretFile = args[0] }
-            konsole.handle(args)
-            val deploy = Deploy(konsole.result)
-            deploy.run()
-            Lok.debug("deploy finished")
-        }
     }
 }
 

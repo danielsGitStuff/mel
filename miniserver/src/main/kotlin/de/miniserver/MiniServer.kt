@@ -1,6 +1,7 @@
 package de.miniserver
 
 import de.mein.Lok
+import de.mein.LokImpl
 import de.mein.MeinRunnable
 import de.mein.MeinThread
 import de.mein.auth.MeinStrings
@@ -33,7 +34,8 @@ import java.util.concurrent.TimeUnit
 class MiniServer @Throws(Exception::class)
 constructor(private val config: ServerConfig) {
 
-    val certificateManager: CertificateManager
+    private val socketCertificateManager: CertificateManager
+    val httpCertificateManager: CertificateManager
     private val versionAnswer: VersionAnswer
     private val threadFactory = { r: Runnable ->
         var meinThread: MeinThread? = null
@@ -53,7 +55,7 @@ constructor(private val config: ServerConfig) {
     private var binarySocketOpener: BinarySocketOpener? = null
 
     val certificate: X509Certificate
-        get() = certificateManager.myX509Certificate
+        get() = socketCertificateManager.myX509Certificate
 
 
     val secretProperties = Properties()
@@ -66,30 +68,48 @@ constructor(private val config: ServerConfig) {
 
 
         val secretDir = File(workingDir, "secret")
+        val secretHttpDir = File(secretDir, "http")
+        val secretSocketDir = File(secretDir, "socket")
         secretDir.mkdirs()
+        secretHttpDir.mkdirs()
+        secretSocketDir.mkdirs()
         secretPropFile = File(secretDir, "secret.properties")
         if (!secretPropFile.exists()) {
             error("secret properties file not found at: ${secretPropFile.absolutePath}")
         }
         secretProperties.load(secretPropFile.inputStream())
 
-
-        val dbFile = File(secretDir, "db.db")
-        val sqlQueries = SQLQueries(SQLConnector.createSqliteConnection(dbFile), true, RWLock(), SqlResultTransformer.sqliteResultSetTransformer())
-        // turn on foreign keys
-        try {
-            sqlQueries.execute("PRAGMA foreign_keys = ON;", null)
-        } catch (e: SqlQueriesException) {
-            e.printStackTrace()
+        fun setupSql(dir: File): SQLQueries {
+            val dbFile = File(dir, "db.db")
+            val sqlQueries = SQLQueries(SQLConnector.createSqliteConnection(dbFile), true, RWLock(), SqlResultTransformer.sqliteResultSetTransformer())
+            // turn on foreign keys
+            try {
+                sqlQueries.execute("PRAGMA foreign_keys = ON;", null)
+            } catch (e: SqlQueriesException) {
+                e.printStackTrace()
+            }
+            val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
+            if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
+                //find sql file in workingdir
+                val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mein/auth/sql.sql")
+                sqliteExecutor.executeStream(resourceStream)
+            }
+            return sqlQueries
         }
-        val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
-        if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
-            //find sql file in workingdir
-            val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mein/auth/sql.sql")
-            sqliteExecutor.executeStream(resourceStream)
-        }
 
-        certificateManager = CertificateManager(secretDir, sqlQueries, config.keySize)
+        //setup socket certificate manager first
+        val socketSqlQueries = setupSql(secretSocketDir)
+        socketCertificateManager = CertificateManager(secretSocketDir, socketSqlQueries, config.keySize)
+
+        if (socketCertificateManager.hadToInitialize()) {
+            // new keys -> copy
+            Processor.runProcesses("copy keys after init",
+                    Processor("cp", File(secretSocketDir, "cert.cert").absolutePath, secretHttpDir.absolutePath),
+                    Processor("cp", File(secretSocketDir, "pk.key").absolutePath, secretHttpDir.absolutePath),
+                    Processor("cp", File(secretSocketDir, "pub.key").absolutePath, secretHttpDir.absolutePath))
+        }
+        val httpSqlQueries = setupSql(secretHttpDir)
+        httpCertificateManager = CertificateManager(secretHttpDir, httpSqlQueries, config.keySize)
 
         // loading and hashing files
         val filesDir = File(workingDir, DIR_FILES_NAME)
@@ -118,13 +138,9 @@ constructor(private val config: ServerConfig) {
             fileRepository.addEntry(hash, f)
             versionAnswer.addEntry(hash, variant, version, f.length())
         }
-
-
     }
 
-
     fun execute(runnable: MeinRunnable) {
-
         try {
             if (executorService == null || executorService != null && (executorService!!.isShutdown || executorService!!.isTerminated))
                 executorService = Executors.newCachedThreadPool(threadFactory)
@@ -135,7 +151,6 @@ constructor(private val config: ServerConfig) {
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
-
     }
 
     private lateinit var httpsSocketOpener: HttpsThingy
@@ -149,7 +164,7 @@ constructor(private val config: ServerConfig) {
         }
 
         // starting sockets
-        encSocketOpener = EncSocketOpener(certificateManager, config.authPort, this, versionAnswer)
+        encSocketOpener = EncSocketOpener(socketCertificateManager, config.authPort, this, versionAnswer)
         execute(encSocketOpener!!)
         binarySocketOpener = BinarySocketOpener(config.transferPort, this, fileRepository)
         execute(binarySocketOpener!!)
@@ -185,6 +200,7 @@ constructor(private val config: ServerConfig) {
 
         @JvmStatic
         fun main(arguments: Array<String>) {
+            Lok.setLokImpl(LokImpl().setup(30, true))
             val konsole = Konsole(ServerConfig())
             konsole.optional("-create-cert", "name of the certificate", { result, args -> result.certName = args[0] }, Konsole.dependsOn("-pubkey", "-privkey"))
                     .optional("-cert", "path to certificate", { result, args -> result.certPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-pubkey", "-privkey"))
@@ -194,9 +210,8 @@ constructor(private val config: ServerConfig) {
                     .optional("-auth", "port the authentication service listens on. defaults to ${ServerConfig.DEFAULT_AUTH}.") { result, args -> result.authPort = args[0].toInt() }
                     .optional("-ft", "port the file transfer listens on. defaults to ${ServerConfig.DEFAULT_TRANSFER}.") { result, args -> result.transferPort = args[0].toInt() }
                     .optional("-http", "starts the http server. specifies the port it listens on.") { result, args -> result.httpPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTP }
-                    .optional("-pipes", "sets up pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = true }
+                    .optional("-pipes-off", "disables pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = false }
                     .optional("-keysize", "key length for certificate creation. defaults to 2048") { result, args -> result.keySize = args[0].toInt() }
-
 
             var workingDirectory: File? = null
             try {
@@ -235,7 +250,6 @@ constructor(private val config: ServerConfig) {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-
         }
     }
 }

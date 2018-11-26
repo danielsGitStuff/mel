@@ -62,5 +62,15 @@ class Processor( vararg command: String) {
         return false
     }
 
+    companion object {
+        fun runProcesses(name: String, vararg processors: Processor) {
+            processors.find { processor -> !processor.run().success }?.let {
+                it.errorLines?.forEach { Lok.debug(it) }
+                error("'$name' failed: ${it.cmdLine}")
+            }
+            Lok.debug("'$name' successful")
+
+        }
+    }
 
 }

@@ -7,7 +7,6 @@ import com.sun.net.httpserver.HttpsServer
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
-import de.mein.auth.tools.N
 import de.miniserver.Deploy
 import de.miniserver.DeploySettings
 import de.miniserver.MiniServer
@@ -69,14 +68,19 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     }
 
     fun start() {
-        val pageHello = pageProcessor.load("/de/miniserver/hello.html",
-                Replacer("files") {
-                    val s = StringBuilder()
-                    miniServer.fileRepository.hashFileMap.entries.forEach { it ->
-                        s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
-                    }
-                    return@Replacer s.toString()
-                })
+        fun pageHello(pw: String): Page {
+            return pageProcessor.load("/de/miniserver/hello.html",
+                    Replacer("pw", pw),
+                    Replacer("files") {
+                        val s = StringBuilder()
+                        miniServer.fileRepository.hashFileMap.entries.forEach { it ->
+                            s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
+                        }
+                        return@Replacer s.toString()
+                    })!!
+
+        }
+
         val pageIndexLogin = pageProcessor.load("/de/miniserver/index.html")
         val pageBuild = pageProcessor.load("/de/miniserver/build.html")
 
@@ -84,43 +88,68 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server = createServer()
         Lok.debug("successfully bound http to: $port")
         server.createContext("/") {
+            answerPage(it, pageIndexLogin)
+        }
+        server.createContext("/loggedIn") {
             if (it.requestMethod == "POST") {
 
                 val pw = readPostValue(it, "pw")
                 when (pw) {
                     null -> answerPage(it, pageIndexLogin)
-                    miniServer.secretProperties["password"] -> answerPage(it, pageHello)
-                    miniServer.secretProperties["buildpassword"] -> answerPage(it, pageBuild)
+                    miniServer.secretProperties["password"] -> answerPage(it, pageHello(pw))
+                    miniServer.secretProperties["buildpassword"] -> {
+                        val page = pageProcessor.load("/de/miniserver/build.html", Replacer("pw", pw))
+                        answerPage(it, page)
+                    }
                 }
                 Lok.debug("k")
             } else
                 answerPage(it, pageIndexLogin)
         }
-        server.createContext("/build") {
+        //        server.createContext("/buildStart") {
+//            val pw = readPostValue(it, "pw")
+//            when (pw) {
+//                null -> answerPage(it, pageIndexLogin)
+//                miniServer.secretProperties["buildpassword"] ->
+//                else -> answerPage(it, pageIndexLogin)
+//            }
+//            answerPage(it, pageHello)
+//        }
+        fun answerBuildStatus(it: HttpExchange, pw: String) {
+            val page = pageProcessor.load("/de/miniserver/buildStatus.html",
+                    Replacer("pw") { s->pw},
+                    Replacer("lok") { s ->
+                        val sb = StringBuilder().append("<p>")
+                        Lok.getLines().forEach {
+                            sb.append(it).append("<br>")
+                        }
+                        sb.append("</p>")
+                        sb.toString()
+                    })
+            answerPage(it, page)
+        }
+        server.createContext("/buildStatus") {
             val pw = readPostValue(it, "pw")
             when (pw) {
                 null -> answerPage(it, pageIndexLogin)
                 miniServer.secretProperties["buildpassword"] -> {
-                    val page = pageProcessor.load("/de/miniserver/build.html", Replacer("pw", pw))
-                    answerPage(it, page)
+                    answerBuildStatus(it, pw)
                 }
                 else -> answerPage(it, pageIndexLogin)
             }
-            answerPage(it, pageHello)
         }
-        server.createContext("/buildStarted") {
+        server.createContext("/buildStart") {
             val pw = readPostValue(it, "pw")
             when (pw) {
                 null -> answerPage(it, pageIndexLogin)
                 miniServer.secretProperties["buildpassword"] -> {
-                    val page = pageProcessor.load("/de/miniserver/buildStarted.html")
-                    answerPage(it, page)
+                    answerBuildStatus(it, pw)
                     GlobalScope.launch {
                         Lok.debug("deploying")
-                        val deploySettings = DeploySettings()
-                        deploySettings.secretFile = miniServer.secretPropFile.absolutePath
-                        val deploy = Deploy(deploySettings)
-                        deploy.run()
+//                        val deploySettings = DeploySettings()
+//                        deploySettings.secretFile = miniServer.secretPropFile.absolutePath
+//                        val deploy = Deploy(miniServer, deploySettings)
+//                        deploy.run()
                     }
                 }
                 else -> answerPage(it, pageIndexLogin)
@@ -156,10 +185,6 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.executor = executor
         server.start()
         Lok.debug("http is up")
-        N.r {
-
-
-        }
     }
 
     private fun answerPage(ex: HttpExchange, page: Page?) {
@@ -174,7 +199,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
     private fun createServer(): HttpsServer {
         val server = HttpsServer.create(InetSocketAddress(port), 0)
-        val configurator = object : HttpsConfigurator(miniServer.certificateManager.sslContext) {
+        val configurator = object : HttpsConfigurator(miniServer.httpCertificateManager.sslContext) {
             override fun configure(params: HttpsParameters) {
                 try {
                     // initialise the SSL context
