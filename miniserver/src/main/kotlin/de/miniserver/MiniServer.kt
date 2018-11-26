@@ -58,6 +58,8 @@ constructor(private val config: ServerConfig) {
 
     val secretProperties = Properties()
 
+    var secretPropFile: File
+
     init {
         val workingDir = config.workingDirectory!!
         workingDir.mkdir()
@@ -65,11 +67,11 @@ constructor(private val config: ServerConfig) {
 
         val secretDir = File(workingDir, "secret")
         secretDir.mkdirs()
-        val propFile = File(secretDir, "secret.properties")
-        if (!propFile.exists()) {
-            error("secret properties file not found at: ${propFile.absolutePath}")
+        secretPropFile = File(secretDir, "secret.properties")
+        if (!secretPropFile.exists()) {
+            error("secret properties file not found at: ${secretPropFile.absolutePath}")
         }
-        secretProperties.load(propFile.inputStream())
+        secretProperties.load(secretPropFile.inputStream())
 
 
         val dbFile = File(secretDir, "db.db")

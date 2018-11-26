@@ -1,4 +1,4 @@
-package de.mein.deploy
+package de.miniserver
 
 import de.mein.Lok
 import java.util.stream.Stream

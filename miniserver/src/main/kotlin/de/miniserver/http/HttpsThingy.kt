@@ -8,8 +8,12 @@ import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
 import de.mein.auth.tools.N
+import de.miniserver.Deploy
+import de.miniserver.DeploySettings
 import de.miniserver.MiniServer
 import de.miniserver.data.FileRepository
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.URLDecoder
@@ -55,6 +59,8 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     private fun readPostValue(ex: HttpExchange, key: String, size: Int = 40): String? {
         var bytes = ByteArray(size)
         val read = ex.requestBody.read(bytes)
+        if (read < 0)
+            return null
         bytes = ByteArray(read) { i -> bytes[i] }
         val string = String(bytes)
         val found = string.split("&").first { URLDecoder.decode(it).substring(0, it.indexOf("=")) == key }
@@ -72,6 +78,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     return@Replacer s.toString()
                 })
         val pageIndexLogin = pageProcessor.load("/de/miniserver/index.html")
+        val pageBuild = pageProcessor.load("/de/miniserver/build.html")
 
         Lok.debug("binding http to           : $port")
         server = createServer()
@@ -80,22 +87,43 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             if (it.requestMethod == "POST") {
 
                 val pw = readPostValue(it, "pw")
-                val secret = miniServer.secretProperties["password"]
-                val b = secret == pw
-                val bb = secret!!.equals(pw)
-                val l = pw!!.length
-                if (pw!= null && pw == miniServer.secretProperties["password"]) {
-                    answerPage(it,pageHello)
-                }else{
-                    answerPage(it,pageIndexLogin)
+                when (pw) {
+                    null -> answerPage(it, pageIndexLogin)
+                    miniServer.secretProperties["password"] -> answerPage(it, pageHello)
+                    miniServer.secretProperties["buildpassword"] -> answerPage(it, pageBuild)
                 }
-
                 Lok.debug("k")
             } else
                 answerPage(it, pageIndexLogin)
         }
-        server.createContext("/test") {
+        server.createContext("/build") {
+            val pw = readPostValue(it, "pw")
+            when (pw) {
+                null -> answerPage(it, pageIndexLogin)
+                miniServer.secretProperties["buildpassword"] -> {
+                    val page = pageProcessor.load("/de/miniserver/build.html", Replacer("pw", pw))
+                    answerPage(it, page)
+                }
+                else -> answerPage(it, pageIndexLogin)
+            }
             answerPage(it, pageHello)
+        }
+        server.createContext("/buildStarted") {
+            val pw = readPostValue(it, "pw")
+            when (pw) {
+                null -> answerPage(it, pageIndexLogin)
+                miniServer.secretProperties["buildpassword"] -> {
+                    val page = pageProcessor.load("/de/miniserver/buildStarted.html")
+                    answerPage(it, page)
+                    GlobalScope.launch {
+                        val deploySettings = DeploySettings()
+                        deploySettings.secretFile = miniServer.secretPropFile.absolutePath
+                        val deploy = Deploy(deploySettings)
+                        deploy.run()
+                    }
+                }
+                else -> answerPage(it, pageIndexLogin)
+            }
         }
 
         // add files context
@@ -139,6 +167,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
             responseBody.write(page?.bytes ?: "404".toByteArray())
             responseBody.close()
+            responseHeaders
         }
     }
 
