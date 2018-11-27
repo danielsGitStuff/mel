@@ -1,0 +1,35 @@
+body {
+    color: white;
+    background-color: #161618;
+}
+a{
+    color: #57bf40;
+    
+}
+h1{
+    color: #57bf40;
+}
+input {
+    color: white;
+    background-color: #545454;
+    box-shadow: none;
+    border: 0;
+    padding: .4em .6em;
+}
+
+button {
+    color: white;
+    border-radius: .5em;
+    background-color: #545454;
+    border: 0;
+    padding: .4em 2em;
+    box-shadow: none;
+}
+
+.centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%)
+}

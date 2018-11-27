@@ -94,6 +94,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     })
         }
 
+        val css = pageProcessor.load("/de/miniserver/css.css")
         val pageIndexLogin = pageProcessor.load("/de/miniserver/index.html")
         val pageBuild = pageProcessor.load("/de/miniserver/build/build.html")
 
@@ -102,6 +103,10 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         Lok.debug("successfully bound http to: $port")
         server.createContext("/") {
             answerPage(it, pageIndexLogin)
+        }
+        server.createContext("/css.css"){
+            Lok.debug("CSS")
+            answerPage(it,css)
         }
         server.createContext("/loggedIn") {
             if (it.requestMethod == "POST") {

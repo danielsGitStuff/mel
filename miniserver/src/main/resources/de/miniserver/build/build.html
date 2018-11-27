@@ -13,20 +13,21 @@
             display: inline-block; //Or display: inline;
         }
     </style>
+    <link rel="stylesheet" type="text/css" href="css.css" media="screen" />
 </head>
 <body>
 
 <form method="post" action="/build/refresh">
     <input name="pw" value="<$=pw/>" hidden>
-    <input type="submit" name="refresh" value="refresh">
+    <button type="submit">Refresh</button>
 </form>
 <form method="post" action="/build/build">
     <input name="pw" value="<$=pw/>" hidden>
-    <input type="submit" name="build" value="build" id="btn"/>
+    <button type="submit" >Build</button>
 </form>
 <form method="post" action="/build/shutDown">
     <input name="pw" value="<$=pw/>" hidden>
-    <input onclick="return warning()" type="submit"  value="shutdown" id="btnShutDown">
+    <button onclick="return warning()" type="submit">Shut Down</button>
 </form><br>
 </form>
 last log messages:<br>
