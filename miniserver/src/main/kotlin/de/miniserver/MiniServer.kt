@@ -121,15 +121,14 @@ constructor(private val config: ServerConfig) {
         //looking for jar, apk and their appropriate version.txt
         Lok.debug("looking for files in ${filesDir.absolutePath}")
         for (f in filesDir.listFiles { f -> f.isFile && (f.name.endsWith(".jar") || f.name.endsWith(".apk")) }!!) {
-            val hash: String
+            val hash: String = Hash.sha256(FileInputStream(f))
+            val propertiesFile = File(filesDir, f.name + MeinStrings.update.INFO_APPENDIX)
             val variant: String
             val version: Long?
-            val propertiesFile: File
-
-            propertiesFile = File(filesDir, f.name + MeinStrings.update.INFO_APPENDIX)
+            if (!propertiesFile.exists())
+                continue
             Lok.debug("reading binary: " + f.absolutePath)
             Lok.debug("reading  props: " + propertiesFile.absolutePath)
-            hash = Hash.sha256(FileInputStream(f))
             val properties = Properties()
             properties.load(FileInputStream(propertiesFile))
 
