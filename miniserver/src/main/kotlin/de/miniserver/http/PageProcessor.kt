@@ -14,7 +14,7 @@ class Replacer(val test: (String) -> Boolean, val replace: (String) -> String) {
 class PageProcessor {
     val replaceTagRegex = "<\\\$=[a-zA-Z]+[\\w]*\\/>".toRegex()
 
-    fun load(path: String, vararg replacers: Replacer): Page? {
+    fun load(path: String, vararg replacers: Replacer): Page {
         Lok.debug("loading $path")
         val resourceBytes = javaClass.getResourceAsStream(path).readBytes()
         var html = String(resourceBytes)

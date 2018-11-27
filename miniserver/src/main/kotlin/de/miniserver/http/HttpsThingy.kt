@@ -8,11 +8,11 @@ import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
 import de.miniserver.Deploy
-import de.miniserver.DeploySettings
 import de.miniserver.MiniServer
 import de.miniserver.data.FileRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.io.File
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.URLDecoder
@@ -69,7 +69,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
     fun start() {
         fun pageHello(pw: String): Page {
-            return pageProcessor.load("/de/miniserver/hello.html",
+            return pageProcessor.load("/de/miniserver/normal/hello.html",
                     Replacer("pw", pw),
                     Replacer("files") {
                         val s = StringBuilder()
@@ -77,12 +77,25 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                             s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
                         }
                         return@Replacer s.toString()
-                    })!!
+                    })
 
         }
 
+        fun pageBuild(pw: String): Page {
+            return pageProcessor.load("/de/miniserver/build/build.html",
+                    Replacer("pw", pw),
+                    Replacer("lok") {
+                        val sb = StringBuilder().append("<p>")
+                        Lok.getLines().forEach {
+                            sb.append(it).append("<br>")
+                        }
+                        sb.append("</p>")
+                        sb.toString()
+                    })
+        }
+
         val pageIndexLogin = pageProcessor.load("/de/miniserver/index.html")
-        val pageBuild = pageProcessor.load("/de/miniserver/build.html")
+        val pageBuild = pageProcessor.load("/de/miniserver/build/build.html")
 
         Lok.debug("binding http to           : $port")
         server = createServer()
@@ -98,63 +111,37 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     null -> answerPage(it, pageIndexLogin)
                     miniServer.secretProperties["password"] -> answerPage(it, pageHello(pw))
                     miniServer.secretProperties["buildpassword"] -> {
-                        val page = pageProcessor.load("/de/miniserver/build.html", Replacer("pw", pw))
-                        answerPage(it, page)
+                        answerPage(it, pageBuild(pw))
                     }
                 }
                 Lok.debug("k")
             } else
                 answerPage(it, pageIndexLogin)
         }
-        //        server.createContext("/buildStart") {
-//            val pw = readPostValue(it, "pw")
-//            when (pw) {
-//                null -> answerPage(it, pageIndexLogin)
-//                miniServer.secretProperties["buildpassword"] ->
-//                else -> answerPage(it, pageIndexLogin)
-//            }
-//            answerPage(it, pageHello)
-//        }
-        fun answerBuildStatus(it: HttpExchange, pw: String) {
-            val page = pageProcessor.load("/de/miniserver/buildStatus.html",
-                    Replacer("pw") { s->pw},
-                    Replacer("lok") { s ->
-                        val sb = StringBuilder().append("<p>")
-                        Lok.getLines().forEach {
-                            sb.append(it).append("<br>")
+        server.createContext("/build/") {
+            val pw = readPostValue(it, "pw")
+            if (pw == miniServer.secretProperties["buildpassword"]) {
+                val uri = it.requestURI
+                val command = uri.path.substring("/build/".length, uri.path.length)
+                when (command) {
+                    "build" -> {
+                        Lok.debug("launching build")
+                        GlobalScope.launch {
+                            val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath))
+                            deploy.run()
                         }
-                        sb.append("</p>")
-                        sb.toString()
-                    })
-            answerPage(it, page)
-        }
-        server.createContext("/buildStatus") {
-            val pw = readPostValue(it, "pw")
-            when (pw) {
-                null -> answerPage(it, pageIndexLogin)
-                miniServer.secretProperties["buildpassword"] -> {
-                    answerBuildStatus(it, pw)
-                }
-                else -> answerPage(it, pageIndexLogin)
-            }
-        }
-        server.createContext("/buildStart") {
-            val pw = readPostValue(it, "pw")
-            when (pw) {
-                null -> answerPage(it, pageIndexLogin)
-                miniServer.secretProperties["buildpassword"] -> {
-                    answerBuildStatus(it, pw)
-                    GlobalScope.launch {
-                        Lok.debug("deploying")
-                        val deploySettings = DeploySettings()
-                        deploySettings.secretFile = miniServer.secretPropFile.absolutePath
-                        val deploy = Deploy(miniServer, deploySettings)
-                        deploy.run()
+                    }
+                    "shutDown" -> {
+                        answerPage(it, pageProcessor.load("/de/miniserver/build/farewell.html"))
+                        miniServer.shutdown()
                     }
                 }
-                else -> answerPage(it, pageIndexLogin)
+                answerPage(it, pageBuild(pw!!))
+            } else {
+                answerPage(it, pageIndexLogin)
             }
         }
+
 
         // add files context
         server.createContext("/files/") {

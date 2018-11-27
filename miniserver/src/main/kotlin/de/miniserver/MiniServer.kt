@@ -177,6 +177,7 @@ constructor(private val config: ServerConfig) {
     }
 
     fun shutdown() {
+        Lok.debug("shutting down...")
         executorService!!.shutdown()
         binarySocketOpener!!.onShutDown()
         N.r { binarySocketOpener!!.onShutDown() }
@@ -190,7 +191,7 @@ constructor(private val config: ServerConfig) {
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
-
+        Lok.debug("bye...")
     }
 
     companion object {

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Yast.build</title>
+    <script>
+        function warning() {
+            return confirm("really?");
+        }
+    </script>
+    <style>
+        form {
+            display: inline-block; //Or display: inline;
+        }
+    </style>
+</head>
+<body>
+
+<form method="post" action="/build/refresh">
+    <input name="pw" value="<$=pw/>" hidden>
+    <input type="submit" name="refresh" value="refresh">
+</form>
+<form method="post" action="/build/build">
+    <input name="pw" value="<$=pw/>" hidden>
+    <input type="submit" name="build" value="build" id="btn"/>
+</form>
+<form method="post" action="/build/shutDown">
+    <input name="pw" value="<$=pw/>" hidden>
+    <input onclick="return warning()" type="submit"  value="shutdown" id="btnShutDown">
+</form><br>
+</form>
+last log messages:<br>
+<$=lok/>
+</body>
+</html>

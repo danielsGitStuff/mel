@@ -6,11 +6,9 @@ import java.security.SecureRandom
 import java.util.*
 import kotlin.system.exitProcess
 
-class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySettings) {
+class Deploy(val miniServer: MiniServer, private val secretFile: File) {
     var props: Properties = Properties()
     fun run() {
-
-        val secretFile = File(deploySettings.secretFile)
         props.load(secretFile.inputStream())
         fetch()
         val p = File(props.getProperty("projectRootDir")).absolutePath
