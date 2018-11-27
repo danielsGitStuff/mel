@@ -200,13 +200,22 @@ constructor(private val config: ServerConfig) {
 
         @JvmStatic
         fun main(arguments: Array<String>) {
+
+//            Processor.runProcesses("copying",
+//                    Processor("/bin/sh", "-c",  "cp \"/home/xor/Documents/dev/IdeaProjects/drive/miniserver/build/libs/\"* \"/home/xor/Documents/dev/IdeaProjects/drive/miniserver/server\""))
+
+
+//            Processor.runProcesses("copying",
+//                    Processor("bash", "-c", "cp", "home/xor/Documents/dev/IdeaProjects/drive/miniserver/build/libs/*", "/home/xor/Documents/dev/IdeaProjects/drive/miniserver/server"))
+
+
             Lok.setLokImpl(LokImpl().setup(30, true))
             val konsole = Konsole(ServerConfig())
             konsole.optional("-create-cert", "name of the certificate", { result, args -> result.certName = args[0] }, Konsole.dependsOn("-pubkey", "-privkey"))
                     .optional("-cert", "path to certificate", { result, args -> result.certPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-pubkey", "-privkey"))
                     .optional("-pubkey", "path to public key", { result, args -> result.pubKeyPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-privkey", "-cert"))
                     .optional("-privkey", "path to private key", { result, args -> result.privKeyPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-pubkey", "-cert"))
-                    .optional("-dir", "path to working directory") { result, args -> result.workingPath = args[0] }
+                    .optional("-dir", "path to working directory. defaults to 'server'") { result, args -> result.workingPath = args[0] }
                     .optional("-auth", "port the authentication service listens on. defaults to ${ServerConfig.DEFAULT_AUTH}.") { result, args -> result.authPort = args[0].toInt() }
                     .optional("-ft", "port the file transfer listens on. defaults to ${ServerConfig.DEFAULT_TRANSFER}.") { result, args -> result.transferPort = args[0].toInt() }
                     .optional("-http", "starts the http server. specifies the port it listens on.") { result, args -> result.httpPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTP }

@@ -31,7 +31,7 @@ class Processor( vararg command: String) {
         else
             return this
         exitCode = process?.exitValue()
-        process!!.inputStream.bufferedReader().lines().forEach { println(it) }
+        process!!.inputStream.bufferedReader().lines().forEach { Lok.debug(it) }
         if (exitCode == 0) {
             Lok.debug("command '$cmdLine' succeeded")
             return this

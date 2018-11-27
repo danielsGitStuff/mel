@@ -23,27 +23,33 @@ class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySetti
         val gradle = File(projectRootDir, "gradlew")
         Lok.debug("working dir ${projectRootDir.absolutePath}")
 
+        // pull
         Processor.runProcesses("pull from git", Processor("git", "pull"))
+        //clean
+//        Processor.runProcesses("run tests", Processor(gradle.absolutePath, "clean"))
 
+        //put update server certificate in place
         val updateCertFile = File(File(File(serverDir, "secret"), "socket"), "cert.cert")
         // holy shit
         val updateCertTarget = File(File(File(File(File(File(File(File(projectRootDir, "auth"), "src"), "main"), "resources"), "de"), "mein"), "auth"), "update.server.cert")
         Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
 
-        Processor.runProcesses("run tests",
-                Processor(gradle.absolutePath, ":auth:test"),
-                Processor(gradle.absolutePath, ":calendar:test"),
-                Processor(gradle.absolutePath, ":contacts:test"),
-                Processor(gradle.absolutePath, ":drive:test"),
-                Processor(gradle.absolutePath, ":konsole:test"),
-                Processor(gradle.absolutePath, ":miniserver:test"),
-                Processor(gradle.absolutePath, ":serialize:test"),
-                Processor(gradle.absolutePath, ":sql:test"))
+        // tests
+//        Processor.runProcesses("run tests",
+//                Processor(gradle.absolutePath, ":auth:test"),
+//                Processor(gradle.absolutePath, ":calendar:test"),
+//                Processor(gradle.absolutePath, ":contacts:test"),
+//                Processor(gradle.absolutePath, ":drive:test"),
+//                Processor(gradle.absolutePath, ":konsole:test"),
+//                Processor(gradle.absolutePath, ":miniserver:test"),
+//                Processor(gradle.absolutePath, ":serialize:test"),
+//                Processor(gradle.absolutePath, ":sql:test"))
 
-        Processor.runProcesses("build",
-                Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
-                Processor(gradle.absolutePath, ":app:assemble"),
-                Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
+        // assemble binaries
+//        Processor.runProcesses("assemble/build",
+//                Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
+//                Processor(gradle.absolutePath, ":app:assemble"),
+//                Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
 
         Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
         if (serverDir.exists()) {
@@ -70,20 +76,19 @@ class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySetti
         serverDir.mkdirs()
         val serverFilesDir = File(serverDir, "files")
         serverFilesDir.mkdirs()
-        val target = serverFilesDir.absolutePath
 
         Processor.runProcesses("copying",
-                Processor("cp", "${projectRootDir.absolutePath}/miniserver/build/libs/*", serverDir.absolutePath),
-                Processor("cp", "${projectRootDir.absolutePath}/fxbundle/build/libs/*", target),
-                Processor("cp", "${projectRootDir.absolutePath}/app/build/outputs/apk/debug/*", target),
-                Processor("cp", "${projectRootDir.absolutePath}/app/build/outputs/apk/release/*", target),
-                Processor("rm", "$target/output.json"
+                Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/miniserver/build/libs/\"* \"${serverDir.absolutePath}\""),
+                Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""),
+                Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/debug/\"* \"${serverFilesDir.absolutePath}\""),
+                Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""),
+                Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"
                 ))
 
         // start first jar in serverDir
         val serverJar = serverDir.listFiles().first()
         Lok.debug("starting server jar ${serverJar.absolutePath}")
-        Processor("java", "-jar", serverJar.absolutePath, "-http", "-pipes", "-dir", serverDir.absolutePath, "&", "detach").run(false)
+        Processor("java", "-jar", serverJar.absolutePath, "-http", "-dir", serverDir.absolutePath, "&", "detach").run(false)
         Lok.debug("command succeeded")
         Lok.debug("done")
         exitProcess(0)

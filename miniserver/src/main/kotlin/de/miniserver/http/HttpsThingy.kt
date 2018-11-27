@@ -146,10 +146,10 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     answerBuildStatus(it, pw)
                     GlobalScope.launch {
                         Lok.debug("deploying")
-//                        val deploySettings = DeploySettings()
-//                        deploySettings.secretFile = miniServer.secretPropFile.absolutePath
-//                        val deploy = Deploy(miniServer, deploySettings)
-//                        deploy.run()
+                        val deploySettings = DeploySettings()
+                        deploySettings.secretFile = miniServer.secretPropFile.absolutePath
+                        val deploy = Deploy(miniServer, deploySettings)
+                        deploy.run()
                     }
                 }
                 else -> answerPage(it, pageIndexLogin)
