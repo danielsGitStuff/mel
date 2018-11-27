@@ -1,9 +1,6 @@
 package de.miniserver
 
 import de.mein.Lok
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.security.SecureRandom
 import java.util.*
@@ -26,7 +23,7 @@ class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySetti
         // pull
         Processor.runProcesses("pull from git", Processor("git", "pull"))
         //clean
-//        Processor.runProcesses("run tests", Processor(gradle.absolutePath, "clean"))
+        Processor.runProcesses("clean", Processor(gradle.absolutePath, "clean"))
 
         //put update server certificate in place
         val updateCertFile = File(File(File(serverDir, "secret"), "socket"), "cert.cert")
@@ -35,15 +32,15 @@ class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySetti
         Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
 
         // tests
-//        Processor.runProcesses("run tests",
-//                Processor(gradle.absolutePath, ":auth:test"),
-//                Processor(gradle.absolutePath, ":calendar:test"),
-//                Processor(gradle.absolutePath, ":contacts:test"),
-//                Processor(gradle.absolutePath, ":drive:test"),
-//                Processor(gradle.absolutePath, ":konsole:test"),
-//                Processor(gradle.absolutePath, ":miniserver:test"),
-//                Processor(gradle.absolutePath, ":serialize:test"),
-//                Processor(gradle.absolutePath, ":sql:test"))
+        Processor.runProcesses("run tests",
+                Processor(gradle.absolutePath, ":auth:test"),
+                Processor(gradle.absolutePath, ":calendar:test"),
+                Processor(gradle.absolutePath, ":contacts:test"),
+                Processor(gradle.absolutePath, ":drive:test"),
+                Processor(gradle.absolutePath, ":konsole:test"),
+                Processor(gradle.absolutePath, ":miniserver:test"),
+                Processor(gradle.absolutePath, ":serialize:test"),
+                Processor(gradle.absolutePath, ":sql:test"))
 
         // assemble binaries
         Processor.runProcesses("assemble/build",
@@ -53,15 +50,6 @@ class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySetti
 
         Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
         if (serverDir.exists()) {
-            val stopFile = File(serverDir, "stop.input")
-            if (stopFile.exists() && stopFile.canWrite()) {
-                GlobalScope.launch {
-                    withTimeout(1000) {
-                        //                        stopFile.outputStream().write("stop".toByteArray())
-//                        stopFile.outputStream().close()
-                    }
-                }
-            }
             val secretDir = File(serverDir, "secret")
             val secretMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
             if (secretDir.exists()) {
