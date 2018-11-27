@@ -22,3 +22,4 @@ secret.properties
 /miniserver/server/secret/*
 /miniserver/server/files/*
 !/miniserver/server/secret/README.txt
+/keystore.properties
