@@ -82,7 +82,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         }
 
         fun pageBuild(pw: String): Page {
-            return pageProcessor.load("/de/miniserver/build/build.html",
+            return pageProcessor.load("/de/miniserver/build.html",
                     Replacer("pw", pw),
                     Replacer("lok") {
                         val sb = StringBuilder().append("<p>")
@@ -96,7 +96,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
         val css = pageProcessor.load("/de/miniserver/css.css")
         val pageIndexLogin = pageProcessor.load("/de/miniserver/index.html")
-        val pageBuild = pageProcessor.load("/de/miniserver/build/build.html")
+        val pageBuild = pageProcessor.load("/de/miniserver/build.html")
 
         Lok.debug("binding http to           : $port")
         server = createServer()
@@ -104,9 +104,9 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/") {
             answerPage(it, pageIndexLogin)
         }
-        server.createContext("/css.css"){
+        server.createContext("/css.css") {
             Lok.debug("CSS")
-            answerPage(it,css)
+            answerPage(it, css)
         }
         server.createContext("/loggedIn") {
             if (it.requestMethod == "POST") {
@@ -123,11 +123,11 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             } else
                 answerPage(it, pageIndexLogin)
         }
-        server.createContext("/build/") {
+        server.createContext("/build.html") {
             val pw = readPostValue(it, "pw")
             if (pw == miniServer.secretProperties["buildpassword"]) {
                 val uri = it.requestURI
-                val command = uri.path.substring("/build/".length, uri.path.length)
+                val command = uri.path.substring("/build.html".length, uri.path.length).trim()
                 when (command) {
                     "build" -> {
                         Lok.debug("launching build")
@@ -137,8 +137,13 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                         }
                     }
                     "shutDown" -> {
-                        answerPage(it, pageProcessor.load("/de/miniserver/build/farewell.html"))
+                        answerPage(it, pageProcessor.load("/de/miniserver/farewell.html"))
                         miniServer.shutdown()
+                    }
+                    "reboot" -> {
+                        answerPage(it, pageProcessor.load("/de/miniserver/farewell.html"))
+                        val jarFile = File(miniServer.workingDirectory, "miniserver.jar")
+                        miniServer.reboot(miniServer.workingDirectory, jarFile)
                     }
                 }
                 answerPage(it, pageBuild(pw!!))

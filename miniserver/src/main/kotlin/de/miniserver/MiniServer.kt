@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+import kotlin.system.exitProcess
 
 class MiniServer @Throws(Exception::class)
 constructor(private val config: ServerConfig) {
@@ -62,12 +63,13 @@ constructor(private val config: ServerConfig) {
 
     var secretPropFile: File
 
+    val workingDirectory: File = config.workingDirectory!!
+
     init {
-        val workingDir = config.workingDirectory!!
-        workingDir.mkdir()
+        workingDirectory.mkdir()
 
 
-        val secretDir = File(workingDir, "secret")
+        val secretDir = File(workingDirectory, "secret")
         val secretHttpDir = File(secretDir, "http")
         val secretSocketDir = File(secretDir, "socket")
         secretDir.mkdirs()
@@ -112,11 +114,10 @@ constructor(private val config: ServerConfig) {
         httpCertificateManager = CertificateManager(secretHttpDir, httpSqlQueries, config.keySize)
 
         // loading and hashing files
-        val filesDir = File(workingDir, DIR_FILES_NAME)
+        val filesDir = File(workingDirectory, DIR_FILES_NAME)
         filesDir.mkdir()
         versionAnswer = VersionAnswer()
         fileRepository = FileRepository()
-
 
 
         //looking for jar, apk and their appropriate version.txt
@@ -193,6 +194,14 @@ constructor(private val config: ServerConfig) {
             e.printStackTrace()
         }
         Lok.debug("bye...")
+    }
+
+    fun reboot(serverDir: File, serverJar: File) {
+        Lok.debug("starting server jar ${serverJar.absolutePath}")
+        Processor("java", "-jar", serverJar.absolutePath, "-http", "-dir", serverDir.absolutePath, "&", "detach").run(false)
+        Lok.debug("command succeeded")
+        Lok.debug("done")
+        exitProcess(0)
     }
 
     companion object {

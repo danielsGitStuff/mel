@@ -1,35 +1,49 @@
 package de.miniserver
 
 import de.mein.Lok
+import de.mein.auth.tools.N
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.security.SecureRandom
 import java.util.*
-import kotlin.system.exitProcess
 
 class Deploy(val miniServer: MiniServer, private val secretFile: File) {
     var props: Properties = Properties()
     fun run() {
-        props.load(secretFile.inputStream())
-        fetch()
-        val p = File(props.getProperty("projectRootDir")).absolutePath
-        val projectRootDir = File(p)
-        val miniServerDir = File(projectRootDir, "miniserver")
-        val serverDir = File(miniServerDir, "server")//File("${projectRootDir}miniserver${File.separator}server")
-        val gradle = File(projectRootDir, "gradlew")
-        Lok.debug("working dir ${projectRootDir.absolutePath}")
+        GlobalScope.launch {
+            props.load(secretFile.inputStream())
+            fetch()
+            val p = File(props.getProperty("projectRootDir")).absolutePath
+            val projectRootDir = File(p)
+            val miniServerDir = File(projectRootDir, "miniserver")
+            val serverDir = File(miniServerDir, "server")//File("${projectRootDir}miniserver${File.separator}server")
+            val secretDir = File(serverDir, "secret")
+            val gradle = File(projectRootDir, "gradlew")
+            Lok.debug("working dir ${projectRootDir.absolutePath}")
 
-        // pull
-        Processor.runProcesses("pull from git", Processor("git", "pull"))
-        //clean
-        Processor.runProcesses("clean", Processor(gradle.absolutePath, "clean"))
+            // pull
+            Processor.runProcesses("pull from git", Processor("git", "pull"))
+            // put keystore.properties in place
+            val keyStoreFile = File(secretDir, "sign.jks")
+            val keyStorePropFile = File(projectRootDir, "keystore.properties")
+            val keyProps = Properties()
+            try {
+                keyProps["storePassword"] = miniServer.secretProperties["storePassword"]
+                keyProps["keyPassword"] = miniServer.secretProperties["keyPassword"]
+                keyProps["keyAlias"] = miniServer.secretProperties["keyAlias"]
+                keyProps["storeFile"] = keyStoreFile.absolutePath
+                keyProps.store(keyStorePropFile.outputStream(), "keep me private")
+                //clean
+                Processor.runProcesses("clean", Processor(gradle.absolutePath, "clean"))
 
-        //put update server certificate in place
-        val updateCertFile = File(File(File(serverDir, "secret"), "socket"), "cert.cert")
-        // holy shit
-        val updateCertTarget = File(File(File(File(File(File(File(File(projectRootDir, "auth"), "src"), "main"), "resources"), "de"), "mein"), "auth"), "update.server.cert")
-        Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
+                //put update server certificate in place
+                val updateCertFile = File(File(File(serverDir, "secret"), "socket"), "cert.cert")
+                // holy shit
+                val updateCertTarget = File(File(File(File(File(File(File(File(projectRootDir, "auth"), "src"), "main"), "resources"), "de"), "mein"), "auth"), "update.server.cert")
+                Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
 
-        // tests
+                // tests
 //        Processor.runProcesses("run tests",
 //                Processor(gradle.absolutePath, ":auth:test"),
 //                Processor(gradle.absolutePath, ":calendar:test"),
@@ -40,46 +54,50 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File) {
 //                Processor(gradle.absolutePath, ":serialize:test"),
 //                Processor(gradle.absolutePath, ":sql:test"))
 
-        // assemble binaries
-        Processor.runProcesses("assemble/build",
-                Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
-                Processor(gradle.absolutePath, ":app:assemble"),
-                Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
+                // assemble binaries
 
-        Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
-        if (serverDir.exists()) {
-            val secretDir = File(serverDir, "secret")
-            val secretMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
-            if (secretDir.exists()) {
-                secretDir.renameTo(secretMovedDir)
+                Processor.runProcesses("assemble/build",
+                        Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
+                        Processor(gradle.absolutePath, ":app:assemblRelease"),
+                        Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
+            } finally {
+                N.r { keyStorePropFile.delete() }
             }
-            serverDir.deleteRecursively()
-            if (secretMovedDir.exists()) {
-                serverDir.mkdirs()
-                secretMovedDir.renameTo(secretDir)
+            Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
+            if (serverDir.exists()) {
+                val secretDir = File(serverDir, "secret")
+                val secretMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
+                if (secretDir.exists()) {
+                    secretDir.renameTo(secretMovedDir)
+                }
+                serverDir.deleteRecursively()
+                if (secretMovedDir.exists()) {
+                    serverDir.mkdirs()
+                    secretMovedDir.renameTo(secretDir)
+                }
             }
+            serverDir.mkdirs()
+            val serverFilesDir = File(serverDir, "files")
+            serverFilesDir.mkdirs()
+            Processor.runProcesses("clean files dir",
+                    Processor("/bin/sh", "-c", "rm -rf \"${serverFilesDir.absolutePath}/\"*"))
+
+            //copy MiniServer.jar
+            val miniServerSource = File("${projectRootDir.absolutePath}/miniserver/build/libs/").listFiles().first()
+            val miniServerTarget = File(serverDir, "miniserver.jar")
+            Processor.runProcesses("copying",
+                    Processor("cp", miniServerSource.absolutePath, miniServerTarget.absolutePath),
+                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""),
+                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/debug/\"* \"${serverFilesDir.absolutePath}\""),
+                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""),
+                    Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"
+                    ))
+
+            // delete stop pipe
+            miniServer.inputReader?.stop()
+            // restart
+            miniServer.reboot(serverDir, miniServerTarget)
         }
-        serverDir.mkdirs()
-        val serverFilesDir = File(serverDir, "files")
-        serverFilesDir.mkdirs()
-
-        Processor.runProcesses("copying",
-                Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/miniserver/build/libs/\"* \"${serverDir.absolutePath}\""),
-                Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""),
-                Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/debug/\"* \"${serverFilesDir.absolutePath}\""),
-                Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""),
-                Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"
-                ))
-
-        // delete stop pipe
-        miniServer.inputReader?.stop()
-        // start first jar in serverDir
-        val serverJar = serverDir.listFiles().first()
-        Lok.debug("starting server jar ${serverJar.absolutePath}")
-        Processor("java", "-jar", serverJar.absolutePath, "-http", "-dir", serverDir.absolutePath, "&", "detach").run(false)
-        Lok.debug("command succeeded")
-        Lok.debug("done")
-        exitProcess(0)
     }
 
 
