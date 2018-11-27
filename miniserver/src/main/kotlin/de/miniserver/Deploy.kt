@@ -46,10 +46,10 @@ class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySetti
 //                Processor(gradle.absolutePath, ":sql:test"))
 
         // assemble binaries
-//        Processor.runProcesses("assemble/build",
-//                Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
-//                Processor(gradle.absolutePath, ":app:assemble"),
-//                Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
+        Processor.runProcesses("assemble/build",
+                Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
+                Processor(gradle.absolutePath, ":app:assemble"),
+                Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
 
         Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
         if (serverDir.exists()) {
