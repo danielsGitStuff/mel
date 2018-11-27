@@ -217,6 +217,7 @@ constructor(private val config: ServerConfig) {
             try {
                 konsole.handle(arguments)
                 workingDirectory = File(konsole.result.workingPath)
+                workingDirectory.mkdirs()
                 val outFile = File(workingDirectory, "output.log")
                 if (outFile.exists())
                     outFile.delete()

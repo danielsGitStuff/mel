@@ -42,7 +42,7 @@ class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySetti
 
         Processor.runProcesses("build",
                 Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
-                Processor(gradle.absolutePath, ":app:assembleRelease"),
+                Processor(gradle.absolutePath, ":app:assemble"),
                 Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
 
         Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
@@ -76,6 +76,7 @@ class Deploy(val miniServer: MiniServer, private val deploySettings: DeploySetti
                 Processor("cp", "${projectRootDir.absolutePath}/miniserver/build/libs/*", serverDir.absolutePath),
                 Processor("cp", "${projectRootDir.absolutePath}/fxbundle/build/libs/*", target),
                 Processor("cp", "${projectRootDir.absolutePath}/app/build/outputs/apk/debug/*", target),
+                Processor("cp", "${projectRootDir.absolutePath}/app/build/outputs/apk/release/*", target),
                 Processor("rm", "$target/output.json"
                 ))
 

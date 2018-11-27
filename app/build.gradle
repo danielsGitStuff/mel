@@ -67,12 +67,11 @@ android {
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
-            minifyEnabled true
+            minifyEnabled false
             System.err.println("build version       " + buildVersion)
             System.err.println("build version class " + buildVersion.getClass().getSimpleName())
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
             buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
-            
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -89,18 +88,18 @@ android {
 
 task createProperties() {
     doLast {
-        Properties p = new Properties()
-        p['version'] = project.buildVersion
-        p['variant'] = project.buildVariant
-        //store in jar
-        println("lll " + projectDir.absolutePath)
-        File assetFile = new File("${projectDir.absolutePath}${File.separator}src${File.separator}main${File.separator}assets${File.separator}version.properties")
-        println("writing version asset file: ${assetFile.absolutePath}")
-        assetFile.withWriter { w -> p.store(w, null) }
-        // store in build directory
-        File versionFile = new File("$buildDir/version.properties")
-        println("writing version file: ${versionFile.absolutePath}")
-        versionFile.withWriter { w -> p.store(w, null) }
+//        Properties p = new Properties()
+//        p['version'] = project.buildVersion
+//        p['variant'] = project.buildVariant
+//        //store in jar
+//        println("lll " + projectDir.absolutePath)
+//        File assetFile = new File("${projectDir.absolutePath}${File.separator}src${File.separator}main${File.separator}assets${File.separator}version.properties")
+//        println("writing version asset file: ${assetFile.absolutePath}")
+//        assetFile.withWriter { w -> p.store(w, null) }
+//        // store in build directory
+//        File versionFile = new File("$buildDir/version.properties")
+//        println("writing version file: ${versionFile.absolutePath}")
+//        versionFile.withWriter { w -> p.store(w, null) }
     }
 }
 
@@ -129,14 +128,16 @@ task propertiesFileHack(type: Copy) {
     taskName = gradle.startParameter.taskNames[0]
     if (taskName.contains(":"))
         taskName = taskName.substring(taskName.lastIndexOf(":") + 1)
-    println("taskName=$taskName")
+//    if(taskName.startsWith("assemble"))
+//        taskName = taskName.substring("assemble".length()).toLowerCase()
+    println("taskName=$taskName class of buildVersion: ${project.buildVersion.getClass().simpleName}")
     if (taskName == "assemble") {
-        bDebug(p)
-        bRelease(p)
+        bDebug()
+        bRelease()
     } else if (taskName == "assembleDebug") {
-        bDebug(p)
+        bDebug()
     } else if (taskName == "assembleRelease") {
-        bRelease(p)
+        bRelease()
     }
     println("propertiesFileHack().end")
 }
@@ -176,13 +177,19 @@ dependencies {
     //    implementation "android.arch.work:work-runtime:$work_version"
 }
 
-void bDebug(Properties p) {
+void bDebug() {
+    Properties p = new Properties()
+    p['version'] = project.buildVersion
+    p['variant'] = "apk-debug"
     File parent = new File("$buildDir/outputs/apk/debug")
     parent.mkdirs()
     new File(parent, "${archivesBaseName}-debug.apk.properties").withWriter { w -> p.store(w, null) }
 }
 
-void bRelease(Properties p) {
+void bRelease() {
+    Properties p = new Properties()
+    p['version'] = project.buildVersion
+    p['variant'] = "apk-release"
     File parent = new File("$buildDir/outputs/apk/release")
     parent.mkdirs()
     new File(parent, "${archivesBaseName}-release-unsigned.apk.properties").withWriter { w -> p.store(w, null) }
