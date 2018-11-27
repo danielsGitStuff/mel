@@ -182,6 +182,9 @@ constructor(private val config: ServerConfig) {
         binarySocketOpener!!.onShutDown()
         N.r { binarySocketOpener!!.onShutDown() }
         N.r { encSocketOpener!!.onShutDown() }
+        if (config.pipes) {
+            inputReader!!.stop()
+        }
         try {
             executorService!!.awaitTermination(5, TimeUnit.SECONDS)
             Lok.debug("is down: " + executorService!!.isShutdown)

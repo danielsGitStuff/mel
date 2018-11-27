@@ -1,29 +1,37 @@
 package de.miniserver.input
 
 import de.mein.Lok
+import de.mein.auth.tools.N
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 
 class InputPipeReader private constructor(val workingDirectory: File, val fileName: String) {
+    fun stop() {
+        N.r { process.destroyForcibly() }
+        N.r { pipeFile.delete() }
+    }
 
+
+    private lateinit var process: Process
+
+    private var pipeFile: File = File(workingDirectory, fileName)
 
     init {
-        val file = File(workingDirectory,fileName)
-        if (file.exists())
-            file.delete()
+        if (pipeFile.exists())
+            pipeFile.delete()
 
         /// build pipe
-        ProcessBuilder("mkfifo", file.absolutePath).start().waitFor()
-        Lok.debug("pipe created ${file.absolutePath}")
+        ProcessBuilder("mkfifo", pipeFile.absolutePath).start().waitFor()
+        Lok.debug("pipe created ${pipeFile.absolutePath}")
 
         GlobalScope.launch {
             //build cat
-            val b = ProcessBuilder("cat", file.absolutePath)
+            val b = ProcessBuilder("cat", pipeFile.absolutePath)
             b.redirectOutput(ProcessBuilder.Redirect.PIPE)
                     .redirectError(ProcessBuilder.Redirect.PIPE)
-            val process = b.start()
-            Lok.debug("cat started on ${file.absolutePath}")
+            process = b.start()
+            Lok.debug("cat started on ${pipeFile.absolutePath}")
             val input = process.inputStream.read()
             Lok.debug("stopping, read: $input")
             System.exit(0)
