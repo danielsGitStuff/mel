@@ -155,7 +155,7 @@ constructor(private val config: ServerConfig) {
 
     private lateinit var httpsSocketOpener: HttpsThingy
 
-    private var inputReader: InputPipeReader? = null
+    var inputReader: InputPipeReader? = null
 
     fun start() {
         //setup pipes

@@ -71,6 +71,8 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File) {
                 Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"
                 ))
 
+        // delete stop pipe
+        miniServer.inputReader?.stop()
         // start first jar in serverDir
         val serverJar = serverDir.listFiles().first()
         Lok.debug("starting server jar ${serverJar.absolutePath}")
