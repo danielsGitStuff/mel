@@ -118,6 +118,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     miniServer.secretProperties["buildpassword"] -> {
                         answerPage(it, pageBuild(pw))
                     }
+                    else -> answerPage(it, pageIndexLogin)
                 }
                 Lok.debug("k")
             } else
