@@ -227,5 +227,9 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         return server
     }
 
+    fun stop() {
+        server.stop(0)
+    }
+
 
 }

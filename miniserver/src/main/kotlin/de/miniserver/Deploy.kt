@@ -39,7 +39,9 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 keyProps["storeFile"] = keyStoreFile.absolutePath
                 keyProps.store(keyStorePropFile.outputStream(), "keep me private")
                 //clean
-                Processor.runProcesses("clean", Processor(gradle.absolutePath, "clean"))
+                Processor.runProcesses("clean",
+                        Processor(gradle.absolutePath, "clean"),
+                        Processor(gradle.absolutePath, ":app:clean"))
 
                 //put update server certificate in place
                 val updateCertFile = File(File(File(serverDir, "secret"), "socket"), "cert.cert")
@@ -63,7 +65,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (buildRequest.jar!!)
                     processList.add(Processor(gradle.absolutePath, ":fxbundle:buildFxJar"))
                 if (buildRequest.apk!!)
-                    processList.add(Processor(gradle.absolutePath, ":app:assemblRelease"))
+                    processList.add(Processor(gradle.absolutePath, ":app:assembleRelease"))
                 if (buildRequest.server!!)
                     processList.add(Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
                 Processor.runProcesses("assemble/build", *processList.toTypedArray())
@@ -83,7 +85,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (secretDir.exists()) {
                     secretDir.renameTo(secretMovedDir)
                 }
-                val miniServerBackup = File(serverDir,"server.backup.jar")
+                val miniServerBackup = File(miniServerDir,"server.backup.jar")
                 var miniBackup = false
                 if (!buildRequest.server!! && miniServerTarget.exists()){
                     miniServerTarget.renameTo(miniServerBackup)

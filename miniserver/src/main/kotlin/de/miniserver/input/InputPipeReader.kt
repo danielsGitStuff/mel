@@ -1,15 +1,23 @@
 package de.miniserver.input
 
 import de.mein.Lok
-import de.mein.auth.tools.N
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 
 class InputPipeReader private constructor(val workingDirectory: File, val fileName: String) {
     fun stop() {
-        N.r { process.destroyForcibly() }
-        N.r { pipeFile.delete() }
+        try {
+            process.destroyForcibly()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        try {
+            pipeFile.delete()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
     }
 
 

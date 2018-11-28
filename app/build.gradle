@@ -13,6 +13,7 @@ allprojects {
     }
 }
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
 
 buildscript {
     repositories {
@@ -55,7 +56,6 @@ android {
     signingConfigs {
         // Create a variable called keystorePropertiesFile, and initialize it to your
         // keystore.properties file, in the rootProject folder.
-        def keystorePropertiesFile = rootProject.file("keystore.properties")
 
         // Initialize a new Properties() object called keystoreProperties.
         def keystoreProperties = new Properties()
@@ -71,14 +71,15 @@ android {
             }
         } else {
             System.err << "NO SIGNING KEYSTORE FILE FOUND"
-            System.exit(-2)
+//            System.exit(-2)
         }
     }
     buildTypes {
         debug {
             println("BUILDTYPE: DEBUG")
             minifyEnabled false
-            signingConfig signingConfigs.release
+            if (keystorePropertiesFile.exists())
+                signingConfig signingConfigs.release
             System.err.println("build version       " + buildVersion)
             System.err.println("build version class " + buildVersion.getClass().getSimpleName())
             buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
@@ -88,7 +89,8 @@ android {
         release {
             println("BUILDTYPE: RELEASE")
             minifyEnabled false
-            signingConfig signingConfigs.release
+            if (keystorePropertiesFile.exists())
+                signingConfig signingConfigs.release
             System.err.println("build version       " + buildVersion)
             System.err.println("build version class " + buildVersion.getClass().getSimpleName())
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")

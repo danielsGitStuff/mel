@@ -182,6 +182,7 @@ constructor(private val config: ServerConfig) {
         Lok.debug("shutting down...")
         executorService!!.shutdown()
         binarySocketOpener!!.onShutDown()
+        httpsSocketOpener?.stop()
         N.r { binarySocketOpener!!.onShutDown() }
         N.r { encSocketOpener!!.onShutDown() }
         if (config.pipes) {
@@ -197,6 +198,7 @@ constructor(private val config: ServerConfig) {
     }
 
     fun reboot(serverDir: File, serverJar: File) {
+        httpsSocketOpener?.stop()
         Lok.debug("starting server jar ${serverJar.absolutePath}")
         Processor("java", "-jar", serverJar.absolutePath, "-http", "-dir", serverDir.absolutePath, "&", "detach").run(false)
         Lok.debug("command succeeded")
