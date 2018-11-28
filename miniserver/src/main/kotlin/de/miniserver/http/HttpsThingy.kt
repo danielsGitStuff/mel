@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpsServer
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
+import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer
 import de.miniserver.Deploy
 import de.miniserver.MiniServer
 import de.miniserver.data.FileRepository
@@ -104,6 +105,16 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/") {
             answerPage(it, pageIndexLogin)
         }
+        server.createContext("/api/") {
+            val json = String(it.requestBody.readBytes())
+            val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
+            Lok.debug("launching build")
+            if (buildRequest.pw == miniServer.secretProperties["buildpassword"])
+                GlobalScope.launch {
+                    val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)
+                    deploy.run()
+                }
+        }
         server.createContext("/css.css") {
             Lok.debug("CSS")
             answerPage(it, css)
@@ -130,13 +141,6 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 val uri = it.requestURI
                 val command = uri.path.substring("/build.html".length, uri.path.length).trim()
                 when (command) {
-                    "build" -> {
-                        Lok.debug("launching build")
-                        GlobalScope.launch {
-                            val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath))
-                            deploy.run()
-                        }
-                    }
                     "shutDown" -> {
                         answerPage(it, pageProcessor.load("/de/miniserver/farewell.html"))
                         miniServer.shutdown()

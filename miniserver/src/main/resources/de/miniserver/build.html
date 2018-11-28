@@ -7,24 +7,50 @@
         function warning() {
             return confirm("really?");
         }
+
+        function build() {
+            if (confirm("really?")) {
+                var cbServer = document.getElementById("cbServer");
+                var cbApk = document.getElementById("cbApk");
+                var cbJar = document.getElementById("cbJar");
+                var req = {
+                    $id: 1,
+                    __type: "de.miniserver.http.BuildRequest",
+                    server: cbServer.value.checked,
+                    apk: cbApk.value.checked,
+                    jar: cbJar.value.checked,
+                    pw: document.getElementById("pw").value
+                };
+                fetch("/api/build", {
+                    method: 'POST', // or 'PUT'
+                    body: JSON.stringify(req), // data can be `string` or {object}!
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(function (res) {
+                    alert(JSON.stringify(res));
+                }).alert(JSON.stringify(req))
+            }
+        }
     </script>
     <style>
         form {
-            display: inline-block; //Or display: inline;
+            display: inline-block;
+        / / Or display: inline;
         }
     </style>
-    <link rel="stylesheet" type="text/css" href="/css.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="css.css" media="screen"/>
 </head>
 <body>
 
 <form method="post" action="/build.html">
-    <input name="pw" value="<$=pw/>" hidden>
+    <input name="pw" id="pw" value="<$=pw/>" hidden>
     <button type="submit">Refresh</button>
 </form>
-<form method="post" action="/build.html build">
-    <input name="pw" value="<$=pw/>" hidden>
-    <button type="submit" >Build</button>
-</form>
+<!--<form method="post" action="/build.html build">-->
+<input name="pw" value="<$=pw/>" hidden>
+<button onclick="build()">Build</button>
+<!--</form>-->
 <form method="post" action="/build.html reboot">
     <input name="pw" value="<$=pw/>" hidden>
     <button onclick="return warning()" type="submit">Reboot</button>
@@ -32,8 +58,11 @@
 <form method="post" action="/build.html shutDown">
     <input name="pw" value="<$=pw/>" hidden>
     <button onclick="return warning()" type="submit">Shut Down</button>
-</form><br>
 </form>
+<br>
+<input type="checkbox" id="cbServer" checked> <label for="cbServer">miniserver</label>
+<input type="checkbox" id="cbApk"><label for="cbApk">apk</label>
+<input type="checkbox" id="cbJar"><label for="cbJar">jar</label><br>
 last log messages:<br>
 <$=lok/>
 </body>

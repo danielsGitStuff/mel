@@ -2,13 +2,14 @@ package de.miniserver
 
 import de.mein.Lok
 import de.mein.auth.tools.N
+import de.miniserver.http.BuildRequest
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.security.SecureRandom
 import java.util.*
 
-class Deploy(val miniServer: MiniServer, private val secretFile: File) {
+class Deploy(val miniServer: MiniServer, private val secretFile: File, val buildRequest: BuildRequest) {
     var props: Properties = Properties()
     fun run() {
         GlobalScope.launch {
@@ -43,7 +44,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File) {
                 val updateCertTarget = File(File(File(File(File(File(File(File(projectRootDir, "auth"), "src"), "main"), "resources"), "de"), "mein"), "auth"), "update.server.cert")
                 Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
 
-                // tests
+                // tests take a shitload of time on that stupid machine
 //        Processor.runProcesses("run tests",
 //                Processor(gradle.absolutePath, ":auth:test"),
 //                Processor(gradle.absolutePath, ":calendar:test"),
@@ -55,11 +56,19 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File) {
 //                Processor(gradle.absolutePath, ":sql:test"))
 
                 // assemble binaries
-
-                Processor.runProcesses("assemble/build",
-                        Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
-                        Processor(gradle.absolutePath, ":app:assemblRelease"),
-                        Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
+                val processList = mutableListOf<Processor>()
+                if (buildRequest.jar!!)
+                    processList.add(Processor(gradle.absolutePath, ":fxbundle:buildFxJar"))
+                if (buildRequest.apk!!)
+                    processList.add(Processor(gradle.absolutePath, ":app:assemblRelease"))
+                if (buildRequest.server!!)
+                    processList.add(Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
+                Processor.runProcesses("assemble/build", *processList.toTypedArray())
+                //todo remove
+//                Processor.runProcesses("assemble/build",
+//                        Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
+//                        Processor(gradle.absolutePath, ":app:assemblRelease"),
+//                        Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
             } finally {
                 N.r { keyStorePropFile.delete() }
             }
@@ -85,13 +94,22 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File) {
             //copy MiniServer.jar
             val miniServerSource = File("${projectRootDir.absolutePath}/miniserver/build/libs/").listFiles().first()
             val miniServerTarget = File(serverDir, "miniserver.jar")
-            Processor.runProcesses("copying",
-                    Processor("cp", miniServerSource.absolutePath, miniServerTarget.absolutePath),
-                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""),
-                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/debug/\"* \"${serverFilesDir.absolutePath}\""),
-                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""),
-                    Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"
-                    ))
+            val processList = mutableListOf<Processor>()
+            if (buildRequest.server!!)
+                processList.add(Processor("cp", miniServerSource.absolutePath, miniServerTarget.absolutePath))
+            if (buildRequest.apk!!)
+                processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""))
+            if (buildRequest.jar!!)
+                processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
+            processList.add(Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
+            Processor.runProcesses("copying",*processList.toTypedArray())
+            //todo remove
+//            Processor.runProcesses("copying",
+//                    Processor("cp", miniServerSource.absolutePath, miniServerTarget.absolutePath),
+//                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""),
+//                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/debug/\"* \"${serverFilesDir.absolutePath}\""),
+//                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""),
+//                    Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
 
             // delete stop pipe
             miniServer.inputReader?.stop()
