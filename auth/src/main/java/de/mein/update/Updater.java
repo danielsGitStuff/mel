@@ -53,7 +53,7 @@ public class Updater {
     public void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
         try {
             Long currentVersion = Versioner.getBuildVersion();
-            if (currentVersion == versionEntry.getVersion()) {
+            if (currentVersion.equals(versionEntry.getVersion())) {
                 Lok.debug("no update necessary :)");
                 return;
             }

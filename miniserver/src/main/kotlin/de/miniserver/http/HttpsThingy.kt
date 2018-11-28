@@ -85,6 +85,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         fun pageBuild(pw: String): Page {
             return pageProcessor.load("/de/miniserver/build.html",
                     Replacer("pw", pw),
+                    Replacer("time", miniServer.startTime.toString()),
                     Replacer("lok") {
                         val sb = StringBuilder().append("<p>")
                         Lok.getLines().forEach {

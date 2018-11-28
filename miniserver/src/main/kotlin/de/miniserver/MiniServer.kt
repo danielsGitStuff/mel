@@ -34,7 +34,7 @@ import kotlin.system.exitProcess
 
 class MiniServer @Throws(Exception::class)
 constructor(private val config: ServerConfig) {
-
+    val startTime = MDate()
     private val socketCertificateManager: CertificateManager
     val httpCertificateManager: CertificateManager
     private val versionAnswer: VersionAnswer
