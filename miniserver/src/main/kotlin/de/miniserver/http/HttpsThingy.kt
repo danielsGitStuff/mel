@@ -99,12 +99,22 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         val css = pageProcessor.load("/de/miniserver/css.css")
         val pageIndexLogin = pageProcessor.load("/de/miniserver/index.html")
         val pageBuild = pageProcessor.load("/de/miniserver/build.html")
+        val favicon = javaClass.getResourceAsStream("/de/miniserver/favicon.png").readBytes()
 
         Lok.debug("binding http to           : $port")
         server = createServer()
         Lok.debug("successfully bound http to: $port")
         server.createContext("/") {
             answerPage(it, pageIndexLogin)
+        }
+        server.createContext("/favicon.png"){
+            with(it) {
+                de.mein.Lok.debug("sending favicon to $remoteAddress")
+                sendResponseHeaders(200, favicon.size.toLong() )
+                responseBody.write(favicon)
+                responseBody.close()
+                responseHeaders
+            }
         }
         server.createContext("/api/") {
             val json = String(it.requestBody.readBytes())
