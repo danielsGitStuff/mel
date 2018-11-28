@@ -23,6 +23,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
             val serverDir = File(miniServerDir, "server")//File("${projectRootDir}miniserver${File.separator}server")
             val secretDir = File(serverDir, "secret")
             val gradle = File(projectRootDir, "gradlew")
+            val miniServerTarget = File(serverDir, "miniserver.jar")
             Lok.debug("working dir ${projectRootDir.absolutePath}")
 
             // pull
@@ -82,22 +83,32 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (secretDir.exists()) {
                     secretDir.renameTo(secretMovedDir)
                 }
+                val miniServerBackup = File(serverDir,"server.backup.jar")
+                var miniBackup = false
+                if (!buildRequest.server!! && miniServerTarget.exists()){
+                    miniServerTarget.renameTo(miniServerBackup)
+                    miniBackup = true
+                }
                 serverDir.deleteRecursively()
                 if (secretMovedDir.exists()) {
                     serverDir.mkdirs()
                     secretMovedDir.renameTo(secretDir)
                 }
+                if (miniBackup){
+                    miniServerBackup.renameTo(miniServerTarget)
+                }
             }
             serverDir.mkdirs()
             val serverFilesDir = File(serverDir, "files")
             serverFilesDir.mkdirs()
-            Processor.runProcesses("clean files dir",
-                    Processor("/bin/sh", "-c", "rm -rf \"${serverFilesDir.absolutePath}/\"*"))
-
+            //todo redundant?
+//            if (buildRequest.cleanUp!!) {
+//                Processor.runProcesses("clean files dir",
+//                        Processor("/bin/sh", "-c", "rm -rf \"${serverFilesDir.absolutePath}/\"*"))
+//            }
             //copy MiniServer.jar
 
             val processList = mutableListOf<Processor>()
-            val miniServerTarget = File(serverDir, "miniserver.jar")
             if (buildRequest.server!!) {
                 val miniServerSource = File("${projectRootDir.absolutePath}/miniserver/build/libs/").listFiles().first()
                 processList.add(Processor("cp", miniServerSource.absolutePath, miniServerTarget.absolutePath))
