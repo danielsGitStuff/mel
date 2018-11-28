@@ -35,13 +35,7 @@ ext {
     TASK_RELEASE = "release"
     TASK_DEBUG = "debug"
 }
-// Create a variable called keystorePropertiesFile, and initialize it to your
-// keystore.properties file, in the rootProject folder.
-def keystorePropertiesFile = rootProject.file("keystore.properties")
 
-// Initialize a new Properties() object called keystoreProperties.
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 android {
     compileOptions.encoding = 'UTF-8'
     compileSdkVersion 28
@@ -57,9 +51,32 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", "${applicationId}")
     }
+    signingConfigs {
+        // Create a variable called keystorePropertiesFile, and initialize it to your
+        // keystore.properties file, in the rootProject folder.
+        def keystorePropertiesFile = rootProject.file("keystore.properties")
+
+        // Initialize a new Properties() object called keystoreProperties.
+        def keystoreProperties = new Properties()
+        if(keystorePropertiesFile.exists()) {
+            println("WE SIGN IT")
+            keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+            release {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }else{
+            System.err << "NO SIGNING KEYSTORE FILE FOUND"
+            System.exit(-2)
+        }
+    }
     buildTypes {
         debug {
+            println("BUILDTYPE: DEBUG")
             minifyEnabled false
+            signingConfig signingConfigs.release
             System.err.println("build version       " + buildVersion)
             System.err.println("build version class " + buildVersion.getClass().getSimpleName())
             buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
@@ -67,7 +84,9 @@ android {
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
+            println("BUILDTYPE: RELEASE")
             minifyEnabled false
+            signingConfig signingConfigs.release
             System.err.println("build version       " + buildVersion)
             System.err.println("build version class " + buildVersion.getClass().getSimpleName())
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
@@ -82,14 +101,7 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
-    signingConfigs {
-        config {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
-        }
-    }
+    
 }
 
 
