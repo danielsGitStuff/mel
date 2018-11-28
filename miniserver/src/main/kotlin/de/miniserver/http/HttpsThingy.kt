@@ -109,11 +109,13 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             val json = String(it.requestBody.readBytes())
             val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
             Lok.debug("launching build")
-            if (buildRequest.pw == miniServer.secretProperties["buildpassword"])
+            if (buildRequest.pw == miniServer.secretProperties["buildpassword"] && buildRequest.valid)
                 GlobalScope.launch {
                     val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)
                     deploy.run()
                 }
+            else
+                Lok.debug("build denied")
         }
         server.createContext("/css.css") {
             Lok.debug("CSS")

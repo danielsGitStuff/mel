@@ -1,5 +1,0 @@
-Manifest-Version: 1.0
-Main-Class: de.mein.fxbundle.Main
-Class-Path: lib/bcpkix-jdk15on-1.58.jar lib/bcprov-jdk15on-1.58.jar lib/jdeferred-core-1.2.4.jar lib/slf4j-api-1.7.12.jar lib/sqlite-jdbc-3.20.0.jar
-
-

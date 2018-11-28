@@ -7,4 +7,8 @@ class BuildRequest() : SerializableEntity {
     var apk: Boolean? = null
     var jar: Boolean? = null
     var pw: String? = null
+    val valid: Boolean
+        get() {
+            return server != null && apk != null && jar != null
+        }
 }

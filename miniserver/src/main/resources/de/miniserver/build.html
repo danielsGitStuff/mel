@@ -16,9 +16,9 @@
                 var req = {
                     $id: 1,
                     __type: "de.miniserver.http.BuildRequest",
-                    server: cbServer.value.checked,
-                    apk: cbApk.value.checked,
-                    jar: cbJar.value.checked,
+                    server: cbServer.checked,
+                    apk: cbApk.checked,
+                    jar: cbJar.checked,
                     pw: document.getElementById("pw").value
                 };
                 fetch("/api/build", {

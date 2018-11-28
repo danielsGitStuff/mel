@@ -34,7 +34,8 @@ class InputPipeReader private constructor(val workingDirectory: File, val fileNa
             Lok.debug("cat started on ${pipeFile.absolutePath}")
             val input = process.inputStream.read()
             Lok.debug("stopping, read: $input")
-            System.exit(0)
+            if (input > 0)
+                System.exit(0)
         }
 
     }
