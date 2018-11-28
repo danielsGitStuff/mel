@@ -29,6 +29,7 @@ buildscript {
     }
 }
 ext {
+    signed = false
     buildVersion = new Date().getTime().toString()
     buildVariant = "apk"
     taskName = "not yet"
@@ -58,8 +59,9 @@ android {
 
         // Initialize a new Properties() object called keystoreProperties.
         def keystoreProperties = new Properties()
-        if(keystorePropertiesFile.exists()) {
+        if (keystorePropertiesFile.exists()) {
             println("WE SIGN IT")
+            signed = true
             keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
             release {
                 keyAlias keystoreProperties['keyAlias']
@@ -67,7 +69,7 @@ android {
                 storeFile file(keystoreProperties['storeFile'])
                 storePassword keystoreProperties['storePassword']
             }
-        }else{
+        } else {
             System.err << "NO SIGNING KEYSTORE FILE FOUND"
             System.exit(-2)
         }
@@ -101,7 +103,7 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
-    
+
 }
 
 
@@ -211,7 +213,8 @@ void bRelease() {
     p['variant'] = "apk-release"
     File parent = new File("$buildDir/outputs/apk/release")
     parent.mkdirs()
-    new File(parent, "${archivesBaseName}-release-unsigned.apk.properties").withWriter { w -> p.store(w, null) }
+    String sign = signed ? "" : "-unsigned"
+    new File(parent, "${archivesBaseName}-release${sign}.apk.properties").withWriter { w -> p.store(w, null) }
 }
 
 
