@@ -33,6 +33,7 @@ class EncSocketOpener(private val certificateManager: CertificateManager, privat
             Lok.debug("successfully bound auth socket to: $port")
             while (!Thread.currentThread().isInterrupted) {
                 val socket = serverSocket!!.accept()
+                Lok.debug("socket from ${socket.inetAddress.hostAddress} accepted")
                 val encSocket = EncSocket(socket, versionAnswer)
                 miniServer.execute(encSocket)
             }

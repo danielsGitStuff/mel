@@ -1,5 +1,6 @@
 package de.miniserver.socket
 
+import de.mein.Lok
 import de.mein.auth.MeinStrings
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer
 import de.mein.update.SimpleSocket
@@ -22,6 +23,7 @@ constructor(socket: Socket, private val versionAnswer: VersionAnswer) : SimpleSo
                 val s = `in`.readUTF()
                 if (s == MeinStrings.update.QUERY_VERSION) {
                     out.writeUTF(jsonAnswer)
+                    Lok.debug("version sent to ${socket.inetAddress.hostAddress}")
                 }
             }
         } catch (e: Exception) {
