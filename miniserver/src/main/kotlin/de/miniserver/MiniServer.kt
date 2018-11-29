@@ -18,6 +18,7 @@ import de.mein.sql.conn.SQLConnector
 import de.mein.sql.transform.SqlResultTransformer
 import de.mein.update.VersionAnswer
 import de.miniserver.data.FileRepository
+import de.miniserver.http.HttpThingy
 import de.miniserver.http.HttpsThingy
 import de.miniserver.input.InputPipeReader
 import de.miniserver.socket.BinarySocketOpener
@@ -154,9 +155,11 @@ constructor(private val config: ServerConfig) {
         }
     }
 
-    private lateinit var httpsSocketOpener: HttpsThingy
+    private var httpsSocketOpener: HttpsThingy? = null
+    private var httpSocketOpener: HttpThingy? = null
 
     var inputReader: InputPipeReader? = null
+
 
     fun start() {
         //setup pipes
@@ -170,9 +173,13 @@ constructor(private val config: ServerConfig) {
         binarySocketOpener = BinarySocketOpener(config.transferPort, this, fileRepository)
         execute(binarySocketOpener!!)
 
-        config.httpPort?.let {
+        config.httpsPort?.let {
             httpsSocketOpener = HttpsThingy(it, this, fileRepository)
-            httpsSocketOpener.start()
+            httpsSocketOpener?.start()
+        }
+        config.httpPort?.let {
+            httpSocketOpener = HttpThingy(it, this)
+            httpSocketOpener?.start()
         }
 
         Lok.debug("I am up!")
@@ -183,6 +190,7 @@ constructor(private val config: ServerConfig) {
         executorService!!.shutdown()
         binarySocketOpener!!.onShutDown()
         httpsSocketOpener?.stop()
+        httpSocketOpener?.stop()
         N.r { binarySocketOpener!!.onShutDown() }
         N.r { encSocketOpener!!.onShutDown() }
         if (config.pipes) {
@@ -198,9 +206,24 @@ constructor(private val config: ServerConfig) {
     }
 
     fun reboot(serverDir: File, serverJar: File) {
-        httpsSocketOpener?.stop()
+
         Lok.debug("starting server jar ${serverJar.absolutePath}")
-        Processor("java", "-jar", serverJar.absolutePath, "-http", "-dir", serverDir.absolutePath, "&", "detach").run(false)
+        val commands = mutableListOf<String>()
+        commands.addAll(listOf("java", "-jar", serverJar.absolutePath, "-dir", serverDir.absolutePath))
+        if (httpSocketOpener != null) {
+            httpSocketOpener?.stop()
+            commands.add("-http")
+            if (config.httpPort != null)
+                commands.add(config.httpPort.toString())
+        }
+        if (httpsSocketOpener != null) {
+            httpsSocketOpener?.stop()
+            commands.add("-https")
+            if (config.httpsPort != null)
+                commands.add(config.httpsPort.toString())
+        }
+        commands.addAll(listOf("&", "detach"))
+        Processor(*commands.toTypedArray()).run(false)
         Lok.debug("command succeeded")
         Lok.debug("done")
         exitProcess(0)
@@ -215,15 +238,6 @@ constructor(private val config: ServerConfig) {
 
         @JvmStatic
         fun main(arguments: Array<String>) {
-
-//            Processor.runProcesses("copying",
-//                    Processor("/bin/sh", "-c",  "cp \"/home/xor/Documents/dev/IdeaProjects/drive/miniserver/build/libs/\"* \"/home/xor/Documents/dev/IdeaProjects/drive/miniserver/server\""))
-
-
-//            Processor.runProcesses("copying",
-//                    Processor("bash", "-c", "cp", "home/xor/Documents/dev/IdeaProjects/drive/miniserver/build/libs/*", "/home/xor/Documents/dev/IdeaProjects/drive/miniserver/server"))
-
-
             Lok.setLokImpl(LokImpl().setup(30, true))
             val konsole = Konsole(ServerConfig())
             konsole.optional("-create-cert", "name of the certificate", { result, args -> result.certName = args[0] }, Konsole.dependsOn("-pubkey", "-privkey"))
@@ -233,7 +247,8 @@ constructor(private val config: ServerConfig) {
                     .optional("-dir", "path to working directory. defaults to 'server'") { result, args -> result.workingPath = args[0] }
                     .optional("-auth", "port the authentication service listens on. defaults to ${ServerConfig.DEFAULT_AUTH}.") { result, args -> result.authPort = args[0].toInt() }
                     .optional("-ft", "port the file transfer listens on. defaults to ${ServerConfig.DEFAULT_TRANSFER}.") { result, args -> result.transferPort = args[0].toInt() }
-                    .optional("-http", "starts the http server. specifies the port it listens on.") { result, args -> result.httpPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTP }
+                    .optional("-http", "switches on http. optionally specifies the port. defaults to ${ServerConfig.DEFAULT_HTTP}") { result, args -> result.httpPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTP }
+                    .optional("-https", "switches on https. optionally specifies the port. defaults to ${ServerConfig.DEFAULT_HTTPS}") { result, args -> result.httpsPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTPS }
                     .optional("-pipes-off", "disables pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = false }
                     .optional("-keysize", "key length for certificate creation. defaults to 2048") { result, args -> result.keySize = args[0].toInt() }
 

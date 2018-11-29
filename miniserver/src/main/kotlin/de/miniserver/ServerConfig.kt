@@ -15,6 +15,7 @@ class ServerConfig : KResult {
     var privKeyPath: String? = null
     private val files = HashMap<String, Pair<String>>()
     var httpPort: Int? = null
+    var httpsPort: Int? = null
     var authPort: Int = DEFAULT_AUTH
     var transferPort: Int = DEFAULT_TRANSFER
     var pipes: Boolean = true
@@ -36,6 +37,7 @@ class ServerConfig : KResult {
         val DEFAULT_WORKING_DIR = File("server")
         val DEFAULT_AUTH: Int = MeinAuthSettings.UPDATE_MSG_PORT
         const val DEFAULT_TRANSFER: Int = MeinAuthSettings.UPDATE_BINARY_PORT
-        const val DEFAULT_HTTP: Int = 8450
+        const val DEFAULT_HTTP: Int = 8080
+        const val DEFAULT_HTTPS: Int = 8443
     }
 }

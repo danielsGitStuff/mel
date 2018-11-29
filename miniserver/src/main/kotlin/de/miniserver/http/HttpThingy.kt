@@ -4,9 +4,7 @@ import com.sun.net.httpserver.HttpServer
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
-import de.mein.auth.tools.N
 import de.miniserver.MiniServer
-import de.miniserver.data.FileRepository
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.*
@@ -15,7 +13,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 
 
-class HttpThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : DeferredRunnable() {
+class HttpThingy(private val port: Int, private val miniServer: MiniServer) : DeferredRunnable() {
     override fun onShutDown() {
 
     }
@@ -49,69 +47,30 @@ class HttpThingy(private val port: Int, private val miniServer: MiniServer, priv
 
     private lateinit var pageBytes: ByteArray
 
-    private fun parseIndexHtml(): ByteArray? {
-        val regex = "<\\\$=\\D+[\\w]*\\/>".toRegex()
-        val resourceBytes = javaClass.getResourceAsStream("/de/miniserver/index.html").readBytes()
-        val html = String(resourceBytes)
-        if (!html.contains(regex)) {
-            throw Exception("did not find '<$=files/>' tag to replace with file content")
-        }
-        val s = StringBuilder()
-        miniServer.fileRepository.hashFileMap.entries.forEach {
-            s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
-        }
-        val filesHtml = html.replace(regex, s.toString())
-        return filesHtml.toByteArray()
-    }
 
     fun start() {
-        val indexBytes = parseIndexHtml()
         Lok.debug("binding http to           : $port")
         server = HttpServer.create(InetSocketAddress(port), 0)
         Lok.debug("successfully bound http to: $port")
         // create the index page context
         server.createContext("/") {
+            val enteredHost = it.requestHeaders.getFirst("Host")
+            it.responseHeaders.add("Location", "https://$enteredHost")
             with(it) {
-                Lok.debug("sending index to ${remoteAddress}")
-                sendResponseHeaders(200, indexBytes!!.size.toLong())
-                responseBody.write(indexBytes)
+                Lok.debug("sending index to $remoteAddress")
+                val content = "???"
+                sendResponseHeaders(301, -1)
+                responseBody.write(content.toByteArray())
                 responseBody.close()
             }
-        }
-        // add files context
-        server.createContext("/files/") {
-            val uri = it.requestURI
-            val hash = uri.path.substring("/files/".length, uri.path.length)
-            Lok.debug("serving file: ${hash}")
-            try {
-                val bytes = miniServer.fileRepository.getBytes(hash)
-                with(it) {
-                    sendResponseHeaders(200, bytes.size.toLong())
-                    responseBody.write(bytes)
-                    responseBody.close()
-                }
-            } catch (e: Exception) {
-                Lok.debug("did not find a file for ${hash}")
-                /**
-                 * does not work yet
-                 */
-                with(it) {
-                    val response = "file not found".toByteArray()
-                    sendResponseHeaders(404, response.size.toLong())
-                    responseBody.write(response)
-                    responseBody.close()
-                }
-            }
-
         }
         server.executor = executor
         server.start()
         Lok.debug("http is up")
-        N.r {
-
-
-        }
     }
 
+    fun stop() {
+        server.stop(0)
+    }
 
 }
