@@ -1,4 +1,3 @@
-
 //plugins {
 //    id 'java'
 //}
@@ -18,6 +17,11 @@ repositories {
 sourceSets {
     main.java.srcDirs += 'src/main/kotlin/'
     test.java.srcDirs += 'src/test/kotlin/'
+    main {
+        resources {
+            srcDir "${project(':auth').projectDir}/src/main/resources"
+        }
+    }
 }
 dependencies {
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
@@ -40,7 +44,7 @@ task buildServerJar(type: Jar) {
     }
     dependsOn jar
 
-    
+
     List paths = configurations.compile.collect { entry ->
         println(entry.getAbsolutePath())
         if (entry.isDirectory())
@@ -48,7 +52,7 @@ task buildServerJar(type: Jar) {
         else
             zipTree(entry)
     }
-    from(paths){
+    from(paths) {
         exclude 'META-INF/MANIFEST.MF'
         exclude 'META-INF/*.SF'
         exclude 'META-INF/*.DSA'

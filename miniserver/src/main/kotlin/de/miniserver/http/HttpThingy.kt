@@ -13,7 +13,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 
 
-class HttpThingy(private val port: Int, private val miniServer: MiniServer) : DeferredRunnable() {
+class HttpThingy(private val port: Int) : DeferredRunnable() {
     override fun onShutDown() {
 
     }

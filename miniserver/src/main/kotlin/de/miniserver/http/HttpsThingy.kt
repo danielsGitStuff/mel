@@ -101,9 +101,9 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         val pageBuild = pageProcessor.load("/de/miniserver/build.html")
         val favicon = javaClass.getResourceAsStream("/de/miniserver/favicon.png").readBytes()
 
-        Lok.debug("binding http to           : $port")
+        Lok.debug("binding https to           : $port")
         server = createServer()
-        Lok.debug("successfully bound http to: $port")
+        Lok.debug("successfully bound https to: $port")
         server.createContext("/") {
             answerPage(it, pageIndexLogin)
         }

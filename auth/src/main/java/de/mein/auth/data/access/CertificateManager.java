@@ -218,9 +218,9 @@ public class CertificateManager extends FileRelatedManager {
             KeyFactory kf = KeyFactory.getInstance("RSA");
             PKCS8EncodedKeySpec privSpec = new PKCS8EncodedKeySpec(privkeyBytes);
             X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(pubkeyBytes);
-            privateKey = kf.generatePrivate(privSpec);
-            publicKey = kf.generatePublic(pubSpec);
             certificate = loadX509CertificateFromBytes(certBytes);
+            privateKey = kf.generatePrivate(privSpec);
+            publicKey = certificate.getPublicKey();
             String hash = Hash.sha256(certBytes);
             Lok.debug("loaded own certificate with SHA-256 " + hash);
             return true;

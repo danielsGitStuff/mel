@@ -55,6 +55,8 @@ constructor(private val config: ServerConfig) {
     internal val fileRepository: FileRepository
     private var encSocketOpener: EncSocketOpener? = null
     private var binarySocketOpener: BinarySocketOpener? = null
+    private var httpsSocketOpener: HttpsThingy? = null
+    private var httpSocketOpener: HttpThingy? = null
 
     val certificate: X509Certificate
         get() = socketCertificateManager.myX509Certificate
@@ -155,8 +157,7 @@ constructor(private val config: ServerConfig) {
         }
     }
 
-    private var httpsSocketOpener: HttpsThingy? = null
-    private var httpSocketOpener: HttpThingy? = null
+
 
     var inputReader: InputPipeReader? = null
 
@@ -178,7 +179,7 @@ constructor(private val config: ServerConfig) {
             httpsSocketOpener?.start()
         }
         config.httpPort?.let {
-            httpSocketOpener = HttpThingy(it, this)
+            httpSocketOpener = HttpThingy(it)
             httpSocketOpener?.start()
         }
 
