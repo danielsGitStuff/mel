@@ -1,14 +1,18 @@
 <html>
   <head>
+    <link rel="shortcut icon" type="image/png" href="/favicon.png"/>
     <title>Yast</title>
-    <meta content="">
+    <meta content="" charset="UTF-8">
     <style></style>
-    <link rel="stylesheet" type="text/css" href="css.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="/css.css" media="screen" />
 
   </head>
   <body>
   <input name="pw" value="<$=pw/>" hidden>
   <h1>Folgende Dateien sind vorhanden (Dateiname + SHA-256):</h1>
   <$=files/>
+  Die .apk-Datei ist f&uuml;r Android. Lade sie herunter und installiere sie.<br>
+  Die .jar-Datei f&uuml;r PCs und Laptops mit Java 8.<br>
+  Die Jar-Datei wird wie alle jars im Terminal gestartet: java -jar fxbundle-1.0.jar
   </body>
 </html>
