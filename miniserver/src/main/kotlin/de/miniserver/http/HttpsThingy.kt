@@ -70,7 +70,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
     fun start() {
         fun pageHello(pw: String): Page {
-            return pageProcessor.load("/de/miniserver/normal/hello.html",
+            return pageProcessor.load("/de/miniserver/hello.html",
                     Replacer("pw", pw),
                     Replacer("files") {
                         val s = StringBuilder()
@@ -113,6 +113,31 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 sendResponseHeaders(200, favicon.size.toLong() )
                 responseBody.write(favicon)
                 responseBody.close()
+                responseHeaders
+            }
+        }
+        server.createContext("/mel.svg"){
+            with(it) {
+                de.mein.Lok.debug("sending big icon to $remoteAddress")
+                val svg = pageProcessor.load("/de/miniserver/mel.svg")
+                sendResponseHeaders(200, svg.bytes.size.toLong())
+                responseBody.write(svg.bytes)
+                responseBody.close()
+                val kk = String(svg.bytes)
+                de.mein.Lok.debug("sent mel to $remoteAddress")
+
+                responseHeaders
+            }
+        }
+        server.createContext("/schema.svg"){
+            with(it) {
+                de.mein.Lok.debug("sending schema svg to $remoteAddress")
+                val svg = pageProcessor.load("/de/miniserver/schema.svg")
+                sendResponseHeaders(200, svg.bytes.size.toLong())
+                responseBody.write(svg.bytes)
+                responseBody.close()
+                de.mein.Lok.debug("sent schema svg to $remoteAddress")
+
                 responseHeaders
             }
         }

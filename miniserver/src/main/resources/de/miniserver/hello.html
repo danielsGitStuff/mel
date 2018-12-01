@@ -1,0 +1,151 @@
+<html>
+<head>
+    <link rel="shortcut icon" type="image/png" href="favicon.png"/>
+    <title>Mel</title>
+    <meta content="" charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="css.css" media="screen"/>
+
+    <style>
+        .mel {
+            color: #57bf40;
+        }
+
+        .bright {
+            color: white;
+        }
+
+        .centerdiv {
+            /*margin: 1rem 3em;*/
+            /*color: #AAAAAA;*/
+
+            position: absolute;
+            /*top: 50%;*/
+            left: 50%;
+            margin-right: -50%;
+            transform: translate(-50%, 0%)
+        }
+
+        .intro {
+            font-size: 4em;
+        }
+
+        .smintro {
+            font-size: 2em;
+            margin-bottom: 1em;
+            margin-top: 1em;
+        }
+
+        .text {
+            font-size: 1.6em;
+            margin-bottom: 1em;
+            margin-top: 1em;
+        }
+
+        .back1 {
+            background-image: linear-gradient(#161618, black);
+            width: 100%;
+            padding-top: 2em;
+            padding-bottom: 2em;
+        }
+
+        .content {
+            width: 70%;
+            padding-top: 2em;
+            padding-bottom: 2em;
+            display: inline-block;
+
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        #btnToDownload {
+            margin-top: 2em;
+            font-size: 1.5em;
+            outline-width: 0;
+        }
+    </style>
+
+</head>
+<body>
+<input name="pw" value="<$=pw/>" hidden>
+<div>
+    <div class="back1 center" style="margin-bottom: 2em; alignment: center">
+        <div class="content ">
+            <img src="mel.svg" style="width: 16em; margin: 3em 1em;"><br>
+            <span class="intro">Das hier ist Me<span class="mel">l</span>!</span><br>
+            <span class="smintro">Mel synchronisiert Dateien und Kontakte deines Telefons zu einem anderen. Oder zu einem Computer. Leise im Hintergrund.</span><br>
+            <a href="#linkDownload">
+                <button id="btnToDownload">Download</button>
+            </a>
+        </div>
+    </div>
+    <div class="back1 center" style="alignment: center">
+        <div class="content" style="text-align: start">
+            <h2>Wer/Was ist Mel?</h2>
+            <span class="text">
+            Stell dir vor, du verlierst dein Telefon und hast deine Fotos nicht gesichert. Hättest du doch nur vorgesorgt!
+            Regelmäßig die Dateien vom Telefon zu kopieren, wird schnell anstrengend und du möchtest kein Geld für Wolkenspeicher ausgeben,
+            oder du bis der Auffassung, dass deine Daten ausscließlich auf deiner Hardware residieren sollen. Es gibt Lösungen dafür.</span><br><br><br>
+            <span class="text">Die Heim-Wolken-Lösungen benötigen einen ständig laufenden PC, sind aufwändig zu installieren und konfigurieren.
+                Mel begnügt sich auch mit einem älteren Androidtelefon als Server. Es kommt ohne Abhängigkeiten zu Webservern oder PHP.
+            </span><br><br>
+            <span class="text">Wenn du nachts dein Telefon an das Ladegerät steckst, beginnt Mel mit der Arbeit.
+            Es synchronisiert alle Dateien mit deinem Server. Alle verbundenen Geräte werden auf den selben Stand gebracht.
+            </span><br>
+            <div style="text-align: center; margin-top: 4em">
+                <img src="schema.svg" style="width: 32em">
+            </div>
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content" style="text-align: center">
+            <h2 style="text-align: end" >Was ist mit der Sicherheit?</h2>
+            <span class="text">
+            Mel baut grundsätzlich nur verschlüsselte Verbindungen auf. Es nutzt SSL aus der Java-Runtime. Mel sendet keinerlei Daten an irgendwen.</span><br><br><br>
+            <span class="text">Um deine anderen Geräte in deinem Netzwerk zu finden, startet Mel einen Broadcast, der von allen Geräten im Netzwerk empfangen wird.
+                Dieser enthält ausschließlich die Information, dass es sich um eine Mel-Instanz handelt und auf welchen Ports sie kommuniziert.
+            </span><br><br>
+            <span class="text">Du kannst in den Einstellungen nach Updates suche, die Mel in Zukunft mit mehr Funktionen ausstattet. Dabei wird lediglich eine Anfrage an den Updateserver geschickt.
+                Diese enthält keine Informationen über dich. (Um genau zu sein, lautet sie immer "v?")
+            </span><br>
+            <!--<div style="text-align: center">-->
+            <!--<img src="schema.svg" style="width: 32em">-->
+            <!--</div>-->
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content" >
+            <h2 >Ist es Open-Source?</h2>
+            <span class="text">
+            Noch nicht. Dann aber schon.</span><br><br><br>
+            <span class="text">Mel ist nun seit mehreren Jahren in Entwicklung.
+                Zwischendurch traten Probleme verschiedenster Natur auf, die von einer Bachelorarbeit, einer fälschlicherweise angenommenen Funktionsweise des Androidtelefonbuchs,
+                oder verbesserungswürdigen Softwaredesignentscheidungen von Android reichen. Der Code ist deswegen an einigen Stellen etwas umständlich geraten.
+            </span><br><br>
+            <span class="text">In der nächsten Zeit bereinige ich den Code und stelle ihn auf einer angemessenen Plattform zu Verfügung.
+            </span><br>
+            <!--<div style="text-align: center">-->
+            <!--<img src="schema.svg" style="width: 32em">-->
+            <!--</div>-->
+        </div>
+    </div>
+
+    <div class="back1 center">
+        <div class="content" style="text-align: start">
+            <a style="color: unset" id="linkDownload"><h1>Download</h1></a>
+            <span class="text">Folgende Dateien sind vorhanden (Dateiname + SHA-256):</span><br><br>
+            <$=files/>
+            <br>
+            <br>
+            Die .apk-Datei ist f&uuml;r Android. Lade sie herunter und installiere sie.<br>
+            Die .jar-Datei f&uuml;r PCs und Laptops mit Java 8.<br>
+            Die Jar-Datei wird wie alle jars im Terminal gestartet: java -jar fxbundle-1.0.jar
+        </div>
+    </div>
+</div>
+</body>
+</html>
