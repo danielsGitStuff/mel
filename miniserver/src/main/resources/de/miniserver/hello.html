@@ -19,7 +19,7 @@
 <div>
     <div class="back1 center" style="margin-bottom: 2em; alignment: center">
         <div class="content ">
-            <img src="mel.svg" style="width: 16em; margin: 3em 1em;"><br>
+            <img src="svg/mel.svg" style="width: 16em; margin: 3em 1em;"><br>
 
 
             <span class="intro">Das hier ist Me<span class="mel">l</span>!</span><br>
@@ -43,7 +43,7 @@
             Es synchronisiert alle Dateien mit deinem Server. Alle verbundenen Geräte werden auf den selben Stand gebracht.
             </span><br>
             <div style="text-align: center; margin-top: 4em">
-                <img src="schema.svg" style="width: 32em">
+                <img src="/svg/schema.svg" style="width: 32em">
             </div>
         </div>
     </div>
@@ -85,8 +85,18 @@
                 Die "Jar"-Variante benötigst du für einen PC/Laptop.</span><br><br>
             Hinweis: um es auf dem PC zu starten, benötigst du Java8. Gebe "java -jar fxbundle-1.0.jar" ins Termninal
             ein.<br><br>
-            <span class="text">Wie du es konfigurieren kannst siehst du <a href="/insandroid.html">hier, für Android</a>
-                oder <a href="/inspc.html">hier, für den PC.</a>
+            <span class="text">Wie du es installieren und konfigurieren kannst siehst du
+                <a href="#" onclick="document.getElementById('formToAndroid').submit();">hier, für Android</a> oder <a href="#" onclick="document.getElementById('formToPc').submit();">hier, für den PC.</a>
+                <form method="post" target="_self" id="formToAndroid" hidden>
+                    <input name="pw" value="<$=pw/>" hidden>
+                    <input name="target" value="logandroid.html" hidden>
+                    </form>
+
+                <form method="post" target="_self" id="formToPc" hidden>
+                    <input name="pw" value="<$=pw/>" hidden>
+                    <input name="target" value="logpc.html" hidden></form>
+
+
             </span><br>
         </div>
     </div>

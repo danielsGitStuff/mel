@@ -42,8 +42,8 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         init();
-        F.rmRf(MeinBoot.defaultWorkingDir1);
-        F.rmRf(MeinAuthSettings.DEFAULT_FILE);
+//        F.rmRf(MeinBoot.defaultWorkingDir1);
+//        F.rmRf(MeinAuthSettings.DEFAULT_FILE);
         RWLock lock = new RWLock();
         lock.lockWrite();
         MeinAuthSettings meinAuthSettings = AuthKonsoleReader.readKonsole(MeinStrings.update.VARIANT_FX, args);
