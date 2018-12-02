@@ -4,6 +4,13 @@ compileJava {
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
 }
+sourceSets {
+    main {
+        resources {
+            srcDir "${project(':drive').projectDir}/src/main/resources"
+        }
+    }
+}
 dependencies {
     compile project(path: ':drive')
     testCompile project(path: ':drive',configuration :'driveTestOutput')

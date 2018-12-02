@@ -19,7 +19,8 @@ sourceSets {
     test.java.srcDirs += 'src/test/kotlin/'
     main {
         resources {
-            srcDir "${project(':auth').projectDir}/src/main/resources"
+            srcDir "${project(':drivefx').projectDir}/src/main/resources"
+            srcDir "${project(':contactsfx').projectDir}/src/main/resources"
         }
     }
 }

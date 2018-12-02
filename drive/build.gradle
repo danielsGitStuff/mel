@@ -9,6 +9,13 @@ compileJava {
 configurations{
     driveTestOutput
 }
+sourceSets {
+    main {
+        resources {
+            srcDir "${project(':auth').projectDir}/src/main/resources"
+        }
+    }
+}
 dependencies {
     driveTestOutput sourceSets.test.output
     compile project(path: ':auth')

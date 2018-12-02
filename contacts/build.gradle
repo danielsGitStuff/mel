@@ -1,5 +1,12 @@
 apply plugin: 'java'
 
+sourceSets {
+    main {
+        resources {
+            srcDir "${project(':auth').projectDir}/src/main/resources"
+        }
+    }
+}
 dependencies {
     compile project(path: ':auth')
     testCompile project(path: ':auth')

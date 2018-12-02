@@ -1,5 +1,11 @@
 apply plugin: 'java'
-
+sourceSets {
+    main {
+        resources {
+            srcDir "${project(':contacts').projectDir}/src/main/resources"
+        }
+    }
+}
 dependencies {
     compile project(path: ':contacts')
     compile project(path: ':authfx')
