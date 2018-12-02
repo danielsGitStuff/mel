@@ -2,19 +2,33 @@ package de.miniserver.http
 
 import de.mein.Lok
 
-class Page(val path: String, val bytes: ByteArray) {
 
-}
+class Page {
+    companion object {
+        val pageRepo = hashMapOf<String, Page>()
+    }
 
-class Replacer(val test: (String) -> Boolean, val replace: (String) -> String) {
-    constructor(matchString: String, replace: (String) -> String) : this({ s: String -> matchString == s }, replace)
-    constructor(matchString: String, replace: String) : this({ s: String -> matchString == s }, { replace })
-}
+    var path: String
+        private set
+    var bytes: ByteArray
+        private set
 
-class PageProcessor {
-    val replaceTagRegex = "<\\\$=[a-zA-Z]+[\\w]*\\/>".toRegex()
+    private val replaceTagRegex = "<\\\$=[a-zA-Z]+[\\w]*\\/>".toRegex()
 
-    fun load(path: String, vararg replacers: Replacer): Page {
+    constructor(path: String, bytes: ByteArray, cache:Boolean = false) {
+        this.path = path
+        this.bytes = bytes
+        if (cache)
+            pageRepo[path] = this
+    }
+
+
+    constructor(path: String, vararg replacers: Replacer) {
+        if (pageRepo.containsKey(path) && replacers.isEmpty()) {
+            this.path = path
+            this.bytes = pageRepo[path]!!.bytes
+            return
+        }
         Lok.debug("loading $path")
         val resourceBytes = javaClass.getResourceAsStream(path).readBytes()
         var html = String(resourceBytes)
@@ -26,21 +40,15 @@ class PageProcessor {
                 html = html.replace(replacementRegex, it.replace(""))
             }
         }
-        return Page(path, html.toByteArray())
+        this.path = path
+        this.bytes = html.toByteArray()
+        if (!pageRepo.containsKey(path) && replacers.isEmpty()) {
+            pageRepo[path] = this
+        }
     }
+}
 
-//    private fun parseIndexHtml(): ByteArray? {
-//        val regex = "<\\\$=\\D+[\\w]*\\/>".toRegex()
-//        val resourceBytes = javaClass.getResourceAsStream("/de/miniserver/index.html").readBytes()
-//        val html = String(resourceBytes)
-//        if (!html.contains(regex)) {
-//            throw Exception("did not find '<$=files/>' tag to replace with file content")
-//        }
-//        val s = StringBuilder()
-//        miniServer.fileRepository.hashFileMap.entries.forEach {
-//            s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
-//        }
-//        val filesHtml = html.replace(regex, s.toString())
-//        return filesHtml.toByteArray()
-//    }
+class Replacer(val test: (String) -> Boolean, val replace: (String) -> String) {
+    constructor(matchString: String, replace: (String) -> String) : this({ s: String -> matchString == s }, replace)
+    constructor(matchString: String, replace: String) : this({ s: String -> matchString == s }, { replace })
 }

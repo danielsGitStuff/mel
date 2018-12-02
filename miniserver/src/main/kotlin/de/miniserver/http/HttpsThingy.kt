@@ -22,6 +22,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 import javax.net.ssl.SSLContext
 
+object ContentType {
+    const val SVG = "image/svg+xml"
+}
 
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : DeferredRunnable() {
     override fun onShutDown() {
@@ -38,7 +41,6 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     private lateinit var serverSocket: ServerSocket
     private val threadSemaphore = Semaphore(1, true)
     private val threadQueue = LinkedList<MeinThread>()
-    val pageProcessor = PageProcessor()
 
     private lateinit var server: HttpsServer
     private val threadFactory = { r: Runnable ->
@@ -70,7 +72,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
     fun start() {
         fun pageHello(pw: String): Page {
-            return pageProcessor.load("/de/miniserver/hello.html",
+            return Page("/de/miniserver/hello.html",
                     Replacer("pw", pw),
                     Replacer("files") {
                         val s = StringBuilder()
@@ -83,7 +85,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         }
 
         fun pageBuild(pw: String): Page {
-            return pageProcessor.load("/de/miniserver/build.html",
+            return Page("/de/miniserver/build.html",
                     Replacer("pw", pw),
                     Replacer("time", miniServer.startTime.toString()),
                     Replacer("lok") {
@@ -96,49 +98,55 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     })
         }
 
-        val css = pageProcessor.load("/de/miniserver/css.css")
-        val pageIndexLogin = pageProcessor.load("/de/miniserver/index.html")
-        val pageBuild = pageProcessor.load("/de/miniserver/build.html")
-        val favicon = javaClass.getResourceAsStream("/de/miniserver/favicon.png").readBytes()
+        fun respondBinary(ex: HttpExchange, path: String, contentType: String? = null, cache: Boolean = false) {
+            with(ex) {
+                de.mein.Lok.debug("sending $path to $remoteAddress")
+                if (contentType != null)
+                    responseHeaders.add("Content-Type", contentType)
+                val page: Page
+                page = if (Page.pageRepo[path] == null) {
+                    val bytes = javaClass.getResourceAsStream(path).readBytes()
+                    Page(path, bytes, cache = cache)
+                } else {
+                    Page.pageRepo[path]!!
+                }
+                sendResponseHeaders(200, page.bytes.size.toLong())
+                responseBody.write(page.bytes)
+                responseBody.close()
+                responseHeaders
+            }
+        }
+
+
+        fun respondText(ex: HttpExchange, path: String, contentType: String? = null, vararg replacers: Replacer) {
+            with(ex) {
+                de.mein.Lok.debug("sending $path to $remoteAddress")
+                if (contentType != null)
+                    responseHeaders.add("Content-Type", contentType)
+                val page = Page(path, *replacers)
+                sendResponseHeaders(200, page.bytes.size.toLong())
+                responseBody.write(page.bytes)
+                responseBody.close()
+                responseHeaders
+            }
+        }
+
+
 
         Lok.debug("binding https to           : $port")
         server = createServer()
         Lok.debug("successfully bound https to: $port")
         server.createContext("/") {
-            answerPage(it, pageIndexLogin)
+            respondText(it, "/de/miniserver/index.html")
         }
-        server.createContext("/favicon.png"){
-            with(it) {
-                de.mein.Lok.debug("sending favicon to $remoteAddress")
-                sendResponseHeaders(200, favicon.size.toLong() )
-                responseBody.write(favicon)
-                responseBody.close()
-                responseHeaders
-            }
+        server.createContext("/favicon.png") {
+            respondBinary(it, "/de/miniserver/favicon.png")
         }
-        server.createContext("/mel.svg"){
-            with(it) {
-                de.mein.Lok.debug("sending big icon to $remoteAddress")
-                responseHeaders.add("Content-Type","image/svg+xml")
-                val svg = pageProcessor.load("/de/miniserver/mel.svg")
-                sendResponseHeaders(200, svg.bytes.size.toLong())
-                responseBody.write(svg.bytes)
-                responseBody.close()
-                responseHeaders
-            }
+        server.createContext("/mel.svg") {
+            respondText(it, "/de/miniserver/mel.svg", contentType = ContentType.SVG)
         }
-        server.createContext("/schema.svg"){
-            with(it) {
-                de.mein.Lok.debug("sending schema svg to $remoteAddress")
-                val svg = pageProcessor.load("/de/miniserver/schema.svg")
-                responseHeaders.add("Content-Type","image/svg+xml")
-                sendResponseHeaders(200, svg.bytes.size.toLong())
-                responseBody.write(svg.bytes)
-                responseBody.close()
-                de.mein.Lok.debug("sent schema svg to $remoteAddress")
-
-                responseHeaders
-            }
+        server.createContext("/schema.svg") {
+            respondText(it, "/de/miniserver/schema.svg", contentType = ContentType.SVG)
         }
         server.createContext("/api/") {
             val json = String(it.requestBody.readBytes())
@@ -153,24 +161,23 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 Lok.debug("build denied")
         }
         server.createContext("/css.css") {
-            Lok.debug("CSS")
-            answerPage(it, css)
+            respondText(it, "/de/miniserver/css.css")
         }
         server.createContext("/loggedIn") {
             if (it.requestMethod == "POST") {
 
                 val pw = readPostValue(it, "pw")
                 when (pw) {
-                    null -> answerPage(it, pageIndexLogin)
-                    miniServer.secretProperties["password"] -> answerPage(it, pageHello(pw))
+                    null -> respondText(it, "/de/miniserver/index.html")
+                    miniServer.secretProperties["password"] -> respondPage(it, pageHello(pw))
                     miniServer.secretProperties["buildpassword"] -> {
-                        answerPage(it, pageBuild(pw))
+                        respondPage(it, pageBuild(pw))
                     }
-                    else -> answerPage(it, pageIndexLogin)
+                    else -> respondText(it, "/de/miniserver/index.html")
                 }
                 Lok.debug("k")
             } else
-                answerPage(it, pageIndexLogin)
+                respondText(it, "/de/miniserver/index.html")
         }
         server.createContext("/build.html") {
             val pw = readPostValue(it, "pw")
@@ -179,18 +186,18 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 val command = uri.path.substring("/build.html".length, uri.path.length).trim()
                 when (command) {
                     "shutDown" -> {
-                        answerPage(it, pageProcessor.load("/de/miniserver/farewell.html"))
+                        respondText(it, "/de/miniserver/farewell.html")
                         miniServer.shutdown()
                     }
                     "reboot" -> {
-                        answerPage(it, pageProcessor.load("/de/miniserver/farewell.html"))
+                        respondText(it, "/de/miniserver/farewell.html")
                         val jarFile = File(miniServer.workingDirectory, "miniserver.jar")
                         miniServer.reboot(miniServer.workingDirectory, jarFile)
                     }
                 }
-                answerPage(it, pageBuild(pw!!))
+                respondPage(it, pageBuild(pw!!))
             } else {
-                answerPage(it, pageIndexLogin)
+                respondText(it, "/de/miniserver/index.html")
             }
         }
 
@@ -226,7 +233,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         Lok.debug("http is up")
     }
 
-    private fun answerPage(ex: HttpExchange, page: Page?) {
+    private fun respondPage(ex: HttpExchange, page: Page?) {
         with(ex) {
             Lok.debug("sending '${page?.path}' to $remoteAddress")
             sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
