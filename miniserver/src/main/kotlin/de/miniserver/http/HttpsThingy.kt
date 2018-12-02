@@ -119,13 +119,11 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/mel.svg"){
             with(it) {
                 de.mein.Lok.debug("sending big icon to $remoteAddress")
+                responseHeaders.add("Content-Type","image/svg+xml")
                 val svg = pageProcessor.load("/de/miniserver/mel.svg")
                 sendResponseHeaders(200, svg.bytes.size.toLong())
                 responseBody.write(svg.bytes)
                 responseBody.close()
-                val kk = String(svg.bytes)
-                de.mein.Lok.debug("sent mel to $remoteAddress")
-
                 responseHeaders
             }
         }
@@ -133,6 +131,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             with(it) {
                 de.mein.Lok.debug("sending schema svg to $remoteAddress")
                 val svg = pageProcessor.load("/de/miniserver/schema.svg")
+                responseHeaders.add("Content-Type","image/svg+xml")
                 sendResponseHeaders(200, svg.bytes.size.toLong())
                 responseBody.write(svg.bytes)
                 responseBody.close()
