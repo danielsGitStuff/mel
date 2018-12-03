@@ -150,16 +150,13 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/svg/") {
             val uri = it.requestURI
             val fileName = uri.path.substring("/svg/".length, uri.path.length)
-            respondText(it, "/de/miniserver/svg/$fileName", contentType = ContentType.SVG)
+            if (fileName.endsWith(".svg"))
+                respondText(it, "/de/miniserver/svg/$fileName", contentType = ContentType.SVG)
+            else
+                respondText(it, "/de/miniserver/index.html")
         }
         server.createContext("/favicon.png") {
             respondBinary(it, "/de/miniserver/favicon.png")
-        }
-        server.createContext("/mel.svg") {
-            respondText(it, "/de/miniserver/svg/mel.svg", contentType = ContentType.SVG)
-        }
-        server.createContext("/schema.svg") {
-            respondText(it, "/de/miniserver/svg/schema.svg", contentType = ContentType.SVG)
         }
         server.createContext("/api/") {
             val json = String(it.requestBody.readBytes())
