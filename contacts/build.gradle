@@ -3,7 +3,7 @@ apply plugin: 'java'
 sourceSets {
     main {
         resources {
-            srcDir "${project(':auth').projectDir}/src/main/resources"
+            //srcDir "${project(':auth').projectDir}/src/main/resources"
         }
     }
 }
