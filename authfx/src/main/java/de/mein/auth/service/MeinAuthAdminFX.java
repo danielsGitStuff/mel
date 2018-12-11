@@ -40,11 +40,11 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.Set;
 
 /**
  * Created by xor on 6/25/16.
@@ -385,7 +385,13 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                     try {
                         Lok.debug("MeinAuthAdminFX.load...");
                         FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
-                        ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/fxui", new Locale("en", "En"));
+
+                        ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/FxUi", new ResourceBundle.Control() {
+                            @Override
+                            public List<Locale> getCandidateLocales(String name, Locale locale) {
+                                return Collections.singletonList(Locale.ROOT);
+                            }
+                        });
                         loader.setResources(resourceBundle);
                         HBox root = null;
                         root = loader.load();
@@ -397,7 +403,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                         scene.getStylesheets().add(MeinAuthAdmin.class.getResource(GLOBAL_STYLE_CSS).toExternalForm());
 
                         Stage stage = createStage(scene);
-                        stage.setTitle(resourceBundle.getString("window_title") + " '" + meinAuthService.getName() + "'");
+                        stage.setTitle(resourceBundle.getString("windowTitle") + " '" + meinAuthService.getName() + "'");
                         stage.show();
                         stage.setOnCloseRequest(event -> {
                             meinAuthAdminFXES[0].shutDown();
