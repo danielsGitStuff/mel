@@ -22,12 +22,13 @@ public class DriveSettings extends JsonSettings {
     private RootDirectory rootDirectory;
     private String role = ":(";
     private Long lastSyncedVersion = 0l;
-    private de.mein.drive.data.DriveClientSettingsDetails clientSettings;
-    private de.mein.drive.data.DriveServerSettingsDetails serverSettings;
+    private DriveClientSettingsDetails clientSettings;
+    private DriveServerSettingsDetails serverSettings;
     private String transferDirectoryPath;
     private Long maxWastebinSize;
     private Long maxAge = 30L;
     private AFile transferDirectory;
+    private boolean fastIndex;
 
     public static RootDirectory buildRootDirectory(AFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
         RootDirectory rootDirectory = new RootDirectory().setPath(rootFile.getAbsolutePath());
@@ -72,6 +73,15 @@ public class DriveSettings extends JsonSettings {
 
     }
 
+    public DriveSettings setFastIndex(boolean fastIndex) {
+        this.fastIndex = fastIndex;
+        return this;
+    }
+
+    public boolean getFastIndex() {
+        return fastIndex;
+    }
+
     public interface DevRootDirInjector {
         File getRootDir(File jsonFile);
     }
@@ -82,18 +92,18 @@ public class DriveSettings extends JsonSettings {
 
     }
 
-    public de.mein.drive.data.DriveClientSettingsDetails getClientSettings() {
+    public DriveClientSettingsDetails getClientSettings() {
         return clientSettings;
     }
 
-    public de.mein.drive.data.DriveServerSettingsDetails getServerSettings() {
+    public DriveServerSettingsDetails getServerSettings() {
         return serverSettings;
     }
 
     public DriveSettings setRole(String role) {
         this.role = role;
         if (role.equals(DriveStrings.ROLE_CLIENT) && clientSettings == null)
-            clientSettings = new de.mein.drive.data.DriveClientSettingsDetails();
+            clientSettings = new DriveClientSettingsDetails();
         else if (role.equals(DriveStrings.ROLE_SERVER) && serverSettings == null)
             serverSettings = new DriveServerSettingsDetails();
         return this;
