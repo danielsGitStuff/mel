@@ -28,7 +28,7 @@ public class DriveSettings extends JsonSettings {
     private Long maxWastebinSize;
     private Long maxAge = 30L;
     private AFile transferDirectory;
-    private boolean fastIndex;
+    private boolean fastBoot = true;
 
     public static RootDirectory buildRootDirectory(AFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
         RootDirectory rootDirectory = new RootDirectory().setPath(rootFile.getAbsolutePath());
@@ -73,13 +73,13 @@ public class DriveSettings extends JsonSettings {
 
     }
 
-    public DriveSettings setFastIndex(boolean fastIndex) {
-        this.fastIndex = fastIndex;
+    public DriveSettings setFastBoot(boolean fastBoot) {
+        this.fastBoot = fastBoot;
         return this;
     }
 
-    public boolean getFastIndex() {
-        return fastIndex;
+    public boolean getFastBoot() {
+        return fastBoot;
     }
 
     public interface DevRootDirInjector {

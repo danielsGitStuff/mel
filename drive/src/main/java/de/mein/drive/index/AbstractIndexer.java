@@ -3,6 +3,7 @@ package de.mein.drive.index;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.bash.BashTools;
@@ -37,6 +38,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     protected AbstractIndexer(DriveDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
+        fastBooting = databaseManager.getDriveSettings().getFastBoot();
         this.stageDao = databaseManager.getStageDao();
         this.fsDao = databaseManager.getFsDao();
         this.serviceName = databaseManager.getMeinDriveService().getRunnableName();
@@ -432,14 +434,23 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     protected void updateFileStage(Stage stage, AFile stageFile) throws IOException, SqlQueriesException, InterruptedException {
-        // skip hashing if information is complete -> speeds up booting
-//        if ((stage.getModifiedPair().isNull() || stage.getiNodePair().isNull() || stage.getContentHashPair().isNull())) {
+        // skip hashing if information is complete & fastBoot is enabled-> speeds up booting
         if (stageFile.exists()) {
-            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
-            stage.setContentHash(Hash.md5(stageFile.inputStream()));
-            stage.setiNode(modifiedAndInode.getiNode());
-            stage.setModified(modifiedAndInode.getModified());
-            stage.setSize(stageFile.length());
+            //
+            if (!fastBooting
+                    || stage.getContentHashPair().isNull()
+                    || stage.getiNodePair().isNull()
+                    || stage.getModifiedPair().isNull()
+                    || stage.getSizePair().isNull()) {
+                ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
+                stage.setContentHash(Hash.md5(stageFile.inputStream()));
+                stage.setiNode(modifiedAndInode.getiNode());
+                stage.setModified(modifiedAndInode.getModified());
+                stage.setSize(stageFile.length());
+            }else {
+                // test evaluation
+                Eva.flag("fast boot 1");
+            }
             // stage can be deleted if nothing changed
             if (stage.getFsId() != null) {
                 FsEntry fsEntry = fsDao.getFile(stage.getFsId());

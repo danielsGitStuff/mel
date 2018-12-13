@@ -117,6 +117,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         this.driveSettings.setTransferDirectory(AFile.instance(this.driveSettings.getRootDirectory().getOriginalFile(), DriveStrings.TRANSFER_DIR));
         this.driveSettings.setMaxWastebinSize(driveSettingsCfg.getMaxWastebinSize());
         this.driveSettings.setMaxAge(driveSettingsCfg.getMaxAge());
+        this.driveSettings.setFastBoot(driveSettingsCfg.getFastBoot());
 
         fsDao = new FsDao(this, sqlQueries);
         stageDao = new StageDao(driveSettings, sqlQueries, fsDao);

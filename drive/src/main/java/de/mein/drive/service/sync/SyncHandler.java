@@ -283,6 +283,9 @@ public abstract class SyncHandler {
                             } else {
                                 fsFile.getSynced().v(false);
                             }
+                            //todo debug
+                            if (fsFile.getContentHash().isNull())
+                                Lok.debug("debug");
                             fsDao.insert(fsFile);
                             if (!stageSet.fromFs() && !stage.getIsDirectory()) {
                                 TransferDetails details = new TransferDetails();

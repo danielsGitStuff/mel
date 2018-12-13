@@ -10,9 +10,22 @@ import de.mein.Lok;
 /**
  * Created by xor on 27.08.2017.
  */
-@Deprecated
 public class Eva {
     private final String key;
+
+    public static void enable() {
+        ENABLED = true;
+        Lok.error("Eva.ENABLED... this is for testing only");
+        Lok.error("Eva.ENABLED... this is for testing only");
+        Lok.error("Eva.ENABLED... this is for testing only");
+        Lok.error("Eva.ENABLED... this is for testing only");
+        Lok.error("Eva.ENABLED... this is for testing only");
+    }
+
+    public static int getFlagCount(String flag) {
+        return flagMap.get(flag);
+    }
+
 
     public void print() {
         print(null);
@@ -41,25 +54,47 @@ public class Eva {
     }
 
     private static Map<String, AtomicInteger> countMap = new HashMap<>();
+    private static Map<String, Integer> flagMap = new HashMap<>();
     private static Semaphore semaphore = new Semaphore(1, true);
-    public static final boolean ENABLED = true;
+    private static boolean ENABLED = false;
+
+    public static void eva() {
+        eva(null);
+    }
+
+    public static boolean hasFlag(String flag) {
+        return flagMap.containsKey(flag);
+    }
+
+    public static void flag(String flag) {
+        if (ENABLED) {
+            try {
+                semaphore.acquire();
+                if (!flagMap.containsKey(flag))
+                    flagMap.put(flag, 0);
+                final int count = flagMap.get(flag) + 1;
+                flagMap.put(flag, count);
+                semaphore.release();
+            } catch (Exception ee) {
+                Lok.error(Eva.class.getSimpleName() + ".flag(): Exception!!!");
+                ee.printStackTrace();
+            }
+        }
+    }
 
     public static void eva(EvaRun run) {
         if (ENABLED) {
             try {
                 semaphore.acquire();
                 String key;
-                try {
-                    throw new Exception();
-                } catch (Exception e) {
-                    StackTraceElement trace = e.getStackTrace()[1];
-                    key = trace.getClassName() + "/" + trace.getMethodName();
-                }
+                StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
+                key = trace.getClassName() + "/" + trace.getMethodName();
                 if (!countMap.containsKey(key))
                     countMap.put(key, new AtomicInteger(0));
                 final int count = countMap.get(key).getAndIncrement();
                 semaphore.release();
-                run.run(new Eva(key), count);
+                if (run != null)
+                    run.run(new Eva(key), count);
             } catch (Exception ee) {
                 Lok.error(Eva.class.getSimpleName() + ".eva(): Exception!!!");
                 ee.printStackTrace();
