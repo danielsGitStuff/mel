@@ -385,7 +385,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                     try {
                         Lok.debug("MeinAuthAdminFX.load...");
                         FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
-
+                        URL u =MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml");
                         ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/FxUi", new ResourceBundle.Control() {
                             @Override
                             public List<Locale> getCandidateLocales(String name, Locale locale) {

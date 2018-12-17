@@ -37,12 +37,13 @@ ext {
 
 dependencies {
     compile project(':konsole')
+    compile project(':auth')
+    compile project(':authfx')
     compile project(path: ':drivefx')
     compile project(path: ':contactsfx')
     testCompile project(path: ':drive', configuration: 'driveTestOutput')
     testCompile 'junit:junit:4.12'
 }
-
 
 
 task createProperties(dependsOn: processResources) {
@@ -58,7 +59,7 @@ task createProperties(dependsOn: processResources) {
     }
 }
 
-build{
+build {
     dependsOn createProperties
 }
 
@@ -93,7 +94,7 @@ task buildFxJar(type: Jar) {
         //write the version file in the output dir as well
         File jarFile = new File(jar.outputs.files.getAsPath());
         File versionTxt = new File("$buildDir/version.properties")
-        File target = new File("$buildDir"+File.separator+"libs"+File.separator+jarFile.getName()+".properties")
+        File target = new File("$buildDir" + File.separator + "libs" + File.separator + jarFile.getName() + ".properties")
         String version = versionTxt.getText('UTF-8')
         target.text = version
         println("printing version to: " + target.getAbsolutePath())

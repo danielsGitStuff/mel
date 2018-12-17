@@ -200,8 +200,9 @@ public class CertificateManager extends FileRelatedManager {
         try {
             URL url = getClass().getResource("/de/mein/auth/update.server.cert");
             File f = new File(url.getFile());
-            DataInputStream dis = new DataInputStream(new FileInputStream(f));
-            byte[] bytes = new byte[(int) f.length()];
+            DataInputStream dis = new DataInputStream(getClass().getResourceAsStream("/de/mein/auth/update.server.cert"));
+            int length = url.openConnection().getContentLength();
+            byte[] bytes = new byte[length];
             dis.readFully(bytes);
             dis.close();
             updateServerCertificate = loadX509CertificateFromBytes(bytes);
@@ -244,7 +245,7 @@ public class CertificateManager extends FileRelatedManager {
         CertificateCreator.saveFile(new File(workingDirectory, PK_FILENAME), privateKey.getEncoded());
         CertificateCreator.saveFile(new File(workingDirectory, PUB_FILENAME), publicKey.getEncoded());
 
-        Lok.debug("generated certificate with SHA-256: "+Hash.sha256(certificate.getEncoded()));
+        Lok.debug("generated certificate with SHA-256: " + Hash.sha256(certificate.getEncoded()));
 
         // save KeyStore
         storeKeyStore();
@@ -407,6 +408,7 @@ public class CertificateManager extends FileRelatedManager {
 
     /**
      * this sets a custom update server certificate. for security reasons this method must be disables in the release version.
+     *
      * @param certificate
      * @throws CertificateException
      * @throws NoSuchAlgorithmException

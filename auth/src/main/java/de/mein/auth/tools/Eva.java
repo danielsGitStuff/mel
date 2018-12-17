@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import de.mein.Lok;
 
 /**
+
+ * Currently used for testing. Does nothing if not explicitly turned on by calling enable().
  * Created by xor on 27.08.2017.
  */
 public class Eva {
@@ -66,6 +68,13 @@ public class Eva {
         return flagMap.containsKey(flag);
     }
 
+    /**
+     * You can call this method with a certain flag in your code.
+     * Eva will remember whether and how often this flag was "called".
+     * You can get the results by calling hasFlag() and getFlagCount().
+     *
+     * @param flag a unique String
+     */
     public static void flag(String flag) {
         if (ENABLED) {
             try {
@@ -82,13 +91,19 @@ public class Eva {
         }
     }
 
+    /**
+     * Remembers the line of code (+ Class + MethodName)you called this method from.
+     * run lets you run code to evaluate things. It is called with the number of times this method has been called from the same line of your code.
+     *
+     * @param run
+     */
     public static void eva(EvaRun run) {
         if (ENABLED) {
             try {
                 semaphore.acquire();
                 String key;
                 StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
-                key = trace.getClassName() + "/" + trace.getMethodName();
+                key = trace.getClassName() + "/" + trace.getMethodName() + "/" + trace.getLineNumber();
                 if (!countMap.containsKey(key))
                     countMap.put(key, new AtomicInteger(0));
                 final int count = countMap.get(key).getAndIncrement();
