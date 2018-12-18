@@ -11,9 +11,9 @@
         <Label fx:id="lblVersion" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl" text="could not read" />
         <Label styleClass="lbl-center-section" text="Variant" />
         <Label fx:id="lblVariant" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl" text="could not read" />
-        <Label styleClass="lbl-center-section" text="Licenses" />
         <Label fx:id="lblUpdate" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl" text="Update" />
         <HBox> <Button fx:id="btnCheckUpdate" maxWidth="1.7976931348623157E308" styleClass="btn" HBox.hgrow="ALWAYS">Check for Update</Button>
-                <Button fx:id="btnUpdate" maxWidth="1.7976931348623157E308" styleClass="btn" HBox.hgrow="ALWAYS">Download Update!</Button></HBox>
+                <Button fx:id="btnUpdate" disable="true" maxWidth="1.7976931348623157E308" styleClass="btn" HBox.hgrow="ALWAYS">Download Update!</Button></HBox>
+        <Label styleClass="lbl-center-section" text="Licenses" />
         <WebView fx:id="webView" maxWidth="1.7976931348623157E308" minHeight="-1.0" minWidth="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS" />
 </VBox>
