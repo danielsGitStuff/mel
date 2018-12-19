@@ -1,0 +1,73 @@
+#MiniServer
+The MiniServer has several functions:
+* Delivering websites
+* Delivering updates/binaries
+* Build 
+    * Itself and restart
+    * mel jar
+    * mel apk
+##Basics
+Miniserver puts all of its files in a subfolder  called "server" if not specified otherwise by setting "-dir".
+Which files you must provide depends on what your miniserver should deliver. For instance a signed certificate is not necessary if you do not plan to run a website.
+If you just want to put files on it you don't need the build configuration.
+In general you have to provide a certificate and the private key when it comes to communication.#
+You probably will end up with three three keys and two certificates.
+Here is all the stuff that you can specify:
+* HTTPS-folder
+    * Cert
+    * Key
+* Updates/Binaries-Socket-folder
+    * Cert
+    * Key
+* secret.properties (glues everything together)
+* optional: Signing key (requires the previous one)
+
+
+##Deliver Websites
+In "server/secret/http" is the certificate that you probably had signed by [LetsEncrypt](https://letsencrypt.org/) or someone else trustworthy.
+Put your certificate in said folder and name it `cert.cert`, name your private key file `pk.key`.
+In your `secret.properties` you'll have to specify the following:
+* `password`= String, you are asked for that on the login page.
+* `buildPassword`= String, type this into the login password field and you will be redirected to the build page.
+* `projectRootDir`= Path, optional, only required if you want the MiniServer to build stuff
+
+
+##Deliver Updates
+Copy your certificate and your key to "server/secret/socket".
+Put your certificate in said folder and name it `cert.cert`, name your private key file `pk.key`.
+
+##Build (optional)
+You can create a signing key by using the Android SDK or Android Studio. [See here](https://developer.android.com/studio/publish/app-signing#generate-key)
+This generates you a keystore that you have to copy somewhere. KEEP IT SECRET. So the secret folder is a good place to put it.
+In your `secret.properties` you'll have to specify the following:
+
+* `storePassword`= String, password to open the keystore
+* `keyPassword`= String, password to open the key.
+* `keyAlias`= name of the key
+* `storeFile`= Path, absolute path to the keystore
+
+MiniServer will generate a `keystore.properties` file according to [this guide](https://developer.android.com/studio/publish/app-signing#secure-key)
+and provide it to the android build process.
+
+##Example secret.properties
+```properties
+password=secure password
+buildpassword=another secure password
+projectRootDir=/home/myuser/Documents/drive/
+#signing keys
+storePassword=secure store password
+keyPassword=secure key password
+keyAlias=buildKey
+storeFile=/home/myuser/Documents/drive/miniserver/server/secret/sign.jks 
+```
+
+
+###some additional commands you might find useful when it comes to craft certificates for HTTPS
+this is certbot related.
+--private files from the server go here. includes certificates and passwords
+
+`openssl x509 -outform der -in fullchain.pem -out ccert.crt`
+
+`openssl rsa -outform der -in privkey.pem -out pk.key`
+
+`openssl x509 -outform der -pubkey -in fullchain.pem -out pub.key`
