@@ -25,6 +25,7 @@ import de.miniserver.socket.BinarySocketOpener
 import de.miniserver.socket.EncSocketOpener
 import java.io.File
 import java.io.FileInputStream
+import java.lang.management.ManagementFactory
 import java.security.cert.X509Certificate
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -80,7 +81,19 @@ constructor(private val config: ServerConfig) {
         secretSocketDir.mkdirs()
         secretPropFile = File(secretDir, "secret.properties")
         if (!secretPropFile.exists()) {
-            error("secret properties file not found at: ${secretPropFile.absolutePath}")
+            // create a default secret properties file and exit
+            secretProperties["password"] = "type something secure here"
+            secretProperties["buildPassword"] = "type something secure here"
+            secretProperties["projectRootDir"] = "absolute path to project root directory goes here"
+            secretProperties["storePassword"] = "type something secure here"
+            secretProperties["keyPassword"] = "type something secure here"
+            secretProperties["keyAlias"] = "build key name goes here"
+            secretProperties["storeFile"] = "path to the jks store used for signing your apk"
+            val comments = "this is a generated example. please change to values to make your setup secure.\n" +
+                    ""
+            secretProperties.store(secretPropFile.bufferedWriter(), comments)
+            error("secret properties file not found at: ${secretPropFile.absolutePath}.\n" +
+                    "I generated one. Please edit it and start again.")
         }
         secretProperties.load(secretPropFile.inputStream())
 
@@ -158,7 +171,6 @@ constructor(private val config: ServerConfig) {
     }
 
 
-
     var inputReader: InputPipeReader? = null
 
 
@@ -207,10 +219,14 @@ constructor(private val config: ServerConfig) {
     }
 
     fun reboot(serverDir: File, serverJar: File) {
-
         Lok.debug("starting server jar ${serverJar.absolutePath}")
+        val runtimeMxBean = ManagementFactory.getRuntimeMXBean()
+        val vmArguments = runtimeMxBean.inputArguments
+        vmArguments.forEach { a -> Lok.debug("jvm arg: $a") }
         val commands = mutableListOf<String>()
-        commands.addAll(listOf("java", "-jar", serverJar.absolutePath, "-dir", serverDir.absolutePath))
+        commands.add("java")
+        commands.addAll(vmArguments)
+        commands.addAll(listOf("-jar", serverJar.absolutePath, "-dir", serverDir.absolutePath))
         if (httpSocketOpener != null) {
             httpSocketOpener?.stop()
             commands.add("-http")

@@ -50,15 +50,15 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
 
                 // tests take a shitload of time on that stupid machine
-//        Processor.runProcesses("run tests",
-//                Processor(gradle.absolutePath, ":auth:test"),
-//                Processor(gradle.absolutePath, ":calendar:test"),
-//                Processor(gradle.absolutePath, ":contacts:test"),
-//                Processor(gradle.absolutePath, ":drive:test"),
-//                Processor(gradle.absolutePath, ":konsole:test"),
-//                Processor(gradle.absolutePath, ":miniserver:test"),
-//                Processor(gradle.absolutePath, ":serialize:test"),
-//                Processor(gradle.absolutePath, ":sql:test"))
+                Processor.runProcesses("run tests",
+                        Processor(gradle.absolutePath, ":auth:test"),
+                        Processor(gradle.absolutePath, ":calendar:test"),
+                        Processor(gradle.absolutePath, ":contacts:test"),
+                        Processor(gradle.absolutePath, ":drive:test"),
+                        Processor(gradle.absolutePath, ":konsole:test"),
+                        Processor(gradle.absolutePath, ":miniserver:test"),
+                        Processor(gradle.absolutePath, ":serialize:test"),
+                        Processor(gradle.absolutePath, ":sql:test"))
 
                 // assemble binaries
                 val processList = mutableListOf<Processor>()
@@ -69,11 +69,6 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (buildRequest.server!!)
                     processList.add(Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
                 Processor.runProcesses("assemble/build", *processList.toTypedArray())
-                //todo remove
-//                Processor.runProcesses("assemble/build",
-//                        Processor(gradle.absolutePath, ":fxbundle:buildFxJar"),
-//                        Processor(gradle.absolutePath, ":app:assemblRelease"),
-//                        Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
             } finally {
                 if (keyStorePropFile.exists())
                     keyStorePropFile.delete()
@@ -85,9 +80,9 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (secretDir.exists()) {
                     secretDir.renameTo(secretMovedDir)
                 }
-                val miniServerBackup = File(miniServerDir,"server.backup.jar")
+                val miniServerBackup = File(miniServerDir, "server.backup.jar")
                 var miniBackup = false
-                if (!buildRequest.server!! && miniServerTarget.exists()){
+                if (!buildRequest.server!! && miniServerTarget.exists()) {
                     miniServerTarget.renameTo(miniServerBackup)
                     miniBackup = true
                 }
@@ -96,20 +91,14 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     serverDir.mkdirs()
                     secretMovedDir.renameTo(secretDir)
                 }
-                if (miniBackup){
+                if (miniBackup) {
                     miniServerBackup.renameTo(miniServerTarget)
                 }
             }
             serverDir.mkdirs()
             val serverFilesDir = File(serverDir, "files")
             serverFilesDir.mkdirs()
-            //todo redundant?
-//            if (buildRequest.cleanUp!!) {
-//                Processor.runProcesses("clean files dir",
-//                        Processor("/bin/sh", "-c", "rm -rf \"${serverFilesDir.absolutePath}/\"*"))
-//            }
             //copy MiniServer.jar
-
             val processList = mutableListOf<Processor>()
             if (buildRequest.server!!) {
                 val miniServerSource = File("${projectRootDir.absolutePath}/miniserver/build/libs/").listFiles().first()
@@ -121,14 +110,6 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
             processList.add(Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
             Processor.runProcesses("copying", *processList.toTypedArray())
-            //todo remove
-//            Processor.runProcesses("copying",
-//                    Processor("cp", miniServerSource.absolutePath, miniServerTarget.absolutePath),
-//                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""),
-//                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/debug/\"* \"${serverFilesDir.absolutePath}\""),
-//                    Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""),
-//                    Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
-
             // delete stop pipe
             miniServer.inputReader?.stop()
             // restart
