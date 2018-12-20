@@ -50,15 +50,15 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
 
                 // tests take a shitload of time on that stupid machine
-                Processor.runProcesses("run tests",
-                        Processor(gradle.absolutePath, ":auth:test"),
-                        Processor(gradle.absolutePath, ":calendar:test"),
-                        Processor(gradle.absolutePath, ":contacts:test"),
-                        Processor(gradle.absolutePath, ":drive:test"),
-                        Processor(gradle.absolutePath, ":konsole:test"),
-                        Processor(gradle.absolutePath, ":miniserver:test"),
-                        Processor(gradle.absolutePath, ":serialize:test"),
-                        Processor(gradle.absolutePath, ":sql:test"))
+//                Processor.runProcesses("run tests",
+//                        Processor(gradle.absolutePath, ":auth:test"),
+//                        Processor(gradle.absolutePath, ":calendar:test"),
+//                        Processor(gradle.absolutePath, ":contacts:test"),
+//                        Processor(gradle.absolutePath, ":drive:test"),
+//                        Processor(gradle.absolutePath, ":konsole:test"),
+//                        Processor(gradle.absolutePath, ":miniserver:test"),
+//                        Processor(gradle.absolutePath, ":serialize:test"),
+//                        Processor(gradle.absolutePath, ":sql:test"))
 
                 // assemble binaries
                 val processList = mutableListOf<Processor>()
