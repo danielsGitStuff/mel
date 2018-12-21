@@ -287,6 +287,7 @@ constructor(val config: ServerConfig) {
                 workingDirectory = File(konsole.result.workingPath)
                 workingDirectory.mkdirs()
                 val outFile = File(workingDirectory, "output.log")
+                Lok.debug("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")
                 if (outFile.exists())
                     outFile.delete()
                 val outWriter = outFile.outputStream().bufferedWriter()
