@@ -141,7 +141,11 @@
     <string name="powergrid_power_on">Strom an</string>
     <string name="variant">Variante: </string>
     <string name="btnUpdate">Nach Update suchen</string>
-    <string name="titleUpdateAvail">Update available!</string>
+    <string name="titleUpdateAvail">Update verfügbar!</string>
     <string name="titleReceiving">Downloading Update</string>
+    <string name="lblRemoteHash">Hash vom Partnerzertifikat:</string>
+    <string name="lblOwnHash">Hash von meinem Zertifikat:</string>
+    <string name="lblRemoteCert">Vollständiges Partnerzertifikat:</string>
+    <string name="lblOwnCert">Mein vollständiges Zertifikat:</string>
 
 </resources>

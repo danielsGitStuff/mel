@@ -1,7 +1,9 @@
 package de.mein.android;
 
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
+
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -17,11 +19,12 @@ import de.mein.R;
 import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
+import de.mein.sql.Hash;
 import de.mein.sql.RWLock;
 
 public class CertActivity extends PopupActivity {
     private Button btnAccept, btnReject;
-    private TextView txtRemote, txtOwn;
+    private TextView txtRemote, txtOwn, txtRemoteHash, txtOwnHash;
     private RegBundle regBundle;
     private TabHost tabHost;
     private RWLock lock = new RWLock();
@@ -46,24 +49,26 @@ public class CertActivity extends PopupActivity {
         txtProgress = findViewById(R.id.txtProgress);
         progressBar = findViewById(R.id.progress);
         imgProgress = findViewById(R.id.imgProgress);
+        txtOwnHash = findViewById(R.id.txtOwnHash);
+        txtRemoteHash = findViewById(R.id.txtRemoteHash);
         String regUuid = getIntent().getExtras().getString(AndroidRegHandler.REGBUNDLE_CERT_HASH);
         regBundle = AndroidRegHandler.retrieveRegBundle(regUuid);
         regBundle.getAndroidRegHandler().addActivity(regBundle.getHash(), this);
         if (regBundle.isFlaggedRemoteAccepted())
             onRemoteAccepted();
-        showCert(txtRemote, regBundle.getRemoteCert());
-        showCert(txtOwn, regBundle.getMyCert());
+        showCert(txtRemote,txtRemoteHash, regBundle.getRemoteCert());
+        showCert(txtOwn, txtOwnHash,regBundle.getMyCert());
         btnAccept.setOnClickListener(
                 view -> {
                     regBundle.getAndroidRegHandler().onUserAccepted(regBundle);
-                    Notifier.cancel( getIntent(), requestCode);
+                    Notifier.cancel(getIntent(), requestCode);
                     finish();
                 }
         );
         btnReject.setOnClickListener(
                 view -> Threadder.runNoTryThread(() -> {
                     regBundle.getAndroidRegHandler().onUserRejected(regBundle);
-                    Notifier.cancel( getIntent(), requestCode);
+                    Notifier.cancel(getIntent(), requestCode);
                     finish();
                 })
         );
@@ -87,10 +92,12 @@ public class CertActivity extends PopupActivity {
         lock.lockWrite();
     }
 
-    private void showCert(TextView textView, Certificate cert) {
+    private void showCert(TextView textView, TextView txtHash, Certificate cert) {
         try {
-            X509Certificate myX509Certificate = CertificateManager.loadX509CertificateFromBytes(cert.getCertificate().v());
-            textView.setText(myX509Certificate.toString());
+            X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(cert.getCertificate().v());
+            textView.setText(x509Certificate.toString());
+            String hash = Hash.sha256(x509Certificate.getEncoded());
+            txtHash.setText(hash);
         } catch (Exception e) {
             e.printStackTrace();
         }

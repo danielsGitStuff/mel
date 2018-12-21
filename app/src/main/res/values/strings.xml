@@ -143,5 +143,9 @@
     <string name="btnUpdate">Check Update</string>
     <string name="titleUpdateAvail">Update available!</string>
     <string name="titleReceiving">Downloading Update</string>
+    <string name="lblRemoteHash">Hash of remote certificate:</string>
+    <string name="lblOwnHash">Hash of my certificate:</string>
+    <string name="lblRemoteCert">Complete remote certificate:</string>
+    <string name="lblOwnCert">My complete Certificate:</string>
 
 </resources>
