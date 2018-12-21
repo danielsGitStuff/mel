@@ -24,6 +24,27 @@ button {
     box-shadow: none;
 }
 
+.filesTable {
+    border: .1em solid #666666;
+    border-radius: 1em;
+}
+
+.filesTable thead {
+    padding-top: 1em;
+    /*background-color: #57bf40;*/
+}
+
+.filesTable th {
+    padding: .8em .8em .4em;
+    text-align: start;
+    border-bottom: .1em solid #666666;
+
+}
+
+.filesTable td {
+    padding: .4em .8em;
+}
+
 .centered {
     position: absolute;
     top: 50%;

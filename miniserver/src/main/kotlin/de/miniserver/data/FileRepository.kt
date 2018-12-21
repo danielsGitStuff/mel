@@ -3,30 +3,63 @@ package de.miniserver.data
 import java.io.File
 import java.io.FileNotFoundException
 
+fun main(args: Array<String>) {
+    val fileEntry = FileEntry(hash = "h",file = File("bla"),variant = "var",version = 666L)
+    val repo = FileRepository()
+    repo += fileEntry
+    val r = repo["h"]
+    println(r)
+}
+
+@Suppress("ArrayInDataClass")
+class FileEntry(val hash: String, val file: File, val variant: String, val version: Long, bytes: ByteArray? = null) {
+    var bytes: ByteArray? = bytes
+        get() {
+            if (bytes == null) {
+                bytes = file.inputStream().readBytes()
+            }
+            return bytes!!
+        }
+
+}
+
+/**
+ * This is fun with operator overloading. Because I can.
+ */
 class FileRepository {
-    internal val hashFileMap = hashMapOf<String, File>()//HashMap<String, File>()
-    private val hashBytesMap = hashMapOf<String, ByteArray>()
 
-    fun addEntry(hash: String, file: File): FileRepository {
-        hashFileMap[hash] = file
-        return this
+
+    internal val hashFileMap = hashMapOf<String, FileEntry>()//HashMap<String, File>()
+
+    @Throws(FileNotFoundException::class)
+    operator fun get(hash: String): FileEntry {
+        checkHashKey(hash)
+        return hashFileMap[hash]!!
     }
 
-    @Throws(Exception::class)
-    fun getFile(hash: String): File {
+    operator fun set(hash: String, fileEntry: FileEntry) {
         if (hashFileMap.containsKey(hash))
-            return hashFileMap[hash]!!
-        throw FileNotFoundException("no file for " + (hash ?: "null"))
+            throw Exception("duplicate file")
+        hashFileMap[hash] = fileEntry
     }
 
-    @Throws(java.lang.Exception::class)
-    fun getBytes(hash: String): ByteArray {
-        if (hashBytesMap.containsKey(hash))
-            return hashBytesMap[hash]!!
-        val f = getFile(hash)
-        val bytes = f.inputStream().readBytes()
-        hashBytesMap[hash] = bytes
-        return bytes
+    operator fun plusAssign(fileEntry: FileEntry) {
+        set(fileEntry.hash, fileEntry)
     }
 
+    operator fun minusAssign(fileEntry: FileEntry){
+        checkHashKey(fileEntry.hash)
+        hashFileMap.remove(fileEntry.hash)
+    }
+
+    operator fun minusAssign(hash: String){
+        checkHashKey(hash)
+        hashFileMap.remove(hash)
+    }
+
+    @Throws(FileNotFoundException::class)
+    private fun checkHashKey(hash: String) {
+        if (!hashFileMap.containsKey(hash))
+            throw FileNotFoundException("no file for $hash")
+    }
 }

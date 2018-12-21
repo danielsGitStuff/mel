@@ -83,8 +83,11 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     Replacer("pw", pw),
                     Replacer("files") {
                         val s = StringBuilder()
-                        miniServer.fileRepository.hashFileMap.entries.forEach { it ->
-                            s.append("<p><a href=\"files/${it.key}\" download=\"${it.value.name}\">${it.value.name}</a> ${it.key}</p>")
+                        miniServer.fileRepository.hashFileMap.values.forEach { fileEntry ->
+                            s.append("<td><a href=\"files/${fileEntry.hash}\" download=\"${fileEntry.file.name}\">${fileEntry.file.name}</a></td>") //name
+                            s.append("<td>${fileEntry.variant}</td>") //variant
+                            s.append("<td>${Date(fileEntry.version)})</td>") //build date
+                            s.append("<td>${fileEntry.hash}</td>")//hash
                         }
                         return@Replacer s.toString()
                     })
@@ -103,7 +106,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                         sb.append("</p>")
                         sb.toString()
                     },
-                    Replacer("keep",if (miniServer.config.keepBinaries) "checked" else ""))
+                    Replacer("keep", if (miniServer.config.keepBinaries) "checked" else ""))
         }
 
         fun respondBinary(ex: HttpExchange, path: String, contentType: String? = null, cache: Boolean = false) {
@@ -226,9 +229,9 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             val hash = uri.path.substring("/files/".length, uri.path.length)
             Lok.debug("serving file: $hash")
             try {
-                val bytes = miniServer.fileRepository.getBytes(hash)
+                val bytes = miniServer.fileRepository[hash].bytes
                 with(it) {
-                    sendResponseHeaders(200, bytes.size.toLong())
+                    sendResponseHeaders(200, bytes!!.size.toLong())
                     responseBody.write(bytes)
                     responseBody.close()
                 }

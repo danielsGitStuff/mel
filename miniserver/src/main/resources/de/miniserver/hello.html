@@ -87,7 +87,8 @@
             Hinweis: um es auf dem PC zu starten, benötigst du Java8. Gebe "java -jar fxbundle-1.0.jar" ins Termninal
             ein.<br><br>
             <span class="text">Wie du es installieren und konfigurieren kannst siehst du
-                <a href="#" onclick="document.getElementById('formToAndroid').submit();">hier, für Android</a> oder <a href="#" onclick="document.getElementById('formToPc').submit();">hier, für den PC.</a>
+                <a href="#" onclick="document.getElementById('formToAndroid').submit();">hier, für Android</a> oder <a
+                        href="#" onclick="document.getElementById('formToPc').submit();">hier, für den PC.</a>
                 <form method="post" target="_self" id="formToAndroid" hidden>
                     <input name="pw" value="<$=pw/>" hidden>
                     <input name="target" value="logandroid.html" hidden>
@@ -140,7 +141,19 @@
         <div class="content" style="text-align: start">
             <a style="color: unset" id="linkDownload"><h1>Download</h1></a>
             <span class="text">Folgende Dateien sind vorhanden (Dateiname + SHA-256):</span><br><br>
-            <$=files/>
+            <table class="filesTable">
+                <thead>
+                <tr>
+                    <th>Datainame</th>
+                    <th>Variante</th>
+                    <th>Erbauungszeitstempel</th>
+                    <th>SHA-256</th>
+                </tr>
+                </thead>
+                <tbody>
+                <$=files/>
+                </tbody>
+            </table>
             <br>
             <br>
             Die .apk-Datei ist f&uuml;r Android. Lade sie herunter und installiere sie.<br>

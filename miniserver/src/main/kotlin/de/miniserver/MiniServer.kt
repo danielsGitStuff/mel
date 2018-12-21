@@ -17,6 +17,7 @@ import de.mein.sql.SqlQueriesException
 import de.mein.sql.conn.SQLConnector
 import de.mein.sql.transform.SqlResultTransformer
 import de.mein.update.VersionAnswer
+import de.miniserver.data.FileEntry
 import de.miniserver.data.FileRepository
 import de.miniserver.http.HttpThingy
 import de.miniserver.http.HttpsThingy
@@ -152,8 +153,9 @@ constructor(val config: ServerConfig) {
             properties.load(FileInputStream(propertiesFile))
 
             variant = properties.getProperty("variant")
-            version = java.lang.Long.valueOf(properties.getProperty("version"))
-            fileRepository.addEntry(hash, f)
+            version = properties.getProperty("version").toLong()
+            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, version = version)
+            fileRepository += fileEntry
             versionAnswer.addEntry(hash, variant, version, f.length())
         }
     }

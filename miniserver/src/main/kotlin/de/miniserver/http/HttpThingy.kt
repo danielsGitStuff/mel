@@ -57,7 +57,7 @@ class HttpThingy(private val port: Int) : DeferredRunnable() {
             val enteredHost = it.requestHeaders.getFirst("Host")
             it.responseHeaders.add("Location", "https://$enteredHost")
             with(it) {
-                Lok.debug("sending index to $remoteAddress")
+                Lok.debug("sending https redirect to $remoteAddress")
 //                val content = "???"
                 sendResponseHeaders(301, -1)
 //                responseBody.write(content.toByteArray())
