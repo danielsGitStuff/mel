@@ -239,7 +239,7 @@ constructor(private val config: ServerConfig) {
             if (config.httpsPort != null)
                 commands.add(config.httpsPort.toString())
         }
-        commands.addAll(listOf("&", "detach"))
+//        commands.addAll(listOf("&", "detach"))
         Processor(*commands.toTypedArray()).run(false)
         Lok.debug("command succeeded")
         Lok.debug("done")
