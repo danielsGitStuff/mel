@@ -221,7 +221,7 @@ constructor(val config: ServerConfig) {
 
     fun reboot(serverDir: File, serverJar: File) {
         Lok.debug("doing a reboot...")
-        if (config.restartCommand == null) {
+        if (config.restartCommand.isEmpty()) {
             Lok.debug("starting server jar ${serverJar.absolutePath}")
             val runtimeMxBean = ManagementFactory.getRuntimeMXBean()
             val vmArguments = runtimeMxBean.inputArguments
@@ -249,7 +249,7 @@ constructor(val config: ServerConfig) {
             exitProcess(0)
         } else {
             Lok.debug("restarting using restartCommand: ${config.restartCommand}")
-            Processor(config.restartCommand!!).run(true)
+            Processor(*config.restartCommand.toTypedArray()).run(false)
             Lok.debug("command executed successfully")
         }
     }
@@ -276,7 +276,7 @@ constructor(val config: ServerConfig) {
                     .optional("-https", "switches on https. optionally specifies the port. defaults to ${ServerConfig.DEFAULT_HTTPS}") { result, args -> result.httpsPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTPS }
                     .optional("-pipes-off", "disables pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = false }
                     .optional("-keysize", "key length for certificate creation. defaults to 2048") { result, args -> result.keySize = args[0].toInt() }
-                    .optional("-restart-command", "command that restarts the miniserver application. see readme for more information") { result, args -> result.restartCommand = args.fold("") { acc, s -> "$acc $s" } }
+                    .optional("-restart-command", "command that restarts the miniserver application. see readme for more information") { result, args -> result.restartCommand.addAll(args) }
                     .optional("-keep-binaries", "keep binary files when rebuilding") { result, _ -> result.keepBinaries = true }
 
             var workingDirectory: File? = null

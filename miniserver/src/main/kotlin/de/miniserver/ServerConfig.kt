@@ -22,7 +22,7 @@ class ServerConfig : KResult {
     var workingDirectory: File? = null
         get() = File(workingPath)
     var keySize: Int = 2048
-    var restartCommand: String? = null
+    var restartCommand = mutableListOf<String>()
     var keepBinaries: Boolean = false
 
 

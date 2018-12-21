@@ -51,10 +51,12 @@ MiniServer will generate a `keystore.properties` file according to [this guide](
 and provide it to the android build process.
 
 ##Restart Miniserver (optional)
-In case that your MiniServer is started by systemd you can specify the command that is requiered to restart it.
+In case that your MiniServer is started by systemd you can specify the command that is required to restart it.
 Make sure that you have edited your sudoers file in such a way that the MiniServer user is allowed to run this command.
 
 * `restartCommand`=sudo mySystemdCommand
+
+NOTE: the MiniServers process does not exit when the command is executed. Systemd takes care of that.
 
 Look at the example below.
 
