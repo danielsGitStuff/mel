@@ -49,6 +49,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 val updateCertTarget = File(File(File(File(File(File(File(File(projectRootDir, "auth"), "src"), "main"), "resources"), "de"), "mein"), "auth"), "update.server.cert")
                 Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
 
+                //todo these tests need fixing: they should fail after a maximum time limit
                 // tests take a shitload of time on that stupid machine
 //                Processor.runProcesses("run tests",
 //                        Processor(gradle.absolutePath, ":auth:test"),
@@ -75,24 +76,37 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
             }
             Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
             if (serverDir.exists()) {
+                // move secret dir
                 val secretDir = File(serverDir, "secret")
                 val secretMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
                 if (secretDir.exists()) {
                     secretDir.renameTo(secretMovedDir)
                 }
+                // move server.jar
                 val miniServerBackup = File(miniServerDir, "server.backup.jar")
                 var miniBackup = false
                 if (!buildRequest.server!! && miniServerTarget.exists()) {
                     miniServerTarget.renameTo(miniServerBackup)
                     miniBackup = true
                 }
+                // move files folder
+                val filesFolder = File(serverDir,"files")
+                val filesBackupFolder = File("files.backup.${Date().time}")
+                if (miniServer.config.keepBinaries){
+                    filesFolder.renameTo(filesBackupFolder)
+                }
                 serverDir.deleteRecursively()
+                // move back secret dir
                 if (secretMovedDir.exists()) {
                     serverDir.mkdirs()
                     secretMovedDir.renameTo(secretDir)
                 }
+                // move back server.jar
                 if (miniBackup) {
                     miniServerBackup.renameTo(miniServerTarget)
+                }
+                if (miniServer.config.keepBinaries){
+                    filesBackupFolder.renameTo(filesFolder)
                 }
             }
             serverDir.mkdirs()

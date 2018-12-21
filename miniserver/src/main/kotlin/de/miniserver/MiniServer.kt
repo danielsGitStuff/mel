@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 
 class MiniServer @Throws(Exception::class)
-constructor(private val config: ServerConfig) {
+constructor(val config: ServerConfig) {
     val startTime = MDate()
     private val socketCertificateManager: CertificateManager
     val httpCertificateManager: CertificateManager
@@ -89,6 +89,7 @@ constructor(private val config: ServerConfig) {
             secretProperties["keyPassword"] = "type something secure here"
             secretProperties["keyAlias"] = "build key name goes here"
             secretProperties["storeFile"] = "path to the jks store used for signing your apk"
+            secretProperties["restartCommand"] = "command that restarts the miniserver application. see readme for more information"
             val comments = "this is a generated example. please change to values to make your setup secure.\n" +
                     ""
             secretProperties.store(secretPropFile.bufferedWriter(), comments)
@@ -219,31 +220,38 @@ constructor(private val config: ServerConfig) {
     }
 
     fun reboot(serverDir: File, serverJar: File) {
-        Lok.debug("starting server jar ${serverJar.absolutePath}")
-        val runtimeMxBean = ManagementFactory.getRuntimeMXBean()
-        val vmArguments = runtimeMxBean.inputArguments
-        vmArguments.forEach { a -> Lok.debug("jvm arg: $a") }
-        val commands = mutableListOf<String>()
-        commands.add("java")
-        commands.addAll(vmArguments)
-        commands.addAll(listOf("-jar", serverJar.absolutePath, "-dir", serverDir.absolutePath))
-        if (httpSocketOpener != null) {
-            httpSocketOpener?.stop()
-            commands.add("-http")
-            if (config.httpPort != null)
-                commands.add(config.httpPort.toString())
-        }
-        if (httpsSocketOpener != null) {
-            httpsSocketOpener?.stop()
-            commands.add("-https")
-            if (config.httpsPort != null)
-                commands.add(config.httpsPort.toString())
-        }
+        Lok.debug("doing a reboot...")
+        if (config.restartCommand == null) {
+            Lok.debug("starting server jar ${serverJar.absolutePath}")
+            val runtimeMxBean = ManagementFactory.getRuntimeMXBean()
+            val vmArguments = runtimeMxBean.inputArguments
+            vmArguments.forEach { a -> Lok.debug("jvm arg: $a") }
+            val commands = mutableListOf<String>()
+            commands.add("java")
+            commands.addAll(vmArguments)
+            commands.addAll(listOf("-jar", serverJar.absolutePath, "-dir", serverDir.absolutePath))
+            if (httpSocketOpener != null) {
+                httpSocketOpener?.stop()
+                commands.add("-http")
+                if (config.httpPort != null)
+                    commands.add(config.httpPort.toString())
+            }
+            if (httpsSocketOpener != null) {
+                httpsSocketOpener?.stop()
+                commands.add("-https")
+                if (config.httpsPort != null)
+                    commands.add(config.httpsPort.toString())
+            }
 //        commands.addAll(listOf("&", "detach"))
-        Processor(*commands.toTypedArray()).run(false)
-        Lok.debug("command succeeded")
-        Lok.debug("done")
-        exitProcess(0)
+            Processor(*commands.toTypedArray()).run(false)
+            Lok.debug("command succeeded")
+            Lok.debug("done")
+            exitProcess(0)
+        } else {
+            Lok.debug("restarting using restartCommand: ${config.restartCommand}")
+            Processor(config.restartCommand!!).run(true)
+            Lok.debug("command executed successfully")
+        }
     }
 
     companion object {
@@ -268,6 +276,8 @@ constructor(private val config: ServerConfig) {
                     .optional("-https", "switches on https. optionally specifies the port. defaults to ${ServerConfig.DEFAULT_HTTPS}") { result, args -> result.httpsPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTPS }
                     .optional("-pipes-off", "disables pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = false }
                     .optional("-keysize", "key length for certificate creation. defaults to 2048") { result, args -> result.keySize = args[0].toInt() }
+                    .optional("-restart-command", "command that restarts the miniserver application. see readme for more information") { result, args -> result.restartCommand = args.fold("") { acc, s -> "$acc $s" } }
+                    .optional("-keep-binaries", "keep binary files when rebuilding") { result, _ -> result.keepBinaries = true }
 
             var workingDirectory: File? = null
             try {

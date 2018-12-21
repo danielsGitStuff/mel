@@ -22,6 +22,8 @@ class ServerConfig : KResult {
     var workingDirectory: File? = null
         get() = File(workingPath)
     var keySize: Int = 2048
+    var restartCommand: String? = null
+    var keepBinaries: Boolean = false
 
 
     fun getFiles(): Map<String, Pair<String>> {

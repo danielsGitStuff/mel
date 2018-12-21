@@ -6,6 +6,7 @@ The MiniServer has several functions:
     * Itself and restart
     * mel jar
     * mel apk
+* Restart itself
 ##Basics
 Miniserver puts all of its files in a subfolder  called "server" if not specified otherwise by setting "-dir".
 Which files you must provide depends on what your miniserver should deliver. For instance a signed certificate is not necessary if you do not plan to run a website.
@@ -49,6 +50,14 @@ In your `secret.properties` you'll have to specify the following:
 MiniServer will generate a `keystore.properties` file according to [this guide](https://developer.android.com/studio/publish/app-signing#secure-key)
 and provide it to the android build process.
 
+##Restart Miniserver (optional)
+In case that your MiniServer is started by systemd you can specify the command that is requiered to restart it.
+Make sure that you have edited your sudoers file in such a way that the MiniServer user is allowed to run this command.
+
+* `restartCommand`=sudo mySystemdCommand
+
+Look at the example below.
+
 ##Example secret.properties
 ```properties
 password=secure password
@@ -59,6 +68,8 @@ storePassword=secure store password
 keyPassword=secure key password
 keyAlias=buildKey
 storeFile=/home/myuser/Documents/drive/miniserver/server/secret/sign.jks 
+#restart command for systemd, modify your sudoers file to allow this command
+restartCommand=sudo /usr/bin/systemctl restart miniserver.service
 ```
 
 
