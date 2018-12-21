@@ -385,7 +385,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                     try {
                         Lok.debug("MeinAuthAdminFX.load...");
                         FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
-                        URL u =MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml");
+                        // Intellij Idea might crash here cause it cannot find the locale.
+                        // Workaround: Settings/Build&Exec.../Gradle/Runner -> check "Delegate IDE build/run actions to gradle"
                         ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/FxUi", new ResourceBundle.Control() {
                             @Override
                             public List<Locale> getCandidateLocales(String name, Locale locale) {

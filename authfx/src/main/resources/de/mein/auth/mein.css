@@ -1,4 +1,4 @@
-.lbl, .lbl-center, .lbl-center-section, .lbl-positive, .lbl-negative {
+.lbl, .lbl-center, .lbl-center-section, .lbl-positive, .lbl-negative, .lbl-section {
     -fx-padding: 5;
 }
 
@@ -7,7 +7,7 @@
     -fx-pref-width: Infinity;
 }
 
-.lbl-center-section {
+.lbl-center-section, .lbl-section {
     -fx-background-color: #4f4f4f;
 }
 
@@ -19,21 +19,31 @@
     -fx-background-color: rgb(204, 0, 0);
 }
 
+.lbl-hash{
+    -fx-text-fill: #ffcc35;
+    -fx-padding: 10;
+}
+
+.txt-cert{
+    -fx-text-fill: #57bf40;
+}
+
 .btn {
     -fx-text-fill: #9eb34d;
 }
 
-.lst{
+.lst {
     -fx-background-color: #2c2c2c;
 }
 
 .rdio {
     -fx-padding: 10px 10px 10px 10px;
 }
-.rdio .dot{
+
+.rdio .dot {
 
     /*-fx-mark-highlight-color: red ;*/
-    -fx-mark-color: #9eb34d ;
+    -fx-mark-color: #9eb34d;
 }
 
 .txt-edit {

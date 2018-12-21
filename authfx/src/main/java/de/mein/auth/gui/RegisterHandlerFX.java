@@ -7,6 +7,8 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
+import de.mein.auth.tools.N;
+import de.mein.sql.Hash;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXML;
@@ -38,9 +40,9 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
     @FXML
     private TextArea txtCert;
     @FXML
-    private Label lblMyCert;
+    private Label lblMyCert, lblMyHash;
     @FXML
-    private Label lblCert;
+    private Label lblCert, lblHash;
 
     private Certificate myCertificate, certificate;
     private IRegisterHandlerListener listener;
@@ -54,24 +56,23 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
 
     public void setMyCertificate(Certificate myCertificate) {
         this.myCertificate = myCertificate;
-        try {
-            X509Certificate myX509Certificate = CertificateManager.loadX509CertificateFromBytes(myCertificate.getCertificate().v());
-            txtMyCert.setText(myX509Certificate.toString());
-            lblMyCert.setText("My Certificate (" + myCertificate.getName().v() + ")");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        showCertificate(txtMyCert, lblMyHash, myCertificate);
+        lblMyCert.setText("My Certificate (" + myCertificate.getName().v() + ")");
     }
 
     public void setCertificate(Certificate certificate) {
         this.certificate = certificate;
-        try {
-            X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(certificate.getCertificate().v());
-            txtCert.setText(x509Certificate.toString());
-            lblCert.setText("Incoming Certificate (" + certificate.getName().v() + ")");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        showCertificate(txtCert, lblHash, certificate);
+        lblCert.setText("Incoming Certificate (" + certificate.getName().v() + ")");
+    }
+
+    private void showCertificate(TextArea txtArea, Label lblHash, Certificate cert) {
+        N.r(() -> {
+            X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(cert.getCertificate().v());
+            txtArea.setText(x509Certificate.toString());
+            String hash = Hash.sha256(x509Certificate.getEncoded());
+            lblHash.setText(hash);
+        });
     }
 
     public void setListener(IRegisterHandlerListener listener) {
@@ -108,7 +109,7 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
             Scene scene = new Scene(root);
             scene.getStylesheets().add(MeinAuthAdminFX.GLOBAL_STYLE_CSS);
             Stage stage = new Stage();
-            stage.setTitle("UML");
+            stage.setTitle("Someone wants to get to know you!");
             stage.setScene(scene);
             stage.show();
             controller.setStage(stage);
