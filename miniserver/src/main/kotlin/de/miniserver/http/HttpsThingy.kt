@@ -84,10 +84,12 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     Replacer("files") {
                         val s = StringBuilder()
                         miniServer.fileRepository.hashFileMap.values.forEach { fileEntry ->
+                            s.append("<tr>")
                             s.append("<td><a href=\"files/${fileEntry.hash}\" download=\"${fileEntry.file.name}\">${fileEntry.file.name}</a></td>") //name
                             s.append("<td>${fileEntry.variant}</td>") //variant
                             s.append("<td>${Date(fileEntry.version)})</td>") //build date
                             s.append("<td>${fileEntry.hash}</td>")//hash
+                            s.append("</tr>")
                         }
                         return@Replacer s.toString()
                     })
