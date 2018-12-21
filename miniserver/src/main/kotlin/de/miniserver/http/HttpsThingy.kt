@@ -102,7 +102,8 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                         }
                         sb.append("</p>")
                         sb.toString()
-                    })
+                    },
+                    Replacer("keep",if (miniServer.config.keepBinaries) "checked" else ""))
         }
 
         fun respondBinary(ex: HttpExchange, path: String, contentType: String? = null, cache: Boolean = false) {

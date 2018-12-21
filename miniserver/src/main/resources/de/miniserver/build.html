@@ -13,13 +13,15 @@
                 var cbServer = document.getElementById("cbServer");
                 var cbApk = document.getElementById("cbApk");
                 var cbJar = document.getElementById("cbJar");
+                var cbKeep = document.getElementById("cbKeep");
                 var req = {
                     $id: 1,
                     __type: "de.miniserver.http.BuildRequest",
                     server: cbServer.checked,
                     apk: cbApk.checked,
                     jar: cbJar.checked,
-                    pw: document.getElementById("pw").value
+                    pw: document.getElementById("pw").value,
+                    keepBinaries: cbKeep.checked
                 };
                 fetch("/api/build", {
                     method: 'POST', // or 'PUT'
@@ -60,6 +62,7 @@
     <button onclick="return warning()" type="submit">Shut Down</button>
 </form>
 <br>
+<input type="checkbox" id="cbKeep" <$=keep/>><label for="cbKeep">Keep binaries</label>
 <input type="checkbox" id="cbServer" checked> <label for="cbServer">miniserver</label>
 <input type="checkbox" id="cbApk"><label for="cbApk">apk</label>
 <input type="checkbox" id="cbJar"><label for="cbJar">jar</label><br>
