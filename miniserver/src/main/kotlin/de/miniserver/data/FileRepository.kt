@@ -15,10 +15,10 @@ fun main(args: Array<String>) {
 class FileEntry(val hash: String, val file: File, val variant: String, val version: Long, bytes: ByteArray? = null) {
     var bytes: ByteArray? = bytes
         get() {
-            if (bytes == null) {
-                bytes = file.inputStream().readBytes()
+            if (field == null) {
+                field = file.inputStream().readBytes()
             }
-            return bytes!!
+            return field!!
         }
 
 }
