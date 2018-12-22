@@ -1,8 +1,10 @@
 package de.mein.android;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ContentProviderOperation;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -25,9 +27,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.os.BuildCompat;
+
 import com.google.android.material.navigation.NavigationView;
 
 import de.mein.BuildConfig;
+
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -103,13 +107,39 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     private int runningColor;
     private AndroidPowerManager powerManager;
 
-    public static void showMessage(Context context, int message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setMessage(message)
-                .setTitle(R.string.titleHelp)
-                .setPositiveButton(R.string.btnOk, null);
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
+    /**
+     * show a simple dialog where the user can only click ok
+     *
+     * @param title
+     * @param message
+     */
+    public void showMessage(int title, int message) {
+        runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(message)
+                    .setTitle(title)
+                    .setPositiveButton(R.string.btnOk, null);
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        });
+    }
+
+    /**
+     * show a dialog with ok and cancel option
+     *
+     * @param message
+     * @param btnOkListener
+     * @param btnAbortListener
+     */
+    public void showMessageBinary(int title, int message, DialogInterface.OnClickListener btnOkListener, DialogInterface.OnClickListener btnAbortListener) {
+        runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(message)
+                    .setTitle(title)
+                    .setPositiveButton(R.string.btnDownload, btnOkListener)
+                    .setNegativeButton(R.string.btnCancel, btnAbortListener);
+            builder.create().show();
+        });
     }
 
     protected void startService() {
@@ -259,7 +289,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         // turn the help button into something useful
         btnHelp.setOnClickListener(v -> {
             if (guiController != null && guiController.getHelp() != null) {
-                showMessage(this, guiController.getHelp());
+                showMessage(R.string.titleHelp, guiController.getHelp());
             }
         });
         // show current app version
@@ -592,17 +622,6 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         super.onResume();
     }
 
-    public void showFirstStart() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        boolean showIntro = prefs.getBoolean(getString(R.string.showIntro), true);
-        if (showIntro) {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean(getString(R.string.showIntro), false);
-            editor.apply();
-            showMessage(this, R.string.firstStart);
-        }
-    }
-
     public void showMenuServices() {
         if (androidService != null) {
             runOnUiThread(() -> N.r(() -> {
@@ -716,4 +735,6 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     public void onStateChanged(PowerManager powerManager) {
         updateBarColor();
     }
+
+
 }

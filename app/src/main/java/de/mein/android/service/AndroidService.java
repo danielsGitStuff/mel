@@ -3,20 +3,12 @@ package de.mein.android.service;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.Binder;
-import android.os.Build;
-import android.os.Environment;
 import android.os.IBinder;
-
-import androidx.core.app.NotificationCompat;
 
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -28,15 +20,13 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import androidx.core.content.FileProvider;
-import de.mein.BuildConfig;
+import androidx.core.app.NotificationCompat;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.AndroidInjector;
 import de.mein.android.AndroidRegHandler;
 import de.mein.android.MainActivity;
 import de.mein.android.Notifier;
-import de.mein.android.Tools;
 import de.mein.android.contacts.AndroidContactsBootloader;
 import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.auth.MeinStrings;
@@ -46,7 +36,6 @@ import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
@@ -59,9 +48,6 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.DriveSyncListener;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
-import de.mein.update.UpdateHandler;
-import de.mein.update.Updater;
-import de.mein.update.VersionAnswer;
 
 
 /**
@@ -139,60 +125,6 @@ public class AndroidService extends Service {
                         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
                         X509Certificate cert = CertificateManager.loadX509CertificateFromStream(in);
                         meinAuthService.getCertificateManager().dev_SetUpdateCertificate(cert);
-                    });
-                    meinAuthService.getUpdater().addUpdateHandler(new UpdateHandler() {
-                        private String titleReceiving;
-                        private int requestCode = 732458;
-                        private String titleAvail;
-
-                        private Uri getFileUri(File file) {
-                            return FileProvider.getUriForFile(Tools.getApplicationContext(),
-                                    Tools.getApplicationContext().getPackageName() + ".HelperClasses.GenericFileProvider"
-                                    , file);
-                        }
-
-                        @Override
-                        public void onUpdateFileReceived(Updater updater, VersionAnswer.VersionEntry versionEntry, File target) {
-                            Notifier.cancel(null, requestCode);
-                            Context context = Tools.getApplicationContext();
-
-                            File toInstall = target;
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                Uri apkUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", toInstall);
-                                Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-                                intent.setData(apkUri);
-                                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                context.startActivity(intent);
-                            } else {
-                                Uri apkUri = Uri.fromFile(toInstall);
-                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                context.startActivity(intent);
-                            }
-                        }
-
-                        @Override
-                        public void onProgress(Updater updater, Long done, Long length) {
-                            int p = 0;
-                            if (done > 0) {
-                                p = (int) ((float) done / (float) length * 100f);
-                            }
-                            Notifier.progress(requestCode, R.drawable.icon_notification_2, Notifier.CHANNEL_ID_SILENT, titleReceiving, null, null, 100, p);
-                        }
-
-                        @Override
-                        public void onUpdateAvailable(Updater updater, VersionAnswer.VersionEntry versionEntry) {
-                            titleAvail = AndroidService.this.getString(R.string.titleUpdateAvail);
-                            titleReceiving = AndroidService.this.getString(R.string.titleReceiving);
-                            Notifier.notification(requestCode, R.drawable.icon_notification_2, Notifier.CHANNEL_ID_SILENT, titleAvail, "load?", null);
-                            File parent = Environment.getExternalStoragePublicDirectory("Download");
-                            File updateFile = new File(parent, "update.apk");
-
-
-                            updater.loadUpdate(versionEntry, updateFile);
-
-                        }
                     });
                     meinAuthService.addRegisterHandler(new AndroidRegHandler(this, meinAuthService));
                     meinAuthService.getPowerManager().addCommunicationListener(communicationsListener);

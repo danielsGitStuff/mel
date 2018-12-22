@@ -147,5 +147,8 @@
     <string name="lblOwnHash">Hash of my certificate:</string>
     <string name="lblRemoteCert">Complete remote certificate:</string>
     <string name="lblOwnCert">My complete Certificate:</string>
+    <string name="infoNoUpdate">No Update available!</string>
+    <string name="btnDownload">Download</string>
+    <string name="questionDownloadUpdate">Do you want do download it?</string>
 
 </resources>

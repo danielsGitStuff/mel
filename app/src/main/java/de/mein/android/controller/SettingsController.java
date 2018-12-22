@@ -2,8 +2,12 @@ package de.mein.android.controller;
 
 import android.Manifest;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -14,9 +18,11 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.Date;
 
 import androidx.core.content.FileProvider;
+import de.mein.BuildConfig;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.Versioner;
@@ -30,6 +36,9 @@ import de.mein.android.service.AndroidService;
 import de.mein.android.view.PowerView;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.tools.N;
+import de.mein.update.UpdateHandler;
+import de.mein.update.Updater;
+import de.mein.update.VersionAnswer;
 
 /**
  * Created by xor on 9/19/17.
@@ -107,14 +116,87 @@ public class SettingsController extends GuiController {
             alertDialog.show();
         }));
         btnUpdate.setOnClickListener(v -> N.r(() -> {
-            if (activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
-                Threadder.runNoTryThread(() -> androidService.getMeinAuthService().updateProgram());
-            }else {
-                Notifier.toast(activity,R.string.permanentNotificationText);
+            if (activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Threadder.runNoTryThread(() -> {
+                    if (updateHandler == null)
+                        updateHandler = new UpdateHandler() {
+                            private String titleReceiving;
+                            private int requestCode = 732458;
+                            private String titleAvail;
+
+
+                            private Uri getFileUri(File file) {
+                                return FileProvider.getUriForFile(Tools.getApplicationContext(),
+                                        Tools.getApplicationContext().getPackageName() + ".HelperClasses.GenericFileProvider"
+                                        , file);
+                            }
+
+                            @Override
+                            public void onUpdateFileReceived(Updater updater, VersionAnswer.VersionEntry versionEntry, File target) {
+                                Notifier.cancel(null, requestCode);
+
+                                File toInstall = target;
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    Uri apkUri = FileProvider.getUriForFile(activity, BuildConfig.APPLICATION_ID + ".fileprovider", toInstall);
+                                    Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+                                    intent.setData(apkUri);
+                                    intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                    activity.startActivity(intent);
+                                } else {
+                                    Uri apkUri = Uri.fromFile(toInstall);
+                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                    intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    activity.startActivity(intent);
+                                }
+                                updater.removeUpdateHandler(this);
+                            }
+
+                            @Override
+                            public void onProgress(Updater updater, Long done, Long length) {
+                                int p = 0;
+                                if (done > 0) {
+                                    p = (int) ((float) done / (float) length * 100f);
+                                }
+                                Notifier.progress(requestCode, R.drawable.icon_notification_2, Notifier.CHANNEL_ID_SILENT, titleReceiving, null, null, 100, p);
+                            }
+
+                            @Override
+                            public void onUpdateAvailable(Updater updater, VersionAnswer.VersionEntry versionEntry) {
+                                titleAvail = androidService.getString(R.string.titleUpdateAvail);
+                                titleReceiving = androidService.getString(R.string.titleReceiving);
+                                activity.showMessageBinary(R.string.titleUpdateAvail, R.string.questionDownloadUpdate, (dialog, which) -> {
+                                    File parent = Environment.getExternalStoragePublicDirectory("Download");
+                                    File updateFile = new File(parent, "update.apk");
+                                    Threadder.runNoTryThread(() -> updater.loadUpdate(versionEntry,updateFile));
+                                }, (dialog, which) -> {
+                                    dialog.cancel();
+                                    updater.removeUpdateHandler(updateHandler);
+                                });
+//                                Notifier.notification(requestCode, R.drawable.icon_notification_2, Notifier.CHANNEL_ID_SILENT, titleAvail, "load?", null);
+//                                File parent = Environment.getExternalStoragePublicDirectory("Download");
+//                                File updateFile = new File(parent, "update.apk");
+//                                updater.loadUpdate(versionEntry, updateFile);
+                            }
+
+                            @Override
+                            public void onNoUpdateAvailable(Updater updater) {
+                                activity.showMessage(R.string.infoNoUpdate,R.string.infoNoUpdate);
+                                updater.removeUpdateHandler(updateHandler);
+                            }
+                        };
+                    Updater updater = androidService.getMeinAuthService().getUpdater().addUpdateHandler(updateHandler);
+                    updater.retrieveUpdate();
+
+                });
+            } else {
+                Notifier.toast(activity, R.string.permanentNotificationText);
                 activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             }
         }));
     }
+
+    private UpdateHandler updateHandler;
 
     private void showAll() {
         // fill values

@@ -147,5 +147,8 @@
     <string name="lblOwnHash">Hash von meinem Zertifikat:</string>
     <string name="lblRemoteCert">Vollständiges Partnerzertifikat:</string>
     <string name="lblOwnCert">Mein vollständiges Zertifikat:</string>
+    <string name="infoNoUpdate">Zur Zeit ist kein Update verfügbar!</string>
+    <string name="btnDownload">Herunterladen.</string>
+    <string name="questionDownloadUpdate">Herunterladen?</string>
 
 </resources>
