@@ -37,7 +37,7 @@ public class ProgressPopupContentFX extends PopupContentFX implements MeinNotifi
     @Override
     public void onCancel(MeinNotification notification) {
         Lok.debug("ProgressPopupContentFX.cancel()");
-        Platform.runLater(() -> stage.close());
+        XCBFix.runLater(() -> stage.close());
     }
 
     @Override

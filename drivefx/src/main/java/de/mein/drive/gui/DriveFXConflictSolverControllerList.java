@@ -3,6 +3,7 @@ package de.mein.drive.gui;
 import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.gui.PopupContentFX;
+import de.mein.auth.gui.XCBFix;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.data.conflict.ConflictSolver;
@@ -58,7 +59,7 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
 
     @Override
     public void onConflictObsolete() {
-        Platform.runLater(() -> stage.close());
+        XCBFix.runLater(() -> stage.close());
     }
 
 }

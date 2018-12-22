@@ -129,7 +129,7 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
         bootLoader.setTypeId(serviceType.getId().v());
         File serviceTypesDir = new File(meinAuthService.getWorkingDirectory(), "servicetypes");
         serviceTypesDir.mkdirs();
-        File bootDir =new File(serviceTypesDir, serviceType.getType().v());
+        File bootDir = new File(serviceTypesDir, serviceType.getType().v());
         bootDir.mkdirs();
         bootLoader.setBootLoaderDir(bootDir);
         return bootLoader;
@@ -137,6 +137,11 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
 
     public BootLoader getBootLoader(String typeName) throws IllegalAccessException, SqlQueriesException, InstantiationException {
         Class<? extends BootLoader> bootClazz = bootloaderMap.get(typeName);
+        //todo debug
+        if (bootClazz == null) {
+            boolean hasType = bootloaderMap.containsKey(typeName);
+            bootClazz = bootloaderMap.get(typeName);
+        }
         BootLoader bootLoader = createBootLoader(meinAuthService, bootClazz);
         return bootLoader;
     }

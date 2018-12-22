@@ -66,7 +66,7 @@ public class AboutFX extends AuthSettingsFX {
                 currentJarFile = new File(CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation().toURI());
                 if (!currentJarFile.getAbsolutePath().endsWith(".jar")) {
                     Lok.error("Seems I am not a jar. I won't update myself then ;)");
-                    Platform.runLater(() -> {
+                    XCBFix.runLater(() -> {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Update Info");
                         alert.setHeaderText(null);
@@ -129,7 +129,7 @@ public class AboutFX extends AuthSettingsFX {
                 @Override
                 public void onNoUpdateAvailable(Updater updater) {
                     Lok.debug("no new version available");
-                    Platform.runLater(() -> {
+                    XCBFix.runLater(() -> {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
                         alert.setTitle("Update Info");
                         alert.setHeaderText(null);

@@ -2,6 +2,7 @@ package de.mein.auth.gui.notification;
 
 import de.mein.Lok;
 import de.mein.auth.MeinNotification;
+import de.mein.auth.gui.XCBFix;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.service.MeinAuthService;
 import javafx.application.Platform;
@@ -38,7 +39,7 @@ public class NotificationCenter {
 
 
     public void showNotifications() {
-        Platform.runLater(() -> {
+        XCBFix.runLater(() -> {
             list.setItems(meinAuthAdminFX.getNotifications());
             list.setCellFactory(param -> new NotificationListCell(meinAuthService));
             Lok.debug("NotificationCenter.showNotifications");

@@ -93,7 +93,7 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
 
         new JFXPanel();
         Platform.setImplicitExit(false);
-        Platform.runLater(() -> {
+        XCBFix.runLater(() -> {
             FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("de/mein/auth/service/register.fxml"));
             BorderPane root = null;
             try {

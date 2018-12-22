@@ -67,6 +67,7 @@ public class ClientSyncHandler extends SyncHandler {
         try {
             if (driveSettings.getClientSettings().getServerCertId() == null)
                 return;
+            Lok.debug("asking for new available hashes....");
             TransferDao transferDao = driveDatabaseManager.getTransferDao();
             ISQLResource<TransferDetails> transfers = transferDao.getNotStartedNotAvailableTransfers(driveSettings.getClientSettings().getServerCertId());
             AvailableHashesContainer availableHashesTask = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
@@ -80,6 +81,7 @@ public class ClientSyncHandler extends SyncHandler {
 //                availableHashesTask.add(new AvailHashEntry("238810397cd86edae7957bca350098bc"));
 //                availableHashesTask.add(new AvailHashEntry("fdcbc1aca23cfebaa128bac31df20969"));
 //            });
+
             if (availableHashesTask.getSize() > 0 && debugFlag) {
                 meinAuthService.connect(driveSettings.getClientSettings().getServerCertId())
                         .done(mvp -> {
@@ -107,7 +109,7 @@ public class ClientSyncHandler extends SyncHandler {
             } else {
                 availableHashesTask.cleanUp();
             }
-            Lok.debug("asking for new available hashes....");
+
         } catch (SqlQueriesException | InterruptedException e) {
             e.printStackTrace();
         }

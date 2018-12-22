@@ -1,6 +1,7 @@
 package de.mein.drive.gui;
 
 import de.mein.Lok;
+import de.mein.auth.gui.XCBFix;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.drive.data.conflict.Conflict;
@@ -176,7 +177,7 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
         public static void main(String[] args) {
             Lok.debug(new JFXPanel());
             Lok.debug("AbstractMergeListCell.main");
-            Platform.runLater(() -> N.r(() -> {
+            XCBFix.runLater(() -> N.r(() -> {
                 javafx.stage.Stage stage = new javafx.stage.Stage();
                 HBox root = new HBox();
                 Scene scene = new Scene(root);

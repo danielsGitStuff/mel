@@ -8,6 +8,7 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.AuthSettingsFX;
 import de.mein.auth.gui.RemoteServiceChooserFX;
 import de.mein.auth.gui.ServiceSettingsFX;
+import de.mein.auth.gui.XCBFix;
 import de.mein.auth.gui.notification.NotificationCenter;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
@@ -108,7 +109,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     }
 
     private void showServices() {
-        Platform.runLater(() -> {
+        XCBFix.runLater(() -> {
             try {
                 List<ServiceJoinServiceType> serviceJoinServiceTypes = meinAuthService.getDatabaseManager().getAllServices();
                 vboxServices.getChildren().clear();
@@ -206,7 +207,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         btnOthers.setOnAction(event -> {
             loadSettingsFX("de/mein/auth/others.fxml");
         });
-        btnNotifications.setOnAction(event -> Platform.runLater(() -> N.r(this::loadNotificationCenter)));
+        btnNotifications.setOnAction(event -> XCBFix.runLater(() -> N.r(this::loadNotificationCenter)));
         btnAccess.setOnAction(event -> loadSettingsFX("de/mein/auth/access.fxml"));
         btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/pairing.fxml"));
         tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showServices());
@@ -263,11 +264,11 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         PopupMenu menu = new PopupMenu();
         java.awt.MenuItem menuNotification = new java.awt.MenuItem();
         menuNotification.setLabel("NotificationCenter");
-        menuNotification.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
+        menuNotification.addActionListener(e -> XCBFix.runLater(() -> N.r(notificationCenterRunnable)));
 
         java.awt.MenuItem menuExit = new java.awt.MenuItem();
         menuExit.setLabel("Exit");
-        menuExit.addActionListener(e -> Platform.runLater(() -> {
+        menuExit.addActionListener(e -> XCBFix.runLater(() -> {
             shutDown();
             System.exit(0);
         }));
@@ -275,7 +276,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         menu.add(menuNotification);
         menu.add(menuExit);
         trayIcon.setPopupMenu(menu);
-        trayIcon.addActionListener(e -> Platform.runLater(() -> N.r(notificationCenterRunnable)));
+        trayIcon.addActionListener(e -> XCBFix.runLater(() -> N.r(notificationCenterRunnable)));
         tray.add(trayIcon);
         //trayIcon.displayMessage("Hello, World", "notification demo", TrayIcon.MessageType.INFO);
     }
@@ -381,7 +382,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         final MeinAuthAdminFX[] meinAuthAdminFXES = new MeinAuthAdminFX[1];
         MeinAuthAdminFX m;
         WaitLock lock = new WaitLock().lock();
-        Platform.runLater(() -> {
+        XCBFix.runLater(() -> {
                     try {
                         Lok.debug("MeinAuthAdminFX.load...");
                         FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));

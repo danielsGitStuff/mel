@@ -23,7 +23,7 @@ public class PopupContainerFX {
 
     public Promise<PopupContentFX, Void, Void> load(String containingPath) {
         DeferredObject<PopupContentFX, Void, Void> deferred = new DeferredObject<>();
-        Platform.runLater(() -> N.r(() -> {
+        XCBFix.runLater(() -> N.r(() -> {
             FXMLLoader contentLoader = new FXMLLoader(PopupContainerFX.class.getClassLoader().getResource(containingPath));
 
             Parent root = contentLoader.load();

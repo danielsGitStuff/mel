@@ -3,6 +3,7 @@ package de.mein.auth.gui.notification;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
 import de.mein.auth.gui.Popup;
+import de.mein.auth.gui.XCBFix;
 import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
@@ -48,7 +49,7 @@ public class NotificationListCell extends ListCell<MeinNotification> {
     protected void updateItem(MeinNotification notification, boolean empty) {
         super.updateItem(notification, empty);
         this.notification = notification;
-        Platform.runLater(() -> {
+        XCBFix.runLater(() -> {
             if (empty || notification == null) {
                 lblTitle.setText(null);
                 lblText.setText(null);
