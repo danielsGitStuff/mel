@@ -50,21 +50,11 @@ public class Updater {
         meinAuthService.execute(updateMessageSocket);
     }
 
-    public void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
-        try {
-            Long currentVersion = Versioner.getBuildVersion();
-            if (currentVersion.equals(versionEntry.getVersion())) {
-                Lok.debug("no update necessary :)");
-                return;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
+    void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
         N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onUpdateAvailable(this, versionEntry));
     }
 
-    public void onUpdateReceived(VersionAnswer.VersionEntry versionEntry, File target) {
+    void onUpdateReceived(VersionAnswer.VersionEntry versionEntry, File target) {
         Lok.debug("Success. I got Update!!!1!");
         N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onUpdateFileReceived(this, versionEntry, target));
     }
@@ -79,7 +69,7 @@ public class Updater {
         return this;
     }
 
-    public void onSocketProgress(Long done, Long length) {
+    void onSocketProgress(Long done, Long length) {
         N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onProgress(this, done, length));
     }
 
