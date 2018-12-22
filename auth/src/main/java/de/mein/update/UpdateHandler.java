@@ -11,4 +11,6 @@ public interface UpdateHandler {
     void onProgress(Updater updater, Long done, Long length);
 
     void onUpdateAvailable(Updater updater, VersionAnswer.VersionEntry versionEntry);
+
+    void onNoUpdateAvailable(Updater updater);
 }

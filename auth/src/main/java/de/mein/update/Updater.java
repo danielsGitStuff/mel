@@ -51,6 +51,17 @@ public class Updater {
     }
 
     void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
+        try {
+            Long currentVersion = Versioner.getBuildVersion();
+            if (currentVersion >= versionEntry.getVersion()) {
+                Lok.debug("no update necessary :)");
+                N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onNoUpdateAvailable(this));
+                return;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
         N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onUpdateAvailable(this, versionEntry));
     }
 

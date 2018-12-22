@@ -111,27 +111,30 @@ public class AboutFX extends AuthSettingsFX {
                     Lok.debug("available");
                     N.r(() -> {
                         Long currentVersion = Versioner.getBuildVersion();
-                        if (currentVersion < ve.getVersion()) {
-                            Lok.debug("update available from " + currentVersion + " to " + ve.getVersion() + ", hash " + ve.getHash());
-                            AboutFX.this.updater = updater;
-                            versionEntry.set(ve);
-                            btnUpdate.setDisable(false);
-                            // let the update button have its purpose
-                            btnUpdate.setOnMouseClicked(event -> {
-                                Lok.debug("retrieving update");
-                                File targetFile = new File(meinAuthService.getWorkingDirectory(), "update.jar");
-                                updater.loadUpdate(versionEntry.get(), targetFile);
-                            });
-                        } else {
-                            Lok.debug("no new version available");
-                            Platform.runLater(() -> {
-                                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                                alert.setTitle("Update Info");
-                                alert.setHeaderText(null);
-                                alert.setContentText("There is no new version available.");
-                                alert.showAndWait();
-                            });
-                        }
+//                        if (currentVersion < ve.getVersion()) {
+                        Lok.debug("update available from " + currentVersion + " to " + ve.getVersion() + ", hash " + ve.getHash());
+                        AboutFX.this.updater = updater;
+                        versionEntry.set(ve);
+                        btnUpdate.setDisable(false);
+                        // let the update button have its purpose
+                        btnUpdate.setOnMouseClicked(event -> {
+                            Lok.debug("retrieving update");
+                            File targetFile = new File(meinAuthService.getWorkingDirectory(), "update.jar");
+                            updater.loadUpdate(versionEntry.get(), targetFile);
+                        });
+//                        }
+                    });
+                }
+
+                @Override
+                public void onNoUpdateAvailable(Updater updater) {
+                    Lok.debug("no new version available");
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Update Info");
+                        alert.setHeaderText(null);
+                        alert.setContentText("There is no new version available.");
+                        alert.showAndWait();
                     });
                 }
             });
