@@ -64,7 +64,7 @@ public class AboutFX extends AuthSettingsFX {
             File currentJarFile = null;
             try {
                 currentJarFile = new File(CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation().toURI());
-                if (currentJarFile == null || !currentJarFile.getAbsolutePath().endsWith(".jar")) {
+                if (!currentJarFile.getAbsolutePath().endsWith(".jar")) {
                     Lok.error("Seems I am not a jar. I won't update myself then ;)");
                     Platform.runLater(() -> {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
