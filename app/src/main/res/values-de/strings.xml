@@ -56,7 +56,7 @@
     <string name="editServiceDrivePath">Pfad</string>
     <string name="editServiceDriveChoose">Suche</string>
     <string name="settingsMisc">Sonstiges</string>
-    <string name="settingsStartDialog">Show startup dialog again</string>
+    <string name="settingsStartDialog">Zeige den Startdialog nochmal</string>
     <string name="settingsShow">Intro</string>
     <string name="settingsRedirectSysOut">Konsolenausgabe anzeigen</string>
     <string name="infoSSID">Wifi</string>

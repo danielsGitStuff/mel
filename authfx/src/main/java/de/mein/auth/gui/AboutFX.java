@@ -6,6 +6,7 @@ import de.mein.auth.MeinNotification;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.tools.F;
 import de.mein.auth.tools.N;
+import de.mein.update.CurrentJar;
 import de.mein.update.UpdateHandler;
 import de.mein.update.Updater;
 import de.mein.update.VersionAnswer;
@@ -62,7 +63,7 @@ public class AboutFX extends AuthSettingsFX {
             AtomicReference<VersionAnswer.VersionEntry> versionEntry = new AtomicReference<>();
             File currentJarFile = null;
             try {
-                currentJarFile = getCurrentJarFile();// new File(AboutFX.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+                currentJarFile = new File(CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation().toURI());
                 if (currentJarFile == null || !currentJarFile.getAbsolutePath().endsWith(".jar")) {
                     Lok.error("Seems I am not a jar. I won't update myself then ;)");
                     Platform.runLater(() -> {
@@ -140,19 +141,30 @@ public class AboutFX extends AuthSettingsFX {
 
     }
 
-    private File getCurrentJarFile() {
-        String prop = System.getProperty("java.class.path");
-        if (prop == null) {
-            Lok.debug("java.class.path was null");
-            return null;
-        }
-        File base = new File("f").getAbsoluteFile().getParentFile();
-        String separator = System.getProperty("path.separator");
-        Arrays.stream(prop.split(separator)).forEach(s -> Lok.debug("path1: " + s));
-        // we assume that the applications runs from one jar.
-        Optional<String> path = Arrays.stream(prop.split(separator)).filter(s -> s.startsWith(base.getAbsolutePath())).findFirst();
-        return path.map(s -> new File(s).getAbsoluteFile()).orElse(null);
-    }
+//    private File getCurrentJarFile() {
+//        String prop = System.getProperty("java.class.path");
+//        if (prop == null) {
+//            Lok.debug("java.class.path was null");
+//            return null;
+//        }
+//        File base = new File("f").getAbsoluteFile().getParentFile();
+//        Lok.debug("comparing with base: " + base.getAbsolutePath());
+//        String separator = System.getProperty("path.separator");
+//        Arrays.stream(prop.split(separator)).forEach(s -> Lok.debug("path1: " + s));
+//        // we assume that the applications runs from one jar.
+////        File jarFile =  new File(CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+////        Arrays.stream(prop.split(separator)).forEach(s -> {
+////            boolean match = s.startsWith(base.getAbsolutePath());
+////            Lok.debug("part: "+s+" -> "+match);
+////            N.r( () -> {
+////              File f =  new File(AboutFX.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+////              Lok.debug(">>> "+f.getAbsolutePath());
+////            });
+////        });
+//        Optional<String> path = Arrays.stream(prop.split(separator)).filter(s -> s.startsWith(base.getAbsolutePath())).findFirst();
+//        Lok.debug("found matching path? " + path.isPresent());
+//        return path.map(s -> new File(s).getAbsoluteFile()).orElse(null);
+//    }
 
     @Override
     public String getTitle() {

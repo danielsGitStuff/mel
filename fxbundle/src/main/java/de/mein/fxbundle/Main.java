@@ -21,6 +21,7 @@ import de.mein.drive.boot.DriveFXBootLoader;
 import de.mein.sql.RWLock;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
+import de.mein.update.CurrentJar;
 import javafx.embed.swing.JFXPanel;
 
 import java.io.IOException;
@@ -30,12 +31,13 @@ import java.io.IOException;
  */
 @SuppressWarnings("Duplicates")
 public class Main {
-    private static void init() throws IOException {
+    private static void init() throws Exception {
         new JFXPanel();
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
+        CurrentJar.initCurrentJarClass(Main.class);
         AFile.configure(new DefaultFileConfiguration());
         BashTools.init();
     }
