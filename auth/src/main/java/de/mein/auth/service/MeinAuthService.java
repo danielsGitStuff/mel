@@ -169,6 +169,7 @@ public class MeinAuthService {
     }
 
     public void start() {
+        Lok.debug("start");
         execute(meinAuthWorker);
         for (IMeinService service : uuidServiceMap.values()) {
             if (service instanceof MeinServiceWorker) {

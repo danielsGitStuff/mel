@@ -35,15 +35,15 @@ public class ContactsClientService extends ContactsService {
 
     @Override
     public void onContactsChanged() {
-
+        Lok.debug("contacts changed");
     }
 
     @Override
     public void connectionAuthenticated(Certificate partnerCertificate) {
-        if (partnerCertificate.getId().equalsValue(settings.getClientSettings().getServerCertId())){
+        if (partnerCertificate.getId().equalsValue(settings.getClientSettings().getServerCertId())) {
             addJob(new ExamineJob());
-        }else {
-            Lok.debug("received a cert id that is not from server: "+partnerCertificate.getId().v());
+        } else {
+            Lok.debug("received a cert id that is not from server: " + partnerCertificate.getId().v());
         }
     }
 

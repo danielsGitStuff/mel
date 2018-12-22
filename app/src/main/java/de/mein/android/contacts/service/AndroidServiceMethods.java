@@ -53,6 +53,7 @@ public class AndroidServiceMethods {
      * @throws SqlQueriesException
      */
     public PhoneBook examineContacts(Long lastUncommitedHeadVersion) throws SqlQueriesException {
+        Lok.debug("starting examination");
         ContactsDao contactsDao = databaseManager.getContactsDao();
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
         PhoneBook phoneBook;
