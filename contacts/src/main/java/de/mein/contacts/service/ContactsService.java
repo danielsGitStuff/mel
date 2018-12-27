@@ -57,18 +57,24 @@ public abstract class ContactsService extends MeinService {
     }
 
     @Override
+    public void resume() {
+        Lok.debug("resume");
+        super.resume();
+    }
+
+    @Override
     public MeinNotification createSendingNotification() {
         return null;
     }
 
     @Override
     public void onCommunicationsDisabled() {
-
+        Lok.debug("communications on");
     }
 
     @Override
     public void onCommunicationsEnabled() {
-
+        Lok.debug("communications off");
     }
 
     @Override

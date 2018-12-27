@@ -38,6 +38,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
+import de.mein.auth.service.MeinService;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
@@ -348,6 +349,11 @@ public class AndroidService extends Service {
                 //meinAuthService.addRegisteredHandler(registeredHandler);
                 Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
                 Lok.debug(t1);
+//                //todo debug
+//                N.forEach(meinAuthService.getMeinServices(),iMeinService -> {
+//                    MeinService meinService = meinAuthService.getMeinService(iMeinService.getUuid());
+//                    meinService.resume();
+//                });
             });
         });
         return promise;
