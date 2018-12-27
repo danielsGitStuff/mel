@@ -14,7 +14,7 @@
     <TextField styleClass="txt-edit"  fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name"  />
     <Label styleClass="lbl-center-section" text="Path" />
     <HBox>
-        <TextField styleClass="txt-edit" fx:id="txtPath" text="/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/folder/" HBox.hgrow="ALWAYS" />
+        <TextField styleClass="txt-edit" fx:id="txtPath" text="/home/xor/Downloads/mel/" HBox.hgrow="ALWAYS" />
         <Button styleClass="btn" fx:id="btnPath" text="Chose" />
     </HBox>
     <Label styleClass="lbl-center-section" text="Choose Role"/>

@@ -235,7 +235,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         N.r(() -> {
             notifications.add(meinNotification);
             meinNotification.addProgressListener(this);
-            trayIcon.displayMessage(meinNotification.getTitle(), meinNotification.getText(), TrayIcon.MessageType.INFO);
+            XCBFix.runLater(() -> trayIcon.displayMessage(meinNotification.getTitle(), meinNotification.getText(), TrayIcon.MessageType.INFO));
         });
     }
 
