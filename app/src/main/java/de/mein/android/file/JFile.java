@@ -231,10 +231,22 @@ public class JFile extends AFile<JFile> {
         return file.lastModified();
     }
 
+    /**
+     * Checks whether or not you have to employ the Storage Access Framework to write to that location.
+     * @return
+     */
     private boolean requiresSAF() {
-        String internalPath = Environment.getDataDirectory().getAbsolutePath();
-        if (file.getAbsolutePath().startsWith(internalPath))
+        String internalDataPath = Environment.getDataDirectory().getAbsolutePath();
+        // no external sd card available
+        if (!SAFAccessor.hasExternalSdCard())
             return false;
+        // file is in data directory
+        if (file.getAbsolutePath().startsWith(internalDataPath))
+            return false;
+        // file is not on external sd card
+        if (!file.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath()))
+            return false;
+        // SAF is only available from kitkat onwards
         return Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT;
     }
 
@@ -256,7 +268,8 @@ public class JFile extends AFile<JFile> {
             // todo test, because it is untested cause I go to bed now
             String stripped;
             if (rootPath == null || !file.getAbsolutePath().startsWith(rootPath)) {
-                stripped = file.getAbsolutePath();
+                // remove first slash as well
+                stripped = file.getAbsolutePath().substring(1);
             } else {
                 stripped = path.substring(rootPath.length());
             }
