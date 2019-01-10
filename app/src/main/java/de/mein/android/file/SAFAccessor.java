@@ -103,6 +103,11 @@ public class SAFAccessor {
         }
     }
 
+    public static boolean hasExternalSdCard(){
+        String rootPath = Tools.getSharedPreferences().getString(EXT_SD_CARD_PATH, null);
+        return rootPath != null;
+    }
+
     @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static Promise<Void, Exception, Void> askForExternalRootDirectory(MeinActivity activity) {
         DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();

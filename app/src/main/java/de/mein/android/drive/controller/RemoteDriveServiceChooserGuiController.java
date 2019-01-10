@@ -121,7 +121,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                 if (permissionsGrantedListener != null)
                     permissionsGrantedListener.onPermissionsGranted();
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    if (SAFAccessor.canWriteExternal()) {
+                    if (!SAFAccessor.hasExternalSdCard() || SAFAccessor.canWriteExternal()) {
                         launchDirChooser();
                     } else {
                         SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
