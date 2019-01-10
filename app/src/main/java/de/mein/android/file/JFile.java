@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Environment;
+
 import androidx.documentfile.provider.DocumentFile;
 
 import java.io.File;
@@ -250,7 +251,15 @@ public class JFile extends AFile<JFile> {
         private static String[] createRelativeFilePathParts(File file) {
             String rootPath = SAFAccessor.getExternalSDPath();
             String path = file.getAbsolutePath();
-            String stripped = path.substring(rootPath.length());
+            // if rootPath is null, there is no external sd card.
+            // if it isn't the share still might be on the internal "sd card"
+            // todo test, because it is untested cause I go to bed now
+            String stripped;
+            if (rootPath == null || !file.getAbsolutePath().startsWith(rootPath)) {
+                stripped = file.getAbsolutePath();
+            } else {
+                stripped = path.substring(rootPath.length());
+            }
             return stripped.split(File.separator);
         }
 
