@@ -46,7 +46,6 @@ CREATE TABLE stage (
   synced      INTEGER,
   merged      INTEGER,
   ord         INTEGER NOT NULL,
-  UNIQUE (stageset, ord),
   FOREIGN KEY (parentid) REFERENCES stage (id)
     ON DELETE SET NULL,
   FOREIGN KEY (stageset) REFERENCES stageset (id)
