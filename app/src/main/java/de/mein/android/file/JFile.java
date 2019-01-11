@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Environment;
+
 import androidx.documentfile.provider.DocumentFile;
 
 import java.io.File;
@@ -230,10 +231,22 @@ public class JFile extends AFile<JFile> {
         return file.lastModified();
     }
 
+    /**
+     * Checks whether or not you have to employ the Storage Access Framework to write to that location.
+     * @return
+     */
     private boolean requiresSAF() {
-        String internalPath = Environment.getDataDirectory().getAbsolutePath();
-        if (file.getAbsolutePath().startsWith(internalPath))
+        String internalDataPath = Environment.getDataDirectory().getAbsolutePath();
+        // no external sd card available
+        if (!SAFAccessor.hasExternalSdCard())
             return false;
+        // file is in data directory
+        if (file.getAbsolutePath().startsWith(internalDataPath))
+            return false;
+        // file is not on external sd card
+        if (!file.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath()))
+            return false;
+        // SAF is only available from kitkat onwards
         return Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT;
     }
 
@@ -250,7 +263,16 @@ public class JFile extends AFile<JFile> {
         private static String[] createRelativeFilePathParts(File file) {
             String rootPath = SAFAccessor.getExternalSDPath();
             String path = file.getAbsolutePath();
-            String stripped = path.substring(rootPath.length());
+            // if rootPath is null, there is no external sd card.
+            // if it isn't the share still might be on the internal "sd card"
+            // todo test, because it is untested cause I go to bed now
+            String stripped;
+            if (rootPath == null || !file.getAbsolutePath().startsWith(rootPath)) {
+                // remove first slash as well
+                stripped = file.getAbsolutePath().substring(1);
+            } else {
+                stripped = path.substring(rootPath.length());
+            }
             return stripped.split(File.separator);
         }
 
