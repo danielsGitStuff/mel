@@ -12,10 +12,12 @@ import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.F;
 import de.mein.auth.tools.WaitLock;
+import de.mein.contacts.ContactsBootloader;
 import de.mein.contacts.ContactsFXBootloader;
 import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
+import de.mein.drive.DriveBootLoader;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.boot.DriveFXBootLoader;
 import de.mein.sql.RWLock;
@@ -50,15 +52,25 @@ public class Main {
         lock.lockWrite();
         MeinAuthSettings meinAuthSettings = AuthKonsoleReader.readKonsole(MeinStrings.update.VARIANT_FX, args);
         meinAuthSettings.save();
-        MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootLoader.class, ContactsFXBootloader.class);
-        meinBoot.addMeinAuthAdmin(new MeinAuthFxLoader());
-        meinBoot.boot().done(meinAuthService -> {
-            meinAuthService.addRegisterHandler(new RegisterHandlerFX());
-            Lok.debug("Main.main.booted");
-            lock.unlockWrite();
-        }).fail(exc -> {
-            exc.printStackTrace();
-        });
+        if (meinAuthSettings.isHeadless()) {
+            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootLoader.class, ContactsBootloader.class);
+            meinBoot.boot().done(meinAuthService -> {
+                Lok.debug("Main.main.booted (headless)");
+                lock.unlockWrite();
+            }).fail(exc -> {
+                exc.printStackTrace();
+            });
+        } else {
+            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootLoader.class, ContactsFXBootloader.class);
+            meinBoot.addMeinAuthAdmin(new MeinAuthFxLoader());
+            meinBoot.boot().done(meinAuthService -> {
+                meinAuthService.addRegisterHandler(new RegisterHandlerFX());
+                Lok.debug("Main.main.booted");
+                lock.unlockWrite();
+            }).fail(exc -> {
+                exc.printStackTrace();
+            });
+        }
         lock.lockWrite();
         lock.lockWrite();
         Lok.debug("Main.main.end");
