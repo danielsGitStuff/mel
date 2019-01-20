@@ -387,7 +387,14 @@ StageDao extends Dao.LockingDao {
     }
 
 
-    public FsEntry stage2FsEntry(Stage stage, long version) throws SqlQueriesException {
+    /**
+     * "converts" a stage to an FsFile/FsDirectory. RETAINS version if available. If not
+     * @param stage
+     * @param version
+     * @return
+     * @throws SqlQueriesException
+     */
+    public FsEntry stage2FsEntry(Stage stage) throws SqlQueriesException {
         FsEntry fsEntry;
         if (stage.getIsDirectory()) {
             FsDirectory fsDirectory = fsDao.getDirectoryById(stage.getFsId());
@@ -395,7 +402,6 @@ StageDao extends Dao.LockingDao {
                 fsDirectory = new FsDirectory();
             }
             fsDirectory.getContentHash().v(stage.getContentHash());
-            fsDirectory.getVersion().v(version);
             fsEntry = fsDirectory;
         } else {
             FsFile fsFile = fsDao.getFile(stage.getFsId());
@@ -403,11 +409,11 @@ StageDao extends Dao.LockingDao {
                 fsFile = new FsFile();
             }
             fsFile.getContentHash().v(stage.getContentHash());
-            fsFile.getVersion().v(version);
             fsFile.getSize().v(stage.getSize());
             fsFile.getSynced().v(stage.getSynced());
             fsEntry = fsFile;
         }
+        fsEntry.getVersion().v(stage.getVersion());
         fsEntry.getParentId().v(stage.getFsParentId());
         fsEntry.getId().v(stage.getFsId());
         fsEntry.getName().v(stage.getName());
