@@ -39,22 +39,22 @@ public class CopyService extends IntentService {
         final boolean move = intent.getBooleanExtra(MOVE, false);
         final String srcPath = intent.getStringExtra(SRC_PATH);
         final String targetPath = intent.getStringExtra(TRGT_PATH);
-        File src = new File(srcPath);
-        File target = new File(targetPath);
+        JFile src = new JFile(srcPath);
+        JFile target = new JFile(targetPath);
         String msg = (move ? "moving" : "copying") + " '" + srcPath + "' -> '" + targetPath + "'";
         Log.d(getClass().getSimpleName(), msg);
         NWrap<InputStream> fis = new NWrap<>(null);
         NWrap<OutputStream> fos = new NWrap<>(null);
         try {
-            DocumentFile srcDoc = JFile.DocFileCreator.createDocFile(src);
-            DocumentFile targetDoc = JFile.DocFileCreator.createDocFile(target);
+            DocumentFile srcDoc = src.createDocFile();
+            DocumentFile targetDoc = target.createDocFile();
             if (targetDoc == null) {
-                DocumentFile targetParentDoc = JFile.DocFileCreator.createParentDocFile(target);
+                DocumentFile targetParentDoc = target.createParentDocFile();
                 if (targetParentDoc == null)
                     throw new FileNotFoundException("directory does not exist: " + targetPath);
                 JFile jtarget = new JFile(target);
                 jtarget.createNewFile();
-                targetDoc = JFile.DocFileCreator.createDocFile(target);
+                targetDoc = target.createDocFile();
             }
             ContentResolver resolver = Tools.getApplicationContext().getContentResolver();
             fis.v = resolver.openInputStream(srcDoc.getUri());

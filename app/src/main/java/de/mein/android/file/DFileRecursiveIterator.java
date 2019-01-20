@@ -33,7 +33,7 @@ public class DFileRecursiveIterator implements Iterator<AFile> {
         this.currentDir = rootDirectory;
         DocumentFile rootDoc = null;
         try {
-            rootDoc = JFile.DocFileCreator.createDocFile(new File(rootDirectory.getAbsolutePath()));
+            rootDoc = new JFile(rootDirectory.getAbsolutePath()).createDocFile();
         } catch (SAFAccessor.SAFException e) {
             e.printStackTrace();
         }
