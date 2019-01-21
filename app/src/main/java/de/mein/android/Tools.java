@@ -12,6 +12,7 @@ import android.provider.DocumentsContract;
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.security.SecureRandom;
@@ -100,6 +101,7 @@ public class Tools {
             return null;
         }
     }
+
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private static String getVolumeIdFromTreeUri(final Uri treeUri) {

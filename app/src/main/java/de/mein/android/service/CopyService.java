@@ -6,6 +6,7 @@ import android.content.Intent;
 
 import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
+
 import android.util.Log;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import de.mein.Lok;
 import de.mein.android.Tools;
@@ -20,11 +22,13 @@ import de.mein.android.file.JFile;
 import de.mein.android.file.SAFAccessor;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.NWrap;
+import de.mein.sql.Hash;
 
 public class CopyService extends IntentService {
     public static final String TRGT_PATH = "target";
     public static final String SRC_PATH = "src";
     public static final String MOVE = "mv";
+    public static final int BUFFER_SIZE = 1024 * 64;
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -60,14 +64,7 @@ public class CopyService extends IntentService {
             fis.v = resolver.openInputStream(srcDoc.getUri());
             fos.v = resolver.openOutputStream(targetDoc.getUri());
 
-            Integer read = 0;
-            do {
-                byte[] bytes = new byte[2048];
-                read = fis.v().read(bytes);
-                if (read > 0) {
-                    fos.v().write(bytes);
-                }
-            } while (read > 0);
+            copyStream(fis.v, fos.v);
             if (move) {
                 srcDoc.delete();
             }
@@ -78,5 +75,16 @@ public class CopyService extends IntentService {
             N.s(() -> fos.v.close());
         }
         Lok.debug("CopyService.onHandleIntent");
+    }
+
+    public void copyStream(InputStream in, OutputStream out) throws IOException {
+        int read = 0;
+        do {
+            byte[] bytes = new byte[BUFFER_SIZE];
+            read = in.read(bytes);
+            if (read > 0) {
+                out.write(bytes, 0, read);
+            }
+        } while (read > 0);
     }
 }
