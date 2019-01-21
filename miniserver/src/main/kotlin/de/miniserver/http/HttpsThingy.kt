@@ -151,8 +151,11 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/") {
             respondPage(it,pageHello())
         }
-        server.createContext("/loginz.html"){
-            respondText(it,"/de/miniserver/loginz.html")
+        server.createContext("/robots.txt"){
+            respondText(it,"/de/miniserver/robots.txt")
+        }
+        server.createContext("/private/loginz.html"){
+            respondText(it,"/de/miniserver/private/loginz.html")
         }
         server.createContext("/logandroid.html"){
             respondText(it,"/de/miniserver/logandroid.html")
@@ -160,8 +163,8 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/logpc.html"){
             respondText(it,"/de/miniserver/logpc.html")
         }
-        server.createContext("/impressum.html"){
-            respondText(it,"/de/miniserver/impressum.html")
+        server.createContext("/private/impressum.html"){
+            respondText(it,"/de/miniserver/private/impressum.html")
         }
         server.createContext("/svg/") {
             val uri = it.requestURI
@@ -203,7 +206,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     else -> respondText(it, "/de/miniserver/index.html")
                 }
             } else
-                respondText(it, "/de/miniserver/loginz.html")
+                respondText(it, "/de/miniserver/private/loginz.html")
         }
         server.createContext("/build.html") {
             val pw = readPostValues(it)["pw"]!!
@@ -223,7 +226,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 }
                 respondPage(it, pageBuild(pw!!))
             } else {
-                respondText(it, "/de/miniserver/loginz.html")
+                respondText(it, "/de/miniserver/private/loginz.html")
             }
         }
 
