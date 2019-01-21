@@ -1,36 +1,213 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <link rel="shortcut icon" type="image/png" href="/favicon.png"/>
-    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/png" href="favicon.png"/>
     <title>Mel</title>
+    <meta content="" charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="css.css" media="screen"/>
-    <style>.head {
-        font-size: 4em;
-        position: absolute;
-        top: -1em;
-        text-align: center;
 
-        left: 50%;
-        margin-right: -50%;
-        transform: translate(-50%, 0%)
-    }
-
-    #btn {
-        border-radius: 0em .5em .5em 0em;
-    }
-
-    #pw {
-        border-radius: .5em 0em 0em .5em;
-        outline-width: 0;
-    }
+    <style>
+        #btnToDownload {
+            margin-top: 2em;
+            font-size: 1.5em;
+            outline-width: 0;
+        }
     </style>
+
 </head>
 <body>
+<input name="pw" value="<$=pw/>" hidden>
+<div>
+    <div class="back1 center" style="margin-bottom: 2em; alignment: center">
+        <div class="content ">
+            <img src="svg/mel.svg" style="width: 16em; margin: 3em 1em;"><br>
 
-<form method="post" action="loggedIn" class="centered" id="ff">
-    <span class="head">Me<span style="color:#57bf40;">l</span></span><br>
-    <input id="pw" name="pw" id="pw" type="password"><button type="submit" id="btn">ok</button>
-</form>
+
+            <span class="intro">Das hier ist Me<span class="mel">l</span>!</span><br>
+            <span class="smallIntro">Mel synchronisiert Dateien und Kontakte deines Telefons zu einem anderen. Oder zu einem Computer. Leise und im Hintergrund.</span><br>
+            <a href="#linkDownload">
+                <button id="btnToDownload">Download</button>
+            </a>
+        </div>
+    </div>
+    <div class="back1 center" style="alignment: center">
+        <div class="content" style="text-align: start">
+            <h2>Wer/Was ist Mel?</h2>
+            <span class="text">
+            Stell dir vor, du verlierst dein Telefon und hast deine Fotos nicht gesichert. Hättest du doch nur vorgesorgt!
+            Regelmäßig die Dateien vom Telefon zu kopieren, wird schnell anstrengend und du möchtest kein Geld für Wolkenspeicher ausgeben,
+            oder du bis der Auffassung, dass deine Daten ausscließlich auf deiner Hardware residieren sollen. Es gibt Lösungen dafür.</span><br><br><br>
+            <span class="text">Die Heim-Wolken-Lösungen benötigen einen ständig laufenden PC, sind aufwändig zu installieren und konfigurieren.
+                Mel begnügt sich auch mit einem älteren Androidtelefon als Server. Es kommt ohne Abhängigkeiten zu Webservern oder PHP.
+            </span><br><br>
+            <span class="text">Wenn du nachts dein Telefon an das Ladegerät steckst, beginnt Mel mit der Arbeit.
+            Es synchronisiert alle Dateien mit deinem Server. Alle verbundenen Geräte werden auf den selben Stand gebracht.
+            </span><br><br>
+            <span class="text">Zur Zeit kann Mel Dateiordner und Kontakte synchronisieren.</span><br>
+            <div style="text-align: center; margin-top: 4em">
+                <img src="/svg/schema.svg" style="width: 32em">
+            </div>
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content" style="text-align: start">
+            <h2 style="text-align: start">Warum Mel?</h2>
+            <span class="text">
+                Mel ist unkompliziert und sicher. Ziele der Entwicklung sind:
+                <ul style="align-content: center">
+                    <li>1-Klick-Lösung
+                        <ul>
+                            <li>kein herumkonfigurieren irgendwelcher Umgebungen</li>
+                        </ul>
+                    </li>
+                    <li>Nur verschlüsselte Übertragungen
+                        <ul>
+                            <li>Nur ein einziger Spezialfall läuft unverschlüsselt ab</li>
+                            <li>Die Grundlage: <a
+                                    href="https://de.wikipedia.org/wiki/Transport_Layer_Security">TLS/SSL</a></li>
+                        </ul>
+                    </li>
+                    <li>Vertraue niemandem
+                        <ul>
+                            <li>Mel kommuniziert mit nichts und niemandem, dem du es nicht explizit erlaubt hast</li>
+                        </ul>
+                    </li>
+                    <li>Privatssphäre
+                        <ul>
+                            <li>keine Werbung, Aktivitätsanalyse etc.</li>
+                            <li>keine Abhängigkeiten zu <a href="https://de.wikipedia.org/wiki/Google_Play_Dienste">Google Play Diensten</a></li>
+                        </ul>
+                    </li>
+                    <li>Schont den Akku
+                        <ul>
+                            <li>Mel synchronisiert nur, wenn dein Gerät gerade am Strom hängt</li>
+                            <li>Falls dir das egal ist, kannst du es entsprechen einstellen</li>
+                        </ul>
+                    </li>
+                    <li>Updates
+                        <ul>
+                            <li>Mel kommt mit integrierter Updatefunktion</li>
+                            <li>Nutzt eigens dafür erstelltes Zertifikat</li>
+                            <li>funktioniert nur auf Knopfdruck</li>
+                        </ul>
+                    </li>
+                </ul>
+
+            </span><br><br><br>
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content" style="text-align: start">
+            <h2>Vorraussetzungen</h2>
+            <span class="text">
+                <ul>
+                    <li>Einen stationäres Gerät (als Server)
+                        <ul>
+                        <li>entweder ein Androidtelefon ab Android 4.4.4 (KitKat), dauerhaft am Netzteil</li>
+                            <li>oder einen PC mit Java 8*<br>
+                        </ul>
+                    </li>
+                    <li>
+                        mindestens ein Anderes
+                        <ul>
+                        <li>entweder ein Androidtelefon ab Android 4.4.4 (KitKat)</li>
+                            <li>oder einen PC mit Java 8*<br>
+                        </ul>
+                    </li>
+                     <li>
+                        ein gemeinsames Netzwerk
+                        <ul>
+                        <li>Die Geärte müssen im selben Netzwerk miteinander kommunizieren können</li>
+                            <li>Synchronisation unterwegs kommt stäter<br>
+                        </ul>
+                    </li>
+                </ul>
+           <span style="font-size: .7em">*Windows 7+ oder Linux. MacOS nicht unterstützt.</span></li>
+            </span>
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content" style="text-align: start">
+            <h2>Wie fange ich an?</h2>
+            <span class="text">
+                Zuerst brauchst du ein Gerät, das in deinem Netzwerk ist und ständig läuft.
+                Beispielsweise ein ausgedienter Laptop oder ein altes Androidtelefon am Netzteil.
+                Dieses Gerät solltest du an Ort und Stelle laufen lassen. Nach der Einrichtung
+                brauchst nicht mehr weiter damit hantieren.</span><br><br>
+            <span class="text"><a href="#linkDownload">Hier</a> kannst du dir das Programm runterladen.
+                Die "Apk"-Variante ist für Androidtelefone (zur Zeit ab Android 4.4.4 alias KitKat).
+                Die "Jar"-Variante benötigst du für einen PC/Laptop.</span><br><br>
+            Hinweis: um es auf dem PC zu starten, benötigst du Java8. Gebe "java -jar fxbundle-1.0.jar" ins Termninal
+            ein.<br><br>
+            <span class="text">Wie du es installieren und konfigurieren kannst siehst du
+               <a href="logandroid.html">hier, für Android</a> oder <a
+                        href="logpc.html">hier, für den PC.</a>
+            </span><br>
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content" style="text-align: center">
+            <h2 style="text-align: end">Was ist mit der Sicherheit?</h2>
+            <span class="text">
+            Mel baut grundsätzlich nur verschlüsselte Verbindungen auf. Es nutzt SSL aus der Java-Runtime. Mel sendet keinerlei Daten an irgendwen.</span><br><br><br>
+            <span class="text">Um deine anderen Geräte in deinem Netzwerk zu finden, startet Mel einen Broadcast, der von allen Geräten im Netzwerk empfangen wird.
+                Dieser enthält ausschließlich die Information, dass es sich um eine Mel-Instanz handelt und auf welchen Ports sie kommuniziert.
+            </span><br><br>
+            <span class="text">Du kannst in den Einstellungen nach Updates suche, die Mel in Zukunft mit mehr Funktionen ausstattet. Dabei wird lediglich eine Anfrage an den Updateserver geschickt.
+                Diese enthält keine Informationen über dich. (Um genau zu sein, lautet sie immer "v?")
+            </span><br>
+            <!--<div style="text-align: center">-->
+            <!--<img src="schema.svg" style="width: 32em">-->
+            <!--</div>-->
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content">
+            <h2>Ist es Open-Source?</h2>
+            <span class="text">
+            Noch nicht. Dann aber schon.</span><br><br><br>
+            <span class="text">Mel ist nun seit mehreren Jahren in Entwicklung.
+                Zwischendurch traten Probleme verschiedenster Natur auf, die von einer Bachelorarbeit, einer fälschlicherweise angenommenen Funktionsweise des Androidtelefonbuchs,
+                oder verbesserungswürdigen Softwaredesignentscheidungen von Android reichen. Der Code ist deswegen an einigen Stellen etwas umständlich geraten.
+            </span><br><br>
+            <span class="text">In der nächsten Zeit bereinige ich den Code und stelle ihn auf einer angemessenen Plattform zu Verfügung.
+            </span><br>
+            <!--<div style="text-align: center">-->
+            <!--<img src="schema.svg" style="width: 32em">-->
+            <!--</div>-->
+        </div>
+    </div>
+
+    <div class="back1 center">
+        <div class="content" style="text-align: start">
+            <a style="color: unset" id="linkDownload"><h1>Download</h1></a>
+            <span class="text">Folgende Dateien sind vorhanden (Dateiname + SHA-256):</span><br><br>
+            <table class="filesTable">
+                <thead>
+                <tr>
+                    <th>Datainame</th>
+                    <th>Variante</th>
+                    <th>Erbauungszeitstempel</th>
+                    <th>SHA-256</th>
+                </tr>
+                </thead>
+                <tbody>
+                <$=files/>
+                </tbody>
+            </table>
+            <br>
+            <br>
+            Die .apk-Datei ist f&uuml;r Android. Lade sie herunter und installiere sie.<br>
+            Die .jar-Datei f&uuml;r PCs und Laptops mit Java 8.<br>
+            Die Jar-Datei wird wie alle jars im Terminal gestartet: java -jar fxbundle-1.0.jar
+        </div>
+    </div>
+</div>
 </body>
+<footer style="text-align: center; background-color: black; padding: 1em"><a href="impressum.html">Impressum</a>
+</footer>
 </html>

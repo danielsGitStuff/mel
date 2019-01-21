@@ -79,7 +79,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
     fun start() {
         fun pageHello(pw: String): Page {
-            return Page("/de/miniserver/hello.html",
+            return Page("/de/miniserver/index.html",
                     Replacer("pw", pw),
                     Replacer("files") {
                         val s = StringBuilder()
@@ -153,6 +153,15 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/") {
             respondText(it, "/de/miniserver/index.html")
         }
+        server.createContext("/loginz.html"){
+            respondText(it,"/de/miniserver/loginz.html")
+        }
+        server.createContext("/logandroid.html"){
+            respondText(it,"/de/miniserver/logandroid.html")
+        }
+        server.createContext("/logpc.html"){
+            respondText(it,"/de/miniserver/logpc.html")
+        }
         server.createContext("/svg/") {
             val uri = it.requestURI
             val fileName = uri.path.substring("/svg/".length, uri.path.length)
@@ -186,21 +195,14 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 val arguments = it.requestURI.path.substring("/loggedIn".length).split(" ")
                 val targetPage = values["target"]
                 when (pw) {
-                    null -> respondText(it, "/de/miniserver/index.html")
-                    miniServer.secretProperties["password"] -> {
-                        when (targetPage) {
-                            "logandroid.html" -> respondText(it, "/de/miniserver/logandroid.html", null, Replacer("pw", "pw"))
-                            "logpc.html" -> respondText(it, "/de/miniserver/logpc.html", null, Replacer("pw", "pw"))
-                            else -> respondPage(it, pageHello(pw))
-                        }
-                    }
+                    null -> respondText(it, "/de/miniserver/loginz.html")
                     miniServer.secretProperties["buildpassword"] -> {
                         respondPage(it, pageBuild(pw))
                     }
-                    else -> respondText(it, "/de/miniserver/index.html")
+                    else -> respondText(it, "/de/miniserver/loginz.html")
                 }
             } else
-                respondText(it, "/de/miniserver/index.html")
+                respondText(it, "/de/miniserver/loginz.html")
         }
         server.createContext("/build.html") {
             val pw = readPostValues(it)["pw"]!!
@@ -220,7 +222,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 }
                 respondPage(it, pageBuild(pw!!))
             } else {
-                respondText(it, "/de/miniserver/index.html")
+                respondText(it, "/de/miniserver/loginz.html")
             }
         }
 
