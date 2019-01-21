@@ -78,9 +78,8 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     }
 
     fun start() {
-        fun pageHello(pw: String): Page {
+        fun pageHello(): Page {
             return Page("/de/miniserver/index.html",
-                    Replacer("pw", pw),
                     Replacer("files") {
                         val s = StringBuilder()
                         miniServer.fileRepository.hashFileMap.values.forEach { fileEntry ->
@@ -93,7 +92,6 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                         }
                         return@Replacer s.toString()
                     })
-
         }
 
         fun pageBuild(pw: String): Page {
@@ -151,7 +149,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server = createServer()
         Lok.debug("successfully bound https to: $port")
         server.createContext("/") {
-            respondText(it, "/de/miniserver/index.html")
+            respondPage(it,pageHello())
         }
         server.createContext("/loginz.html"){
             respondText(it,"/de/miniserver/loginz.html")
@@ -195,11 +193,11 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 val arguments = it.requestURI.path.substring("/loggedIn".length).split(" ")
                 val targetPage = values["target"]
                 when (pw) {
-                    null -> respondText(it, "/de/miniserver/loginz.html")
+                    null -> respondText(it, "/de/miniserver/index.html")
                     miniServer.secretProperties["buildpassword"] -> {
                         respondPage(it, pageBuild(pw))
                     }
-                    else -> respondText(it, "/de/miniserver/loginz.html")
+                    else -> respondText(it, "/de/miniserver/index.html")
                 }
             } else
                 respondText(it, "/de/miniserver/loginz.html")
