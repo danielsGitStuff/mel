@@ -6,6 +6,7 @@ import de.mein.auth.MeinStrings;
 import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
+import de.mein.core.serialize.JsonIgnore;
 
 import java.io.File;
 import java.security.SecureRandom;
@@ -31,6 +32,8 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
     private Boolean redirectSysout = false;
     private int updateMessagePort, updateBinaryPort;
     private String updateUrl, variant;
+    @JsonIgnore
+    private boolean headless = false;
 
     public MeinAuthSettings setVariant(String variant) {
         this.variant = variant;
@@ -220,4 +223,14 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
     }
 
 
+    /**
+     * will start without JavaFX GUI
+     */
+    public void setHeadless() {
+        this.headless = true;
+    }
+
+    public boolean isHeadless() {
+        return headless;
+    }
 }

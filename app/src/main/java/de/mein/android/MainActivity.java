@@ -30,6 +30,7 @@ import androidx.core.os.BuildCompat;
 
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.documentfile.provider.DocumentFile;
 import de.mein.BuildConfig;
 
 import org.jdeferred.Promise;
@@ -66,6 +67,7 @@ import de.mein.android.controller.SettingsController;
 import de.mein.android.controller.intro.IntroWrapper;
 import de.mein.android.controller.intro.LoadingWrapper;
 import de.mein.android.file.AndroidFileConfiguration;
+import de.mein.android.file.JFile;
 import de.mein.android.file.SAFAccessor;
 import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
@@ -167,11 +169,22 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     }
 
     private void dev() {
-        Uri u = Uri.parse("content://com.android.externalstorage.documents/tree/1A16-1611%3Athisisexternal");
-        Uri v = Uri.parse("/data/data/txt.txt");
-        String a = u.getAuthority();
-        String b = v.getAuthority();
-        Lok.debug("ExampleUnitTest.uriTest " + a + " // " + b);
+        Lok.warn("DEV DEV DEV DEV DEV START");
+        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
+            N.r(() ->{
+                JFile f = new JFile("/storage/emulated/0/Download/mel/kkk.txt");
+                boolean ex = f.exists();
+                DocumentFile srcDoc = f.createDocFile();
+                Lok.debug("asd");
+            });
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//
+//                SAFAccessor.askForExternalRootDirectory(MainActivity.this).done(result1 -> N.r(() -> {
+//                    Lok.debug("lel");
+//                }));
+//            }
+        });
+        Lok.warn("DEV DEV DEV DEV DEV END");
     }
 
     private void updateBarColor() {
@@ -221,6 +234,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
                 showNormalGui();
         }
         startService();
+//        dev();
     }
 
     public void showLoadingGui() {

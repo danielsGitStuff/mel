@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public class Hash {
 
-    public static String md5(InputStream inputStream){
+    public static String md5(InputStream inputStream) {
         MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance("MD5");
@@ -30,7 +30,7 @@ public class Hash {
         } catch (Exception e) {
             e.printStackTrace();
             return "exception :(";
-        }finally {
+        } finally {
             try {
                 inputStream.close();
             } catch (IOException e) {
@@ -79,6 +79,10 @@ public class Hash {
         }
     }
 
+    public static MessageDigest createMD5MessageDigest() throws NoSuchAlgorithmException {
+        return MessageDigest.getInstance("MD5");
+    }
+
     public static MessageDigest createSHA256MessageDigest() throws NoSuchAlgorithmException {
         return MessageDigest.getInstance("SHA-256");
     }
@@ -100,7 +104,7 @@ public class Hash {
         } catch (Exception e) {
             e.printStackTrace();
             return "exception :(";
-        }finally {
+        } finally {
             try {
                 inputStream.close();
             } catch (IOException e) {

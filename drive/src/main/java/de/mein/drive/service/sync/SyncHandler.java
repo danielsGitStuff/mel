@@ -222,8 +222,10 @@ public abstract class SyncHandler {
         try {
             if (lockFsEntry)
                 fsDao.lockWrite();
-            long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
             StageSet stageSet = stageDao.getStageSetById(stageSetId);
+            // if version not provided by the stageset we will increase the old one
+//            long version = stageSet.getVersion().isNull() ? driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1 : stageSet.getVersion().v();
+            long localVersion = driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
             //check if sufficient space is available
             if (!stageSet.fromFs())
                 quotaManager.freeSpaceForStageSet(stageSetId);
@@ -234,13 +236,13 @@ public abstract class SyncHandler {
                         if (stage.getIsDirectory()) {
                             if (stage.getFsId() != null) {
                                 FsDirectory dbDir = fsDao.getDirectoryById(stage.getId());
-                                dbDir.getVersion().v(version);
+                                dbDir.getVersion().v(localVersion);
                                 dbDir.getContentHash().v(stage.getContentHash());
                                 dbDir.getModified().v(stage.getModified());
                                 fsDao.update(dbDir);
                             } else {
                                 FsDirectory dir = new FsDirectory();
-                                dir.getVersion().v(version);
+                                dir.getVersion().v(localVersion);
                                 dir.getContentHash().v(stage.getContentHash());
                                 dir.getName().v(stage.getName());
                                 dir.getModified().v(stage.getModified());
@@ -274,7 +276,7 @@ public abstract class SyncHandler {
                             }
                             fsFile.getName().v(stage.getName());
                             fsFile.getContentHash().v(stage.getContentHash());
-                            fsFile.getVersion().v(version);
+                            fsFile.getVersion().v(localVersion);
                             fsFile.getModified().v(stage.getModified());
                             fsFile.getiNode().v(stage.getiNode());
                             fsFile.getSize().v(stage.getSize());
@@ -313,7 +315,11 @@ public abstract class SyncHandler {
                             //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
                             wastebin.deleteFsEntry(stage.getFsId());
                         } else {
-                            FsEntry fsEntry = stageDao.stage2FsEntry(stage, version);
+                            FsEntry fsEntry = stageDao.stage2FsEntry(stage);
+                            if (fsEntry.getVersion().isNull()) {
+                                Lok.debug("//pe, should not be called");
+                                fsEntry.getVersion().v(localVersion);
+                            }
                             // TODO inode & co
                             FsEntry oldeEntry = fsDao.getGenericById(fsEntry.getId().v());
                             if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v()) {

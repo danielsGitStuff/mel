@@ -88,7 +88,7 @@ public class MeinAuthService {
     private File cacheDir;
 
 
-    MeinAuthService(MeinAuthSettings meinAuthSettings, PowerManager powerManager, IDBCreatedListener dbCreatedListener) throws Exception {
+    public MeinAuthService(MeinAuthSettings meinAuthSettings, PowerManager powerManager, IDBCreatedListener dbCreatedListener) throws Exception {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairCollectionSerializerFactory.getInstance());

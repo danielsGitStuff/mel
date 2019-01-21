@@ -1,0 +1,82 @@
+{
+  "$id": 1,
+  "__type": "de.mein.auth.data.MeinResponse",
+  "state": "ok",
+  "payload": {
+    "$id": 2,
+    "__type": "de.mein.drive.tasks.SyncTask",
+    "partCount": 1,
+    "partSize": 2000,
+    "part": {
+      "$id": 3,
+      "__type": "de.mein.auth.data.cached.CachedListPart",
+      "partNumber": 1,
+      "cacheId": -8860127926679733460,
+      "elements": [
+        {
+          "$id": 4,
+          "__type": "de.mein.drive.sql.GenericFSEntry",
+          "synced": "true",
+          "version": 1,
+          "parentId": 1,
+          "contentHash": "dfa6c15bb9b8c434db5076c304e814ef",
+          "size": 8621019,
+          "name": "1.p25-von-zadow.pdf",
+          "id": 2,
+          "isDirectory": "false"
+        },
+        {
+          "$id": 5,
+          "__type": "de.mein.drive.sql.GenericFSEntry",
+          "synced": "true",
+          "version": 1,
+          "parentId": 1,
+          "contentHash": "9a9f54709d815faaba82217a0b2b3dd9",
+          "size": 1294010,
+          "name": "1.p99-rashid.pdf",
+          "id": 3,
+          "isDirectory": "false"
+        },
+        {
+          "$id": 6,
+          "__type": "de.mein.drive.sql.GenericFSEntry",
+          "synced": "true",
+          "version": 2,
+          "parentId": 1,
+          "contentHash": "fb5483a799f7a7aa7e7af1033dc8ef0e",
+          "size": 21886076,
+          "name": "1.p4169-jakobsen.pdf",
+          "id": 4,
+          "isDirectory": "false"
+        },
+        {
+          "$id": 7,
+          "__type": "de.mein.drive.sql.GenericFSEntry",
+          "synced": "true",
+          "version": 3,
+          "contentHash": "02416aa45d76539520a22c9f676a6089",
+          "name": "mel",
+          "id": 1,
+          "isDirectory": "true"
+        },
+        {
+          "$id": 8,
+          "__type": "de.mein.drive.sql.GenericFSEntry",
+          "synced": "true",
+          "version": 3,
+          "parentId": 1,
+          "contentHash": "3cd7a0db76ff9dca48979e24c39b408c",
+          "size": 4,
+          "name": "bla6",
+          "id": 5,
+          "isDirectory": "false"
+        }
+      ]
+    },
+    "oldVersion": 0,
+    "cacheId": -8860127926679733460,
+    "size": 5,
+    "newVersion": 3
+  },
+  "responseId": -501505498163100021
+}

@@ -26,6 +26,7 @@ import de.mein.drive.tasks.AvailableHashesContainer;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -945,11 +946,33 @@ public class ClientSyncHandler extends SyncHandler {
         communicationDone.done(nul -> {
             stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
             N.r(() -> stageDao.updateStageSet(stageSet));
+            reorderStageSet(stageSet);
             finished.resolve(stageSet.getId().v());
         }).fail(nul -> {
             finished.reject(null);
         });
         return finished;
+    }
+
+    private void reorderStageSet(StageSet stageSet) {
+        Lok.debug("reordering stageset: " + stageSet);
+        try {
+            // insert missing parent ids first
+            stageDao.repairParentIdsByFsParentIds(stageSet.getId().v());
+            // find stuff that is in the wrong order
+            UnorderedStagePair unorderedStagePair = stageDao.getUnorderedStagePair(stageSet.getId().v());
+            while (unorderedStagePair != null) {
+                // swap if found
+                Lok.debug("swapping (" + unorderedStagePair.getSmallId().v() + "," + unorderedStagePair.getSmallOrder().v()
+                        + ") and (" + unorderedStagePair.getBigId().v() + "," + unorderedStagePair.getBigOrder().v() + ")");
+                stageDao.updateOrder(unorderedStagePair.getSmallId().v(), unorderedStagePair.getBigOrder().v());
+                stageDao.updateOrder(unorderedStagePair.getBigId().v(), unorderedStagePair.getSmallOrder().v());
+                unorderedStagePair = stageDao.getUnorderedStagePair(stageSet.getId().v());
+            }
+        } catch (SqlQueriesException e) {
+            e.printStackTrace();
+        }
+        Lok.debug("reordering done");
     }
 
     private void recursiveDeleteOnStage(Map<Long, Long> entryIdStageIdMap, Order order, GenericFSEntry generic, Stage stage) throws SqlQueriesException {

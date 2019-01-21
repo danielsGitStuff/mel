@@ -5,6 +5,7 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.tools.Eva;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.data.UnorderedStagePair;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.nio.FileTools;
 import de.mein.drive.sql.*;
@@ -386,7 +387,14 @@ StageDao extends Dao.LockingDao {
     }
 
 
-    public FsEntry stage2FsEntry(Stage stage, long version) throws SqlQueriesException {
+    /**
+     * "converts" a stage to an FsFile/FsDirectory. RETAINS version if available. If not
+     * @param stage
+     * @param version
+     * @return
+     * @throws SqlQueriesException
+     */
+    public FsEntry stage2FsEntry(Stage stage) throws SqlQueriesException {
         FsEntry fsEntry;
         if (stage.getIsDirectory()) {
             FsDirectory fsDirectory = fsDao.getDirectoryById(stage.getFsId());
@@ -394,7 +402,6 @@ StageDao extends Dao.LockingDao {
                 fsDirectory = new FsDirectory();
             }
             fsDirectory.getContentHash().v(stage.getContentHash());
-            fsDirectory.getVersion().v(version);
             fsEntry = fsDirectory;
         } else {
             FsFile fsFile = fsDao.getFile(stage.getFsId());
@@ -402,11 +409,11 @@ StageDao extends Dao.LockingDao {
                 fsFile = new FsFile();
             }
             fsFile.getContentHash().v(stage.getContentHash());
-            fsFile.getVersion().v(version);
             fsFile.getSize().v(stage.getSize());
             fsFile.getSynced().v(stage.getSynced());
             fsEntry = fsFile;
         }
+        fsEntry.getVersion().v(stage.getVersion());
         fsEntry.getParentId().v(stage.getFsParentId());
         fsEntry.getId().v(stage.getFsId());
         fsEntry.getName().v(stage.getName());
@@ -524,5 +531,46 @@ StageDao extends Dao.LockingDao {
         List<Object> whereArgs = ISQLQueries.whereArgs(stageSetId, true);
         whereArgs.addAll(availableHashes);
         sqlQueries.execute(statement, whereArgs);
+    }
+
+    /**
+     * Find a pair of stages that are dependent on each other via fsId/fsParentId but have the wrong order.
+     * If the order is not in depth first search form it has to be repaired.
+     *
+     * @param stageSetId the StageSet you want to repair
+     * @return pair of id and order values that has to be fixed or null if there is nothing left to repair.
+     * @throws SqlQueriesException
+     */
+    public UnorderedStagePair getUnorderedStagePair(Long stageSetId) throws SqlQueriesException {
+        UnorderedStagePair u = new UnorderedStagePair();
+        Stage s = new Stage();
+        String statement = "select s." + s.getIdPair().k() + " as " + u.getSmallId().k()
+                + ", t." + s.getIdPair().k() + " as " + u.getBigId().k()
+                + ", s." + s.getOrderPair().k() + " as " + u.getSmallOrder().k()
+                + ", t." + s.getOrderPair().k() + " as " + u.getBigOrder().k() + " from " + u.getTableName() + " s left join"
+                + " (select * from " + u.getTableName() + " where " + s.getStageSetPair().k() + " = ?) t on s." + s.getFsParentIdPair().k() + " = t." + s.getFsIdPair().k()
+                + " where s." + s.getStageSetPair().k() + " = ?  and "
+                + u.getSmallOrder().k() + " < " + u.getBigOrder().k()
+                + " and " + u.getBigOrder().k() + " not null order by " + u.getSmallOrder().k()
+                + " limit 1;";
+        List<UnorderedStagePair> list = sqlQueries.loadString(u.getAllAttributes(), u, statement, ISQLQueries.whereArgs(stageSetId, stageSetId));
+        if (list.size() > 0)
+            return list.get(0);
+        return null;
+    }
+
+    public void updateOrder(Long stageId, Long order) throws SqlQueriesException {
+        Stage s = new Stage();
+        String stmt = "update " + s.getTableName() + " set " + s.getOrderPair().k() + "=? where " + s.getIdPair().k() + "=?";
+        Lok.debug(stmt + " with values " + stageId + ", " + order);
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(order, stageId));
+    }
+
+    public void repairParentIdsByFsParentIds(Long stageSetId) throws SqlQueriesException {
+        Stage s = new Stage();
+        String statement = "update " + s.getTableName() + " set " + s.getParentIdPair().k() + " = (select " + s.getIdPair().k()
+                + " from " + s.getTableName() + " s where " + s.getStageSetPair().k() + " = ? and s." + s.getFsIdPair().k()
+                + " = " + s.getTableName() + "." + s.getFsParentIdPair().k() + ") where " + s.getStageSetPair().k() + " = ?";
+        sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId, stageSetId));
     }
 }
