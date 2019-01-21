@@ -366,7 +366,7 @@ public class DriveTest {
         Lok.debug("DriveTest.clientMergeStages.END");
     }
 
-    //@Test
+    @Test
     public void firstTransfer() throws Exception {
         setup(new DriveSyncListener() {
 
@@ -538,7 +538,7 @@ public class DriveTest {
         Lok.debug("DriveTest.startSingleServer.END");
     }
 
-//    @Test
+    @Test
     public void firstSyncServer2Client() throws Exception {
         setup(new DriveSyncListener() {
 

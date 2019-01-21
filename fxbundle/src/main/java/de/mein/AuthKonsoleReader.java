@@ -28,6 +28,7 @@ public class AuthKonsoleReader {
                     .optional("-dp", "port used to deliver the certificate (unencrypted)", (result, args) -> result.setDeliveryPort(Integer.parseInt(args[0])))
                     .optional("-d", "path of working directory. certificate and key pair is stored there", (result, args) -> result.setWorkingDirectory(new File(args[0])))
                     .optional("-headless", "starts without JavaFx GUI", (result, args) -> result.setHeadless())
+                    .optional("-dev", "for dev purposes only", (result, args) -> Lok.error("DEV DEV DEV DEV DEV"))
                     .handle(arguments);
         }
         return meinAuthSettings;
