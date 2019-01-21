@@ -192,11 +192,11 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/css.css") {
             respondText(it, "/de/miniserver/css.css")
         }
-        server.createContext("/loggedIn") {
+        server.createContext("/private/loggedIn") {
             if (it.requestMethod == "POST") {
                 val values = readPostValues(it)
                 val pw = values["pw"]
-                val arguments = it.requestURI.path.substring("/loggedIn".length).split(" ")
+                val arguments = it.requestURI.path.substring("/private/loggedIn".length).split(" ")
                 val targetPage = values["target"]
                 when (pw) {
                     null -> respondText(it, "/de/miniserver/index.html")
