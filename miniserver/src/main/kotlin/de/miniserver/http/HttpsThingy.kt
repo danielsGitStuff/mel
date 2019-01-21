@@ -160,6 +160,9 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/logpc.html"){
             respondText(it,"/de/miniserver/logpc.html")
         }
+        server.createContext("/impressum.html"){
+            respondText(it,"/de/miniserver/impressum.html")
+        }
         server.createContext("/svg/") {
             val uri = it.requestURI
             val fileName = uri.path.substring("/svg/".length, uri.path.length)
