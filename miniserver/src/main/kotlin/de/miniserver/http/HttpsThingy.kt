@@ -152,7 +152,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             respondPage(it,pageHello())
         }
         server.createContext("/robots.txt"){
-            respondText(it,"/de/miniserver/robots.txt")
+            respondText(it,"/de/miniserver/robots.txt", contentType = "text/plain; charset=utf-8")
         }
         server.createContext("/private/loginz.html"){
             respondText(it,"/de/miniserver/private/loginz.html")
