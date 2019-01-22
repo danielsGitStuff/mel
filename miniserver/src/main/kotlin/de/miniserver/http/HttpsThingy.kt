@@ -149,22 +149,22 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server = createServer()
         Lok.debug("successfully bound https to: $port")
         server.createContext("/") {
-            respondPage(it,pageHello())
+            respondPage(it, pageHello())
         }
-        server.createContext("/robots.txt"){
-            respondText(it,"/de/miniserver/robots.txt", contentType = "text/plain; charset=utf-8")
+        server.createContext("/robots.txt") {
+            respondText(it, "/de/miniserver/robots.txt", contentType = "text/plain; charset=utf-8")
         }
-        server.createContext("/private/loginz.html"){
-            respondText(it,"/de/miniserver/private/loginz.html")
+        server.createContext("/private/loginz.html") {
+            respondText(it, "/de/miniserver/private/loginz.html")
         }
-        server.createContext("/logandroid.html"){
-            respondText(it,"/de/miniserver/logandroid.html")
+        server.createContext("/logandroid.html") {
+            respondText(it, "/de/miniserver/logandroid.html")
         }
-        server.createContext("/logpc.html"){
-            respondText(it,"/de/miniserver/logpc.html")
+        server.createContext("/logpc.html") {
+            respondText(it, "/de/miniserver/logpc.html")
         }
-        server.createContext("/private/impressum.html"){
-            respondText(it,"/de/miniserver/private/impressum.html")
+        server.createContext("/private/impressum.html") {
+            respondText(it, "/de/miniserver/private/impressum.html")
         }
         server.createContext("/svg/") {
             val uri = it.requestURI
@@ -265,6 +265,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     private fun respondPage(ex: HttpExchange, page: Page?) {
         with(ex) {
             Lok.debug("sending '${page?.path}' to $remoteAddress")
+                responseHeaders.add("Content-Type", "text/html; charset=UTF-8")
             sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
             responseBody.write(page?.bytes ?: "404".toByteArray())
             responseBody.close()
