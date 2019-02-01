@@ -1,4 +1,4 @@
-package de.miniserver.http
+package de.mein.serverparts
 
 import de.mein.Lok
 

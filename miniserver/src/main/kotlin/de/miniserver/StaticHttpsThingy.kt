@@ -5,8 +5,8 @@ import com.sun.net.httpserver.HttpsConfigurator
 import com.sun.net.httpserver.HttpsParameters
 import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
-import de.miniserver.http.Page
-import de.miniserver.http.Replacer
+import de.mein.serverparts.Page
+import de.mein.serverparts.Replacer
 import java.io.File
 import java.net.InetSocketAddress
 import java.util.concurrent.Executors

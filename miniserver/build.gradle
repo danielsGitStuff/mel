@@ -3,7 +3,7 @@
 //}
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.20'
 }
 
 version '1.88'
@@ -30,6 +30,7 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
     compile project(path: ':konsole')
     compile project(path: ':auth')
+    compile project(path: ':serverparts')
     testCompile project(path: ':auth')
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
     testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
