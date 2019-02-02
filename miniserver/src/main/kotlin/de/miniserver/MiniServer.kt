@@ -19,7 +19,7 @@ import de.mein.sql.transform.SqlResultTransformer
 import de.mein.update.VersionAnswer
 import de.miniserver.data.FileEntry
 import de.miniserver.data.FileRepository
-import de.miniserver.http.HttpThingy
+import de.mein.serverparts.HttpThingy
 import de.miniserver.http.HttpsThingy
 import de.miniserver.input.InputPipeReader
 import de.miniserver.socket.BinarySocketOpener
@@ -194,7 +194,7 @@ constructor(val config: ServerConfig) {
             httpsSocketOpener?.start()
         }
         config.httpPort?.let {
-            httpSocketOpener = HttpThingy(it,config.httpsPort)
+            httpSocketOpener = HttpThingy(it, config.httpsPort)
             httpSocketOpener?.start()
         }
 

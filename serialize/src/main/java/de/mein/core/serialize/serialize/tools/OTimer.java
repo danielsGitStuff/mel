@@ -38,7 +38,7 @@ public class OTimer {
         return this;
     }
 
-    private long getDurationInMS() {
+    public long getDurationInMS() {
         return (sum / 1000000);
     }
 
