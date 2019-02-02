@@ -4,7 +4,6 @@ import com.sun.net.httpserver.HttpServer
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
-import de.miniserver.MiniServer
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.*
@@ -13,7 +12,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 
 
-class HttpThingy(private val port: Int) : DeferredRunnable() {
+class HttpThingy(private val port: Int, val redirectPort: Int?) : DeferredRunnable() {
     override fun onShutDown() {
 
     }
@@ -54,8 +53,11 @@ class HttpThingy(private val port: Int) : DeferredRunnable() {
         Lok.debug("successfully bound http to: $port")
         // create the index page context
         server.createContext("/") {
-            val enteredHost = it.requestHeaders.getFirst("Host")
-            it.responseHeaders.add("Location", "https://$enteredHost")
+            var enteredHost = it.requestHeaders.getFirst("Host")
+            if (enteredHost.contains(':'))
+                enteredHost = enteredHost.split(':')[0]
+            val redirectUrl = "https://$enteredHost" + (if (redirectPort == null) "" else ":$redirectPort")
+            it.responseHeaders.add("Location", redirectUrl)
             with(it) {
                 Lok.debug("sending https redirect to $remoteAddress")
 //                val content = "???"
