@@ -12,6 +12,7 @@ public abstract class SQLStatement {
     protected SQLResultSet generatedKeys;
     protected String query;
 
+    public abstract boolean enableWAL() throws SQLException;
 
     public abstract SQLResultSet getResultSet() throws SQLException;
 
