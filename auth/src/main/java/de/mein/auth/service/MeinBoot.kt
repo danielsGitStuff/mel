@@ -63,14 +63,16 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
         return deferredObject
     }
 
-    val outstandingBootloaders = mutableSetOf<Bootloader>()
+    private val outstandingBootloaders = Collections.synchronizedSet(mutableSetOf<Bootloader>())!!
     override fun run() {
         try {
+            powerManager.addStateListener(PowerManager.IPowerStateListener {
+
+            })
             meinAuthService = MeinAuthService(meinAuthSettings, powerManager)
             meinAuthService!!.meinBoot = this
             meinAuthService!!.addAllMeinAuthAdmin(meinAuthAdmins)
             val promiseAuthIsUp = meinAuthService!!.prepareStart()
-            val bootLoaders = ArrayList<Bootloader>()
             val bootedPromises = ArrayList<Promise<*, *, *>>()
             for (bootClass in bootloaderClasses) {
                 Lok.debug("MeinBoot.boot.booting: " + bootClass.canonicalName)
