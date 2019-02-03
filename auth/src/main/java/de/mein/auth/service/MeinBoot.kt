@@ -67,7 +67,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     override fun run() {
         try {
             powerManager.addStateListener(PowerManager.IPowerStateListener {
-
+                bootStage2()
             })
             meinAuthService = MeinAuthService(meinAuthSettings, powerManager)
             meinAuthService!!.meinBoot = this
@@ -93,18 +93,21 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
             MeinDeferredManager().`when`(bootedPromises)
                     .done {
                         // boot stage2 of all services
-                        if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
-                            outstandingBootloaders.forEach { bootloader ->
-                                bootloader.bootStage2()?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
-                            }
-                        }
+                        bootStage2()
                         meinAuthService!!.start()
                     }.fail { Lok.error("MeinBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT") }
         } catch (e: Exception) {
             e.printStackTrace()
             deferredObject.reject(e)
         }
+    }
 
+    private fun bootStage2(){
+        if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
+            outstandingBootloaders.forEach { bootloader ->
+                bootloader.bootStage2()?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
+            }
+        }
     }
 
 

@@ -51,7 +51,7 @@ public class DriveBootloader extends Bootloader {
     }
 
     @Override
-    public Promise<Void, BootException, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+    public Promise<Void, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         DeferredObject<Void, BootException, Void> booted = new DeferredObject<>();
         N.r(() -> {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + "drive.settings.json");
@@ -63,7 +63,7 @@ public class DriveBootloader extends Bootloader {
     }
 
     @Override
-    public Promise<Void, BootException, Void> bootStage2() throws BootException {
+    public Promise<Void, BootException, Void> bootStage2Impl() throws BootException {
         return null;
     }
 

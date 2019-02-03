@@ -121,7 +121,7 @@ public class ContactsBootloader extends Bootloader {
     }
 
     @Override
-    public Promise<Void, BootException, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+    public Promise<Void, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + "contacts.settings.json");
         ContactsSettings contactsSettings = null;
         try {
@@ -134,7 +134,7 @@ public class ContactsBootloader extends Bootloader {
     }
 
     @Override
-    public Promise<Void, BootException, Void> bootStage2() throws BootException {
+    public Promise<Void, BootException, Void> bootStage2Impl() throws BootException {
         return null;
     }
 }
