@@ -21,6 +21,11 @@ public class AndroiDBStatement extends SQLStatement {
     }
 
     @Override
+    public boolean enableWAL() throws SQLException {
+        return db.enableWriteAheadLogging();
+    }
+
+    @Override
     public SQLResultSet getResultSet() throws SQLException {
         return androidResultSet;
     }

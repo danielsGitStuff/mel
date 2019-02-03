@@ -104,7 +104,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
         st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
         st.execute();
         st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA journal_mode=WAL");
-        st.execute();
+        st.enableWAL();
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
             //find sql file in workingdir

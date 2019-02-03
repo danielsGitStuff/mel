@@ -18,6 +18,12 @@ public class JDBCStatement extends SQLStatement {
 
 
     @Override
+    public boolean enableWAL() throws SQLException {
+       Object result = preparedStatement.execute();
+       return true;
+    }
+
+    @Override
     public SQLResultSet getResultSet() throws SQLException {
         return new JDBCResultSet(preparedStatement.getResultSet());
     }
