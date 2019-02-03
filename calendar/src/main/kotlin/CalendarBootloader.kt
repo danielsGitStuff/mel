@@ -2,24 +2,23 @@ import de.mein.Lok
 import de.mein.auth.data.JsonSettings
 import de.mein.auth.data.ServiceDetails
 import de.mein.auth.data.db.Service
-import de.mein.auth.service.BootLoader
+import de.mein.auth.service.Bootloader
 import de.mein.auth.service.MeinAuthService
 import de.mein.auth.tools.N
 import de.mein.auth.tools.WaitLock
 import org.jdeferred.Promise
 import java.io.File
 
-class CalendarBootLoader : BootLoader() {
+class CalendarBootloader : Bootloader() {
+
     override fun getName(): String = "calendar"
 
     override fun getDescription(): String = "syncs your calendars"
 
-    override fun boot(meinAuthService: MeinAuthService, services: MutableList<Service>?): Promise<Void, Exception, Void>? {
-        services?.forEach { service ->
-            val jsonFile = File(bootLoaderDir.absolutePath + File.separator + service.uuid.v() + File.separator + CalendarStrings.SETTINGS_FILE_NAME)
-            val calendarSettings: CalendarSettings<*> = JsonSettings.load(jsonFile) as CalendarSettings<*>
-            boot(meinAuthService, service, calendarSettings)
-        }
+    override fun bootStage1(meinAuthService: MeinAuthService, service: Service): Promise<Void, BootException, Void>? {
+        val jsonFile = File(bootLoaderDir.absolutePath + File.separator + service.uuid.v() + File.separator + CalendarStrings.SETTINGS_FILE_NAME)
+        val calendarSettings: CalendarSettings<*> = JsonSettings.load(jsonFile) as CalendarSettings<*>
+        boot(meinAuthService, service, calendarSettings)
         return null
     }
 

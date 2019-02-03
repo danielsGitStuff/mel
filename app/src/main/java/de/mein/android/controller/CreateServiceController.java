@@ -16,7 +16,7 @@ import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.Notifier;
 import de.mein.android.view.BootloaderAdapter;
-import de.mein.auth.service.BootLoader;
+import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.service.AndroidService;
@@ -83,7 +83,7 @@ public class CreateServiceController extends GuiController implements Permission
                     btnCreate.setText(R.string.btnCreateRequestPerm);
                 }
 
-                BootLoader bl = (BootLoader) bootLoader;
+                Bootloader bl = (Bootloader) bootLoader;
                 txtName.setText(bl.getName());
             }
             Lok.debug("CreateServiceController.showSelected");
@@ -103,17 +103,17 @@ public class CreateServiceController extends GuiController implements Permission
         if (bootLoader == null) {
             activity.runOnUiThread(() -> {
                 MeinAuthService meinAuthService = androidService.getMeinAuthService();
-                List<BootLoader> bootLoaders = new ArrayList<>();
-                for (Class<? extends BootLoader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
+                List<Bootloader> bootloaders = new ArrayList<>();
+                for (Class<? extends Bootloader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
                     N.r(() -> {
-                        BootLoader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootloaderClass);
-                        bootLoaders.add(bootLoader);
+                        Bootloader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootloaderClass);
+                        bootloaders.add(bootLoader);
                         //MeinDriveServerService serverService = new DriveCreateController(meinAuthService).createDriveServerService("server service", testdir1.getAbsolutePath());
                         Lok.debug("CreateServiceController.CreateServiceController");
                     });
                 }
-                Collections.sort(bootLoaders, (b1, b2) -> b1.getName().compareToIgnoreCase(b2.getName()));
-                BootloaderAdapter adapter = new BootloaderAdapter(rootView.getContext(), bootLoaders);
+                Collections.sort(bootloaders, (b1, b2) -> b1.getName().compareToIgnoreCase(b2.getName()));
+                BootloaderAdapter adapter = new BootloaderAdapter(rootView.getContext(), bootloaders);
                 // Specify the layout to use when the list of choices appears
                 // Apply the adapter to the spinner
                 spinner.setAdapter(adapter);

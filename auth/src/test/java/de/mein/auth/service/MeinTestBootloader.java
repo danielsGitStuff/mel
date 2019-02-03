@@ -2,7 +2,6 @@ package de.mein.auth.service;
 
 import de.mein.Lok;
 import de.mein.auth.data.db.Service;
-import de.mein.auth.file.AFile;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
@@ -16,7 +15,7 @@ import java.util.List;
 /**
  * Created by xor on 12/15/16.
  */
-public class MeinTestBootloader extends BootLoader {
+public class MeinTestBootloader extends Bootloader {
     public static int count = 0;
 
     public MeinTestBootloader(){

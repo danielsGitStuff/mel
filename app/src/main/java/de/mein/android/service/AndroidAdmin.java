@@ -13,7 +13,7 @@ import de.mein.android.boot.AndroidBootLoader;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
-import de.mein.auth.service.BootLoader;
+import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.data.DriveStrings;
@@ -47,7 +47,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
         NotificationCompat.Builder builder = null;
         int icon = R.mipmap.icon_app_legacy;
         try {
-            BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(meinService);
+            Bootloader bootLoader = meinAuthService.getMeinBoot().getBootLoader(meinService);
             if (bootLoader instanceof AndroidBootLoader) {
                 AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootLoader;
                 builder = androidBootLoader.createNotificationBuilder(context, meinService, meinNotification);

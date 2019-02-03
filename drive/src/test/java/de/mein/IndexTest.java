@@ -5,14 +5,14 @@ import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
-import de.mein.auth.service.BootLoader;
+import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
-import de.mein.drive.DriveBootLoader;
+import de.mein.drive.DriveBootloader;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -30,7 +30,7 @@ import java.io.File;
 
 public class IndexTest {
     private MeinAuthService mas;
-    private BootLoader dbl;
+    private Bootloader dbl;
     private AFile testRoot;
     private MeinDriveServerService service;
     private File wd;
@@ -48,15 +48,15 @@ public class IndexTest {
             TestDirCreator.createTestDir(testRoot);
             MeinAuthSettings settings = MeinAuthSettings.createDefaultSettings().setWorkingDirectory(wd);
             CountWaitLock lock = new CountWaitLock();
-            MeinBoot meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootLoader.class);
+            MeinBoot meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
             Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot();
             promise.done(result -> N.r(() -> {
                 mas = result;
                 RootDirectory rootDirectory = DriveSettings.buildRootDirectory(testRoot);
                 AFile transferDir = AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR);
-                ServiceType type = mas.getDatabaseManager().getServiceTypeByName(new DriveBootLoader().getName());
+                ServiceType type = mas.getDatabaseManager().getServiceTypeByName(new DriveBootloader().getName());
                 Service service = mas.getDatabaseManager().createService(type.getId().v(), "lel");
-                DriveBootLoader bl = (DriveBootLoader) mas.getMeinBoot().getBootLoader(new DriveBootLoader().getName());
+                DriveBootloader bl = (DriveBootloader) mas.getMeinBoot().getBootLoader(new DriveBootloader().getName());
                 DriveSettings driveSettings = new DriveSettings()
                         .setRole(DriveStrings.ROLE_SERVER)
                         .setMaxAge(1000000L)
@@ -82,7 +82,7 @@ public class IndexTest {
         //re index
         CountWaitLock lock = new CountWaitLock();
         MeinAuthSettings settings = mas.getSettings();
-        MeinBoot meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootLoader.class);
+        MeinBoot meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
         meinBoot.boot().done(result -> N.r(() -> {
             mas = result;
             MeinDriveServerService driveService = (MeinDriveServerService) mas.getMeinServices().stream().findFirst().get();

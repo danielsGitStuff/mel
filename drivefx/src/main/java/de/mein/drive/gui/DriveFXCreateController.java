@@ -8,7 +8,7 @@ import de.mein.auth.gui.EmbeddedServiceSettingsFX;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
-import de.mein.drive.DriveBootLoader;
+import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
@@ -79,7 +79,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     @Override
     public void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
         try {
-            if (service.getType().v().equals(new DriveBootLoader().getName())) {
+            if (service.getType().v().equals(new DriveBootloader().getName())) {
                 Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
                 connected.done(mvp -> N.r(() -> {

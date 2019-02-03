@@ -1,21 +1,16 @@
 package de.mein.android;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.ContentProviderOperation;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,8 +20,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import androidx.core.os.BuildCompat;
 
 import com.google.android.material.navigation.NavigationView;
 
@@ -39,11 +32,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -78,7 +68,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
-import de.mein.auth.service.BootLoader;
+import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.power.PowerManager;
@@ -685,7 +675,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
                             }
                         });
                         // get icon from AndroidBootLoader
-                        BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(service.getType().v());
+                        Bootloader bootLoader = meinAuthService.getMeinBoot().getBootLoader(service.getType().v());
                         if (bootLoader instanceof AndroidBootLoader) {
                             AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootLoader;
                             Drawable drawableIcon = MainActivity.this.getResources().getDrawable(androidBootLoader.getMenuIcon());

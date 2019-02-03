@@ -3,7 +3,7 @@ package de.mein.drive.boot;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
 import de.mein.auth.service.IMeinService;
-import de.mein.drive.DriveBootLoader;
+import de.mein.drive.DriveBootloader;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
@@ -11,7 +11,7 @@ import de.mein.drive.service.MeinDriveService;
 /**
  * Created by xor on 9/21/16.
  */
-public class DriveFXBootLoader extends DriveBootLoader implements BootLoaderFX<MeinDriveService> {
+public class DriveFXBootloader extends DriveBootloader implements BootLoaderFX<MeinDriveService> {
 
     @Override
     public String getCreateFXML() {

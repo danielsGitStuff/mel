@@ -21,7 +21,7 @@ import de.mein.auth.tools.N;
 import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
-import de.mein.drive.DriveBootLoader;
+import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
@@ -30,7 +30,6 @@ import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
-import org.junit.Test;
 
 import java.io.File;
 import java.io.InputStream;
@@ -69,7 +68,7 @@ public class PerfTransferTest {
         DeferredObject result = new DeferredObject();
         PerfTransferTest perfTransferTest = new PerfTransferTest();
         MeinAuthSettings settings = MeinAuthSettings.createDefaultSettings();
-        MeinBoot boot = new MeinBoot(settings, new PowerManager(settings), DriveBootLoader.class);
+        MeinBoot boot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
         boot.addMeinAuthAdmin(new MeinAuthAdmin() {
             @Override
             public void start(MeinAuthService mas) {

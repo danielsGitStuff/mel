@@ -1,17 +1,16 @@
 package de.mein.msg
 
 import de.mein.auth.data.db.Service
-import de.mein.auth.service.BootLoader
+import de.mein.auth.service.Bootloader
 import de.mein.auth.service.MeinAuthService
 import org.jdeferred.Deferred
-import org.jdeferred.DeferredManager
 import org.jdeferred.Promise
 import org.jdeferred.impl.DefaultDeferredManager
 import org.jdeferred.impl.DeferredObject
 import java.io.File
 import java.lang.Exception
 
-class MsgBootloader : BootLoader() {
+class MsgBootloader : Bootloader() {
     override fun getName(): String = "holyMessenger"
 
     override fun getDescription(): String = "messages"

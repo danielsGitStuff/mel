@@ -18,7 +18,7 @@ import de.mein.android.service.AndroidService;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.service.BootLoader;
+import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinService;
@@ -93,7 +93,7 @@ public class EditServiceController extends GuiController {
                 androidService.getMeinAuthService().getDatabaseManager().updateService(dbService);
                 boolean nowActive = dbService.isActive();
                 if (nowActive) {
-                    BootLoader bootLoader = androidService.getMeinAuthService().getMeinBoot().getBootLoader(service.getType().v());
+                    Bootloader bootLoader = androidService.getMeinAuthService().getMeinBoot().getBootLoader(service.getType().v());
                     List<Service> serviceList = new ArrayList<>();
                     serviceList.add(dbService);
                     bootLoader.boot(androidService.getMeinAuthService(), serviceList);

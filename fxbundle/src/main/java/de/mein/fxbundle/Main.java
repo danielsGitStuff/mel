@@ -14,7 +14,6 @@ import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mein.auth.tools.F;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.ContactsBootloader;
@@ -22,16 +21,14 @@ import de.mein.contacts.ContactsFXBootloader;
 import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
-import de.mein.drive.DriveBootLoader;
+import de.mein.drive.DriveBootloader;
 import de.mein.drive.bash.BashTools;
-import de.mein.drive.boot.DriveFXBootLoader;
+import de.mein.drive.boot.DriveFXBootloader;
 import de.mein.sql.RWLock;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import de.mein.update.CurrentJar;
 import javafx.embed.swing.JFXPanel;
-
-import java.io.IOException;
 
 /**
  * Created by xor on 1/15/17.
@@ -59,7 +56,7 @@ public class Main {
         meinAuthSettings.save();
         // todo debug, remove
         if (args.length == 1 && args[0].equals("-dev")) {
-            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootLoader.class, ContactsBootloader.class);
+            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class, ContactsBootloader.class);
             meinBoot.boot().done(meinAuthService -> {
                 Lok.debug("Main.main.booted (DEV)");
                 meinAuthService.addRegisterHandler(new IRegisterHandler() {
@@ -103,7 +100,7 @@ public class Main {
                 exc.printStackTrace();
             });
         } else if (meinAuthSettings.isHeadless()) {
-            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootLoader.class, ContactsBootloader.class);
+            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class, ContactsBootloader.class);
             meinBoot.boot().done(meinAuthService -> {
                 Lok.debug("Main.main.booted (headless)");
                 lock.unlockWrite();
@@ -111,7 +108,7 @@ public class Main {
                 exc.printStackTrace();
             });
         } else {
-            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootLoader.class, ContactsFXBootloader.class);
+            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootloader.class, ContactsFXBootloader.class);
             meinBoot.addMeinAuthAdmin(new MeinAuthFxLoader());
             meinBoot.boot().done(meinAuthService -> {
                 meinAuthService.addRegisterHandler(new RegisterHandlerFX());

@@ -4,11 +4,10 @@ import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
 import de.mein.auth.gui.Popup;
 import de.mein.auth.gui.XCBFix;
-import de.mein.auth.service.BootLoader;
+import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -60,7 +59,7 @@ public class NotificationListCell extends ListCell<MeinNotification> {
                 btnOpen.setOnAction(event -> {
                     N.r(() -> {
                         String name = meinAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
-                        BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(name);
+                        Bootloader bootloader = meinAuthService.getMeinBoot().getBootLoader(name);
                         IMeinService meinService = meinAuthService.getMeinService(notification.getServiceUuid());
                         if (bootloader instanceof BootLoaderFX) {
                             BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
@@ -71,7 +70,7 @@ public class NotificationListCell extends ListCell<MeinNotification> {
                 });
                 try {
                     String name = meinAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
-                    BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(name);
+                    Bootloader bootLoader = meinAuthService.getMeinBoot().getBootLoader(name);
                     if (bootLoader instanceof BootLoaderFX) {
                         BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
                         Image image = new Image(bootLoaderFX.getIconURL(), 40, 40, true, true);

@@ -27,10 +27,10 @@ import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.service.ContactsService;
-import de.mein.drive.DriveBootLoader;
+import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
-import de.mein.drive.boot.DriveFXBootLoader;
+import de.mein.drive.boot.DriveFXBootloader;
 import de.mein.drive.serialization.DriveTest;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveClientService;
@@ -66,8 +66,8 @@ public class FxTest {
     public void conflict() throws Exception {
         DriveTest driveTest = new DriveTest();
         MeinAuthSettings json2 = new DriveTest().createJson2();
-        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
-        MeinBoot restartMeinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        MeinBoot restartMeinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
         driveTest.simpleClientConflictImpl(meinBoot, null);
         new WaitLock().lock().lock();
     }
@@ -76,7 +76,7 @@ public class FxTest {
     public void startUpConflicts() throws Exception {
         DriveTest driveTest = new DriveTest();
         MeinAuthSettings json2 = new DriveTest().createJson2();
-        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootLoader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
         driveTest.startUpConflicts(meinBoot);
         new WaitLock().lock().lock();
     }
@@ -87,9 +87,9 @@ public class FxTest {
         MeinAuthSettings json1 = new DriveTest().createJson1();
         MeinAuthSettings json2 = new DriveTest().createJson2();
 
-        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootLoader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
 
-//        MeinBoot restartMeinBoot = new MeinBoot(json1, new PowerManager(json1), DriveFXBootLoader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
+//        MeinBoot restartMeinBoot = new MeinBoot(json1, new PowerManager(json1), DriveFXBootloader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
         driveTest.complexClientConflictImpl(meinBoot, null);
         new WaitLock().lock().lock();
     }
@@ -137,7 +137,7 @@ public class FxTest {
         RWLock lock = new RWLock();
         lock.lockWrite();
         //todo continue gui
-        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootLoader.class)
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootloader.class)
                 .addMeinAuthAdmin(new MeinAuthFxLoader());
         boot1.boot().done(result -> {
             result.addRegisterHandler(new RegisterHandlerFX());
@@ -192,7 +192,7 @@ public class FxTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootLoader.class, ContactsFXBootloader.class);
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootloader.class, ContactsFXBootloader.class);
         boot1.addMeinAuthAdmin(new MeinAuthFxLoader());
         boot1.boot().done(meinAuthService -> {
             meinAuthService.addRegisterHandler(new RegisterHandlerFX());
@@ -256,7 +256,7 @@ public class FxTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MeinBoot boot1 = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootloader.class);
         boot1.addMeinAuthAdmin(new MeinAuthFxLoader());
         boot1.boot().done(meinAuthService -> {
             meinAuthService.addRegisterHandler(allowRegisterHandler);
@@ -329,7 +329,7 @@ public class FxTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MeinBoot boot1 = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootloader.class);
         boot1.addMeinAuthAdmin(new MeinAuthFxLoader());
         boot1.boot().done(meinAuthService -> {
             meinAuthService.addRegisterHandler(allowRegisterHandler);
@@ -404,7 +404,7 @@ public class FxTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MeinBoot boot1 = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootLoader.class, ContactsFXBootloader.class);
+        MeinBoot boot1 = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootloader.class, ContactsFXBootloader.class);
         boot1.addMeinAuthAdmin(new MeinAuthFxLoader());
         boot1.boot().done(meinAuthService -> {
             meinAuthService.addRegisterHandler(allowRegisterHandler);
@@ -534,13 +534,13 @@ public class FxTest {
         });*/
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootLoader.class);
-        MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
+        MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
         boot1.boot().done(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 Lok.debug("FxTest.driveGui.1.booted");
-//                DriveBootLoader.deVinjector = null;
+//                DriveBootloader.deVinjector = null;
                 boot2.boot().done(standAloneAuth2 -> {
                     Lok.debug("FxTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
@@ -624,13 +624,13 @@ public class FxTest {
         });*/
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootLoader.class);
-        MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
+        MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
         boot1.boot().done(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 Lok.debug("FxTest.driveGui.1.booted");
-//                DriveBootLoader.deVinjector = null;
+//                DriveBootloader.deVinjector = null;
                 boot2.boot().done(standAloneAuth2 -> {
                     Lok.debug("FxTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
@@ -715,8 +715,8 @@ public class FxTest {
         };
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootLoader.class);
-        MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
+        MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
         boot1.boot().done(standAloneAuth1 -> {
             runner.r(() -> {
                 Lok.debug("FxTest.driveGui.1.booted");
@@ -763,7 +763,7 @@ public class FxTest {
         DriveTest driveTest = new DriveTest();
         MeinAuthSettings json1 = new DriveTest().createJson1();
         MeinAuthSettings json2 = new DriveTest().createJson2();
-        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveBootLoader.class).addMeinAuthAdmin(new MeinAuthAdmin() {
+        MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveBootloader.class).addMeinAuthAdmin(new MeinAuthAdmin() {
             @Override
             public void start(MeinAuthService meinAuthService) {
 

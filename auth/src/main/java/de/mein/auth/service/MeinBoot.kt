@@ -23,9 +23,9 @@ import java.util.logging.Logger
 /**
  * Boots up the MeinAuth instance and all existing services by calling the corresponding bootloaders.
  */
-class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val powerManager: PowerManager, vararg bootloaderClasses: Class<out BootLoader>) : BackgroundExecutor(), MeinRunnable {
-    private val bootloaderClasses = HashSet<Class<out BootLoader>>()
-    private val bootloaderMap = HashMap<String, Class<out BootLoader>>()
+class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val powerManager: PowerManager, vararg bootloaderClasses: Class<out Bootloader>) : BackgroundExecutor(), MeinRunnable {
+    private val bootloaderClasses = HashSet<Class<out Bootloader>>()
+    private val bootloaderMap = HashMap<String, Class<out Bootloader>>()
     private val deferredObject: DeferredObject<MeinAuthService, Exception, Void>
     private var meinAuthService: MeinAuthService? = null
     private val meinAuthAdmins = ArrayList<MeinAuthAdmin>()
@@ -43,16 +43,16 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     }
 
 
-    fun addBootLoaderClass(clazz: Class<out BootLoader>): MeinBoot {
+    fun addBootLoaderClass(clazz: Class<out Bootloader>): MeinBoot {
         bootloaderClasses.add(clazz)
         return this
     }
 
-    fun getBootloaderMap(): Map<String, Class<out BootLoader>> {
+    fun getBootloaderMap(): Map<String, Class<out Bootloader>> {
         return bootloaderMap
     }
 
-    fun getBootloaderClasses(): Set<Class<out BootLoader>> {
+    fun getBootloaderClasses(): Set<Class<out Bootloader>> {
         return bootloaderClasses
     }
 
@@ -63,22 +63,27 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
         return deferredObject
     }
 
+    val outstandingBootloaders = mutableSetOf<Bootloader>()
     override fun run() {
         try {
             meinAuthService = MeinAuthService(meinAuthSettings, powerManager)
             meinAuthService!!.meinBoot = this
             meinAuthService!!.addAllMeinAuthAdmin(meinAuthAdmins)
             val promiseAuthIsUp = meinAuthService!!.prepareStart()
-            val bootLoaders = ArrayList<BootLoader>()
+            val bootLoaders = ArrayList<Bootloader>()
             val bootedPromises = ArrayList<Promise<*, *, *>>()
             for (bootClass in bootloaderClasses) {
                 Lok.debug("MeinBoot.boot.booting: " + bootClass.canonicalName)
                 val dummyBootloader = createBootLoader(meinAuthService, bootClass)
                 val services = meinAuthService!!.databaseManager.getActiveServicesByType(dummyBootloader.getTypeId())
-                services.forEach {
+                services.forEach { service ->
                     val bootloader = createBootLoader(meinAuthService, bootClass)
-                    val booted = bootloader.bootStage1(meinAuthService, it)
-                    bootedPromises.add(booted)
+                    val booted = bootloader.bootStage1(meinAuthService, service)
+                    if (booted != null) {
+                        outstandingBootloaders += bootloader
+                        bootedPromises.add(booted)
+                        booted.fail { bootException -> outstandingBootloaders.remove(bootException.bootloader) }
+                    }
                 }
             }
             //bootedPromises.add(promiseAuthIsUp);
@@ -87,9 +92,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
                     .done {
                         // boot stage2 of all services
                         if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
-                            meinAuthService!!.meinServices.forEach { iMeinService ->
-                                meinAuthService!!.getMeinService(iMeinService.uuid).bootStage2()
-                            }
+                            outstandingBootloaders.forEach { it.bootStage2() }
                         }
                         meinAuthService!!.start()
                     }.fail { Lok.error("MeinBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT") }
@@ -102,7 +105,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
 
 
     @Throws(SqlQueriesException::class, IllegalAccessException::class, InstantiationException::class)
-    fun createBootLoader(meinAuthService: MeinAuthService?, bootClass: Class<out BootLoader>?): BootLoader {
+    fun createBootLoader(meinAuthService: MeinAuthService?, bootClass: Class<out Bootloader>?): Bootloader {
         val bootLoader = bootClass!!.newInstance()
         bootloaderMap[bootLoader.name] = bootClass
         bootLoader.setMeinAuthService(meinAuthService)
@@ -121,8 +124,8 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     }
 
     @Throws(IllegalAccessException::class, SqlQueriesException::class, InstantiationException::class)
-    fun getBootLoader(typeName: String): BootLoader {
-        var bootClazz: Class<out BootLoader>? = bootloaderMap[typeName]
+    fun getBootLoader(typeName: String): Bootloader {
+        var bootClazz: Class<out Bootloader>? = bootloaderMap[typeName]
         //todo debug
         if (bootClazz == null) {
             val hasType = bootloaderMap.containsKey(typeName)
@@ -142,7 +145,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     }
 
     @Throws(SqlQueriesException::class, InstantiationException::class, IllegalAccessException::class)
-    fun getBootLoader(meinService: IMeinService): BootLoader {
+    fun getBootLoader(meinService: IMeinService): Bootloader {
         val typeName = meinAuthService!!.databaseManager.getServiceNameByServiceUuid(meinService.uuid)
         return getBootLoader(typeName)
     }

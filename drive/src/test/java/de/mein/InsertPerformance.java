@@ -12,7 +12,7 @@ import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeseria
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
 import de.mein.core.serialize.serialize.tools.OTimer;
-import de.mein.drive.DriveBootLoader;
+import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.service.MeinDriveServerService;
@@ -57,7 +57,7 @@ public class InsertPerformance {
         RWLock lock = new RWLock().lockWrite();
         MeinAuthSettings settings = MeinAuthSettings.createDefaultSettings();
         settings.setWorkingDirectory(new File(WORKING_DIR.getAbsolutePath()));
-        meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootLoader.class);
+        meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
         meinBoot.boot().done(mas -> N.r(() -> {
             DriveCreateController dcc = new DriveCreateController(mas);
             mds.v = dcc.createDriveServerService("test", ROOT_DIR, .5f, 300);

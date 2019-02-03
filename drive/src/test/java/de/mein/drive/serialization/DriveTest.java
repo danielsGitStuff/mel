@@ -19,10 +19,10 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.drive.DriveBootloader;
 import de.mein.sql.Hash;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
-import de.mein.drive.DriveBootLoader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
@@ -99,7 +99,7 @@ public class DriveTest {
                         rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
                         File delFile = new File(rootPath + File.separator + "samedir");
                         BashTools.rmRf(new FFile(delFile));
-                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
+                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootloader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             Lok.debug("DriveTest.alles ok");
@@ -225,7 +225,7 @@ public class DriveTest {
                         Lok.debug("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
                         hash = Hash.md5(newFile.inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
-                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
+                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, new PowerManager(json1), DriveBootloader.class);
                         Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             Lok.debug("DriveTest.alles ok");
@@ -310,7 +310,7 @@ public class DriveTest {
 //                        Lok.debug("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
 //                        hash = Hash.md5(newFile);
 //                        Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
-//                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
+//                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootloader.class);
 //                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot1();
 //                        rebooted.done(res -> N.r(() -> {
 //                            Lok.debug("DriveTest.alles ok");
@@ -783,7 +783,7 @@ public class DriveTest {
         };
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootloader.class);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 Lok.debug("DriveTest.driveGui.booted");
@@ -867,7 +867,7 @@ public class DriveTest {
         };
         lock.lockWrite();
 
-        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootLoader.class);
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootloader.class);
         MeinBoot boot2;
         if (clientMeinBoot != null)
             boot2 = clientMeinBoot;

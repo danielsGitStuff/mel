@@ -18,7 +18,7 @@ import de.mein.auth.tools.N;
 import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
-import de.mein.drive.DriveBootLoader;
+import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
@@ -83,7 +83,7 @@ public class TransferTest {
         testDir.mkdirs();
         Lok.debug(testDir.getAbsolutePath() + " /// " + testDir.exists());
         meinAuthSettings.save();
-        MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootLoader.class);
+        MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class);
         meinBoot.boot().done(meinAuthService -> {
             Lok.debug("Main.main.booted (DEV)");
             N.r(() -> initDrive.run(meinAuthService));

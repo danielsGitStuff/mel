@@ -39,14 +39,14 @@ public class DriveCreateController {
 
 
     private Service createService(String name) throws SqlQueriesException {
-        ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeByName(new DriveBootLoader().getName());
+        ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeByName(new DriveBootloader().getName());
         Service service = meinAuthService.getDatabaseManager().createService(type.getId().v(), name);
         return service;
     }
 
     private void boot(Service service, de.mein.drive.data.DriveSettings driveSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException, InstantiationException {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
-        DriveBootLoader driveBootLoader = (DriveBootLoader) meinBoot.getBootLoader(new DriveBootLoader().getName());
+        DriveBootloader driveBootLoader = (DriveBootloader) meinBoot.getBootLoader(new DriveBootloader().getName());
         MeinDriveService meinDriveService = driveBootLoader.boot1(meinAuthService, service, driveSettings);
         WaitLock waitLock = new WaitLock().lock();
         meinDriveService.getStartedDeferred().done(result -> {

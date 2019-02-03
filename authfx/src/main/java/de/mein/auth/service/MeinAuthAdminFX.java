@@ -41,8 +41,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -121,7 +119,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                     Button button = new Button(serviceJoinServiceType.getName().v());
                     button.setMaxWidth(Double.MAX_VALUE);
                     button.setAlignment(Pos.TOP_LEFT);
-                    BootLoader bootloader = meinAuthService.getMeinBoot().getBootLoader(serviceJoinServiceType.getType().v());
+                    Bootloader bootloader = meinAuthService.getMeinBoot().getBootLoader(serviceJoinServiceType.getType().v());
                     if (bootloader instanceof BootLoaderFX) {
                         BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
                         ImageView image = new ImageView(new Image(bootLoaderFX.getIconURL(), IMAGE_SIZE, IMAGE_SIZE, true, true));
@@ -161,7 +159,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                             );
                         });
                         N.r(() -> {
-                            BootLoader bootLoader = meinAuthService.getMeinBoot().getBootLoader(name);
+                            Bootloader bootLoader = meinAuthService.getMeinBoot().getBootLoader(name);
                             if (bootLoader instanceof BootLoaderFX) {
                                 BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
                                 ImageView imgService = new ImageView(new Image(bootLoaderFX.getIconURL(), IMAGE_SIZE, IMAGE_SIZE, true, true));
@@ -305,8 +303,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     }
 
     private void onCreateMenuItemClicked(String bootLoaderName) throws IllegalAccessException, SqlQueriesException, InstantiationException {
-        Class<? extends BootLoader> bootLoaderClass = meinAuthService.getMeinBoot().getBootloaderMap().get(bootLoaderName);
-        BootLoader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootLoaderClass);
+        Class<? extends Bootloader> bootLoaderClass = meinAuthService.getMeinBoot().getBootloaderMap().get(bootLoaderName);
+        Bootloader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootLoaderClass);
         if (bootLoader instanceof BootLoaderFX) {
             showPrimaryButtonOnly();
             BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;

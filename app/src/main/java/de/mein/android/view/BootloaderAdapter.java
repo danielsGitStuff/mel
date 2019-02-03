@@ -14,18 +14,18 @@ import java.util.List;
 
 import de.mein.R;
 import de.mein.android.boot.AndroidBootLoader;
-import de.mein.auth.service.BootLoader;
+import de.mein.auth.service.Bootloader;
 
 /**
  * Created by xor on 9/19/17.
  */
 
-public class BootloaderAdapter extends MeinListAdapter<BootLoader> {
+public class BootloaderAdapter extends MeinListAdapter<Bootloader> {
 
 
-    public BootloaderAdapter(Context context, List<BootLoader> bootLoaders) {
+    public BootloaderAdapter(Context context, List<Bootloader> bootloaders) {
         super(context);
-        items.addAll(bootLoaders);
+        items.addAll(bootloaders);
     }
 
     @NonNull
@@ -35,7 +35,7 @@ public class BootloaderAdapter extends MeinListAdapter<BootLoader> {
             view = layoutInflator.inflate(R.layout.spinner_meinservice, null);
         ImageView imageIcon = view.findViewById(R.id.imageIcon);
         TextView txtText = view.findViewById(R.id.txtText);
-        BootLoader bootLoader = items.get(position);
+        Bootloader bootLoader = items.get(position);
         Drawable icon = null;
         if (bootLoader instanceof AndroidBootLoader) {
             icon = ContextCompat.getDrawable(layoutInflator.getContext(), ((AndroidBootLoader) bootLoader).getMenuIcon());

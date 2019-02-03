@@ -22,7 +22,7 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
-import de.mein.drive.DriveBootLoader;
+import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveClientService;
@@ -31,7 +31,7 @@ import de.mein.drive.service.MeinDriveClientService;
  * Created by xor on 2/25/17.
  */
 
-public class AndroidDriveBootloader extends DriveBootLoader implements AndroidBootLoader {
+public class AndroidDriveBootloader extends DriveBootloader implements AndroidBootLoader {
     private static final int PERMISSION_WRITE = 666;
 
     @Override

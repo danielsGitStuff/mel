@@ -4,6 +4,7 @@ import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.EmbeddedServiceSettingsFX;
+import de.mein.auth.service.Bootloader;
 import de.mein.contacts.ContactsBootloader;
 import de.mein.contacts.data.ContactStrings;
 import de.mein.contacts.data.ContactsSettings;
@@ -43,7 +44,7 @@ public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
             ContactsSettings contactsSettings = new ContactsSettings();
             contactsSettings.setRole(isServerSelected()? ContactStrings.ROLE_SERVER : ContactStrings.ROLE_CLIENT);
             bootloader.createService(name, contactsSettings);
-        } catch (IllegalAccessException | InstantiationException | SqlQueriesException | IOException | SQLException | JsonSerializationException | ClassNotFoundException | JsonDeserializationException e) {
+        } catch (Bootloader.BootException | IllegalAccessException | SqlQueriesException | InstantiationException e) {
             e.printStackTrace();
         }
     }

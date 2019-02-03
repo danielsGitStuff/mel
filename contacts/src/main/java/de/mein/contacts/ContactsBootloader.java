@@ -1,6 +1,7 @@
 package de.mein.contacts;
 
 import de.mein.Lok;
+import de.mein.auth.service.Bootloader;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;
@@ -15,12 +16,10 @@ import org.jdeferred.Promise;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
 
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
-import de.mein.auth.service.BootLoader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -31,56 +30,67 @@ import de.mein.sql.SqlQueriesException;
  * Created by xor on 9/21/17.
  */
 
-public class ContactsBootloader extends BootLoader {
+public class ContactsBootloader extends Bootloader {
 
-    public ContactsService createService(String name, ContactsSettings contactsSettings) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException, IOException, ClassNotFoundException, SQLException, JsonDeserializationException {
+    public ContactsService createService(String name, ContactsSettings contactsSettings) throws BootException {
+        ContactsService contactsService = null;
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
-        Service service = createDbService(name);
-        File serviceDir = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
-        serviceDir.mkdirs();
-        File jsonFile = new File(serviceDir, "contacts.settings.json");
-        contactsSettings.setJsonFile(jsonFile).save();
-        ContactsService contactsService = boot(meinAuthService, service, contactsSettings);
-        if (!contactsSettings.isServer()) {
-            // tell server we are here. if it goes wrong: reverse everything
-            WaitLock waitLock = new WaitLock().lock();
-            N runner = new N(e -> {
-                meinAuthService.unregisterMeinService(service.getUuid().v());
-                N.r(() -> meinAuthService.getDatabaseManager().deleteService(service.getId().v()));
-                Lok.debug("ContactsBootloader.createDbService.service.deleted:something.failed");
-                waitLock.unlock();
-            });
-            runner.runTry(() -> meinAuthService.connect(contactsSettings.getClientSettings().getServerCertId())
-                    .done(result -> {
-                        String serverServiceUuid = contactsSettings.getClientSettings().getServiceUuid();
-                        String serviceUuid = service.getUuid().v();
-                        runner.runTry(() -> {
-                            result.request(serverServiceUuid, ContactStrings.INTENT_REG_AS_CLIENT, new ServiceDetails(serviceUuid))
-                                    .done(result1 -> {
-                                        waitLock.unlock();
-                                    }).fail(result1 -> runner.abort());
+        try {
 
-                        });
-                    }).fail(result -> {
-                        runner.abort();
-                    }));
-            waitLock.lock();
+            Service service = createDbService(name);
+            File serviceDir = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
+            serviceDir.mkdirs();
+            File jsonFile = new File(serviceDir, "contacts.settings.json");
+            contactsSettings.setJsonFile(jsonFile).save();
+            contactsService = boot(meinAuthService, service, contactsSettings);
+
+            if (!contactsSettings.isServer()) {
+                // tell server we are here. if it goes wrong: reverse everything
+                WaitLock waitLock = new WaitLock().lock();
+                N runner = new N(e -> {
+                    meinAuthService.unregisterMeinService(service.getUuid().v());
+                    N.r(() -> meinAuthService.getDatabaseManager().deleteService(service.getId().v()));
+                    Lok.debug("ContactsBootloader.createDbService.service.deleted:something.failed");
+                    waitLock.unlock();
+                });
+                runner.runTry(() -> meinAuthService.connect(contactsSettings.getClientSettings().getServerCertId())
+                        .done(result -> {
+                            String serverServiceUuid = contactsSettings.getClientSettings().getServiceUuid();
+                            String serviceUuid = service.getUuid().v();
+                            runner.runTry(() -> {
+                                result.request(serverServiceUuid, ContactStrings.INTENT_REG_AS_CLIENT, new ServiceDetails(serviceUuid))
+                                        .done(result1 -> {
+                                            waitLock.unlock();
+                                        }).fail(result1 -> runner.abort());
+
+                            });
+                        }).fail(result -> {
+                            runner.abort();
+                        }));
+                waitLock.lock();
+            }
+        } catch (IllegalAccessException | JsonSerializationException | IOException | SqlQueriesException e) {
+            throw new BootException(this, e);
         }
         return contactsService;
     }
 
-    public ContactsService boot(MeinAuthService meinAuthService, Service service, ContactsSettings contactsSettings) throws SqlQueriesException, JsonDeserializationException, JsonSerializationException, IOException, SQLException, IllegalAccessException, ClassNotFoundException {
+    public ContactsService boot(MeinAuthService meinAuthService, Service service, ContactsSettings contactsSettings) throws BootException {
         File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
         ContactsService contactsService = null;
-        if (contactsSettings.isServer()) {
-            contactsService = createServerInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
-            meinAuthService.registerMeinService(contactsService);
-        } else {
-            //allow the server to communicate with us
-            N.r(() -> meinAuthService.getDatabaseManager().grant(service.getId().v(), contactsSettings.getClientSettings().getServerCertId()));
-            contactsService = createClientInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
-            meinAuthService.registerMeinService(contactsService);
+        try {
+            if (contactsSettings.isServer()) {
+                contactsService = createServerInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
+                meinAuthService.registerMeinService(contactsService);
+            } else {
+                //allow the server to communicate with us
+                N.r(() -> meinAuthService.getDatabaseManager().grant(service.getId().v(), contactsSettings.getClientSettings().getServerCertId()));
+                contactsService = createClientInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
+                meinAuthService.registerMeinService(contactsService);
 
+            }
+        } catch (Exception e) {
+            throw new BootException(this, e);
         }
         meinAuthService.execute(contactsService);
         return contactsService;
@@ -111,10 +121,20 @@ public class ContactsBootloader extends BootLoader {
     }
 
     @Override
-    public Promise<Void, Exception, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public Promise<Void, BootException, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + "contacts.settings.json");
-        ContactsSettings contactsSettings = (ContactsSettings) JsonSettings.load(jsonFile);
+        ContactsSettings contactsSettings = null;
+        try {
+            contactsSettings = (ContactsSettings) JsonSettings.load(jsonFile);
+        } catch (IOException | JsonDeserializationException | JsonSerializationException | IllegalAccessException e) {
+            throw new BootException(this, e);
+        }
         boot(meinAuthService, serviceDescription, contactsSettings);
+        return null;
+    }
+
+    @Override
+    public Promise<Void, BootException, Void> bootStage2() throws BootException {
         return null;
     }
 }
