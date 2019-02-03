@@ -311,7 +311,7 @@ public class DriveTest {
 //                        hash = Hash.md5(newFile);
 //                        Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
 //                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootLoader.class);
-//                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot();
+//                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot1();
 //                        rebooted.done(res -> N.r(() -> {
 //                            Lok.debug("DriveTest.alles ok");
 ////                            testStructure.setMaClient(meinAuthService2)
@@ -491,13 +491,13 @@ public class DriveTest {
 
 //    @Test
     public void restartServerAfterChangingFiles() throws Exception {
-        CertificateManager.deleteDirectory(new FFile(MeinBoot.defaultWorkingDir1));
+        CertificateManager.deleteDirectory(new FFile(MeinBoot.Companion.getDefaultWorkingDir1()));
         AFile testdir1 = AFile.instance("testdir1");
         CertificateManager.deleteDirectory(testdir1);
         TestDirCreator.createTestDir(testdir1);
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
         MeinBoot boot = new MeinBoot(json1, new PowerManager(json1));
         WaitLock waitLock = new WaitLock().lock();
         Promise<MeinAuthService, Exception, Void> promise = boot.boot();
@@ -728,7 +728,7 @@ public class DriveTest {
         //setup working directories & directories with test data
         AFile testdir1 = AFile.instance("testdir1");
         AFile testdir2 = AFile.instance("testdir2");
-        CertificateManager.deleteDirectory(new FFile(MeinBoot.defaultWorkingDir1));
+        CertificateManager.deleteDirectory(new FFile(MeinBoot.Companion.getDefaultWorkingDir1()));
         //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         CertificateManager.deleteDirectory(testdir1);
         CertificateManager.deleteDirectory(testdir1);
@@ -740,7 +740,7 @@ public class DriveTest {
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
 
@@ -808,8 +808,8 @@ public class DriveTest {
         //setup working directories & directories with test data
         AFile testdir1 =AFile.instance("testdir1");
         AFile testdir2 =AFile.instance("testdir2");
-        CertificateManager.deleteDirectory(new FFile(MeinBoot.defaultWorkingDir1));
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        CertificateManager.deleteDirectory(new FFile(MeinBoot.Companion.getDefaultWorkingDir1()));
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
         CertificateManager.deleteDirectory(testdir1);
         CertificateManager.deleteDirectory(testdir2);
         TestDirCreator.createTestDir(testdir1,1);
@@ -919,13 +919,13 @@ public class DriveTest {
         return new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2").setVariant(MeinStrings.update.VARIANT_JAR);
     }
 
     public static MeinAuthSettings createJson1() {
         return new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1").setVariant(MeinStrings.update.VARIANT_JAR);
     }
 
     public void startUpConflicts(MeinBoot meinBoot) throws Exception {

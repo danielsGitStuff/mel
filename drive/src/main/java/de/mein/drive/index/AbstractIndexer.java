@@ -449,7 +449,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage.setSize(stageFile.length());
             }else {
                 // test evaluation
-                Eva.flag("fast boot 1");
+                Eva.flag("fast boot1 1");
             }
             // stage can be deleted if nothing changed
             if (stage.getFsId() != null) {

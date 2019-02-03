@@ -111,12 +111,10 @@ public class ContactsBootloader extends BootLoader {
     }
 
     @Override
-    public Promise<Void, Exception, Void> boot(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
-        for (Service service : services) {
-            File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v() + File.separator + "contacts.settings.json");
-            ContactsSettings contactsSettings = (ContactsSettings) JsonSettings.load(jsonFile);
-            boot(meinAuthService, service, contactsSettings);
-        }
+    public Promise<Void, Exception, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+        File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + "contacts.settings.json");
+        ContactsSettings contactsSettings = (ContactsSettings) JsonSettings.load(jsonFile);
+        boot(meinAuthService, serviceDescription, contactsSettings);
         return null;
     }
 }

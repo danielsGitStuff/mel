@@ -98,11 +98,11 @@ public class FxTest {
     @Test
     public void startEmptyClient() throws Exception {
         //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("Test Client").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client").setGreeting("greeting2");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -153,12 +153,12 @@ public class FxTest {
     public void startEmptyServer() throws Exception {
         File testdir = new File("testdir1");
         CertificateManager.deleteDirectory(testdir);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
         N runner = new N(e -> e.printStackTrace());
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("Test Server").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server").setGreeting("greeting1");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -211,12 +211,12 @@ public class FxTest {
     private void connectAcceptingClient() throws Exception {
         AFile testdir = AFile.instance(new File("testdir2"));
         CertificateManager.deleteDirectory(testdir);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
         TestDirCreator.createTestDir(testdir);
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("Test Client").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client").setGreeting("greeting2");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -284,12 +284,12 @@ public class FxTest {
     public void connectAccepting() throws Exception {
         AFile testdir = AFile.instance(new File("testdir1"));
         CertificateManager.deleteDirectory(testdir);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
         TestDirCreator.createTestDir(testdir);
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("Test Server").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server").setGreeting("greeting1");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -355,12 +355,12 @@ public class FxTest {
     public void startAcceptingServer() throws Exception {
         AFile testdir = AFile.instance(new File("testdir1"));
         CertificateManager.deleteDirectory(testdir);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
         TestDirCreator.createTestDir(testdir);
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("Test Server").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server").setGreeting("greeting1");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -421,7 +421,7 @@ public class FxTest {
                 ContactsSettings settings = new ContactsSettings();
                 settings.setRole(ContactStrings.ROLE_SERVER);
                 settings.setMasterPhoneBookId(1L);
-                settings.setJsonFile(new File(MeinBoot.defaultWorkingDir1, "contactserversettings.json"));
+                settings.setJsonFile(new File(MeinBoot.Companion.getDefaultWorkingDir1(), "contactserversettings.json"));
                 ContactsBootloader contactsBootloader = (ContactsBootloader) meinAuthService.getMeinBoot().getBootLoader(ContactStrings.NAME);
                 ContactsService contactsService = contactsBootloader.createService("test contacts", settings);
                 ContactsDao cDao = contactsService.getDatabaseManager().getContactsDao();
@@ -473,16 +473,16 @@ public class FxTest {
     @Test
     public void startBoth() throws Exception, SqlQueriesException {
 //        inject(true);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
 
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -565,16 +565,16 @@ public class FxTest {
     @Test
     public void driveGui() throws Exception, SqlQueriesException {
 //        inject(true);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -656,8 +656,8 @@ public class FxTest {
         //setup working directories & directories with test data
         AFile testdir1 = AFile.instance(new File("testdir1"));
         AFile testdir2 = AFile.instance(new File("testdir2"));
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
         CertificateManager.deleteDirectory(testdir1);
         CertificateManager.deleteDirectory(testdir2);
         TestDirCreator.createTestDir(testdir1);
@@ -668,11 +668,11 @@ public class FxTest {
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir2).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override

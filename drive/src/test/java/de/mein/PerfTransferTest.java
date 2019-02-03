@@ -64,7 +64,7 @@ public class PerfTransferTest {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
         BashTools.init();
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
 
         DeferredObject result = new DeferredObject();
         PerfTransferTest perfTransferTest = new PerfTransferTest();

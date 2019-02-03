@@ -28,6 +28,7 @@ import java.sql.SQLException;
 /**
  * Created by xor on 10/26/16.
  */
+@SuppressWarnings("Duplicates")
 public class DriveCreateController {
     private final MeinAuthService meinAuthService;
     private N runner = new N(Throwable::printStackTrace);
@@ -46,16 +47,16 @@ public class DriveCreateController {
     private void boot(Service service, de.mein.drive.data.DriveSettings driveSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException, InstantiationException {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
         DriveBootLoader driveBootLoader = (DriveBootLoader) meinBoot.getBootLoader(new DriveBootLoader().getName());
-        MeinDriveService meinDriveService = driveBootLoader.boot(meinAuthService, service, driveSettings);
+        MeinDriveService meinDriveService = driveBootLoader.boot1(meinAuthService, service, driveSettings);
         WaitLock waitLock = new WaitLock().lock();
         meinDriveService.getStartedDeferred().done(result -> {
             waitLock.unlock();
         }).fail(result -> {
-            System.err.println("DriveCreateController.boot");
+            System.err.println("DriveCreateController.boot1");
             waitLock.unlock();
         });
         waitLock.lock();
-        Lok.debug("DriveCreateController.boot.booted");
+        Lok.debug("DriveCreateController.boot1.booted");
     }
 
     public MeinDriveServerService createDriveServerService(String name, AFile rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {

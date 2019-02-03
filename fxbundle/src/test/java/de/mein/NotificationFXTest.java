@@ -46,7 +46,7 @@ public class NotificationFXTest {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
         new JFXPanel();
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
         MeinAuthSettings settings = MeinAuthSettings.createDefaultSettings();
         MeinBoot meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveFXBootLoader.class, ContactsFXBootloader.class);
         meinBoot.addMeinAuthAdmin(new MeinAuthFxLoader());

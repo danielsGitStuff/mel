@@ -204,8 +204,8 @@ public class LotsOfTests {
         //setup working directories & directories with test data
         testdir1 = new File("testdir1");
         testdir2 = new File("testdir2");
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
         CertificateManager.deleteDirectory(testdir1);
         CertificateManager.deleteDirectory(testdir2);
         testdir2.mkdirs();
@@ -215,11 +215,11 @@ public class LotsOfTests {
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory((MeinBoot.defaultWorkingDir1)).setName("MA1").setGreeting("greeting1").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory((MeinBoot.Companion.getDefaultWorkingDir1())).setName("MA1").setGreeting("greeting1").setVariant(MeinStrings.update.VARIANT_JAR);
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory((MeinBoot.defaultWorkingDir2)).setName("MA2").setGreeting("greeting2").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory((MeinBoot.Companion.getDefaultWorkingDir2())).setName("MA2").setGreeting("greeting2").setVariant(MeinStrings.update.VARIANT_JAR);
 
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {

@@ -22,7 +22,7 @@ public class MeinStandAloneAuthFX {
     }
 
     public static void main(String[] args) throws Exception {
-        CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir1);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
         MeinAuthSettings meinAuthSettings = null;
         try {
             meinAuthSettings = (MeinAuthSettings) JsonSettings.load(MeinAuthSettings.DEFAULT_FILE);
@@ -30,7 +30,7 @@ public class MeinStandAloneAuthFX {
             e.printStackTrace();
         }
         if (meinAuthSettings == null)
-            meinAuthSettings = (MeinAuthSettings) new MeinAuthSettings().setDeliveryPort(8001).setPort(8000).setName("MeinAuth:)").setWorkingDirectory(MeinBoot.defaultWorkingDir1).setJsonFile(MeinAuthSettings.DEFAULT_FILE);
+            meinAuthSettings = (MeinAuthSettings) new MeinAuthSettings().setDeliveryPort(8001).setPort(8000).setName("MeinAuth:)").setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setJsonFile(MeinAuthSettings.DEFAULT_FILE);
         meinAuthSettings.setIdbCreatedListener(databaseManager -> {
             ServiceType type = databaseManager.createServiceType("type.name", "type.desc");
             databaseManager.createService(type.getId().v(), "test name");

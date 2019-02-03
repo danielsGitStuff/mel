@@ -32,6 +32,7 @@ import java.util.List;
 /**
  * Created by xor on 16.08.2016.
  */
+@SuppressWarnings("Duplicates")
 public class DriveBootLoader extends BootLoader {
 
     public DriveBootLoader() {
@@ -50,18 +51,16 @@ public class DriveBootLoader extends BootLoader {
     }
 
     @Override
-    public Promise<Void, Exception, Void> bootStage1(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public Promise<Void, Exception, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         DeferredManager deferredManager = new MeinDeferredManager();
         DeferredObject<Void, Exception, Void> booted = new DeferredObject<>();
         List<Promise> bootedPromises = new ArrayList<>();
-        for (Service service : services) {
-            N.r(() -> {
-                File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v() + File.separator + "drive.settings.json");
-                de.mein.drive.data.DriveSettings driveSettings = (de.mein.drive.data.DriveSettings) JsonSettings.load(jsonFile);
-                MeinDriveService meinDriveService = boot(meinAuthService, service, driveSettings);
-                bootedPromises.add(meinDriveService.getStartedDeferred());
-            });
-        }
+        N.r(() -> {
+            File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + "drive.settings.json");
+            de.mein.drive.data.DriveSettings driveSettings = (de.mein.drive.data.DriveSettings) JsonSettings.load(jsonFile);
+            MeinDriveService meinDriveService = boot1(meinAuthService, serviceDescription, driveSettings);
+            bootedPromises.add(meinDriveService.getStartedDeferred());
+        });
         deferredManager.when(bootedPromises.toArray(new Promise[0])).done(result -> booted.resolve(null)).fail(result -> booted.reject((Exception) result.getReject()));
         return booted;
     }
@@ -76,12 +75,10 @@ public class DriveBootLoader extends BootLoader {
      * @throws SqlQueriesException
      * @throws SQLException
      * @throws IOException
-     * @throws ClassNotFoundException
      * @throws JsonDeserializationException
      * @throws JsonSerializationException
-     * @throws IllegalAccessException
      */
-    public MeinDriveService boot(MeinAuthService meinAuthService, Service service, de.mein.drive.data.DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public MeinDriveService boot1(MeinAuthService meinAuthService, Service service, de.mein.drive.data.DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         File workingDirectory = new File(bootLoaderDir, service.getUuid().v());
         Long serviceTypeId = service.getTypeId().v();
         String uuid = service.getUuid().v();
@@ -93,7 +90,7 @@ public class DriveBootLoader extends BootLoader {
         meinAuthService.onNotificationFromService(meinDriveService, notification);
         //exec
         meinAuthService.execute(meinDriveService);
-        Lok.debug("DriveBootLoader.boot");
+        Lok.debug("DriveBootLoader.boot1");
         meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
         meinDriveService.getStartedDeferred()
                 .done(result -> N.r(() -> {
@@ -107,10 +104,52 @@ public class DriveBootLoader extends BootLoader {
                 .fail(ex -> {
                     notification.setText("failed :(")
                             .finish();
-                    System.err.println("DriveBootLoader.boot." + meinDriveService.getUuid() + " failed");
+                    System.err.println("DriveBootLoader.boot1." + meinDriveService.getUuid() + " failed");
                 });
         return meinDriveService;
     }
+
+//    /**
+//     * boots one instance
+//     *
+//     * @param meinAuthService
+//     * @param service
+//     * @param driveSettings
+//     * @return
+//     * @throws SqlQueriesException
+//     * @throws SQLException
+//     * @throws IOException
+//     * @throws JsonDeserializationException
+//     * @throws JsonSerializationException
+//     */
+//    public MeinDriveService boot2(MeinAuthService meinAuthService, Service service, de.mein.drive.data.DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+//        String uuid = service.getUuid().v();
+//        MeinDriveService meinDriveService = (driveSettings.isServer()) ?
+//                new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid);
+//        //notify user
+//        MeinNotification notification = new MeinNotification(service.getUuid().v(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
+//        notification.setProgress(0, 0, true);
+//        meinAuthService.onNotificationFromService(meinDriveService, notification);
+//        //exec
+//        meinAuthService.execute(meinDriveService);
+//        Lok.debug("DriveBootLoader.boot1");
+//        meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
+//        meinDriveService.getStartedDeferred()
+//                .done(result -> N.r(() -> {
+//                    notification.cancel();
+//                    meinAuthService.registerMeinService(meinDriveService);
+////                    if (!driveSettings.isServer()){
+////                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
+////                        meinDriveClientService.syncThisClient();
+////                    }
+//                }))
+//                .fail(ex -> {
+//                    notification.setText("failed :(")
+//                            .finish();
+//                    System.err.println("DriveBootLoader.boot1." + meinDriveService.getUuid() + " failed");
+//                });
+//        return meinDriveService;
+//    }
 
 
     private DeferredObject<DeferredRunnable, Exception, Void> startIndexer(MeinDriveService meinDriveService, de.mein.drive.data.DriveSettings driveSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {

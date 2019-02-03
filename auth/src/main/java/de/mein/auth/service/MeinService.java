@@ -22,6 +22,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     private ExecutorService executorService;
     private final Semaphore threadSemaphore = new Semaphore(1, true);
     private final LinkedList<MeinThread> threadQueue = new LinkedList<>();
+    private int bootStage = 0;
     //cache stuff
     protected final File cacheDirectory;
     private final ThreadFactory threadFactory = new ThreadFactory() {
@@ -126,5 +127,12 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
 
     public File getCacheDirectory() {
         return cacheDirectory;
+    }
+
+    /**
+     *
+     */
+    public void bootStage2() {
+        bootStage = 2;
     }
 }

@@ -190,4 +190,8 @@ public abstract class ISQLQueries {
      * @throws SqlQueriesException
      */
     public abstract <T extends SQLTableObject> ISQLResource<T> loadQueryResource(String query, List<Pair<?>> allAttributes, Class<T> clazz, List<Object> args) throws SqlQueriesException;
+
+    public void enableWAL() throws SqlQueriesException {
+
+    }
 }

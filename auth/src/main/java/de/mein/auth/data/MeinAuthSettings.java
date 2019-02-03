@@ -78,7 +78,7 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
                 .setName("meinauth")
                 .setBrotcastListenerPort(BROTCAST_PORT)
                 .setBrotcastPort(BROTCAST_PORT)
-                .setWorkingDirectory(MeinBoot.defaultWorkingDir1)
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1())
                 .setGreeting(generateGreeting())
                 .setUpdateMessagePort(UPDATE_MSG_PORT)
                 .setUpdateBinaryPort(UPDATE_BINARY_PORT)

@@ -38,7 +38,7 @@ public abstract class BootLoader {
     public abstract String getName();
     public abstract String getDescription();
 
-    public abstract Promise<Void, Exception, Void> bootStage1(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException;
+    public abstract Promise<Void, Exception, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException;
 
     public void setBootLoaderDir(File bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;

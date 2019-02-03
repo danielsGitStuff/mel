@@ -16,6 +16,16 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author xor
  */
 public class SQLQueries extends ISQLQueries {
+    @Override
+    public void enableWAL() throws SqlQueriesException{
+        try {
+           PreparedStatement stmt = connection.prepareStatement("PRAGMA journal_mode=WAL");
+           stmt.execute();
+           stmt.close();
+        } catch (SQLException e) {
+            throw new SqlQueriesException(e);
+        }
+    }
 
     private RWLock lock;
     public static final boolean SYSOUT = false;
