@@ -92,7 +92,9 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
                     .done {
                         // boot stage2 of all services
                         if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
-                            outstandingBootloaders.forEach { it.bootStage2() }
+                            outstandingBootloaders.forEach { bootloader ->
+                                bootloader.bootStage2()?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
+                            }
                         }
                         meinAuthService!!.start()
                     }.fail { Lok.error("MeinBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT") }
