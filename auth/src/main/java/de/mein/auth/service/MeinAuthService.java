@@ -176,9 +176,6 @@ public class MeinAuthService {
                 ((MeinServiceWorker) service).start();
             }
         }
-//        for (MeinAuthAdmin admin : meinAuthAdmins) {
-//            admin.start(this);
-//        }
     }
 
 

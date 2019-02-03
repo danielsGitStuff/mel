@@ -96,9 +96,12 @@ public class MeinBoot extends BackgroundExecutor implements MeinRunnable {
             List<Promise> bootedPromises = new ArrayList<>();
             for (BootLoader bootLoader : bootLoaders) {
                 List<Service> services = meinAuthService.getDatabaseManager().getActiveServicesByType(bootLoader.getTypeId());
-                Promise<Void, Exception, Void> booted = bootLoader.boot(meinAuthService, services);
+                Promise<Void, Exception, Void> booted = bootLoader.bootStage1(meinAuthService, services);
                 if (booted != null)
                     bootedPromises.add(booted);
+            }
+            if (meinAuthService.getPowerManager().heavyWorkAllowed()){
+
             }
             //bootedPromises.add(promiseAuthIsUp);
             promiseAuthIsUp.done(result -> {

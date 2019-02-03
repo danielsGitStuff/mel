@@ -50,7 +50,7 @@ public class DriveBootLoader extends BootLoader {
     }
 
     @Override
-    public Promise<Void, Exception, Void> boot(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public Promise<Void, Exception, Void> bootStage1(MeinAuthService meinAuthService, List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         DeferredManager deferredManager = new MeinDeferredManager();
         DeferredObject<Void, Exception, Void> booted = new DeferredObject<>();
         List<Promise> bootedPromises = new ArrayList<>();
