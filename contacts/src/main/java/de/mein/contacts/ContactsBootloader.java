@@ -30,7 +30,7 @@ import de.mein.sql.SqlQueriesException;
  * Created by xor on 9/21/17.
  */
 
-public class ContactsBootloader extends Bootloader {
+public class ContactsBootloader extends Bootloader<ContactsService> {
 
     public ContactsService createService(String name, ContactsSettings contactsSettings) throws BootException {
         ContactsService contactsService = null;
@@ -121,7 +121,7 @@ public class ContactsBootloader extends Bootloader {
     }
 
     @Override
-    public Promise<Void, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+    public Promise<ContactsService, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + "contacts.settings.json");
         ContactsSettings contactsSettings = null;
         try {

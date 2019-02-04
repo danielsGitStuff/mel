@@ -128,4 +128,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         return cacheDirectory;
     }
 
+    public void bootLevel(int stage) {
+
+    }
 }

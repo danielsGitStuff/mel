@@ -23,9 +23,9 @@ import java.util.logging.Logger
 /**
  * Boots up the MeinAuth instance and all existing services by calling the corresponding bootloaders.
  */
-class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val powerManager: PowerManager, vararg bootloaderClasses: Class<out Bootloader>) : BackgroundExecutor(), MeinRunnable {
-    private val bootloaderClasses = HashSet<Class<out Bootloader>>()
-    private val bootloaderMap = HashMap<String, Class<out Bootloader>>()
+class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val powerManager: PowerManager, vararg bootloaderClasses: Class<out Bootloader<out MeinService>>) : BackgroundExecutor(), MeinRunnable {
+    private val bootloaderClasses = HashSet<Class<out Bootloader<out MeinService>>>()
+    private val bootloaderMap = HashMap<String, Class<out Bootloader<out MeinService>>>()
     private val deferredObject: DeferredObject<MeinAuthService, Exception, Void>
     private var meinAuthService: MeinAuthService? = null
     private val meinAuthAdmins = ArrayList<MeinAuthAdmin>()
@@ -43,16 +43,16 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     }
 
 
-    fun addBootLoaderClass(clazz: Class<out Bootloader>): MeinBoot {
+    fun addBootLoaderClass(clazz: Class<out Bootloader<MeinService>>): MeinBoot {
         bootloaderClasses.add(clazz)
         return this
     }
 
-    fun getBootloaderMap(): Map<String, Class<out Bootloader>> {
+    fun getBootloaderMap(): Map<String, Class<out Bootloader<out MeinService>>> {
         return bootloaderMap
     }
 
-    fun getBootloaderClasses(): Set<Class<out Bootloader>> {
+    fun getBootloaderClasses(): Set<Class<out Bootloader<out MeinService>>> {
         return bootloaderClasses
     }
 
@@ -63,7 +63,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
         return deferredObject
     }
 
-    private val outstandingBootloaders = Collections.synchronizedSet(mutableSetOf<Bootloader>())!!
+    private val outstandingBootloaders = Collections.synchronizedSet(mutableSetOf<Bootloader<out MeinService>>())!!
     override fun run() {
         try {
             powerManager.addStateListener(PowerManager.IPowerStateListener {
@@ -112,7 +112,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
 
 
     @Throws(SqlQueriesException::class, IllegalAccessException::class, InstantiationException::class)
-    fun createBootLoader(meinAuthService: MeinAuthService?, bootClass: Class<out Bootloader>?): Bootloader {
+    fun createBootLoader(meinAuthService: MeinAuthService?, bootClass: Class<out Bootloader<out MeinService>>?): Bootloader<out MeinService> {
         val bootLoader = bootClass!!.newInstance()
         bootloaderMap[bootLoader.name] = bootClass
         bootLoader.setMeinAuthService(meinAuthService)
@@ -131,8 +131,8 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     }
 
     @Throws(IllegalAccessException::class, SqlQueriesException::class, InstantiationException::class)
-    fun getBootLoader(typeName: String): Bootloader {
-        var bootClazz: Class<out Bootloader>? = bootloaderMap[typeName]
+    fun getBootLoader(typeName: String): Bootloader<out MeinService> {
+        var bootClazz: Class<out Bootloader<out MeinService>>? = bootloaderMap[typeName]
         //todo debug
         if (bootClazz == null) {
             val hasType = bootloaderMap.containsKey(typeName)
@@ -152,7 +152,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     }
 
     @Throws(SqlQueriesException::class, InstantiationException::class, IllegalAccessException::class)
-    fun getBootLoader(meinService: IMeinService): Bootloader {
+    fun getBootLoader(meinService: IMeinService): Bootloader<out MeinService> {
         val typeName = meinAuthService!!.databaseManager.getServiceNameByServiceUuid(meinService.uuid)
         return getBootLoader(typeName)
     }

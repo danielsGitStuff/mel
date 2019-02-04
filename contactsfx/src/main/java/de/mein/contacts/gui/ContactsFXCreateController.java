@@ -40,7 +40,7 @@ public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
     public void onPrimaryClicked() {
         try {
             String name = txtName.getText();
-            ContactsBootloader bootloader = (ContactsBootloader) meinAuthService.getMeinBoot().getBootLoader(ContactStrings.NAME);
+            ContactsBootloader bootloader =(ContactsBootloader)  meinAuthService.getMeinBoot().getBootLoader(ContactStrings.NAME);
             ContactsSettings contactsSettings = new ContactsSettings();
             contactsSettings.setRole(isServerSelected()? ContactStrings.ROLE_SERVER : ContactStrings.ROLE_CLIENT);
             bootloader.createService(name, contactsSettings);

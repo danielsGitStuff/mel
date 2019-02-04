@@ -1,17 +1,16 @@
 package de.mein.drive;
 
 import de.mein.DeferredRunnable;
-import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.MeinDeferredManager;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
@@ -19,21 +18,21 @@ import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.sql.SqlQueriesException;
 
-import org.jdeferred.DeferredManager;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by xor on 16.08.2016.
  */
 @SuppressWarnings("Duplicates")
-public class DriveBootloader extends Bootloader {
+public class DriveBootloader extends Bootloader<MeinDriveService> {
+
+    private MeinDriveService meinDriveService;
+    private DriveSettings driveSettings;
 
     public DriveBootloader() {
         BashTools.init();
@@ -51,20 +50,47 @@ public class DriveBootloader extends Bootloader {
     }
 
     @Override
-    public Promise<Void, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
-        DeferredObject<Void, BootException, Void> booted = new DeferredObject<>();
+    public Promise<MeinDriveService, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+        DeferredObject<MeinDriveService, BootException, Void> booted = new DeferredObject<>();
         N.r(() -> {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + "drive.settings.json");
-            de.mein.drive.data.DriveSettings driveSettings = (de.mein.drive.data.DriveSettings) JsonSettings.load(jsonFile);
-            MeinDriveService meinDriveService = boot1(meinAuthService, serviceDescription, driveSettings);
-            meinDriveService.getStartedDeferred().done(result -> booted.resolve(null)).fail(e -> booted.reject(new BootException(this, e)));
+            driveSettings = (de.mein.drive.data.DriveSettings) JsonSettings.load(jsonFile);
+            meinDriveService = spawn(meinAuthService, serviceDescription, driveSettings);
+            booted.resolve(meinDriveService);
+//            meinDriveService.getStartedDeferred().done(result -> booted.resolve(null)).fail(e -> booted.reject(new BootException(this, e)));
         });
         return booted;
     }
 
     @Override
     public Promise<Void, BootException, Void> bootStage2Impl() throws BootException {
-        return null;
+        try {
+            DeferredObject<Void, BootException, Void> done = new DeferredObject<>();
+            //notify user
+            MeinNotification notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
+            notification.setProgress(0, 0, true);
+            meinAuthService.onNotificationFromService(meinDriveService, notification);
+            meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, meinDriveService.getDriveSettings()));
+            meinDriveService.getStartedDeferred()
+                    .done(result -> N.r(() -> {
+                        notification.cancel();
+                        meinAuthService.registerMeinService(meinDriveService);
+                        done.resolve(null);
+//                    if (!driveSettings.isServer()){
+//                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
+//                        meinDriveClientService.syncThisClient();
+//                    }
+                    }))
+                    .fail(ex -> {
+                        notification.setText("failed :(")
+                                .finish();
+                        System.err.println("DriveBootloader.spawn." + meinDriveService.getUuid() + " failed");
+                        done.reject(new BootException(this, ex));
+                    });
+            return done;
+        } catch (SQLException | IOException | ClassNotFoundException | SqlQueriesException | JsonDeserializationException | JsonSerializationException | IllegalAccessException e) {
+            throw new BootException(this, e);
+        }
     }
 
     /**
@@ -80,11 +106,11 @@ public class DriveBootloader extends Bootloader {
      * @throws JsonDeserializationException
      * @throws JsonSerializationException
      */
-    public MeinDriveService boot1(MeinAuthService meinAuthService, Service service, de.mein.drive.data.DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    public MeinDriveService spawn(MeinAuthService meinAuthService, Service service, DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         File workingDirectory = new File(bootLoaderDir, service.getUuid().v());
         Long serviceTypeId = service.getTypeId().v();
         String uuid = service.getUuid().v();
-        MeinDriveService meinDriveService = (driveSettings.isServer()) ?
+        MeinDriveService meinDriveService = (this.driveSettings.isServer()) ?
                 new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid);
         //notify user
         MeinNotification notification = new MeinNotification(service.getUuid().v(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
@@ -92,22 +118,22 @@ public class DriveBootloader extends Bootloader {
         meinAuthService.onNotificationFromService(meinDriveService, notification);
         //exec
         meinAuthService.execute(meinDriveService);
-        Lok.debug("DriveBootloader.boot1");
-        meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
-        meinDriveService.getStartedDeferred()
-                .done(result -> N.r(() -> {
-                    notification.cancel();
-                    meinAuthService.registerMeinService(meinDriveService);
-//                    if (!driveSettings.isServer()){
-//                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
-//                        meinDriveClientService.syncThisClient();
-//                    }
-                }))
-                .fail(ex -> {
-                    notification.setText("failed :(")
-                            .finish();
-                    System.err.println("DriveBootloader.boot1." + meinDriveService.getUuid() + " failed");
-                });
+//        Lok.debug("DriveBootloader.spawn.done");
+//        meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
+//        meinDriveService.getStartedDeferred()
+//                .done(result -> N.r(() -> {
+//                    notification.cancel();
+//                    meinAuthService.registerMeinService(meinDriveService);
+////                    if (!driveSettings.isServer()){
+////                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
+////                        meinDriveClientService.syncThisClient();
+////                    }
+//                }))
+//                .fail(ex -> {
+//                    notification.setText("failed :(")
+//                            .finish();
+//                    System.err.println("DriveBootloader.spawn." + meinDriveService.getUuid() + " failed");
+//                });
         return meinDriveService;
     }
 
@@ -134,7 +160,7 @@ public class DriveBootloader extends Bootloader {
 //        meinAuthService.onNotificationFromService(meinDriveService, notification);
 //        //exec
 //        meinAuthService.execute(meinDriveService);
-//        Lok.debug("DriveBootloader.boot1");
+//        Lok.debug("DriveBootloader.spawn");
 //        meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
 //        meinDriveService.getStartedDeferred()
 //                .done(result -> N.r(() -> {
@@ -148,7 +174,7 @@ public class DriveBootloader extends Bootloader {
 //                .fail(ex -> {
 //                    notification.setText("failed :(")
 //                            .finish();
-//                    System.err.println("DriveBootloader.boot1." + meinDriveService.getUuid() + " failed");
+//                    System.err.println("DriveBootloader.spawn." + meinDriveService.getUuid() + " failed");
 //                });
 //        return meinDriveService;
 //    }

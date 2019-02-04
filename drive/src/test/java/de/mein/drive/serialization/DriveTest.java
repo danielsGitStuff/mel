@@ -311,7 +311,7 @@ public class DriveTest {
 //                        hash = Hash.md5(newFile);
 //                        Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
 //                        MeinBoot meinBoot = (restartMeinBoot != null) ? restartMeinBoot : new MeinBoot(json1, DriveBootloader.class);
-//                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.boot1();
+//                        Promise<MeinAuthService, Exception, Void> rebooted = meinBoot.spawn();
 //                        rebooted.done(res -> N.r(() -> {
 //                            Lok.debug("DriveTest.alles ok");
 ////                            testStructure.setMaClient(meinAuthService2)

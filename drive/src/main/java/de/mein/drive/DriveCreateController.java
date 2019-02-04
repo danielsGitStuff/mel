@@ -47,16 +47,16 @@ public class DriveCreateController {
     private void boot(Service service, de.mein.drive.data.DriveSettings driveSettings) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException, InstantiationException {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
         DriveBootloader driveBootLoader = (DriveBootloader) meinBoot.getBootLoader(new DriveBootloader().getName());
-        MeinDriveService meinDriveService = driveBootLoader.boot1(meinAuthService, service, driveSettings);
+        MeinDriveService meinDriveService = driveBootLoader.spawn(meinAuthService, service,driveSettings);
         WaitLock waitLock = new WaitLock().lock();
         meinDriveService.getStartedDeferred().done(result -> {
             waitLock.unlock();
         }).fail(result -> {
-            System.err.println("DriveCreateController.boot1");
+            System.err.println("DriveCreateController.spawn");
             waitLock.unlock();
         });
         waitLock.lock();
-        Lok.debug("DriveCreateController.boot1.booted");
+        Lok.debug("DriveCreateController.spawn.booted");
     }
 
     public MeinDriveServerService createDriveServerService(String name, AFile rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {

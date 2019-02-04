@@ -153,7 +153,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                         menuItem.setOnAction(e1 -> {
                             Lok.debug("MeinAuthAdminFX.initialize.createmenu.clicked");
                             runner.r(() -> {
-                                        onCreateMenuItemClicked(name);
+                                        onCreateMenuItemClicked(meinAuthService.getMeinBoot().getBootloaderMap().get(name));
                                         createServiceMenu.hide();
                                     }
                             );
@@ -302,9 +302,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         return meinAuthService;
     }
 
-    private void onCreateMenuItemClicked(String bootLoaderName) throws IllegalAccessException, SqlQueriesException, InstantiationException {
-        Class<? extends Bootloader> bootLoaderClass = meinAuthService.getMeinBoot().getBootloaderMap().get(bootLoaderName);
-        Bootloader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootLoaderClass);
+    private void onCreateMenuItemClicked(Class<? extends Bootloader<? extends MeinService>> bootloaderClass) throws IllegalAccessException, SqlQueriesException, InstantiationException {
+        Bootloader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootloaderClass);
         if (bootLoader instanceof BootLoaderFX) {
             showPrimaryButtonOnly();
             BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;

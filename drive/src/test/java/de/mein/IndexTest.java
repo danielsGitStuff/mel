@@ -64,7 +64,7 @@ public class IndexTest {
                         .setTransferDirectory(transferDir)
                         .setMaxWastebinSize(999999L)
                         .setFastBoot(true);
-                mds = bl.boot1(mas, service, driveSettings);
+                mds = bl.spawn(mas, service, driveSettings);
                 mds.start();
                 mds.getStartedDeferred().done(result1 -> lock.unlock());
                 //mas.registerMeinService(mds);
@@ -88,8 +88,8 @@ public class IndexTest {
             MeinDriveServerService driveService = (MeinDriveServerService) mas.getMeinServices().stream().findFirst().get();
             driveService.startedPromise.done(result1 -> {
                 Lok.debug("done");
-                assertTrue(Eva.hasFlag("fast boot1 1"));
-                assertEquals(5, Eva.getFlagCount("fast boot1 1"));
+                assertTrue(Eva.hasFlag("fast spawn 1"));
+                assertEquals(5, Eva.getFlagCount("fast spawn 1"));
                 lock.unlock();
             });
         }));

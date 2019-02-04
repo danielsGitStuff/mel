@@ -2,27 +2,21 @@ package de.mein.auth.service;
 
 import de.mein.Lok;
 import de.mein.auth.data.db.Service;
-import de.mein.auth.tools.N;
-import de.mein.core.serialize.exceptions.JsonDeserializationException;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 
 import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Every Service running in MeinAuth has to start somewhere. This is here.
  * It is responsible for creating new Services or start/boot existing ones.
  */
-public abstract class Bootloader {
-
+public abstract class Bootloader<T extends MeinService> {
+    protected T meinService;
     protected Long typeId;
     protected File bootLoaderDir;
     protected MeinAuthService meinAuthService;
-    protected AtomicInteger stageStarted = new AtomicInteger(0);
+    protected AtomicInteger bootLevel = new AtomicInteger(0);
 
     public Bootloader() {
 
@@ -41,17 +35,23 @@ public abstract class Bootloader {
 
     public abstract String getDescription();
 
-    public final Promise<Void, BootException, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
-        if (stageStarted.get() == 0) {
-            stageStarted.incrementAndGet();
-            return bootStage1Impl(meinAuthService, serviceDescription);
+    public final Promise<T, BootException, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+        if (bootLevel.get() == 0) {
+            bootLevel.incrementAndGet();
+            Promise<T, BootException, Void> promise = bootStage1Impl(meinAuthService, serviceDescription);
+            if (promise != null)
+                promise.done(service -> {
+                    meinService = service;
+                    service.bootLevel(1);
+                });
+            return promise;
         } else {
-            Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to stage 1. But its current stage was not 0. current stage=" + stageStarted.get());
+            Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to level 1. But its current level  was not 0. current level=" + bootLevel.get());
             return null;
         }
     }
 
-    public abstract Promise<Void, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException;
+    public abstract Promise<T, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException;
 
     public void setBootLoaderDir(File bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;
@@ -67,11 +67,14 @@ public abstract class Bootloader {
     }
 
     public final Promise<Void, BootException, Void> bootStage2() throws BootException {
-        if (stageStarted.get() == 1) {
-            stageStarted.incrementAndGet();
-            return bootStage2Impl();
+        if (bootLevel.get() == 1) {
+            bootLevel.incrementAndGet();
+            Promise<Void, BootException, Void> promise = bootStage2Impl();
+            if (promise != null)
+                promise.done(nil -> meinService.bootLevel(2));
+            return promise;
         } else {
-            Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to stage 2. But its current stage was not 1. current stage=" + stageStarted.get());
+            Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to level 2. But its current level was not 1. current level=" + bootLevel.get());
             return null;
         }
     }
