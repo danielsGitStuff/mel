@@ -59,7 +59,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     private DriveSyncListener syncListener;
 
 
-
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;
     }
@@ -257,7 +256,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         this.driveSettings = driveDatabaseManager.getDriveSettings();
         AFile transferDir = driveSettings.getTransferDirectory();
         transferDir.mkdirs();
-        AFile wasteDir = AFile.instance(driveSettings.getTransferDirectory(),DriveStrings.WASTEBIN);
+        AFile wasteDir = AFile.instance(driveSettings.getTransferDirectory(), DriveStrings.WASTEBIN);
         wasteDir.mkdirs();
         this.stageIndexer = new StageIndexer(driveDatabaseManager);
         this.indexer = new Indexer(driveDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());
@@ -304,7 +303,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     public void onShutDown() {
         super.onShutDown();
         driveDatabaseManager.shutDown();
-        indexer.shutDown();
+        if (indexer != null)
+            indexer.shutDown();
     }
 
     @Override

@@ -14,6 +14,7 @@ import org.jdeferred.Promise
 import org.jdeferred.impl.DeferredObject
 
 import java.io.File
+import java.io.IOException
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -33,8 +34,9 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
 
     init {
         this.deferredObject = DeferredObject()
-        if (bootloaderClasses != null)
+        if (bootloaderClasses != null) {
             this.bootloaderClasses.addAll(Arrays.asList(*bootloaderClasses))
+        }
     }
 
     fun addMeinAuthAdmin(admin: MeinAuthAdmin): MeinBoot {
@@ -43,7 +45,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     }
 
 
-    fun addBootLoaderClass(clazz: Class<out Bootloader<MeinService>>): MeinBoot {
+    fun addBootLoaderClass(clazz: Class<out Bootloader<out MeinService>>): MeinBoot {
         bootloaderClasses.add(clazz)
         return this
     }
@@ -73,36 +75,18 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
             meinAuthService!!.meinBoot = this
             meinAuthService!!.addAllMeinAuthAdmin(meinAuthAdmins)
             val promiseAuthIsUp = meinAuthService!!.prepareStart()
-            val bootedPromises = ArrayList<Promise<*, *, *>>()
-            for (bootClass in bootloaderClasses) {
-                Lok.debug("MeinBoot.boot.booting: " + bootClass.canonicalName)
-                val dummyBootloader = createBootLoader(meinAuthService, bootClass)
-                val services = meinAuthService!!.databaseManager.getActiveServicesByType(dummyBootloader.getTypeId())
-                services.forEach { service ->
-                    val bootloader = createBootLoader(meinAuthService, bootClass)
-                    val booted = bootloader.bootStage1(meinAuthService, service)
-                    if (booted != null) {
-                        outstandingBootloaders += bootloader
-                        bootedPromises.add(booted)
-                        booted.fail { bootException -> outstandingBootloaders.remove(bootException.bootloader) }
-                    }
-                }
-            }
-            //bootedPromises.add(promiseAuthIsUp);
             promiseAuthIsUp.done { result -> deferredObject.resolve(meinAuthService) }
-            MeinDeferredManager().`when`(bootedPromises)
-                    .done {
-                        // boot stage2 of all services
-                        bootStage2()
-                        meinAuthService!!.start()
-                    }.fail { Lok.error("MeinBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT") }
+            for (bootClass in this.bootloaderClasses) {
+                createBootLoader(meinAuthService, bootClass)
+            }
+            bootServices()
         } catch (e: Exception) {
             e.printStackTrace()
             deferredObject.reject(e)
         }
     }
 
-    private fun bootStage2(){
+    private fun bootStage2() {
         if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
             outstandingBootloaders.forEach { bootloader ->
                 bootloader.bootStage2()?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
@@ -155,6 +139,33 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     fun getBootLoader(meinService: IMeinService): Bootloader<out MeinService> {
         val typeName = meinAuthService!!.databaseManager.getServiceNameByServiceUuid(meinService.uuid)
         return getBootLoader(typeName)
+    }
+
+    fun bootServices() {
+        val bootedPromises = ArrayList<Promise<*, *, *>>()
+        for (bootClass in bootloaderClasses) {
+            Lok.debug("MeinBoot.boot.booting: " + bootClass.canonicalName)
+            val dummyBootloader = createBootLoader(meinAuthService, bootClass)
+            val services = meinAuthService!!.databaseManager.getActiveServicesByType(dummyBootloader.getTypeId())
+            services.filter { service -> meinAuthService!!.getMeinService(service.uuid.v()) == null }.forEach { service ->
+                val bootloader = createBootLoader(meinAuthService, bootClass)
+                val booted = bootloader.bootStage1(meinAuthService, service)
+                if (booted != null) {
+                    outstandingBootloaders += bootloader
+                    bootedPromises.add(booted)
+                    booted.fail { bootException ->
+                        outstandingBootloaders.remove(bootException.bootloader)
+                    }.done { meinService -> meinAuthService!!.registerMeinService(meinService) }
+                }
+            }
+        }
+        //bootedPromises.add(promiseAuthIsUp);
+        MeinDeferredManager().`when`(bootedPromises)
+                .done {
+                    // boot stage2 of all services
+                    bootStage2()
+                    meinAuthService!!.start()
+                }.fail { Lok.error("MeinBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT") }
     }
 
     companion object {

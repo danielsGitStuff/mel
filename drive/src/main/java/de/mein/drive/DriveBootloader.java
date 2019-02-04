@@ -74,7 +74,6 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             meinDriveService.getStartedDeferred()
                     .done(result -> N.r(() -> {
                         notification.cancel();
-                        meinAuthService.registerMeinService(meinDriveService);
                         done.resolve(null);
 //                    if (!driveSettings.isServer()){
 //                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
@@ -107,10 +106,14 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
      * @throws JsonSerializationException
      */
     public MeinDriveService spawn(MeinAuthService meinAuthService, Service service, DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+        this.driveSettings = driveSettings;
         File workingDirectory = new File(bootLoaderDir, service.getUuid().v());
+        workingDirectory.mkdirs();
+        driveSettings.setJsonFile(new File(workingDirectory, "drive.settings.json"));
+        driveSettings.save();
         Long serviceTypeId = service.getTypeId().v();
         String uuid = service.getUuid().v();
-        MeinDriveService meinDriveService = (this.driveSettings.isServer()) ?
+        MeinDriveService meinDriveService = (driveSettings.isServer()) ?
                 new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
         //notify user
         MeinNotification notification = new MeinNotification(service.getUuid().v(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");

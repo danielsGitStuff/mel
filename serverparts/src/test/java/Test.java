@@ -8,8 +8,7 @@ import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.tools.F;
 import de.mein.sql.Hash;
 import de.mein.sql.RWLock;
-import de.miniserver.MiniServer;
-import de.miniserver.ServerConfig;
+
 import org.junit.After;
 import org.junit.Before;
 
@@ -37,7 +36,6 @@ public class Test {
 
     private static final File TEST_DIR = new File("miniserver.w.test");
 
-    private MiniServer miniServer;
     private String hash;
     private File receivedTestFile;
     private File filesDir;

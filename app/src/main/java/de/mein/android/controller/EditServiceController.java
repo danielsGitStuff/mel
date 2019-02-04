@@ -93,17 +93,18 @@ public class EditServiceController extends GuiController {
                 androidService.getMeinAuthService().getDatabaseManager().updateService(dbService);
                 boolean nowActive = dbService.isActive();
                 if (nowActive) {
-                    Bootloader bootLoader = androidService.getMeinAuthService().getMeinBoot().getBootLoader(service.getType().v());
-                    List<Service> serviceList = new ArrayList<>();
-                    serviceList.add(dbService);
-                    bootLoader.boot(androidService.getMeinAuthService(), serviceList);
+//                    Bootloader bootLoader = androidService.getMeinAuthService().getMeinBoot().getBootLoader(service.getType().v());
+//                    List<Service> serviceList = new ArrayList<>();
+//                    serviceList.add(dbService);
+                    androidService.getMeinAuthService().getMeinBoot().bootServices();
+//                    bootLoader.boot(androidService.getMeinAuthService(), serviceList);
                 } else {
                     MeinService meinService = androidService.getMeinAuthService().getMeinService(service.getUuid().v());
                     meinService.shutDown();
                 }
                 showServiceStatus();
 
-            } catch (SqlQueriesException | IllegalAccessException | InstantiationException | IOException | ClassNotFoundException | JsonSerializationException | JsonDeserializationException | SQLException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });

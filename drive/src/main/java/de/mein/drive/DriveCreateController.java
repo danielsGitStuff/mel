@@ -48,6 +48,8 @@ public class DriveCreateController {
         MeinBoot meinBoot = meinAuthService.getMeinBoot();
         DriveBootloader driveBootLoader = (DriveBootloader) meinBoot.getBootLoader(new DriveBootloader().getName());
         MeinDriveService meinDriveService = driveBootLoader.spawn(meinAuthService, service,driveSettings);
+        meinDriveService.shutDown();
+        meinBoot.bootServices();
         WaitLock waitLock = new WaitLock().lock();
         meinDriveService.getStartedDeferred().done(result -> {
             waitLock.unlock();

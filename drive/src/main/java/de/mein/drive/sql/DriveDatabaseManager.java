@@ -79,10 +79,11 @@ public class DriveDatabaseManager extends FileRelatedManager {
         DriveDatabaseManager.driveSqlInputStreamInjector = driveSqlInputStreamInjector;
     }
 
-    public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettingsCfg) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
+    public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettings) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
         super(workingDirectory);
 
         this.meinDriveService = meinDriveService;
+        this.driveSettings = driveSettings;
 //        this.dbConnection = sqlConnection; //sqlqueriesCreator.createConnection(this);//
         //SQLConnector.createSqliteConnection(new File(createWorkingPath() + DriveStrings.DB_FILENAME));
         //this.dbConnection = createSqliteConnection();
@@ -113,14 +114,14 @@ public class DriveDatabaseManager extends FileRelatedManager {
             hadToInitialize = true;
         }
 
-        File driveSettingsFile = new File(workingDirectory.getAbsolutePath() + File.separator + "drive.settings.json");
-        this.driveSettings = DriveSettings.load(fsDao, driveSettingsFile, driveSettingsCfg).setRole(driveSettingsCfg.getRole()).setRootDirectory(driveSettingsCfg.getRootDirectory());
+//        File driveSettingsFile = new File(workingDirectory.getAbsolutePath() + File.separator + "drive.settings.json");
+//        this.driveSettings = DriveSettings.load(fsDao, driveSettingsFile, driveSettingsCfg).setRole(driveSettingsCfg.getRole()).setRootDirectory(driveSettingsCfg.getRootDirectory());
         this.driveSettings.getRootDirectory().backup();
-        this.driveSettings.getRootDirectory().setOriginalFile(driveSettingsCfg.getRootDirectory().getOriginalFile());
-        this.driveSettings.setTransferDirectory(AFile.instance(this.driveSettings.getRootDirectory().getOriginalFile(), DriveStrings.TRANSFER_DIR));
-        this.driveSettings.setMaxWastebinSize(driveSettingsCfg.getMaxWastebinSize());
-        this.driveSettings.setMaxAge(driveSettingsCfg.getMaxAge());
-        this.driveSettings.setFastBoot(driveSettingsCfg.getFastBoot());
+//        this.driveSettings.getRootDirectory().setOriginalFile(driveSettingsCfg.getRootDirectory().getOriginalFile());
+//        this.driveSettings.setTransferDirectory(AFile.instance(this.driveSettings.getRootDirectory().getOriginalFile(), DriveStrings.TRANSFER_DIR));
+//        this.driveSettings.setMaxWastebinSize(driveSettingsCfg.getMaxWastebinSize());
+//        this.driveSettings.setMaxAge(driveSettingsCfg.getMaxAge());
+//        this.driveSettings.setFastBoot(driveSettingsCfg.getFastBoot());
 
         fsDao = new FsDao(this, sqlQueries);
         stageDao = new StageDao(driveSettings, sqlQueries, fsDao);

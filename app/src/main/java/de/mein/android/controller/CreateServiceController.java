@@ -20,6 +20,7 @@ import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.android.service.AndroidService;
+import de.mein.auth.service.MeinService;
 import de.mein.auth.tools.N;
 import de.mein.android.MainActivity;
 
@@ -104,7 +105,7 @@ public class CreateServiceController extends GuiController implements Permission
             activity.runOnUiThread(() -> {
                 MeinAuthService meinAuthService = androidService.getMeinAuthService();
                 List<Bootloader> bootloaders = new ArrayList<>();
-                for (Class<? extends Bootloader> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
+                for (Class<? extends Bootloader<? extends MeinService>> bootloaderClass : meinAuthService.getMeinBoot().getBootloaderClasses()) {
                     N.r(() -> {
                         Bootloader bootLoader = meinAuthService.getMeinBoot().createBootLoader(meinAuthService, bootloaderClass);
                         bootloaders.add(bootLoader);

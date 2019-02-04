@@ -15,10 +15,10 @@ import java.util.List;
 /**
  * Created by xor on 12/15/16.
  */
-public class MeinTestBootloader extends Bootloader {
+public class MeinTestBootloader extends Bootloader<MeinTestService> {
     public static int count = 0;
 
-    public MeinTestBootloader(){
+    public MeinTestBootloader() {
         Lok.debug("debug");
     }
 
@@ -33,9 +33,15 @@ public class MeinTestBootloader extends Bootloader {
     }
 
     @Override
-    public Promise<Void, Exception, Void> boot(MeinAuthService meinAuthService , List<Service> services) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
-        MeinTestService testService = new MeinTestService(meinAuthService, new File("testworkingdir"),1L,"test uuid no. " + count++);
-        meinAuthService.registerMeinService(testService);
+    public Promise bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+        MeinTestService testService = new MeinTestService(meinAuthService, new File("testworkingdir"), 1L, "test uuid no. " + count++);
+        try {
+            meinAuthService.registerMeinService(testService);
+        } catch (SqlQueriesException e) {
+            throw new BootException(this, e);
+        }
         return null;
     }
+
+
 }

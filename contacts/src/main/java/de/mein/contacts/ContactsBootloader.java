@@ -81,12 +81,10 @@ public class ContactsBootloader extends Bootloader<ContactsService> {
         try {
             if (contactsSettings.isServer()) {
                 contactsService = createServerInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
-                meinAuthService.registerMeinService(contactsService);
             } else {
                 //allow the server to communicate with us
                 N.r(() -> meinAuthService.getDatabaseManager().grant(service.getId().v(), contactsSettings.getClientSettings().getServerCertId()));
                 contactsService = createClientInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
-                meinAuthService.registerMeinService(contactsService);
 
             }
         } catch (Exception e) {

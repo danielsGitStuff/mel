@@ -9,13 +9,13 @@ import de.mein.auth.tools.WaitLock
 import org.jdeferred.Promise
 import java.io.File
 
-class CalendarBootloader : Bootloader() {
+class CalendarBootloader : Bootloader<CalendarService>() {
 
     override fun getName(): String = "calendar"
 
     override fun getDescription(): String = "syncs your calendars"
 
-    override fun bootStage1Impl(meinAuthService: MeinAuthService, service: Service): Promise<Void, BootException, Void>? {
+    override fun bootStage1Impl(meinAuthService: MeinAuthService, service: Service): Promise<CalendarService, BootException, Void>? {
         val jsonFile = File(bootLoaderDir.absolutePath + File.separator + service.uuid.v() + File.separator + CalendarStrings.SETTINGS_FILE_NAME)
         val calendarSettings: CalendarSettings<*> = JsonSettings.load(jsonFile) as CalendarSettings<*>
         boot(meinAuthService, service, calendarSettings)
