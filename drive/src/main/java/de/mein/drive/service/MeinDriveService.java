@@ -84,8 +84,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             syncListener.onTransfersDone();
     }
 
-    public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
+    public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);
+        this.driveSettings = driveSettings;
     }
 
     @Override
@@ -240,6 +241,10 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         request.resolve(task);
     }
 
+    public void setDriveDatabaseManager(DriveDatabaseManager driveDatabaseManager) {
+        this.driveDatabaseManager = driveDatabaseManager;
+    }
+
     protected abstract void onSyncReceived(Request request);
 
     /**
@@ -248,13 +253,12 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
      */
     protected abstract boolean workWorkWork(Job unknownJob);
 
-    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
+    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
         this.driveSettings = driveDatabaseManager.getDriveSettings();
         AFile transferDir = driveSettings.getTransferDirectory();
         transferDir.mkdirs();
         AFile wasteDir = AFile.instance(driveSettings.getTransferDirectory(),DriveStrings.WASTEBIN);
         wasteDir.mkdirs();
-        this.driveDatabaseManager = driveDatabaseManager;
         this.stageIndexer = new StageIndexer(driveDatabaseManager);
         this.indexer = new Indexer(driveDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());
         this.wastebin = new Wastebin(this);

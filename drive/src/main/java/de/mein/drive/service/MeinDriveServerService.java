@@ -37,8 +37,8 @@ import java.util.logging.Logger;
 public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> {
     private static Logger logger = Logger.getLogger(MeinDriveServerService.class.getName());
 
-    public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
-        super(meinAuthService, workingDirectory, serviceTypeId, uuid);
+    public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
     }
 
 
@@ -130,8 +130,8 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     }
 
     @Override
-    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
-        DeferredObject<DeferredRunnable, Exception, Void> indexingDone = super.startIndexer(driveDatabaseManager);
+    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
+        DeferredObject<DeferredRunnable, Exception, Void> indexingDone = super.startIndexer();
         stageIndexer.setStagingDoneListener(stageSetId -> {
             logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
             // staging is done. stage data is up to date. time to commit to fs

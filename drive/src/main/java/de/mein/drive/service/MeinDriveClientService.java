@@ -10,6 +10,7 @@ import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.AvailableHashes;
 import de.mein.drive.data.DriveDetails;
+import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.data.conflict.ConflictSolver;
@@ -37,8 +38,8 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     private static Logger logger = Logger.getLogger(MeinDriveClientService.class.getName());
 
-    public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
-        super(meinAuthService, workingDirectory, serviceTypeId, uuid);
+    public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid,driveSettings);
     }
 
     @Override
@@ -134,8 +135,8 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
     @Override
-    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer(DriveDatabaseManager driveDatabaseManager) throws SqlQueriesException {
-        super.startIndexer(driveDatabaseManager);
+    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
+        super.startIndexer();
         stageIndexer.setStagingDoneListener(stageSetId -> addJob(new CommitJob()));
         return startIndexerDonePromise;
     }

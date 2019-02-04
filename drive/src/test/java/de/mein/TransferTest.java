@@ -184,12 +184,7 @@ public class TransferTest {
         return clientService.get();
     }
 
-    public static class MDCS extends MeinDriveClientService{
 
-        public MDCS(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
-            super(meinAuthService, workingDirectory, serviceTypeId, uuid);
-        }
-    }
 
 
     @Test

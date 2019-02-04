@@ -111,13 +111,20 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
         Long serviceTypeId = service.getTypeId().v();
         String uuid = service.getUuid().v();
         MeinDriveService meinDriveService = (this.driveSettings.isServer()) ?
-                new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid);
+                new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
         //notify user
         MeinNotification notification = new MeinNotification(service.getUuid().v(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
         notification.setProgress(0, 0, true);
         meinAuthService.onNotificationFromService(meinDriveService, notification);
         //exec
         meinAuthService.execute(meinDriveService);
+        File workingDir = new File(bootLoaderDir, meinDriveService.getUuid());
+        workingDir.mkdirs();
+        //create cache dir
+        new File(workingDir.getAbsolutePath() + File.separator + "cache").mkdirs();
+        DriveDatabaseManager databaseManager = new DriveDatabaseManager(meinDriveService, workingDir, driveSettings);
+        databaseManager.cleanUp();
+        meinDriveService.setDriveDatabaseManager(databaseManager);
 //        Lok.debug("DriveBootloader.spawn.done");
 //        meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
 //        meinDriveService.getStartedDeferred()
@@ -181,13 +188,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
 
 
     private DeferredObject<DeferredRunnable, Exception, Void> startIndexer(MeinDriveService meinDriveService, de.mein.drive.data.DriveSettings driveSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
-        File workingDir = new File(bootLoaderDir, meinDriveService.getUuid());
-        workingDir.mkdirs();
-        //create cache dir
-        new File(workingDir.getAbsolutePath() + File.separator + "cache").mkdirs();
-        DriveDatabaseManager databaseManager = new DriveDatabaseManager(meinDriveService, workingDir, driveSettings);
-        databaseManager.cleanUp();
-        return meinDriveService.startIndexer(databaseManager);
+        return meinDriveService.startIndexer();
     }
 
 }
