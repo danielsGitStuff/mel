@@ -18,9 +18,6 @@ public abstract class Bootloader<T extends MeinService> {
     protected MeinAuthService meinAuthService;
     protected AtomicInteger bootLevel = new AtomicInteger(0);
 
-    public Bootloader() {
-
-    }
 
     public Long getTypeId() {
         return typeId;

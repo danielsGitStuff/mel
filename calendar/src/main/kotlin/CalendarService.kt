@@ -18,7 +18,7 @@ abstract class CalendarService(meinAuthService: MeinAuthService, serviceInstaceW
     override fun handleMessage(payload: IPayload?, partnerCertificate: Certificate?, intent: String?) {
     }
 
-    override fun onMeinAuthIsUp() {
+    override fun onServiceRegistered() {
     }
 
     override fun onCommunicationsEnabled() {

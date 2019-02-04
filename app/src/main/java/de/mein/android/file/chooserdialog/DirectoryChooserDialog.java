@@ -182,7 +182,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         }
 
         @Override
-        public void onMeinAuthIsUp() {
+        public void onServiceRegistered() {
 
         }
 

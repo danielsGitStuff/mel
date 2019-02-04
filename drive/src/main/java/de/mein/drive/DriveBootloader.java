@@ -53,9 +53,10 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
     public Promise<MeinDriveService, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         DeferredObject<MeinDriveService, BootException, Void> booted = new DeferredObject<>();
         N.r(() -> {
-            File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + "drive.settings.json");
-            driveSettings = (de.mein.drive.data.DriveSettings) JsonSettings.load(jsonFile);
+            File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + DriveStrings.SETTINGS_FILE_NAME);
+            driveSettings =  DriveSettings.load(jsonFile);
             meinDriveService = spawn(meinAuthService, serviceDescription, driveSettings);
+            meinAuthService.registerMeinService(meinDriveService);
             booted.resolve(meinDriveService);
 //            meinDriveService.getStartedDeferred().done(result -> booted.resolve(null)).fail(e -> booted.reject(new BootException(this, e)));
         });
@@ -74,6 +75,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             meinDriveService.getStartedDeferred()
                     .done(result -> N.r(() -> {
                         notification.cancel();
+                        meinDriveService.onBootLevel2Finished();
                         done.resolve(null);
 //                    if (!driveSettings.isServer()){
 //                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
@@ -105,7 +107,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
      * @throws JsonDeserializationException
      * @throws JsonSerializationException
      */
-    public MeinDriveService spawn(MeinAuthService meinAuthService, Service service, DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    private MeinDriveService spawn(MeinAuthService meinAuthService, Service service, DriveSettings driveSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         this.driveSettings = driveSettings;
         File workingDirectory = new File(bootLoaderDir, service.getUuid().v());
         workingDirectory.mkdirs();

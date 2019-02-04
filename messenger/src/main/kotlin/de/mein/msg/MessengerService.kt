@@ -33,7 +33,7 @@ class MessengerService(meinAuthService: MeinAuthService, workingDir: File, typeI
     override fun onCommunicationsEnabled() {
     }
 
-    override fun onMeinAuthIsUp() {
+    override fun onServiceRegistered() {
 
     }
 

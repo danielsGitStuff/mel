@@ -46,7 +46,7 @@ public interface IMeinService {
      */
     void onIsolatedConnectionEstablished(MeinIsolatedProcess isolatedProcess);
 
-    void onMeinAuthIsUp();
+    void onServiceRegistered();
 
     MeinNotification createSendingNotification();
 

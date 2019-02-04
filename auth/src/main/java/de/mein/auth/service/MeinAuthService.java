@@ -38,9 +38,7 @@ import de.mein.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairCollectionSerializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
-import de.mein.update.UpdateHandler;
 import de.mein.update.Updater;
-import de.mein.update.VersionAnswer;
 
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
@@ -102,7 +100,7 @@ public class MeinAuthService {
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 2048);
         this.certificateManager.maintenance();
         this.settings = meinAuthSettings;
-        this.updater =  new Updater(this);
+        this.updater = new Updater(this);
         this.dbCreatedListener = dbCreatedListener;
         if (this.databaseManager.hadToInitialize() && this.dbCreatedListener != null)
             this.dbCreatedListener.onDBcreated(this.databaseManager);
@@ -231,13 +229,21 @@ public class MeinAuthService {
     }
 
 
+    /**
+     * services must register using this method if they want to communicate over the network.
+     * otherwise they won't be able to receive messages.
+     *
+     * @param meinService
+     * @return
+     * @throws SqlQueriesException
+     */
     public MeinAuthService registerMeinService(MeinService meinService) throws SqlQueriesException {
         if (meinService.getUuid() == null)
             Lok.error("MeinAuthService.registerMeinService: MeinService.UUID was NULL");
         uuidServiceMapSemaphore.lock();
         uuidServiceMap.put(meinService.getUuid(), meinService);
         if (meinAuthWorker.getStartedDeferred().isResolved()) {
-            meinService.onMeinAuthIsUp();
+            meinService.onServiceRegistered();
         }
         uuidServiceMapSemaphore.unlock();
         notifyAdmins();
@@ -590,7 +596,7 @@ public class MeinAuthService {
 
     public void onMeinAuthIsUp() {
         for (IMeinService meinService : getMeinServices()) {
-            meinService.onMeinAuthIsUp();
+            meinService.onServiceRegistered();
         }
     }
 

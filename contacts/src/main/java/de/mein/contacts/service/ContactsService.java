@@ -52,8 +52,8 @@ public abstract class ContactsService extends MeinService {
     }
 
     @Override
-    public void onMeinAuthIsUp() {
-        Lok.debug("ContactsService.onMeinAuthIsUp");
+    public void onServiceRegistered() {
+        Lok.debug("ContactsService.onServiceRegistered");
     }
 
     @Override

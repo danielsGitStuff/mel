@@ -1,8 +1,5 @@
 package de.mein.android.contacts.service;
 
-import android.content.Context;
-import android.database.ContentObserver;
-import android.net.Uri;
 import android.provider.ContactsContract;
 
 import java.io.File;
@@ -18,12 +15,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import de.mein.Lok;
-import de.mein.android.Tools;
 import de.mein.android.contacts.data.AndroidContactSettings;
 import de.mein.android.contacts.data.ConflictIntentExtra;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.auth.MeinNotification;
-import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
@@ -225,8 +220,8 @@ public class AndroidContactsServerService extends ContactsServerService {
     }
 
     @Override
-    public void onMeinAuthIsUp() {
-        super.onMeinAuthIsUp();
+    public void onServiceRegistered() {
+        super.onServiceRegistered();
     }
 
     @Override

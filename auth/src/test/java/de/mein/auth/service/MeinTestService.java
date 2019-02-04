@@ -42,8 +42,8 @@ public class MeinTestService extends MeinServiceWorker {
     }
 
     @Override
-    public void onMeinAuthIsUp() {
-        Lok.debug("MeinTestService.onMeinAuthIsUp");
+    public void onServiceRegistered() {
+        Lok.debug("MeinTestService.onServiceRegistered");
     }
 
     @Override

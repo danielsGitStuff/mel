@@ -28,6 +28,7 @@ public class DriveSettings extends JsonSettings {
     private Long maxWastebinSize;
     private Long maxAge = 30L;
     private AFile transferDirectory;
+    private Boolean initFinished = false;
     private boolean fastBoot = true;
 
     public static RootDirectory buildRootDirectory(AFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
@@ -92,6 +93,15 @@ public class DriveSettings extends JsonSettings {
 
     }
 
+    public DriveSettings setInitFinished(Boolean initFinished) {
+        this.initFinished = initFinished;
+        return this;
+    }
+
+    public Boolean getInitFinished() {
+        return initFinished;
+    }
+
     public DriveClientSettingsDetails getClientSettings() {
         return clientSettings;
     }
@@ -124,33 +134,13 @@ public class DriveSettings extends JsonSettings {
         return transferDirectory;
     }
 
-    /**
-     * @param fsDao
-     * @param jsonFile
-     * @param driveSettingsCfg can hold values like RootDirectory if not already configured in the jsonFile
-     * @return
-     * @throws IOException
-     * @throws JsonDeserializationException
-     * @throws JsonSerializationException
-     * @throws IllegalAccessException
-     * @throws SqlQueriesException
-     */
-    public static DriveSettings load(FsDao fsDao, File jsonFile, DriveSettings driveSettingsCfg) throws IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
+    public static DriveSettings load(File jsonFile) throws IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         DriveSettings driveSettings = (DriveSettings) JsonSettings.load(jsonFile);
-        if (driveSettings == null) {
-            driveSettings = new DriveSettings();
+        if (driveSettings != null) {
             driveSettings.setJsonFile(jsonFile);
+            driveSettings.getRootDirectory().backup();
+            driveSettings.setTransferDirectory(AFile.instance(driveSettings.transferDirectoryPath));
         }
-        if (driveSettings.getRootDirectory() == null && driveSettingsCfg != null) {
-//            driveSettings.setRootDirectory(new RootDirectory().setPath(driveSettingsCfg.getRootDirectory().getPath()).backup());
-            RootDirectory rootDirectory = new RootDirectory();
-            rootDirectory.setOriginalFile(driveSettingsCfg.getRootDirectory().getOriginalFile());
-            rootDirectory.backup();
-            driveSettings.setRootDirectory(rootDirectory);
-        }
-        driveSettings.getRootDirectory().backup();
-//        driveSettings.getRootDirectory().setOriginalFile(AFile.instance(driveSettings.getRootDirectory().getOriginalFile()));
-        driveSettings.save();
         return driveSettings;
     }
 

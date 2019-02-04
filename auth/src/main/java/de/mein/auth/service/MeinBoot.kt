@@ -4,6 +4,7 @@ import de.mein.Lok
 import de.mein.MeinRunnable
 import de.mein.auth.MeinAuthAdmin
 import de.mein.auth.data.MeinAuthSettings
+import de.mein.auth.data.db.Service
 import de.mein.auth.data.db.ServiceType
 import de.mein.auth.service.power.PowerManager
 import de.mein.auth.tools.BackgroundExecutor
@@ -14,7 +15,6 @@ import org.jdeferred.Promise
 import org.jdeferred.impl.DeferredObject
 
 import java.io.File
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -73,12 +73,12 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
             })
             meinAuthService = MeinAuthService(meinAuthSettings, powerManager)
             meinAuthService!!.meinBoot = this
-            meinAuthService!!.addAllMeinAuthAdmin(meinAuthAdmins)
             val promiseAuthIsUp = meinAuthService!!.prepareStart()
             promiseAuthIsUp.done { result -> deferredObject.resolve(meinAuthService) }
             for (bootClass in this.bootloaderClasses) {
                 createBootLoader(meinAuthService, bootClass)
             }
+            meinAuthService!!.addAllMeinAuthAdmin(meinAuthAdmins)
             bootServices()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -96,8 +96,8 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
 
 
     @Throws(SqlQueriesException::class, IllegalAccessException::class, InstantiationException::class)
-    fun createBootLoader(meinAuthService: MeinAuthService?, bootClass: Class<out Bootloader<out MeinService>>?): Bootloader<out MeinService> {
-        val bootLoader = bootClass!!.newInstance()
+    fun createBootLoader(meinAuthService: MeinAuthService?, bootClass: Class<out Bootloader<out MeinService>>): Bootloader<out MeinService> {
+        val bootLoader = bootClass.newInstance()
         bootloaderMap[bootLoader.name] = bootClass
         bootLoader.setMeinAuthService(meinAuthService)
         val databaseManager = meinAuthService!!.databaseManager
@@ -122,7 +122,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
             val hasType = bootloaderMap.containsKey(typeName)
             bootClazz = bootloaderMap[typeName]
         }
-        val bootLoader = createBootLoader(meinAuthService, bootClazz)
+        val bootLoader = createBootLoader(meinAuthService, bootClazz!!)
         return bootLoader
     }
 
@@ -155,7 +155,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
                     bootedPromises.add(booted)
                     booted.fail { bootException ->
                         outstandingBootloaders.remove(bootException.bootloader)
-                    }.done { meinService -> meinAuthService!!.registerMeinService(meinService) }
+                    }.done { }
                 }
             }
         }
@@ -166,6 +166,18 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
                     bootStage2()
                     meinAuthService!!.start()
                 }.fail { Lok.error("MeinBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT") }
+    }
+
+    /**
+     * @param service the service database entry that you want the directory for
+     * @return the working directory for the given service instance. it lives under /"MeinAuthWorkingDir"/"ServiceName"/"ServiceUUID"
+     */
+    fun createServiceInstanceWorkingDir(service: Service): File {
+        val serviceJoinServiceType = meinAuthService!!.databaseManager.getServiceTypeById(service.typeId.v())
+        val workingDir = meinAuthService!!.workingDirectory.absoluteFile
+        val serviceTypesDir = File(workingDir, "servicetypes")
+        val serviceDir = File(serviceTypesDir, serviceJoinServiceType.type.v())
+        return File(serviceDir, service.uuid.v())
     }
 
     companion object {

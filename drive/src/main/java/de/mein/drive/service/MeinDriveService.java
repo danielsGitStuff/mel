@@ -324,4 +324,5 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     }
 
 
+    public abstract void onBootLevel2Finished();
 }

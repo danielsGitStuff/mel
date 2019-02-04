@@ -39,7 +39,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     private static Logger logger = Logger.getLogger(MeinDriveClientService.class.getName());
 
     public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
-        super(meinAuthService, workingDirectory, serviceTypeId, uuid,driveSettings);
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
     }
 
     @Override
@@ -113,7 +113,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
 
-
     @Override
     public void addJob(Job job) {
         //todo debug
@@ -159,16 +158,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
     @Override
-    public void onMeinAuthIsUp() {
-        startIndexerDonePromise.done(result -> {
-            Lok.debug("MeinDriveClientService.onMeinAuthIsUp");
-            N.r(() -> {
-                Long serverId = driveSettings.getClientSettings().getServerCertId();
-                if (serverId != null) {
-                    meinAuthService.connect(serverId).done(result1 -> addJob(new CommitJob()));
-                }
-            });
-        });
+    public void onServiceRegistered() {
     }
 
 
@@ -198,6 +188,19 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     public void start() {
         super.start();
         addJob(new CommitJob(true));
+    }
+
+    @Override
+    public void onBootLevel2Finished() {
+//        startIndexerDonePromise.done(result -> {
+            Lok.debug("MeinDriveClientService.onServiceRegistered");
+            N.r(() -> {
+                Long serverId = driveSettings.getClientSettings().getServerCertId();
+                if (serverId != null) {
+                    meinAuthService.connect(serverId).done(result1 -> addJob(new CommitJob()));
+                }
+            });
+//        });
     }
 
     public void onInsufficientSpaceAvailable(Long stageSetId) {

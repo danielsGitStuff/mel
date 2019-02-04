@@ -91,6 +91,8 @@ public class ContactsBootloader extends Bootloader<ContactsService> {
             throw new BootException(this, e);
         }
         meinAuthService.execute(contactsService);
+        ContactsService finalContactsService = contactsService;
+        N.r(() -> meinAuthService.registerMeinService(finalContactsService));
         return contactsService;
     }
 
