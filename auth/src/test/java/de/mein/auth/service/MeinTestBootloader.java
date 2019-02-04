@@ -33,7 +33,7 @@ public class MeinTestBootloader extends Bootloader<MeinTestService> {
     }
 
     @Override
-    public Promise bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+    public Promise bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         MeinTestService testService = new MeinTestService(meinAuthService, new File("testworkingdir"), 1L, "test uuid no. " + count++);
         try {
             meinAuthService.registerMeinService(testService);

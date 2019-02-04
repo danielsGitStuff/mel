@@ -32,14 +32,14 @@ public abstract class Bootloader<T extends MeinService> {
 
     public abstract String getDescription();
 
-    public final Promise<T, BootException, Void> bootStage1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+    public final Promise<T, BootException, Void> bootLevel1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         if (bootLevel.get() == 0) {
             bootLevel.incrementAndGet();
-            Promise<T, BootException, Void> promise = bootStage1Impl(meinAuthService, serviceDescription);
+            Promise<T, BootException, Void> promise = bootLevel1Impl(meinAuthService, serviceDescription);
             if (promise != null)
                 promise.done(service -> {
                     meinService = service;
-                    service.bootLevel(1);
+                    service.onBootLevel1Finished();
                 });
             return promise;
         } else {
@@ -48,7 +48,7 @@ public abstract class Bootloader<T extends MeinService> {
         }
     }
 
-    public abstract Promise<T, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException;
+    public abstract Promise<T, BootException, Void> bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException;
 
     public void setBootLoaderDir(File bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;
@@ -63,12 +63,12 @@ public abstract class Bootloader<T extends MeinService> {
         this.meinAuthService = meinAuthService;
     }
 
-    public final Promise<Void, BootException, Void> bootStage2() throws BootException {
+    public final Promise<Void, BootException, Void> bootLevel2() throws BootException {
         if (bootLevel.get() == 1) {
             bootLevel.incrementAndGet();
-            Promise<Void, BootException, Void> promise = bootStage2Impl();
+            Promise<Void, BootException, Void> promise = bootLevel2Impl();
             if (promise != null)
-                promise.done(nil -> meinService.bootLevel(2));
+                promise.done(nil -> meinService.onBootLevel2Finished());
             return promise;
         } else {
             Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to level 2. But its current level was not 1. current level=" + bootLevel.get());
@@ -76,7 +76,7 @@ public abstract class Bootloader<T extends MeinService> {
         }
     }
 
-    public Promise<Void, BootException, Void> bootStage2Impl() throws BootException {
+    public Promise<Void, BootException, Void> bootLevel2Impl() throws BootException {
         return null;
     }
 

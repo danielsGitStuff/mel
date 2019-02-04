@@ -34,9 +34,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
 
     init {
         this.deferredObject = DeferredObject()
-        if (bootloaderClasses != null) {
-            this.bootloaderClasses.addAll(Arrays.asList(*bootloaderClasses))
-        }
+        this.bootloaderClasses.addAll(Arrays.asList(*bootloaderClasses))
     }
 
     fun addMeinAuthAdmin(admin: MeinAuthAdmin): MeinBoot {
@@ -89,7 +87,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     private fun bootStage2() {
         if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
             outstandingBootloaders.forEach { bootloader ->
-                bootloader.bootStage2()?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
+                bootloader.bootLevel2()?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
             }
         }
     }
@@ -149,7 +147,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
             val services = meinAuthService!!.databaseManager.getActiveServicesByType(dummyBootloader.getTypeId())
             services.filter { service -> meinAuthService!!.getMeinService(service.uuid.v()) == null }.forEach { service ->
                 val bootloader = createBootLoader(meinAuthService, bootClass)
-                val booted = bootloader.bootStage1(meinAuthService, service)
+                val booted = bootloader.bootLevel1(meinAuthService, service)
                 if (booted != null) {
                     outstandingBootloaders += bootloader
                     bootedPromises.add(booted)

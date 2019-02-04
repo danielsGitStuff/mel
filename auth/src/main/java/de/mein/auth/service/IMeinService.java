@@ -53,4 +53,9 @@ public interface IMeinService {
     void onCommunicationsDisabled();
 
     void onCommunicationsEnabled();
+
+    void onBootLevel2Finished();
+
+    void onBootLevel1Finished();
+
 }

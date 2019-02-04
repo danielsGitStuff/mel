@@ -82,6 +82,15 @@ public abstract class ContactsService extends MeinService {
 
     }
 
+    @Override
+    public void onBootLevel1Finished() {
+
+    }
+
+    @Override
+    public void onBootLevel2Finished() {
+
+    }
 
     public abstract void onContactsChanged();
 }

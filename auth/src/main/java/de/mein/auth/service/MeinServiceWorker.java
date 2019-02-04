@@ -35,7 +35,7 @@ public abstract class MeinServiceWorker extends MeinService {
     @Override
     public void runImpl() {
         try {
-            initLock.lock();
+//            initLock.lock();
             while (!isStopped()) {
                 queueLock.lockWrite();
                 Job job = jobs.poll();

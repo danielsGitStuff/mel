@@ -48,6 +48,16 @@ public class ContactsClientService extends ContactsService {
     }
 
     @Override
+    public void onBootLevel2Finished() {
+
+    }
+
+    @Override
+    public void onBootLevel1Finished() {
+
+    }
+
+    @Override
     public void handleRequest(Request request) throws Exception {
 
     }

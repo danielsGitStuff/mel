@@ -111,7 +111,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         super.suspend();
     }
 
-    public void resume(){
+    public void resume() {
 
     }
 
@@ -128,7 +128,5 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         return cacheDirectory;
     }
 
-    public void bootLevel(int stage) {
 
-    }
 }

@@ -323,6 +323,13 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     }
 
+    @Override
+    public void onBootLevel2Finished() {
+        Lok.debug("BBBB");
+    }
 
-    public abstract void onBootLevel2Finished();
+    @Override
+    public void onBootLevel1Finished() {
+        Lok.debug("AAAA");
+    }
 }

@@ -50,7 +50,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
     }
 
     @Override
-    public Promise<MeinDriveService, BootException, Void> bootStage1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+    public Promise<MeinDriveService, BootException, Void> bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         DeferredObject<MeinDriveService, BootException, Void> booted = new DeferredObject<>();
         N.r(() -> {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + DriveStrings.SETTINGS_FILE_NAME);
@@ -64,7 +64,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
     }
 
     @Override
-    public Promise<Void, BootException, Void> bootStage2Impl() throws BootException {
+    public Promise<Void, BootException, Void> bootLevel2Impl() throws BootException {
         try {
             DeferredObject<Void, BootException, Void> done = new DeferredObject<>();
             //notify user
@@ -75,7 +75,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             meinDriveService.getStartedDeferred()
                     .done(result -> N.r(() -> {
                         notification.cancel();
-                        meinDriveService.onBootLevel2Finished();
+//                        meinDriveService.onBootLevel2Finished();
                         done.resolve(null);
 //                    if (!driveSettings.isServer()){
 //                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
