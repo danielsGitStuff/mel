@@ -77,6 +77,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
                 createBootLoader(meinAuthService, bootClass)
             }
             meinAuthService!!.addAllMeinAuthAdmin(meinAuthAdmins)
+            meinAuthService!!.start()
             bootServices()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -162,7 +163,6 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
                 .done {
                     // boot stage2 of all services
                     bootStage2()
-                    meinAuthService!!.start()
                 }.fail { Lok.error("MeinBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT") }
     }
 

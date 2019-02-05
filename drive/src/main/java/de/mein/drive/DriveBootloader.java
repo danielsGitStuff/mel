@@ -54,7 +54,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
         DeferredObject<MeinDriveService, BootException, Void> booted = new DeferredObject<>();
         N.r(() -> {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + DriveStrings.SETTINGS_FILE_NAME);
-            driveSettings =  DriveSettings.load(jsonFile);
+            driveSettings = DriveSettings.load(jsonFile);
             meinDriveService = spawn(meinAuthService, serviceDescription, driveSettings);
             meinAuthService.registerMeinService(meinDriveService);
             booted.resolve(meinDriveService);
@@ -71,8 +71,8 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             MeinNotification notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
             notification.setProgress(0, 0, true);
             meinAuthService.onNotificationFromService(meinDriveService, notification);
-            meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, meinDriveService.getDriveSettings()));
-            meinDriveService.getStartedDeferred()
+            DeferredObject<DeferredRunnable, Exception, Void> indexDonePromise = startIndexer(meinDriveService, meinDriveService.getDriveSettings());
+            indexDonePromise
                     .done(result -> N.r(() -> {
                         notification.cancel();
 //                        meinDriveService.onBootLevel2Finished();
