@@ -378,6 +378,8 @@ public class ClientSyncHandler extends SyncHandler {
             if (stagedFromFs.size() > 1) {
                 meinDriveService.addJob(new CommitJob());
                 return;
+            }else if (stagedFromFs.size()==0 && commitJob.getSyncAnyway()){
+                meinDriveService.addJob(new SyncClientJob());
             }
         } catch (Exception e) {
             e.printStackTrace();

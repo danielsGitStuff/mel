@@ -164,6 +164,11 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     }
 
     @Override
+    public void addJob(Job job) {
+        super.addJob(job);
+    }
+
+    @Override
     public void suspend() {
         indexer.suspend();
         syncHandler.suspend();

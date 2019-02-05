@@ -197,7 +197,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             N.r(() -> {
                 Long serverId = driveSettings.getClientSettings().getServerCertId();
                 if (serverId != null) {
-                    meinAuthService.connect(serverId).done(result1 -> addJob(new CommitJob()));
+                    meinAuthService.connect(serverId).done(result1 -> addJob(new CommitJob(true)));
                 }
             });
 //        });
