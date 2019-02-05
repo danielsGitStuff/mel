@@ -2,7 +2,6 @@ package de.mein.drive;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.MeinNotification;
-import de.mein.auth.data.JsonSettings;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
@@ -31,6 +30,11 @@ import java.sql.SQLException;
 @SuppressWarnings("Duplicates")
 public class DriveBootloader extends Bootloader<MeinDriveService> {
 
+    public static interface DEV_DriveBootListener {
+        void driveServiceBooted(MeinDriveService driveService);
+    }
+
+    public static DEV_DriveBootListener DEV_DRIVE_BOOT_LISTENER;
     private MeinDriveService meinDriveService;
     private DriveSettings driveSettings;
 
@@ -77,6 +81,11 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
                         notification.cancel();
 //                        meinDriveService.onBootLevel2Finished();
                         done.resolve(null);
+                        if (DEV_DRIVE_BOOT_LISTENER != null) {
+                            DEV_DriveBootListener tmp = DEV_DRIVE_BOOT_LISTENER;
+                            DEV_DRIVE_BOOT_LISTENER = null;
+                            tmp.driveServiceBooted(meinDriveService);
+                        }
 //                    if (!driveSettings.isServer()){
 //                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
 //                        meinDriveClientService.syncThisClient();

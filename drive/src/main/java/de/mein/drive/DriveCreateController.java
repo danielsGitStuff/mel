@@ -62,6 +62,23 @@ public class DriveCreateController {
 //        Lok.debug("DriveCreateController.spawn.booted");
 //    }
 
+    public void createDriveService(DriveSettings driveSettings,String name) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+        Service service = createService(name);
+        AFile transferDir = AFile.instance(driveSettings.getRootDirectory().getOriginalFile(), DriveStrings.TRANSFER_DIR);
+        transferDir.mkdirs();
+        driveSettings.setTransferDirectory(transferDir);
+        File instanceWorkingDir = meinAuthService.getMeinBoot().createServiceInstanceWorkingDir(service);
+        instanceWorkingDir.mkdirs();
+        File settingsFile = new File(instanceWorkingDir,DriveStrings.SETTINGS_FILE_NAME);
+        driveSettings.setJsonFile(settingsFile);
+        driveSettings.save();
+        meinAuthService.getMeinBoot().bootServices();
+//        boot(service, driveSettings);
+//        MeinDriveServerService mdss = (MeinDriveServerService) meinAuthService.getMeinService(service.getUuid().v());
+//        mdss.start();
+//        return mdss;
+    }
+
     public void createDriveServerService(String name, AFile rootFile, float wastebinRatio, long maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         RootDirectory rootDirectory = DriveSettings.buildRootDirectory(rootFile);
         Service service = createService(name);

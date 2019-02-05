@@ -158,7 +158,8 @@ public class TransferTest {
             StringBuilder builder = new StringBuilder("start...");
             N.forLoop(1,2000,(stoppable, index) -> builder.append(index).append("/"));
             Files.write(path, builder.toString().getBytes());
-            serverService.set(new DriveCreateController(meinAuthService).createDriveServerService("server", root, 0.5f, 666));
+            DriveCreateController createController =new DriveCreateController(meinAuthService);
+            createController.createDriveServerService("server",root,.5f,666);
             SERVER_SERVICE_UUID = serverService.get().getUuid();
             bootLock.unlock();
         });

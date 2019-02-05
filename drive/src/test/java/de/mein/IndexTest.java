@@ -13,6 +13,7 @@ import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootloader;
+import de.mein.drive.DriveCreateController;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -64,9 +65,12 @@ public class IndexTest {
                         .setTransferDirectory(transferDir)
                         .setMaxWastebinSize(999999L)
                         .setFastBoot(true);
-                mds = bl.spawn(mas, service, driveSettings);
-                mds.start();
-                mds.getStartedDeferred().done(result1 -> lock.unlock());
+                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
+                    mds = driveService;
+                    mds.start();
+                    mds.getStartedDeferred().done(result1 -> lock.unlock());
+                };
+                new DriveCreateController(mas).createDriveService(driveSettings,"server");
                 //mas.registerMeinService(mds);
             }));
             lock.lock();

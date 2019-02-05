@@ -60,8 +60,11 @@ public class InsertPerformance {
         meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
         meinBoot.boot().done(mas -> N.r(() -> {
             DriveCreateController dcc = new DriveCreateController(mas);
-            mds.v = dcc.createDriveServerService("test", ROOT_DIR, .5f, 300);
-            lock.unlockWrite();
+            DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
+                mds.v = (MeinDriveServerService) driveService;
+                lock.unlockWrite();
+            };
+            dcc.createDriveServerService("test", ROOT_DIR, .5f, 300);
         }));
         lock.lockWrite();
         stageDao = mds.v.getDriveDatabaseManager().getStageDao();
@@ -112,7 +115,7 @@ public class InsertPerformance {
             }
             parent = stage;
             timer.stop();
-            System.out.println( count + ";" + timer.getDurationInMS());
+            System.out.println(count + ";" + timer.getDurationInMS());
         }
     }
 
