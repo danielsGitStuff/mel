@@ -897,19 +897,17 @@ public class DriveTest {
                                 runner.runTry(() -> {
                                     Lok.debug("DriveFXTest.driveGui.connected");
                                     // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                    Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30);
-                                    promise.done(clientDriveService -> runner.runTry(() -> {
-                                                Lok.debug("DriveFXTest attempting first syncFromServer");
-                                                clientSyncListener.testStructure.setMaClient(meinAuthService2)
-                                                        .setMaServer(meinAuthService1)
-                                                        .setClientDriveService(clientDriveService)
-                                                        .setServerDriveService(serverService)
-                                                        .setTestdir1(testdir1)
-                                                        .setTestdir2(testdir2);
-                                                clientDriveService.setSyncListener(clientSyncListener);
-                                                //clientDriveService.syncFromServer();
-                                            }
-                                    ));
+                                    DriveBootloader.DEV_DRIVE_BOOT_LISTENER = clientDriveService -> {
+                                        Lok.debug("DriveFXTest attempting first syncFromServer");
+                                        clientSyncListener.testStructure.setMaClient(meinAuthService2)
+                                                .setMaServer(meinAuthService1)
+                                                .setClientDriveService((MeinDriveClientService) clientDriveService)
+                                                .setServerDriveService(serverService)
+                                                .setTestdir1(testdir1)
+                                                .setTestdir2(testdir2);
+                                        clientDriveService.setSyncListener(clientSyncListener);
+                                    };
+                                    new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30);
                                 });
                             });
                         });

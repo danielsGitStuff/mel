@@ -1,20 +1,26 @@
 package de.mein.drive;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.data.DriveClientSettingsDetails;
+import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 
 import org.jdeferred.Promise;
@@ -139,6 +145,32 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
         DriveDatabaseManager databaseManager = new DriveDatabaseManager(meinDriveService, workingDir, driveSettings);
         databaseManager.cleanUp();
         meinDriveService.setDriveDatabaseManager(databaseManager);
+
+        if (!driveSettings.getInitFinished() && !driveSettings.isServer()) N.r(() -> {
+            //pair with server service
+            MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
+            DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
+            Long certId = clientSettings.getServerCertId();
+            String serviceUuid = clientSettings.getServerServiceUuid();
+            CountLock lock = new CountLock().lock();
+            Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
+            DriveDetails driveDetails = new DriveDetails().setRole(DriveStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.getUuid().v());
+            connected.done(validationProcess -> N.r(() -> validationProcess.request(serviceUuid, DriveStrings.INTENT_REG_AS_CLIENT, driveDetails).done(result -> N.r(() -> {
+                Lok.debug("DriveCreateController.createDriveClientServiceAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                lock.unlock();
+//                deferred.resolve(meinDriveClientService);
+            })))).fail(result -> N.r(() -> {
+                Lok.debug("DriveCreateController.createDriveClientService.FAIL");
+                result.printStackTrace();
+                meinDriveClientService.shutDown();
+                meinAuthService.getDatabaseManager().revoke(service.getId().v(), certId);
+                meinAuthService.getDatabaseManager().deleteService(service.getId().v());
+                lock.unlock();
+//                deferred.reject(result);
+            }));
+            lock.lock();
+        });
+
 //        Lok.debug("DriveBootloader.spawn.done");
 //        meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));
 //        meinDriveService.getStartedDeferred()

@@ -177,11 +177,11 @@ public class TransferTest {
             Promise<MeinValidationProcess, Exception, Void> paired = meinAuthService.connect("localhost", 6666, 6667, true);
             paired.done(result -> N.r(() -> {
                 AFile root = AFile.instance(AFile.instance(workingDir), ROOT_DIR_NAME);
-                Promise<MeinDriveClientService, Exception, Void> ready = new DriveCreateController(meinAuthService).createDriveClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666);
-                ready.done(result1 -> N.r(() -> {
-                    clientService.set(result1);
+                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
+                    clientService.set((MeinDriveClientService) driveService);
                     bootLock.unlock();
-                }));
+                });
+                new DriveCreateController(meinAuthService).createDriveClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666);
             }));
         });
         bootLock.lock().lock();

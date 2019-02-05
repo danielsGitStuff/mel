@@ -28,6 +28,9 @@ public class DriveSettings extends JsonSettings {
     private Long maxWastebinSize;
     private Long maxAge = 30L;
     private AFile transferDirectory;
+    /**
+     * if set to false the initialization needs to be done when booting (pair with the server service)
+     */
     private Boolean initFinished = false;
     private boolean fastBoot = true;
 

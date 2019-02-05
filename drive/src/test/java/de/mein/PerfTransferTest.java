@@ -137,7 +137,7 @@ public class PerfTransferTest {
         return result;
     }
 
-//    @Test
+    //    @Test
     public void startSource() {
         // put a really big file in this folder to test sync speed
         //CertificateManager.deleteDirectory(new File(PerfTransferTest.SOURCE_PATH));
@@ -151,7 +151,7 @@ public class PerfTransferTest {
         lock.lockWrite().lockWrite();
     }
 
-//    @Test
+    //    @Test
     public void startTarget() {
         CertificateManager.deleteDirectory(new File(PerfTransferTest.TARGET_PATH));
         RWLock lock = new RWLock();
@@ -167,10 +167,10 @@ public class PerfTransferTest {
                         List<ServiceJoinServiceType> services = nve.getServices(mvp.getConnectedId());
                         if (services.size() > 0) {
                             DriveCreateController createController = new DriveCreateController(test.mas);
-                            Promise<MeinDriveClientService, Exception, Void> allDone = createController.createDriveClientService("client", AFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30);
-                            allDone.done(result -> {
+                            DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                                 Lok.debug("PerfTransferTest.startTarget.done");
-                            });
+                            };
+                            createController.createDriveClientService("client", AFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30);
                         }
                     });
                 });
@@ -181,7 +181,7 @@ public class PerfTransferTest {
 
     }
 
-//    @Test
+    //    @Test
     public void netServer() throws Exception {
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(new InetSocketAddress(8888));
@@ -199,7 +199,7 @@ public class PerfTransferTest {
         }
     }
 
-//    @Test
+    //    @Test
     public void netServerEncrypted() throws Exception {
         Promise<PerfTransferTest, Void, Void> started = create();
         started.done(test -> N.r(() -> {
@@ -230,7 +230,7 @@ public class PerfTransferTest {
         new RWLock().lockWrite().lockWrite();
     }
 
-//    @Test
+    //    @Test
     public void netClient() throws Exception {
         Socket socket = new Socket();
         socket.connect(new InetSocketAddress("192.168.1.109", 8888));
@@ -241,7 +241,7 @@ public class PerfTransferTest {
         }
     }
 
-//    @Test
+    //    @Test
     public void netClientEncrypted() throws Exception {
         Promise<PerfTransferTest, Void, Void> started = create();
         started.done(test -> N.r(() -> {
