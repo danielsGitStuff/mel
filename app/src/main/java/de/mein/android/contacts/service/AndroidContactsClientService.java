@@ -151,7 +151,7 @@ public class AndroidContactsClientService extends ContactsClientService {
     }
 
     protected void commitPhoneBook(Long phoneBookId) throws InterruptedException, SqlQueriesException {
-        CountdownLock waitLock = new CountdownLock(1).lock();
+        CountdownLock waitLock = new CountdownLock(1);
         ContactsClientSettings clientSettings = databaseManager.getSettings().getClientSettings();
         //phone book has no contacts attached yet
         PhoneBook deepPhoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(phoneBookId);

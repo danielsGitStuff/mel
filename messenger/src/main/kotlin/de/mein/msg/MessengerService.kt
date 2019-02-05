@@ -13,6 +13,14 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 
 class MessengerService(meinAuthService: MeinAuthService, workingDir: File, typeId: Long, uuid: String) : MeinServiceWorker(meinAuthService, workingDir, typeId, uuid) {
+    override fun onBootLevel2Finished() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onBootLevel1Finished() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun workWork(job: Job<*, *, *>?) {
     }
 

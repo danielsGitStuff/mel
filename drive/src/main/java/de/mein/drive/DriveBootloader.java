@@ -8,6 +8,7 @@ import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.CountLock;
+import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -29,6 +30,7 @@ import org.jdeferred.impl.DeferredObject;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by xor on 16.08.2016.
@@ -152,12 +154,14 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
             Long certId = clientSettings.getServerCertId();
             String serviceUuid = clientSettings.getServerServiceUuid();
-            CountLock lock = new CountLock().lock();
+            CountdownLock lock = new CountdownLock(1);
+//            CountDownLatch latch = new CountDownLatch(1);
             Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
             DriveDetails driveDetails = new DriveDetails().setRole(DriveStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.getUuid().v());
             connected.done(validationProcess -> N.r(() -> validationProcess.request(serviceUuid, DriveStrings.INTENT_REG_AS_CLIENT, driveDetails).done(result -> N.r(() -> {
                 Lok.debug("DriveCreateController.createDriveClientServiceAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                 lock.unlock();
+//                latch.countDown();
 //                deferred.resolve(meinDriveClientService);
             })))).fail(result -> N.r(() -> {
                 Lok.debug("DriveCreateController.createDriveClientService.FAIL");
@@ -168,7 +172,10 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
                 lock.unlock();
 //                deferred.reject(result);
             }));
+            Lok.debug("waiting for init");
             lock.lock();
+//            latch.await();
+            Lok.debug("asdasd");
         });
 
 //        Lok.debug("DriveBootloader.spawn.done");

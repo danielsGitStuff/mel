@@ -86,7 +86,8 @@ public class TransferTest {
         MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class);
         meinBoot.boot().done(meinAuthService -> {
             Lok.debug("Main.main.booted (DEV)");
-            N.r(() -> initDrive.run(meinAuthService));
+
+            new Thread(() -> N.r(() -> initDrive.run(meinAuthService))).start();
             meinAuthService.addRegisterHandler(new IRegisterHandler() {
                 @Override
                 public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -175,14 +176,15 @@ public class TransferTest {
         CountLock bootLock = new CountLock();
         init(workingDir, meinAuthService -> {
             Promise<MeinValidationProcess, Exception, Void> paired = meinAuthService.connect("localhost", 6666, 6667, true);
-            paired.done(result -> N.r(() -> {
+            paired.done(result -> new Thread(() -> N.r(() -> {
                 AFile root = AFile.instance(AFile.instance(workingDir), ROOT_DIR_NAME);
                 DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
                     clientService.set((MeinDriveClientService) driveService);
                     bootLock.unlock();
                 });
                 new DriveCreateController(meinAuthService).createDriveClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666);
-            }));
+            })
+            ).start());
         });
         bootLock.lock().lock();
         return clientService.get();

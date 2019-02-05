@@ -15,7 +15,7 @@ import java.util.Map;
 public abstract class MeinServiceWorker extends MeinService {
     protected LinkedList<Job> jobs = new LinkedList<>();
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
-    private CountdownLock initLock = new CountdownLock(1).lock();
+    private CountdownLock initLock = new CountdownLock(1);
 
     public MeinServiceWorker(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid);

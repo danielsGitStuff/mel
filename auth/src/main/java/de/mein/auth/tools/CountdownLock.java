@@ -5,12 +5,14 @@ import de.mein.sql.RWLock;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * There is a {@link java.util.concurrent.CountDownLatch} available. If CDL is available on Android too this class can be dropped.
+ * TODO (check if alternative class is available on Android)
  * Created by xor on 21.08.2017.
  */
 public class CountdownLock {
     private AtomicInteger counter;
     private RWLock accessLock = new RWLock();
-    private RWLock lock = new RWLock();
+    private RWLock lock = new RWLock().lockWrite();
 
     public CountdownLock(int countdown) {
         counter = new AtomicInteger(countdown);

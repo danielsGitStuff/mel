@@ -41,6 +41,14 @@ abstract class CalendarService(meinAuthService: MeinAuthService, serviceInstaceW
 }
 
 class CalendarServerService(meinAuthService: MeinAuthService, serviceInstaceWorkingDirectory: File, serviceTypeId: Long, uuid: String, val calendarSettings: CalendarSettings<*>) : CalendarService(meinAuthService, serviceInstaceWorkingDirectory, serviceTypeId, uuid) {
+    override fun onBootLevel2Finished() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onBootLevel1Finished() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun workWork(job: Job<*, *, *>?) {
     }
 
@@ -49,6 +57,14 @@ class CalendarServerService(meinAuthService: MeinAuthService, serviceInstaceWork
 }
 
 class CalendarClientService(meinAuthService: MeinAuthService, serviceInstaceWorkingDirectory: File, serviceTypeId: Long, uuid: String, val calendarSettings: CalendarSettings<*>) : CalendarService(meinAuthService, serviceInstaceWorkingDirectory, serviceTypeId, uuid) {
+    override fun onBootLevel2Finished() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onBootLevel1Finished() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun workWork(job: Job<*, *, *>?) {
 
     }
