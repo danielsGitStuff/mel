@@ -156,12 +156,15 @@ public class TransferTest {
             AFile root = AFile.instance(AFile.instance(workingDir), ROOT_DIR_NAME);
             Path path = Paths.get(root.getAbsolutePath() + File.separator + "text.txt");
             StringBuilder builder = new StringBuilder("start...");
-            N.forLoop(1,2000,(stoppable, index) -> builder.append(index).append("/"));
+            N.forLoop(1, 2000, (stoppable, index) -> builder.append(index).append("/"));
             Files.write(path, builder.toString().getBytes());
-            DriveCreateController createController =new DriveCreateController(meinAuthService);
-            createController.createDriveServerService("server",root,.5f,666);
-            SERVER_SERVICE_UUID = serverService.get().getUuid();
-            bootLock.unlock();
+            DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
+                serverService.set((MeinDriveServerService) driveService);
+                SERVER_SERVICE_UUID = serverService.get().getUuid();
+                bootLock.unlock();
+            };
+            DriveCreateController createController = new DriveCreateController(meinAuthService);
+            createController.createDriveServerService("server", root, .5f, 666);
         });
         bootLock.lock();
         return serverService.get();
@@ -186,10 +189,8 @@ public class TransferTest {
     }
 
 
-
-
     @Test
-    public void transfer() throws Exception{
+    public void transfer() throws Exception {
         Lok.debug("lel");
         CountLock doneLock = new CountLock();
         final int[] transferCount = {0};

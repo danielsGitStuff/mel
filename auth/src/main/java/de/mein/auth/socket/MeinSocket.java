@@ -100,7 +100,7 @@ public class MeinSocket extends DeferredRunnable {
 
     public void send(String json) {
         try {
-            Lok.debug("   " + (meinAuthService == null ? "no service" : meinAuthService.getName()) + ".MeinSocket.send to "+socket.getInetAddress().toString()+": " + json);
+            Lok.debug("   " + (meinAuthService == null ? "no service" : meinAuthService.getName()) + ".MeinSocket.send to " + socket.getInetAddress().toString() + ": " + json);
             if (socket.isClosed())
                 Lok.error(getClass().getSimpleName() + ".send(): Socket closed!");
             while (json.length() > MAX_CHARS) {
@@ -209,7 +209,8 @@ public class MeinSocket extends DeferredRunnable {
     public void onShutDown() {
         N.r(() -> {
             Lok.error(getClass().getName() + ".onShutDown()");
-            socketWorker.shutDown();
+            if (socketWorker != null)
+                socketWorker.shutDown();
         });
         N.r(() -> socket.close());
     }
@@ -302,13 +303,13 @@ public class MeinSocket extends DeferredRunnable {
         try {
             Lok.debug(getClass().getSimpleName() + ".stop() on " + Thread.currentThread().getName());
 //            if (this.thread != null) {
-                in.close();
-                out.close();
-                queueLock.unlock();
-                this.thread.interrupt();
-                if (socketWorker!=null){
-                    socketWorker.onShutDown();
-                }
+            in.close();
+            out.close();
+            queueLock.unlock();
+            this.thread.interrupt();
+            if (socketWorker != null) {
+                socketWorker.onShutDown();
+            }
 //            }
         } catch (Exception e) {
             e.printStackTrace();
