@@ -86,7 +86,6 @@ public class DriveCreateController {
         transferDir.mkdirs();
         driveSettings.setTransferDirectory(transferDir);
         driveSettings.setMaxWastebinSize((long) (driveSettings.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
-        driveSettings.setInitFinished(true);
         createDriveService(driveSettings, name);
 //        File instanceWorkingDir = meinAuthService.getMeinBoot().createServiceInstanceWorkingDir(service);
 //        instanceWorkingDir.mkdirs();
@@ -124,7 +123,7 @@ public class DriveCreateController {
         driveSettingsCfg.setTransferDirectory(AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR));
         driveSettingsCfg.setMaxWastebinSize((long) (driveSettingsCfg.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         driveSettingsCfg.setMaxAge(maxDays);
-        driveSettingsCfg.setInitFinished(false);
+        driveSettingsCfg.getClientSettings().setInitFinished(false);
         driveSettingsCfg.getClientSettings().setServerCertId(certId);
         driveSettingsCfg.getClientSettings().setServerServiceUuid(serviceUuid);
         createDriveService(driveSettingsCfg, name);
