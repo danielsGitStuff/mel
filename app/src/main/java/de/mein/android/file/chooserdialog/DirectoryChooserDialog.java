@@ -151,6 +151,17 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     }
 
     public class VoidService implements IMeinService {
+
+        @Override
+        public void onBootLevel1Finished() {
+
+        }
+
+        @Override
+        public void onBootLevel2Finished() {
+
+        }
+
         @Override
         public void handleRequest(Request request) throws Exception {
 
