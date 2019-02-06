@@ -28,10 +28,7 @@ public class DriveSettings extends JsonSettings {
     private Long maxWastebinSize;
     private Long maxAge = 30L;
     private AFile transferDirectory;
-    /**
-     * if set to false the initialization needs to be done when booting (pair with the server service)
-     */
-    private Boolean initFinished = false;
+
     private boolean fastBoot = true;
 
     public static RootDirectory buildRootDirectory(AFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
@@ -94,15 +91,6 @@ public class DriveSettings extends JsonSettings {
 
     public DriveSettings() {
 
-    }
-
-    public DriveSettings setInitFinished(Boolean initFinished) {
-        this.initFinished = initFinished;
-        return this;
-    }
-
-    public Boolean getInitFinished() {
-        return initFinished;
     }
 
     public DriveClientSettingsDetails getClientSettings() {

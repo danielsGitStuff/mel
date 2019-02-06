@@ -5,6 +5,7 @@ import de.mein.auth.service.Bootloader;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.data.ContactStrings;
+import de.mein.contacts.data.ContactsClientSettings;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.auth.data.ServiceDetails;
 import de.mein.contacts.service.ContactsClientService;
@@ -75,8 +76,8 @@ public class ContactsBootloader extends Bootloader<ContactsService> {
         return contactsService;
     }
 
-    public ContactsService boot(MeinAuthService meinAuthService, Service service, ContactsSettings contactsSettings) throws BootException {
-        File workingDirectory = new File(bootLoaderDir.getAbsolutePath() + File.separator + service.getUuid().v());
+    private ContactsService boot(MeinAuthService meinAuthService, Service service, ContactsSettings contactsSettings) throws BootException {
+        File workingDirectory = meinAuthService.getMeinBoot().createServiceInstanceWorkingDir(service);
         ContactsService contactsService = null;
         try {
             if (contactsSettings.isServer()) {
@@ -85,7 +86,15 @@ public class ContactsBootloader extends Bootloader<ContactsService> {
                 //allow the server to communicate with us
                 N.r(() -> meinAuthService.getDatabaseManager().grant(service.getId().v(), contactsSettings.getClientSettings().getServerCertId()));
                 contactsService = createClientInstance(meinAuthService, workingDirectory, service.getTypeId().v(), service.getUuid().v(), contactsSettings);
+                ContactsClientService clientService = (ContactsClientService) contactsService;
+                ContactsClientSettings clientSettings = contactsSettings.getClientSettings();
+                if (!clientSettings.getInitFinished()){
+                    Long serverCert = clientSettings.getServerCertId();
+                    String serverServiceUuid = clientSettings.getServiceUuid();
+                    meinAuthService.connect(serverCert).done(result -> {
 
+                    });
+                }
             }
         } catch (Exception e) {
             throw new BootException(this, e);
@@ -122,7 +131,8 @@ public class ContactsBootloader extends Bootloader<ContactsService> {
 
     @Override
     public Promise<ContactsService, BootException, Void> bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
-        File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + "contacts.settings.json");
+        File instanceDir = meinAuthService.getMeinBoot().createServiceInstanceWorkingDir(serviceDescription);
+        File jsonFile = new File(instanceDir, ContactStrings.SETTINGS_FILE_NAME);
         ContactsSettings contactsSettings = null;
         try {
             contactsSettings = (ContactsSettings) JsonSettings.load(jsonFile);

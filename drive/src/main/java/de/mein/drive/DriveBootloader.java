@@ -148,21 +148,24 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
         databaseManager.cleanUp();
         meinDriveService.setDriveDatabaseManager(databaseManager);
 
-        if (!driveSettings.getInitFinished() && !driveSettings.isServer()) N.r(() -> {
+        if (!driveSettings.isServer() && !driveSettings.getClientSettings().getInitFinished()) N.r(() -> {
             //pair with server service
             MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
             DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
             Long certId = clientSettings.getServerCertId();
             String serviceUuid = clientSettings.getServerServiceUuid();
             CountdownLock lock = new CountdownLock(1);
-//            CountDownLatch latch = new CountDownLatch(1);
+
+            // allow server service to talk to us
+            meinAuthService.getDatabaseManager().grant(service.getId().v(), certId);
+
             Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
             DriveDetails driveDetails = new DriveDetails().setRole(DriveStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.getUuid().v());
             connected.done(validationProcess -> N.r(() -> validationProcess.request(serviceUuid, DriveStrings.INTENT_REG_AS_CLIENT, driveDetails).done(result -> N.r(() -> {
-                Lok.debug("DriveCreateController.createDriveClientServiceAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                Lok.debug("Service created and paired");
+                clientSettings.setInitFinished(true);
+                driveSettings.save();
                 lock.unlock();
-//                latch.countDown();
-//                deferred.resolve(meinDriveClientService);
             })))).fail(result -> N.r(() -> {
                 Lok.debug("DriveCreateController.createDriveClientService.FAIL");
                 result.printStackTrace();
@@ -170,12 +173,8 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
                 meinAuthService.getDatabaseManager().revoke(service.getId().v(), certId);
                 meinAuthService.getDatabaseManager().deleteService(service.getId().v());
                 lock.unlock();
-//                deferred.reject(result);
             }));
-            Lok.debug("waiting for init");
             lock.lock();
-//            latch.await();
-            Lok.debug("asdasd");
         });
 
 //        Lok.debug("DriveBootloader.spawn.done");

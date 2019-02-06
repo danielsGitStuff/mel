@@ -11,6 +11,20 @@ public class ContactsClientSettings implements SerializableEntity{
     private String serviceUuid;
     private Long lastReadId;
 
+    /**
+     * if set to false the initialization needs to be done when booting (pair with the server service)
+     */
+    private Boolean initFinished = false;
+
+    public ContactsClientSettings setInitFinished(Boolean initFinished) {
+        this.initFinished = initFinished;
+        return this;
+    }
+
+    public Boolean getInitFinished() {
+        return initFinished;
+    }
+
     public void setServerCertId(Long serverCertId) {
         this.serverCertId = serverCertId;
     }
@@ -34,4 +48,6 @@ public class ContactsClientSettings implements SerializableEntity{
     public void setLastReadId(Long lastReadId) {
         this.lastReadId = lastReadId;
     }
+
+
 }
