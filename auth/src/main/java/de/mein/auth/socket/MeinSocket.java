@@ -4,10 +4,8 @@ import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.jobs.BlockReceivedJob;
-import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ReceivedJob;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.service.MeinWorker;
 import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.N;
 
@@ -171,39 +169,6 @@ public class MeinSocket extends DeferredRunnable {
         return this;
     }
 
-    static class SocketWorker extends MeinWorker {
-
-        private final MeinSocketListener listener;
-        private final MeinSocket socket;
-
-        SocketWorker(MeinSocket socket, MeinSocketListener listener) {
-            this.socket = socket;
-            this.listener = listener;
-        }
-
-        @Override
-        protected void workWork(Job job) throws Exception {
-            if (job instanceof ReceivedJob) {
-                ReceivedJob receivedJob = (ReceivedJob) job;
-                listener.onMessage(socket, receivedJob.getMessage());
-            } else if (job instanceof BlockReceivedJob) {
-                listener.onBlockReceived(((BlockReceivedJob) job));
-            }
-        }
-
-        @Override
-        public String getRunnableName() {
-            return getClass().getSimpleName() + " for " + (socket.getMeinAuthService() == null ? "no service" : socket.getMeinAuthService().getName());
-        }
-
-        @Override
-        public void onShutDown() {
-            Lok.debug("SocketWorker.onShutDown, Runnable: " + getRunnableName());
-            super.onShutDown();
-        }
-
-    }
-
 
     @Override
     public void onShutDown() {
@@ -219,6 +184,9 @@ public class MeinSocket extends DeferredRunnable {
 
     private CountWaitLock queueLock = new CountWaitLock();
 
+    //todo debug
+    private static int msgCount = 0;
+
     @Override
     public void runImpl() {
         Thread thread = Thread.currentThread();
@@ -230,6 +198,9 @@ public class MeinSocket extends DeferredRunnable {
             if (in == null || out == null)
                 streams();
             socketWorker = new SocketWorker(this, listener);
+            //todo debug
+            if (meinAuthService.getName().equals("MA2") && socketWorker.index == 6)
+                Lok.debug("delme");
             meinAuthService.execute(socketWorker);
             while (!isStopped()) {
                 if (isIsolated && allowIsolation) {
@@ -258,6 +229,12 @@ public class MeinSocket extends DeferredRunnable {
                             continue;
                         }
                     }
+
+                    msgCount++;
+                    //todo debug
+                    if (msgCount == 10)
+                        Lok.debug("debug");
+                    Lok.debug("count: " + msgCount);
                     Lok.debug("   " + meinAuthService.getName() + ".MeinSocket.runTry.got(" + socket.getInetAddress() + "): " + s);
                     if (s.equals(MeinStrings.msg.MODE_ISOLATE) && allowIsolation) {
                         if (!isIsolated)

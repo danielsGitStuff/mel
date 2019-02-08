@@ -19,7 +19,7 @@ public abstract class BackgroundExecutor {
         private final MeinRunnable meinRunnable;
         private Thread thread;
 
-        RunnableWrapper(MeinRunnable meinRunnable){
+        RunnableWrapper(MeinRunnable meinRunnable) {
             this.meinRunnable = meinRunnable;
         }
 
@@ -29,6 +29,7 @@ public abstract class BackgroundExecutor {
             meinRunnable.run();
         }
     }
+
     private ExecutorService executorService;
     private final Semaphore threadSemaphore = new Semaphore(1, true);
     //private final LinkedList<MeinThread> threadQueue = new LinkedList<>();
@@ -37,7 +38,7 @@ public abstract class BackgroundExecutor {
         @Override
         public Thread newThread(Runnable r) {
             if (r instanceof MeinRunnable)
-                return  new MeinThread((MeinRunnable) r);
+                return new MeinThread((MeinRunnable) r);
             return new Thread(r);
 //            //noinspection Duplicates
 //            try {
@@ -63,7 +64,7 @@ public abstract class BackgroundExecutor {
                 });
             //threadSemaphore.acquire();
             //if (threadQueue.size() > 1) {
-              //  Lok.debug("BackgroundExecutor.execute");
+            //  Lok.debug("BackgroundExecutor.execute");
             //}
             //threadQueue.add(new MeinThread(runnable));
             threadSemaphore.release();
@@ -71,11 +72,15 @@ public abstract class BackgroundExecutor {
             RunnableWrapper wrapper = new RunnableWrapper(runnable);
             if (wrapper.meinRunnable.getRunnableName().toLowerCase().startsWith("meindriveclientservice for test"))
                 Lok.debug("BackgroundExecutor.execute.debugkßc3ß4");
+            startedCounter++;
+            Lok.debug("starting thread no " + startedCounter);
             executorService.execute(wrapper);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    private int startedCounter = 0;
 
     public void shutDown() throws InterruptedException {
         executorService.shutdown();

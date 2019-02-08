@@ -2,6 +2,7 @@ package de.mein.drive;
 
 import androidx.test.runner.AndroidJUnit4;
 
+import de.mein.Lok;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
