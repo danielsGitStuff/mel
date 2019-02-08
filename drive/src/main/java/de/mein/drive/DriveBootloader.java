@@ -68,6 +68,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + DriveStrings.SETTINGS_FILE_NAME);
             driveSettings = DriveSettings.load(jsonFile);
             meinDriveService = spawn(meinAuthService, serviceDescription, driveSettings);
+            Lok.debug(meinAuthService.getName() + ", booted to level 1: " + meinDriveService.getClass().getSimpleName());
             meinAuthService.registerMeinService(meinDriveService);
             booted.resolve(meinDriveService);
 //            meinDriveService.getStartedDeferred().done(result -> booted.resolve(null)).fail(e -> booted.reject(new BootException(this, e)));
@@ -78,6 +79,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
     @Override
     public Promise<Void, BootException, Void> bootLevel2Impl() throws BootException {
         try {
+            Lok.debug(meinDriveService.getMeinAuthService().getName() + ", booting to level 2: " + meinDriveService.getClass().getSimpleName());
             DeferredObject<Void, BootException, Void> done = new DeferredObject<>();
             //notify user
             MeinNotification notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");

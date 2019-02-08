@@ -67,7 +67,6 @@ public abstract class MeinWorker extends DeferredRunnable {
      * Do your work here. The worker will wait until new jobs have arrived.
      *
      * @param job
-     * @throws Exception
      */
     protected abstract void workWork(Job job) throws Exception;
 

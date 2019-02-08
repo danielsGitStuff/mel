@@ -61,6 +61,16 @@ public class MeinTestService extends MeinServiceWorker {
 
     }
 
+    @Override
+    public void onBootLevel2Finished() {
+
+    }
+
+    @Override
+    public void onBootLevel1Finished() {
+
+    }
+
 
     @Override
     protected void workWork(Job job) throws Exception {

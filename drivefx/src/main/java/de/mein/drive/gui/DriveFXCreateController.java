@@ -46,10 +46,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                Promise<MeinDriveClientService, Exception, Void> promise = driveCreateController.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30);
-                promise.done(meinDriveClientService -> N.r(() -> {
-                    meinDriveClientService.syncThisClient();
-                }));
+                driveCreateController.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30);
             }
         });
     }

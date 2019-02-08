@@ -269,9 +269,8 @@ public class FxTest {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
                     DriveCreateController createController = new DriveCreateController(meinAuthService);
-                    Promise<MeinDriveClientService, Exception, Void> clientBooted = createController.createDriveClientService("drive client", testdir, 1L, tmp, 0.1f, 30);
+                    createController.createDriveClientService("drive client", testdir, 1L, tmp, 0.1f, 30);
                     Lok.debug("FxTest.connectAcceptingClient");
-                    clientBooted.done(result1 -> Lok.debug("FxTest.connectAcceptingClient.j89veaj4"));
                 }));
 
             });
@@ -340,9 +339,13 @@ public class FxTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                MeinDriveServerService serverService = createController.createDriveServerService("testiServer", testdir, 0.1f, 30);
-                FxTest.tmp = serverService.getUuid();
-                connectAcceptingClient();
+                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> new Thread(() -> N.r(() -> {
+                    FxTest.tmp = driveService.getUuid();
+                    connectAcceptingClient();
+                })).start();
+                createController.createDriveServerService("testiServer", testdir, 0.1f, 30);
+//                FxTest.tmp = serverService.getUuid();
+//                connectAcceptingClient();
             });
         });
         lock.lockWrite();
@@ -722,35 +725,35 @@ public class FxTest {
                 Lok.debug("FxTest.driveGui.1.booted");
                 standAloneAuth1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                MeinDriveServerService serverService = new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30);
-                boot2.boot().done(standAloneAuth2 -> {
-                    Lok.debug("FxTest.driveGui.2.booted");
-                    standAloneAuth2.addRegisterHandler(allowRegisterHandler);
-
-                    runner.r(() -> {
-                        // connect first. this step will register
-                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect("localhost", 8888, 8889, true);
-                        connectPromise.done(meinValidationProcess -> {
-                            runner.r(() -> {
-                                Lok.debug("FxTest.driveGui.connected");
-                                // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                Promise<MeinDriveClientService, Exception, Void> promise = new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30);
-                                promise.done(clientDriveService -> runner.r(() -> {
-                                            Lok.debug("FxTest attempting first syncFromServer");
-                                            clientSyncListener.testStructure.setMaClient(standAloneAuth2)
-                                                    .setMaServer(standAloneAuth1)
-                                                    .setClientDriveService(clientDriveService)
-                                                    .setServerDriveService(serverService)
-                                                    .setTestdir1(testdir1)
-                                                    .setTestdir2(testdir2);
-                                            clientDriveService.setSyncListener(clientSyncListener);
-                                            clientDriveService.syncThisClient();
-                                        }
-                                ));
+                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = serverService -> new Thread(() -> N.r(() -> {
+                    boot2.boot().done(standAloneAuth2 -> {
+                        Lok.debug("FxTest.driveGui.2.booted");
+                        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
+                        runner.r(() -> {
+                            // connect first. this step will register
+                            Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect("localhost", 8888, 8889, true);
+                            connectPromise.done(meinValidationProcess -> {
+                                runner.r(() -> {
+                                    Lok.debug("FxTest.driveGui.connected");
+                                    // MAs know each other at this point. setup the client Service. it wants some data from the steps before
+                                    DriveBootloader.DEV_DRIVE_BOOT_LISTENER = clientDriveService -> new Thread(() -> N.r(() -> {
+                                        Lok.debug("FxTest attempting first syncFromServer");
+                                        clientSyncListener.testStructure.setMaClient(standAloneAuth2)
+                                                .setMaServer(standAloneAuth1)
+                                                .setClientDriveService((MeinDriveClientService) clientDriveService)
+                                                .setServerDriveService((MeinDriveServerService) serverService)
+                                                .setTestdir1(testdir1)
+                                                .setTestdir2(testdir2);
+                                        clientDriveService.setSyncListener(clientSyncListener);
+                                        ((MeinDriveClientService) clientDriveService).syncThisClient();
+                                    })).start();
+                                    new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30);
+                                });
                             });
                         });
                     });
-                });
+                })).start();
+                new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30);
             });
         });
         lock.lockWrite();
