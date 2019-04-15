@@ -137,9 +137,9 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
         MeinDriveService meinDriveService = (driveSettings.isServer()) ?
                 new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
         //notify user
-        MeinNotification notification = new MeinNotification(service.getUuid().v(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
-        notification.setProgress(0, 0, true);
-        meinAuthService.onNotificationFromService(meinDriveService, notification);
+//        MeinNotification notification = new MeinNotification(service.getUuid().v(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
+//        notification.setProgress(0, 0, true);
+//        meinAuthService.onNotificationFromService(meinDriveService, notification);
         //exec
         meinAuthService.execute(meinDriveService);
         File workingDir = new File(bootLoaderDir, meinDriveService.getUuid());

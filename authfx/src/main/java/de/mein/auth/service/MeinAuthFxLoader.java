@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.Lok;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 
@@ -29,5 +30,20 @@ public class MeinAuthFxLoader implements MeinAuthAdmin {
     @Override
     public void shutDown() {
         meinAuthAdminFX.shutDown();
+    }
+
+    @Override
+    public void onProgress(MeinNotification notification, int max, int current, boolean indeterminate) {
+        meinAuthAdminFX.onProgress(notification, max, current, indeterminate);
+    }
+
+    @Override
+    public void onCancel(MeinNotification notification) {
+        meinAuthAdminFX.onCancel(notification);
+    }
+
+    @Override
+    public void onFinish(MeinNotification notification) {
+
     }
 }

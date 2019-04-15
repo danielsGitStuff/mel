@@ -71,6 +71,21 @@ public class PerfTransferTest {
         MeinBoot boot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
         boot.addMeinAuthAdmin(new MeinAuthAdmin() {
             @Override
+            public void onProgress(MeinNotification notification, int max, int current, boolean indeterminate) {
+
+            }
+
+            @Override
+            public void onCancel(MeinNotification notification) {
+
+            }
+
+            @Override
+            public void onFinish(MeinNotification notification) {
+
+            }
+
+            @Override
             public void start(MeinAuthService mas) {
                 mas.addRegisterHandler(new IRegisterHandler() {
                     @Override

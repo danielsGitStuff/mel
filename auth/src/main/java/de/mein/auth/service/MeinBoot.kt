@@ -142,7 +142,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
 
     /**
      * boots every service that is not booted yet and marked active.
-     * booting happens in two steps an in parallel. level 2 starts heavy work if necessary
+     * booting happens in two steps and in parallel. level 2 starts heavy work if necessary
      */
     fun bootServices() {
         val bootedPromises = ArrayList<Promise<*, *, *>>()

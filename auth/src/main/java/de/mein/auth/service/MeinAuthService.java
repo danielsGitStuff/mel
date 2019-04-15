@@ -607,8 +607,10 @@ public class MeinAuthService {
     }
 
     public void onNotificationFromService(IMeinService meinService, MeinNotification notification) {
-        for (MeinAuthAdmin admin : meinAuthAdmins)
+        for (MeinAuthAdmin admin : meinAuthAdmins) {
+            notification.addProgressListener(admin);
             admin.onNotificationFromService(meinService, notification);
+        }
     }
 
     public PowerManager getPowerManager() {

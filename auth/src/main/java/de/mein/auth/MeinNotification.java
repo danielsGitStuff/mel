@@ -1,5 +1,6 @@
 package de.mein.auth;
 
+import de.mein.auth.service.MeinAuthService;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -19,7 +20,7 @@ public class MeinNotification {
     private final String intention;
     private Map<String, String> extras = new HashMap<>();
     // progress related stuff
-    private List<MeinProgressListener> progressListeners = new ArrayList<>();
+    private Set<MeinProgressListener> progressListeners = new HashSet<>();
     private boolean indeterminate = false;
     private int current = 0;
     private int max = 0;
@@ -63,6 +64,7 @@ public class MeinNotification {
     public boolean isFinished() {
         return finished;
     }
+
 
     public interface MeinProgressListener {
         void onProgress(MeinNotification notification, int max, int current, boolean indeterminate);

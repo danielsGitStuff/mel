@@ -768,6 +768,21 @@ public class FxTest {
         MeinAuthSettings json2 = new DriveTest().createJson2();
         MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveBootloader.class).addMeinAuthAdmin(new MeinAuthAdmin() {
             @Override
+            public void onProgress(MeinNotification notification, int max, int current, boolean indeterminate) {
+
+            }
+
+            @Override
+            public void onCancel(MeinNotification notification) {
+
+            }
+
+            @Override
+            public void onFinish(MeinNotification notification) {
+
+            }
+
+            @Override
             public void start(MeinAuthService meinAuthService) {
 
             }
