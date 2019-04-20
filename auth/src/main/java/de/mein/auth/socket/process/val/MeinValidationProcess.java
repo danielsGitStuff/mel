@@ -64,7 +64,7 @@ public class MeinValidationProcess extends MeinProcess {
         if (!handleCached(deserialized) && !handleAnswer(deserialized)) {
             try {
                 if (!handleGetServices(deserialized)) {
-                    if (!handleDriveOps(deserialized)) {
+                    if (!handleServiceInteraction(deserialized)) {
                         Lok.debug("MeinValidationProcess.onMessageReceived.something exploded here :/");
                     }
                 }
@@ -140,7 +140,7 @@ public class MeinValidationProcess extends MeinProcess {
                     //todo debug
                     if (cachedData.getClass().getSimpleName().startsWith("SyncTask"))
                         Lok.debug("debug  ");
-                    if (cachedData.isComplete() && cachedStateMessages.containsKey(cachedData.getCacheId())){
+                    if (cachedData.isComplete() && cachedStateMessages.containsKey(cachedData.getCacheId())) {
                         // the message is complete -> nothing to do here
                         return false;
                     }
@@ -190,7 +190,7 @@ public class MeinValidationProcess extends MeinProcess {
 
     /**
      * reads a {@link CachedPart} and and removes the related {@link CachedData} object from the waiting "list".
-     * calls handleDriveOps() when done
+     * calls handleServiceInteraction() when done
      *
      * @param cachedPart
      * @throws IllegalAccessException
@@ -221,12 +221,16 @@ public class MeinValidationProcess extends MeinProcess {
         }
     }
 
-    private boolean handleDriveOps(SerializableEntity deserialized) throws SqlQueriesException {
+    private boolean handleServiceInteraction(SerializableEntity deserialized) throws SqlQueriesException {
         if (deserialized instanceof MeinMessage) {
             MeinMessage message = (MeinMessage) deserialized;
             String serviceUuid = message.getServiceUuid();
             if (serviceUuid == null) {
                 return handleAnswer(deserialized);
+            }
+            if (!bootLevelSatisfied(serviceUuid, deserialized)) {
+                Lok.error("NOT ALLOWED, LEVEL INSUFFICIENT");
+                return true;
             }
             if (isServiceAllowed(serviceUuid)) {
                 MeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
@@ -237,7 +241,7 @@ public class MeinValidationProcess extends MeinProcess {
 
                     IPayload payload = request.getPayload();
                     if (payload instanceof CachedData) {
-                        Lok.debug("MeinValidationProcess.handleDriveOps");
+                        Lok.debug("MeinValidationProcess.handleServiceInteraction");
                     }
                     //wrap the answer and send it back
                     validatePromise.done(newPayload -> {
@@ -273,6 +277,10 @@ public class MeinValidationProcess extends MeinProcess {
             return handleAnswer(deserialized);
         }
         return false;
+    }
+
+    private boolean bootLevelSatisfied(String serviceUuid, SerializableEntity deserialized) {
+        return true;
     }
 
     private void handleError(MeinRequest request, Exception e) {
@@ -390,6 +398,7 @@ public class MeinValidationProcess extends MeinProcess {
             }
             meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this);
         });
+        // todo this line should be redundant, see "request.setRequestHandler(this).queue();" above
         queueForResponse(request);
         send(request);
         return promise;
