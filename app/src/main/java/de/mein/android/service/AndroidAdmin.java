@@ -112,4 +112,19 @@ public class AndroidAdmin implements MeinAuthAdmin {
     public void shutDown() {
 
     }
+
+    @Override
+    public void onProgress(MeinNotification notification, int max, int current, boolean indeterminate) {
+
+    }
+
+    @Override
+    public void onCancel(MeinNotification notification) {
+
+    }
+
+    @Override
+    public void onFinish(MeinNotification notification) {
+
+    }
 }

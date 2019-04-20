@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-//apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android'
 //apply plugin: 'me.tatarka.retrolambda'
 
 allprojects {
@@ -22,7 +22,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.0'
+        classpath 'com.android.tools.build:gradle:3.4.0'
 //        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
         // NOTE: Do not place your a
         // pplication dependencies here; they belong
@@ -228,4 +228,6 @@ repositories {
     mavenCentral()
     google()
 }
+
+
 
