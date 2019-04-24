@@ -16,7 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Created by xor on 10/27/16.
  */
-public class SyncTask extends CachedIterable<GenericFSEntry> implements IPayload {
+public class SyncTask extends CachedIterable<GenericFSEntry>  {
     private long oldVersion;
     private Long newVersion;
     @JsonIgnore

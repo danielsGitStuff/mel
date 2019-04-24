@@ -10,7 +10,7 @@ import java.io.File;
 /**
  * Created by xor on 1/14/17.
  */
-public class Commit extends CachedIterable<Stage> implements IPayload{
+public class Commit extends CachedIterable<Stage> {
     private Long basedOnVersion;
 
     public Commit(){
