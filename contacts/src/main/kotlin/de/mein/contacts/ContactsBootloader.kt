@@ -110,7 +110,9 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
                     meinAuthService.connect(serverCert)
                             .done { mvp ->
                                 N.r {
-                                    mvp.request(serverServiceUuid, ContactStrings.INTENT_REG_AS_CLIENT, ServiceDetails(serverServiceUuid))
+                                    val serviceDetails = ServiceDetails(serverServiceUuid)
+                                    serviceDetails.intent = ContactStrings.INTENT_REG_AS_CLIENT
+                                    mvp.request(serverServiceUuid, serviceDetails)
                                             .done {
                                                 clientSettings.initFinished = true
                                                 contactsSettings.save()

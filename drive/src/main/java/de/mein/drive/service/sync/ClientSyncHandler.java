@@ -73,6 +73,7 @@ public class ClientSyncHandler extends SyncHandler {
             ISQLResource<TransferDetails> transfers = transferDao.getNotStartedNotAvailableTransfers(driveSettings.getClientSettings().getServerCertId());
             AvailableHashesContainer availableHashesTask = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
             availableHashesTask.setCacheId(CachedData.randomId());
+            availableHashesTask.setIntent(DriveStrings.INTENT_ASK_HASHES_AVAILABLE);
             N.readSqlResource(transfers, (sqlResource, transfer) -> {
                 availableHashesTask.add(new AvailHashEntry(transfer.getHash().v()));
             });
@@ -87,7 +88,7 @@ public class ClientSyncHandler extends SyncHandler {
                 meinAuthService.connect(driveSettings.getClientSettings().getServerCertId())
                         .done(mvp -> {
                             N.r(() -> {
-                                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), DriveStrings.INTENT_ASK_HASHES_AVAILABLE, availableHashesTask)
+                                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), availableHashesTask)
                                         .done(result -> N.r(() -> {
                                             debugFlag = false;
                                             Lok.debug("got available hashes.");

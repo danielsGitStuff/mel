@@ -375,10 +375,10 @@ public class MeinValidationProcess extends MeinProcess {
     }
 
 
-    public Request request(String serviceUuid, String intent, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
+    public Request request(String serviceUuid, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
         meinAuthSocket.getMeinAuthService().getPowerManager().wakeLock(this);
         Request promise = new Request();
-        MeinRequest request = new MeinRequest(serviceUuid, intent);
+        MeinRequest request = new MeinRequest(serviceUuid, null);
         if (payload != null) {
             request.setPayLoad(payload);
         }

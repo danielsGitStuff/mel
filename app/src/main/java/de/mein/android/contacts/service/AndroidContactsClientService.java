@@ -16,6 +16,7 @@ import de.mein.android.contacts.data.AndroidContactSettings;
 import de.mein.android.contacts.data.ConflictIntentExtra;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.auth.MeinNotification;
+import de.mein.auth.data.EmptyPayload;
 import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
@@ -30,6 +31,7 @@ import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.NewVersionDetails;
 import de.mein.contacts.data.db.Contact;
 import de.mein.contacts.data.db.PhoneBook;
+import de.mein.contacts.data.db.PhoneBookWrapper;
 import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.jobs.CommitJob;
@@ -126,7 +128,7 @@ public class AndroidContactsClientService extends ContactsClientService {
         final Long serverCertId = databaseManager.getSettings().getClientSettings().getServerCertId();
         final String serviceUuid = databaseManager.getSettings().getClientSettings().getServiceUuid();
         meinAuthService.connect(serverCertId).done(mvp -> N.r(() -> {
-            mvp.request(serviceUuid, ContactStrings.INTENT_QUERY, null).done(result -> N.r(() -> {
+            mvp.request(serviceUuid, new EmptyPayload(ContactStrings.INTENT_QUERY)).done(result -> N.r(() -> {
                 Lok.debug("ContactsClientService.workWork.query.success");
                 PhoneBook receivedPhoneBook = (PhoneBook) result;
                 PhoneBook master = databaseManager.getFlatMasterPhoneBook();
@@ -154,7 +156,9 @@ public class AndroidContactsClientService extends ContactsClientService {
         ContactsClientSettings clientSettings = databaseManager.getSettings().getClientSettings();
         //phone book has no contacts attached yet
         PhoneBook deepPhoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(phoneBookId);
-        meinAuthService.connect(clientSettings.getServerCertId()).done(meinValidationProcess -> N.r(() -> meinValidationProcess.request(clientSettings.getServiceUuid(), ContactStrings.INTENT_UPDATE, deepPhoneBook)
+        PhoneBookWrapper phoneBookWrapper = new PhoneBookWrapper(deepPhoneBook);
+        phoneBookWrapper.setIntent(ContactStrings.INTENT_UPDATE);
+        meinAuthService.connect(clientSettings.getServerCertId()).done(meinValidationProcess -> N.r(() -> meinValidationProcess.request(clientSettings.getServiceUuid(), phoneBookWrapper)
                 .done(result -> N.r(() -> {
                     Lok.debug("AndroidContactsClientService.workWork. update succeeded");
                     updateLocalPhoneBook(deepPhoneBook.getId().v());

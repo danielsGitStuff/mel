@@ -19,7 +19,7 @@ public class MeinStrings {
     public static class msg {
         public static final String INTENT_REGISTER = "reg";
         public static final String INTENT_AUTH = "auth";
-        public static final String INTENT_GET_SERVICES = "getservices";
+        public static final String INTENT_GET_SERVICES = "getservices"; //
         public static final String MODE_ISOLATE = "isolate";
         public static final String GET_CERT_ANSWER = "getCert.answer";
         public static final String GET_CERT = "getCert";

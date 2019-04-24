@@ -9,6 +9,7 @@ import de.mein.auth.MeinNotification;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.ApprovalMatrix;
+import de.mein.auth.data.EmptyPayload;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;
@@ -216,7 +217,7 @@ public class MeinAuthService {
 
     public Request<MeinServicesPayload> getAllowedServices(Long certificateId) throws JsonSerializationException, IllegalAccessException {
         MeinValidationProcess validationProcess = connectedEnvironment.getValidationProcess(certificateId);
-        Request<MeinServicesPayload> promise = validationProcess.request(MeinStrings.SERVICE_NAME, MeinStrings.msg.INTENT_GET_SERVICES, null);
+        Request<MeinServicesPayload> promise = validationProcess.request(MeinStrings.SERVICE_NAME, new EmptyPayload(MeinStrings.msg.INTENT_GET_SERVICES));
         return promise;
     }
 

@@ -287,7 +287,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
         connected.done(meinValidationProcess -> runner.runTry(() -> {
             logger.log(Level.FINEST, "MeinDriveService.requestDirectoriesByIds:::::::::::::::");
-            Request<DirectoriesContentTask> answer = meinValidationProcess.request(serviceUuid, DriveStrings.INTENT_DIRECTORY_CONTENT, new DirectoriesContentTask().setIDs(fsDirIdsToRetrieve));
+            Request<DirectoriesContentTask> answer = meinValidationProcess.request(serviceUuid, new DirectoriesContentTask().setIDs(fsDirIdsToRetrieve));
             answer.done(task -> {
                 logger.log(Level.FINEST, "MeinDriveService.requestDirectoriesByIds");
                 deferred.resolve(task.getResult());

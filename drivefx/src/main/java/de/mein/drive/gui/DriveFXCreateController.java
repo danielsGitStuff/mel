@@ -1,5 +1,6 @@
 package de.mein.drive.gui;
 
+import de.mein.auth.data.EmptyPayload;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
@@ -80,7 +81,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                 Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
                 connected.done(mvp -> N.r(() -> {
-                    Request promise = mvp.request(service.getUuid().v(), DriveStrings.INTENT_DRIVE_DETAILS, null);
+                    Request promise = mvp.request(service.getUuid().v(), new EmptyPayload(DriveStrings.INTENT_DRIVE_DETAILS));
                     promise.done(result -> N.r(() -> {
                         DriveDetails driveDetails = (DriveDetails) result;
                         if (driveDetails.getRole() != null && driveDetails.getRole().equals(DriveStrings.ROLE_SERVER)) {

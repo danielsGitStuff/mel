@@ -16,8 +16,9 @@ public abstract class ServicePayload implements SerializableEntity {
         return level;
     }
 
-    public void setIntent(String intent) {
+    public ServicePayload setIntent(String intent) {
         this.intent = intent;
+        return this;
     }
 
     public String getIntent() {

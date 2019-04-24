@@ -163,7 +163,8 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
 
             Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
             DriveDetails driveDetails = new DriveDetails().setRole(DriveStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.getUuid().v());
-            connected.done(validationProcess -> N.r(() -> validationProcess.request(serviceUuid, DriveStrings.INTENT_REG_AS_CLIENT, driveDetails).done(result -> N.r(() -> {
+            driveDetails.setIntent(DriveStrings.INTENT_REG_AS_CLIENT);
+            connected.done(validationProcess -> N.r(() -> validationProcess.request(serviceUuid, driveDetails).done(result -> N.r(() -> {
                 Lok.debug("Service created and paired");
                 clientSettings.setInitFinished(true);
                 driveSettings.save();
