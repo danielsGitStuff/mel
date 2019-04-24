@@ -21,7 +21,7 @@ public abstract class MeinProcess implements IRequestHandler {
     private static Logger logger = Logger.getLogger(MeinProcess.class.getName());
     protected MeinAuthSocket meinAuthSocket;
     protected Certificate partnerCertificate;
-    protected Map<Long, DeferredObject<SerializableEntity, Exception, Void>> requestMap = new ConcurrentHashMap<>();
+    protected Map<Long, DeferredObject<SerializableEntity, ResponseException, Void>> requestMap = new ConcurrentHashMap<>();
 
     public MeinProcess(MeinAuthSocket meinAuthSocket) {
         this.meinAuthSocket = meinAuthSocket;
@@ -51,12 +51,12 @@ public abstract class MeinProcess implements IRequestHandler {
         }
         if (answerId != null && this.requestMap.containsKey(answerId)) {
             StateMsg msg = (StateMsg) deserialized;
-            DeferredObject<SerializableEntity, Exception, Void> deferred = requestMap.remove(answerId);
+            DeferredObject<SerializableEntity, ResponseException, Void> deferred = requestMap.remove(answerId);
             if (!msg.getState().equals(MeinStrings.msg.STATE_OK)) {
-                if (msg.getPayload() != null)
-                    deferred.reject((Exception) msg.getPayload());
+                if (msg.getException()== null)
+                    deferred.reject(new ResponseException("state was: "+msg.getState()));
                 else
-                    deferred.reject(new Exception("state was: " + msg.getState()));
+                    deferred.reject(msg.getException());
                 return true;
             }
             deferred.resolve(deserialized);

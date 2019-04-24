@@ -1,11 +1,12 @@
 package de.mein.auth.data;
 
 import de.mein.core.serialize.JsonIgnore;
+import de.mein.core.serialize.SerializableEntity;
 
 /**
  * Created by xor on 5/2/16.
  */
-public class ResponseException extends Exception implements ServicePayload {
+public class ResponseException extends Exception implements SerializableEntity {
     private String message;
     @JsonIgnore
     private Throwable cause;
@@ -26,4 +27,5 @@ public class ResponseException extends Exception implements ServicePayload {
     public String getMessage() {
         return message;
     }
+
 }

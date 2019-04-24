@@ -19,7 +19,7 @@ public class MeinRequest extends MeinMessage {
     @JsonIgnore
     private IRequestHandler requestHandler;
     @JsonIgnore
-    private DeferredObject<SerializableEntity, Exception, Void> answerDeferred;
+    private DeferredObject<SerializableEntity, ResponseException, Void> answerDeferred;
     private byte[] secret;
     private String decryptedSecret;
     private String userUuid;
@@ -78,7 +78,7 @@ public class MeinRequest extends MeinMessage {
         return this;
     }
 
-    public DeferredObject<SerializableEntity, Exception, Void> getAnswerDeferred() {
+    public DeferredObject<SerializableEntity, ResponseException, Void> getAnswerDeferred() {
         return answerDeferred;
     }
 
@@ -138,11 +138,7 @@ public class MeinRequest extends MeinMessage {
 
     public MeinResponse respondError(Exception e) {
         MeinResponse response = reponse().setState(MeinStrings.msg.STATE_ERR);
-        if (e instanceof ResponseException) {
-            response.setPayLoad((ServicePayload) e);
-        } else {
-            response.setPayLoad(new ResponseException(e));
-        }
+        response.setException(e);
         return response;
     }
 

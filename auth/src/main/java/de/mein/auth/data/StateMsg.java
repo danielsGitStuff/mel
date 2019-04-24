@@ -10,6 +10,7 @@ public abstract class StateMsg implements SerializableEntity {
 
     protected String state = MeinStrings.msg.STATE_OK;
     protected ServicePayload payload;
+    protected ResponseException exception;
 
 
     public String getState() {
@@ -19,9 +20,22 @@ public abstract class StateMsg implements SerializableEntity {
     public ServicePayload getPayload() {
         return payload;
     }
+
     public StateMsg setPayLoad(ServicePayload payLoad) {
         this.payload = payLoad;
         return this;
+    }
+
+    public ResponseException getException() {
+        return exception;
+    }
+
+    public void setException(ResponseException exception) {
+        this.exception = exception;
+    }
+
+    public void setException(Exception exception) {
+        this.exception = new ResponseException(exception);
     }
 
     public StateMsg setState(String state) {
