@@ -48,11 +48,11 @@ I have decided that power management is something that we want.
 As you have just read excessive indexing eats too much battery, especially if you just started the app.
 So the idea is:
 - do everything that can be done quickly on service boot level 1
-    - this is executed by the BootLoader. Always!
+  - this is executed by the BootLoader. Always!
 - check if PowerManager allows to use a lot of power now
-    - this depends on whether your phone is plugged in or has WiFi
-    - if allowed: do long lasting work on service boot level 2
-    - if not: delay until power criteria are fulfilled
+  - this depends on whether your phone is plugged in or has WiFi
+  - if allowed: do long lasting work on service boot level 2
+  - if not: delay until power criteria are fulfilled
 - when all services reached level 1, MeinAuth starts its Sockets and the services can communicate.
 
 ### Different boot levels
