@@ -125,7 +125,7 @@ public class MeinRegisterProcess extends MeinProcess {
             }, request, meinAuthSocket.getMeinAuthService().getMyCertificate(), partnerCertificate);
 
         }
-        request.getPromise().done(result -> {
+        request.getAnswerDeferred().done(result -> {
             MeinRequest r = (MeinRequest) result;
             Certificate certificate = r.getCertificate();
             try {

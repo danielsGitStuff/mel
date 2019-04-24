@@ -7,6 +7,7 @@ import de.mein.auth.socket.MeinSocket;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
 
 import java.security.SecureRandom;
 
@@ -19,7 +20,7 @@ public class MeinRequest extends MeinMessage {
     @JsonIgnore
     private IRequestHandler requestHandler;
     @JsonIgnore
-    private Dobject dobject;
+    private DeferredObject<SerializableEntity, Exception, Void> answerDeferred;
     private byte[] secret;
     private String decryptedSecret;
     private String userUuid;
@@ -31,7 +32,7 @@ public class MeinRequest extends MeinMessage {
     private String mode;
 
     public MeinRequest() {
-        this.dobject = new Dobject();
+        this.answerDeferred = new DeferredObject<>();
         this.requestId = new SecureRandom().nextLong();
     }
 
@@ -78,12 +79,8 @@ public class MeinRequest extends MeinMessage {
         return this;
     }
 
-    public Dobject getDobject() {
-        return dobject;
-    }
-
-    public Promise<SerializableEntity, Exception, Void> getPromise() {
-        return dobject.promise();
+    public DeferredObject<SerializableEntity, Exception, Void> getAnswerDeferred() {
+        return answerDeferred;
     }
 
     public byte[] getSecret() {

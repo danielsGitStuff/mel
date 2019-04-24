@@ -92,7 +92,7 @@ public class MeinAuthProcess extends MeinProcess {
                                 .setDecryptedSecret(decryptedSecret)
                                 .setSecret(secret);
                         IsolationDetails finalIsolationDetails = isolationDetails;
-                        answer.getPromise().done(result -> {
+                        answer.getAnswerDeferred().done(result -> {
                             MeinRequest r = (MeinRequest) result;
                             MeinResponse response = r.reponse();
                             try {
@@ -186,7 +186,7 @@ public class MeinAuthProcess extends MeinProcess {
                         .setProcessClass(((IsolatedConnectJob) job).getProcessClass().getCanonicalName());
                 request.setPayLoad(isolationDetails);
             }
-            request.getPromise().done(result -> {
+            request.getAnswerDeferred().done(result -> {
                 MeinRequest r = (MeinRequest) result;
                 if (r.getDecryptedSecret().equals(this.mySecret)) {
                     runner.runTry(() -> {
@@ -195,7 +195,7 @@ public class MeinAuthProcess extends MeinProcess {
                                 .setDecryptedSecret(decryptedSecret)
                                 .setAuthenticated(true)
                                 .setRequestHandler(this).queue();
-                        answer.getPromise().done(result1 -> {
+                        answer.getAnswerDeferred().done(result1 -> {
                             runner.runTry(() -> {
                                 if (job instanceof ConnectJob) {
                                     // propagate that we are connected!

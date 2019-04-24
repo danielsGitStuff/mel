@@ -6,6 +6,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
+import org.jdeferred.impl.DeferredObject;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +21,7 @@ public abstract class MeinProcess implements IRequestHandler {
     private static Logger logger = Logger.getLogger(MeinProcess.class.getName());
     protected MeinAuthSocket meinAuthSocket;
     protected Certificate partnerCertificate;
-    protected Map<Long, Dobject> requestMap = new ConcurrentHashMap<>();
+    protected Map<Long, DeferredObject<SerializableEntity, Exception, Void>> requestMap = new ConcurrentHashMap<>();
 
     public MeinProcess(MeinAuthSocket meinAuthSocket) {
         this.meinAuthSocket = meinAuthSocket;
@@ -50,7 +51,7 @@ public abstract class MeinProcess implements IRequestHandler {
         }
         if (answerId != null && this.requestMap.containsKey(answerId)) {
             StateMsg msg = (StateMsg) deserialized;
-            Dobject deferred = requestMap.remove(answerId);
+            DeferredObject<SerializableEntity, Exception, Void> deferred = requestMap.remove(answerId);
             if (!msg.getState().equals(MeinStrings.msg.STATE_OK)) {
                 if (msg.getPayload() != null)
                     deferred.reject((Exception) msg.getPayload());
@@ -58,7 +59,7 @@ public abstract class MeinProcess implements IRequestHandler {
                     deferred.reject(new Exception("state was: " + msg.getState()));
                 return true;
             }
-            deferred.check(deserialized);
+            deferred.resolve(deserialized);
             return true;
         }
         return false;
@@ -66,7 +67,7 @@ public abstract class MeinProcess implements IRequestHandler {
 
     @Override
     public void queueForResponse(MeinRequest request) {
-        requestMap.put(request.getRequestId(), request.getDobject());
+        requestMap.put(request.getRequestId(), request.getAnswerDeferred());
     }
 
 

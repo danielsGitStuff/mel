@@ -360,7 +360,7 @@ public class MeinValidationProcess extends MeinProcess {
         }
         registerSendCached(request);
         request.setRequestHandler(this).queue();
-        request.getPromise().done(result -> {
+        request.getAnswerDeferred().done(result -> {
             StateMsg response = (StateMsg) result;
             promise.setResponse(response.getPayload());
             promise.unlock();
@@ -384,7 +384,7 @@ public class MeinValidationProcess extends MeinProcess {
         }
         registerSendCached(request);
         request.setRequestHandler(this).queue();
-        request.getPromise().done(result -> {
+        request.getAnswerDeferred().done(result -> {
             StateMsg response = (StateMsg) result;
             promise.resolve(response.getPayload());
             meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this);
