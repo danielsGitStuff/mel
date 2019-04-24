@@ -34,9 +34,6 @@ public abstract class StateMsg implements SerializableEntity {
         this.exception = exception;
     }
 
-    public void setException(Exception exception) {
-        this.exception = new ResponseException(exception);
-    }
 
     public StateMsg setState(String state) {
         this.state = state;
