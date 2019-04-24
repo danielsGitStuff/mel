@@ -27,7 +27,7 @@ import de.mein.android.Notifier;
 import de.mein.android.PopupActivity;
 import de.mein.android.drive.data.AndroidDriveStrings;
 import de.mein.auth.MeinNotification;
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.IMeinService;
@@ -168,7 +168,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         }
 
         @Override
-        public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
+        public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
 
         }
 

@@ -25,7 +25,7 @@ public class MeinResponse extends StateMsg {
     }
 
 
-    public MeinResponse setPayLoad(IPayload payLoad) {
+    public MeinResponse setPayLoad(ServicePayload payLoad) {
         return (MeinResponse) super.setPayLoad(payLoad);
     }
 

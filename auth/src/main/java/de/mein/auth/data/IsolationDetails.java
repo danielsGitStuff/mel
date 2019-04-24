@@ -1,13 +1,9 @@
 package de.mein.auth.data;
 
-import de.mein.auth.service.IMeinService;
-
-import java.util.UUID;
-
 /**
  * Created by xor on 12/15/16.
  */
-public class IsolationDetails implements IPayload {
+public class IsolationDetails extends ServicePayload {
     private String targetService;
     private String sourceService;
     private String processClass;

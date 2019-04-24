@@ -2,7 +2,6 @@ package de.mein.drive.tasks;
 
 
 import de.mein.Lok;
-import de.mein.auth.data.IPayload;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.auth.data.cached.CachedIterable;
 import de.mein.core.serialize.exceptions.JsonSerializationException;

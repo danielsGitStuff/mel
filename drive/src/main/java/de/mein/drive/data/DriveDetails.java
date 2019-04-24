@@ -1,11 +1,11 @@
 package de.mein.drive.data;
 
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 
 /**
  * Created by xor on 10/20/16.
  */
-public class DriveDetails implements IPayload{
+public class DriveDetails extends ServicePayload {
     private String role;
     private long lastSyncVersion;
     private String serviceUuid;

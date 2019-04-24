@@ -1,5 +1,5 @@
 import de.mein.auth.MeinNotification
-import de.mein.auth.data.IPayload
+import de.mein.auth.data.ServicePayload
 import de.mein.auth.data.db.Certificate
 import de.mein.auth.jobs.Job
 import de.mein.auth.service.MeinAuthService
@@ -15,7 +15,7 @@ abstract class CalendarService(meinAuthService: MeinAuthService, serviceInstaceW
     override fun handleRequest(request: Request<*>?) {
     }
 
-    override fun handleMessage(payload: IPayload?, partnerCertificate: Certificate?, intent: String?) {
+    override fun handleMessage(payload: ServicePayload?, partnerCertificate: Certificate?, intent: String?) {
     }
 
     override fun onServiceRegistered() {

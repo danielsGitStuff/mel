@@ -9,17 +9,17 @@ import de.mein.core.serialize.SerializableEntity;
 public abstract class StateMsg implements SerializableEntity {
 
     protected String state = MeinStrings.msg.STATE_OK;
-    protected IPayload payload;
+    protected ServicePayload payload;
 
 
     public String getState() {
         return state;
     }
 
-    public IPayload getPayload() {
+    public ServicePayload getPayload() {
         return payload;
     }
-    public StateMsg setPayLoad(IPayload payLoad) {
+    public StateMsg setPayLoad(ServicePayload payLoad) {
         this.payload = payLoad;
         return this;
     }

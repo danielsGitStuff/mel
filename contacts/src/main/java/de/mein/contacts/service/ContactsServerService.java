@@ -2,7 +2,7 @@ package de.mein.contacts.service;
 
 import de.mein.Lok;
 import de.mein.auth.data.ClientData;
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
@@ -118,7 +118,7 @@ public class ContactsServerService extends ContactsService {
     }
 
     @Override
-    public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
+    public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
         addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(intent));
     }
 }

@@ -33,13 +33,13 @@ public class MeinMessage extends StateMsg {
     }
 
 
-    public IPayload getPayload() {
+    public ServicePayload getPayload() {
         return payload;
     }
 
 
 
-    public MeinMessage setPayLoad(IPayload payLoad) {
+    public MeinMessage setPayLoad(ServicePayload payLoad) {
         return (MeinMessage) super.setPayLoad(payLoad);
     }
 

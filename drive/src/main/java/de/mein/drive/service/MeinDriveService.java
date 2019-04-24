@@ -3,7 +3,7 @@ package de.mein.drive.service;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.MeinNotification;
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
@@ -104,7 +104,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     }
 
     @Override
-    public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
+    public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
         logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.handleMessage");
         addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(intent));
     }

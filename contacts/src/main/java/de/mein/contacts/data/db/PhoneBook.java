@@ -3,7 +3,7 @@ package de.mein.contacts.data.db;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.sql.MD5er;
 import de.mein.sql.Pair;
@@ -14,7 +14,7 @@ import de.mein.sql.SQLTableObject;
  * A flat {@link PhoneBook} does not contain any {@link Contact}s but a hash value and version.
  * Created by xor on 10/4/17.
  */
-public class PhoneBook extends SQLTableObject implements IPayload {
+public class PhoneBook extends SQLTableObject  {
     private List<Contact> contacts = new ArrayList<>();
     private Pair<Long> version = new Pair<>(Long.class, "version");
     private Pair<Long> created = new Pair<>(Long.class, "created");

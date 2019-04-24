@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 
 import de.mein.Lok;
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
@@ -63,7 +63,7 @@ public class ContactsClientService extends ContactsService {
     }
 
     @Override
-    public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
+    public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
         if (intent != null && intent.equals(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)) {
             NewVersionDetails newVersionDetails = (NewVersionDetails) payload;
             try {

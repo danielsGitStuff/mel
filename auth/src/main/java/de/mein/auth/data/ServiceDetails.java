@@ -1,8 +1,6 @@
 package de.mein.auth.data;
 
-import de.mein.auth.data.IPayload;
-
-public class ServiceDetails implements IPayload {
+public class ServiceDetails extends ServicePayload {
     private String serviceUuid;
     public ServiceDetails(){
 

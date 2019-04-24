@@ -3,9 +3,9 @@ package de.mein.drive.data;
 import java.util.HashSet;
 import java.util.Set;
 
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 
-public class AvailableHashes implements IPayload {
+public class AvailableHashes extends ServicePayload {
     private Set<String> hashes = new HashSet<>();
 
     public synchronized AvailableHashes addHash(String hash) {

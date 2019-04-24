@@ -1,6 +1,6 @@
 package de.mein.auth.jobs;
 
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.socket.process.val.Request;
 
@@ -10,7 +10,7 @@ import de.mein.auth.socket.process.val.Request;
  */
 public class ServiceRequestHandlerJob extends Job {
     private Request request;
-    private IPayload payload;
+    private ServicePayload payload;
     private Certificate partnerCertificate;
     private String intent;
 
@@ -18,7 +18,7 @@ public class ServiceRequestHandlerJob extends Job {
 
     }
 
-    public ServiceRequestHandlerJob setPayload(IPayload payload) {
+    public ServiceRequestHandlerJob setPayload(ServicePayload payload) {
         this.payload = payload;
         return this;
     }
@@ -42,7 +42,7 @@ public class ServiceRequestHandlerJob extends Job {
         return request;
     }
 
-    public IPayload getPayLoad() {
+    public ServicePayload getPayLoad() {
         return payload;
     }
 

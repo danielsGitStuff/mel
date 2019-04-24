@@ -6,7 +6,6 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
-import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.security.SecureRandom;
@@ -66,7 +65,7 @@ public class MeinRequest extends MeinMessage {
         return this;
     }
 
-    public MeinRequest setPayLoad(IPayload payLoad) {
+    public MeinRequest setPayLoad(ServicePayload payLoad) {
         return (MeinRequest) super.setPayLoad(payLoad);
     }
 
@@ -140,7 +139,7 @@ public class MeinRequest extends MeinMessage {
     public MeinResponse respondError(Exception e) {
         MeinResponse response = reponse().setState(MeinStrings.msg.STATE_ERR);
         if (e instanceof ResponseException) {
-            response.setPayLoad((IPayload) e);
+            response.setPayLoad((ServicePayload) e);
         } else {
             response.setPayLoad(new ResponseException(e));
         }

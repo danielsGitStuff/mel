@@ -1,6 +1,5 @@
 package de.mein.drive.jobs;
 
-import de.mein.auth.data.IPayload;
 import de.mein.auth.jobs.Job;
 import de.mein.drive.data.PathCollection;
 

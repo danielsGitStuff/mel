@@ -1,6 +1,6 @@
 package de.mein.drive.data;
 
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Created by xor on 1/14/17.
  */
-public class CommitAnswer implements IPayload {
+public class CommitAnswer extends ServicePayload {
 private Map<Long, Long> stageIdFsIdMap = new HashMap<>();
 
 

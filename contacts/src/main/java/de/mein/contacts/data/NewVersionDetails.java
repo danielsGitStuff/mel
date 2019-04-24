@@ -1,12 +1,12 @@
 package de.mein.contacts.data;
 
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 
 /**
  * Created by xor on 10/29/17.
  */
 
-public class NewVersionDetails implements IPayload {
+public class NewVersionDetails extends ServicePayload {
     public NewVersionDetails() {
     }
 

@@ -3,7 +3,7 @@ package de.mein.auth.data;
 /**
  * Created by xor on 10/24/16.
  */
-public class MeinRegisterConfirm implements IPayload {
+public class MeinRegisterConfirm extends ServicePayload {
     private Boolean confirmed;
     private String answerUuid;
 

@@ -237,9 +237,9 @@ public class MeinValidationProcess extends MeinProcess {
                 if (deserialized instanceof MeinRequest) {
                     //delegate request to service
                     MeinRequest request = (MeinRequest) deserialized;
-                    Request<IPayload> validatePromise = new Request<>().setPayload(request.getPayload()).setPartnerCertificate(this.partnerCertificate).setIntent(request.getIntent());
+                    Request<ServicePayload> validatePromise = new Request<>().setPayload(request.getPayload()).setPartnerCertificate(this.partnerCertificate).setIntent(request.getIntent());
 
-                    IPayload payload = request.getPayload();
+                    ServicePayload payload = request.getPayload();
                     if (payload instanceof CachedData) {
                         Lok.debug("MeinValidationProcess.handleServiceInteraction");
                     }
@@ -321,7 +321,7 @@ public class MeinValidationProcess extends MeinProcess {
     }
 
 //    private void registerCached(MeinRequest request) {
-//        IPayload payload = request.getPayload();
+//        ServicePayload payload = request.getPayload();
 //        if (payload instanceof CachedData) {
 //            CachedData cachedData = (CachedData) payload;
 //            cachedData.setCacheId(request.getRequestId());
@@ -331,7 +331,7 @@ public class MeinValidationProcess extends MeinProcess {
 //    }
 
     private void registerSendCached(MeinRequest request) {
-        IPayload payload = request.getPayload();
+        ServicePayload payload = request.getPayload();
         if (payload != null && payload instanceof CachedData) {
             CachedData cachedData = (CachedData) payload;
             if (cachedData.getCacheId() == null)
@@ -352,7 +352,7 @@ public class MeinValidationProcess extends MeinProcess {
      * @throws JsonSerializationException
      * @throws IllegalAccessException
      */
-    public LockedRequest requestLocked(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
+    public LockedRequest requestLocked(String serviceUuid, String intent, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
         LockedRequest promise = new LockedRequest();
         MeinRequest request = new MeinRequest(serviceUuid, intent);
         if (payload != null) {
@@ -375,7 +375,7 @@ public class MeinValidationProcess extends MeinProcess {
     }
 
 
-    public Request request(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
+    public Request request(String serviceUuid, String intent, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
         meinAuthSocket.getMeinAuthService().getPowerManager().wakeLock(this);
         Request promise = new Request();
         MeinRequest request = new MeinRequest(serviceUuid, intent);
@@ -421,7 +421,7 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
-    public void message(String serviceUuid, String intent, IPayload payload) throws JsonSerializationException, IllegalAccessException {
+    public void message(String serviceUuid, String intent, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
         MeinMessage message = new MeinMessage(serviceUuid, intent).setPayLoad(payload);
         send(message);
     }

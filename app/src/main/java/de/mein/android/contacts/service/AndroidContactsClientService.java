@@ -16,9 +16,8 @@ import de.mein.android.contacts.data.AndroidContactSettings;
 import de.mein.android.contacts.data.ConflictIntentExtra;
 import de.mein.android.contacts.data.db.ContactName;
 import de.mein.auth.MeinNotification;
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
@@ -70,7 +69,7 @@ public class AndroidContactsClientService extends ContactsClientService {
     }
 
     @Override
-    public void handleMessage(IPayload payload, Certificate partnerCertificate, String intent) {
+    public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
         if (intent != null && intent.equals(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)) {
             try {
                 NewVersionDetails newVersionDetails = (NewVersionDetails) payload;

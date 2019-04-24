@@ -1,7 +1,7 @@
 package de.mein.auth.data.cached;
 
 import de.mein.Lok;
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -20,7 +20,7 @@ import java.util.Set;
  * The overall class for anything which is cached. Its name is required to identify as a certain cached object.
  * Tells you how many parts the data is divided to.
  */
-public abstract class CachedData implements IPayload {
+public abstract class CachedData extends ServicePayload {
     protected Long cacheId;
     /**
      * the number of parts which are present (on disk or in memory)

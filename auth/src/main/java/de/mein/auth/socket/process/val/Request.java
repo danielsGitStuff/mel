@@ -1,6 +1,6 @@
 package de.mein.auth.socket.process.val;
 
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 
 import org.jdeferred.impl.DeferredObject;
@@ -8,7 +8,7 @@ import org.jdeferred.impl.DeferredObject;
 /**
  * Created by xor on 5/1/16.
  */
-public class Request<T extends IPayload> extends DeferredObject<T, Exception, Void> {
+public class Request<T extends ServicePayload> extends DeferredObject<T, Exception, Void> {
     private T payload;
     private Certificate partnerCertificate;
     private String intent;

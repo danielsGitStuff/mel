@@ -1,7 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.auth.MeinNotification;
-import de.mein.auth.data.IPayload;
+import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.Request;
@@ -24,7 +24,7 @@ public interface IMeinService {
      * @param partnerCertificate who sent this to you
      * @param intent
      */
-    void handleMessage(IPayload payload, Certificate partnerCertificate, String intent);
+    void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent);
 
     /**
      * there is a new connection to someone you know

@@ -5,7 +5,7 @@ import de.mein.core.serialize.JsonIgnore;
 /**
  * Created by xor on 5/2/16.
  */
-public class ResponseException extends Exception implements IPayload {
+public class ResponseException extends Exception implements ServicePayload {
     private String message;
     @JsonIgnore
     private Throwable cause;
