@@ -82,4 +82,4 @@ Call `SerializableEntitySerializer.serialize(entity,traceManager,depth)` where `
 new TraceManager().addForcedPath("[MyHorseEntity].HorseProperyIWant.Length");
 ```
 If the TraceManager finds `MyHorseEntity` it will include the `HorseProperyIWant`.
-`HorseProperyIWant` might be another `SerializableEntity` and that might have a property called `Length`. That will also be included.
+`HorseProperyIWant` might be another `SerializableEntity` (like a leg) and that might have a property called `Length`. That will also be included.
