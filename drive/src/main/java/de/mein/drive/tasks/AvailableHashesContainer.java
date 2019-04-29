@@ -9,8 +9,10 @@ public class AvailableHashesContainer extends CachedIterable<AvailHashEntry> {
 
     public AvailableHashesContainer(File cacheDir, int partSize) {
         super(cacheDir,partSize);
+        this.level = 2;
     }
 
     public AvailableHashesContainer() {
+        this.level = 2;
     }
 }

@@ -14,10 +14,12 @@ public class Commit extends CachedIterable<Stage> {
 
     public Commit(){
         Lok.debug("Commit.Commit");
+        this.level = 2;
     }
 
     public Commit(File cacheDir, int partSize) {
         super(cacheDir,partSize);
+        this.level = 2;
     }
 
     public Commit setBasedOnVersion(Long basedOnVersion) {

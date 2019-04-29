@@ -18,6 +18,7 @@ public class DirectoriesContentTask extends ServicePayload {
 
     public DirectoriesContentTask(){
         intent =  DriveStrings.INTENT_DIRECTORY_CONTENT;
+        this.level = 2;
     }
 
     public DirectoriesContentTask setVersion(long version) {

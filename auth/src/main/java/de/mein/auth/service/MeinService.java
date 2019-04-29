@@ -18,6 +18,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     protected final File serviceInstanceWorkingDirectory;
     protected MeinAuthService meinAuthService;
     protected final String uuid;
+    int bootLevel = 0;
     protected final Long serviceTypeId;
     private ExecutorService executorService;
     private final Semaphore threadSemaphore = new Semaphore(1, true);
@@ -84,6 +85,15 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    MeinService setBootLevel(int level) {
+        this.bootLevel = level;
+        return this;
+    }
+
+    public int getBootLevel() {
+        return bootLevel;
     }
 
     @Override

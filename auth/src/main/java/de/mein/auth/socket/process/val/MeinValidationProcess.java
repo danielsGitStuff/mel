@@ -1,6 +1,7 @@
 package de.mein.auth.socket.process.val;
 
 import de.mein.Lok;
+import de.mein.auth.InsufficientBootLevelException;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.cached.CachedData;
@@ -11,11 +12,13 @@ import de.mein.auth.service.MeinService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
 import de.mein.auth.socket.process.auth.MeinAuthProcess;
+import de.mein.core.serialize.EntityAnalyzer;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
@@ -224,22 +227,27 @@ public class MeinValidationProcess extends MeinProcess {
     private boolean handleServiceInteraction(SerializableEntity deserialized) throws SqlQueriesException {
         if (deserialized instanceof MeinMessage) {
             MeinMessage message = (MeinMessage) deserialized;
+            ServicePayload payload = message.getPayload();
             String serviceUuid = message.getServiceUuid();
             if (serviceUuid == null) {
                 return handleAnswer(deserialized);
             }
-            if (!bootLevelSatisfied(serviceUuid, deserialized)) {
+            if (!bootLevelSatisfied(serviceUuid, payload)) {
                 Lok.error("NOT ALLOWED, LEVEL INSUFFICIENT");
+                // if a request comes along that requires a higher boot level that the service has not reached yet,
+                // this is the place to respond exactly that.
+                if (message instanceof MeinRequest) {
+                    MeinRequest meinRequest = (MeinRequest) message;
+                    meinRequest.getAnswerDeferred().reject(new InsufficientBootLevelException());
+                }
                 return true;
             }
             if (isServiceAllowed(serviceUuid)) {
                 MeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
                 if (deserialized instanceof MeinRequest) {
-                    //delegate request to service
                     MeinRequest meinRequest = (MeinRequest) deserialized;
+                    // wrap it, hand it over to the service and send results back
                     Request<ServicePayload> request4Service = new Request<>().setPayload(meinRequest.getPayload()).setPartnerCertificate(this.partnerCertificate);
-
-                    ServicePayload payload = meinRequest.getPayload();
                     if (payload instanceof CachedData) {
                         Lok.debug("MeinValidationProcess.handleServiceInteraction");
                     }
@@ -279,7 +287,27 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
-    private boolean bootLevelSatisfied(String serviceUuid, SerializableEntity deserialized) {
+    /**
+     * Check whether the service has already reached the boot level required by the payload.
+     * The level is determined by creating a new instance of the payload that you got here and reading that.
+     *
+     * @param serviceUuid uuid of the service
+     * @param payload     {@link ServicePayload} that has a required boot level
+     * @return
+     */
+    private boolean bootLevelSatisfied(String serviceUuid, ServicePayload payload) {
+        MeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
+        if (payload != null) {
+            try {
+                Class<? extends ServicePayload> payloadClass = payload.getClass();
+                Constructor<? extends ServicePayload> constructor = payloadClass.getDeclaredConstructor();
+                ServicePayload newInstance = constructor.newInstance();
+                return meinService.getBootLevel() >= newInstance.getLevel();
+            } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
         return true;
     }
 

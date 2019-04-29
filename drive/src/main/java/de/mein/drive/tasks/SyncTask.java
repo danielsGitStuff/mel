@@ -15,7 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Created by xor on 10/27/16.
  */
-public class SyncTask extends CachedIterable<GenericFSEntry>  {
+public class SyncTask extends CachedIterable<GenericFSEntry> {
     private long oldVersion;
     private Long newVersion;
     @JsonIgnore
@@ -26,6 +26,7 @@ public class SyncTask extends CachedIterable<GenericFSEntry>  {
 
     public SyncTask(File cacheDir, int partSize) {
         super(cacheDir, partSize);
+        this.level = 2;
     }
 
     @Override
@@ -35,6 +36,7 @@ public class SyncTask extends CachedIterable<GenericFSEntry>  {
 
     public SyncTask() {
         Lok.debug("debug");
+        this.level = 2;
     }
 
     public Long getStageSetId() {
@@ -72,7 +74,6 @@ public class SyncTask extends CachedIterable<GenericFSEntry>  {
     public long getOldVersion() {
         return oldVersion;
     }
-
 
 
     public void setStageSet(StageSet stageSet) {
