@@ -27,6 +27,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
             Lok.debug("working dir ${projectRootDir.absolutePath}")
 
             // pull
+            Processor.runProcesses("test git", Processor("ssh", "-T", "git@github.com"))
             Processor.runProcesses("pull from git", Processor("git", "pull"))
             // put keystore.properties in place
             val keyStoreFile = File(secretDir, "sign.jks")
@@ -90,9 +91,9 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     miniBackup = true
                 }
                 // move files folder
-                val filesFolder = File(serverDir,"files")
+                val filesFolder = File(serverDir, "files")
                 val filesBackupFolder = File("files.backup.${Date().time}")
-                if (miniServer.config.keepBinaries){
+                if (miniServer.config.keepBinaries) {
                     filesFolder.renameTo(filesBackupFolder)
                 }
                 serverDir.deleteRecursively()
@@ -105,7 +106,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (miniBackup) {
                     miniServerBackup.renameTo(miniServerTarget)
                 }
-                if (miniServer.config.keepBinaries){
+                if (miniServer.config.keepBinaries) {
                     filesBackupFolder.renameTo(filesFolder)
                 }
             }
