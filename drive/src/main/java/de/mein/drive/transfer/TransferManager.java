@@ -282,8 +282,11 @@ public class TransferManager extends DeferredRunnable {
                     meinAuthService.getPowerManager().wakeLock(this);
                     while (transfers.size() > 0) {
                         AtomicInteger countDown = new AtomicInteger(transfers.size());
-                        FileTransferDetailSet payLoad = new FileTransferDetailSet();
-                        payLoad.setServiceUuid(meinDriveService.getUuid());
+
+                        FileTransferDetailsPayload payLoad = new FileTransferDetailsPayload();
+                        FileTransferDetailSet detailSet = new FileTransferDetailSet();
+                        payLoad.setFileTransferDetailSet(detailSet);
+                        detailSet.setServiceUuid(meinDriveService.getUuid());
                         for (TransferDetails transferDetails : transfers) {
                             transferDao.setStarted(transferDetails.getId().v(), true);
                             transferDetails.getStarted().v(true);
@@ -305,7 +308,7 @@ public class TransferManager extends DeferredRunnable {
                                     ));
                             Lok.debug("TransferManager.retrieveFiles.add.transfer: " + fileTransferDetail.getStreamId());
                             fileProcess.addFilesReceiving(fileTransferDetail);
-                            payLoad.add(fileTransferDetail);
+                            detailSet.add(fileTransferDetail);
                         }
                         showProgress();
                         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(strippedTransferDetails.getCertId().v());

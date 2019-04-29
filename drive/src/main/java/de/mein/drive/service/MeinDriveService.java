@@ -31,6 +31,7 @@ import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.tasks.DirectoriesContentTask;
+import de.mein.drive.transfer.FileTransferDetailsPayload;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -145,7 +146,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                     logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.msg");
                     if (job.getIntent() != null && job.getIntent().equals(DriveStrings.INTENT_PLEASE_TRANSFER)) {
                         logger.log(Level.FINEST, "MeinDriveService.workWorkWork: transfer please");
-                        handleSending(job.getPartnerCertificate().getId().v(), (FileTransferDetailSet) job.getPayLoad());
+                        handleSending(job.getPartnerCertificate().getId().v(), (FileTransferDetailsPayload) job.getPayLoad());
                     }
                 }
             }
@@ -159,7 +160,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 //        return intent.equals(expected);
 //    }
 
-    protected void handleSending(Long partnerCertId, FileTransferDetailSet detailSet) {
+    protected void handleSending(Long partnerCertId, FileTransferDetailsPayload detailSet) {
         handleSending(partnerCertId, detailSet, true);
     }
 
@@ -182,12 +183,13 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         super.resume();
     }
 
-    protected void handleSending(Long partnerCertId, FileTransferDetailSet detailSet, boolean lockFsEntry) {
+    protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload, boolean lockFsEntry) {
         //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
         FsDao fsDao = driveDatabaseManager.getFsDao();
         try {
             if (lockFsEntry)
                 fsDao.lockRead();
+            FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
             for (FileTransferDetail detail : detailSet.getDetails()) {
                 AFile wasteFile = wastebin.getByHash(detail.getHash());
                 MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) getIsolatedProcess(partnerCertId, detailSet.getServiceUuid());

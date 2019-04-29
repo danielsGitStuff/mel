@@ -1,6 +1,7 @@
 package de.mein.auth.socket.process.transfer;
 
 import de.mein.auth.data.ServicePayload;
+import de.mein.core.serialize.SerializableEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * Created by xor on 1/6/17.
  */
-public class FileTransferDetailSet extends ServicePayload {
+public class FileTransferDetailSet implements SerializableEntity {
     private List<FileTransferDetail> details = new ArrayList<>();
     private String serviceUuid;
 
