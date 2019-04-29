@@ -27,7 +27,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
             Lok.debug("working dir ${projectRootDir.absolutePath}")
 
             // pull
-            Processor.runProcesses("test git", Processor("ssh", "-T", "git@github.com"))
+//            Processor.runProcesses("test git", Processor("ssh", "-T", "git@github.com"))
             Processor.runProcesses("pull from git", Processor("git", "pull"))
             // put keystore.properties in place
             val keyStoreFile = File(secretDir, "sign.jks")
