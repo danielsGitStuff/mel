@@ -68,6 +68,7 @@ public class TransferManager extends DeferredRunnable {
     @Override
     public void onShutDown() {
         meinAuthService.getPowerManager().releaseWakeLock(this);
+        this.lock.unlockWrite().unlockRead();
     }
 
     private String activeTransferKey(TransferDetails details) {
