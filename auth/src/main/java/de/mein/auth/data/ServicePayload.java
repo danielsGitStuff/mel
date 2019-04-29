@@ -12,6 +12,14 @@ public abstract class ServicePayload implements SerializableEntity {
     @JsonIgnore
     protected Integer level = 1;
 
+    public ServicePayload(String intent) {
+        this.intent = intent;
+    }
+
+    public ServicePayload() {
+
+    }
+
     public Integer getLevel() {
         return level;
     }
@@ -25,4 +33,8 @@ public abstract class ServicePayload implements SerializableEntity {
         return intent;
     }
 
+    public boolean hasIntent(String intentQuery) {
+        return intent != null && intent.equals(intentQuery);
+
+    }
 }

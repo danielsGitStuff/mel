@@ -92,13 +92,12 @@ public class ContactsServerService extends ContactsService {
         try {
             for (ClientData client : settings.getServerSettings().getClients()) {
                 meinAuthService.connect(client.getCertId()).done(mvp ->
-                        N.r(() -> mvp.message(client.getServiceUuid(), ContactStrings.INTENT_PROPAGATE_NEW_VERSION, new NewVersionDetails(version))));
+                        N.r(() -> mvp.message(client.getServiceUuid(), new NewVersionDetails(version, ContactStrings.INTENT_PROPAGATE_NEW_VERSION))));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 
 
     @Override
@@ -118,7 +117,7 @@ public class ContactsServerService extends ContactsService {
     }
 
     @Override
-    public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
-        addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(intent));
+    public void handleMessage(ServicePayload payload, Certificate partnerCertificate) {
+        addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(payload.getIntent()));
     }
 }

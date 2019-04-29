@@ -22,9 +22,8 @@ public interface IMeinService {
      * Messages do not require answers
      *  @param payload            data you may be interested in
      * @param partnerCertificate who sent this to you
-     * @param intent
      */
-    void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent);
+    void handleMessage(ServicePayload payload, Certificate partnerCertificate);
 
     /**
      * there is a new connection to someone you know

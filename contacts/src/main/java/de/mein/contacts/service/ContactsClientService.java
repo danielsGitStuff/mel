@@ -63,7 +63,8 @@ public class ContactsClientService extends ContactsService {
     }
 
     @Override
-    public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
+    public void handleMessage(ServicePayload payload, Certificate partnerCertificate) {
+        String intent = payload.getIntent();
         if (intent != null && intent.equals(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)) {
             NewVersionDetails newVersionDetails = (NewVersionDetails) payload;
             try {

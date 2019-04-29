@@ -11,7 +11,6 @@ import org.jdeferred.impl.DeferredObject;
 public class Request<T extends ServicePayload> extends DeferredObject<T, Exception, Void> {
     private T payload;
     private Certificate partnerCertificate;
-    private String intent;
 
     public Request setPayload(T payload) {
         this.payload = payload;
@@ -31,19 +30,7 @@ public class Request<T extends ServicePayload> extends DeferredObject<T, Excepti
         return payload;
     }
 
-
-    public Request<T> setIntent(String intent) {
-        this.intent = intent;
-        return this;
-    }
-
-    public String getIntent() {
-        return intent;
-    }
-
-    public boolean hasIntent(String intent) {
-        if (this.intent == null)
-            return false;
-        return this.intent.equals(intent);
+    public boolean hasIntent(String intentQuery) {
+        return payload != null && payload.hasIntent(intentQuery);
     }
 }

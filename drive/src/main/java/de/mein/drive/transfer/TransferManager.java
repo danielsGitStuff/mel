@@ -81,7 +81,7 @@ public class TransferManager extends DeferredRunnable {
         lock.unlockWrite();
     }
 
-    public void resume(){
+    public void resume() {
         start();
     }
 
@@ -282,7 +282,8 @@ public class TransferManager extends DeferredRunnable {
                     meinAuthService.getPowerManager().wakeLock(this);
                     while (transfers.size() > 0) {
                         AtomicInteger countDown = new AtomicInteger(transfers.size());
-                        FileTransferDetailSet payLoad = new FileTransferDetailSet().setServiceUuid(meinDriveService.getUuid());
+                        FileTransferDetailSet payLoad = new FileTransferDetailSet();
+                        payLoad.setServiceUuid(meinDriveService.getUuid());
                         for (TransferDetails transferDetails : transfers) {
                             transferDao.setStarted(transferDetails.getId().v(), true);
                             transferDetails.getStarted().v(true);
@@ -309,7 +310,8 @@ public class TransferManager extends DeferredRunnable {
                         showProgress();
                         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(strippedTransferDetails.getCertId().v());
                         connected.done(validationProcess -> N.r(() -> {
-                            validationProcess.message(strippedTransferDetails.getServiceUuid().v(), DriveStrings.INTENT_PLEASE_TRANSFER, payLoad);
+                            payLoad.setIntent(DriveStrings.INTENT_PLEASE_TRANSFER);
+                            validationProcess.message(strippedTransferDetails.getServiceUuid().v(), payLoad);
                         })).fail(result -> N.r(() -> {
                             Lok.debug("TransferManager.retrieveFiles.48nf49");
                             deferred.reject(strippedTransferDetails);
@@ -333,7 +335,7 @@ public class TransferManager extends DeferredRunnable {
     public void research() {
         Eva.eva((eva, count) -> {
             Lok.error(count);
-            if (count== 8)
+            if (count == 8)
                 Lok.warn("debug");
         });
         N.r(() -> N.readSqlResourceIgnorantly(transferDao.getUnnecessaryTransfers(), (sqlResource, transferDetails) -> {

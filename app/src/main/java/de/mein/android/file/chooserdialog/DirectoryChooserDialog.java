@@ -168,7 +168,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         }
 
         @Override
-        public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
+        public void handleMessage(ServicePayload payload, Certificate partnerCertificate) {
 
         }
 

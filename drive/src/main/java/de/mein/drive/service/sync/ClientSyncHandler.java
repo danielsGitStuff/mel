@@ -291,8 +291,9 @@ public class ClientSyncHandler extends SyncHandler {
                     N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
                     commit.setServiceUuid(meinDriveService.getUuid());
                     commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
+                    commit.setIntent(DriveStrings.INTENT_COMMIT);
                     MeinValidationProcess mvp = connectResult.getValidationProcess();
-                    LockedRequest<CommitAnswer> lockedRequest = mvp.requestLocked(clientSttings.getServerServiceUuid(), DriveStrings.INTENT_COMMIT, commit);
+                    LockedRequest<CommitAnswer> lockedRequest = mvp.requestLocked(clientSttings.getServerServiceUuid(), commit);
                     if (lockedRequest.successful()) {
 //fsDao.lockWrite();
                         CommitAnswer answer = lockedRequest.getResponse();
@@ -379,7 +380,7 @@ public class ClientSyncHandler extends SyncHandler {
             if (stagedFromFs.size() > 1) {
                 meinDriveService.addJob(new CommitJob());
                 return;
-            }else if (stagedFromFs.size()==0 && commitJob.getSyncAnyway()){
+            } else if (stagedFromFs.size() == 0 && commitJob.getSyncAnyway()) {
                 meinDriveService.addJob(new SyncClientJob());
             }
         } catch (Exception e) {
@@ -768,7 +769,8 @@ public class ClientSyncHandler extends SyncHandler {
                         .setOldVersion(version);
                 sentSyncTask.setServiceUuid(this.clientSttings.getServerServiceUuid());
                 sentSyncTask.setCacheId(CachedData.randomId());
-                LockedRequest<SyncTask> requestResult = mvp.requestLocked(clientSttings.getServerServiceUuid(), DriveStrings.INTENT_SYNC, sentSyncTask);
+                sentSyncTask.setIntent(DriveStrings.INTENT_SYNC);
+                LockedRequest<SyncTask> requestResult = mvp.requestLocked(clientSttings.getServerServiceUuid(), sentSyncTask);
                 if (requestResult.successful()) runner.runTry(() -> {
                     SyncTask syncTask = requestResult.getResponse();
                     syncTask.setStageSet(stageSet);

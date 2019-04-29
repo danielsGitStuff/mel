@@ -48,7 +48,7 @@ class MessengerService(meinAuthService: MeinAuthService, workingDir: File, typeI
     override fun connectionAuthenticated(partnerCertificate: Certificate?) {
     }
 
-    override fun handleMessage(payload: ServicePayload?, partnerCertificate: Certificate?, intent: String?) {
+    override fun handleMessage(payload: ServicePayload?, partnerCertificate: Certificate?) {
     }
 
     override fun handleRequest(request: Request<*>?) {

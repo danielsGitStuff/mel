@@ -236,16 +236,16 @@ public class MeinValidationProcess extends MeinProcess {
                 MeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
                 if (deserialized instanceof MeinRequest) {
                     //delegate request to service
-                    MeinRequest request = (MeinRequest) deserialized;
-                    Request<ServicePayload> validatePromise = new Request<>().setPayload(request.getPayload()).setPartnerCertificate(this.partnerCertificate).setIntent(request.getIntent());
+                    MeinRequest meinRequest = (MeinRequest) deserialized;
+                    Request<ServicePayload> request4Service = new Request<>().setPayload(meinRequest.getPayload()).setPartnerCertificate(this.partnerCertificate);
 
-                    ServicePayload payload = request.getPayload();
+                    ServicePayload payload = meinRequest.getPayload();
                     if (payload instanceof CachedData) {
                         Lok.debug("MeinValidationProcess.handleServiceInteraction");
                     }
                     //wrap the answer and send it back
-                    validatePromise.done(newPayload -> {
-                        MeinResponse response = request.reponse().setPayLoad(newPayload);
+                    request4Service.done(newPayload -> {
+                        MeinResponse response = meinRequest.reponse().setPayLoad(newPayload);
                         if (newPayload instanceof CachedData) {
                             CachedData cachedData = (CachedData) newPayload;
                             cachedForSending.put(cachedData.getCacheId(), cachedData);
@@ -254,22 +254,22 @@ public class MeinValidationProcess extends MeinProcess {
                             send(response);
                         } catch (Exception e) {
                             e.printStackTrace();
-                            handleError(request, e);
+                            handleError(meinRequest, e);
                         }
                     }).fail(result -> {
-                        handleError(request, result);
+                        handleError(meinRequest, result);
                     });
                     try {
-                        meinService.handleRequest(validatePromise);
+                        meinService.handleRequest(request4Service);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        handleError(request, e);
+                        handleError(meinRequest, e);
                     }
                     return true;
                 } else if (deserialized instanceof MeinMessage) {
                     //delegate message to service
                     MeinMessage meinMessage = (MeinMessage) deserialized;
-                    meinService.handleMessage(meinMessage.getPayload(), this.partnerCertificate, meinMessage.getIntent());
+                    meinService.handleMessage(meinMessage.getPayload(), this.partnerCertificate);
                     return true;
                 }
             }
@@ -346,15 +346,14 @@ public class MeinValidationProcess extends MeinProcess {
      * lock on the {@link LockedRequest} to wait for a result.
      *
      * @param serviceUuid
-     * @param intent
      * @param payload
      * @return
      * @throws JsonSerializationException
      * @throws IllegalAccessException
      */
-    public LockedRequest requestLocked(String serviceUuid, String intent, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
+    public LockedRequest requestLocked(String serviceUuid, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
         LockedRequest promise = new LockedRequest();
-        MeinRequest request = new MeinRequest(serviceUuid, intent);
+        MeinRequest request = new MeinRequest(serviceUuid, null);
         if (payload != null) {
             request.setPayLoad(payload);
         }
@@ -421,8 +420,8 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
-    public void message(String serviceUuid, String intent, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
-        MeinMessage message = new MeinMessage(serviceUuid, intent).setPayLoad(payload);
+    public void message(String serviceUuid, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
+        MeinMessage message = new MeinMessage(serviceUuid, null).setPayLoad(payload);
         send(message);
     }
 

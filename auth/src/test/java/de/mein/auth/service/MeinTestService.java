@@ -27,7 +27,7 @@ public class MeinTestService extends MeinServiceWorker {
     }
 
     @Override
-    public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
+    public void handleMessage(ServicePayload payload, Certificate partnerCertificate) {
         Lok.debug("MeinTestService.handleMessage");
     }
 

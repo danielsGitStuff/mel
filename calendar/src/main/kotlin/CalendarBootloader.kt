@@ -55,7 +55,7 @@ class CalendarBootloader : Bootloader<CalendarService>() {
                 meinAuthService.connect(serverCertId)
                         .done { mvp ->
                             runner.runTry {
-                                mvp.request(serverServiceUuid, CalendarStrings.INTENT_REG_AS_CLIENT, ServiceDetails(service.uuid.v()))
+                                mvp.request(serverServiceUuid, ServiceDetails(service.uuid.v(), CalendarStrings.INTENT_REG_AS_CLIENT))
                                         .done { waitLock.unlock() }
                                         .fail { runner.abort() }
                             }

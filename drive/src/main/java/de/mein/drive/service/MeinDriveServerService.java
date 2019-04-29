@@ -76,7 +76,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
                 if (job.isRequest()) {
                     Request request = job.getRequest();
-                    if (checkIntent(request, DriveStrings.INTENT_REG_AS_CLIENT)) {
+                    if (request.hasIntent(DriveStrings.INTENT_REG_AS_CLIENT)) {
                         DriveDetails driveDetails = (DriveDetails) request.getPayload();
                         Long certId = request.getPartnerCertificate().getId().v();
                         driveSettings.getServerSettings().addClient(certId, driveDetails.getServiceUuid());
@@ -84,15 +84,15 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                         //propagateNewVersion();
                         request.resolve(null);
                         return true;
-                    } else if (checkIntent(request, DriveStrings.INTENT_COMMIT)) {
+                    } else if (request.hasIntent(DriveStrings.INTENT_COMMIT)) {
                         syncHandler.handleCommit(request);
                         return true;
-                    } else if (checkIntent(request, DriveStrings.INTENT_ASK_HASHES_AVAILABLE)) {
+                    } else if (request.hasIntent(DriveStrings.INTENT_ASK_HASHES_AVAILABLE)) {
                         syncHandler.handleAvailableHashesRequest(request);
                         return true;
                     }
                 } else if (job.isMessage()) {
-
+                    System.out.println("MeinDriveServerService.workWorkWork");
                 }
             }
 //            else if (unknownJob instanceof FsSyncJob) {
@@ -121,7 +121,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             long version = driveDatabaseManager.getLatestVersion();
             for (ClientData client : driveDatabaseManager.getDriveSettings().getServerSettings().getClients()) {
                 meinAuthService.connect(client.getCertId()).done(mvp -> N.r(() -> {
-                    mvp.message(client.getServiceUuid(), DriveStrings.INTENT_PROPAGATE_NEW_VERSION, new DriveDetails().setLastSyncVersion(version));
+                    mvp.message(client.getServiceUuid(), new DriveDetails().setLastSyncVersion(version).setIntent(DriveStrings.INTENT_PROPAGATE_NEW_VERSION));
                 }));
             }
         } catch (Exception e) {

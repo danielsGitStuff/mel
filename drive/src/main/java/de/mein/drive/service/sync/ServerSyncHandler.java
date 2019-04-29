@@ -29,9 +29,10 @@ import java.util.Map;
 public class ServerSyncHandler extends SyncHandler {
     private HashAvailTimer hashAvailTimer = new HashAvailTimer(() -> {
         AvailableHashes hashesAvailable = ServerSyncHandler.this.hashAvailTimer.getHashesAvailableCopy();
+        hashesAvailable.setIntent(DriveStrings.INTENT_HASH_AVAILABLE);
         N.forEachIgnorantly(driveSettings.getServerSettings().getClients(),
                 clientData -> meinAuthService.connect(clientData.getCertId()).done(
-                        mvp -> N.r(() -> mvp.message(clientData.getServiceUuid(), DriveStrings.INTENT_HASH_AVAILABLE, hashesAvailable))));
+                        mvp -> N.r(() -> mvp.message(clientData.getServiceUuid(), hashesAvailable))));
     });
 
     public ServerSyncHandler(MeinAuthService meinAuthService, MeinDriveService meinDriveService) {

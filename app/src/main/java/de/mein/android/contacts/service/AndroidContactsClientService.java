@@ -71,8 +71,8 @@ public class AndroidContactsClientService extends ContactsClientService {
     }
 
     @Override
-    public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
-        if (intent != null && intent.equals(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)) {
+    public void handleMessage(ServicePayload payload, Certificate partnerCertificate) {
+        if (payload.hasIntent(ContactStrings.INTENT_PROPAGATE_NEW_VERSION)) {
             try {
                 NewVersionDetails newVersionDetails = (NewVersionDetails) payload;
                 PhoneBook master = databaseManager.getFlatMasterPhoneBook();
@@ -93,7 +93,7 @@ public class AndroidContactsClientService extends ContactsClientService {
             }
 
         } else {
-            super.handleMessage(payload, partnerCertificate, intent);
+            super.handleMessage(payload, partnerCertificate);
         }
     }
 

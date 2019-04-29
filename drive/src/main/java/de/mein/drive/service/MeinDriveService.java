@@ -104,9 +104,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     }
 
     @Override
-    public void handleMessage(ServicePayload payload, Certificate partnerCertificate, String intent) {
+    public void handleMessage(ServicePayload payload, Certificate partnerCertificate) {
         logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.handleMessage");
-        addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(intent));
+        addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(payload.getIntent()));
     }
 
     public DriveSettings getDriveSettings() {
@@ -133,12 +133,12 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                 ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
                 if (job.isRequest()) {
                     Request request = job.getRequest();
-                    if (request.getIntent() != null && request.getIntent().equals(DriveStrings.INTENT_DRIVE_DETAILS)) {
+                    if (request.hasIntent(DriveStrings.INTENT_DRIVE_DETAILS)) {
                         DriveDetails details = driveDatabaseManager.getDriveSettings().getDriveDetails();
                         request.resolve(details);
-                    } else if (request.getIntent() != null && request.getIntent().equals(DriveStrings.INTENT_DIRECTORY_CONTENT)) {
+                    } else if (request.hasIntent(DriveStrings.INTENT_DIRECTORY_CONTENT)) {
                         handleDirectoryContentsRequest(request);
-                    } else if (checkIntent(request, DriveStrings.INTENT_SYNC)) {
+                    } else if (request.hasIntent(DriveStrings.INTENT_SYNC)) {
                         onSyncReceived(request);
                     }
                 } else if (job.isMessage()) {
@@ -152,12 +152,12 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         }
     }
 
-    protected boolean checkIntent(Request request, String expected) {
-        String intent = request.getIntent();
-        if (intent == null || expected == null)
-            return false;
-        return intent.equals(expected);
-    }
+//    protected boolean checkIntent(Request request, String expected) {
+//        String intent = request.getIntent();
+//        if (intent == null || expected == null)
+//            return false;
+//        return intent.equals(expected);
+//    }
 
     protected void handleSending(Long partnerCertId, FileTransferDetailSet detailSet) {
         handleSending(partnerCertId, detailSet, true);

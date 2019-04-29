@@ -10,11 +10,13 @@ public class NewVersionDetails extends ServicePayload {
     public NewVersionDetails() {
     }
 
-    public NewVersionDetails(Long version) {
-        this.version = version;
-    }
 
     private Long version;
+
+    public NewVersionDetails(Long version, String intent) {
+        super(intent);
+        this.version = version;
+    }
 
     public void setVersion(Long version) {
         this.version = version;
