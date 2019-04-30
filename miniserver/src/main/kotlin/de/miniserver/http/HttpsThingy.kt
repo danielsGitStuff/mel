@@ -18,7 +18,7 @@ object ContentType {
     const val SVG = "image/svg+xml"
 }
 
-class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port,miniServer.httpCertificateManager.sslContext) {
+class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port, miniServer.httpCertificateManager.sslContext) {
     fun pageHello(): Page {
         return Page("/de/miniserver/index.html",
                 Replacer("files") {
@@ -49,11 +49,11 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 },
                 Replacer("keep", if (miniServer.config.keepBinaries) "checked" else ""))
     }
+
     override fun configureContext(server: HttpsServer) {
 
 
         server.createContext("/") {
-            Lok.debug("HELLO!")
             respondPage(it, pageHello())
         }
         server.createContext("/robots.txt") {
@@ -104,8 +104,12 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 val arguments = it.requestURI.path.substring("/private/loggedIn".length).split(" ")
                 val targetPage = values["target"]
                 when (pw) {
-                    null -> respondText(it, "/de/miniserver/index.html")
+                    null -> {
+                        Lok.debug("no password")
+                        respondText(it, "/de/miniserver/index.html")
+                    }
                     miniServer.secretProperties["buildPassword"] -> {
+                        Lok.debug("build password OK!")
                         respondPage(it, pageBuild(pw))
                     }
                     else -> respondText(it, "/de/miniserver/index.html")
