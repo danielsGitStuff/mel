@@ -54,7 +54,12 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
 
         server.createContext("/") {
-            respondPage(it, pageHello())
+            if (it.requestURI?.toString() == "/")
+                respondPage(it, pageHello())
+            else {
+                Lok.debug("### strange uri: ${it.requestURI}")
+                it.close()
+            }
         }
         server.createContext("/robots.txt") {
             respondText(it, "/de/miniserver/robots.txt", contentType = "text/plain; charset=utf-8")
