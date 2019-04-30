@@ -53,6 +53,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
 
         server.createContext("/") {
+            Lok.debug("HELLO!")
             respondPage(it, pageHello())
         }
         server.createContext("/robots.txt") {
@@ -85,7 +86,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             val json = String(it.requestBody.readBytes())
             val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
             Lok.debug("launching build")
-            if (buildRequest.pw == miniServer.secretProperties["buildpassword"] && buildRequest.valid)
+            if (buildRequest.pw == miniServer.secretProperties["buildPassword"] && buildRequest.valid)
                 GlobalScope.launch {
                     val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)
                     deploy.run()
@@ -104,7 +105,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 val targetPage = values["target"]
                 when (pw) {
                     null -> respondText(it, "/de/miniserver/index.html")
-                    miniServer.secretProperties["buildpassword"] -> {
+                    miniServer.secretProperties["buildPassword"] -> {
                         respondPage(it, pageBuild(pw))
                     }
                     else -> respondText(it, "/de/miniserver/index.html")
@@ -113,8 +114,8 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 respondText(it, "/de/miniserver/private/loginz.html")
         }
         server.createContext("/build.html") {
-            val pw = readPostValues(it)["pw"]!!
-            if (pw == miniServer.secretProperties["buildpassword"]) {
+            val pw = readPostValues(it)["pw"]
+            if (pw != null && pw == miniServer.secretProperties["buildPassword"]) {
                 val uri = it.requestURI
                 val command = uri.path.substring("/build.html".length, uri.path.length).trim()
                 when (command) {
