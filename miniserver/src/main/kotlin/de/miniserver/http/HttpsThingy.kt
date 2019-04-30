@@ -111,14 +111,17 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 val targetPage = values["target"]
                 when (pw) {
                     null -> {
-                        Lok.debug("no password")
+                        Lok.debug("## no password")
                         respondText(it, "/de/miniserver/index.html")
                     }
                     miniServer.secretProperties["buildPassword"] -> {
-                        Lok.debug("build password OK!")
+                        Lok.debug("## build password OK!")
                         respondPage(it, pageBuild(pw))
                     }
-                    else -> respondText(it, "/de/miniserver/index.html")
+                    else -> {
+                        Lok.debug("## password did not match")
+                        respondText(it, "/de/miniserver/index.html")
+                    }
                 }
             } else
                 respondText(it, "/de/miniserver/private/loginz.html")
