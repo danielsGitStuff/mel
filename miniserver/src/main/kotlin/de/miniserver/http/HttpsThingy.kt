@@ -106,7 +106,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             if (it.requestMethod == "POST") {
                 val values = readPostValues(it)
                 val pw = values["pw"]
-                Lok.debug("##  pw: '$pw', pw is '${miniServer.secretProperties["buildPassword"]}'")
+//                Lok.debug("##  pw: '$pw', pw is '${miniServer.secretProperties["buildPassword"]}'")
 //                val arguments = it.requestURI.path.substring("/private/loggedIn".length).split(" ")
 //                val targetPage = values["target"]
                 when (pw) {
