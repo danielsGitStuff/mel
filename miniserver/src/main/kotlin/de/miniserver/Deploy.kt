@@ -28,7 +28,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
             // pull
 //            Processor.runProcesses("test git", Processor("ssh", "-T", "git@github.com"))
-            Processor.runProcesses("ssh keygen", Processor("eval", "\"$(ssh-agent -s)\""))
+//            Processor.runProcesses("ssh keygen", Processor("eval", "\"$(ssh-agent -s)\""))
             Processor.runProcesses("pull from git", Processor("git", "pull", "-v"))
             // put keystore.properties in place
             val keyStoreFile = File(secretDir, "sign.jks")
