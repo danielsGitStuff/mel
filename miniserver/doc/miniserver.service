@@ -1,0 +1,11 @@
+[Unit]
+Description=Mel update server
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env /home/build/miniserver.sh
+
+[Install]
+WantedBy=multi-user.target
