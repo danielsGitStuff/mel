@@ -25,6 +25,17 @@ public class KonsoleTest {
     }
 
     @Test
+    public void tokenizeQuotedCommand() {
+        List<String> tokens = Konsole.tokenizeQuotedCommand("notify-send   \"c \\\"d e\"  keks \"a b c\" x \" Y \"");
+        assertEquals("notify-send", tokens.get(0));
+        assertEquals("\"c \\\"d e\"", tokens.get(1));
+        assertEquals("keks", tokens.get(2));
+        assertEquals("\"a b c\"", tokens.get(3));
+        assertEquals("x", tokens.get(4));
+        assertEquals("\" Y \"", tokens.get(5));
+    }
+
+    @Test
     public void first() throws Exception {
         konsole.mandatory("-first", "first descr", (result1, args) -> result1.string = args[0]);
         konsole.handle(arguments);
@@ -85,15 +96,6 @@ public class KonsoleTest {
     }
 
     @Test
-    public void quotedArgWithSpaces() throws Exception {
-        //-restart-command "systemctl --user restart miniserver.service"
-        arguments = new String[]{"-first", ""};
-        konsole.mandatory("-first", "first descr", (result, args) -> result.string = args[0]);
-        konsole.handle(arguments);
-        assertEquals("bla \" bla", dummy.string);
-    }
-
-    @Test
     public void optional() throws Exception {
         arguments = new String[]{"-first", "FIRST", "-opt", "888"};
         konsole.mandatory("-first", "first descr", (result1, args) -> result1.string = args[0])
@@ -140,19 +142,19 @@ public class KonsoleTest {
 
     @Test
     public void dependsOn() throws Konsole.KonsoleWrongArgumentsException, Konsole.HelpException, Konsole.DependenciesViolatedException {
-        arguments = new String[]{"-a", "AA", "-b", "BB","-c","CC"};
+        arguments = new String[]{"-a", "AA", "-b", "BB", "-c", "CC"};
         konsole.mandatory("-a", "a desc", (result, args) -> result.manyArgs.add(args[0]))
                 .optional("-b", "b desc", (result, args) -> result.manyArgs.add(args[0]), Konsole.dependsOn("-c"))
                 .optional("-c", "c desc", (result, args) -> result.manyArgs.add(args[0]));
         konsole.handle(arguments);
-        assertEquals("AA",dummy.manyArgs.get(0));
-        assertEquals("BB",dummy.manyArgs.get(1));
-        assertEquals("CC",dummy.manyArgs.get(2));
+        assertEquals("AA", dummy.manyArgs.get(0));
+        assertEquals("BB", dummy.manyArgs.get(1));
+        assertEquals("CC", dummy.manyArgs.get(2));
         Lok.debug("");
     }
 
     @Test
-    public void stupid(){
+    public void stupid() {
         Date date = new Date();
         Long time = date.getTime();
         Date read = new Date(time);

@@ -32,10 +32,6 @@ public class Konsole<T extends KResult> {
         return set;
     }
 
-//    private static List<String> recursiveTokenizer(String string){
-//
-//    }
-
     public static String[] tokenizeArgument(String arguments) {
         Lok.debug(arguments);
         Integer lastSplitIndex = 0;
@@ -65,6 +61,47 @@ public class Konsole<T extends KResult> {
 
     public T getResult() {
         return result;
+    }
+
+    /**
+     * Eats a command like 'cp "foo bar" fuubar' and tokenizes it.
+     * Strings in quotes keep their quotes.
+     * @param string
+     * @return
+     */
+    public  static List<String> tokenizeQuotedCommand(String string) {
+        boolean inQuote = false;
+        List<String> tokens = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+        StringTokenizer stringTokenizer = new StringTokenizer(string, " ", true);
+        while (stringTokenizer.hasMoreTokens()) {
+            String token = stringTokenizer.nextToken();
+            if (token.startsWith("\"") && !inQuote) {
+                // quote starts
+                builder = new StringBuilder();
+                builder.append(token);
+                inQuote = true;
+            } else if (inQuote) {
+                builder.append(token);
+                if (token.endsWith("\"")) {
+                    // check if quote ends by counting backslashes backwards.
+                    // even backslashes => quote is not escaped
+                    int offset = 0;
+                    Character c = token.charAt(token.length() - 1 - offset);
+                    while (c.equals('\\')) {
+                        offset--;
+                        c = token.charAt(token.length() - 1 - offset);
+                    }
+                    if (offset % 2 == 0) {
+                        inQuote = false;
+                        tokens.add(builder.toString());
+                    }
+                }
+            } else if (!token.trim().isEmpty()) {
+                tokens.add(token);
+            }
+        }
+        return tokens;
     }
 
     /**
