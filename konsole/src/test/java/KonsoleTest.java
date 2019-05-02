@@ -85,6 +85,15 @@ public class KonsoleTest {
     }
 
     @Test
+    public void quotedArgWithSpaces() throws Exception {
+        //-restart-command "systemctl --user restart miniserver.service"
+        arguments = new String[]{"-first", ""};
+        konsole.mandatory("-first", "first descr", (result, args) -> result.string = args[0]);
+        konsole.handle(arguments);
+        assertEquals("bla \" bla", dummy.string);
+    }
+
+    @Test
     public void optional() throws Exception {
         arguments = new String[]{"-first", "FIRST", "-opt", "888"};
         konsole.mandatory("-first", "first descr", (result1, args) -> result1.string = args[0])

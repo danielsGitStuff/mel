@@ -4,9 +4,7 @@ import de.mein.KResult;
 import de.mein.Lok;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class digests the input arguments of the main()-method. Everything argument
@@ -32,6 +30,37 @@ public class Konsole<T extends KResult> {
     public static DependenciesContainer.DependencySet dependsOn(String... attributes) {
         DependenciesContainer.DependencySet set = new DependenciesContainer.DependencySet(attributes);
         return set;
+    }
+
+//    private static List<String> recursiveTokenizer(String string){
+//
+//    }
+
+    public static String[] tokenizeArgument(String arguments) {
+        Lok.debug(arguments);
+        Integer lastSplitIndex = 0;
+        Integer splitIndex = arguments.indexOf('"');
+        String rear = arguments;
+        List<String> tokens = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+        boolean afterEndQuote = false;
+        while (splitIndex > -1) {
+            String front = rear.substring(0, splitIndex);
+            rear = rear.substring(splitIndex + 1, rear.length());
+            builder.append(front);
+
+            if (front.endsWith("\\")) {
+                builder.append("\"");
+            } else if (true) {
+                tokens.add(builder.toString());
+                builder = new StringBuilder();
+                Lok.debug("lel");
+                afterEndQuote = true;
+            }
+
+            splitIndex = rear.indexOf('"');
+        }
+        return tokens.toArray(new String[0]);
     }
 
     public T getResult() {
@@ -221,4 +250,5 @@ public class Konsole<T extends KResult> {
             super(msg);
         }
     }
+
 }
