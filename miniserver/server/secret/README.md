@@ -1,4 +1,4 @@
-#MiniServer
+# MiniServer
 The MiniServer has several functions:
 * Delivering websites
 * Delivering updates/binaries
@@ -7,7 +7,7 @@ The MiniServer has several functions:
     * mel jar
     * mel apk
 * Restart itself
-##Basics
+## Basics
 Miniserver puts all of its files in a subfolder  called "server" if not specified otherwise by setting "-dir".
 Which files you must provide depends on what your miniserver should deliver. For instance a signed certificate is not necessary if you do not plan to run a website.
 If you just want to put files on it you don't need the build configuration.
