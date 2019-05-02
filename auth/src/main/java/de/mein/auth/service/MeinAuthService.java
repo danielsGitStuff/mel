@@ -566,6 +566,7 @@ public class MeinAuthService {
             }
         }
         uuidServiceMapSemaphore.unlock();
+        meinBoot.onHeavyWorkAllowed();
         DeferredObject[] arr = N.arr.fromCollection(servicesStarted, N.converter(DeferredObject.class, element -> element));
         if (arr.length > 0) {
             new DefaultDeferredManager().when(arr).done(result -> execute(meinAuthWorker))

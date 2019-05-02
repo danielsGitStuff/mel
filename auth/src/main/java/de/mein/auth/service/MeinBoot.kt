@@ -88,8 +88,9 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     private fun bootStage2() {
         if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
             outstandingBootloaders.forEach { bootloader ->
-                bootloader.bootLevel2()?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
+                bootloader.bootLevel2()//?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
             }
+            outstandingBootloaders.clear()
         }
     }
 
@@ -180,6 +181,11 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
         val serviceTypesDir = File(workingDir, "servicetypes")
         val serviceDir = File(serviceTypesDir, serviceJoinServiceType.type.v())
         return File(serviceDir, service.uuid.v())
+    }
+
+    fun onHeavyWorkAllowed() {
+        Lok.debug("MeinBoot boots stage 2 services")
+        bootStage2()
     }
 
     companion object {
