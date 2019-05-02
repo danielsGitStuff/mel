@@ -24,7 +24,7 @@ Here is all the stuff that you can specify:
 * optional: Signing key (requires the previous one)
 
 
-##Deliver Websites
+## Deliver Websites
 In "server/secret/http" is the certificate that you probably had signed by [LetsEncrypt](https://letsencrypt.org/) or someone else trustworthy.
 Put your certificate in said folder and name it `cert.cert`, name your private key file `pk.key`.
 In your `secret.properties` you'll have to specify the following:
@@ -33,11 +33,11 @@ In your `secret.properties` you'll have to specify the following:
 * `projectRootDir`= Path, optional, only required if you want the MiniServer to build stuff
 
 
-##Deliver Updates
+## Deliver Updates
 Copy your certificate and your key to "server/secret/socket".
 Put your certificate in said folder and name it `cert.cert`, name your private key file `pk.key`.
 
-##Build (optional)
+## Build (optional)
 You can create a signing key by using the Android SDK or Android Studio. [See here](https://developer.android.com/studio/publish/app-signing#generate-key)
 This generates you a keystore that you have to copy somewhere. KEEP IT SECRET. So the secret folder is a good place to put it.
 In your `secret.properties` you'll have to specify the following:
@@ -50,7 +50,7 @@ In your `secret.properties` you'll have to specify the following:
 MiniServer will generate a `keystore.properties` file according to [this guide](https://developer.android.com/studio/publish/app-signing#secure-key)
 and provide it to the android build process.
 
-##Restart Miniserver (optional)
+## Restart Miniserver (optional)
 In case that your MiniServer is started by systemd you can specify the command that is required to restart it.
 Make sure that you have edited your sudoers file in such a way that the MiniServer user is allowed to run this command.
 
@@ -60,7 +60,7 @@ NOTE: the MiniServers process does not exit when the command is executed. System
 
 Look at the example below.
 
-##Example secret.properties
+## Example secret.properties
 ```properties
 password=secure password
 buildpassword=another secure password
@@ -75,7 +75,7 @@ restartCommand=sudo /usr/bin/systemctl restart miniserver.service
 ```
 
 
-###some additional commands you might find useful when it comes to craft certificates for HTTPS
+### some additional commands you might find useful when it comes to craft certificates for HTTPS
 this is certbot related.
 --private files from the server go here. includes certificates and passwords
 
