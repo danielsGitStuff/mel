@@ -337,8 +337,8 @@ public class MeinValidationProcess extends MeinProcess {
     private boolean handleGetServices(SerializableEntity deserialized) throws JsonSerializationException, IllegalAccessException, SqlQueriesException {
         if (deserialized instanceof MeinRequest) {
             MeinRequest request = (MeinRequest) deserialized;
-            if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME)
-                    && request.getIntent().equals(MeinStrings.msg.INTENT_GET_SERVICES)) {
+            ServicePayload payload = request.getPayload();
+            if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME) && payload != null && payload.hasIntent(MeinStrings.msg.INTENT_GET_SERVICES)) {
                 MeinResponse response = request.reponse();
                 MeinAuthProcess.addAllowedServicesJoinTypes(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
                 send(response);
