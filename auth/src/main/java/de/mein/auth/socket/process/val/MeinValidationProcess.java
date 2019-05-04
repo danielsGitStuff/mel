@@ -417,20 +417,21 @@ public class MeinValidationProcess extends MeinProcess {
             meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
         }).fail(result -> {
             if (validateFail(result)) {
-                if (!promise.isRejected()) {
-                    try {
+                try {
+                    if (!promise.isRejected()) {
                         promise.reject(result);
-                    } finally {
-                        meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
                     }
+                } finally {
+                    meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
                 }
             } else {
-                if (!promise.isRejected()) {
-                    try {
+                try {
+
+                    if (!promise.isRejected()) {
                         promise.reject(result);
-                    }finally {
-                        meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
                     }
+                } finally {
+                    meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
                 }
             }
         });
