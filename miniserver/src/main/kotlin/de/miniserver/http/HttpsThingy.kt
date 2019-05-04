@@ -27,7 +27,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                         s.append("<tr>")
                         s.append("<td><a href=\"files/${fileEntry.hash}\" download=\"${fileEntry.file.name}\">${fileEntry.file.name}</a></td>") //name
                         s.append("<td>${fileEntry.variant}</td>") //variant
-                        s.append("<td>${String.format("%.1f", fileEntry.size / 1024 / 1024)} mb</td>") //size
+                        s.append("<td>${String.format("%.2f", fileEntry.size.toFloat() / 1024 / 1024)} mb</td>") //size
                         s.append("<td>${Date(fileEntry.version)})</td>") //build date
                         s.append("<td>${fileEntry.hash}</td>")//hash
                         s.append("</tr>")
