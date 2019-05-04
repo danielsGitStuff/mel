@@ -403,7 +403,7 @@ public class MeinValidationProcess extends MeinProcess {
 
 
     public Request request(String serviceUuid, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
-        meinAuthSocket.getMeinAuthService().getPowerManager().wakeLock(this);
+        meinAuthSocket.getMeinAuthService().getPowerManager().wakeLock(MeinValidationProcess.this);
         Request promise = new Request();
         MeinRequest request = new MeinRequest(serviceUuid, null);
         if (payload != null) {
@@ -414,16 +414,25 @@ public class MeinValidationProcess extends MeinProcess {
         request.getAnswerDeferred().done(result -> {
             StateMsg response = (StateMsg) result;
             promise.resolve(response.getPayload());
-            meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this);
+            meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
         }).fail(result -> {
             if (validateFail(result)) {
-                if (!promise.isRejected())
-                    promise.reject(result);
+                if (!promise.isRejected()) {
+                    try {
+                        promise.reject(result);
+                    } finally {
+                        meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
+                    }
+                }
             } else {
-                if (!promise.isRejected())
-                    promise.reject(result);
+                if (!promise.isRejected()) {
+                    try {
+                        promise.reject(result);
+                    }finally {
+                        meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
+                    }
+                }
             }
-            meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this);
         });
         // todo this line should be redundant, see "request.setRequestHandler(this).queue();" above
         queueForResponse(request);
