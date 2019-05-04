@@ -4,7 +4,7 @@ import java.io.File
 import java.io.FileNotFoundException
 
 fun main(args: Array<String>) {
-    val fileEntry = FileEntry(hash = "h",file = File("bla"),variant = "var",version = 666L)
+    val fileEntry = FileEntry(hash = "h", file = File("bla"), variant = "var", version = 666L, size = 0L)
     val repo = FileRepository()
     repo += fileEntry
     val r = repo["h"]
@@ -12,7 +12,7 @@ fun main(args: Array<String>) {
 }
 
 @Suppress("ArrayInDataClass")
-class FileEntry(val hash: String, val file: File, val variant: String, val version: Long, bytes: ByteArray? = null) {
+class FileEntry(val hash: String, val file: File, val variant: String, val version: Long, val size: Long, bytes: ByteArray? = null) {
     var bytes: ByteArray? = bytes
         get() {
             if (field == null) {
@@ -47,12 +47,12 @@ class FileRepository {
         set(fileEntry.hash, fileEntry)
     }
 
-    operator fun minusAssign(fileEntry: FileEntry){
+    operator fun minusAssign(fileEntry: FileEntry) {
         checkHashKey(fileEntry.hash)
         hashFileMap.remove(fileEntry.hash)
     }
 
-    operator fun minusAssign(hash: String){
+    operator fun minusAssign(hash: String) {
         checkHashKey(hash)
         hashFileMap.remove(hash)
     }

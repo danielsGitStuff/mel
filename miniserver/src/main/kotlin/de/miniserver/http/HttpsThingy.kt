@@ -27,6 +27,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                         s.append("<tr>")
                         s.append("<td><a href=\"files/${fileEntry.hash}\" download=\"${fileEntry.file.name}\">${fileEntry.file.name}</a></td>") //name
                         s.append("<td>${fileEntry.variant}</td>") //variant
+                        s.append("<td>${String.format("%.1f", fileEntry.size / 1024 / 1024)} mb</td>") //size
                         s.append("<td>${Date(fileEntry.version)})</td>") //build date
                         s.append("<td>${fileEntry.hash}</td>")//hash
                         s.append("</tr>")
@@ -82,7 +83,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             if (fileName.endsWith(".svg"))
                 respondText(it, "/de/miniserver/svg/$fileName", contentType = ContentType.SVG)
             else
-                respondText(it, "/de/miniserver/index.html")
+                respondPage(it, pageHello())
         }
         server.createContext("/favicon.png") {
             respondBinary(it, "/de/miniserver/favicon.png")
@@ -112,7 +113,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 when (pw) {
                     null -> {
 //                        Lok.debug("## no password")
-                        respondText(it, "/de/miniserver/index.html")
+                        respondPage(it, pageHello())
                     }
                     miniServer.secretProperties["buildPassword"] -> {
 //                        Lok.debug("## build password OK!")
@@ -120,7 +121,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     }
                     else -> {
 //                        Lok.debug("## password did not match")
-                        respondText(it, "/de/miniserver/index.html")
+                        respondPage(it, pageHello())
                     }
                 }
             } else

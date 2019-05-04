@@ -154,7 +154,9 @@ constructor(val config: ServerConfig) {
 
             variant = properties.getProperty("variant")
             version = properties.getProperty("version").toLong()
-            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, version = version)
+            val size = f.length()
+
+            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, version = version, size = size)
             fileRepository += fileEntry
             versionAnswer.addEntry(hash, variant, version, f.length())
         }
