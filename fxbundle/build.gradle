@@ -1,16 +1,24 @@
 import java.time.LocalDateTime
-
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
+}
 apply plugin: 'java'
 //apply plugin: 'gradle-one-jar'
 
-compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+javafx {
+    version = project.javaFxVersion
+    modules = project.javaFxModules
 }
-compileTestJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-}
+
+//compileJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}
+//compileTestJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}
 repositories {
     mavenCentral()
 }
@@ -63,15 +71,18 @@ build {
     dependsOn createProperties
 }
 
+
 classes {
     dependsOn createProperties
 }
 
 task buildFxJar(type: Jar) {
+    
     group "meins"
     description "build a fucking jar filled with candies!"
     manifest {
-        attributes "version": 1, "Main-Class": "de.mein.fxbundle.Main"
+        attributes "version": 1, "Main-Class": "de.mein.fxbundle.Main", "verrrrsion": org.gradle.internal.jvm.Jvm.current()
+
     }
     dependsOn jar
 

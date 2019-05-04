@@ -1,4 +1,14 @@
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
+}
 apply plugin: 'java'
+//apply plugin: 'gradle-one-jar'
+
+javafx {
+    version = project.javaFxVersion
+    modules = project.javaFxModules
+}
 
 compileJava {
     sourceCompatibility = '1.8'
