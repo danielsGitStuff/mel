@@ -185,7 +185,15 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        btnAbout.setOnAction(e -> loadSettingsFX("de/mein/auth/about.fxml"));
+        btnAbout.setOnAction(e -> {
+            try {
+                Class test = Class.forName("javafx.scene.WebView");
+                if (test != null)
+                    loadSettingsFX("de/mein/auth/about.fxml");
+            } catch (ClassNotFoundException ex) {
+                loadSettingsFX("de/mein/auth/aboutnoweb.fxml");
+            }
+        });
         btnSettings.setOnAction(event -> loadSettingsFX("de/mein/auth/settings.fxml"));
         btnInfo.setOnAction(event -> loadSettingsFX("de/mein/auth/info.fxml"));
         btnSecondary.setOnAction(event -> {
