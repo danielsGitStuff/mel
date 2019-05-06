@@ -229,8 +229,19 @@ public class MeinValidationProcess extends MeinProcess {
             MeinMessage message = (MeinMessage) deserialized;
             ServicePayload payload = message.getPayload();
             String serviceUuid = message.getServiceUuid();
+            // no serviceuuid could be an answer to a request
             if (serviceUuid == null) {
                 return handleAnswer(deserialized);
+            }
+            MeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
+            if (meinService == null) {
+                if (message instanceof MeinRequest) {
+                    MeinRequest request = (MeinRequest) message;
+                    request.getAnswerDeferred().reject(new ResponseException("service not available"));
+                } else {
+                    Lok.debug("msg rejected");
+                }
+                return true;
             }
             if (!bootLevelSatisfied(serviceUuid, payload)) {
                 Lok.error("NOT ALLOWED, LEVEL INSUFFICIENT");
@@ -243,7 +254,6 @@ public class MeinValidationProcess extends MeinProcess {
                 return true;
             }
             if (isServiceAllowed(serviceUuid)) {
-                MeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
                 if (deserialized instanceof MeinRequest) {
                     MeinRequest meinRequest = (MeinRequest) deserialized;
                     // wrap it, hand it over to the service and send results back
