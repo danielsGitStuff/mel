@@ -2,7 +2,9 @@ package de.mein.android.service;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.mein.Lok;
@@ -26,7 +28,8 @@ public class AndroidPowerManager extends PowerManager {
     private boolean powerNoWifi = false;
     private boolean noPowerWifi = false;
     private boolean noPowerNoWifi = false;
-    private boolean overrideState = false;
+    private Set<Object> overrideCallers = new HashSet();
+    private ReentrantLock overrideAccessLock = new ReentrantLock(true);
 
 
     public AndroidPowerManager(MeinAuthSettings meinAuthSettings, android.os.PowerManager osPowerManager) {
@@ -50,7 +53,7 @@ public class AndroidPowerManager extends PowerManager {
      * changes state, takes or releases wakelock if necessary.
      */
     private void changeState() {
-        boolean shouldRun = runWhen(powered, wifi) || overrideState;
+        boolean shouldRun = runWhen(powered, wifi);
         if (shouldRun != running && meinAuthService != null) {
             if (shouldRun) {
                 Lok.debug("resuming...");
@@ -93,7 +96,7 @@ public class AndroidPowerManager extends PowerManager {
     }
 
     public boolean runWhen(boolean onPower, boolean onWifi) {
-        if (overrideState)
+        if (!overrideCallers.isEmpty())
             return true;
         if (onPower && onWifi)
             return powerWifi;
@@ -168,14 +171,26 @@ public class AndroidPowerManager extends PowerManager {
         stateLock.unlock();
     }
 
-    public void overrideState(boolean override){
+    public void overrideState(Object caller) {
         /**
          * this is deactivated until suspended services have a sophisticated way to deal with messages and requests.
          * for now all services are expected to be running when the auth instance is reachable.
          *
          */
-//        this.overrideState = override;
-//        changeState();
+        overrideAccessLock.lock();
+        this.overrideCallers.add(caller);
+        N.r(() -> wakeTimer.stop());
+        overrideAccessLock.unlock();
+        changeState();
+    }
+
+    public void releaseOverride(Object caller) {
+        overrideAccessLock.lock();
+        boolean foundCaller = this.overrideCallers.remove(caller);
+        if (foundCaller && this.overrideCallers.isEmpty()) {
+            N.r(() -> wakeTimer.start());
+        }
+        overrideAccessLock.unlock();
     }
 
     @Override

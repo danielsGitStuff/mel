@@ -96,7 +96,7 @@ public class NetworkDiscoveryController extends GuiController {
         Lok.debug("destroy");
         if (powerManager != null) {
             powerManager.releaseWakeLock(this);
-            powerManager.overrideState(false);
+            powerManager.releaseOverride(this);
         }
         if (environment != null)
             environment.deleteObservers();
@@ -107,7 +107,7 @@ public class NetworkDiscoveryController extends GuiController {
         super.onStop();
         if (powerManager != null) {
             powerManager.releaseWakeLock(this);
-            powerManager.overrideState(false);
+            powerManager.releaseOverride(false);
         }
         if (environment != null)
             environment.deleteObservers();
@@ -118,7 +118,7 @@ public class NetworkDiscoveryController extends GuiController {
         super.onAndroidServiceAvailable(androidService);
         powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
         powerManager.wakeLock(this);
-        powerManager.overrideState(true);
+        powerManager.overrideState(this);
         environment = androidService.getMeinAuthService().getNetworkEnvironment();
         unkownListAdapter = new UnknownAuthListAdapter(rootView.getContext(), environment);
         listUnkown.setOnItemClickListener((parent, view, position, id) -> {

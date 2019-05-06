@@ -21,6 +21,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 import androidx.core.app.NotificationCompat;
+
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.AndroidInjector;
@@ -110,6 +111,10 @@ public class AndroidService extends Service {
     public IBinder onBind(Intent intent) {
         Lok.debug("AndroidService.onBind");
         return localBinder;
+    }
+
+    public AndroidPowerManager getAndroidPowerManager() {
+        return (AndroidPowerManager) meinAuthService.getPowerManager();
     }
 
 

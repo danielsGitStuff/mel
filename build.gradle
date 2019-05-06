@@ -29,10 +29,10 @@ allprojects {
         google()
     }
 }
-task b() {
-    Object o = project(':miniserver')
-    println("kek $o")
-}
+//task b() {
+//    Object o = project(':miniserver')
+//    println("kek $o")
+//}
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

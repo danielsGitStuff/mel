@@ -56,8 +56,8 @@ public class CertActivity extends PopupActivity {
         regBundle.getAndroidRegHandler().addActivity(regBundle.getHash(), this);
         if (regBundle.isFlaggedRemoteAccepted())
             onRemoteAccepted();
-        showCert(txtRemote,txtRemoteHash, regBundle.getRemoteCert());
-        showCert(txtOwn, txtOwnHash,regBundle.getMyCert());
+        showCert(txtRemote, txtRemoteHash, regBundle.getRemoteCert());
+        showCert(txtOwn, txtOwnHash, regBundle.getMyCert());
         btnAccept.setOnClickListener(
                 view -> {
                     regBundle.getAndroidRegHandler().onUserAccepted(regBundle);
@@ -109,8 +109,15 @@ public class CertActivity extends PopupActivity {
     }
 
     @Override
-    protected void onAndroidServiceAvailable(AndroidService androidService) {
+    protected void onStop() {
+        androidService.getAndroidPowerManager().releaseOverride(CertActivity.this);
+        super.onStop();
+    }
 
+    @Override
+    protected void onAndroidServiceAvailable(AndroidService androidService) {
+        this.androidService = androidService;
+        androidService.getAndroidPowerManager().overrideState(CertActivity.this);
     }
 
     @Override
