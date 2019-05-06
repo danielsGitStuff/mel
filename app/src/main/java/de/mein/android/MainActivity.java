@@ -179,7 +179,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
 
     private void updateBarColor() {
         if (powerManager != null && toolbar != null) {
-            boolean run = powerManager.runWhen(powerManager.isPowered(), powerManager.isWifi());
+            boolean run = powerManager.runWhenOverride(powerManager.isPowered(), powerManager.isWifi());
             int color = run ? runningColor : stoppedColor;
             runOnUiThread(() -> toolbar.setBackgroundColor(color));
         }

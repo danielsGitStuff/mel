@@ -53,7 +53,7 @@ public class AndroidPowerManager extends PowerManager {
      * changes state, takes or releases wakelock if necessary.
      */
     private void changeState() {
-        boolean shouldRun = runWhen(powered, wifi);
+        boolean shouldRun = runWhenOverride(powered, wifi);
         if (shouldRun != running && meinAuthService != null) {
             if (shouldRun) {
                 Lok.debug("resuming...");
@@ -95,9 +95,24 @@ public class AndroidPowerManager extends PowerManager {
                 .apply();
     }
 
-    public boolean runWhen(boolean onPower, boolean onWifi) {
+    /**
+     * same as runWHen() but respects override
+     * @param onPower
+     * @param onWifi
+     * @return
+     */
+    public boolean runWhenOverride(boolean onPower, boolean onWifi) {
         if (!overrideCallers.isEmpty())
             return true;
+        return runWhen(onPower, onWifi);
+    }
+
+    /**
+     * @param onPower
+     * @param onWifi
+     * @return whether or not {@link AndroidPowerManager} allows communications given a (wifi + power) state
+     */
+    public boolean runWhen(boolean onPower, boolean onWifi) {
         if (onPower && onWifi)
             return powerWifi;
         else if (onPower)
@@ -122,7 +137,7 @@ public class AndroidPowerManager extends PowerManager {
     private void updateWifi(boolean wifiNow) {
         if (wifi != wifiNow) {
             wifi = wifiNow;
-            boolean shouldRun = runWhen(powered, wifi);
+            boolean shouldRun = runWhenOverride(powered, wifi);
             if (shouldRun != running) {
                 N.r(() -> wakeTimer.start());
             } else {
@@ -134,7 +149,7 @@ public class AndroidPowerManager extends PowerManager {
     private void updatePowered(boolean powerNow) {
         if (powered != powerNow) {
             powered = powerNow;
-            boolean shouldRun = runWhen(powered, wifi);
+            boolean shouldRun = runWhenOverride(powered, wifi);
             if (shouldRun != running) {
                 N.r(() -> wakeTimer.start());
             } else {
@@ -189,6 +204,7 @@ public class AndroidPowerManager extends PowerManager {
         overrideAccessLock.lock();
         boolean foundCaller = this.overrideCallers.remove(caller);
         if (foundCaller && this.overrideCallers.isEmpty()) {
+            N.r(() -> wakeTimer.resume());
             N.r(() -> wakeTimer.start());
         }
         overrideAccessLock.unlock();

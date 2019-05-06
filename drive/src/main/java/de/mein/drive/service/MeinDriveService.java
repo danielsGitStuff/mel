@@ -33,6 +33,7 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.tasks.DirectoriesContentTask;
 import de.mein.drive.transfer.FileTransferDetailsPayload;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -309,7 +310,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     @Override
     public void onShutDown() {
         super.onShutDown();
-        syncHandler.onShutDown();
+        if (syncHandler != null)
+            syncHandler.onShutDown();
         driveDatabaseManager.shutDown();
         if (indexer != null)
             indexer.shutDown();
