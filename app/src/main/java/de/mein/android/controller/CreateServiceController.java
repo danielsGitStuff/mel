@@ -99,8 +99,15 @@ public class CreateServiceController extends GuiController implements Permission
     }
 
     @Override
+    public void onStop() {
+        super.onStop();
+        androidService.getAndroidPowerManager().releaseOverride(this);
+    }
+
+    @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
+        androidService.getAndroidPowerManager().overrideState(this);
         if (bootLoader == null) {
             activity.runOnUiThread(() -> {
                 MeinAuthService meinAuthService = androidService.getMeinAuthService();

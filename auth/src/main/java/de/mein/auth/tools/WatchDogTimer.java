@@ -41,6 +41,7 @@ public class WatchDogTimer extends Timer {
         this.watchDogTimerFinished = watchDogTimerFinished;
     }
 
+
     /**
      * Starts the Timer if not running. Otherwise it will be reset.
      *
@@ -50,8 +51,10 @@ public class WatchDogTimer extends Timer {
     public WatchDogTimer start() throws InterruptedException {
         Lok.warn("started");
         lock.acquire();
-        if (task != null)
+        if (task != null) {
             task.reset();
+            task.resume();
+        }
         if (!runs) {
             //Lok.debug("WatchDogTimer.start.NEWTASK");
             task = new WatchDogTimerTask(name, () -> {
@@ -102,6 +105,8 @@ public class WatchDogTimer extends Timer {
     public void finish() throws InterruptedException {
         watchDogTimerFinished.onTimerStopped();
     }
+
+
 
 
     public interface WatchDogTimerFinished {

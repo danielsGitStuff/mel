@@ -136,6 +136,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     @Override
     public void onClose(int code, String reason, boolean remote) {
         Lok.debug(meinAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
+        meinAuthService.onSocketClosed(this);
     }
 
     @Override
@@ -327,8 +328,15 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         super.onShutDown();
     }
 
+
+
     @Override
     public void start() {
         super.start();
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
     }
 }

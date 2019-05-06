@@ -179,7 +179,8 @@ public class AndroidPowerManager extends PowerManager {
          */
         overrideAccessLock.lock();
         this.overrideCallers.add(caller);
-        N.r(() -> wakeTimer.stop());
+        N.r(() -> wakeTimer.waite());
+//        N.r(() -> wakeTimer.stop());
         overrideAccessLock.unlock();
         changeState();
     }

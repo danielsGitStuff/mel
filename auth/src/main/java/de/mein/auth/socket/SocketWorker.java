@@ -40,6 +40,7 @@ class SocketWorker extends MeinWorker {
     @Override
     public void onShutDown() {
         Lok.debug("SocketWorker.onShutDown, Runnable: " + getRunnableName());
+        listener.onClose(100, "shutdown", false);
         super.onShutDown();
     }
 

@@ -48,6 +48,7 @@ import org.jdeferred.impl.DeferredObject;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -546,6 +547,7 @@ public class MeinAuthService {
         }
         uuidServiceMapSemaphore.unlock();
         Set<MeinSocket> socks = new HashSet<>(sockets);
+        Lok.debug("closing no of sockets: " + socks.size());
         for (MeinSocket socket : socks) {
             socket.shutDown();
         }
