@@ -154,13 +154,9 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
             val services = meinAuthService!!.databaseManager.getActiveServicesByType(dummyBootloader.getTypeId())
             services.filter { service -> meinAuthService!!.getMeinService(service.uuid.v()) == null }.forEach { service ->
                 val bootloader = createBootLoader(meinAuthService, bootClass)
-                val booted = bootloader.bootLevel1(meinAuthService, service)
-                if (booted != null) {
+                val meinService = bootloader.bootLevel1(meinAuthService, service)
+                if (meinService.bootLevel == Bootloader.BootLevel.LONG){
                     outstandingBootloaders += bootloader
-                    bootedPromises.add(booted)
-                    booted.fail { bootException ->
-                        outstandingBootloaders.remove(bootException.bootloader)
-                    }.done { }
                 }
             }
         }

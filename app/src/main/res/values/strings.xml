@@ -150,5 +150,7 @@
     <string name="infoNoUpdate">No Update available!</string>
     <string name="btnDownload">Download</string>
     <string name="questionDownloadUpdate">Do you want do download it?</string>
+    <string name="stateIncompleteBoot">Not completely started.</string>
+    <string name="error">Error</string>
 
 </resources>

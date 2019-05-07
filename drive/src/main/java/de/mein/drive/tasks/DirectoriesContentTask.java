@@ -1,6 +1,7 @@
 package de.mein.drive.tasks;
 
 import de.mein.auth.data.ServicePayload;
+import de.mein.auth.service.Bootloader;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.sql.FsDirectory;
 
@@ -18,7 +19,7 @@ public class DirectoriesContentTask extends ServicePayload {
 
     public DirectoriesContentTask(){
         intent =  DriveStrings.INTENT_DIRECTORY_CONTENT;
-        this.level = 2;
+        this.level = Bootloader.BootLevel.LONG;
     }
 
     public DirectoriesContentTask setVersion(long version) {

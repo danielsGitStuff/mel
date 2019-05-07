@@ -1,5 +1,6 @@
 package de.mein.auth.data;
 
+import de.mein.auth.service.Bootloader;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 
@@ -10,7 +11,7 @@ public abstract class ServicePayload implements SerializableEntity {
 
     protected String intent;
     @JsonIgnore
-    protected Integer level = 1;
+    protected Bootloader.BootLevel level = Bootloader.BootLevel.SHORT;
 
     public ServicePayload(String intent) {
         this.intent = intent;
@@ -20,7 +21,7 @@ public abstract class ServicePayload implements SerializableEntity {
 
     }
 
-    public Integer getLevel() {
+    public Bootloader.BootLevel getLevel() {
         return level;
     }
 

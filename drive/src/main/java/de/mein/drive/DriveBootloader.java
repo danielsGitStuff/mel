@@ -7,7 +7,6 @@ import de.mein.auth.data.db.Service;
 import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -21,7 +20,6 @@ import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.DriveDatabaseManager;
-import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 
 import org.jdeferred.Promise;
@@ -30,7 +28,6 @@ import org.jdeferred.impl.DeferredObject;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by xor on 16.08.2016.
@@ -62,18 +59,16 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
     }
 
     @Override
-    public Promise<MeinDriveService, BootException, Void> bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
-        DeferredObject<MeinDriveService, BootException, Void> booted = new DeferredObject<>();
+    public MeinDriveService bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         N.r(() -> {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + DriveStrings.SETTINGS_FILE_NAME);
             driveSettings = DriveSettings.load(jsonFile);
             meinDriveService = spawn(meinAuthService, serviceDescription, driveSettings);
             Lok.debug(meinAuthService.getName() + ", booted to level 1: " + meinDriveService.getClass().getSimpleName());
             meinAuthService.registerMeinService(meinDriveService);
-            booted.resolve(meinDriveService);
 //            meinDriveService.getStartedDeferred().done(result -> booted.resolve(null)).fail(e -> booted.reject(new BootException(this, e)));
         });
-        return booted;
+        return meinDriveService;
     }
 
     @Override

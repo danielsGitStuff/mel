@@ -2,6 +2,7 @@ import de.mein.auth.MeinNotification
 import de.mein.auth.data.ServicePayload
 import de.mein.auth.data.db.Certificate
 import de.mein.auth.jobs.Job
+import de.mein.auth.service.Bootloader
 import de.mein.auth.service.MeinAuthService
 import de.mein.auth.service.MeinService
 import de.mein.auth.socket.process.`val`.Request
@@ -11,7 +12,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 
-abstract class CalendarService(meinAuthService: MeinAuthService, serviceInstaceWorkingDirectory: File, serviceTypeId: Long, uuid: String) : MeinService(meinAuthService, serviceInstaceWorkingDirectory, serviceTypeId, uuid) {
+abstract class CalendarService(meinAuthService: MeinAuthService, serviceInstaceWorkingDirectory: File, serviceTypeId: Long, uuid: String) : MeinService(meinAuthService, serviceInstaceWorkingDirectory, serviceTypeId, uuid, Bootloader.BootLevel.SHORT) {
     override fun handleRequest(request: Request<*>?) {
     }
 

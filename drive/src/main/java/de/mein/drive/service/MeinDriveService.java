@@ -7,6 +7,7 @@ import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
+import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinServiceWorker;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
@@ -86,7 +87,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     }
 
     public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
-        super(meinAuthService, workingDirectory, serviceTypeId, uuid);
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid, Bootloader.BootLevel.LONG);
         this.driveSettings = driveSettings;
     }
 

@@ -33,14 +33,14 @@ public class MeinTestBootloader extends Bootloader<MeinTestService> {
     }
 
     @Override
-    public Promise bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+    public MeinTestService bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         MeinTestService testService = new MeinTestService(meinAuthService, new File("testworkingdir"), 1L, "test uuid no. " + count++);
         try {
             meinAuthService.registerMeinService(testService);
         } catch (SqlQueriesException e) {
             throw new BootException(this, e);
         }
-        return null;
+        return testService;
     }
 
 

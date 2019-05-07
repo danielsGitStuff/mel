@@ -16,9 +16,10 @@ import java.util.concurrent.ThreadFactory;
  */
 public abstract class MeinService extends MeinWorker implements IMeinService {
     protected final File serviceInstanceWorkingDirectory;
+    private final Bootloader.BootLevel bootLevel;
+    private Bootloader.BootLevel reachedBootLevel;
     protected MeinAuthService meinAuthService;
     protected final String uuid;
-    int bootLevel = 0;
     protected final Long serviceTypeId;
     private ExecutorService executorService;
     private final Semaphore threadSemaphore = new Semaphore(1, true);
@@ -42,14 +43,20 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     };
 
 
-    public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid) {
+    public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, Bootloader.BootLevel bootLevel) {
         this.meinAuthService = meinAuthService;
         this.serviceInstanceWorkingDirectory = serviceInstanceWorkingDirectory;
         this.serviceTypeId = serviceTypeId;
         this.uuid = uuid;
+        this.bootLevel = bootLevel;
+        this.reachedBootLevel = Bootloader.BootLevel.NONE;
         executorService = createExecutorService(threadFactory);
         this.cacheDirectory = new File(serviceInstanceWorkingDirectory.getAbsolutePath() + File.separator + "cache");
         cacheDirectory.mkdirs();
+    }
+
+    public Bootloader.BootLevel getServiceBootType() {
+        return bootLevel;
     }
 
     public MeinAuthService getMeinAuthService() {
@@ -87,13 +94,18 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         }
     }
 
-    MeinService setBootLevel(int level) {
-        this.bootLevel = level;
-        return this;
+
+
+    public Bootloader.BootLevel getBootLevel() {
+        return bootLevel;
     }
 
-    public int getBootLevel() {
-        return bootLevel;
+    public Bootloader.BootLevel getReachedBootLevel() {
+        return reachedBootLevel;
+    }
+
+    public void setReachedBootLevel(Bootloader.BootLevel level){
+        this.reachedBootLevel = level;
     }
 
     @Override

@@ -2,10 +2,12 @@ package de.mein.auth.service;
 
 import de.mein.Lok;
 import de.mein.auth.data.db.Service;
+
 import org.jdeferred.Promise;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Every Service running in MeinAuth has to start somewhere. This is here.
@@ -21,7 +23,7 @@ public abstract class Bootloader<T extends MeinService> {
     protected Long typeId;
     protected File bootLoaderDir;
     protected MeinAuthService meinAuthService;
-    protected AtomicInteger bootLevel = new AtomicInteger(0);
+    protected AtomicReference<BootLevel> bootLevel = new AtomicReference<>(BootLevel.NONE);
 
 
     public Long getTypeId() {
@@ -37,19 +39,14 @@ public abstract class Bootloader<T extends MeinService> {
 
     public abstract String getDescription();
 
-    public final Promise<T, BootException, Void> bootLevel1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
-        if (bootLevel.get() == 0) {
-            bootLevel.incrementAndGet();
-            Promise<T, BootException, Void> promise = bootLevel1Impl(meinAuthService, serviceDescription);
-            if (promise != null)
-                promise.done(service -> {
-                    meinService = service;
-                    service.setBootLevel(1);
-                    service.onBootLevel1Finished();
-                });
-            return promise;
+    public final T bootLevel1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+        if (bootLevel.compareAndSet(BootLevel.NONE, BootLevel.SHORT)) {
+            meinService = bootLevel1Impl(meinAuthService, serviceDescription);
+            meinService.setReachedBootLevel(BootLevel.SHORT);
+            meinService.onBootLevel1Finished();
+            return meinService;
         } else {
-            Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to level 1. But its current level  was not 0. current level=" + bootLevel.get());
+            Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to level 1. But its current level was not 0. current level=" + bootLevel.get());
             return null;
         }
     }
@@ -62,7 +59,7 @@ public abstract class Bootloader<T extends MeinService> {
      * @return
      * @throws BootException
      */
-    public abstract Promise<T, BootException, Void> bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException;
+    public abstract T bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException;
 
     public void setBootLoaderDir(File bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;
@@ -75,15 +72,15 @@ public abstract class Bootloader<T extends MeinService> {
 
     public void setMeinAuthService(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
+
     }
 
     public final Promise<Void, BootException, Void> bootLevel2() throws BootException {
-        if (bootLevel.get() == 1) {
-            bootLevel.incrementAndGet();
+        if (bootLevel.compareAndSet(BootLevel.SHORT, BootLevel.LONG)) {
             Promise<Void, BootException, Void> promise = bootLevel2Impl();
             if (promise != null)
                 promise.done(nil -> {
-                    meinService.setBootLevel(2);
+                    meinService.setReachedBootLevel(BootLevel.LONG);
                     meinService.onBootLevel2Finished();
                 });
             return promise;
@@ -116,6 +113,20 @@ public abstract class Bootloader<T extends MeinService> {
             super(new Exception(s));
             this.bootloader = bootloader;
         }
+    }
 
+
+    public enum BootLevel {
+//        NONE(0), SHORT(1), LONG(2);
+//        private int value;
+
+        //        BootLevel(int value) {
+//            this.value = value;
+//        }
+        NONE, SHORT, LONG;
+
+        public boolean greaterOrEqual(BootLevel other) {
+            return this.ordinal() >= other.ordinal();
+        }
     }
 }

@@ -112,27 +112,39 @@ public class EditServiceController extends GuiController {
     }
 
     private void showServiceStatus() {
-            int stateColor = 0;
-            int stateText;
-            int btnText;
-            if (service.getActive().v()) {
-                MeinService meinService = androidService.getMeinAuthService().getMeinService(service.getUuid().v());
-                if (meinService == null) {
-                    stateColor = activity.getResources().getColor(R.color.stateStopped);
-                    stateText = R.string.stateStopped;
-                } else {
-                    stateColor = activity.getResources().getColor(R.color.stateRunning);
-                    stateText = R.string.stateRunning;
-                }
-                btnText = R.string.btnDeactivate;
+        int stateColor = 0;
+        int stateText;
+        int btnText;
+        if (service.getActive().v()) {
+            MeinService meinService = androidService.getMeinAuthService().getMeinService(service.getUuid().v());
+            if (meinService == null) {
+                stateColor = activity.getResources().getColor(R.color.stateStopped);
+                stateText = R.string.stateStopped;
+            } else if (meinService.getBootLevel() == meinService.getReachedBootLevel()) {
+                stateColor = activity.getResources().getColor(R.color.stateRunning);
+                stateText = R.string.stateRunning;
             } else {
-                stateColor = activity.getResources().getColor(R.color.stateDeactivated);
-                stateText = R.string.stateDeactivated;
-                btnText = R.string.btnActivate;
+                switch (meinService.getReachedBootLevel()) {
+                    case NONE:
+                        Lok.error("boot level confusion!");
+                    case SHORT:
+                        stateColor = activity.getResources().getColor(R.color.stateDeactivated);
+                        stateText = R.string.stateIncompleteBoot;
+                        break;
+                    default:
+                        stateText = R.string.error;
+                        break;
+                }
             }
-            btnDeactivate.setText(btnText);
-            lblState.setBackgroundColor(stateColor);
-            lblState.setText(stateText);
+            btnText = R.string.btnDeactivate;
+        } else {
+            stateColor = activity.getResources().getColor(R.color.stateDeactivated);
+            stateText = R.string.stateDeactivated;
+            btnText = R.string.btnActivate;
+        }
+        btnDeactivate.setText(btnText);
+        lblState.setBackgroundColor(stateColor);
+        lblState.setText(stateText);
     }
 
     @Override

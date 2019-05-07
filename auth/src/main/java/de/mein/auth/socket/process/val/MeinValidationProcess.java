@@ -312,7 +312,7 @@ public class MeinValidationProcess extends MeinProcess {
                 Class<? extends ServicePayload> payloadClass = payload.getClass();
                 Constructor<? extends ServicePayload> constructor = payloadClass.getDeclaredConstructor();
                 ServicePayload newInstance = constructor.newInstance();
-                return meinService.getBootLevel() >= newInstance.getLevel();
+                return meinService.getBootLevel().greaterOrEqual(newInstance.getLevel());
             } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
                 e.printStackTrace();
                 return false;
@@ -387,7 +387,6 @@ public class MeinValidationProcess extends MeinProcess {
      * @param payload
      * @return
      * @throws JsonSerializationException
-     * @throws IllegalAccessException
      */
     public LockedRequest requestLocked(String serviceUuid, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
         LockedRequest promise = new LockedRequest();

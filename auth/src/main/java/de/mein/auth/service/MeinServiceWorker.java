@@ -17,8 +17,8 @@ public abstract class MeinServiceWorker extends MeinService {
     private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
     private CountdownLock initLock = new CountdownLock(1);
 
-    public MeinServiceWorker(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
-        super(meinAuthService, workingDirectory, serviceTypeId, uuid);
+    public MeinServiceWorker(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, Bootloader.BootLevel bootLevel) {
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid, bootLevel);
     }
 
     @Override

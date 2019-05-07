@@ -2,6 +2,7 @@ package de.mein.drive.tasks;
 
 
 import de.mein.Lok;
+import de.mein.auth.service.Bootloader;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.auth.data.cached.CachedIterable;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -26,7 +27,7 @@ public class SyncTask extends CachedIterable<GenericFSEntry> {
 
     public SyncTask(File cacheDir, int partSize) {
         super(cacheDir, partSize);
-        this.level = 2;
+        this.level = Bootloader.BootLevel.LONG;
     }
 
     @Override
@@ -36,7 +37,7 @@ public class SyncTask extends CachedIterable<GenericFSEntry> {
 
     public SyncTask() {
         Lok.debug("debug");
-        this.level = 2;
+        this.level = Bootloader.BootLevel.LONG;
     }
 
     public Long getStageSetId() {

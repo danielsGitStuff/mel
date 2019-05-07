@@ -150,5 +150,7 @@
     <string name="infoNoUpdate">Zur Zeit ist kein Update verfügbar!</string>
     <string name="btnDownload">Herunterladen.</string>
     <string name="questionDownloadUpdate">Herunterladen?</string>
+    <string name="stateIncompleteBoot">Nicht vollständig gestartet.</string>
+    <string name="error">Fehler</string>
 
 </resources>

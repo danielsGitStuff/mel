@@ -84,9 +84,9 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
     }
 
     @Throws(Bootloader.BootException::class)
-    private fun boot(meinAuthService: MeinAuthService, service: Service, contactsSettings: ContactsSettings<*>?): ContactsService? {
+    private fun boot(meinAuthService: MeinAuthService, service: Service, contactsSettings: ContactsSettings<*>?): ContactsService {
         val workingDirectory = meinAuthService.meinBoot.createServiceInstanceWorkingDir(service)
-        var contactsService: ContactsService? = null
+        var contactsService: ContactsService
         try {
             if (contactsSettings!!.isServer) {
                 contactsService = createServerInstance(meinAuthService, workingDirectory, service.typeId.v(), service.uuid.v(), contactsSettings)
@@ -159,7 +159,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
     }
 
     @Throws(Bootloader.BootException::class)
-    override fun bootLevel1Impl(meinAuthService: MeinAuthService, serviceDescription: Service): Promise<ContactsService, Bootloader.BootException, Void>? {
+    override fun bootLevel1Impl(meinAuthService: MeinAuthService, serviceDescription: Service): ContactsService {
         val instanceDir = meinAuthService.meinBoot.createServiceInstanceWorkingDir(serviceDescription)
         val jsonFile = File(instanceDir, ContactStrings.SETTINGS_FILE_NAME)
         var contactsSettings: ContactsSettings<*>? = null
@@ -175,8 +175,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
             throw Bootloader.BootException(this, e)
         }
 
-        boot(meinAuthService, serviceDescription, contactsSettings)
-        return null
+        return boot(meinAuthService, serviceDescription, contactsSettings)
     }
 
     @Throws(Bootloader.BootException::class)
