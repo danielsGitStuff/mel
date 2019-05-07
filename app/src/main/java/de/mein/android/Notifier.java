@@ -53,7 +53,7 @@ public class Notifier {
 
     public static void cancel(Intent intent, int requestCode) {
         Context context = Tools.getApplicationContext();
-        if (intent!=null) {
+        if (intent != null) {
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             if (pendingIntent != null)
                 pendingIntent.cancel();
@@ -114,7 +114,7 @@ public class Notifier {
         Notification notification = builder.setSmallIcon(iconResource)
                 .setContentTitle(title)
                 .setContentText(text)
-                .addAction(R.drawable.new_icon,"Download",intent)
+                .addAction(R.drawable.new_icon, title, intent)
                 .build();
         Notifier.createNotificationManager(context).notify(requestCode, notification);
     }

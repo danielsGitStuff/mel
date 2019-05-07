@@ -45,9 +45,16 @@ public class CreateServiceController extends WakelockedGuiController implements 
         @Override
         public void onClick(View v) {
             if (bootLoader != null) {
-                currentController.setName(txtName.getText().toString());
-                bootLoader.createService(activity, activity.getAndroidService().getMeinAuthService(), currentController);
-                mainActivity.showMenuServices();
+                try {
+                    currentController.setName(txtName.getText().toString());
+                    bootLoader.createService(activity, activity.getAndroidService().getMeinAuthService(), currentController);
+                    mainActivity.showMenuServices();
+                    mainActivity.showMessage(R.string.success, R.string.successCreateService);
+                } catch (Exception e) {
+                    mainActivity.showMessage(R.string.error, R.string.errorCreateService);
+                }
+            } else {
+                mainActivity.showMessage(R.string.error, R.string.errorCreateService);
             }
         }
     };

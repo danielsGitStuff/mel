@@ -152,5 +152,8 @@
     <string name="questionDownloadUpdate">Do you want do download it?</string>
     <string name="stateIncompleteBoot">Not completely started.</string>
     <string name="error">Error</string>
+    <string name="success">Success</string>
+    <string name="successCreateService">Service successfully created.</string>
+    <string name="errorCreateService">Creating Service failed.</string>
 
 </resources>
