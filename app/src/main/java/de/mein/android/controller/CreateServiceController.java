@@ -105,6 +105,12 @@ public class CreateServiceController extends GuiController implements Permission
     }
 
     @Override
+    public void onDestroy() {
+        androidService.getAndroidPowerManager().releaseOverride(this);
+        super.onDestroy();
+    }
+
+    @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
         androidService.getAndroidPowerManager().overrideState(this);
