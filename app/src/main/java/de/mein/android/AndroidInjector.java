@@ -71,8 +71,15 @@ public class AndroidInjector {
         MeinInjector.setSQLConnectionCreator(databaseManager -> {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "meinauth", null, 1) {
                 @Override
+                public void onOpen(SQLiteDatabase db) {
+                    db.disableWriteAheadLogging();
+                    super.onOpen(db);
+                }
+
+                @Override
                 public void onCreate(SQLiteDatabase db) {
                     Lok.debug("AndroidDriveBootloader.onCreate");
+                    db.disableWriteAheadLogging();
                 }
 
                 @Override
