@@ -327,6 +327,11 @@ public class MeinAuthService {
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
         Certificate certificate = certificateManager.getTrustedCertificateById(certificateId);
+        if (certificate == null) {
+            Lok.error("No Certificate found for id: " + certificateId);
+            deferred.reject(new Exception("certificate not found"));
+            return deferred;
+        }
         // check if already connected via id and address
         connectedEnvironment.lock();
         try {
