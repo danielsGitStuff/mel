@@ -40,6 +40,10 @@ public class AndroidPowerManager extends PowerManager {
         noPowerWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_WIFI, false);
         noPowerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_NO_WIFI, false);
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+        // set this to false cause we do not want to accidentally start boot level 2.
+        // the power/wifi listeners will update the values when started
+        wifi = false;
+        powered = false;
         wakeLock(this);
         wakeTimer = new WatchDogTimer("android power manager", () -> {
             stateLock.lock();
