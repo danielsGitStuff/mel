@@ -67,71 +67,16 @@ public class PowerManager {
 
     }
 
-//    protected void propagatePossibleStateChanges(boolean workBefore, boolean workNow) {
-//        try {
-//            powerListenerLock.lock();
-//            if ((workNow ^ workBefore)) {
-//                if (workNow) {
-//                    onHeavyWorkAllowed();
-//                } else {
-//                    onHeavyWorkForbidden();
-//                }
-//            }
-//        } finally {
-//            powerListenerLock.unlock();
-//        }
-//    }
-
     public void onCommunicationsDisabled() {
-//        stateLock.lock();
-//        boolean workBefore = heavyWorkAllowedNoLock();
-//        boolean onlineBefore = wifi;
-//        wifi = false;
-//        boolean workNow = heavyWorkAllowedNoLock();
-//        stateLock.unlock();
-////        propagatePossibleStateChanges(workBefore, workNow);
-//        try {
-//            comListenerLock.lock();
-//            if (onlineBefore)
-//                for (CommunicationsListener listener : comListeners)
-//                    listener.onCommunicationsDisabled();
-//        } finally {
-//            comListenerLock.unlock();
-//        }
     }
 
     public void onCommunicationsEnabled() {
-//        stateLock.lock();
-//        boolean workBefore = heavyWorkAllowedNoLock();
-//        boolean onlineBefore = wifi;
-//        wifi = true;
-//        boolean workNow = heavyWorkAllowedNoLock();
-//        stateLock.unlock();
-////        propagatePossibleStateChanges(workBefore, workNow);
-//        try {
-//            comListenerLock.lock();
-//            if (!onlineBefore)
-//                for (CommunicationsListener listener : comListeners)
-//                    listener.onCommunicationsEnabled();
-//        } finally {
-//            comListenerLock.unlock();
-//        }
     }
 
     public void onPowerPlugged() {
-//        stateLock.lock();
-//        boolean workBefore = heavyWorkAllowedNoLock();
-//        powered = true;
-//        boolean workNow = heavyWorkAllowedNoLock();
-//        stateLock.unlock();
     }
 
     public void onPowerUnplugged() {
-//        stateLock.lock();
-//        boolean workBefore = heavyWorkAllowedNoLock();
-//        powered = false;
-//        boolean workNow = heavyWorkAllowedNoLock();
-//        stateLock.unlock();
     }
 
     protected boolean heavyWorkAllowedNoLock() {
@@ -175,12 +120,6 @@ public class PowerManager {
         this.listeners.remove(listener);
     }
 
-    //    public interface PowerManagerListener {
-//        void onHeavyWorkAllowed();
-//
-//        void onHeavyWorkForbidden();
-//    }
-//
     public interface CommunicationsListener {
         void onCommunicationsEnabled();
 

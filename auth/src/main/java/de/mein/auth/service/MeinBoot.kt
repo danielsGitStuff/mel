@@ -85,6 +85,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
         }
     }
 
+    @Synchronized
     private fun bootStage2() {
         if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
             outstandingBootloaders.forEach { bootloader ->

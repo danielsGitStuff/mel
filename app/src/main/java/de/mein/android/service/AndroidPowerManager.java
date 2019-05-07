@@ -49,6 +49,14 @@ public class AndroidPowerManager extends PowerManager {
         }, 10, 100, 1000);
     }
 
+    @Override
+    public boolean heavyWorkAllowed() {
+        stateLock.lock();
+        boolean result = runWhen(powered, wifi);
+        stateLock.unlock();
+        return result;
+    }
+
     /**
      * changes state, takes or releases wakelock if necessary.
      */
@@ -97,6 +105,7 @@ public class AndroidPowerManager extends PowerManager {
 
     /**
      * same as runWHen() but respects override
+     *
      * @param onPower
      * @param onWifi
      * @return
