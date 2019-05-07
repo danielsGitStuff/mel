@@ -813,7 +813,6 @@ public class ClientSyncHandler extends SyncHandler {
      * @param syncTask contains delta
      * @return stageSetId in Promise
      * @throws SqlQueriesException
-     * @throws InterruptedException
      */
     private Promise<Long, Void, Void> sync2Stage(SyncTask syncTask) throws SqlQueriesException, InterruptedException {
         DeferredObject<Void, Void, Void> communicationDone = new DeferredObject<>();
