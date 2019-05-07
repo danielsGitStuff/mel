@@ -62,7 +62,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 it.close()
             }
         }
-        server.createContext("/licenses.html") {
+        server.createContext("/licences.html") {
             respondText(it, "/de/mein/auth/licences.html")
         }
         server.createContext("/robots.txt") {

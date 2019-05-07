@@ -58,7 +58,7 @@ public class AboutFX extends AuthSettingsFX {
             try {
                 content = F.readResourceToString("/de/mein/auth/licences.html");
             } catch (IOException e) {
-                Lok.error("failed to load licenses.html");
+                Lok.error("failed to load licences.html");
             }
             webengine.loadContent(content);
         } catch (NullPointerException e) {
