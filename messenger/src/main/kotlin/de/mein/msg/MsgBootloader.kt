@@ -15,7 +15,7 @@ class MsgBootloader : Bootloader<MessengerService>() {
 
     override fun getDescription(): String = "messages"
 
-    override fun bootLevel1Impl(meinAuthService: MeinAuthService, service: Service): Promise<MessengerService, BootException, Void> {
+    override fun bootLevel1Impl(meinAuthService: MeinAuthService, service: Service): MessengerService {
         val booted = DeferredObject<MessengerService, BootException, Void>()
         val deferredManager = DefaultDeferredManager()
         val promises = mutableListOf<Deferred<Void, Exception, Void>>()
@@ -23,6 +23,6 @@ class MsgBootloader : Bootloader<MessengerService>() {
         val messenger = MessengerService(meinAuthService, workingDir, service.typeId.v(), service.uuid.v())
         promises + messenger.startedDeferred
         deferredManager.`when`(*promises.toTypedArray()).done { booted.resolve(null) }.fail { result -> booted.reject(BootException(this, result.reject as Exception?)) }
-        return booted
+        return messenger
     }
 }

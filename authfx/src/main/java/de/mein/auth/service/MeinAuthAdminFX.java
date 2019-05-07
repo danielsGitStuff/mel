@@ -191,6 +191,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                 if (test != null)
                     loadSettingsFX("de/mein/auth/about.fxml");
             } catch (ClassNotFoundException ex) {
+                Lok.error("could not load web view. switching fxml...");
                 loadSettingsFX("de/mein/auth/aboutnoweb.fxml");
             }
         });

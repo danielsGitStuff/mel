@@ -35,7 +35,7 @@ import javafx.embed.swing.JFXPanel;
  */
 @SuppressWarnings("Duplicates")
 public class Main {
-    private static void init() throws Exception {
+    private static void initMein() throws Exception {
         new JFXPanel();
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
@@ -47,7 +47,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        init();
+        initMein();
 //        F.rmRf(MeinBoot.defaultWorkingDir1);
 //        F.rmRf(MeinAuthSettings.DEFAULT_FILE);
         RWLock lock = new RWLock();

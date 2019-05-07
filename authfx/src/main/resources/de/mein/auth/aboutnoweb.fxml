@@ -5,6 +5,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.Hyperlink?>
 <VBox maxHeight="1.7976931348623157E308" prefHeight="400.0" prefWidth="600.0" stylesheets="@mein.css" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.AboutFX">
     <Label styleClass="lbl-center-section" text="Version" />
     <Label fx:id="lblVersion" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl" text="could not read" />
@@ -14,4 +15,6 @@
     <HBox> <Button fx:id="btnCheckUpdate" maxWidth="1.7976931348623157E308" styleClass="btn" HBox.hgrow="ALWAYS">Check for Update</Button>
         <Button fx:id="btnUpdate" disable="true" maxWidth="1.7976931348623157E308" styleClass="btn" HBox.hgrow="ALWAYS">Download Update!</Button></HBox>
     <Label styleClass="lbl-center-section" text="Licenses" />
+    <Hyperlink fx:id="licencesLink" onAction="">https://xorserv.spdns.de</Hyperlink>
+    <Button fx:id="btnOpenBrowser">Open in Browser</Button>
 </VBox>

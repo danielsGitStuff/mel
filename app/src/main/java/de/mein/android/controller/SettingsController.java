@@ -107,7 +107,7 @@ public class SettingsController extends GuiController {
             boolean js = settings.getJavaScriptEnabled();
             settings.setDomStorageEnabled(true);
             settings.setJavaScriptEnabled(true);
-            webView.loadUrl("file:///android_asset/de/mein/auth/licenses.html");
+            webView.loadUrl("file:///android_asset/de/mein/auth/licences.html");
             ScrollView scrollView = new ScrollView(activity);
             scrollView.addView(webView);
             builder.setView(scrollView);

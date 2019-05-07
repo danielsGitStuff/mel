@@ -1,8 +1,8 @@
 package de.mein.auth.gui;
 
+import com.sun.javafx.application.HostServicesDelegate;
 import de.mein.Lok;
 import de.mein.Versioner;
-import de.mein.auth.MeinNotification;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.tools.F;
 import de.mein.auth.tools.N;
@@ -10,20 +10,27 @@ import de.mein.update.CurrentJar;
 import de.mein.update.UpdateHandler;
 import de.mein.update.Updater;
 import de.mein.update.VersionAnswer;
-import javafx.application.Platform;
+import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AboutFX extends AuthSettingsFX {
+
+    @FXML
+    private Button btnOpenBrowser;
 
     @FXML
     private WebView webView;
@@ -44,14 +51,28 @@ public class AboutFX extends AuthSettingsFX {
 
     @Override
     public void init() {
-        WebEngine webengine = webView.getEngine();
-        String content = "could not read licenses files :(";
         try {
-            content = F.readResourceToString("/de/mein/auth/licenses.html");
-        } catch (IOException e) {
-            e.printStackTrace();
+            WebEngine webengine = webView.getEngine();
+            String content = "could not read licenses files :(";
+            try {
+                content = F.readResourceToString("/de/mein/auth/licences.html");
+            } catch (IOException e) {
+                Lok.error("failed to load licenses.html");
+            }
+            webengine.loadContent(content);
+        } catch (NullPointerException e) {
+            Lok.error("failed to load web engine!");
+            N.r(() -> {
+                String content = F.readResourceToString("/de/mein/auth/licences.html");
+                File target = meinAuthService.getWorkingDirectory();
+                Path path = Paths.get(target.toURI());
+                Files.write(path, content.getBytes());
+                btnOpenBrowser.setOnAction(event -> {
+                    HostServicesDelegate hostServices = HostServicesDelegate.getInstance();
+                });
+            });
         }
-        webengine.loadContent(content);
+
         try {
             Date veriosnDate = new Date(Versioner.getBuildVersion());
             lblVersion.setText(veriosnDate.toString());

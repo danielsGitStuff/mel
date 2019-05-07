@@ -37,7 +37,15 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
+task copyLicenseHtml(type: Copy) {
+    def f = rootProject.file('auth/src/main/resources/de/mein/auth/licences.html')
+    def t = rootProject.file('miniserver/src/main/resources/de/mein/auth/')
+    from(f)
+    into(t)
+}
+
 task buildServerJar(type: Jar) {
+    dependsOn copyLicenseHtml
     group "meins"
     description "build a fucking jar filled with candies!"
     baseName = project.name// + '-all'
