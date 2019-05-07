@@ -18,9 +18,9 @@ public class PowerManager {
     private final MeinAuthSettings meinAuthSettings;
     private final PowerManagerSettings settings;
     protected MeinAuthService meinAuthService;
-    protected boolean wifi = true;
+    protected boolean wifi = false;
     protected ReentrantLock stateLock = new ReentrantLock(true);
-    protected boolean powered = true;
+    protected boolean powered = false;
     protected boolean running = true;
     private ReentrantLock powerListenerLock = new ReentrantLock();
     private ReentrantLock comListenerLock = new ReentrantLock();
