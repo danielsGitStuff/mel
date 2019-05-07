@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.Lok;
+import de.mein.auth.FxApp;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
@@ -386,43 +387,45 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         new JFXPanel();
         Platform.setImplicitExit(false);
         final MeinAuthAdminFX[] meinAuthAdminFXES = new MeinAuthAdminFX[1];
-        MeinAuthAdminFX m;
         WaitLock lock = new WaitLock().lock();
         XCBFix.runLater(() -> {
-                    try {
-                        Lok.debug("MeinAuthAdminFX.load...");
-                        FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
-                        // Intellij Idea might crash here cause it cannot find the locale.
-                        // Workaround: Settings/Build&Exec.../Gradle/Runner -> check "Delegate IDE build/run actions to gradle"
-                        ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/FxUi", new ResourceBundle.Control() {
-                            @Override
-                            public List<Locale> getCandidateLocales(String name, Locale locale) {
-                                return Collections.singletonList(Locale.ROOT);
-                            }
-                        });
-                        loader.setResources(resourceBundle);
-                        HBox root = null;
-                        root = loader.load();
-                        meinAuthAdminFXES[0] = loader.getController();
-                        meinAuthAdminFXES[0].resourceBundle = resourceBundle;
-                        meinAuthAdminFXES[0].start(meinAuthService);
-                        Scene scene = new Scene(root);
-                        //apply theme
-                        scene.getStylesheets().add(MeinAuthAdmin.class.getResource(GLOBAL_STYLE_CSS).toExternalForm());
+                    FxApp.setRunAfterStart(() -> {
+                        try {
+                            Lok.debug("MeinAuthAdminFX.load...");
+                            FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
+                            // Intellij Idea might crash here cause it cannot find the locale.
+                            // Workaround: Settings/Build&Exec.../Gradle/Runner -> check "Delegate IDE build/run actions to gradle"
+                            ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/FxUi", new ResourceBundle.Control() {
+                                @Override
+                                public List<Locale> getCandidateLocales(String name, Locale locale) {
+                                    return Collections.singletonList(Locale.ROOT);
+                                }
+                            });
+                            loader.setResources(resourceBundle);
+                            HBox root = null;
+                            root = loader.load();
+                            meinAuthAdminFXES[0] = loader.getController();
+                            meinAuthAdminFXES[0].resourceBundle = resourceBundle;
+                            meinAuthAdminFXES[0].start(meinAuthService);
+                            Scene scene = new Scene(root);
+                            //apply theme
+                            scene.getStylesheets().add(MeinAuthAdmin.class.getResource(GLOBAL_STYLE_CSS).toExternalForm());
 
-                        Stage stage = createStage(scene);
-                        stage.setTitle(resourceBundle.getString("windowTitle") + " '" + meinAuthService.getName() + "'");
-                        stage.show();
-                        stage.setOnCloseRequest(event -> {
-                            meinAuthAdminFXES[0].shutDown();
-                            System.exit(0);
-                        });
-                        meinAuthAdminFXES[0].setStage(stage);
-                        meinAuthAdminFXES[0].showServices();
-                        lock.unlock();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                            Stage stage = createStage(scene);
+                            stage.setTitle(resourceBundle.getString("windowTitle") + " '" + meinAuthService.getName() + "'");
+                            stage.show();
+                            stage.setOnCloseRequest(event -> {
+                                meinAuthAdminFXES[0].shutDown();
+                                System.exit(0);
+                            });
+                            meinAuthAdminFXES[0].setStage(stage);
+                            meinAuthAdminFXES[0].showServices();
+                            lock.unlock();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    FxApp.start();
                 }
         );
         lock.lock();

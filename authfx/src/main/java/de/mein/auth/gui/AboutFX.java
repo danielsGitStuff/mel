@@ -3,6 +3,7 @@ package de.mein.auth.gui;
 import com.sun.javafx.application.HostServicesDelegate;
 import de.mein.Lok;
 import de.mein.Versioner;
+import de.mein.auth.FxApp;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.tools.F;
 import de.mein.auth.tools.N;
@@ -61,14 +62,16 @@ public class AboutFX extends AuthSettingsFX {
             }
             webengine.loadContent(content);
         } catch (NullPointerException e) {
+            // workaround for if the web stuff of javafx might be unavailable
             Lok.error("failed to load web engine!");
             N.r(() -> {
                 String content = F.readResourceToString("/de/mein/auth/licences.html");
-                File target = meinAuthService.getWorkingDirectory();
+                File target = new File(meinAuthService.getWorkingDirectory(), "licences.html");
                 Path path = Paths.get(target.toURI());
                 Files.write(path, content.getBytes());
                 btnOpenBrowser.setOnAction(event -> {
-                    HostServicesDelegate hostServices = HostServicesDelegate.getInstance();
+                    HostServicesDelegate hostServices = HostServicesDelegate.getInstance(FxApp.getInstance());
+                    hostServices.showDocument(target.toURI().toString());
                 });
             });
         }
