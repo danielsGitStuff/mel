@@ -22,14 +22,13 @@ import de.mein.auth.tools.N;
  * Created by xor on 3/7/17.
  */
 
-public class NetworkDiscoveryController extends GuiController {
+public class NetworkDiscoveryController extends WakelockedGuiController {
     private NetworkEnvironment environment;
     private KnownCertListAdapter knownCertListAdapter;
     private ListView listKnown, listUnkown;
     private UnknownAuthListAdapter unkownListAdapter;
     private final EditText txtAddress, txtPort, txtDeliveryPort;
     private final Button btnConnect;
-    private AndroidPowerManager powerManager;
 
     public NetworkDiscoveryController(MeinActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_discover);
@@ -93,11 +92,6 @@ public class NetworkDiscoveryController extends GuiController {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Lok.debug("destroy");
-        if (powerManager != null) {
-            powerManager.releaseWakeLock(this);
-            powerManager.releaseOverride(this);
-        }
         if (environment != null)
             environment.deleteObservers();
     }
@@ -105,10 +99,6 @@ public class NetworkDiscoveryController extends GuiController {
     @Override
     public void onStop() {
         super.onStop();
-        if (powerManager != null) {
-            powerManager.releaseWakeLock(this);
-            powerManager.releaseOverride(false);
-        }
         if (environment != null)
             environment.deleteObservers();
     }
@@ -116,9 +106,6 @@ public class NetworkDiscoveryController extends GuiController {
     @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
-        powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
-        powerManager.wakeLock(this);
-        powerManager.overrideState(this);
         environment = androidService.getMeinAuthService().getNetworkEnvironment();
         unkownListAdapter = new UnknownAuthListAdapter(rootView.getContext(), environment);
         listUnkown.setOnItemClickListener((parent, view, position, id) -> {

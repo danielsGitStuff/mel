@@ -27,7 +27,7 @@ import de.mein.android.MainActivity;
 /**
  * Created by xor on 2/20/17.
  */
-public class CreateServiceController extends GuiController implements PermissionsGrantedListener {
+public class CreateServiceController extends WakelockedGuiController implements PermissionsGrantedListener {
     @Override
     public void onPermissionsGranted() {
         btnCreate.setOnClickListener(defaultBtnCreateListener);
@@ -98,22 +98,10 @@ public class CreateServiceController extends GuiController implements Permission
         return R.string.createServiceTitle;
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        androidService.getAndroidPowerManager().releaseOverride(this);
-    }
-
-    @Override
-    public void onDestroy() {
-        androidService.getAndroidPowerManager().releaseOverride(this);
-        super.onDestroy();
-    }
 
     @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
-        androidService.getAndroidPowerManager().overrideState(this);
         if (bootLoader == null) {
             activity.runOnUiThread(() -> {
                 MeinAuthService meinAuthService = androidService.getMeinAuthService();

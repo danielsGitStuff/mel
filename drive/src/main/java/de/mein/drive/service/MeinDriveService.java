@@ -172,8 +172,10 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void suspend() {
-        indexer.suspend();
-        syncHandler.suspend();
+        if (indexer != null)
+            indexer.suspend();
+        if (syncHandler != null)
+            syncHandler.suspend();
         super.suspend();
     }
 

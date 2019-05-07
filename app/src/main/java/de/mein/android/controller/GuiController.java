@@ -8,9 +8,11 @@ import de.mein.android.service.AndroidService;
 import de.mein.android.service.AndroidServiceBind;
 
 /**
+ * A part of the GUI that is places in an Activity. It comes with bindings to the parent {@link MeinActivity}
+ * and binds to the {@link AndroidService} when onAndroidServiceAvailable() is called.
+ * Make sure to call super.onAndroidServiceAvailable() if you override it.
  * Created by xor on 2/23/17.
  */
-
 public abstract class GuiController implements AndroidServiceBind {
 
     protected final MeinActivity activity;
