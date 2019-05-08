@@ -233,6 +233,15 @@ public class N {
         return forEachAdvIgnorantly(Arrays.asList(arr), forEachLoop);
     }
 
+    /**
+     * stops when Exception is thrown
+     *
+     * @param map
+     * @param loop
+     * @param <K>
+     * @param <V>
+     * @return
+     */
     public static <K, V> boolean forEachAdv(Map<K, V> map, MapForEachLoop<K, V> loop) {
         Stoppable stoppable = new Stoppable();
         int index = 0;
@@ -249,6 +258,32 @@ public class N {
                 break;
         }
         return true;
+    }
+
+    public static <K, V> boolean forEachAdvImpl(Map<K, V> map, MapForEachLoop<K, V> forEachLoop, boolean returnOnException) {
+        Stoppable stoppable = new Stoppable();
+        int index = 0;
+        Iterator<K> iterator = map.keySet().iterator();
+        while (iterator.hasNext() && !stoppable.isStopped()) {
+            try {
+                K k = iterator.next();
+                V v = map.get(k);
+                forEachLoop.foreach(stoppable, index, k, v);
+                if (stoppable.isStopped())
+                    break;
+                index++;
+            } catch (Exception e) {
+                e.printStackTrace();
+                stoppable.stop();
+                if (returnOnException)
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    public static <K, V> boolean forEachAdvIgnorantly(Map<K, V> map, MapForEachLoop<K, V> loop) {
+        return forEachAdvImpl(map, loop, false);
     }
 
     /**
