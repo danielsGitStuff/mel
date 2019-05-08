@@ -67,6 +67,10 @@ public class TransferManager extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
+        this.activeTransfersLock.lock();
+        N.forEachAdvIgnorantly(this.activeTransfers, (stoppable, index, s, meinNotification) -> meinNotification.cancel());
+        this.activeTransfers.clear();
+        this.activeTransfersLock.unlock();
         meinAuthService.getPowerManager().releaseWakeLock(this);
         this.lock.unlockWrite().unlockRead();
     }
@@ -173,6 +177,7 @@ public class TransferManager extends DeferredRunnable {
         }
         shutDown();
     }
+
 
     private void finishActiveTransfer(TransferDetails transferDetails) {
         activeTransfersLock.lock();
