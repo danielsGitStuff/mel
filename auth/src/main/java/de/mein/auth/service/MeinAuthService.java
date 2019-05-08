@@ -531,6 +531,7 @@ public class MeinAuthService {
             }
         }
         uuidServiceMapSemaphore.unlock();
+        connectedEnvironment.shutDown();
         Set<MeinSocket> socks = new HashSet<>(sockets);
         for (MeinSocket socket : socks) {
             socket.shutDown();
@@ -551,6 +552,7 @@ public class MeinAuthService {
             }
         }
         uuidServiceMapSemaphore.unlock();
+        connectedEnvironment.shutDown();
         Set<MeinSocket> socks = new HashSet<>(sockets);
         Lok.debug("closing no of sockets: " + socks.size());
         for (MeinSocket socket : socks) {

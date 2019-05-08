@@ -197,6 +197,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             for (FileTransferDetail detail : detailSet.getDetails()) {
                 AFile wasteFile = wastebin.getByHash(detail.getHash());
                 MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) getIsolatedProcess(partnerCertId, detailSet.getServiceUuid());
+                if (fileProcess==null){
+                    Lok.error("file transfer process is NULL");
+                }
                 List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
                 if (wasteFile != null) {
                     FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());

@@ -4,7 +4,9 @@ import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
+import de.mein.Lok;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 
 import java.util.ArrayList;
@@ -82,6 +84,7 @@ public class ConnectedEnvironment extends WaitLock {
 
     /**
      * checks whether or not you are currently connecting to that address
+     *
      * @param address
      * @param port
      * @param portCert
@@ -121,5 +124,20 @@ public class ConnectedEnvironment extends WaitLock {
      */
     public void currentlyConnecting(String address, int port, int portCert, DeferredObject<MeinValidationProcess, Exception, Void> deferred) {
         currentlyConnectingAddresses.put(uniqueAddress(address, port, portCert), deferred);
+    }
+
+    public void shutDown() {
+        Lok.debug("attempting shutdown");
+        this.lock();
+        N.forEachAdvIgnorantly(currentlyConnectingAddresses, (stoppable, index, s, meinValidationProcessExceptionVoidDeferred) -> {
+            meinValidationProcessExceptionVoidDeferred.reject(new Exception("shutting down"));
+        });
+        N.forEachAdvIgnorantly(currentlyConnectingCertIds, (stoppable, index, aLong, meinValidationProcessExceptionVoidDeferred) -> {
+            meinValidationProcessExceptionVoidDeferred.reject(new Exception("shutting down"));
+        });
+        currentlyConnectingAddresses.clear();
+        currentlyConnectingCertIds.clear();
+        this.unlock();
+        Lok.debug("success");
     }
 }
