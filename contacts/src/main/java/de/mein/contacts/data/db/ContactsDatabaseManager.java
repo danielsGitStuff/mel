@@ -112,7 +112,7 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         InputStream createSqlFileInputStream();
     }
 
-    private static ContactsSqlInputStreamInjector contactsSqlInputStreamInjector = () -> String.class.getResourceAsStream("/de/mein/contacts/contacts.sql");
+    private static ContactsSqlInputStreamInjector contactsSqlInputStreamInjector = () -> ContactsDatabaseManager.class.getClassLoader().getResourceAsStream("de/mein/contacts/contacts.sql");
 
     public static void setContactsSqlInputStreamInjector(ContactsSqlInputStreamInjector contactsSqlInputStreamInjector) {
         ContactsDatabaseManager.contactsSqlInputStreamInjector = contactsSqlInputStreamInjector;
