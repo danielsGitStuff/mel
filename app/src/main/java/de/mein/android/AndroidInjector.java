@@ -71,6 +71,19 @@ public class AndroidInjector {
         MeinInjector.setSQLConnectionCreator(databaseManager -> {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "meinauth", null, 1) {
                 @Override
+                public void onConfigure(SQLiteDatabase db) {
+                    Lok.debug("configure sqlite for meinauth");
+                    super.onConfigure(db);
+                    db.disableWriteAheadLogging();
+                    db.setForeignKeyConstraintsEnabled(true);
+                }
+
+                @Override
+                public void onOpen(SQLiteDatabase db) {
+                    super.onOpen(db);
+                }
+
+                @Override
                 public void onCreate(SQLiteDatabase db) {
                     Lok.debug("AndroidDriveBootloader.onCreate");
                 }
@@ -87,6 +100,14 @@ public class AndroidInjector {
         // drive
         DriveInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
+                @Override
+                public void onConfigure(SQLiteDatabase db) {
+                    Lok.debug("configure sqlite for drive");
+                    super.onConfigure(db);
+                    db.setForeignKeyConstraintsEnabled(true);
+                    db.disableWriteAheadLogging();
+                }
+
                 @Override
                 public void onCreate(SQLiteDatabase db) {
                     Lok.debug("AndroidDriveBootloader.onCreate");
@@ -121,6 +142,13 @@ public class AndroidInjector {
         //contacts
         ContactsInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + ContactStrings.DB_FILENAME, null, ContactStrings.DB_VERSION) {
+                @Override
+                public void onConfigure(SQLiteDatabase db) {
+                    super.onConfigure(db);
+                    db.disableWriteAheadLogging();
+                    db.setForeignKeyConstraintsEnabled(true);
+                }
+
                 @Override
                 public void onCreate(SQLiteDatabase db) {
                     Lok.debug("AndroidDriveBootloader.onCreate");
