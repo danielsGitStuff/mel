@@ -44,6 +44,11 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     private static Logger logger = Logger.getLogger(MeinAuthSocket.class.getName());
     protected MeinProcess process;
     protected Certificate partnerCertificate;
+    private AConnectJob connectJob;
+
+    public AConnectJob getConnectJob() {
+        return connectJob;
+    }
 
     public MeinAuthSocket(MeinAuthService meinAuthService) {
         super(meinAuthService);
@@ -155,6 +160,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         final Integer port = job.getPort();
         final Integer portCert = job.getPortCert();
         final boolean regOnUnknown = job.getRegOnUnknown();
+        this.connectJob = job;
 
         Lok.debug("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
         meinAuthService.getPowerManager().wakeLock(this);
@@ -315,7 +321,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     }
 
     @Override
-    protected void onSocketClosed(Exception e) {
+    protected void onSocketClosed() {
         meinAuthService.onSocketClosed(this);
     }
 

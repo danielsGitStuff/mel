@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * Created by xor on 12/13/16.
  */
-public class IsolatedConnectJob<T extends MeinIsolatedProcess> extends AConnectJob<T, Exception> {
+public class IsolatedConnectJob<T extends MeinIsolatedProcess> extends AConnectJob<T, Void> {
     private final Class<T> processClass;
     private String remoteServiceUuid;
     private String ownServiceUuid;

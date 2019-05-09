@@ -251,15 +251,12 @@ public class MeinSocket extends DeferredRunnable {
         } catch (Exception e) {
             if (!isStopped()) {
                 String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
-                //todo debug
-                if (line.startsWith("MA2.MeinAuthSocket.SSLSocketImpl.run") || line.startsWith("MA1.MeinAuthSocket.SSLSocketImpl.run"))
-                    Lok.debug("MeinSocket.runImpl.943f938fw0io34");
                 Lok.error(line);
-                onSocketClosed(e);
                 e.printStackTrace();
             }
         } finally {
             Lok.debug(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());
+            N.r(this::onSocketClosed);
             N.s(() -> in.close());
             N.s(() -> out.close());
             N.s(() -> socket.close());
@@ -267,7 +264,7 @@ public class MeinSocket extends DeferredRunnable {
         }
     }
 
-    protected void onSocketClosed(Exception e) {
+    protected void onSocketClosed() {
         shutDown();
     }
 
@@ -279,15 +276,14 @@ public class MeinSocket extends DeferredRunnable {
     public void stop() {
         try {
             Lok.debug(getClass().getSimpleName() + ".stop() on " + Thread.currentThread().getName());
-//            if (this.thread != null) {
             in.close();
             out.close();
             queueLock.unlock();
             this.thread.interrupt();
+            N.r(() -> socket.close());
             if (socketWorker != null) {
                 socketWorker.onShutDown();
             }
-//            }
         } catch (Exception e) {
             e.printStackTrace();
         }

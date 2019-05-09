@@ -16,6 +16,7 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
+import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
@@ -380,6 +381,8 @@ public class MeinAuthService {
                 ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
                 job.getPromise().done(result -> {
                     connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
+                    //todo #1
+                    connectedEnvironment.addValidationProcess(result);
                     deferred.resolve(result);
                 }).fail(result -> {
                     connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
@@ -504,11 +507,24 @@ public class MeinAuthService {
 
 
     public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
+        connectedEnvironment.lock();
+        // find the socket in the connected environment and remove it
+        AConnectJob connectJob = meinAuthSocket.getConnectJob();
         if (meinAuthSocket.isValidated()) {
-            connectedEnvironment.lock();
             connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
-            connectedEnvironment.unlock();
+        } else {
+            N.r(() -> connectJob.getPromise().reject(new Exception("connection aborted")));
+//            if (connectJob.getCertificateId() != null) {
+//                N.r(() -> connectedEnvironment.removeCurrentlyConnecting(meinAuthSocket.getConnectJob().getCertificateId()));
+//
+//            } else if (connectJob.getAddress() != null) {
+//                N.r(() -> connectedEnvironment.removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
+//            }
+//            connectJob.getPromise().reject(null);
         }
+
+        connectedEnvironment.unlock();
+
         sockets.remove(meinAuthSocket);
     }
 
@@ -531,7 +547,7 @@ public class MeinAuthService {
             }
         }
         uuidServiceMapSemaphore.unlock();
-        connectedEnvironment.shutDown();
+//        connectedEnvironment.shutDown();
         Set<MeinSocket> socks = new HashSet<>(sockets);
         for (MeinSocket socket : socks) {
             socket.shutDown();
@@ -552,7 +568,7 @@ public class MeinAuthService {
             }
         }
         uuidServiceMapSemaphore.unlock();
-        connectedEnvironment.shutDown();
+//        connectedEnvironment.shutDown();
         Set<MeinSocket> socks = new HashSet<>(sockets);
         Lok.debug("closing no of sockets: " + socks.size());
         for (MeinSocket socket : socks) {
