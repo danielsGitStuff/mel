@@ -143,6 +143,8 @@ public class MeinSocket extends DeferredRunnable {
     public MeinSocket(MeinAuthService meinAuthService, Socket socket) {
         this(meinAuthService);
         this.socket = socket;
+        if (meinAuthService != null)
+            meinAuthService.addMeinSocket(this);
         streams();
     }
 
@@ -276,11 +278,11 @@ public class MeinSocket extends DeferredRunnable {
     public void stop() {
         try {
             Lok.debug(getClass().getSimpleName() + ".stop() on " + Thread.currentThread().getName());
-            in.close();
-            out.close();
+            N.s(() -> in.close());
+            N.s(() -> out.close());
+            N.s(() -> this.thread.interrupt());
+            N.s(() -> socket.close());
             queueLock.unlock();
-            this.thread.interrupt();
-            N.r(() -> socket.close());
             if (socketWorker != null) {
                 socketWorker.onShutDown();
             }
