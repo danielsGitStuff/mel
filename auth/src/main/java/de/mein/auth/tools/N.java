@@ -22,6 +22,19 @@ public class N {
             e.printStackTrace();
         }
     });
+
+    private static N oneLiner = new N(e -> {
+        String trace = "no trace";
+        String exc = "no exception";
+        if (e != null) {
+            exc = e.getClass().getSimpleName() + "(" + e.getMessage() + ")";
+            StackTraceElement[] stack = e.getStackTrace();
+            if (stack.length > 0) {
+                trace = e.getStackTrace()[0].toString();
+            }
+        }
+        System.err.println(exc + ": " + trace);
+    });
     private NoTryExceptionConsumer consumer;
 
     public N(NoTryExceptionConsumer consumer) {
@@ -398,6 +411,10 @@ public class N {
             }
         }
         return true;
+    }
+
+    public static void oneLine(N.INoTryRunnable noTryRunnable) {
+        N.oneLiner.runTry(noTryRunnable);
     }
 
 

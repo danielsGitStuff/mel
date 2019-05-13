@@ -513,7 +513,7 @@ public class MeinAuthService {
         if (meinAuthSocket.isValidated()) {
             connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
         } else {
-            N.r(() -> connectJob.getPromise().reject(new Exception("connection aborted")));
+            N.oneLine(() -> connectJob.getPromise().reject(new Exception("connection aborted")));
 //            if (connectJob.getCertificateId() != null) {
 //                N.r(() -> connectedEnvironment.removeCurrentlyConnecting(meinAuthSocket.getConnectJob().getCertificateId()));
 //
