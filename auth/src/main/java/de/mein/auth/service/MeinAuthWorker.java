@@ -66,9 +66,11 @@ public class MeinAuthWorker extends MeinWorker implements PowerManager.IPowerSta
         new DefaultDeferredManager().when(certDeliveryPromise, socketOpenerPromise, brotcasterPromise).done(result -> {
             //say hello!
             try {
-                brotCaster.brotcast(MeinAuthSettings.BROTCAST_PORT, meinAuthService.getSettings().getDiscoverMessage());
+                Lok.debug("brotcasting Hello");
+                meinAuthService.discoverNetworkEnvironment();
+//                brotCaster.brotcast(MeinAuthSettings.BROTCAST_PORT, meinAuthService.getSettings().getDiscoverMessage());
                 meinAuthService.onMeinAuthIsUp();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 Lok.error("brotcast went wrong :(");
                 e.printStackTrace();
                 startedPromise.resolve(this);
@@ -130,6 +132,7 @@ public class MeinAuthWorker extends MeinWorker implements PowerManager.IPowerSta
 
     @Override
     public void onStateChanged(PowerManager powerManager) {
-        N.thread(() ->  brotCaster.discover(meinAuthService.getSettings().getBrotcastPort()));
+        if (powerManager.heavyWorkAllowed() && powerManager.isWifi())
+            N.thread(() -> brotCaster.discover(meinAuthService.getSettings().getBrotcastPort()));
     }
 }

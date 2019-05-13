@@ -123,6 +123,11 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         super.addJob(job);
     }
 
+    @Override
+    public void onIndexerDone() {
+
+    }
+
 
     @Override
     protected ClientSyncHandler initSyncHandler() {

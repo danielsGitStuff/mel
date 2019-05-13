@@ -22,6 +22,7 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncTask;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
@@ -39,6 +40,13 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
+    }
+
+    @Override
+    public void onIndexerDone() {
+//        N.forEachAdvIgnorantly(driveSettings.getServerSettings().getClients(), (stoppable, index, clientData) -> {
+//            meinAuthService.connect(clientData.getCertId());
+//        });
     }
 
 

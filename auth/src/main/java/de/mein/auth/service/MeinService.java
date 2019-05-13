@@ -95,7 +95,6 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     }
 
 
-
     public Bootloader.BootLevel getBootLevel() {
         return bootLevel;
     }
@@ -104,7 +103,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         return reachedBootLevel;
     }
 
-    public void setReachedBootLevel(Bootloader.BootLevel level){
+    public void setReachedBootLevel(Bootloader.BootLevel level) {
         this.reachedBootLevel = level;
     }
 
@@ -134,7 +133,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     }
 
     public void resume() {
-
+//        execute(this);
     }
 
     /**

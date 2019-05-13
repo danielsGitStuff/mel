@@ -2,6 +2,7 @@ package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.N;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.sync.SyncHandler;
@@ -74,6 +75,10 @@ public class Indexer {
     }
 
     public void resume() {
+        // put  a new promise in place
+//        if (indexerRunnable.getStartedDeferred().isResolved())
+//            indexerRunnable.setStartedPromise(new DeferredObject<>());
+//        indexerRunnable.getStartedDeferred().done(result -> N.r(meinDriveService::onIndexerDone));
         meinDriveService.execute(indexerRunnable);
     }
 }

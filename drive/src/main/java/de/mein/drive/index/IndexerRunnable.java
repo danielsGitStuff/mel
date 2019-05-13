@@ -79,7 +79,7 @@ public class IndexerRunnable extends AbstractIndexer {
             indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
             try {
                 fsDao.lockRead();
-                Iterator<AFile> found = BashTools.find(rootDirectory.getOriginalFile(),databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
+                Iterator<AFile> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
                 examineStage();
                 fastBooting = false;
@@ -95,10 +95,12 @@ public class IndexerRunnable extends AbstractIndexer {
             for (IndexListener listener : listeners)
                 listener.done(stageSetId);
             Lok.debug("IndexerRunnable.runTry.done");
-            startedPromise.resolve(this);
+            if (!startedPromise.isResolved())
+                startedPromise.resolve(this);
         } catch (Exception e) {
             e.printStackTrace();
-            startedPromise.reject(e);
+            if (!startedPromise.isResolved())
+                startedPromise.reject(e);
         }
     }
 

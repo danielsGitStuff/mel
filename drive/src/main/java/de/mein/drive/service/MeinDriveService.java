@@ -187,6 +187,12 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         super.resume();
     }
 
+    /**
+     * this is called whenever the indexer has done its job.
+     * e.g. after resuming or after booting up.
+     */
+    public abstract void onIndexerDone();
+
     protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload, boolean lockFsEntry) {
         //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
         FsDao fsDao = driveDatabaseManager.getFsDao();
@@ -197,7 +203,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             for (FileTransferDetail detail : detailSet.getDetails()) {
                 AFile wasteFile = wastebin.getByHash(detail.getHash());
                 MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) getIsolatedProcess(partnerCertId, detailSet.getServiceUuid());
-                if (fileProcess==null){
+                if (fileProcess == null) {
                     Lok.error("file transfer process is NULL");
                 }
                 List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());

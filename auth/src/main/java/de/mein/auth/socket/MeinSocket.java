@@ -179,7 +179,7 @@ public class MeinSocket extends DeferredRunnable {
             if (socketWorker != null)
                 socketWorker.shutDown();
         });
-        N.r(() -> socket.close());
+        N.s(() -> socket.close());
     }
 
     StringBuffer msgBuffer = new StringBuffer();

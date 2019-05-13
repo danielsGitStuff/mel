@@ -442,6 +442,7 @@ public class MeinAuthService {
      * this is because Android does not like to do network stuff on GUI threads
      */
     void discoverNetworkEnvironmentImpl() {
+        Lok.debug("discovering network");
         N runner = new N(e -> e.printStackTrace());
         networkEnvironment.clear();
         Map<String, Boolean> checkedAddresses = new ConcurrentHashMap<>();
@@ -490,6 +491,7 @@ public class MeinAuthService {
     }
 
     public MeinAuthService discoverNetworkEnvironment() {
+        Lok.debug("creating discover job");
         meinAuthWorker.addJob(new NetworkEnvDiscoveryJob());
         return this;
     }
@@ -579,19 +581,23 @@ public class MeinAuthService {
     }
 
     public void resume() {
+        Lok.debug("resume");
         uuidServiceMapSemaphore.lock();
         List<DeferredObject> servicesStarted = new ArrayList<>();
         for (IMeinService service : uuidServiceMap.values()) {
             if (service instanceof MeinService) {
                 MeinService meinService = (MeinService) service;
-                DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<DeferredRunnable, Exception, Void>();
+                DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
                 meinService.setStartedPromise(startedPromise);
-                servicesStarted.add(startedPromise);
+//                servicesStarted.add(startedPromise);
+                meinService.resume();
                 execute(meinService);
             }
         }
         uuidServiceMapSemaphore.unlock();
         meinBoot.onHeavyWorkAllowed();
+        // reconnect everything after resume
+        meinAuthWorker.addJob(new NetworkEnvDiscoveryJob());
         DeferredObject[] arr = N.arr.fromCollection(servicesStarted, N.converter(DeferredObject.class, element -> element));
         if (arr.length > 0) {
             new DefaultDeferredManager().when(arr).done(result -> execute(meinAuthWorker))
