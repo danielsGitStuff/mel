@@ -82,12 +82,14 @@ public class TransferManager extends DeferredRunnable {
 
     @Override
     public void suspend() {
+        Lok.debug("suspend");
         super.suspend();
         lock.unlockWrite();
     }
 
     public void resume() {
-        start();
+        Lok.debug("resume");
+        this.lock.unlockWrite();
     }
 
     @Override
@@ -152,15 +154,11 @@ public class TransferManager extends DeferredRunnable {
                             // ask the network for files
                             MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
                             if (fileProcess != null && fileProcess.isOpen()) {
-                                DeferredObject<TransferDetails, TransferDetails, Void> done = retrieveFiles(fileProcess, groupedTransferSet);
-                                done.done(result -> processDone.resolve(groupedTransferSet))
-                                        .fail(result -> processDone.resolve(groupedTransferSet));
+                                retrieveFromCert(fileProcess, groupedTransferSet, processDone);
                             } else {
                                 DeferredObject<MeinIsolatedFileProcess, Exception, Void> connected = meinAuthService.connectToService(MeinIsolatedFileProcess.class, groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v(), meinDriveService.getUuid(), null, null, null);
                                 connected.done(meinIsolatedProcess -> N.r(() -> {
-                                            DeferredObject<TransferDetails, TransferDetails, Void> done = retrieveFiles(meinIsolatedProcess, groupedTransferSet);
-                                            done.done(result -> processDone.resolve(groupedTransferSet))
-                                                    .fail(result -> processDone.resolve(groupedTransferSet));
+                                            retrieveFromCert(meinIsolatedProcess, groupedTransferSet, processDone);
                                         })
                                 ).fail(exc -> {
                                     processDone.reject(groupedTransferSet);
@@ -176,6 +174,13 @@ public class TransferManager extends DeferredRunnable {
             }
         }
         shutDown();
+    }
+
+    private void retrieveFromCert(MeinIsolatedFileProcess meinIsolatedFileProcess, TransferDetails groupedTransferSet, DeferredObject<TransferDetails, TransferDetails, Void> processDone) throws InterruptedException, SqlQueriesException {
+//        meinIsolatedFileProcess
+        DeferredObject<TransferDetails, TransferDetails, Void> done = retrieveFiles(meinIsolatedFileProcess, groupedTransferSet);
+        done.done(result -> processDone.resolve(groupedTransferSet))
+                .fail(result -> processDone.resolve(groupedTransferSet));
     }
 
 

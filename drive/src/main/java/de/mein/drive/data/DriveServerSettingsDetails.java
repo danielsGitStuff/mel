@@ -12,13 +12,18 @@ import java.util.Set;
 public class DriveServerSettingsDetails implements SerializableEntity {
 
     private Set<ClientData> clients = new HashSet<>();
+    private Set<Long> certIds = new HashSet<>();
 
     public Set<ClientData> getClients() {
         return clients;
     }
 
     public void addClient(Long certId, String serviceUuid) {
-        clients.add(new ClientData(certId,serviceUuid));
+        clients.add(new ClientData(certId, serviceUuid));
+        certIds.add(certId);
     }
 
+    public boolean hasClient(Long certId) {
+        return certIds.contains(certId);
+    }
 }

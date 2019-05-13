@@ -99,13 +99,16 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                     e.printStackTrace();
                 }
             }
+            return true;
         } else if (unknownJob instanceof CommitJob) {
             syncHandler.commitJob((CommitJob) unknownJob);
+            return true;
         } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
             Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
             if (authenticatedJob.getPartnerCertificate().getId().v().equals(driveSettings.getClientSettings().getServerCertId())) {
                 N.r(() -> addJob(new CommitJob(true)));
             }
+            return true;
         } else if (unknownJob instanceof SyncClientJob) {
             N.r(() -> syncHandler.syncFromServer(((SyncClientJob) unknownJob).getNewVersion()));
         }
@@ -198,13 +201,13 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     public void onBootLevel2Finished() {
 //        startIndexerDonePromise.done(result -> {
-            Lok.debug("MeinDriveClientService.onServiceRegistered");
-            N.r(() -> {
-                Long serverId = driveSettings.getClientSettings().getServerCertId();
-                if (serverId != null) {
-                    meinAuthService.connect(serverId).done(result1 -> addJob(new CommitJob(true)));
-                }
-            });
+        Lok.debug("MeinDriveClientService.onServiceRegistered");
+        N.r(() -> {
+            Long serverId = driveSettings.getClientSettings().getServerCertId();
+            if (serverId != null) {
+                meinAuthService.connect(serverId).done(result1 -> addJob(new CommitJob(true)));
+            }
+        });
 //        });
     }
 

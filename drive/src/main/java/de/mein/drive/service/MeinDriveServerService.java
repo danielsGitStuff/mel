@@ -102,6 +102,11 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 } else if (job.isMessage()) {
                     System.out.println("MeinDriveServerService.workWorkWork");
                 }
+            } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
+                Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
+                if (driveSettings.getServerSettings().hasClient(authenticatedJob.getPartnerCertificate().getId().v())) {
+                    this.syncHandler.resume();
+                }
             }
 //            else if (unknownJob instanceof FsSyncJob) {
 //                Lok.debug("MeinDriveServerService.workWorkWork.SYNC");

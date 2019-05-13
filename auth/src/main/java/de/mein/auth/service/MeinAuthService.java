@@ -26,6 +26,7 @@ import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.socket.ShamefulSelfConnectException;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
+import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
@@ -512,8 +513,11 @@ public class MeinAuthService {
         connectedEnvironment.lock();
         // find the socket in the connected environment and remove it
         AConnectJob connectJob = meinAuthSocket.getConnectJob();
-        if (meinAuthSocket.isValidated()) {
+        if (meinAuthSocket.isValidated() && meinAuthSocket.getProcess() instanceof MeinValidationProcess) {
             connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
+        } else if (meinAuthSocket.getProcess() instanceof MeinIsolatedFileProcess) {
+//            meinAuthSocket.getProcess().stop();
+            Lok.debug("continue here");
         } else {
             N.oneLine(() -> connectJob.getPromise().reject(new Exception("connection aborted")));
 //            if (connectJob.getCertificateId() != null) {
