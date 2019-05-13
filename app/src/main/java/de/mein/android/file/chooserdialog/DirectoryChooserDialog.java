@@ -193,6 +193,11 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         }
 
         @Override
+        public void onIsolatedConnectionClosed(MeinIsolatedProcess isolatedProcess) {
+
+        }
+
+        @Override
         public void onServiceRegistered() {
 
         }

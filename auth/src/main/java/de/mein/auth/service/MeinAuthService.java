@@ -297,7 +297,7 @@ public class MeinAuthService {
         return this;
     }
 
-    public <T extends MeinIsolatedProcess> DeferredObject<T, Exception, Void> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
+     <T extends MeinIsolatedProcess> DeferredObject<T, Exception, Void> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
         Certificate certificate = certificateManager.getTrustedCertificateById(certId);
         if (address == null)
             address = certificate.getAddress().v();

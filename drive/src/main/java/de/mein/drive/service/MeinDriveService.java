@@ -199,35 +199,62 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         try {
             if (lockFsEntry)
                 fsDao.lockRead();
+            N runner = new N(e -> {
+                if (lockFsEntry) fsDao.unlockRead();
+            });
             FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
             for (FileTransferDetail detail : detailSet.getDetails()) {
                 AFile wasteFile = wastebin.getByHash(detail.getHash());
-                MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) getIsolatedProcess(partnerCertId, detailSet.getServiceUuid());
-                if (fileProcess == null) {
-                    Lok.error("file transfer process is NULL");
-                }
-                List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
-                if (wasteFile != null) {
-                    FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());
-                    mDetail.openRead();
-                    fileProcess.sendFile(mDetail);
-                } else if (fsFiles.size() > 0) {
-                    FsFile fsFile = fsFiles.get(0);
-                    AFile file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
-                    if (!file.exists()) {
-                        file = wastebin.getByHash(detail.getHash());
-                    }
-                    if (file == null) {
+                Promise<MeinIsolatedFileProcess, Exception, Void> promise = getIsolatedProcess(MeinIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
+                promise.done(fileProcess -> runner.runTry(() -> {
+                    List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
+                    if (wasteFile != null) {
+                        FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());
+                        mDetail.openRead();
+                        fileProcess.sendFile(mDetail);
+                    } else if (fsFiles.size() > 0) {
+                        FsFile fsFile = fsFiles.get(0);
+                        AFile file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
+                        if (!file.exists()) {
+                            file = wastebin.getByHash(detail.getHash());
+                        }
+                        if (file == null) {
+                            fileProcess.sendError(detail);
+                        }
+                        FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
+                        mDetail.setHash(detail.getHash());
+                        mDetail.openRead();
+                        fileProcess.sendFile(mDetail);
+                    } else {
+                        //send 404. did not find
                         fileProcess.sendError(detail);
                     }
-                    FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
-                    mDetail.setHash(detail.getHash());
-                    mDetail.openRead();
-                    fileProcess.sendFile(mDetail);
-                } else {
-                    //send 404. did not find
-                    fileProcess.sendError(detail);
-                }
+                }));
+//                if (fileProcess == null) {
+//                    Lok.error("file transfer process is NULL");
+//                }
+//                List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
+//                if (wasteFile != null) {
+//                    FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());
+//                    mDetail.openRead();
+//                    fileProcess.sendFile(mDetail);
+//                } else if (fsFiles.size() > 0) {
+//                    FsFile fsFile = fsFiles.get(0);
+//                    AFile file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
+//                    if (!file.exists()) {
+//                        file = wastebin.getByHash(detail.getHash());
+//                    }
+//                    if (file == null) {
+//                        fileProcess.sendError(detail);
+//                    }
+//                    FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
+//                    mDetail.setHash(detail.getHash());
+//                    mDetail.openRead();
+//                    fileProcess.sendFile(mDetail);
+//                } else {
+//                    //send 404. did not find
+//                    fileProcess.sendError(detail);
+//                }
             }
         } catch (Exception e) {
             e.printStackTrace();

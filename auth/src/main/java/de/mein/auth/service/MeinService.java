@@ -1,13 +1,22 @@
 package de.mein.auth.service;
 
+import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
+
+import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
+import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
+import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A Service comes with its own ExecutorService. You should execute all Runnables of your Service with this class.
@@ -15,6 +24,42 @@ import java.util.concurrent.ThreadFactory;
  * Created by xor on 5/2/16.
  */
 public abstract class MeinService extends MeinWorker implements IMeinService {
+    private ReentrantLock isolatedLock = new ReentrantLock();
+    private Map<String, DeferredObject<? extends MeinIsolatedProcess, Exception, Void>> isolatedDeferredMap = new HashMap<>();
+//    private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
+
+    @Override
+    public synchronized void onIsolatedConnectionEstablished(MeinIsolatedProcess isolatedProcess) {
+        final String key = isolatedProcess.getPartnerCertificateId() + "." + isolatedProcess.getPartnerServiceUuid() + "." + isolatedProcess.getClass().getSimpleName();
+        isolatedLock.lock();
+        DeferredObject<MeinIsolatedProcess, Exception, Void> deferredObject = new DeferredObject<>();
+        deferredObject.resolve(isolatedProcess);
+        isolatedDeferredMap.put(key, deferredObject);
+        isolatedLock.unlock();
+    }
+
+    @Override
+    public void onIsolatedConnectionClosed(MeinIsolatedProcess isolatedProcess) {
+        Lok.debug("isolated connection closed");
+    }
+
+    public synchronized <T extends MeinIsolatedProcess> Promise<T, Exception, Void> getIsolatedProcess(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {
+        final String key = partnerCertId + "." + partnerServiceUuid + "." + processClass.getSimpleName();
+        isolatedLock.lock();
+        DeferredObject<T, Exception, Void> alreadyDeferred = (DeferredObject<T, Exception, Void>) isolatedDeferredMap.get(key);
+        if (alreadyDeferred != null && (alreadyDeferred.isResolved() || alreadyDeferred.isPending())) {
+            isolatedLock.unlock();
+            return alreadyDeferred;
+        }
+        DeferredObject<T, Exception, Void> deferred = meinAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
+        deferred.done(result -> {
+            Lok.debug("am i first?");
+        });
+        isolatedLock.unlock();
+        return deferred;
+    }
+
+
     protected final File serviceInstanceWorkingDirectory;
     private final Bootloader.BootLevel bootLevel;
     private Bootloader.BootLevel reachedBootLevel;

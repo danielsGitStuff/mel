@@ -14,7 +14,6 @@ public interface IMeinService {
      * Requests want answers. You can pass the answer to the {@link Request}
      *
      * @param request reject or resolve this when done
-     * @throws Exception
      */
     void handleRequest(Request request) throws Exception;
 
@@ -44,6 +43,12 @@ public interface IMeinService {
      * @param isolatedProcess
      */
     void onIsolatedConnectionEstablished(MeinIsolatedProcess isolatedProcess);
+
+    /**
+     * Isolated connections are used to transfer files
+     * @param isolatedProcess
+     */
+    void onIsolatedConnectionClosed(MeinIsolatedProcess isolatedProcess);
 
     void onServiceRegistered();
 

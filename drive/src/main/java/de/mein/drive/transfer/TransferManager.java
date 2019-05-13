@@ -9,6 +9,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
+import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
@@ -39,7 +40,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by xor on 12/16/16.
  */
-public class TransferManager extends DeferredRunnable {
+public class TransferManager extends DeferredRunnable implements MeinIsolatedProcess.IsolatedProcessListener {
     private static final int FILE_REQUEST_LIMIT_PER_CONNECTION = 30;
     private final TransferDao transferDao;
     private final MeinAuthService meinAuthService;
@@ -54,6 +55,7 @@ public class TransferManager extends DeferredRunnable {
     private File transferDir;
     private Map<String, MeinNotification> activeTransfers;
     private ReentrantLock activeTransfersLock = new ReentrantLock();
+    private Map<Long, MeinIsolatedFileProcess> activeFileProcesses;
 
     public TransferManager(MeinAuthService meinAuthService, MeinDriveService meinDriveService, TransferDao transferDao, Wastebin wastebin, SyncHandler syncHandler) {
         this.transferDao = transferDao;
@@ -98,6 +100,7 @@ public class TransferManager extends DeferredRunnable {
         transferDir = new File(transferDirPath);
         transferDir.mkdirs();
         activeTransfers = new HashMap<>();
+        activeFileProcesses = new HashMap<>();
         while (!Thread.currentThread().isInterrupted() && !isStopped()) {
             try {
                 Lok.debug("TransferManager.RUN");
@@ -138,33 +141,14 @@ public class TransferManager extends DeferredRunnable {
                         } finally {
                             fsDao.unlockWrite();
                         }
-                        //check if files remain
-                        DeferredObject<TransferDetails, TransferDetails, Void> processDone = new DeferredObject<>();
-                        // when done: set to not active
-                        processDone.done(transferDetails -> {
-                            finishActiveTransfer(transferDetails);
-                        }).fail(transferDetails -> {
-                            cancelActiveTransfer(transferDetails);
-                        });
+                        // check if files remain
                         boolean transfersRemain = transferDao.hasNotStartedTransfers(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
                         if (transfersRemain) {
                             activeTransfersLock.lock();
                             activeTransfers.put(activeTransferKey(groupedTransferSet), null);
                             activeTransfersLock.unlock();
                             // ask the network for files
-                            MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
-                            if (fileProcess != null && fileProcess.isOpen()) {
-                                retrieveFromCert(fileProcess, groupedTransferSet, processDone);
-                            } else {
-                                DeferredObject<MeinIsolatedFileProcess, Exception, Void> connected = meinAuthService.connectToService(MeinIsolatedFileProcess.class, groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v(), meinDriveService.getUuid(), null, null, null);
-                                connected.done(meinIsolatedProcess -> N.r(() -> {
-                                            retrieveFromCert(meinIsolatedProcess, groupedTransferSet, processDone);
-                                        })
-                                ).fail(exc -> {
-                                    processDone.reject(groupedTransferSet);
-                                    meinDriveService.onSyncFailed();
-                                });
-                            }
+                            retrieveFromCert(groupedTransferSet);
                         }
                     }
                 }
@@ -176,11 +160,23 @@ public class TransferManager extends DeferredRunnable {
         shutDown();
     }
 
-    private void retrieveFromCert(MeinIsolatedFileProcess meinIsolatedFileProcess, TransferDetails groupedTransferSet, DeferredObject<TransferDetails, TransferDetails, Void> processDone) throws InterruptedException, SqlQueriesException {
-//        meinIsolatedFileProcess
-        DeferredObject<TransferDetails, TransferDetails, Void> done = retrieveFiles(meinIsolatedFileProcess, groupedTransferSet);
-        done.done(result -> processDone.resolve(groupedTransferSet))
-                .fail(result -> processDone.resolve(groupedTransferSet));
+    private void retrieveFromCert(TransferDetails groupedTransferSet) throws InterruptedException, SqlQueriesException {
+        Promise<MeinIsolatedFileProcess, Exception, Void> connected = meinDriveService.getIsolatedProcess(MeinIsolatedFileProcess.class, groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
+        connected.done(meinIsolatedProcess -> N.r(() -> {
+                    // store the isolated process for later
+                    activeTransfersLock.lock();
+                    activeFileProcesses.put(groupedTransferSet.getCertId().v(), meinIsolatedProcess);
+                    activeTransfersLock.unlock();
+                    meinIsolatedProcess.addIsolatedProcessListener(this);
+
+                    DeferredObject<TransferDetails, TransferDetails, Void> done = retrieveFiles(meinIsolatedProcess, groupedTransferSet);
+                    done.done(result -> finishActiveTransfer(groupedTransferSet))
+                            .fail(result -> cancelActiveTransfer(groupedTransferSet));
+                })
+        ).fail(exc -> {
+            cancelActiveTransfer(groupedTransferSet);
+            meinDriveService.onSyncFailed();
+        });
     }
 
 
@@ -264,10 +260,8 @@ public class TransferManager extends DeferredRunnable {
      * @param fileProcess
      * @param strippedTransferDetails
      * @return
-     * @throws SqlQueriesException
-     * @throws InterruptedException
      */
-    private DeferredObject<TransferDetails, TransferDetails, Void> retrieveFiles(MeinIsolatedFileProcess fileProcess, TransferDetails strippedTransferDetails) throws SqlQueriesException, InterruptedException {
+    private DeferredObject<TransferDetails, TransferDetails, Void> retrieveFiles(MeinIsolatedFileProcess fileProcess, TransferDetails strippedTransferDetails) {
         DeferredObject<TransferDetails, TransferDetails, Void> deferred = new DeferredObject<>();
         // TransferRetriever retriever = new TransferRetriever(meinAuthService,meinDriveService, this,transferDao, syncHandler);
         MeinRunnable runnable = new MeinRunnable() {
@@ -347,20 +341,10 @@ public class TransferManager extends DeferredRunnable {
     }
 
     public void research() {
-        Eva.eva((eva, count) -> {
-            Lok.error(count);
-            if (count == 8)
-                Lok.warn("debug");
-        });
         N.r(() -> N.readSqlResourceIgnorantly(transferDao.getUnnecessaryTransfers(), (sqlResource, transferDetails) -> {
-            //todo debug
-            if (transferDetails.getHash().equalsValue("238810397cd86edae7957bca350098bc"))
-                Lok.warn("debug");
             transferDao.flagDeleted(transferDetails.getId().v(), true);
-            MeinIsolatedFileProcess fileProcess = (MeinIsolatedFileProcess) meinDriveService.getIsolatedProcess(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
-            if (fileProcess != null) {
-                fileProcess.cancelByHash(transferDetails.getHash().v());
-            }
+            Promise<MeinIsolatedFileProcess, Exception, Void> connected = meinDriveService.getIsolatedProcess(MeinIsolatedFileProcess.class, transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
+            connected.done(result -> N.oneLine(() -> result.cancelByHash(transferDetails.getHash().v())));
             cancelActiveTransfer(transferDetails);
         }));
         lock.unlockWrite();
@@ -378,5 +362,10 @@ public class TransferManager extends DeferredRunnable {
     @Override
     public String getRunnableName() {
         return getClass().getSimpleName() + " for " + meinAuthService.getName() + "/" + meinDriveService.getUuid();
+    }
+
+    @Override
+    public void onIsolatedSocketClosed() {
+        Lok.debug("");
     }
 }

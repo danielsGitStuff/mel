@@ -6,6 +6,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
+
 import org.jdeferred.impl.DeferredObject;
 
 import java.util.Map;
@@ -53,8 +54,8 @@ public abstract class MeinProcess implements IRequestHandler {
             StateMsg msg = (StateMsg) deserialized;
             DeferredObject<SerializableEntity, ResponseException, Void> deferred = requestMap.remove(answerId);
             if (!msg.getState().equals(MeinStrings.msg.STATE_OK)) {
-                if (msg.getException()== null)
-                    deferred.reject(new ResponseException("state was: "+msg.getState()));
+                if (msg.getException() == null)
+                    deferred.reject(new ResponseException("state was: " + msg.getState()));
                 else
                     deferred.reject(msg.getException());
                 return true;
@@ -83,4 +84,7 @@ public abstract class MeinProcess implements IRequestHandler {
 
     public abstract void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket);
 
+    public void onSocketClosed(int code, String reason, boolean remote) {
+        // nothing here yet
+    }
 }

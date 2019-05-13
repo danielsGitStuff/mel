@@ -141,6 +141,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     @Override
     public void onClose(int code, String reason, boolean remote) {
         Lok.debug(meinAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
+        process.onSocketClosed(code,reason,remote);
         meinAuthService.onSocketClosed(this);
     }
 
@@ -258,7 +259,6 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             MeinAuthProcess meinAuthProcess = new MeinAuthProcess(this);
             Promise<Void, Exception, Void> authPromise = meinAuthProcess.authenticate(job);
             authPromise.fail(ex -> {
-                ex.printStackTrace();
                 deferred.reject(ex);
             });
         });

@@ -420,7 +420,7 @@ public class ClientSyncHandler extends SyncHandler {
                 // merge again
                 meinDriveService.addJob(new CommitJob());
                 return;
-            } else if (updateSets.size() == 0 && commitJob.getSyncAnyway()) {
+            } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
                 syncFromServer(null);
                 return;
             } else if (updateSets.size() == 1) {

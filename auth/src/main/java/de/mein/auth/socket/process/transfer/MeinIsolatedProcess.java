@@ -7,20 +7,31 @@ import de.mein.auth.service.IMeinService;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinProcess;
 import de.mein.auth.tools.ByteTools;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Process is exclusively bound a {@link IMeinService}. It does not interfere with other connections. Good for transferring large amounts of data.
+ * {@link de.mein.auth.service.MeinAuthService} does not take care of this connection. You got to do this in your Service.
  */
 public abstract class MeinIsolatedProcess extends MeinProcess {
 
     private final String isolatedUuid;
     protected IMeinService service;
+    protected Set<IsolatedProcessListener> isolatedProcessListeners = new HashSet<>();
+
+    public void addIsolatedProcessListener(IsolatedProcessListener listener) {
+        this.isolatedProcessListeners.add(listener);
+    }
 
 
     public void setService(IMeinService service) {
@@ -89,5 +100,15 @@ public abstract class MeinIsolatedProcess extends MeinProcess {
 
     public boolean isOpen() {
         return meinAuthSocket.isOpen();
+    }
+
+    public static interface IsolatedProcessListener {
+        void onIsolatedSocketClosed();
+    }
+
+    @Override
+    public void onSocketClosed(int code, String reason, boolean remote) {
+        super.onSocketClosed(code, reason, remote);
+        N.forEachIgnorantly(isolatedProcessListeners, IsolatedProcessListener::onIsolatedSocketClosed);
     }
 }

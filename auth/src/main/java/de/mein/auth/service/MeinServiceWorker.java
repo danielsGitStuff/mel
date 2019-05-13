@@ -14,23 +14,12 @@ import java.util.Map;
  */
 public abstract class MeinServiceWorker extends MeinService {
     protected LinkedList<Job> jobs = new LinkedList<>();
-    private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
     private CountdownLock initLock = new CountdownLock(1);
 
     public MeinServiceWorker(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, Bootloader.BootLevel bootLevel) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid, bootLevel);
     }
 
-    @Override
-    public void onIsolatedConnectionEstablished(MeinIsolatedProcess isolatedProcess) {
-        String key = isolatedProcess.getPartnerCertificateId() + "." + isolatedProcess.getPartnerServiceUuid();
-        isolatedProcessMap.put(key, isolatedProcess);
-    }
-
-    public MeinIsolatedProcess getIsolatedProcess(Long partnerCertId, String partnerServiceUuid) {
-        String key = partnerCertId + "." + partnerServiceUuid;
-        return isolatedProcessMap.get(key);
-    }
 
     @Override
     public void runImpl() {

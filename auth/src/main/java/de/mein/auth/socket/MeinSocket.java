@@ -254,7 +254,6 @@ public class MeinSocket extends DeferredRunnable {
             if (!isStopped()) {
                 String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
                 Lok.error(line);
-                e.printStackTrace();
             }
         } finally {
             Lok.debug(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());
