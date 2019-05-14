@@ -103,9 +103,11 @@ public class MeinAuthWorker extends MeinWorker implements PowerManager.IPowerSta
     }
 
     private void connect(AConnectJob job) throws ClassNotFoundException, IllegalAccessException, NoSuchPaddingException, URISyntaxException, SqlQueriesException, KeyManagementException, BadPaddingException, CertificateException, KeyStoreException, NoSuchAlgorithmException, InvalidKeyException, UnrecoverableKeyException, JsonSerializationException, IOException, IllegalBlockSizeException, InterruptedException {
-        MeinAuthSocket meinAuthSocket = new MeinAuthSocket(meinAuthService);
         Lok.debug("MeinAuthWorker.connect: " + job.getAddress() + ":" + job.getPort() + ":" + job.getPortCert() + "?reg=" + job.getRegOnUnknown());
-        Promise<MeinValidationProcess, Exception, Void> promise = meinAuthSocket.connect(job);
+        MeinAuthSocket meinAuthSocket = new MeinAuthSocket(meinAuthService);
+        meinAuthSocket.setConnectJob(job);
+        meinAuthService.execute(meinAuthSocket);
+//        Promise<MeinValidationProcess, Exception, Void> promise = meinAuthSocket.connect(job);
 //        promise.done(meinValidationProcess -> {
 //            job.getPromise().resolve(meinValidationProcess);
 //        });

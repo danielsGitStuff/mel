@@ -297,7 +297,7 @@ public class MeinAuthService {
         return this;
     }
 
-     <T extends MeinIsolatedProcess> DeferredObject<T, Exception, Void> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
+    <T extends MeinIsolatedProcess> DeferredObject<T, Exception, Void> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
         Certificate certificate = certificateManager.getTrustedCertificateById(certId);
         if (address == null)
             address = certificate.getAddress().v();
@@ -349,10 +349,14 @@ public class MeinAuthService {
                 ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
                 connectedEnvironment.currentlyConnecting(certificateId, deferred);
                 job.getPromise().done(result -> {
+                    connectedEnvironment.lock();
                     connectedEnvironment.removeCurrentlyConnecting(certificateId);
+                    connectedEnvironment.unlock();
                     deferred.resolve(result);
                 }).fail(result -> {
+                    connectedEnvironment.lock();
                     connectedEnvironment.removeCurrentlyConnecting(certificateId);
+                    connectedEnvironment.unlock();
                     deferred.reject(result);
                 });
                 meinAuthWorker.addJob(job);

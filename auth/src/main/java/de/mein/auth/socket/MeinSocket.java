@@ -3,6 +3,7 @@ package de.mein.auth.socket;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
+import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.jobs.ReceivedJob;
 import de.mein.auth.service.MeinAuthService;
@@ -24,7 +25,18 @@ import java.util.logging.Logger;
  * Created by xor on 09.08.2016.
  */
 public class MeinSocket extends DeferredRunnable {
-    private static Logger logger = Logger.getLogger(MeinSocket.class.getName());
+
+    private AConnectJob connectJob;
+
+    public MeinSocket setConnectJob(AConnectJob connectJob) {
+        this.connectJob = connectJob;
+        return this;
+    }
+
+    public AConnectJob getConnectJob() {
+        return connectJob;
+    }
+
     protected boolean allowIsolation = false;
     protected boolean isIsolated = false;
     private SocketWorker socketWorker;
@@ -49,11 +61,6 @@ public class MeinSocket extends DeferredRunnable {
     private MeinSocketListener listener;
     private final int v;
     private static AtomicInteger vv = new AtomicInteger(0);
-
-    public MeinSocket setSocketFactory(SocketFactory socketFactory) {
-        this.socketFactory = socketFactory;
-        return this;
-    }
 
     public MeinAuthService getMeinAuthService() {
         return meinAuthService;
@@ -110,7 +117,7 @@ public class MeinSocket extends DeferredRunnable {
             this.out.writeUTF(json);
             this.out.flush();
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "MeinSocket.send.error");
+            Lok.error("MeinSocket.send.error");
             e.printStackTrace();
         }
     }
@@ -139,6 +146,10 @@ public class MeinSocket extends DeferredRunnable {
         void onBlockReceived(BlockReceivedJob block);
     }
 
+    protected SocketFactory createSocketFactory() {
+        return SocketFactory.getDefault();
+    }
+
 
     public MeinSocket(MeinAuthService meinAuthService, Socket socket) {
         this(meinAuthService);
@@ -157,12 +168,10 @@ public class MeinSocket extends DeferredRunnable {
 
 
     private void streams() {
-        try {
+        N.oneLine(() -> {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     public MeinSocket setSocket(Socket socket) {
@@ -193,8 +202,11 @@ public class MeinSocket extends DeferredRunnable {
     public void runImpl() {
         Thread thread = Thread.currentThread();
         try {
-            if (socket == null) {
-                socket = socketFactory.createSocket();
+            if (socket == null && connectJob == null)
+                Lok.error("socket has nothing to do!");
+
+            if (socket == null && connectJob != null) {
+                socket = createSocketFactory().createSocket();
                 socket.connect(new InetSocketAddress(address, port));
             }
             if (in == null || out == null)
@@ -248,7 +260,7 @@ public class MeinSocket extends DeferredRunnable {
                         socketWorker.addJob(new ReceivedJob().setMessage(s));
                 }
             }
-            logger.log(Level.SEVERE, "MeinSocket.runTry.CLOSING");
+            Lok.debug("MeinSocket.runTry.CLOSING");
             listener.onClose(42, "don't know shit", true);
         } catch (Exception e) {
             if (!isStopped()) {
