@@ -1,11 +1,11 @@
 package de.mein.auth.tools;
 
 import de.mein.Lok;
-import org.junit.Before;
+import de.mein.auth.tools.lock.KeyLocker;
+import de.mein.auth.tools.lock.LockedTransaction;
 import org.junit.Test;
 import org.junit.runners.model.TestTimedOutException;
 
-import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -18,7 +18,7 @@ class KeyLockerTest {
 
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
-        key = null;
+        transaction = null;
         KeyLocker.reset();
         executor.shutdownNow();
         executor = Executors.newCachedThreadPool();
@@ -29,11 +29,13 @@ class KeyLockerTest {
     @org.junit.jupiter.api.AfterEach
     void tearDown() {
         Lok.debug("tear down");
+        if (transaction != null)
+            transaction.end();
     }
 
     @org.junit.jupiter.api.Test
     void lockIntersection() {
-        key = KeyLocker.lockOn(A, B);
+        transaction = KeyLocker.transaction(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -42,7 +44,7 @@ class KeyLockerTest {
         });
         executor.submit(() -> {
             try {
-                KeyLocker.lockOn(A, C);
+                KeyLocker.transaction(A, C);
                 triggerFlag = true;
                 fail("should not be reached");
                 waitLock.unlock();
@@ -59,7 +61,7 @@ class KeyLockerTest {
 
     @org.junit.jupiter.api.Test
     void lockWhole() {
-        key = KeyLocker.lockOn(A, B);
+        transaction = KeyLocker.transaction(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -68,7 +70,7 @@ class KeyLockerTest {
         });
         executor.submit(() -> {
             try {
-                KeyLocker.lockOn(A, B);
+                KeyLocker.transaction(A, B);
                 triggerFlag = true;
                 fail("should not be reached");
             } catch (Exception e) {
@@ -85,7 +87,7 @@ class KeyLockerTest {
 
     @org.junit.jupiter.api.Test
     void lockDifferent() {
-        key = KeyLocker.lockOn(A, B);
+        transaction = KeyLocker.transaction(A, B);
 
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -95,7 +97,7 @@ class KeyLockerTest {
             triggerFlag = true;
         });
         executor.submit(() -> {
-            KeyLocker.lockOn(C);
+            KeyLocker.transaction(C);
             Lok.debug("unlocking");
             waitLock.unlock();
         });
@@ -106,7 +108,7 @@ class KeyLockerTest {
     }
 
 
-    private Key key;
+    private LockedTransaction transaction;
     private String A = "AAA";
     private String B = "BBB";
     private String C = "CCC";
