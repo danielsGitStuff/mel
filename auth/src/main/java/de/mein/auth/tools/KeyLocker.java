@@ -25,7 +25,8 @@ public class KeyLocker {
 
     public static synchronized void access(Key key, Object... objects) {
         boolean keyContainsAllObjects = N.all(objects, o -> key.getLockObjects().contains(o));
-        if (!keyContainsAllObjects) {
+        boolean keyMatchesLockObjects = N.all(objects, o -> lockMap.get(o) == key);
+        if (!keyContainsAllObjects || !keyMatchesLockObjects) {
             key.lock();
         }
     }
