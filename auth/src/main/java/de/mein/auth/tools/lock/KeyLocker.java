@@ -45,7 +45,7 @@ public class KeyLocker {
                         }
                         if (readMap.containsKey(o)) {
                             // stop on every read key
-                            N.forEachIgnorantly(readMap.get(0), Key::lock);
+                            N.forEachIgnorantly(readMap.get(o), Key::lock);
                         }
                     }
                 }

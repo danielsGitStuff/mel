@@ -3,6 +3,7 @@ package de.mein.auth.tools;
 import de.mein.Lok;
 import de.mein.auth.tools.lock.KeyLocker;
 import de.mein.auth.tools.lock.LockedTransaction;
+import de.mein.auth.tools.lock.Read;
 import org.junit.Test;
 import org.junit.runners.model.TestTimedOutException;
 
@@ -99,6 +100,49 @@ class KeyLockerTest {
         executor.submit(() -> {
             KeyLocker.transaction(C);
             Lok.debug("unlocking");
+            waitLock.unlock();
+        });
+        Lok.debug("wait 4 unlock");
+        waitLock.lock().lock();
+        assertFalse(triggerFlag);
+        Lok.debug("done");
+    }
+
+    @org.junit.jupiter.api.Test
+    void lockReadThenWrite() {
+        transaction = KeyLocker.transaction(new Read(A, B));
+        executor.submit(() -> {
+            N.r(() -> Thread.sleep(100));
+            Lok.debug("sleep ends");
+            executor.shutdownNow();
+            waitLock.unlock();
+        });
+        executor.submit(() -> {
+            KeyLocker.transaction(B);
+            Lok.debug("unlocking");
+            triggerFlag = true;
+            waitLock.unlock();
+        });
+        Lok.debug("wait 4 unlock");
+        waitLock.lock().lock();
+        assertFalse(triggerFlag);
+        Lok.debug("done");
+    }
+
+    @org.junit.jupiter.api.Test
+    void lockWriteThenRead() {
+        transaction = KeyLocker.transaction(A, B);
+
+        executor.submit(() -> {
+            N.r(() -> Thread.sleep(100));
+            Lok.debug("sleep ends");
+            executor.shutdownNow();
+            waitLock.unlock();
+        });
+        executor.submit(() -> {
+            KeyLocker.transaction(new Read(B));
+            Lok.debug("unlocking");
+            triggerFlag = true;
             waitLock.unlock();
         });
         Lok.debug("wait 4 unlock");
