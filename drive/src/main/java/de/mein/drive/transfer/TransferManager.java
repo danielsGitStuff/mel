@@ -11,9 +11,8 @@ import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
@@ -126,7 +125,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                         // todo ask Wastebin for files
                         wastebin.restoreFsFiles(syncHandler);
                         // todo ask FS for files
-                        Transaction transaction = Locker.transaction(fsDao);
+                        Transaction transaction = T.transaction(fsDao);
                         try {
                             List<String> hashes = fsDao.searchTransfer();
                             for (String hash : hashes) {

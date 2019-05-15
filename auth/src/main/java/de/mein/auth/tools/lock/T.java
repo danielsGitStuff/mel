@@ -6,7 +6,7 @@ import de.mein.auth.tools.N;
 import java.util.*;
 
 @SuppressWarnings("Duplicates")
-public class Locker {
+public class T {
 
     private static String locker = "LOCK!!!";
     private static Map<Object, Key> lockMap = new HashMap<>();
@@ -14,6 +14,20 @@ public class Locker {
     //    private static Map<Object, Key> writeMap = new HashMap<>();
     private static Long LOCK_ID_COUNT = 0L;
 
+    /**
+     * Objects put in here are read locked.
+     * @param objects
+     * @return
+     */
+    public static Read read(Object... objects) {
+        return new Read(objects);
+    }
+
+    /**
+     * You can lock on all Objects that you put in here. If you want some objects read locked only call T.read(yourObjectHere).
+     * @param objects
+     * @return
+     */
     public static Transaction transaction(Object... objects) {
         Transaction transaction = new Transaction();
         try {

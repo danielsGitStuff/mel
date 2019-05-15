@@ -6,6 +6,9 @@ import de.mein.auth.data.db.dao.CertificateDao;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.FFile;
 import de.mein.auth.tools.Cryptor;
+import de.mein.auth.tools.lock.T;
+import de.mein.auth.tools.lock.Read;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.sql.Hash;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
@@ -16,7 +19,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.net.SocketFactory;
 import javax.net.ssl.*;
 
 import java.io.*;
@@ -31,6 +33,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Takes care of all Certificates. That means: creating your own, storing foreign ones,
@@ -146,27 +149,28 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String answerUuidString, String address, Integer port, Integer portCert, String greeting) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
-        certificateDao.lockWrite();
-        Certificate certificate = new Certificate();
-        String uuid = getNewUUID().toString();
-        UUID answerUuid = null;
-        //make sure answeruuid really is an uuid
-        if (answerUuidString != null) {
-            answerUuid = UUID.fromString(answerUuidString);
-        }
-        certificate.setUuid(uuid)
-                .setCertificate(x509Certificate.getEncoded())
-                .setAnswerUuid(answerUuid == null ? null : answerUuid.toString())
-                .setAddress(address)
-                .setName(name)
-                .setPort(port)
-                .setCertDeliveryPort(portCert)
-                .setGreeting(greeting)
-                .setTrusted(false);
-        certificate = certificateDao.insertCertificate(certificate);
-        certificateDao.unlockWrite();
+        AtomicReference<Certificate> certificate = new AtomicReference<>(new Certificate());
+        String uuid = getNewUUID();
+        Transaction transaction = T.transaction(certificateDao);
+        transaction.run(() -> {
+            UUID answerUuid = null;
+            //make sure answeruuid really is an uuid
+            if (answerUuidString != null) {
+                answerUuid = UUID.fromString(answerUuidString);
+            }
+            certificate.get().setUuid(uuid)
+                    .setCertificate(x509Certificate.getEncoded())
+                    .setAnswerUuid(answerUuid == null ? null : answerUuid.toString())
+                    .setAddress(address)
+                    .setName(name)
+                    .setPort(port)
+                    .setCertDeliveryPort(portCert)
+                    .setGreeting(greeting)
+                    .setTrusted(false);
+            certificate.set(certificateDao.insertCertificate(certificate.get()));
+        }).end();
         this.storeCertInKeyStore(uuid, x509Certificate);
-        return certificate;
+        return certificate.get();
     }
 
     public void trustCertificate(Long certId, boolean trusted) throws SqlQueriesException {
@@ -174,12 +178,13 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        certificateDao.lockRead();
-        for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
-            X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
-            storeCertInKeyStore(dbCert.getUuid().v(), cert);
-        }
-        certificateDao.unlockRead();
+        Transaction transaction = T.transaction(T.read(certificateDao));
+        transaction.run(() -> {
+            for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
+                X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
+                storeCertInKeyStore(dbCert.getUuid().v(), cert);
+            }
+        }).end();
     }
 
     private synchronized void storeCertInKeyStore(String name, X509Certificate certificate) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
@@ -335,18 +340,18 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public Certificate addAnswerUuid(Long certId, String ownUuid) throws SqlQueriesException {
-        certificateDao.lockWrite();
+        Transaction transaction = T.transaction(certificateDao);
         Certificate partnerCertificate = certificateDao.getTrustedCertificateById(certId);
         partnerCertificate.setAnswerUuid(ownUuid);
         certificateDao.updateCertificate(partnerCertificate);
-        certificateDao.unlockWrite();
+        transaction.end();
         return partnerCertificate;
     }
 
     public List<Certificate> getCertificatesByGreeting(String greeting) throws SqlQueriesException {
-        certificateDao.lockRead();
+        Transaction transaction = T.transaction(T.read(certificateDao));
         List<Certificate> certs = certificateDao.getCertificatesByGreeting(greeting);
-        certificateDao.unlockRead();
+        transaction.end();
         return certs;
     }
 
@@ -354,13 +359,6 @@ public class CertificateManager extends FileRelatedManager {
         if (certificate.getId().v() != null) {
             certificateDao.delete(certificate.getId().v());
         }
-    }
-
-    public Certificate getCertificateByBytes(byte[] certBytes) throws SqlQueriesException {
-        certificateDao.lockRead();
-        Certificate certificate = certificateDao.getCertificateByBytes(certBytes);
-        certificateDao.unlockRead();
-        return certificate;
     }
 
     @SuppressWarnings("Duplicates")
@@ -394,9 +392,9 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public Certificate getTrustedCertificateByHash(String hash) throws SqlQueriesException {
-        certificateDao.lockRead();
-        Certificate certificate = certificateDao.getTrustedCertificateByHash(hash);
-        certificateDao.unlockRead();
+        Transaction transaction = T.transaction(T.read(certificateDao));
+        Certificate certificate = transaction.runResult(() -> certificateDao.getTrustedCertificateByHash(hash));
+        transaction.end();
         return certificate;
     }
 

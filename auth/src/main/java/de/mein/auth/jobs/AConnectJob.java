@@ -1,10 +1,13 @@
 package de.mein.auth.jobs;
 
+import sun.jvm.hotspot.StackTrace;
+
 /**
  * Created by xor on 12/13/16.
  */
 public abstract class AConnectJob<R, P> extends Job<R, Exception, P> {
     private final boolean regOnUnknown;
+    private final String codePosition;
     private Long certificateId;
     private String address;
     private Integer port, portCert;
@@ -15,6 +18,8 @@ public abstract class AConnectJob<R, P> extends Job<R, Exception, P> {
         this.port = port;
         this.portCert = portCert;
         this.regOnUnknown = regOnUnknown;
+        StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
+        this.codePosition = trace.getClassName() + "." + trace.getMethodName() + "() line " + trace.getLineNumber();
     }
 
     public AConnectJob setCertificateId(Long certificateId) {

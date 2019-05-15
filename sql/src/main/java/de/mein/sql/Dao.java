@@ -72,7 +72,7 @@ public abstract class Dao {
      */
     public static class LockingDao extends ConnectionLockingDao {
 
-        protected RWLock lock = new RWLock();
+//        protected RWLock lock = new RWLock();
 
         public LockingDao(ISQLQueries ISQLQueries) {
             super(ISQLQueries);
@@ -82,25 +82,25 @@ public abstract class Dao {
             super(ISQLQueries, lock);
         }
 
-        @Override
-        public void lockRead() {
-            lock.lockRead();
-        }
-
-        @Override
-        public void lockWrite() {
-            lock.lockWrite();
-        }
-
-        @Override
-        public void unlockRead() {
-            lock.unlockRead();
-        }
-
-        @Override
-        public void unlockWrite() {
-            lock.unlockWrite();
-        }
+//        @Override
+//        public void lockRead() {
+//            lock.lockRead();
+//        }
+//
+//        @Override
+//        public void lockWrite() {
+//            lock.lockWrite();
+//        }
+//
+//        @Override
+//        public void unlockRead() {
+//            lock.unlockRead();
+//        }
+//
+//        @Override
+//        public void unlockWrite() {
+//            lock.unlockWrite();
+//        }
     }
 
     /**
@@ -115,20 +115,20 @@ public abstract class Dao {
             super(ISQLQueries, lock);
         }
 
-        public void lockWrite() {
-            sqlQueries.lockWrite();
-        }
-
-        public void lockRead() {
-            sqlQueries.lockRead();
-        }
-
-        public void unlockWrite() {
-            sqlQueries.unlockWrite();
-        }
-
-        public void unlockRead() {
-            sqlQueries.unlockRead();
-        }
+//        public void lockWrite() {
+//            sqlQueries.lockWrite();
+//        }
+//
+//        public void lockRead() {
+//            sqlQueries.lockRead();
+//        }
+//
+//        public void unlockWrite() {
+//            sqlQueries.unlockWrite();
+//        }
+//
+//        public void unlockRead() {
+//            sqlQueries.unlockRead();
+//        }
     }
 }

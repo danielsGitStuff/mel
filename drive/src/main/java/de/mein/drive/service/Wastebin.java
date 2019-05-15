@@ -3,7 +3,7 @@ package de.mein.drive.service;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
@@ -21,7 +21,6 @@ import de.mein.sql.SqlQueriesException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 /**
  * erases files and directories. moves files to the wastebin folder and keeps track of the wastebin folders content.
@@ -252,21 +251,25 @@ public class Wastebin {
     }
 
     private List<String> searchTransfer() throws SqlQueriesException {
-        wasteDao.lockRead();
-        try {
-            return wasteDao.searchTransfer();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        } finally {
-            wasteDao.unlockRead();
-        }
+        Transaction transaction = T.transaction(T.read(wasteDao));
+        List<String> result = transaction.runResult(wasteDao::searchTransfer);
+        transaction.end();
+        return result;
+//        wasteDao.lockRead();
+//        try {
+//            return wasteDao.searchTransfer();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw e;
+//        } finally {
+//            wasteDao.unlockRead();
+//        }
     }
 
 
     public void restoreFsFiles(SyncHandler syncHandler) throws SqlQueriesException, IOException {
         List<String> availableHashes = searchTransfer();
-        Transaction transaction = Locker.transaction(fsDao);
+        Transaction transaction = T.transaction(fsDao);
         try {
             for (String hash : availableHashes) {
                 List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);

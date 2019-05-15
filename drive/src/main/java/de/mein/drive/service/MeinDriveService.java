@@ -16,7 +16,7 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Read;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.DriveSyncListener;
@@ -196,7 +196,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload) {
         //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
         FsDao fsDao = driveDatabaseManager.getFsDao();
-        Transaction transaction = Locker.transaction(new Read(fsDao));
+        Transaction transaction = T.transaction(T.read(fsDao));
         try {
 
             FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();

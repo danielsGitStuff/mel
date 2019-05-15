@@ -10,7 +10,7 @@ import de.mein.auth.socket.process.val.LockedRequest;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
-import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Read;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.DriveSyncListener;
@@ -52,7 +52,7 @@ public class ClientSyncHandler extends SyncHandler {
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         TransferDao transferDao = driveDatabaseManager.getTransferDao();
-        Transaction transaction = Locker.transaction(fsDao);
+        Transaction transaction = T.transaction(fsDao);
         N.forEach(hashes, s -> {
             // if is stage from server or is transfer -> flag as available
             N.forEach(stageDao.getUpdateStageSetsFromServer(), stageSet -> {
@@ -281,7 +281,7 @@ public class ClientSyncHandler extends SyncHandler {
         StageDao stageDao = driveDatabaseManager.getStageDao();
 //        fsDao.unlockRead();
         //fsDao.lockWrite();
-        stageDao.lockRead();
+        Transaction transaction = T.transaction(T.read(stageDao));
         try {
             if (stageDao.stageSetHasContent(stageSetId)) {
                 //all other stages we can find at this point are complete/valid and wait at this point.
@@ -347,14 +347,14 @@ public class ClientSyncHandler extends SyncHandler {
                     Exception ex = connectResult.getException();
                     System.err.println("MeinDriveClientService.startIndexer.could not connect :( due to: " + ex.getMessage());
                     // fsDao.unlockWrite();
-                    stageDao.unlockRead();
+                    transaction.end();
                     meinDriveService.onSyncFailed();
                 }
             } else {
                 stageDao.deleteStageSet(stageSetId);
             }
         } finally {
-            stageDao.unlockRead();
+            transaction.end();
         }
     }
 
@@ -369,7 +369,7 @@ public class ClientSyncHandler extends SyncHandler {
      */
     public void commitJob(CommitJob commitJob) {
         Lok.debug("ClientSyncHandler.commitJob");
-        Transaction transaction = Locker.transaction(new Read(fsDao));
+        Transaction transaction = T.transaction(T.read(fsDao));
         try {
             // first wait until every staging stuff is finished.
 
@@ -391,7 +391,7 @@ public class ClientSyncHandler extends SyncHandler {
         } finally {
             transaction.end();
         }
-        transaction = Locker.transaction(fsDao);
+        transaction = T.transaction(fsDao);
         try {
             // ReadLock bis hier
             // update from server

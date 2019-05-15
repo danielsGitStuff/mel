@@ -1,7 +1,7 @@
 package de.mein.drive.index.watchdog;
 
 import de.mein.Lok;
-import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Read;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.data.DriveStrings;
@@ -36,7 +36,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
     public void runImpl() {
         boolean unlocked = false;
         if (pathCollection.getPaths().size() > 0) {
-            Transaction transaction = Locker.transaction(new Read(fsDao));
+            Transaction transaction = T.transaction(T.read(fsDao));
             try {
                 //todo debug
                 if (Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClientService for MA2"))
