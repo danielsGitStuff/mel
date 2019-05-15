@@ -3,7 +3,6 @@ package de.mein.auth.tools;
 import de.mein.Lok;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
-import de.mein.auth.tools.lock.Read;
 import org.junit.Test;
 import org.junit.runners.model.TestTimedOutException;
 
@@ -15,11 +14,32 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TTest {
 
+    class Dummy {
+        Dummy(String string) {
+            this.string = string;
+        }
+
+        @Override
+        public String toString() {
+            return "Dummy: " + string;
+        }
+
+        String string;
+    }
+
     private boolean triggerFlag;
+    private Transaction t;
+    private Transaction u;
+    private Dummy A = new Dummy("AAA");
+    private Dummy B = new Dummy("BBB");
+    private Dummy C = new Dummy("CCC");
+    private Thread thread1, thread2;
+    private ExecutorService executor = Executors.newCachedThreadPool();
+    private WaitLock waitLock;
 
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
-        transaction = null;
+        t = null;
         T.reset();
         executor.shutdownNow();
         executor = Executors.newCachedThreadPool();
@@ -30,13 +50,13 @@ class TTest {
     @org.junit.jupiter.api.AfterEach
     void tearDown() {
         Lok.debug("tear down");
-        if (transaction != null)
-            transaction.end();
+        if (t != null)
+            t.end();
     }
 
     @org.junit.jupiter.api.Test
     void lockIntersection() {
-        transaction = T.transaction(A, B);
+        t = T.lockingTransaction(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -45,7 +65,7 @@ class TTest {
         });
         executor.submit(() -> {
             try {
-                T.transaction(A, C);
+                T.lockingTransaction(A, C);
                 triggerFlag = true;
                 fail("should not be reached");
                 waitLock.unlock();
@@ -62,7 +82,7 @@ class TTest {
 
     @org.junit.jupiter.api.Test
     void lockWhole() {
-        transaction = T.transaction(A, B);
+        t = T.lockingTransaction(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -71,7 +91,7 @@ class TTest {
         });
         executor.submit(() -> {
             try {
-                T.transaction(A, B);
+                T.lockingTransaction(A, B);
                 triggerFlag = true;
                 fail("should not be reached");
             } catch (Exception e) {
@@ -88,7 +108,7 @@ class TTest {
 
     @org.junit.jupiter.api.Test
     void lockDifferent() {
-        transaction = T.transaction(A, B);
+        t = T.lockingTransaction(A, B);
 
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -98,7 +118,7 @@ class TTest {
             triggerFlag = true;
         });
         executor.submit(() -> {
-            T.transaction(C);
+            T.lockingTransaction(C);
             Lok.debug("unlocking");
             waitLock.unlock();
         });
@@ -110,7 +130,7 @@ class TTest {
 
     @org.junit.jupiter.api.Test
     void lockReadThenWrite() {
-        transaction = T.transaction(T.read(A, B));
+        t = T.lockingTransaction(T.read(A, B));
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -118,7 +138,7 @@ class TTest {
             waitLock.unlock();
         });
         executor.submit(() -> {
-            T.transaction(B);
+            T.lockingTransaction(B);
             Lok.debug("unlocking");
             triggerFlag = true;
             waitLock.unlock();
@@ -131,7 +151,7 @@ class TTest {
 
     @org.junit.jupiter.api.Test
     void lockWriteThenRead() {
-        transaction = T.transaction(A, B);
+        t = T.lockingTransaction(A, B);
 
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -140,7 +160,7 @@ class TTest {
             waitLock.unlock();
         });
         executor.submit(() -> {
-            T.transaction(T.read(B));
+            T.lockingTransaction(T.read(B));
             Lok.debug("unlocking");
             triggerFlag = true;
             waitLock.unlock();
@@ -151,18 +171,54 @@ class TTest {
         Lok.debug("done");
     }
 
+    @org.junit.jupiter.api.Test
+    void lockLater() {
+        t = T.tNoLock(A, B);
+        u = T.lockingTransaction(A, B);
+        executor.submit(() -> {
+            // shutdown
+            N.r(() -> Thread.sleep(100));
+            Lok.debug("sleep ends");
+            executor.shutdownNow();
+            waitLock.unlock();
+        });
+        executor.submit(() -> {
+            t.run(() -> {
+                // should not run
+                Lok.error("should not run!");
+                fail();
+                triggerFlag = true;
+            });
+        });
+        Lok.debug("wait 4 unlock");
+        waitLock.lock().lock();
+        assertFalse(triggerFlag);
+        Lok.debug("done");
+    }
 
-    private Transaction transaction;
-    private String A = "AAA";
-    private String B = "BBB";
-    private String C = "CCC";
+    @org.junit.jupiter.api.Test
+    void accessTwice() {
+        t = T.tNoLock(A, B);
+        executor.submit(() -> {
+            N.oneLine(() -> Thread.sleep(100));
+            Lok.debug("evaluating results...");
+            executor.shutdownNow();
+            waitLock.unlock();
+        });
+        executor.submit(() -> {
+            t.run(() -> {
+                Lok.debug("run1");
+            });
+            t.run(() -> {
+                Lok.debug("run2");
+                triggerFlag = true;
+            });
+        });
 
-    private Thread thread1, thread2;
-
-    private ExecutorService executor = Executors.newCachedThreadPool();
-    private WaitLock waitLock;
-
-
+        Lok.debug("waiting");
+        waitLock.lock().lock();
+        assertTrue(triggerFlag);
+    }
     @Test(timeout = 1000, expected = TestTimedOutException.class)
     public void lockAll() {
 

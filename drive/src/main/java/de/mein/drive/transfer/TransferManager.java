@@ -125,7 +125,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                         // todo ask Wastebin for files
                         wastebin.restoreFsFiles(syncHandler);
                         // todo ask FS for files
-                        Transaction transaction = T.transaction(fsDao);
+                        Transaction transaction = T.lockingTransaction(fsDao);
                         try {
                             List<String> hashes = fsDao.searchTransfer();
                             for (String hash : hashes) {

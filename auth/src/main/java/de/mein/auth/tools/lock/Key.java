@@ -5,13 +5,15 @@ import de.mein.auth.tools.WaitLock;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Key {
     private final Set<Object> objects;
     private final Set<Object> readObjects;
     private final WaitLock lock;
     // this helps you debugging
-    private Long id;
+    private long id;
+    private static AtomicLong ID_COUNTER = new AtomicLong(0L);
 
     Key(Set<Object> objects) {
         this(objects, new HashSet<>());
@@ -21,6 +23,12 @@ public class Key {
         this.objects = objects;
         this.readObjects = readObjects;
         this.lock = new WaitLock();
+        this.id = ID_COUNTER.getAndIncrement();
+    }
+
+    @Override
+    public String toString() {
+        return "Key " + id;
     }
 
     Set<Object> getObjects() {

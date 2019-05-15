@@ -4,7 +4,6 @@ import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
-import de.mein.auth.tools.lock.Read;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
@@ -79,7 +78,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 }
             }
             indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
-            Transaction transaction = T.transaction(T.read(fsDao));
+            Transaction transaction = T.lockingTransaction(T.read(fsDao));
             try {
                 Iterator<AFile> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);

@@ -251,7 +251,7 @@ public class Wastebin {
     }
 
     private List<String> searchTransfer() throws SqlQueriesException {
-        Transaction transaction = T.transaction(T.read(wasteDao));
+        Transaction transaction = T.lockingTransaction(T.read(wasteDao));
         List<String> result = transaction.runResult(wasteDao::searchTransfer);
         transaction.end();
         return result;
@@ -269,7 +269,7 @@ public class Wastebin {
 
     public void restoreFsFiles(SyncHandler syncHandler) throws SqlQueriesException, IOException {
         List<String> availableHashes = searchTransfer();
-        Transaction transaction = T.transaction(fsDao);
+        Transaction transaction = T.lockingTransaction(fsDao);
         try {
             for (String hash : availableHashes) {
                 List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);

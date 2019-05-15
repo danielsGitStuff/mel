@@ -11,7 +11,6 @@ import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
-import de.mein.auth.tools.lock.Read;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.*;
@@ -52,7 +51,7 @@ public class ClientSyncHandler extends SyncHandler {
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         TransferDao transferDao = driveDatabaseManager.getTransferDao();
-        Transaction transaction = T.transaction(fsDao);
+        Transaction transaction = T.lockingTransaction(fsDao);
         N.forEach(hashes, s -> {
             // if is stage from server or is transfer -> flag as available
             N.forEach(stageDao.getUpdateStageSetsFromServer(), stageSet -> {
@@ -281,7 +280,7 @@ public class ClientSyncHandler extends SyncHandler {
         StageDao stageDao = driveDatabaseManager.getStageDao();
 //        fsDao.unlockRead();
         //fsDao.lockWrite();
-        Transaction transaction = T.transaction(T.read(stageDao));
+        Transaction transaction = T.lockingTransaction(T.read(stageDao));
         try {
             if (stageDao.stageSetHasContent(stageSetId)) {
                 //all other stages we can find at this point are complete/valid and wait at this point.
@@ -369,7 +368,7 @@ public class ClientSyncHandler extends SyncHandler {
      */
     public void commitJob(CommitJob commitJob) {
         Lok.debug("ClientSyncHandler.commitJob");
-        Transaction transaction = T.transaction(T.read(fsDao));
+        Transaction transaction = T.lockingTransaction(T.read(fsDao));
         try {
             // first wait until every staging stuff is finished.
 
@@ -391,7 +390,7 @@ public class ClientSyncHandler extends SyncHandler {
         } finally {
             transaction.end();
         }
-        transaction = T.transaction(fsDao);
+        transaction = T.lockingTransaction(fsDao);
         try {
             // ReadLock bis hier
             // update from server

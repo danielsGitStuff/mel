@@ -7,7 +7,6 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.file.FFile;
 import de.mein.auth.tools.Cryptor;
 import de.mein.auth.tools.lock.T;
-import de.mein.auth.tools.lock.Read;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.sql.Hash;
 import de.mein.sql.ISQLQueries;
@@ -151,7 +150,7 @@ public class CertificateManager extends FileRelatedManager {
     public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String answerUuidString, String address, Integer port, Integer portCert, String greeting) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
         AtomicReference<Certificate> certificate = new AtomicReference<>(new Certificate());
         String uuid = getNewUUID();
-        Transaction transaction = T.transaction(certificateDao);
+        Transaction transaction = T.lockingTransaction(certificateDao);
         transaction.run(() -> {
             UUID answerUuid = null;
             //make sure answeruuid really is an uuid
@@ -178,7 +177,7 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        Transaction transaction = T.transaction(T.read(certificateDao));
+        Transaction transaction = T.lockingTransaction(T.read(certificateDao));
         transaction.run(() -> {
             for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
                 X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
@@ -340,7 +339,7 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public Certificate addAnswerUuid(Long certId, String ownUuid) throws SqlQueriesException {
-        Transaction transaction = T.transaction(certificateDao);
+        Transaction transaction = T.lockingTransaction(certificateDao);
         Certificate partnerCertificate = certificateDao.getTrustedCertificateById(certId);
         partnerCertificate.setAnswerUuid(ownUuid);
         certificateDao.updateCertificate(partnerCertificate);
@@ -349,7 +348,7 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public List<Certificate> getCertificatesByGreeting(String greeting) throws SqlQueriesException {
-        Transaction transaction = T.transaction(T.read(certificateDao));
+        Transaction transaction = T.lockingTransaction(T.read(certificateDao));
         List<Certificate> certs = certificateDao.getCertificatesByGreeting(greeting);
         transaction.end();
         return certs;
@@ -392,8 +391,8 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public Certificate getTrustedCertificateByHash(String hash) throws SqlQueriesException {
-        Transaction transaction = T.transaction(T.read(certificateDao));
-        Certificate certificate = transaction.runResult(() -> certificateDao.getTrustedCertificateByHash(hash));
+        Transaction<Certificate> transaction = T.lockingTransaction(T.read(certificateDao));
+        Certificate certificate = transaction.runResult(() -> certificateDao.getTrustedCertificateByHash(hash)).get();
         transaction.end();
         return certificate;
     }

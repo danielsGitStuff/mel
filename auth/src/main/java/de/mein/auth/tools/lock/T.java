@@ -16,6 +16,7 @@ public class T {
 
     /**
      * Objects put in here are read locked.
+     *
      * @param objects
      * @return
      */
@@ -25,11 +26,12 @@ public class T {
 
     /**
      * You can lock on all Objects that you put in here. If you want some objects read locked only call T.read(yourObjectHere).
+     *
      * @param objects
      * @return
      */
-    public static Transaction transaction(Object... objects) {
-        Transaction transaction = new Transaction();
+    public static Transaction lockingTransaction(Object... objects) {
+        Transaction transaction = new Transaction(true);
         try {
             Set<Object> ordinaryObjects = new HashSet<>();
             Set<Object> readObjects = new HashSet<>();
@@ -85,6 +87,49 @@ public class T {
         return transaction;
     }
 
+
+    /**
+     * You can lock on all Objects that you put in here. If you want some objects read locked only call T.read(yourObjectHere).
+     *
+     * @param objects
+     * @return
+     */
+    public static Transaction tNoLock(Object... objects) {
+        Transaction transaction = new Transaction(false);
+        try {
+            Set<Object> ordinaryObjects = new HashSet<>();
+            Set<Object> readObjects = new HashSet<>();
+            synchronized (locker) {
+                for (Object o : objects) {
+                    if (o instanceof Read) {
+                        // check if normal lock is held anywhere
+                        Read read = (Read) o;
+                        for (Object oo : read.getObjects()) {
+                            readObjects.add(oo);
+                        }
+                    } else {
+                        // check if read/normal lock is held anywhere
+                        ordinaryObjects.add(o);
+                    }
+                }
+            }
+            Key key = new Key(ordinaryObjects, readObjects);
+            transaction.setKey(key);
+//            key.lock();
+            // update currently held locks
+//            N.forEach(ordinaryObjects, o -> lockMap.put(o, key));
+//            N.forEach(readObjects, o -> {
+//                if (!readMap.containsKey(o))
+//                    readMap.put(o, new HashSet<>());
+//                readMap.get(o).add(key);
+//            });
+        } catch (Exception e) {
+            Lok.error(e.toString());
+            end(transaction);
+        }
+        return transaction;
+    }
+
     static void end(Transaction transaction) {
         Key key = transaction.getKey();
         if (key == null) {
@@ -107,5 +152,56 @@ public class T {
     public static void reset() {
         lockMap.clear();
         readMap.clear();
+    }
+
+    public static void release(Transaction transaction) {
+        synchronized (locker) {
+            Key key = transaction.getKey();
+            for (Object o : key.getObjects())
+                lockMap.remove(o);
+            for (Object o : key.getReadObjects()) {
+                Set<Key> set = readMap.get(o);
+                readMap.remove(key);
+                if (set.isEmpty())
+                    readMap.remove(o);
+            }
+            key.unlock();
+        }
+    }
+
+    public static void access(Transaction transaction) {
+        try {
+            Set<Object> ordinaryObjects = new HashSet<>();
+            Set<Object> readObjects = new HashSet<>();
+            Set<Key> keyToLockOn = new HashSet<>();
+            synchronized (locker) {
+                for (Object o : transaction.getKey().getObjects()) {
+                    if (lockMap.containsKey(o)) {
+                        keyToLockOn.add(lockMap.get(o));
+                    } else if (readMap.containsKey(o))
+                        keyToLockOn.addAll(readMap.get(o));
+                }
+            }
+            for (Key key : keyToLockOn) {
+                if (key != transaction.getKey()) {
+                    key.lock();
+                    key.unlock();
+                }
+            }
+            Key key = transaction.getKey();
+            key.lock();
+            // update currently held locks
+            synchronized (locker) {
+                N.forEach(key.getObjects(), o -> lockMap.put(o, key));
+                N.forEach(key.getReadObjects(), o -> {
+                    if (!readMap.containsKey(o))
+                        readMap.put(o, new HashSet<>());
+                    readMap.get(o).add(key);
+                });
+            }
+        } catch (Exception e) {
+            Lok.error(e.toString());
+            end(transaction);
+        }
     }
 }
