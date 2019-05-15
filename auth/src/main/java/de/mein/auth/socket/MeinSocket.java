@@ -28,10 +28,10 @@ public class MeinSocket extends DeferredRunnable {
 
     private AConnectJob connectJob;
 
-    public MeinSocket setConnectJob(AConnectJob connectJob) {
-        this.connectJob = connectJob;
-        return this;
-    }
+//    public MeinSocket setConnectJob(AConnectJob connectJob) {
+//        this.connectJob = connectJob;
+//        return this;
+//    }
 
     public AConnectJob getConnectJob() {
         return connectJob;
@@ -68,11 +68,23 @@ public class MeinSocket extends DeferredRunnable {
 
     @Override
     public String getRunnableName() {
-        return getClass().getSimpleName() + " for " + (meinAuthService == null ? "no service" : meinAuthService.getName());
+        String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + ".S";
+        if (connectJob != null)
+            line += "->";
+        else
+            line += "<-";
+        line += getAddress() + "/READ";
+        return line;
     }
 
     public boolean isOpen() {
         return socket != null && !socket.isClosed();
+    }
+
+    public String getAddress() {
+        if (connectJob == null)
+            return socket.getInetAddress().getHostName();
+        return connectJob.getAddress();
     }
 
     static class MeinThread extends Thread {
@@ -152,15 +164,18 @@ public class MeinSocket extends DeferredRunnable {
 
 
     public MeinSocket(MeinAuthService meinAuthService, Socket socket) {
-        this(meinAuthService);
+        this(null, meinAuthService);
         this.socket = socket;
         if (meinAuthService != null)
             meinAuthService.addMeinSocket(this);
         streams();
     }
 
-    public MeinSocket(MeinAuthService meinAuthService) {
+    public MeinSocket(AConnectJob connectJob, MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
+        this.connectJob = connectJob;
+        this.address = connectJob.getAddress();
+        this.port = connectJob.getPort();
         v = vv.getAndIncrement();
         if (meinAuthService != null)
             meinAuthService.addMeinSocket(this);

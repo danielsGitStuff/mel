@@ -73,7 +73,7 @@ public class MeinCertRetriever extends DeferredRunnable {
     @Override
     public void onShutDown() {
         certDeliveryClient.shutDown();
-        for (MeinSocket socket : clientSockets.keySet()){
+        for (MeinSocket socket : clientSockets.keySet()) {
             socket.shutDown();
         }
     }
@@ -85,7 +85,9 @@ public class MeinCertRetriever extends DeferredRunnable {
             //lock.lockWrite();
             logger.log(Level.FINER, "MeinCertRetriever.retrieveCertificate.ALPHONSO");
             URI uri = new URI(address);
-            certDeliveryClient = new MeinSocket(meinAuthService);
+
+            Socket socket = new Socket();
+            certDeliveryClient = new MeinSocket(meinAuthService, socket);
             certDeliveryClient.setListener(new MeinSocket.MeinSocketListener() {
                 @Override
                 public void onIsolated() {
@@ -139,9 +141,6 @@ public class MeinCertRetriever extends DeferredRunnable {
 
                 }
             });
-            Socket socket = new Socket();
-            socket.connect(new InetSocketAddress(address, portCert));
-            certDeliveryClient.setSocket(socket);
             certDeliveryClient.start();
 
             clientSockets.put(certDeliveryClient, 1);

@@ -52,6 +52,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
             return alreadyDeferred;
         }
         DeferredObject<T, Exception, Void> deferred = meinAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
+        isolatedDeferredMap.put(key,deferred);
         deferred.done(result -> {
             Lok.debug("am i first?");
         });

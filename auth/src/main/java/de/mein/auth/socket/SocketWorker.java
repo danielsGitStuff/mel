@@ -1,6 +1,7 @@
 package de.mein.auth.socket;
 
 import de.mein.Lok;
+import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ReceivedJob;
@@ -29,12 +30,20 @@ class SocketWorker extends MeinWorker {
             listener.onMessage(socket, receivedJob.getMessage());
         } else if (job instanceof BlockReceivedJob) {
             listener.onBlockReceived(((BlockReceivedJob) job));
+        }else if (job instanceof AConnectJob){
+            Lok.debug("connect!!!");
         }
     }
 
     @Override
     public String getRunnableName() {
-        return getClass().getSimpleName() + " for " + (socket.getMeinAuthService() == null ? "no service" : socket.getMeinAuthService().getName());
+        String line = (socket.getMeinAuthService() == null ? "no service" : socket.getMeinAuthService().getName()) + ".S";
+        if (socket.getConnectJob() != null)
+            line += "->";
+        else
+            line += "<-";
+        line += socket.getAddress() + "/WORK";
+        return line;
     }
 
     @Override

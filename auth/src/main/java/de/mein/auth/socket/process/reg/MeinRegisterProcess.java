@@ -187,7 +187,7 @@ public class MeinRegisterProcess extends MeinProcess {
                                 runner.runTry(() -> {
                                     // tell your partner that you appreciate her actions!
                                     X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(certificate.getCertificate().v());
-                                    String address = meinAuthSocket.getAddress().getHostAddress();
+                                    String address = meinAuthSocket.getAddress();
                                     int port = certificate.getPort().v();
                                     int portCert = certificate.getCertDeliveryPort().v();
                                     partnerCertificate = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), certificate.getAnswerUuid().v(), address, port, portCert, certificate.getGreeting().v());

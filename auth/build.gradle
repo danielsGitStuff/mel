@@ -30,6 +30,10 @@ dependencies {
     compile project(path: ':serialize')
     testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
     testCompile project(path: ':serialize', configuration: 'serializeTestOutput')
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'
+
 }
+
 compileJava.options.encoding = 'UTF-8'
 compileTestJava.options.encoding = 'UTF-8'

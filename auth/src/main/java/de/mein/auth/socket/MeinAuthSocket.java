@@ -46,8 +46,8 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     protected Certificate partnerCertificate;
 
 
-    public MeinAuthSocket(MeinAuthService meinAuthService) {
-        super(meinAuthService);
+    public MeinAuthSocket(AConnectJob connectJob, MeinAuthService meinAuthService) {
+        super(connectJob, meinAuthService);
         setListener(this);
     }
 
@@ -76,10 +76,6 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     public MeinAuthSocket allowIsolation() {
         this.allowIsolation = true;
         return this;
-    }
-
-    public InetAddress getAddress() {
-        return socket.getInetAddress();
     }
 
     @Override
@@ -137,7 +133,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     @Override
     public void onClose(int code, String reason, boolean remote) {
         Lok.debug(meinAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
-        process.onSocketClosed(code,reason,remote);
+        process.onSocketClosed(code, reason, remote);
         meinAuthService.onSocketClosed(this);
     }
 
@@ -260,13 +256,13 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         return deferred;
     }
 
-    public Promise<Void, Exception, Void> connectSSL(String address, Integer port) throws InterruptedException, UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException, URISyntaxException {
-        DeferredObject<Void, Exception, Void> deferredObject = new DeferredObject<>();
-        Socket socket = meinAuthService.getCertificateManager().createSocket();
-        MeinSocket meinSocket = new MeinSocket(meinAuthService);
-        meinSocket.setSocket(socket).setAddress(address);
-        return deferredObject;
-    }
+//    public Promise<Void, Exception, Void> connectSSL(String address, Integer port) throws InterruptedException, UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException, URISyntaxException {
+//        DeferredObject<Void, Exception, Void> deferredObject = new DeferredObject<>();
+//        Socket socket = meinAuthService.getCertificateManager().createSocket();
+//        MeinSocket meinSocket = new MeinSocket(meinAuthService);
+//        meinSocket.setSocket(socket).setAddress(address);
+//        return deferredObject;
+//    }
 
     public void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         if (certId != null)
@@ -328,7 +324,6 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     public void onShutDown() {
         super.onShutDown();
     }
-
 
 
     @Override

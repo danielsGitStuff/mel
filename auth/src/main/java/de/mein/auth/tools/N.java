@@ -417,6 +417,33 @@ public class N {
         N.oneLiner.runTry(noTryRunnable);
     }
 
+    public static <T> T first(T[] objects, Predicate<T> predicate) {
+        for (T t : objects)
+            if (predicate.test(t))
+                return t;
+        return null;
+    }
+
+    public interface Predicate<T> {
+        boolean test(T t);
+    }
+
+    public static <T> boolean all(T[] objects, Predicate<T> predicate) {
+        for (T t : objects) {
+            if (!predicate.test(t))
+                return false;
+        }
+        return true;
+    }
+
+    public static <T> boolean none(T[] objects, Predicate<T> predicate) {
+        for (T t : objects) {
+            if (predicate.test(t))
+                return false;
+        }
+        return true;
+    }
+
 
     public void abort() {
         consumer.accept(new Exception("aborted"));

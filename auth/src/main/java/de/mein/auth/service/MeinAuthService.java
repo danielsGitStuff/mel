@@ -371,6 +371,7 @@ public class MeinAuthService {
 
 
     public Promise<MeinValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
+        Lok.debug("connect: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
         try {
@@ -522,14 +523,14 @@ public class MeinAuthService {
         } else if (meinAuthSocket.getProcess() instanceof MeinIsolatedFileProcess) {
 //            meinAuthSocket.getProcess().stop();
             Lok.debug("continue here");
-        } else {
+        } else if (connectJob != null) {
+            if (connectJob.getCertificateId() != null) {
+                N.r(() -> connectedEnvironment.removeCurrentlyConnecting(meinAuthSocket.getConnectJob().getCertificateId()));
+
+            } else if (connectJob.getAddress() != null) {
+                N.r(() -> connectedEnvironment.removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
+            }
             N.oneLine(() -> connectJob.getPromise().reject(new Exception("connection aborted")));
-//            if (connectJob.getCertificateId() != null) {
-//                N.r(() -> connectedEnvironment.removeCurrentlyConnecting(meinAuthSocket.getConnectJob().getCertificateId()));
-//
-//            } else if (connectJob.getAddress() != null) {
-//                N.r(() -> connectedEnvironment.removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
-//            }
 //            connectJob.getPromise().reject(null);
         }
 

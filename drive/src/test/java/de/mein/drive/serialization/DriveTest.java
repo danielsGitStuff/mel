@@ -422,7 +422,7 @@ public class DriveTest {
                     String remoteServiceUuid = testStructure.clientDriveService.getDriveSettings().getClientSettings().getServerServiceUuid();
                     String ownServiceUuid = testStructure.clientDriveService.getUuid();
 //                 String address, int port, int portCert
-                    DeferredObject<MeinIsolatedFileProcess, Exception, Void> isolated = testStructure.maClient.connectToService(MeinIsolatedFileProcess.class, certId, remoteServiceUuid, ownServiceUuid, null, null, null);
+                    Promise<MeinIsolatedFileProcess, Exception, Void> isolated = testStructure.clientDriveService.getIsolatedProcess(MeinIsolatedFileProcess.class, certId, remoteServiceUuid);
                     isolated.done(meinIsolatedProcess -> {
                         Lok.debug("DriveTest.onSyncDoneImpl.SUCCESS");
                     }).fail(result -> {
