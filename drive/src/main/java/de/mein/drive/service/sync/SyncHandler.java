@@ -4,6 +4,9 @@ import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Read;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveSettings;
@@ -115,15 +118,15 @@ public abstract class SyncHandler {
     }
 
     public void onFileTransferFailed(String hash) {
+        Transaction transaction = Locker.transaction(new Read(fsDao));
         try {
-            fsDao.lockRead();
             if (fsDao.desiresHash(hash)) {
                 System.err.println(getClass().getSimpleName() + ".onFileTransferFailed() file with hash " + hash + " is required but failed to transfer");
             }
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         } finally {
-            fsDao.unlockRead();
+            transaction.end();
         }
     }
 
@@ -134,8 +137,8 @@ public abstract class SyncHandler {
      * @throws SqlQueriesException
      */
     public boolean onFileTransferred(AFile file, String hash) throws SqlQueriesException, IOException {
+        Transaction transaction = Locker.transaction(fsDao);
         try {
-            fsDao.lockWrite();
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             boolean isNew = fsFiles.size() > 0;
             if (fsFiles.size() > 0) {
@@ -160,15 +163,15 @@ public abstract class SyncHandler {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            fsDao.unlockWrite();
+            transaction.end();
         }
         return false;
     }
 
     private void copyFile(AFile source, FsFile fsTarget) throws SqlQueriesException, IOException {
-        fsDao.lockRead();
+        Transaction transaction = Locker.transaction(new Read());
         AFile target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
-        fsDao.unlockRead();
+        transaction.end();
         indexer.ignorePath(target.getAbsolutePath(), 2);
         InputStream in = source.inputStream();
         try {
@@ -219,9 +222,10 @@ public abstract class SyncHandler {
 
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
+        Transaction transaction = null;
         try {
             if (lockFsEntry)
-                fsDao.lockWrite();
+                Locker.transaction(fsDao);
             StageSet stageSet = stageDao.getStageSetById(stageSetId);
             // if version not provided by the stageset we will increase the old one
 //            long version = stageSet.getVersion().isNull() ? driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1 : stageSet.getVersion().v();
@@ -379,7 +383,7 @@ public abstract class SyncHandler {
             e.printStackTrace();
         } finally {
             if (lockFsEntry)
-                fsDao.unlockWrite();
+                transaction.end();
         }
     }
 

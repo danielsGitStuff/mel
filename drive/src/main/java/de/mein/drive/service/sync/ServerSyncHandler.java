@@ -5,6 +5,8 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.*;
@@ -48,7 +50,7 @@ public class ServerSyncHandler extends SyncHandler {
     public void handleCommit(Request request) throws SqlQueriesException {
         // todo threading issues? check for unlocking DAOs after the connection/socket died.
         Commit commit = (Commit) request.getPayload();
-        fsDao.lockWrite();
+        Transaction transaction = Locker.transaction(fsDao);
         try {
             final long olderVersion = driveDatabaseManager.getLatestVersion();
             if (commit.getBasedOnVersion() != olderVersion) {
@@ -114,7 +116,7 @@ public class ServerSyncHandler extends SyncHandler {
                 }
             }
         } finally {
-            fsDao.unlockWrite();
+            transaction.end();
         }
         transferManager.research();
         Lok.debug("MeinDriveServerService.handleCommit");

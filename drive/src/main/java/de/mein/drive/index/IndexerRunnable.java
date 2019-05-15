@@ -4,6 +4,9 @@ import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.Order;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Read;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
@@ -11,6 +14,7 @@ import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
+import de.mein.drive.sql.TransferDetails;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
@@ -77,8 +81,8 @@ public class IndexerRunnable extends AbstractIndexer {
                 }
             }
             indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
+            Transaction transaction = Locker.transaction(new Read(fsDao));
             try {
-                fsDao.lockRead();
                 Iterator<AFile> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
                 examineStage();
@@ -87,7 +91,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 e.printStackTrace();
                 startedPromise.reject(e);
             } finally {
-                fsDao.unlockRead();
+                transaction.end();
             }
 
 

@@ -1,6 +1,9 @@
 package de.mein.drive.index.watchdog;
 
 import de.mein.Lok;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Read;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.AbstractIndexer;
@@ -33,19 +36,19 @@ public class StageIndexerRunnable extends AbstractIndexer {
     public void runImpl() {
         boolean unlocked = false;
         if (pathCollection.getPaths().size() > 0) {
+            Transaction transaction = Locker.transaction(new Read(fsDao));
             try {
                 //todo debug
                 if (Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClientService for MA2"))
                     Lok.debug("StageIndexerRunnable.runImpl.debug23r2300");
                 Lok.debug("StageIndexerRunnable.runImpl.locking read on " + Thread.currentThread().getName());
-                fsDao.lockRead();
                 Lok.debug("StageIndexerRunnable.runImpl.locked");
                 initStage(DriveStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener);
                 //todo debug
                 if (stageSetId == 4)
                     Lok.debug("AbstractIndexer.initStage.debugjfg3jhgw0");
                 examineStage();
-                fsDao.unlockRead();
+                transaction.end();
                 unlocked = true;
                 if (Thread.currentThread().getName().startsWith("StageIndexerRunnable[" + stageSetId + "] for MeinDriveClientService for MA2"))
                     Lok.debug("StageIndexerRunnable[" + stageSetId + "].runImpl.debug8fh384");
@@ -56,7 +59,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
             } finally {
                 if (!unlocked) {
                     Lok.debug("StageIndexerRunnable[" + stageSetId + "].runImpl.unlocking on " + Thread.currentThread().getName());
-                    fsDao.unlockRead();
+                    transaction.end();
                     Lok.debug("StageIndexerRunnable[" + stageSetId + "].runImpl.unlocked");
                 }
             }

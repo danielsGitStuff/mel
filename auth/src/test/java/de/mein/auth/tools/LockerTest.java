@@ -1,8 +1,8 @@
 package de.mein.auth.tools;
 
 import de.mein.Lok;
-import de.mein.auth.tools.lock.KeyLocker;
-import de.mein.auth.tools.lock.LockedTransaction;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.auth.tools.lock.Read;
 import org.junit.Test;
 import org.junit.runners.model.TestTimedOutException;
@@ -13,14 +13,14 @@ import java.util.concurrent.Executors;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.*;
 
-class KeyLockerTest {
+class LockerTest {
 
     private boolean triggerFlag;
 
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
         transaction = null;
-        KeyLocker.reset();
+        Locker.reset();
         executor.shutdownNow();
         executor = Executors.newCachedThreadPool();
         waitLock = new WaitLock();
@@ -36,7 +36,7 @@ class KeyLockerTest {
 
     @org.junit.jupiter.api.Test
     void lockIntersection() {
-        transaction = KeyLocker.transaction(A, B);
+        transaction = Locker.transaction(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -45,7 +45,7 @@ class KeyLockerTest {
         });
         executor.submit(() -> {
             try {
-                KeyLocker.transaction(A, C);
+                Locker.transaction(A, C);
                 triggerFlag = true;
                 fail("should not be reached");
                 waitLock.unlock();
@@ -62,7 +62,7 @@ class KeyLockerTest {
 
     @org.junit.jupiter.api.Test
     void lockWhole() {
-        transaction = KeyLocker.transaction(A, B);
+        transaction = Locker.transaction(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -71,7 +71,7 @@ class KeyLockerTest {
         });
         executor.submit(() -> {
             try {
-                KeyLocker.transaction(A, B);
+                Locker.transaction(A, B);
                 triggerFlag = true;
                 fail("should not be reached");
             } catch (Exception e) {
@@ -88,7 +88,7 @@ class KeyLockerTest {
 
     @org.junit.jupiter.api.Test
     void lockDifferent() {
-        transaction = KeyLocker.transaction(A, B);
+        transaction = Locker.transaction(A, B);
 
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -98,7 +98,7 @@ class KeyLockerTest {
             triggerFlag = true;
         });
         executor.submit(() -> {
-            KeyLocker.transaction(C);
+            Locker.transaction(C);
             Lok.debug("unlocking");
             waitLock.unlock();
         });
@@ -110,7 +110,7 @@ class KeyLockerTest {
 
     @org.junit.jupiter.api.Test
     void lockReadThenWrite() {
-        transaction = KeyLocker.transaction(new Read(A, B));
+        transaction = Locker.transaction(new Read(A, B));
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -118,7 +118,7 @@ class KeyLockerTest {
             waitLock.unlock();
         });
         executor.submit(() -> {
-            KeyLocker.transaction(B);
+            Locker.transaction(B);
             Lok.debug("unlocking");
             triggerFlag = true;
             waitLock.unlock();
@@ -131,7 +131,7 @@ class KeyLockerTest {
 
     @org.junit.jupiter.api.Test
     void lockWriteThenRead() {
-        transaction = KeyLocker.transaction(A, B);
+        transaction = Locker.transaction(A, B);
 
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -140,7 +140,7 @@ class KeyLockerTest {
             waitLock.unlock();
         });
         executor.submit(() -> {
-            KeyLocker.transaction(new Read(B));
+            Locker.transaction(new Read(B));
             Lok.debug("unlocking");
             triggerFlag = true;
             waitLock.unlock();
@@ -152,7 +152,7 @@ class KeyLockerTest {
     }
 
 
-    private LockedTransaction transaction;
+    private Transaction transaction;
     private String A = "AAA";
     private String B = "BBB";
     private String C = "CCC";

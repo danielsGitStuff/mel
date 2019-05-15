@@ -9,6 +9,9 @@ import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Read;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -56,7 +59,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         SyncTask task = (SyncTask) request.getPayload();
         SyncTask answer = new SyncTask(cacheDirectory, DriveSettings.CACHE_LIST_SIZE);
         answer.setCacheId(CachedData.randomId());
-        driveDatabaseManager.getFsDao().lockRead();
+        Transaction transaction = Locker.transaction(new Read(driveDatabaseManager.getFsDao()));
         try {
             ISQLResource<GenericFSEntry> delta = driveDatabaseManager.getDeltaResource(task.getOldVersion());
             GenericFSEntry next = delta.getNext();
@@ -71,7 +74,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            driveDatabaseManager.getFsDao().unlockRead();
+            transaction.end();
         }
     }
 
@@ -152,10 +155,10 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             StageDao stageDao = driveDatabaseManager.getStageDao();
             //fsDao.unlockRead();
             if (stageDao.stageSetHasContent(stageSetId)) {
-                fsDao.lockWrite();
+                Transaction transaction = Locker.transaction(fsDao);
                 //todo conflict checks
                 N.r(() -> syncHandler.commitStage(stageSetId, false));
-                fsDao.unlockWrite();
+                transaction.end();
                 propagateNewVersion();
             } else {
                 stageDao.deleteStageSet(stageSetId);

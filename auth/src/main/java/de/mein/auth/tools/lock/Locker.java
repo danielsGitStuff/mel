@@ -6,7 +6,7 @@ import de.mein.auth.tools.N;
 import java.util.*;
 
 @SuppressWarnings("Duplicates")
-public class KeyLocker {
+public class Locker {
 
     private static String locker = "LOCK!!!";
     private static Map<Object, Key> lockMap = new HashMap<>();
@@ -14,8 +14,8 @@ public class KeyLocker {
     //    private static Map<Object, Key> writeMap = new HashMap<>();
     private static Long LOCK_ID_COUNT = 0L;
 
-    public static LockedTransaction transaction(Object... objects) {
-        LockedTransaction transaction = new LockedTransaction();
+    public static Transaction transaction(Object... objects) {
+        Transaction transaction = new Transaction();
         try {
             Set<Object> ordinaryObjects = new HashSet<>();
             Set<Object> readObjects = new HashSet<>();
@@ -71,7 +71,7 @@ public class KeyLocker {
         return transaction;
     }
 
-    static void end(LockedTransaction transaction) {
+    static void end(Transaction transaction) {
         Key key = transaction.getKey();
         if (key == null) {
             Lok.error("key was null");

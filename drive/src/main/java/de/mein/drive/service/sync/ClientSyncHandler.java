@@ -10,6 +10,9 @@ import de.mein.auth.socket.process.val.LockedRequest;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Read;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.*;
 import de.mein.drive.data.conflict.ConflictSolver;
@@ -49,7 +52,7 @@ public class ClientSyncHandler extends SyncHandler {
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         TransferDao transferDao = driveDatabaseManager.getTransferDao();
-        fsDao.lockWrite();
+        Transaction transaction = Locker.transaction(fsDao);
         N.forEach(hashes, s -> {
             // if is stage from server or is transfer -> flag as available
             N.forEach(stageDao.getUpdateStageSetsFromServer(), stageSet -> {
@@ -58,7 +61,7 @@ public class ClientSyncHandler extends SyncHandler {
             DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
             transferDao.updateAvailableByHashSet(clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), hashes);
         });
-        fsDao.unlockWrite();
+        transaction.end();
         transferManager.research();
     }
 
@@ -366,9 +369,9 @@ public class ClientSyncHandler extends SyncHandler {
      */
     public void commitJob(CommitJob commitJob) {
         Lok.debug("ClientSyncHandler.commitJob");
+        Transaction transaction = Locker.transaction(new Read(fsDao));
         try {
             // first wait until every staging stuff is finished.
-            fsDao.lockRead();
 
             List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
             Lok.debug("ClientSyncHandler.commitJob");
@@ -386,13 +389,14 @@ public class ClientSyncHandler extends SyncHandler {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            fsDao.unlockRead();
+            transaction.end();
         }
+        transaction = Locker.transaction(fsDao);
         try {
             // ReadLock bis hier
             // update from server
             //fsDao.unlockRead();
-            fsDao.lockWrite();
+
             // conflict check
 
             // if no conflict occurred, commit if we all staged StageSets have been merged
@@ -461,7 +465,7 @@ public class ClientSyncHandler extends SyncHandler {
             e.printStackTrace();
             meinDriveService.onSyncFailed();
         } finally {
-            fsDao.unlockWrite();
+            transaction.end();
         }
 
     }

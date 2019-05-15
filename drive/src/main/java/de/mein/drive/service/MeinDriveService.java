@@ -16,6 +16,9 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Read;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveSettings;
@@ -162,9 +165,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 //        return intent.equals(expected);
 //    }
 
-    protected void handleSending(Long partnerCertId, FileTransferDetailsPayload detailSet) {
-        handleSending(partnerCertId, detailSet, true);
-    }
 
     @Override
     public void addJob(Job job) {
@@ -193,15 +193,12 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
      */
     public abstract void onIndexerDone();
 
-    protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload, boolean lockFsEntry) {
+    protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload) {
         //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
         FsDao fsDao = driveDatabaseManager.getFsDao();
+        Transaction transaction = Locker.transaction(new Read(fsDao));
         try {
-            if (lockFsEntry)
-                fsDao.lockRead();
-            N runner = new N(e -> {
-                if (lockFsEntry) fsDao.unlockRead();
-            });
+
             FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
             for (FileTransferDetail detail : detailSet.getDetails()) {
                 AFile wasteFile = wastebin.getByHash(detail.getHash());
@@ -259,8 +256,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (lockFsEntry)
-                fsDao.unlockRead();
+            transaction.end();
         }
     }
 

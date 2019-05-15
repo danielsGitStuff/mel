@@ -3,6 +3,8 @@ package de.mein.drive.service;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveSettings;
@@ -19,6 +21,7 @@ import de.mein.sql.SqlQueriesException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 /**
  * erases files and directories. moves files to the wastebin folder and keeps track of the wastebin folders content.
@@ -263,7 +266,7 @@ public class Wastebin {
 
     public void restoreFsFiles(SyncHandler syncHandler) throws SqlQueriesException, IOException {
         List<String> availableHashes = searchTransfer();
-        fsDao.lockWrite();
+        Transaction transaction = Locker.transaction(fsDao);
         try {
             for (String hash : availableHashes) {
                 List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
@@ -281,7 +284,7 @@ public class Wastebin {
                 }
             }
         } finally {
-            fsDao.unlockWrite();
+            transaction.end();
         }
 
     }

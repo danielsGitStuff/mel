@@ -13,6 +13,8 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.lock.Locker;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;
@@ -124,8 +126,8 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                         // todo ask Wastebin for files
                         wastebin.restoreFsFiles(syncHandler);
                         // todo ask FS for files
+                        Transaction transaction = Locker.transaction(fsDao);
                         try {
-                            fsDao.lockWrite();
                             List<String> hashes = fsDao.searchTransfer();
                             for (String hash : hashes) {
                                 List<FsFile> fsFiles = fsDao.getFilesByHash(hash);
@@ -139,7 +141,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                         } catch (Exception e) {
                             throw e;
                         } finally {
-                            fsDao.unlockWrite();
+                            transaction.end();
                         }
                         // check if files remain
                         boolean transfersRemain = transferDao.hasNotStartedTransfers(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());

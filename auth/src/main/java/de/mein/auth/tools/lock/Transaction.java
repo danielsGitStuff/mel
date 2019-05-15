@@ -2,7 +2,7 @@ package de.mein.auth.tools.lock;
 
 import de.mein.Lok;
 
-public class LockedTransaction {
+public class Transaction {
 
     private Key key;
     private boolean finished = false;
@@ -13,14 +13,14 @@ public class LockedTransaction {
 
     public synchronized void end() {
         finished = true;
-        KeyLocker.end(this);
+        Locker.end(this);
     }
 
     Key getKey() {
         return key;
     }
 
-    public LockedTransaction run(Runnable runnable) {
+    public Transaction run(Runnable runnable) {
         if (finished) {
             Lok.error("transaction already finished!");
             return this;

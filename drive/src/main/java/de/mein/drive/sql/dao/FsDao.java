@@ -54,37 +54,37 @@ public class FsDao extends Dao {
         Lok.debug("FsDao." + method + "(" + n + ").got.lock.on " + Thread.currentThread().getName());
     }
 
-    public void lockRead() {
-        int n = printLock("lockRead", rcount);
-        rwLock.readLock().lock();
-        printGotLock("lockRead", n);
-    }
+//    public void lockRead() {
+//        int n = printLock("lockRead", rcount);
+//        rwLock.readLock().lock();
+//        printGotLock("lockRead", n);
+//    }
 
-    public void unlockRead() {
-        printLock("unlockRead", urcount);
-        rwLock.readLock().unlock();
-    }
+//    public void unlockRead() {
+//        printLock("unlockRead", urcount);
+//        rwLock.readLock().unlock();
+//    }
 
     private String[] lockedAt;
     private Thread lockedThread;
 
-    public void lockWrite() {
-        int n = printLock("lockWrite", wcount);
-        if (n == 6)
-            Lok.warn("debug");
-        rwLock.writeLock().lock();
-        lockedThread = Thread.currentThread();
-        lockedAt = N.arr.cast(lockedThread.getStackTrace(), N.converter(String.class, element -> element.getClassName() + "." + element.getMethodName() + "/" + element.getLineNumber()));
-        printGotLock("lockWrite", n);
-        //todo debug
-        if (n == 22)
-            Lok.debug("FsDao.lockWrite.debugj8ivj450v");
-    }
-
-    public void unlockWrite() {
-        printLock("unlockWrite", uwcount);
-        rwLock.writeLock().unlock();
-    }
+//    public void lockWrite() {
+//        int n = printLock("lockWrite", wcount);
+//        if (n == 6)
+//            Lok.warn("debug");
+//        rwLock.writeLock().lock();
+//        lockedThread = Thread.currentThread();
+//        lockedAt = N.arr.cast(lockedThread.getStackTrace(), N.converter(String.class, element -> element.getClassName() + "." + element.getMethodName() + "/" + element.getLineNumber()));
+//        printGotLock("lockWrite", n);
+//        //todo debug
+//        if (n == 22)
+//            Lok.debug("FsDao.lockWrite.debugj8ivj450v");
+//    }
+//
+//    public void unlockWrite() {
+//        printLock("unlockWrite", uwcount);
+//        rwLock.writeLock().unlock();
+//    }
 
     private final DriveDatabaseManager driveDatabaseManager;
     private DriveSettings driveSettings;
