@@ -378,39 +378,6 @@ public class MeinValidationProcess extends MeinProcess {
         }
     }
 
-    /**
-     * locks until you received either a response or an error.<br>
-     * useful if you do communications with a few more requests and want these to run on the same worker thread. <br>
-     * lock on the {@link LockedRequest} to wait for a result.
-     *
-     * @param serviceUuid
-     * @param payload
-     * @return
-     * @throws JsonSerializationException
-     */
-    public LockedRequest requestLocked(String serviceUuid, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
-        LockedRequest promise = new LockedRequest();
-        MeinRequest request = new MeinRequest(serviceUuid, null);
-        if (payload != null) {
-            request.setPayLoad(payload);
-        }
-        registerSendCached(request);
-        request.setRequestHandler(this).queue();
-        request.getAnswerDeferred().done(result -> {
-            StateMsg response = (StateMsg) result;
-            promise.setResponse(response.getPayload());
-            promise.unlock();
-        }).fail(result -> {
-            promise.setException(result);
-            promise.unlock();
-        });
-        queueForResponse(request);
-        send(request);
-        promise.lock();
-        return promise;
-    }
-
-
     public Request request(String serviceUuid, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
         meinAuthSocket.getMeinAuthService().getPowerManager().wakeLock(MeinValidationProcess.this);
         Request promise = new Request();
