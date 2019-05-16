@@ -4,31 +4,15 @@ import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.jobs.AConnectJob;
-import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.service.power.PowerManager;
-import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinAuthSocketOpener;
 import de.mein.auth.socket.process.imprt.MeinAuthCertDelivery;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.sql.SqlQueriesException;
 
-import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.*;
-import java.security.cert.CertificateException;
 
 /**
  * Created by xor on 05.09.2016.
@@ -87,31 +71,12 @@ public class MeinAuthWorker extends MeinWorker implements PowerManager.IPowerSta
     @Override
     protected void workWork(Job job) throws Exception {
         Lok.debug("MeinAuthWorker.workWork." + job.getClass().getSimpleName());
-        if (job instanceof AConnectJob) {
-            connect((AConnectJob) job);
-        } else if (job instanceof NetworkEnvDiscoveryJob) {
+      if (job instanceof NetworkEnvDiscoveryJob) {
             meinAuthService.discoverNetworkEnvironmentImpl();
         }
     }
 
-    @Override
-    public void addJob(Job job) {
-        if (job instanceof IsolatedConnectJob) {
-            Lok.debug("MeinAuthWorker.addJob.debugf0e4");
-        }
-        super.addJob(job);
-    }
 
-    private void connect(AConnectJob job) throws ClassNotFoundException, IllegalAccessException, NoSuchPaddingException, URISyntaxException, SqlQueriesException, KeyManagementException, BadPaddingException, CertificateException, KeyStoreException, NoSuchAlgorithmException, InvalidKeyException, UnrecoverableKeyException, JsonSerializationException, IOException, IllegalBlockSizeException, InterruptedException {
-        Lok.debug("MeinAuthWorker.connect: " + job.getAddress() + ":" + job.getPort() + ":" + job.getPortCert() + "?reg=" + job.getRegOnUnknown());
-        MeinAuthSocket meinAuthSocket = new MeinAuthSocket(job,meinAuthService);
-        meinAuthService.execute(meinAuthSocket);
-//        Promise<MeinValidationProcess, Exception, Void> promise = meinAuthSocket.connect(job);
-//        promise.done(meinValidationProcess -> {
-//            job.getPromise().resolve(meinValidationProcess);
-//        });
-//        promise.fail(ex -> job.getPromise().reject(ex));
-    }
 
     public MeinAuthBrotCaster getBrotCaster() {
         return brotCaster;

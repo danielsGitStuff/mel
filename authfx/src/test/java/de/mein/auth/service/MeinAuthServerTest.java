@@ -1,19 +1,5 @@
 package de.mein.auth.service;
 
-import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.data.MeinRequest;
-import de.mein.auth.data.access.CertificateManager;
-import de.mein.auth.data.db.Certificate;
-import de.mein.auth.data.db.ServiceType;
-import de.mein.auth.socket.process.reg.IRegisterHandler;
-import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.N;
-import de.mein.sql.RWLock;
-import de.mein.sql.SqlQueriesException;
-import org.jdeferred.Promise;
-import org.junit.Test;
-
 
 @SuppressWarnings("Duplicates")
 public class MeinAuthServerTest {

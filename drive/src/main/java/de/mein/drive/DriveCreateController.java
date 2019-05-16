@@ -1,22 +1,16 @@
 package de.mein.drive;
 
-import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.service.MeinBoot;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.WaitLock;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.*;
 import de.mein.drive.data.fs.RootDirectory;
-import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;
-import de.mein.drive.service.MeinDriveService;
 import de.mein.sql.SqlQueriesException;
 
 import org.jdeferred.Promise;

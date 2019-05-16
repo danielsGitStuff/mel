@@ -5,7 +5,7 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import de.mein.Lok;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 

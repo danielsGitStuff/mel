@@ -6,7 +6,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.gui.controls.CertListCell;
 import de.mein.auth.gui.controls.UnkownListCell;
 import de.mein.auth.service.MeinAuthAdminFX;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;

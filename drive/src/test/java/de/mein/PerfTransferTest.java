@@ -16,7 +16,7 @@ import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
@@ -24,7 +24,6 @@ import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCol
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.bash.BashTools;
-import de.mein.drive.service.MeinDriveClientService;
 import de.mein.sql.RWLock;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;

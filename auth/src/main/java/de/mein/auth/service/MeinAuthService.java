@@ -21,6 +21,7 @@ import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.service.power.PowerManager;
+import de.mein.auth.socket.ConnectWorker;
 import de.mein.auth.socket.MeinAuthSocket;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.socket.ShamefulSelfConnectException;
@@ -29,9 +30,8 @@ import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -310,20 +310,20 @@ public class MeinAuthService {
         return job.getPromise();
     }
 
-    public ConnectResult connectLocked(Long certificateId) throws InterruptedException, SqlQueriesException {
-        Promise<MeinValidationProcess, Exception, Void> deferred = connect(certificateId);
-        CountWaitLock lock = new CountWaitLock();
-        ConnectResult connectResult = new ConnectResult();
-        deferred.done(validationProcess -> {
-            connectResult.setValidationProcess(validationProcess);
-            lock.unlock();
-        }).fail(exception -> {
-            connectResult.setException(exception);
-            lock.unlock();
-        });
-        lock.lock();
-        return connectResult;
-    }
+//    public ConnectResult connectLocked(Long certificateId) throws InterruptedException, SqlQueriesException {
+//        Promise<MeinValidationProcess, Exception, Void> deferred = connect(certificateId);
+//        CountWaitLock lock = new CountWaitLock();
+//        ConnectResult connectResult = new ConnectResult();
+//        deferred.done(validationProcess -> {
+//            connectResult.setValidationProcess(validationProcess);
+//            lock.unlock();
+//        }).fail(exception -> {
+//            connectResult.setException(exception);
+//            lock.unlock();
+//        });
+//        lock.lock();
+//        return connectResult;
+//    }
 
     public synchronized Promise<MeinValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
@@ -359,7 +359,7 @@ public class MeinAuthService {
                     connectedEnvironment.unlock();
                     deferred.reject(result);
                 });
-                meinAuthWorker.addJob(job);
+                execute(new ConnectWorker(this, job));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -394,7 +394,7 @@ public class MeinAuthService {
                     connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
                     deferred.reject(result);
                 });
-                meinAuthWorker.addJob(job);
+                execute(new ConnectWorker(this, job));
             }
         } finally {
             connectedEnvironment.unlock();

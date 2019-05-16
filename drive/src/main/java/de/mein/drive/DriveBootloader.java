@@ -6,7 +6,7 @@ import de.mein.auth.MeinNotification;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;

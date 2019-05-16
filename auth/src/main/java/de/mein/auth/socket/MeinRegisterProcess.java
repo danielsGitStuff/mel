@@ -1,12 +1,13 @@
-package de.mein.auth.socket.process.reg;
+package de.mein.auth.socket;
 
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
-import de.mein.auth.socket.MeinAuthSocket;
-import de.mein.auth.socket.MeinProcess;
+import de.mein.auth.socket.process.reg.IRegisterHandler;
+import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
+import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;

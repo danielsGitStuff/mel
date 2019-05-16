@@ -82,9 +82,11 @@ public class MeinSocket extends DeferredRunnable {
     }
 
     public String getAddress() {
-        if (connectJob == null)
-            return socket.getInetAddress().getHostName();
-        return connectJob.getAddress();
+        if (socket != null && socket.isConnected())
+            return socket.getInetAddress().toString();
+        if (connectJob != null)
+            return connectJob.getAddress();
+        return "#could not determine address#";
     }
 
     static class MeinThread extends Thread {
@@ -117,6 +119,8 @@ public class MeinSocket extends DeferredRunnable {
 
     public void send(String json) {
         try {
+            if (socket == null || socket.getInetAddress() == null)
+                Lok.error("bug");
             Lok.debug("   " + (meinAuthService == null ? "no service" : meinAuthService.getName()) + ".MeinSocket.send to " + socket.getInetAddress().toString() + ": " + json);
             if (socket.isClosed())
                 Lok.error(getClass().getSimpleName() + ".send(): Socket closed!");
@@ -174,8 +178,10 @@ public class MeinSocket extends DeferredRunnable {
     public MeinSocket(AConnectJob connectJob, MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
         this.connectJob = connectJob;
-        this.address = connectJob.getAddress();
-        this.port = connectJob.getPort();
+        if (connectJob != null) {
+            this.address = connectJob.getAddress();
+            this.port = connectJob.getPort();
+        }
         v = vv.getAndIncrement();
         if (meinAuthService != null)
             meinAuthService.addMeinSocket(this);

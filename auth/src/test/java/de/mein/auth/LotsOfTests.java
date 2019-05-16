@@ -1,38 +1,5 @@
 package de.mein.auth;
 
-import de.mein.Lok;
-import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.data.MeinRequest;
-import de.mein.auth.data.access.CertificateManager;
-import de.mein.auth.data.db.Certificate;
-import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.file.AFile;
-import de.mein.auth.file.DefaultFileConfiguration;
-import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.service.MeinBoot;
-import de.mein.auth.service.MeinTestBootloader;
-import de.mein.auth.service.MeinTestService;
-import de.mein.auth.service.power.PowerManager;
-import de.mein.auth.socket.process.reg.IRegisterHandler;
-import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mein.auth.socket.process.reg.IRegisteredHandler;
-import de.mein.auth.socket.process.transfer.FileTransferDetail;
-import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
-import de.mein.auth.tools.N;
-import de.mein.sql.RWLock;
-import de.mein.sql.SqlQueriesException;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.File;
-import java.net.URL;
-import java.util.List;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 

@@ -1,4 +1,4 @@
-package de.mein.auth.socket.process.auth;
+package de.mein.auth.socket;
 
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -31,12 +31,8 @@ import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.MeinAuthSocket;
-import de.mein.auth.socket.MeinProcess;
-import de.mein.auth.socket.ShamefulSelfConnectException;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.Cryptor;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;

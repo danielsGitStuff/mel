@@ -1,7 +1,5 @@
 package de.mein.auth.jobs;
 
-import org.jdeferred.impl.DeferredObject;
-
 /**
  * Created by xor on 11/13/16.
  */

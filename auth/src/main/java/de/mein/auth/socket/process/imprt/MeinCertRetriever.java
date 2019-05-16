@@ -57,9 +57,6 @@ public class MeinCertRetriever extends DeferredRunnable {
         return deferred;
     }
 
-    public void register(String address) throws URISyntaxException, SqlQueriesException, CertificateEncodingException, JsonSerializationException, IllegalAccessException {
-
-    }
 
     public void stop() {
 
@@ -141,6 +138,9 @@ public class MeinCertRetriever extends DeferredRunnable {
 
                 }
             });
+
+            socket.connect(new InetSocketAddress(address, portCert));
+            certDeliveryClient.setSocket(socket);
             certDeliveryClient.start();
 
             clientSockets.put(certDeliveryClient, 1);

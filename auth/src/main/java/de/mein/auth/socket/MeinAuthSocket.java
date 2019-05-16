@@ -7,11 +7,8 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.process.auth.MeinAuthProcess;
 import de.mein.auth.socket.process.imprt.MeinCertRetriever;
-import de.mein.auth.socket.process.reg.MeinRegisterProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -147,7 +144,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
      * from MeinAuthService
      */
 
-    private Promise<MeinValidationProcess, Exception, Void> connect(AConnectJob job) throws URISyntaxException, InterruptedException, UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, InvalidKeyException, IllegalAccessException, NoSuchPaddingException, BadPaddingException, SqlQueriesException, IllegalBlockSizeException, ClassNotFoundException, JsonSerializationException {
+    Promise<MeinValidationProcess, Exception, Void> connect(AConnectJob job) throws URISyntaxException, InterruptedException, UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, InvalidKeyException, IllegalAccessException, NoSuchPaddingException, BadPaddingException, SqlQueriesException, IllegalBlockSizeException, ClassNotFoundException, JsonSerializationException {
         final Long remoteCertId = job.getCertificateId();
         final String address = job.getAddress();
         final Integer port = job.getPort();
@@ -264,7 +261,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
 //        return deferredObject;
 //    }
 
-    public void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
+    void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         if (certId != null)
             partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         Socket socket = meinAuthService.getCertificateManager().createSocket();
@@ -275,7 +272,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         start();
     }
 
-    public Certificate getTrustedPartnerCertificate() throws IOException, CertificateEncodingException, SqlQueriesException, ShamefulSelfConnectException {
+    Certificate getTrustedPartnerCertificate() throws IOException, CertificateEncodingException, SqlQueriesException, ShamefulSelfConnectException {
         if (partnerCertificate == null) {
             SSLSocket sslSocket = (SSLSocket) socket;
             java.security.cert.Certificate cert = sslSocket.getSession().getPeerCertificates()[0];

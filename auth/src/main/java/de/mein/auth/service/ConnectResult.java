@@ -1,6 +1,6 @@
 package de.mein.auth.service;
 
-import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.MeinValidationProcess;
 
 /**
  * Created by xor on 11/23/17.

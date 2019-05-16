@@ -1,4 +1,4 @@
-package de.mein.auth.socket.process.val;
+package de.mein.auth.socket;
 
 import de.mein.Lok;
 import de.mein.auth.InsufficientBootLevelException;
@@ -9,10 +9,7 @@ import de.mein.auth.data.cached.CachedPart;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.MeinService;
-import de.mein.auth.socket.MeinAuthSocket;
-import de.mein.auth.socket.MeinProcess;
-import de.mein.auth.socket.process.auth.MeinAuthProcess;
-import de.mein.core.serialize.EntityAnalyzer;
+import de.mein.auth.socket.process.val.Request;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;

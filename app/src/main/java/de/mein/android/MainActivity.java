@@ -75,14 +75,12 @@ import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
-import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveCreateController;
-import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
-import de.mein.drive.service.MeinDriveClientService;
 
 
 public class MainActivity extends MeinActivity implements PowerManager.IPowerStateListener<AndroidPowerManager> {
