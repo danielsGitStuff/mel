@@ -214,11 +214,30 @@ class TTest {
                 triggerFlag = true;
             });
         });
-
         Lok.debug("waiting");
         waitLock.lock().lock();
         assertTrue(triggerFlag);
     }
+
+    @org.junit.jupiter.api.Test
+    void endWhileRun() {
+        t = T.tNoLock(A, B);
+        executor.submit(() -> {
+            t.run(() -> {
+                Lok.debug("sleep");
+                Thread.sleep(100);
+                Lok.debug("ending...");
+                t.end();
+                triggerFlag = true;
+                waitLock.unlock();
+            });
+        });
+        Lok.debug("waiting");
+        waitLock.lock().lock();
+        assertTrue(triggerFlag);
+    }
+
+
     @Test(timeout = 1000, expected = TestTimedOutException.class)
     public void lockAll() {
 

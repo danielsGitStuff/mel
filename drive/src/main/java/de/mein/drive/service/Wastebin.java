@@ -251,8 +251,8 @@ public class Wastebin {
     }
 
     private List<String> searchTransfer() throws SqlQueriesException {
-        Transaction transaction = T.lockingTransaction(T.read(wasteDao));
-        List<String> result = transaction.runResult(wasteDao::searchTransfer);
+        Transaction<List<String>> transaction = T.lockingTransaction(T.read(wasteDao));
+        List<String> result = transaction.runResult(wasteDao::searchTransfer).get();
         transaction.end();
         return result;
 //        wasteDao.lockRead();

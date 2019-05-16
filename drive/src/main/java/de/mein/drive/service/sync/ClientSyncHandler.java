@@ -8,6 +8,7 @@ import de.mein.auth.service.ConnectResult;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.LockedRequest;
 import de.mein.auth.socket.process.val.MeinValidationProcess;
+import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
@@ -41,7 +42,7 @@ import java.util.*;
 @SuppressWarnings("Duplicates")
 public class ClientSyncHandler extends SyncHandler {
 
-    private final DriveClientSettingsDetails clientSttings;
+    private final DriveClientSettingsDetails clientSettings;
     private DriveSyncListener syncListener;
     private MeinDriveClientService meinDriveService;
     private Map<String, ConflictSolver> conflictSolverMap = new keks<>();
@@ -134,7 +135,7 @@ public class ClientSyncHandler extends SyncHandler {
     public ClientSyncHandler(MeinAuthService meinAuthService, MeinDriveClientService meinDriveService) {
         super(meinAuthService, meinDriveService);
         this.meinDriveService = meinDriveService;
-        this.clientSttings = meinDriveService.getDriveSettings().getClientSettings();
+        this.clientSettings = meinDriveService.getDriveSettings().getClientSettings();
     }
 
 
@@ -285,20 +286,18 @@ public class ClientSyncHandler extends SyncHandler {
             if (stageDao.stageSetHasContent(stageSetId)) {
                 //all other stages we can find at this point are complete/valid and wait at this point.
                 //todo conflict checking goes here - has to block
-                ConnectResult connectResult = meinAuthService.connectLocked(clientSttings.getServerCertId());
-                if (connectResult.successful()) N.r(() -> {
-                    // load to cached data structure
+                Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(clientSettings.getServerCertId());
+                connected.done(mvp -> transaction.run(() -> {
+// load to cached data structure
                     Commit commit = new Commit(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
                     commit.setCacheId(CachedData.randomId());
                     N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
                     commit.setServiceUuid(meinDriveService.getUuid());
                     commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
                     commit.setIntent(DriveStrings.INTENT_COMMIT);
-                    MeinValidationProcess mvp = connectResult.getValidationProcess();
-                    LockedRequest<CommitAnswer> lockedRequest = mvp.requestLocked(clientSttings.getServerServiceUuid(), commit);
-                    if (lockedRequest.successful()) {
-//fsDao.lockWrite();
-                        CommitAnswer answer = lockedRequest.getResponse();
+                    Request committed = mvp.request(clientSettings.getServerServiceUuid(), commit);
+                    committed.done(res -> transaction.run(() -> {
+                        CommitAnswer answer = (CommitAnswer) res;
                         for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
                             Long fsId = answer.getStageIdFsIdMap().get(stageId);
                             Stage stage = stageDao.getStageById(stageId);
@@ -312,14 +311,11 @@ public class ClientSyncHandler extends SyncHandler {
                         StageSet stageSet = stageDao.getStageSetById(stageSetId);
                         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
                         stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
-//                    stageDao.updateStageSet(stageSet);
-//                    meinDriveService.addJob(new CommitJob());
                         commitStage(stageSetId, false);
                         setupTransfer();
                         transferManager.research();
-                        //fsDao.unlockWrite();
-                    } else {
-                        Exception result = lockedRequest.getException();
+                        transaction.end();
+                    })).fail(result -> transaction.run(() -> {
                         if (result instanceof TooOldVersionException) {
                             Lok.debug("ClientSyncHandler.syncWithServer");
                             N.r(() -> {
@@ -338,22 +334,45 @@ public class ClientSyncHandler extends SyncHandler {
 //                                    meinDriveService.addJob(new SyncClientJob());
                             });
                         }
+                        transaction.end();
+                    }));
+                    LockedRequest<CommitAnswer> lockedRequest = mvp.requestLocked(clientSettings.getServerServiceUuid(), commit);
+                    if (lockedRequest.successful()) {
+                        CommitAnswer answer = lockedRequest.getResponse();
+                    } else {
+                        Exception result = lockedRequest.getException();
+                        if (result instanceof TooOldVersionException) {
+                            Lok.debug("ClientSyncHandler.syncWithServer");
+                            N.r(() -> {
+                                // check if the new server version is already present
+                                TooOldVersionException tooOldVersionException = (TooOldVersionException) result;
+                                Lok.debug("ClientSyncHandler.syncWithServer.TooOldVersionException");
+                                Long latestVersion = driveDatabaseManager.getLatestVersion();
+                                if (latestVersion < tooOldVersionException.getNewVersion()) {
+                                    latestVersion = stageDao.getLatestStageSetVersion();
+                                    if (latestVersion == null || latestVersion < tooOldVersionException.getNewVersion()) {
+                                        meinDriveService.addJob(new SyncClientJob(tooOldVersionException.getNewVersion()));
+                                    }
+                                }
+                                Lok.debug("ClientSyncHandler.syncWithServer");
+                            });
+                        }
                     }
                     commit.cleanUp();
-                });
-                else {
+                    transaction.end();
+                })).fail(result -> transaction.run(() -> {
                     // todo server did not commit. it probably had a local change. have to solve it here
-                    Exception ex = connectResult.getException();
+                    Exception ex = result;
                     System.err.println("MeinDriveClientService.startIndexer.could not connect :( due to: " + ex.getMessage());
                     // fsDao.unlockWrite();
                     transaction.end();
                     meinDriveService.onSyncFailed();
-                }
+                    transaction.end();
+                }));
             } else {
                 stageDao.deleteStageSet(stageSetId);
             }
         } finally {
-            transaction.end();
         }
     }
 
@@ -760,20 +779,20 @@ public class ClientSyncHandler extends SyncHandler {
         runner.runTry(() -> {
             stageDao.deleteServerStageSets();
         });
-        Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(clientSttings.getServerCertId());
+        Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(clientSettings.getServerCertId());
         ConnectResult connectResult = meinAuthService.connectLocked(serverCert.getId().v());
         if (connectResult.successful()) {
             runner.runTry(() -> {
                 MeinValidationProcess mvp = connectResult.getValidationProcess();
                 long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
-                StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSttings.getServerCertId(), clientSttings.getServerServiceUuid(), newVersion);
+                StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), newVersion);
                 //prepare cached answer
                 SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE)
                         .setOldVersion(version);
-                sentSyncTask.setServiceUuid(this.clientSttings.getServerServiceUuid());
+                sentSyncTask.setServiceUuid(this.clientSettings.getServerServiceUuid());
                 sentSyncTask.setCacheId(CachedData.randomId());
                 sentSyncTask.setIntent(DriveStrings.INTENT_SYNC);
-                LockedRequest<SyncTask> requestResult = mvp.requestLocked(clientSttings.getServerServiceUuid(), sentSyncTask);
+                LockedRequest<SyncTask> requestResult = mvp.requestLocked(clientSettings.getServerServiceUuid(), sentSyncTask);
                 if (requestResult.successful()) runner.runTry(() -> {
                     SyncTask syncTask = requestResult.getResponse();
                     syncTask.setStageSet(stageSet);
@@ -912,7 +931,7 @@ public class ClientSyncHandler extends SyncHandler {
             }
         }
         if (fsDirIdsToRetrieve.size() > 0) {
-            Promise<List<FsDirectory>, Exception, Void> promise = meinDriveService.requestDirectoriesByIds(fsDirIdsToRetrieve.keySet(), clientSttings.getServerCertId(), clientSttings.getServerServiceUuid());
+            Promise<List<FsDirectory>, Exception, Void> promise = meinDriveService.requestDirectoriesByIds(fsDirIdsToRetrieve.keySet(), clientSettings.getServerCertId(), clientSettings.getServerServiceUuid());
             promise.done(directories -> runner.runTry(() -> {
                 // stage everything not in the directories as deleted
                 for (FsDirectory directory : directories) {
