@@ -5,6 +5,7 @@ import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.BlockReceivedJob;
+import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.ReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.CountWaitLock;
@@ -55,8 +56,6 @@ public class MeinSocket extends DeferredRunnable {
     protected DataOutputStream out;
     protected DataInputStream in;
     protected SocketFactory socketFactory;
-    protected String address;
-    protected int port;
     protected Socket socket;
     private MeinSocketListener listener;
     private final int v;
@@ -138,16 +137,6 @@ public class MeinSocket extends DeferredRunnable {
         }
     }
 
-    public MeinSocket setAddress(String address) {
-        this.address = address;
-        return this;
-    }
-
-    public MeinSocket setPort(int port) {
-        this.port = port;
-        return this;
-    }
-
     public interface MeinSocketListener {
         void onIsolated();
 
@@ -162,8 +151,9 @@ public class MeinSocket extends DeferredRunnable {
         void onBlockReceived(BlockReceivedJob block);
     }
 
-    protected SocketFactory createSocketFactory() {
-        return SocketFactory.getDefault();
+    protected void connectSocket(AConnectJob connectJob) throws IOException {
+        socket = SocketFactory.getDefault().createSocket();
+        socket.connect(new InetSocketAddress(connectJob.getAddress(), connectJob.getPort()));
     }
 
 
@@ -178,10 +168,6 @@ public class MeinSocket extends DeferredRunnable {
     public MeinSocket(AConnectJob connectJob, MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
         this.connectJob = connectJob;
-        if (connectJob != null) {
-            this.address = connectJob.getAddress();
-            this.port = connectJob.getPort();
-        }
         v = vv.getAndIncrement();
         if (meinAuthService != null)
             meinAuthService.addMeinSocket(this);
@@ -227,8 +213,7 @@ public class MeinSocket extends DeferredRunnable {
                 Lok.error("socket has nothing to do!");
 
             if (socket == null && connectJob != null) {
-                socket = createSocketFactory().createSocket();
-                socket.connect(new InetSocketAddress(address, port));
+                connectSocket(connectJob);
             }
             if (in == null || out == null)
                 streams();

@@ -27,7 +27,7 @@ public class ConnectWorker implements MeinRunnable {
 
     @Override
     public void run() {
-        Lok.debug("Connecting to: " + connectJob.getAddress() + ":" + connectJob.getPort() + "/" + connectJob.getPortCert() + "?reg=" + connectJob.getRegOnUnknown());
+        Lok.debug("Connecting to: " + connectJob.getAddress() + ":" + connectJob.getPort() + "/" + connectJob.getPortCert());
         MeinAuthSocket meinAuthSocket = new MeinAuthSocket(connectJob, meinAuthService);
         N.oneLine(() -> meinAuthSocket.connect(connectJob));
     }

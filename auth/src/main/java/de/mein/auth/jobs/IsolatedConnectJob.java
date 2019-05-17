@@ -14,7 +14,7 @@ public class IsolatedConnectJob<T extends MeinIsolatedProcess> extends AConnectJ
     private String isolatedUuid;
 
     public IsolatedConnectJob(Long certificateId, String address, Integer port, Integer portCert, String remoteServiceUuid, String ownServiceUuid, Class<T> isolatedServiceClass) {
-        super(certificateId, address, port, portCert, false);
+        super(certificateId, address, port, portCert);
         this.remoteServiceUuid = remoteServiceUuid;
         this.ownServiceUuid = ownServiceUuid;
         this.processClass = isolatedServiceClass;

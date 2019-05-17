@@ -1,6 +1,7 @@
 package de.mein.auth.tools;
 
 import de.mein.Lok;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
@@ -12,6 +13,7 @@ import java.util.*;
  * Syntactic sugar. Saves you lots of try/catches. calls e.stacktrace() per default.
  * Can iterate several data structures a bit more comfortable with lambdas and without try/catch cluttering.
  * The iteration stuff mainly exists cause Java Streaming API is not available for older Android versions.
+ * This class is also some kind of playground because programming playful is fun.
  */
 public class N {
     private static N silentRunner = new N(e -> {
@@ -422,6 +424,14 @@ public class N {
             if (predicate.test(t))
                 return t;
         return null;
+    }
+
+    public interface ResultRunnble<Ty> {
+        Ty run();
+    }
+
+    public static <T> T result(ResultRunnble<T> runnable) {
+        return runnable.run();
     }
 
     public interface Predicate<T> {

@@ -6,6 +6,7 @@ import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.BlockReceivedJob;
+import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.imprt.MeinCertRetriever;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
@@ -149,7 +150,16 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         final String address = job.getAddress();
         final Integer port = job.getPort();
         final Integer portCert = job.getPortCert();
-        final boolean regOnUnknown = job.getRegOnUnknown();
+        final boolean regOnUnknown = N.result(() -> {
+            if (job instanceof ConnectJob)
+                return ((ConnectJob) job).getRegOnUnknown();
+            return false;
+        });
+        // if regOnUnknown is true the first attempt to connect must be allowed to fail without aborting
+        AConnectJob firstJob = job;
+        if (job instanceof ConnectJob) {
+            firstJob = new ConnectJob(job.getCertificateId(), job.getAddress(), job.getPort(), job.getPortCert(), ((ConnectJob) job).getRegOnUnknown());
+        }
 
         Lok.debug("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
         meinAuthService.getPowerManager().wakeLock(this);
@@ -159,7 +169,9 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             meinAuthService.getPowerManager().releaseWakeLock(this);
             stop();
         });
-        DeferredObject<Void, Exception, Void> firstAuth = this.auth(job);
+
+
+        DeferredObject<Void, Exception, Void> firstAuth = this.auth(firstJob);
         firstAuth.done(result1 -> {
             result.resolve(result1);
             meinAuthService.getPowerManager().releaseWakeLock(this);
