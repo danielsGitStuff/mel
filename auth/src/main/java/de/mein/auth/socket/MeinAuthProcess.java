@@ -154,11 +154,11 @@ public class MeinAuthProcess extends MeinProcess {
         return getClass().getSimpleName() + "." + meinAuthSocket.getMeinAuthService().getName();
     }
 
-    public Promise<MeinValidationProcess, Exception, Void> authenticate(AConnectJob job)  {
+    void authenticate(AConnectJob job) {
         final Long id = job.getCertificateId();
         final String address = job.getAddress();
         final Integer port = job.getPort();
-        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
+//        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         try {
             meinAuthSocket.connectSSL(id, address, port);
             mySecret = UUID.randomUUID().toString();
@@ -166,7 +166,7 @@ public class MeinAuthProcess extends MeinProcess {
                 this.partnerCertificate = meinAuthSocket.getTrustedPartnerCertificate();
             N runner = new N(e -> {
                 e.printStackTrace();
-                deferred.reject(e);
+                job.getPromise().reject(e);
             });
             this.mySecret = UUID.randomUUID().toString();
             byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
@@ -234,14 +234,13 @@ public class MeinAuthProcess extends MeinProcess {
                     //error stuff
                     Lok.debug("MeinAuthProcess.authenticate.error.decrypted.secret: " + r.getDecryptedSecret());
                     Lok.debug("MeinAuthProcess.authenticate.error.should.be: " + mySecret);
-                    deferred.reject(new Exception("find aok39ka"));
+                    job.getPromise().reject(new Exception("find aok39ka"));
                 }
             });
             send(request);
         } catch (Exception e) {
-            deferred.reject(e);
+            job.getPromise().reject(e);
         }
-        return deferred;
     }
 
     public static void addAllowedServicesJoinTypes(MeinAuthService meinAuthService, Certificate partnerCertificate, MeinResponse response) throws SqlQueriesException {

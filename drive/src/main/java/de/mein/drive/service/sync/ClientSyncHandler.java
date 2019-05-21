@@ -214,8 +214,7 @@ public class ClientSyncHandler extends SyncHandler {
                         }
                         transaction.end();
                     }));
-                    commit.cleanUp();
-                    transaction.end();
+                    transaction.after(commit::cleanUp);
                 })).fail(result -> transaction.run(() -> {
                     // todo server did not commit. it probably had a local change. have to solve it here
                     Exception ex = result;

@@ -1,7 +1,6 @@
 package de.mein.auth.socket;
 
 import de.mein.Lok;
-import de.mein.MeinRunnable;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.ConnectJob;
@@ -9,7 +8,6 @@ import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinWorker;
 import de.mein.auth.socket.process.imprt.MeinCertRetriever;
-import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -20,11 +18,8 @@ import org.jdeferred.impl.DeferredObject;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.net.SocketFactory;
 import java.io.IOException;
 import java.net.ConnectException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.URISyntaxException;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -44,6 +39,7 @@ public class ConnectWorker extends MeinWorker {
         Objects.requireNonNull(connectJob);
         this.meinAuthService = meinAuthService;
         this.connectJob = connectJob;
+        connectJob.getPromise().always((state, resolved, rejected) -> shutDown());
         addJob(connectJob);
     }
 
@@ -56,26 +52,21 @@ public class ConnectWorker extends MeinWorker {
 
 
     private DeferredObject<MeinValidationProcess, Exception, Void> auth(AConnectJob originalJob) {
-        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         ConnectJob dummyJob = new ConnectJob(originalJob.getCertificateId(), originalJob.getAddress(), originalJob.getPort(), originalJob.getPortCert(), false);
 //        DeferredObject<MeinValidationProcess, Exception, Void> deferred = dummyJob.getPromise();
         N runner = new N(e -> {
             e.printStackTrace();
-            deferred.reject(e);
+            dummyJob.getPromise().reject(e);
         });
         runner.runTry(() -> {
-            dummyJob.getPromise().done(result -> deferred.resolve(result)).fail(result -> deferred.reject(result));
             meinAuthSocket = new MeinAuthSocket(meinAuthService, dummyJob);
+            meinAuthSocket.setRunnableName("-> " + originalJob.getAddress() + ":" + connectJob.getPort());
 //            Socket socket = meinAuthService.getCertificateManager().createSocket();
 //            socket.connect(new InetSocketAddress(job.getAddress(), job.getPort()));
             MeinAuthProcess meinAuthProcess = new MeinAuthProcess(meinAuthSocket);
-            Promise<MeinValidationProcess, Exception, Void> authPromise = meinAuthProcess.authenticate(dummyJob);
-            authPromise.fail(ex -> {
-                ex.printStackTrace();
-                deferred.reject(ex);
-            });
+            meinAuthProcess.authenticate(dummyJob);
         });
-        return deferred;
+        return dummyJob.getPromise();
     }
 
     /**
@@ -102,7 +93,7 @@ public class ConnectWorker extends MeinWorker {
         N runner = new N(e -> {
             result.reject(e);
             meinAuthService.getPowerManager().releaseWakeLock(this);
-            stop();
+            stopConnecting();
             lock.unlock();
         });
         DeferredObject<MeinValidationProcess, Exception, Void> firstAuth = this.auth(job);
@@ -113,12 +104,12 @@ public class ConnectWorker extends MeinWorker {
             if (except instanceof ShamefulSelfConnectException) {
                 result.reject(except);
                 meinAuthService.getPowerManager().releaseWakeLock(this);
-                stop();
+                shutDown();
             } else if (except instanceof ConnectException) {
                 Lok.error(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
                 result.reject(except);
                 meinAuthService.getPowerManager().releaseWakeLock(this);
-                stop();
+                stopConnecting();
             } else if (regOnUnknown && remoteCertId == null) {
                 // try to register
                 DeferredObject<Certificate, Exception, Object> importPromise = new DeferredObject<>();
@@ -133,7 +124,13 @@ public class ConnectWorker extends MeinWorker {
                                 //connection is no more -> need new socket
                                 // create a new job that is not allowed to register.
                                 ConnectJob secondJob = new ConnectJob(connectJob.getCertificateId(), connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert(), false);
-                                secondJob.getPromise().done(result::resolve).fail(result::reject);
+                                secondJob.getPromise().done(result1 -> {
+                                    result.resolve(result1);
+                                    shutDown();
+                                }).fail(result1 -> {
+                                    result.resolve(result1);
+                                    shutDown();
+                                });
                                 this.addJob(secondJob);
                             });
 
@@ -143,7 +140,7 @@ public class ConnectWorker extends MeinWorker {
                                     ((Exception) exception).printStackTrace();
                                     result.reject(exception);
                                     meinAuthService.getPowerManager().releaseWakeLock(this);
-                                    stop();
+                                    stopConnecting();
                                 }
                         );
                     });
@@ -151,7 +148,7 @@ public class ConnectWorker extends MeinWorker {
                     ee.printStackTrace();
                     result.reject(ee);
                     meinAuthService.getPowerManager().releaseWakeLock(this);
-                    stop();
+                    stopConnecting();
                 });
             } else {
                 if (!(except instanceof ShamefulSelfConnectException)) {
@@ -160,7 +157,7 @@ public class ConnectWorker extends MeinWorker {
                     result.reject(except);
                 }
                 meinAuthService.getPowerManager().releaseWakeLock(this);
-                stop();
+                stopConnecting();
             }
         }));
 
@@ -171,9 +168,10 @@ public class ConnectWorker extends MeinWorker {
         return result;
     }
 
-    private void stop() {
+    private void stopConnecting() {
         if (meinAuthSocket != null)
             meinAuthSocket.stop();
+        shutDown();
     }
 
     public void importCertificate(DeferredObject<de.mein.auth.data.db.Certificate, Exception, Object> deferred, String address, int port, int portCert) throws URISyntaxException, InterruptedException {
@@ -198,6 +196,13 @@ public class ConnectWorker extends MeinWorker {
 //        N.oneLine(() -> meinAuthSocket.connect(connectJob));
             connect(connectJob);
         }
+        if (this.connectJob.getPromise().isResolved())
+            shutDown();
 
+    }
+
+    @Override
+    public void shutDown() {
+        super.shutDown();
     }
 }

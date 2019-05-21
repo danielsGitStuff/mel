@@ -1,6 +1,10 @@
 package de.mein.auth.tools.lock;
 
 import de.mein.Lok;
+import de.mein.auth.tools.N;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Holds read locks and normal locks on Objects that you put in T.lockingTransaction().
@@ -11,6 +15,7 @@ public class Transaction<P> {
     private Key key;
     private boolean finished = false;
     private boolean permaLocked = false;
+    private List<TransactionRunnable> after = new ArrayList<>();
 
     Transaction(boolean permaLocked) {
         this.permaLocked = permaLocked;
@@ -20,9 +25,13 @@ public class Transaction<P> {
         this.key = key;
     }
 
+    /**
+     * Ends the transaction. It calls all {@link TransactionRunnable}s and stops holding any locks afterwards.
+     */
     public synchronized void end() {
         if (!finished) {
             finished = true;
+            N.forEachIgnorantly(after, TransactionRunnable::run);
             T.end(this);
         }
     }
@@ -49,13 +58,19 @@ public class Transaction<P> {
         } catch (Exception e) {
             Lok.error("lockingTransaction failed: " + e.toString() + " msg: " + e.getMessage());
             end();
-        }finally {
+        } finally {
             if (!permaLocked)
                 T.release(this);
         }
         return (Transaction<Y>) this;
     }
 
+    /**
+     * executes some code and has a return value.
+     * @param resultRunnable
+     * @param <Y>
+     * @return
+     */
     public <Y> Transaction<Y> runResult(TransactionResultRunnable<Y> resultRunnable) {
         if (finished) {
             Lok.error("lockingTransaction already finished!");
@@ -68,13 +83,18 @@ public class Transaction<P> {
         } catch (Exception e) {
             Lok.error("lockingTransaction failed: " + e.toString() + " msg: " + e.getMessage());
             end();
-        }finally {
+        } finally {
             if (!permaLocked)
                 T.release(this);
         }
         return (Transaction<Y>) this;
     }
 
+    /**
+     * Executes some code within this transaction.
+     * @param runnable
+     * @return
+     */
     public Transaction run(TransactionRunnable runnable) {
         if (finished) {
             Lok.error("lockingTransaction already finished!");
@@ -87,7 +107,7 @@ public class Transaction<P> {
         } catch (Exception e) {
             Lok.error("lockingTransaction failed: " + e.toString() + " msg: " + e.getMessage());
             end();
-        }finally {
+        } finally {
             if (!permaLocked)
                 T.release(this);
         }
@@ -96,6 +116,15 @@ public class Transaction<P> {
 
     public P get() {
         return (P) result;
+    }
+
+    /**
+     * execute this when end() is called.
+     *
+     * @param transactionRunnable
+     */
+    public void after(TransactionRunnable transactionRunnable) {
+        this.after.add(transactionRunnable);
     }
 
     public interface TransactionRunnable {

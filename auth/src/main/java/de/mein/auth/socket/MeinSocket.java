@@ -238,7 +238,7 @@ public class MeinSocket extends DeferredRunnable {
 
                     msgCount++;
                     //todo debug
-                    if (msgCount == 10)
+                    if (msgCount == 12)
                         Lok.debug("debug");
                     Lok.debug("count: " + msgCount);
                     Lok.debug("   " + meinAuthService.getName() + ".MeinSocket.runTry.got(" + socket.getInetAddress() + "): " + s);

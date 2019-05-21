@@ -16,7 +16,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
     /**
      * you must not override this
      */
-    public final void shutDown() {
+    public  void shutDown() {
         String line = "shutting down: " + getClass().getSimpleName();
         if (thread != null)
             line += "/" + thread.getName();
