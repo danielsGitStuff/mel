@@ -155,7 +155,7 @@ public class ClientSyncHandler extends SyncHandler {
      * @throws InterruptedException
      */
     @SuppressWarnings("unchecked")
-    public void syncToServerLocked(Long stageSetId) throws SqlQueriesException, InterruptedException {
+    private void syncToServerLocked(Long stageSetId) throws SqlQueriesException, InterruptedException {
         // stage is complete. first lock on FS
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
@@ -191,7 +191,7 @@ public class ClientSyncHandler extends SyncHandler {
                         StageSet stageSet = stageDao.getStageSetById(stageSetId);
                         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
                         stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
-                        commitStage(stageSetId, false);
+                        commitStage(stageSetId, transaction);
                         setupTransfer();
                         transferManager.research();
                         transaction.end();
@@ -240,14 +240,14 @@ public class ClientSyncHandler extends SyncHandler {
      *
      * @param commitJob
      */
-    public void commitJob(CommitJob commitJob) {
-        Lok.debug("ClientSyncHandler.commitJob");
+    public void execCommitJob(CommitJob commitJob) {
+        Lok.debug("ClientSyncHandler.execCommitJob");
         Transaction transaction = T.lockingTransaction(T.read(fsDao));
         try {
             // first wait until every staging stuff is finished.
 
             List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
-            Lok.debug("ClientSyncHandler.commitJob");
+            Lok.debug("ClientSyncHandler.execCommitJob");
 
             // first: merge everything which has been analysed by the indexer
             mergeStageSets(stagedFromFs);
@@ -277,14 +277,14 @@ public class ClientSyncHandler extends SyncHandler {
             List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
             // List<StageSet> committedStageSets = stageDao.getCommittedStageSets();
             if (updateSets.size() > 1) {
-                System.err.println("ClientSyncHandler.commitJob.something went seriously wrong");
+                System.err.println("ClientSyncHandler.execCommitJob.something went seriously wrong");
                 stageDao.deleteServerStageSets();
                 meinDriveService.addJob(new SyncClientJob());
                 return;
             }
             if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
                 // method should create a new CommitJob with conflict solving details
-                handleConflict(updateSets.get(0), stagedFromFs.get(0));
+                handleConflict(updateSets.get(0), stagedFromFs.get(0), transaction);
                 setupTransfer();
                 Lok.debug("setupTransfers() was here before");
                 //transferManager.research();
@@ -303,7 +303,8 @@ public class ClientSyncHandler extends SyncHandler {
             } else if (updateSets.size() == 1) {
                 StageSet stageSet = updateSets.get(0);
                 if (stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_SERVER)) {
-                    N.r(() -> commitStage(stageSet.getId().v()));
+                    Transaction finalTransaction = transaction;
+                    N.r(() -> commitStage(stageSet.getId().v(), finalTransaction));
                     setupTransfer();
                     transferManager.research();
                 }
@@ -318,7 +319,7 @@ public class ClientSyncHandler extends SyncHandler {
             for (StageSet stageSet : updateSets) {
                 if (stageDao.stageSetHasContent(stageSet.getId().v())) {
                     try {
-                        commitStage(stageSet.getId().v(), false);
+                        commitStage(stageSet.getId().v(), transaction);
                         setupTransfer();
                         hasCommitted = true;
                     } catch (OutOfSpaceException e) {
@@ -351,7 +352,7 @@ public class ClientSyncHandler extends SyncHandler {
      * @param serverStageSet
      * @param stagedFromFs
      */
-    private void handleConflict(StageSet serverStageSet, StageSet stagedFromFs) throws SqlQueriesException {
+    private void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction) throws SqlQueriesException {
         String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
         ConflictSolver conflictSolver;
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
@@ -385,7 +386,7 @@ public class ClientSyncHandler extends SyncHandler {
                 if (conflictSolver.getMergeStageSet().getId().v() == 8)
                     Lok.warn("debug");
                 try {
-                    this.commitStage(serverStageSet.getId().v());
+                    this.commitStage(serverStageSet.getId().v(), transaction);
                     this.deleteObsolete(conflictSolver);
                 } catch (OutOfSpaceException e) {
                     e.printStackTrace();

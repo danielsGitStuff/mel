@@ -8,6 +8,7 @@ import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.data.AvailableHashes;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveSettings;
@@ -18,7 +19,6 @@ import de.mein.drive.index.IndexListener;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.service.sync.ClientSyncHandler;
-import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.StageSet;
 import de.mein.sql.SqlQueriesException;
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 /**
@@ -101,7 +102,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             }
             return true;
         } else if (unknownJob instanceof CommitJob) {
-            syncHandler.commitJob((CommitJob) unknownJob);
+            syncHandler.execCommitJob((CommitJob) unknownJob);
             return true;
         } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
             Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
@@ -159,7 +160,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             }
 
             @Override
-            public void done(Long stageSetId) {
+            public void done(Long stageSetId, Transaction transaction) {
                 //addJob(new CommitJob(true));
             }
         };
@@ -170,9 +171,13 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
 
+    private static AtomicInteger DEBUG_COUNTER = new AtomicInteger(1);
+
     public void onConflicts() {
         Lok.debug("MeinDriveClientService.onConflicts.oj9h034800");
-        MeinNotification notification = new MeinNotification(uuid, DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED, "Conflict detected", "here we go");
+        MeinNotification notification = new MeinNotification(uuid, DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED
+                , "Conflict detected [" + DEBUG_COUNTER.getAndIncrement() + "]"
+                , "here we go");
         meinAuthService.onNotificationFromService(this, notification);
     }
 

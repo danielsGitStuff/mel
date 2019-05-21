@@ -202,29 +202,21 @@ public abstract class SyncHandler {
     }
 
 
-    public void commitStage(Long stageSetId) throws OutOfSpaceException {
-        commitStage(stageSetId, true);
-    }
-
-
-    public void commitStage(Long stageSetId, boolean lockFsEntry) throws OutOfSpaceException {
-        commitStage(stageSetId, lockFsEntry, null);
+    public void commitStage(Long stageSetId, Transaction transaction) throws OutOfSpaceException {
+        commitStage(stageSetId, transaction, null);
     }
 
     /**
      * @param stageSetId
      */
-    public void commitStage(Long stageSetId, boolean lockFsEntry, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException {
+    public void commitStage(Long stageSetId, Transaction transaction, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException {
         /**
          * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
          */
 
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
-        Transaction transaction = null;
-        try {
-            if (lockFsEntry)
-                transaction = T.lockingTransaction(fsDao);
+        transaction.run(() -> {
             StageSet stageSet = stageDao.getStageSetById(stageSetId);
             // if version not provided by the stageset we will increase the old one
 //            long version = stageSet.getVersion().isNull() ? driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1 : stageSet.getVersion().v();
@@ -378,12 +370,7 @@ public abstract class SyncHandler {
                 transferManager.research();
             });
             wastebin.maintenance();
-        } catch (SqlQueriesException e) {
-            e.printStackTrace();
-        } finally {
-            if (lockFsEntry)
-                transaction.end();
-        }
+        });
     }
 
     protected void setupTransferAvailable(TransferDetails details, StageSet stageSet, Stage stage) {

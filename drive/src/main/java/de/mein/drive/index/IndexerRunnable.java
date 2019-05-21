@@ -93,8 +93,10 @@ public class IndexerRunnable extends AbstractIndexer {
 
 
             Lok.debug("IndexerRunnable.runTry.save in mem db");
+            transaction = T.lockingTransaction(fsDao);
             for (IndexListener listener : listeners)
-                listener.done(stageSetId);
+                listener.done(stageSetId,transaction);
+            transaction.end();
             Lok.debug("IndexerRunnable.runTry.done");
             if (!startedPromise.isResolved())
                 startedPromise.resolve(this);

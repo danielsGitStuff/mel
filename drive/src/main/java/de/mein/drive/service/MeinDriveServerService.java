@@ -155,7 +155,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             if (stageDao.stageSetHasContent(stageSetId)) {
                 Transaction transaction = T.lockingTransaction(fsDao);
                 //todo conflict checks
-                N.r(() -> syncHandler.commitStage(stageSetId, false));
+                N.r(() -> syncHandler.commitStage(stageSetId, transaction));
                 transaction.end();
                 propagateNewVersion();
             } else {
@@ -185,12 +185,12 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
             }
 
             @Override
-            public void done(Long stageSetId) {
+            public void done(Long stageSetId, Transaction transaction) {
                 N.r(() -> {
                     driveDatabaseManager.updateVersion();
                     if (stageSetId != null) {
                         if (driveDatabaseManager.getMeinDriveService() instanceof MeinDriveServerService)
-                            syncHandler.commitStage(stageSetId);
+                            syncHandler.commitStage(stageSetId, transaction);
                     } else {
                         Lok.debug("MeinDriveServerService.done(). StageSet was empty");
                     }

@@ -86,7 +86,7 @@ public class ServerSyncHandler extends SyncHandler {
             Long oldVersion = fsDao.getLatestVersion();
             Map<Long, Long> stageIdFsIdMap = new HashMap<>();
             try {
-                this.commitStage(stageSet.getId().v(), false, stageIdFsIdMap);
+                this.commitStage(stageSet.getId().v(), transaction, stageIdFsIdMap);
             } catch (OutOfSpaceException e) {
                 e.printStackTrace();
                 request.reject(e);

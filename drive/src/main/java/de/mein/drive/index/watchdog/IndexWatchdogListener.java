@@ -2,6 +2,7 @@ package de.mein.drive.index.watchdog;
 
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
+import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.IndexListener;
 import de.mein.auth.file.AFile;
@@ -84,7 +85,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     public abstract void watchDirectory(AFile dir);
 
     @Override
-    public void done(Long stageSetId) {
+    public void done(Long stageSetId, Transaction transaction) {
         Lok.debug("IndexWatchdogListener.done");
     }
 
