@@ -37,13 +37,7 @@ class SocketWorker extends MeinWorker {
 
     @Override
     public String getRunnableName() {
-        String line = (socket.getMeinAuthService() == null ? "no service" : socket.getMeinAuthService().getName()) + ".S";
-        if (socket.getConnectJob() != null)
-            line += "->";
-        else
-            line += "<-";
-        line += socket.getAddress() + "/WORK";
-        return line;
+        return socket.getRunnableName()+ "/WORK";
     }
 
     @Override

@@ -27,20 +27,17 @@ import java.util.logging.Logger;
  */
 public class MeinSocket extends DeferredRunnable {
 
-    private AConnectJob connectJob;
 
 //    public MeinSocket setConnectJob(AConnectJob connectJob) {
 //        this.connectJob = connectJob;
 //        return this;
 //    }
 
-    public AConnectJob getConnectJob() {
-        return connectJob;
-    }
 
     protected boolean allowIsolation = false;
     protected boolean isIsolated = false;
     private SocketWorker socketWorker;
+    protected String runnableName = null;
 
     public MeinSocket setIsolated(boolean isolated) {
         isIsolated = isolated;
@@ -65,15 +62,15 @@ public class MeinSocket extends DeferredRunnable {
         return meinAuthService;
     }
 
+    public void setRunnableName(String runnableName) {
+        this.runnableName = runnableName;
+    }
+
     @Override
     public String getRunnableName() {
-        String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + ".S";
-        if (connectJob != null)
-            line += "->";
-        else
-            line += "<-";
-        line += getAddress() + "/READ";
-        return line;
+        if (this.runnableName != null)
+            return runnableName;
+        return "MeinSocket for " + meinAuthService.getName();
     }
 
     public boolean isOpen() {
@@ -83,8 +80,7 @@ public class MeinSocket extends DeferredRunnable {
     public String getAddress() {
         if (socket != null && socket.isConnected())
             return socket.getInetAddress().toString();
-        if (connectJob != null)
-            return connectJob.getAddress();
+        Lok.error("address requested but currently not present!");
         return "#could not determine address#";
     }
 
@@ -151,23 +147,17 @@ public class MeinSocket extends DeferredRunnable {
         void onBlockReceived(BlockReceivedJob block);
     }
 
-    protected void connectSocket(AConnectJob connectJob) throws IOException {
-        socket = SocketFactory.getDefault().createSocket();
-        socket.connect(new InetSocketAddress(connectJob.getAddress(), connectJob.getPort()));
-    }
-
 
     public MeinSocket(MeinAuthService meinAuthService, Socket socket) {
-        this(null, meinAuthService);
+        this(meinAuthService);
         this.socket = socket;
         if (meinAuthService != null)
             meinAuthService.addMeinSocket(this);
         streams();
     }
 
-    public MeinSocket(AConnectJob connectJob, MeinAuthService meinAuthService) {
+    public MeinSocket(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
-        this.connectJob = connectJob;
         v = vv.getAndIncrement();
         if (meinAuthService != null)
             meinAuthService.addMeinSocket(this);
@@ -208,13 +198,9 @@ public class MeinSocket extends DeferredRunnable {
     @Override
     public void runImpl() {
         Thread thread = Thread.currentThread();
+        if (socket == null)
+            Lok.error(getClass().getSimpleName() + " running without underlying socket!!!");
         try {
-            if (socket == null && connectJob == null)
-                Lok.error("socket has nothing to do!");
-
-            if (socket == null && connectJob != null) {
-                connectSocket(connectJob);
-            }
             if (in == null || out == null)
                 streams();
             socketWorker = new SocketWorker(this, listener);

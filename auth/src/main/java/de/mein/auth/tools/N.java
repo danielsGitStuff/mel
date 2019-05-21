@@ -430,6 +430,24 @@ public class N {
         Ty run();
     }
 
+    /**
+     * In Kotlin you can assign values via if clause:<br>
+     * <code>
+     * val foo = if (a == b) "ja" else "nein"
+     * </code>
+     * This method does the same:<br>
+     * <code>
+     * final String foo = N.result( ()->{
+     * if (a == b)
+     * return "ja";
+     * return "nein";
+     * });
+     * </code>
+     *
+     * @param runnable
+     * @param <T>
+     * @return
+     */
     public static <T> T result(ResultRunnble<T> runnable) {
         return runnable.run();
     }
