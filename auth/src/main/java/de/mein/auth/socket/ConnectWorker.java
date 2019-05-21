@@ -55,18 +55,21 @@ public class ConnectWorker extends MeinWorker {
     }
 
 
-    private DeferredObject<Void, Exception, Void> auth(AConnectJob job) {
-        DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
+    private DeferredObject<MeinValidationProcess, Exception, Void> auth(AConnectJob originalJob) {
+        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
+        ConnectJob dummyJob = new ConnectJob(originalJob.getCertificateId(), originalJob.getAddress(), originalJob.getPort(), originalJob.getPortCert(), false);
+//        DeferredObject<MeinValidationProcess, Exception, Void> deferred = dummyJob.getPromise();
         N runner = new N(e -> {
             e.printStackTrace();
             deferred.reject(e);
         });
         runner.runTry(() -> {
-            meinAuthSocket = new MeinAuthSocket(meinAuthService, job);
+            dummyJob.getPromise().done(result -> deferred.resolve(result)).fail(result -> deferred.reject(result));
+            meinAuthSocket = new MeinAuthSocket(meinAuthService, dummyJob);
 //            Socket socket = meinAuthService.getCertificateManager().createSocket();
 //            socket.connect(new InetSocketAddress(job.getAddress(), job.getPort()));
             MeinAuthProcess meinAuthProcess = new MeinAuthProcess(meinAuthSocket);
-            Promise<Void, Exception, Void> authPromise = meinAuthProcess.authenticate(job);
+            Promise<MeinValidationProcess, Exception, Void> authPromise = meinAuthProcess.authenticate(dummyJob);
             authPromise.fail(ex -> {
                 ex.printStackTrace();
                 deferred.reject(ex);
@@ -102,7 +105,7 @@ public class ConnectWorker extends MeinWorker {
             stop();
             lock.unlock();
         });
-        DeferredObject<Void, Exception, Void> firstAuth = this.auth(job);
+        DeferredObject<MeinValidationProcess, Exception, Void> firstAuth = this.auth(job);
         firstAuth.done(result1 -> {
             result.resolve(result1);
             meinAuthService.getPowerManager().releaseWakeLock(this);

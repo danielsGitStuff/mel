@@ -154,11 +154,11 @@ public class MeinAuthProcess extends MeinProcess {
         return getClass().getSimpleName() + "." + meinAuthSocket.getMeinAuthService().getName();
     }
 
-    public Promise<Void, Exception, Void> authenticate(AConnectJob job) throws SqlQueriesException, InterruptedException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException, URISyntaxException, IOException, CertificateException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, JsonSerializationException, IllegalAccessException, ShamefulSelfConnectException {
+    public Promise<MeinValidationProcess, Exception, Void> authenticate(AConnectJob job)  {
         final Long id = job.getCertificateId();
         final String address = job.getAddress();
         final Integer port = job.getPort();
-        DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
+        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         try {
             meinAuthSocket.connectSSL(id, address, port);
             mySecret = UUID.randomUUID().toString();
