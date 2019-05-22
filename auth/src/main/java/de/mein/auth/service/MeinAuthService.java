@@ -102,7 +102,12 @@ public class MeinAuthService {
         this.cacheDir.mkdirs();
         this.databaseManager = new DatabaseManager(meinAuthSettings);
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 2048);
-        this.certificateManager.maintenance();
+        try {
+            this.certificateManager.maintenance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        N.r(this.certificateManager::maintenance);
         this.settings = meinAuthSettings;
         this.updater = new Updater(this);
         this.dbCreatedListener = dbCreatedListener;

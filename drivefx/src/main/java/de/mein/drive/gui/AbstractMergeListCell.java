@@ -107,8 +107,9 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
                         label.setText("<parent deleted>");
                         lblHash.setText("-");
                     }
-                    else
-                        Lok.error("j9034n3of");
+                    else {
+//                        Lok.error("j9034n3of");
+                    }
                     setGraphic(hbox);
                 } else {
                     setGraphic(null);

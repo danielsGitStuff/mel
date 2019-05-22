@@ -9,6 +9,7 @@ import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinWorker;
 import de.mein.auth.socket.process.imprt.MeinCertRetriever;
+import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -52,6 +53,20 @@ public class ConnectWorker extends MeinWorker {
     }
 
 
+    private <T extends MeinIsolatedProcess> DeferredObject<T, Exception, Void> isolate(IsolatedConnectJob<T> originalJob) {
+        N runner = new N(e -> {
+            e.printStackTrace();
+            originalJob.getPromise().reject(e);
+        });
+        runner.runTry(() -> {
+            meinAuthSocket = new MeinAuthSocket(meinAuthService, originalJob);
+            meinAuthSocket.setRunnableName("-> " + originalJob.getAddress() + ":" + connectJob.getPort());
+            MeinAuthProcess meinAuthProcess = new MeinAuthProcess(meinAuthSocket);
+            meinAuthProcess.authenticate(originalJob);
+        });
+        return originalJob.getPromise();
+    }
+
     private DeferredObject<MeinValidationProcess, Exception, Void> auth(AConnectJob originalJob) {
         ConnectJob dummyJob = new ConnectJob(originalJob.getCertificateId(), originalJob.getAddress(), originalJob.getPort(), originalJob.getPortCert(), false);
 //        DeferredObject<MeinValidationProcess, Exception, Void> deferred = dummyJob.getPromise();
@@ -76,7 +91,7 @@ public class ConnectWorker extends MeinWorker {
      * @param job
      * @return
      */
-    Promise<MeinValidationProcess, Exception, Void> connect(AConnectJob job) {
+    void connect(AConnectJob job) {
         final CountdownLock lock = new CountdownLock(1);
         final Long remoteCertId = job.getCertificateId();
         final String address = job.getAddress();
@@ -90,83 +105,86 @@ public class ConnectWorker extends MeinWorker {
 
         Lok.debug("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
         meinAuthService.getPowerManager().wakeLock(this);
-        DeferredObject result = job.getPromise();
-        N runner = new N(e -> {
-            result.reject(e);
-            meinAuthService.getPowerManager().releaseWakeLock(this);
-            stopConnecting();
-            lock.unlock();
-        });
-        DeferredObject<MeinValidationProcess, Exception, Void> firstAuth = this.auth(job);
-        firstAuth.done(result1 -> {
-            result.resolve(result1);
-            meinAuthService.getPowerManager().releaseWakeLock(this);
-        }).fail(except -> runner.runTry(() -> {
-            if (except instanceof ShamefulSelfConnectException) {
-                result.reject(except);
-                meinAuthService.getPowerManager().releaseWakeLock(this);
-                shutDown();
-            } else if (except instanceof ConnectException) {
-                Lok.error(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
-                result.reject(except);
+        if (job instanceof ConnectJob) {
+            DeferredObject result = job.getPromise();
+            N runner = new N(e -> {
+                result.reject(e);
                 meinAuthService.getPowerManager().releaseWakeLock(this);
                 stopConnecting();
-            } else if (regOnUnknown && remoteCertId == null) {
-                // try to register
-                DeferredObject<Certificate, Exception, Object> importPromise = new DeferredObject<>();
-                DeferredObject<Certificate, Exception, Void> registered = new DeferredObject<>();
-                this.importCertificate(importPromise, address, port, portCert);
-                importPromise.done(importedCert -> {
-                    runner.runTry(() -> {
-                        job.setCertificateId(importedCert.getId().v());
-                        this.register(registered, importedCert, address, port);
-                        registered.done(registeredCert -> {
-                            runner.runTry(() -> {
-                                //connection is no more -> need new socket
-                                // create a new job that is not allowed to register.
-                                ConnectJob secondJob = new ConnectJob(connectJob.getCertificateId(), connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert(), false);
-                                secondJob.getPromise().done(result1 -> {
-                                    result.resolve(result1);
-                                    shutDown();
-                                }).fail(result1 -> {
-                                    result.resolve(result1);
-                                    shutDown();
-                                });
-                                this.addJob(secondJob);
-                            });
-
-                        }).fail(exception -> {
-                                    // it won't compile otherwise. don't know why.
-                                    // compiler thinks exception is an Object instead of Exception
-                                    ((Exception) exception).printStackTrace();
-                                    result.reject(exception);
-                                    meinAuthService.getPowerManager().releaseWakeLock(this);
-                                    stopConnecting();
-                                }
-                        );
-                    });
-                }).fail(ee -> {
-                    ee.printStackTrace();
-                    result.reject(ee);
+                lock.unlock();
+            });
+            DeferredObject<MeinValidationProcess, Exception, Void> firstAuth = this.auth(job);
+            firstAuth.done(result1 -> {
+                result.resolve(result1);
+                meinAuthService.getPowerManager().releaseWakeLock(this);
+            }).fail(except -> runner.runTry(() -> {
+                if (except instanceof ShamefulSelfConnectException) {
+                    result.reject(except);
+                    meinAuthService.getPowerManager().releaseWakeLock(this);
+                    shutDown();
+                } else if (except instanceof ConnectException) {
+                    Lok.error(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
+                    result.reject(except);
                     meinAuthService.getPowerManager().releaseWakeLock(this);
                     stopConnecting();
-                });
-            } else {
-                if (!(except instanceof ShamefulSelfConnectException)) {
-                    result.reject(new CannotConnectException(except, address, port));
-                } else {
-                    result.reject(except);
-                }
-                meinAuthService.getPowerManager().releaseWakeLock(this);
-                stopConnecting();
-            }
-        }));
+                } else if (regOnUnknown && remoteCertId == null) {
+                    // try to register
+                    DeferredObject<Certificate, Exception, Object> importPromise = new DeferredObject<>();
+                    DeferredObject<Certificate, Exception, Void> registered = new DeferredObject<>();
+                    this.importCertificate(importPromise, address, port, portCert);
+                    importPromise.done(importedCert -> {
+                        runner.runTry(() -> {
+                            job.setCertificateId(importedCert.getId().v());
+                            this.register(registered, importedCert, address, port);
+                            registered.done(registeredCert -> {
+                                runner.runTry(() -> {
+                                    //connection is no more -> need new socket
+                                    // create a new job that is not allowed to register.
+                                    ConnectJob secondJob = new ConnectJob(connectJob.getCertificateId(), connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert(), false);
+                                    secondJob.getPromise().done(result1 -> {
+                                        result.resolve(result1);
+                                        shutDown();
+                                    }).fail(result1 -> {
+                                        result.resolve(result1);
+                                        shutDown();
+                                    });
+                                    this.addJob(secondJob);
+                                });
 
-        /*else {
-            Lok.debug("MeinAuthSocket.connect.NOT.IMPLEMENTED.YET");
-            this.auth(result, remoteCertId, address, port, portCert);
-        }*/
-        return result;
+                            }).fail(exception -> {
+                                        // it won't compile otherwise. don't know why.
+                                        // compiler thinks exception is an Object instead of Exception
+                                        ((Exception) exception).printStackTrace();
+                                        result.reject(exception);
+                                        meinAuthService.getPowerManager().releaseWakeLock(this);
+                                        stopConnecting();
+                                    }
+                            );
+                        });
+                    }).fail(ee -> {
+                        ee.printStackTrace();
+                        result.reject(ee);
+                        meinAuthService.getPowerManager().releaseWakeLock(this);
+                        stopConnecting();
+                    });
+                } else {
+                    if (!(except instanceof ShamefulSelfConnectException)) {
+                        result.reject(new CannotConnectException(except, address, port));
+                    } else {
+                        result.reject(except);
+                    }
+                    meinAuthService.getPowerManager().releaseWakeLock(this);
+                    stopConnecting();
+                }
+            }));
+        } else if (job instanceof IsolatedConnectJob) {
+            this.isolate((IsolatedConnectJob<? extends MeinIsolatedProcess>) job)
+                    .fail(result -> stopConnecting())
+                    .always((state, resolved, rejected) -> {
+                        meinAuthService.getPowerManager().releaseWakeLock(ConnectWorker.this);
+                        shutDown();
+                    });
+        }
     }
 
     private void stopConnecting() {

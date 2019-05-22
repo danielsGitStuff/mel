@@ -167,8 +167,8 @@ public class CertificateManager extends FileRelatedManager {
                     .setGreeting(greeting)
                     .setTrusted(false);
             certificate.set(certificateDao.insertCertificate(certificate.get()));
+            this.storeCertInKeyStore(uuid, x509Certificate);
         }).end();
-        this.storeCertInKeyStore(uuid, x509Certificate);
         return certificate.get();
     }
 

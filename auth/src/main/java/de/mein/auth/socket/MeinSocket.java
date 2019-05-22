@@ -79,7 +79,7 @@ public class MeinSocket extends DeferredRunnable {
 
     public String getAddress() {
         if (socket != null && socket.isConnected())
-            return socket.getInetAddress().toString();
+            return socket.getInetAddress().getHostAddress();
         Lok.error("address requested but currently not present!");
         return "#could not determine address#";
     }
