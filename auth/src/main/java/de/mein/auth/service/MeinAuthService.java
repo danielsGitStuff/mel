@@ -306,7 +306,7 @@ public class MeinAuthService {
         if (portCert == null)
             portCert = certificate.getCertDeliveryPort().v();
         IsolatedConnectJob<T> job = new IsolatedConnectJob<>(certId, address, port, portCert, remoteServiceUuid, ownServiceUuid, isolatedServiceClass);
-        meinAuthWorker.addJob(job);
+        execute(new ConnectWorker(this, job));
         return job.getPromise();
     }
 

@@ -4,6 +4,7 @@ import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.MeinAuthSettings;
+import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.service.power.PowerManager;
@@ -71,11 +72,10 @@ public class MeinAuthWorker extends MeinWorker implements PowerManager.IPowerSta
     @Override
     protected void workWork(Job job) throws Exception {
         Lok.debug("MeinAuthWorker.workWork." + job.getClass().getSimpleName());
-      if (job instanceof NetworkEnvDiscoveryJob) {
+        if (job instanceof NetworkEnvDiscoveryJob) {
             meinAuthService.discoverNetworkEnvironmentImpl();
         }
     }
-
 
 
     public MeinAuthBrotCaster getBrotCaster() {

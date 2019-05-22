@@ -123,8 +123,8 @@ public class ServerSyncHandler extends SyncHandler {
     }
 
     @Override
-    public boolean onFileTransferred(AFile file, String hash) throws SqlQueriesException, IOException {
-        boolean isNew = super.onFileTransferred(file, hash);
+    public boolean onFileTransferred(AFile file, String hash, Transaction transaction) throws SqlQueriesException, IOException {
+        boolean isNew = super.onFileTransferred(file, hash, transaction);
         if (isNew)
             N.r(() -> hashAvailTimer.start());
         return isNew;

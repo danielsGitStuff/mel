@@ -132,11 +132,11 @@ public abstract class SyncHandler {
     /**
      * @param file file in working directory
      * @param hash
+     * @param transaction
      * @return true if the file is new on the device (not a copy). so it can be transferred to other devices.
      * @throws SqlQueriesException
      */
-    public boolean onFileTransferred(AFile file, String hash) throws SqlQueriesException, IOException {
-        Transaction transaction = T.lockingTransaction(fsDao);
+    public boolean onFileTransferred(AFile file, String hash, Transaction transaction) throws SqlQueriesException, IOException {
         try {
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             boolean isNew = fsFiles.size() > 0;
@@ -162,7 +162,6 @@ public abstract class SyncHandler {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            transaction.end();
         }
         return false;
     }

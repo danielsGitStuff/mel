@@ -133,7 +133,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                                 if (fsFiles != null && fsFiles.size() > 0) {
                                     FsFile fsFile = fsFiles.get(0);
                                     AFile file = fsDao.getFileByFsFile(meinDriveService.getDriveSettings().getRootDirectory(), fsFile);
-                                    syncHandler.onFileTransferred(file, hash);
+                                    syncHandler.onFileTransferred(file, hash, transaction);
                                     transferDao.deleteByHash(hash);
                                 }
                             }
@@ -302,7 +302,9 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                                     .setTransferDoneListener(fileTransferDetail1 -> N.r(() -> {
                                         transferDao.delete(transferDetails.getId().v());
                                         countDown(countDown);
-                                        syncHandler.onFileTransferred(target, transferDetails.getHash().v());
+                                        Transaction transaction = T.lockingTransaction(fsDao);
+                                        syncHandler.onFileTransferred(target, transferDetails.getHash().v(), transaction);
+                                        transaction.end();
                                     }))
                                     .setTransferFailedListener(fileTransferDetail1 -> N.r(() -> {
                                         transferDao.delete(transferDetails.getId().v());

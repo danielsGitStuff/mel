@@ -1,6 +1,5 @@
 package de.mein.auth.tools.lock;
 
-import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 
 import java.util.HashSet;
@@ -11,6 +10,7 @@ public class Key {
     private final Set<Object> objects;
     private final Set<Object> readObjects;
     private final WaitLock lock;
+    private StackTraceElement[] traceElement;
     // this helps you debugging
     private long id;
     private static AtomicLong ID_COUNTER = new AtomicLong(0L);
@@ -24,6 +24,11 @@ public class Key {
         this.readObjects = readObjects;
         this.lock = new WaitLock();
         this.id = ID_COUNTER.getAndIncrement();
+    }
+
+    public Key(Set<Object> ordinaryObjects, Set<Object> readObjects, StackTraceElement[] traceElement) {
+        this(ordinaryObjects,readObjects);
+        this.traceElement = traceElement;
     }
 
     @Override

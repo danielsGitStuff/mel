@@ -70,7 +70,8 @@ public class T {
                 key.lock();
                 key.unlock();
             }
-            Key key = new Key(ordinaryObjects, readObjects);
+            StackTraceElement[] traceElement = Thread.currentThread().getStackTrace();
+            Key key = new Key(ordinaryObjects, readObjects,traceElement);
             transaction.setKey(key);
             key.lock();
             // update currently held locks

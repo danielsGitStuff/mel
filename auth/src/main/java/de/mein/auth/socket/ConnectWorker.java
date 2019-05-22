@@ -4,6 +4,7 @@ import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.ConnectJob;
+import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinWorker;
@@ -195,6 +196,8 @@ public class ConnectWorker extends MeinWorker {
 //        Socket socket = createSocket();
 //        N.oneLine(() -> meinAuthSocket.connect(connectJob));
             connect(connectJob);
+        } else if (job instanceof IsolatedConnectJob) {
+            connect((IsolatedConnectJob) job);
         }
         if (this.connectJob.getPromise().isResolved())
             shutDown();
