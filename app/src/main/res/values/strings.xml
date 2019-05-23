@@ -43,7 +43,7 @@
     <string name="discoverTitle">Pairing</string>
     <string name="settingsTitle">Settings</string>
     <string name="editServiceTitle">Edit Service</string>
-    <string name="drawerTitle">Drive itself</string>
+    <string name="drawerTitle">Mel itself</string>
     <string name="drawerServices">Services</string>
     <string name="drawerCreateNewService">Create New Service</string>
     <string name="discoverBtnCouple">Pair</string>

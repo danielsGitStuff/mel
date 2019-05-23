@@ -1,6 +1,5 @@
 package de.mein.auth.jobs;
 
-import sun.jvm.hotspot.StackTrace;
 
 /**
  * Created by xor on 12/13/16.
