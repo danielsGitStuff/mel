@@ -41,6 +41,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 
@@ -86,12 +87,12 @@ public class DriveTest {
             MeinDriveClientService meinDriveClientService;
             private DriveSyncListener ins = this;
             int count = 0;
-            int failCount = 0;
+            AtomicInteger failCount = new AtomicInteger(0);
 
             @Override
             public void onSyncFailed() {
                 Lok.debug("DriveTest.onSyncFailed");
-                if (failCount == 0) {
+                if (failCount.getAndIncrement() == 0) {
                     N.r(() -> {
                         //if (!file2.exists())
                         Lok.debug("DriveTest.onSyncFailed.creating new file...");
@@ -112,7 +113,6 @@ public class DriveTest {
                         }));
                     });
                 }
-                failCount++;
             }
 
             private int transferCount = 0;

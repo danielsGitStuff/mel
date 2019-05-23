@@ -222,7 +222,6 @@ public class ClientSyncHandler extends SyncHandler {
                     // fsDao.unlockWrite();
                     transaction.end();
                     meinDriveService.onSyncFailed();
-                    transaction.end();
                 }));
             } else {
                 stageDao.deleteStageSet(stageSetId);
