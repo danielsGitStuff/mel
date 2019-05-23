@@ -44,15 +44,14 @@ import org.jdeferred.impl.DeferredObject;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+
 
 /**
  * does everything file (on disk) related
  * Created by xor on 09.07.2016.
  */
 public abstract class MeinDriveService<S extends SyncHandler> extends MeinServiceWorker {
-    private static Logger logger = Logger.getLogger(MeinDriveService.class.getName());
     protected DriveDatabaseManager driveDatabaseManager;
     protected DriveSettings driveSettings;
     protected N runner = new N(Throwable::printStackTrace);
@@ -95,7 +94,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void handleRequest(Request request) throws Exception {
-        logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.handleRequest");
+        Lok.debug(meinAuthService.getName() + ".MeinDriveService.handleRequest");
         addJob(new ServiceRequestHandlerJob().setRequest(request));
     }
 
@@ -110,7 +109,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void handleMessage(ServicePayload payload, Certificate partnerCertificate) {
-        logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.handleMessage");
+        Lok.debug(meinAuthService.getName() + ".MeinDriveService.handleMessage");
         addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(payload.getIntent()));
     }
 
@@ -120,19 +119,19 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void connectionAuthenticated(Certificate partnerCertificate) {
-        logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.connectionAuthenticated");
+        Lok.debug(meinAuthService.getName() + ".MeinDriveService.connectionAuthenticated");
         addJob(new Job.ConnectionAuthenticatedJob(partnerCertificate));
     }
 
     @Override
     public void handleCertificateSpotted(Certificate partnerCertificate) {
-        logger.log(Level.FINER, meinAuthService.getName() + ".MeinDriveService.handleCertificateSpotted");
+        Lok.debug(meinAuthService.getName() + ".MeinDriveService.handleCertificateSpotted");
         addJob(new Job.CertificateSpottedJob(partnerCertificate));
     }
 
     @Override
     protected void workWork(Job unknownJob) throws Exception {
-        logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork :)");
+        Lok.debug(meinAuthService.getName() + ".MeinDriveService.workWork :)");
         if (!workWorkWork(unknownJob)) {
             if (unknownJob instanceof ServiceRequestHandlerJob) {
                 ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
@@ -147,9 +146,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
                         onSyncReceived(request);
                     }
                 } else if (job.isMessage()) {
-                    logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.msg");
+                    Lok.debug(meinAuthService.getName() + ".MeinDriveService.workWork.msg");
                     if (job.getIntent() != null && job.getIntent().equals(DriveStrings.INTENT_PLEASE_TRANSFER)) {
-                        logger.log(Level.FINEST, "MeinDriveService.workWorkWork: transfer please");
+                        Lok.debug("MeinDriveService.workWorkWork: transfer please");
                         handleSending(job.getPartnerCertificate().getId().v(), (FileTransferDetailsPayload) job.getPayLoad());
                     }
                 }
@@ -264,7 +263,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     }
 
     private void handleDirectoryContentsRequest(Request request) throws SqlQueriesException {
-        logger.log(Level.FINEST, "MeinDriveService.handleDirectoryContentsRequest");
+        Lok.debug("MeinDriveService.handleDirectoryContentsRequest");
         DirectoriesContentTask task = (DirectoriesContentTask) request.getPayload();
         for (Long fsId : task.getIds()) {
             FsDirectory fsDirectory = driveDatabaseManager.getFsDao().getDirectoryById(fsId);
@@ -323,10 +322,10 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         Certificate cert = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
         connected.done(meinValidationProcess -> runner.runTry(() -> {
-            logger.log(Level.FINEST, "MeinDriveService.requestDirectoriesByIds:::::::::::::::");
+            Lok.debug("MeinDriveService.requestDirectoriesByIds:::::::::::::::");
             Request<DirectoriesContentTask> answer = meinValidationProcess.request(serviceUuid, new DirectoriesContentTask().setIDs(fsDirIdsToRetrieve));
             answer.done(task -> {
-                logger.log(Level.FINEST, "MeinDriveService.requestDirectoriesByIds");
+                Lok.debug("MeinDriveService.requestDirectoriesByIds");
                 deferred.resolve(task.getResult());
             });
         }));

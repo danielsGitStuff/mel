@@ -1,6 +1,7 @@
 package de.mein.auth.socket.process.imprt;
 
 import de.mein.DeferredRunnable;
+import de.mein.Lok;
 import de.mein.auth.data.MeinMessage;
 import de.mein.auth.data.MeinResponse;
 import de.mein.auth.data.access.CertificateManager;
@@ -25,15 +26,14 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+
 
 /**
  * transfers certificates and imports them into the database
  * Created by xor on 4/18/16.
  */
 public class MeinCertRetriever extends DeferredRunnable {
-    private static Logger logger = Logger.getLogger(MeinCertRetriever.class.getName());
     private final MeinAuthService meinAuthService;
     private final CertificateManager certificateManager;
     private Map<MeinSocket, Object> clientSockets = new ConcurrentHashMap<>();
@@ -80,7 +80,7 @@ public class MeinCertRetriever extends DeferredRunnable {
         try {
             // RWLock lock = new RWLock();
             //lock.lockWrite();
-            logger.log(Level.FINER, "MeinCertRetriever.retrieveCertificate.ALPHONSO");
+            Lok.error("MeinCertRetriever.retrieveCertificate.ALPHONSO");
             URI uri = new URI(address);
 
             Socket socket = new Socket();
@@ -93,7 +93,7 @@ public class MeinCertRetriever extends DeferredRunnable {
 
                 @Override
                 public void onMessage(MeinSocket meinSocket, String messageString) {
-                    logger.log(Level.FINEST, meinAuthService.getName() + ".MeinCertRetriever.onMessage.got: " + messageString);
+                   Lok.debug(meinAuthService.getName() + ".MeinCertRetriever.onMessage.got: " + messageString);
                     try {
                         SerializableEntityDeserializer deserializer = new SerializableEntityDeserializer();
                         MeinResponse response = (MeinResponse) SerializableEntityDeserializer.deserialize(messageString);

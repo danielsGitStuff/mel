@@ -59,15 +59,13 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  * Created by xor on 2/14/16.
  */
 public class MeinAuthService {
 
-    private static Logger logger = Logger.getLogger(MeinAuthService.class.getName());
     private final MeinAuthSettings settings;
     private final Updater updater;
     private MeinAuthWorker meinAuthWorker;
@@ -444,7 +442,7 @@ public class MeinAuthService {
                     });
                 });
             }).fail(result -> {
-                logger.log(Level.SEVERE, "MeinAuthService.connectAndCollect.fail");
+                Lok.error("MeinAuthService.connectAndCollect.fail");
             });
         }
     }
@@ -465,7 +463,7 @@ public class MeinAuthService {
                 checkedAddresses.put(validationProcess.getAddressString(), true);
                 Request<MeinServicesPayload> gotServicesPromise = this.getAllowedServices(certId);
                 gotServicesPromise.done(meinServicesPayload -> {
-                    logger.log(Level.SEVERE, "MeinAuthService.discoverNetworkEnvironment.NOT.IMPLEMENTED.YET");
+                    Lok.error("MeinAuthService.discoverNetworkEnvironment.NOT.IMPLEMENTED.YET");
                     addToNetworkEnvironment(certId, meinServicesPayload);
                 });
             }

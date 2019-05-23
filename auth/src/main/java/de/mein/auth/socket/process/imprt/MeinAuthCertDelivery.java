@@ -22,15 +22,14 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.cert.X509Certificate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+
 
 /**
  * delivers certificates
  * Created by xor on 2/14/16.
  */
 public class MeinAuthCertDelivery extends DeferredRunnable {
-    private static Logger logger = Logger.getLogger(MeinAuthCertDelivery.class.getName());
     protected ServerSocket serverSocket;
     private final CertificateManager certificateManager;
     protected DataOutputStream out;
@@ -56,7 +55,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
             @Override
             public void onMessage(MeinSocket meinSocket, String messageString) {
                 try {
-                    logger.log(Level.FINEST, meinAuthService.getName() + ".MeinAuthCertDelivery.onMessage.got: " + messageString);
+                   Lok.debug(meinAuthService.getName() + ".MeinAuthCertDelivery.onMessage.got: " + messageString);
                     MeinRequest request = (MeinRequest) new SerializableEntityDeserializer().deserialize(messageString);
                     if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME) && request.getIntent().equals(MeinStrings.msg.GET_CERT)) {
                         X509Certificate x509Certificate = certificateManager.getMyX509Certificate();
@@ -81,17 +80,17 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
 
             @Override
             public void onOpen() {
-                logger.log(Level.FINEST, "MeinAuthCertDelivery.onOpen");
+               Lok.debug("MeinAuthCertDelivery.onOpen");
             }
 
             @Override
             public void onError(Exception ex) {
-                logger.log(Level.FINEST, "MeinAuthCertDelivery.onError");
+               Lok.debug("MeinAuthCertDelivery.onError");
             }
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
-                logger.log(Level.FINEST, "MeinAuthCertDelivery.onClose");
+               Lok.debug("MeinAuthCertDelivery.onClose");
             }
 
             @Override
@@ -129,7 +128,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
                 in = new DataInputStream(socket.getInputStream());
                 out = new DataOutputStream(socket.getOutputStream());
                 String s = in.readUTF();
-                logger.log(Level.FINEST, meinAuthService.getName() + ".MeinAuthCertDelivery.runTry.got: " + s);
+               Lok.debug(meinAuthService.getName() + ".MeinAuthCertDelivery.runTry.got: " + s);
                 MeinSocket meinSocket = new MeinSocket(meinAuthService, socket);
                 this.listener.onMessage(meinSocket, s);
                 meinSocket.shutDown();

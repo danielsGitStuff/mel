@@ -32,7 +32,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
+
 
 /**
  * Created by xor on 10.08.2016.
@@ -41,7 +41,6 @@ import java.util.logging.Logger;
 public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketListener {
 
 
-    private static Logger logger = Logger.getLogger(MeinAuthSocket.class.getName());
     protected MeinProcess process;
     protected Certificate partnerCertificate;
     private AConnectJob connectJob;

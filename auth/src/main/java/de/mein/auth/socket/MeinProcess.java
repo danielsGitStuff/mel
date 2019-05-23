@@ -1,5 +1,6 @@
 package de.mein.auth.socket;
 
+import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
@@ -11,15 +12,14 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+
 
 /**
  * MeinProcesses handle everything that is read on the MeinAuthSocket.
  * There are several implementations of who care about registering, authentication and validating incoming and outgoing connections.
  */
 public abstract class MeinProcess implements IRequestHandler {
-    private static Logger logger = Logger.getLogger(MeinProcess.class.getName());
     protected MeinAuthSocket meinAuthSocket;
     protected Certificate partnerCertificate;
     protected Map<Long, DeferredObject<SerializableEntity, ResponseException, Void>> requestMap = new ConcurrentHashMap<>();
@@ -33,7 +33,7 @@ public abstract class MeinProcess implements IRequestHandler {
 
     protected void send(SerializableEntity meinMessage) throws JsonSerializationException, IllegalAccessException {
         String json = SerializableEntitySerializer.serialize(meinMessage);
-        logger.log(Level.FINEST, meinAuthSocket.getMeinAuthService().getName() + ".send: " + json);
+       Lok.debug(meinAuthSocket.getMeinAuthService().getName() + ".send: " + json);
         meinAuthSocket.send(json);
     }
 

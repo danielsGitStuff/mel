@@ -30,14 +30,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
+
 
 /**
  * Created by xor on 10/21/16.
  */
 public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> {
-
-    private static Logger logger = Logger.getLogger(MeinDriveClientService.class.getName());
 
     public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);

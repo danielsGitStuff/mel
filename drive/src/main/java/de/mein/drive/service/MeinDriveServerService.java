@@ -30,14 +30,13 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+
 
 /**
  * Created by xor on 10/21/16.
  */
 public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> {
-    private static Logger logger = Logger.getLogger(MeinDriveServerService.class.getName());
 
     public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
@@ -53,7 +52,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     @Override
     protected void onSyncReceived(Request request) {
-        logger.log(Level.FINEST, "MeinDriveServerService.onSyncReceived");
+        Lok.debug( "MeinDriveServerService.onSyncReceived");
         SyncTask task = (SyncTask) request.getPayload();
         SyncTask answer = new SyncTask(cacheDirectory, DriveSettings.CACHE_LIST_SIZE);
         answer.setCacheId(CachedData.randomId());
@@ -79,7 +78,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     @Override
     protected boolean workWorkWork(Job unknownJob) {
-        logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveServerService.workWorkWork :)");
+       Lok.debug(meinAuthService.getName() + ".MeinDriveServerService.workWorkWork :)");
         try {
             if (unknownJob instanceof ServiceRequestHandlerJob) {
                 ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
@@ -147,7 +146,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
         DeferredObject<DeferredRunnable, Exception, Void> indexingDone = super.startIndexer();
         stageIndexer.setStagingDoneListener(stageSetId -> {
-            logger.log(Level.FINEST, meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
+           Lok.debug(meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
             // staging is done. stage data is up to date. time to commit to fs
             FsDao fsDao = driveDatabaseManager.getFsDao();
             StageDao stageDao = driveDatabaseManager.getStageDao();
@@ -167,7 +166,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 Certificate client = meinAuthService.getCertificateManager().getTrustedCertificateById(clientData.getCertId());
                 Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect(client.getId().v(), client.getAddress().v(), client.getPort().v(), client.getCertDeliveryPort().v(), false);
                 promise.done(meinValidationProcess -> runner.runTry(() -> {
-                    logger.log(Level.FINEST, "MeinDriveService.workWork.syncFromServer.msg");
+                   Lok.debug("MeinDriveService.workWork.syncFromServer.msg");
                     meinValidationProcess.message(clientData.getServiceUuid(), DriveStrings.INTENT_SYNC, null);
                 }));
             }*/
