@@ -5,6 +5,7 @@ import de.mein.auth.FxApp;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
+import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.AuthSettingsFX;
 import de.mein.auth.gui.RemoteServiceChooserFX;
@@ -243,7 +244,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         N.r(() -> {
             notifications.add(meinNotification);
             meinNotification.addProgressListener(this);
-            XCBFix.runLater(() -> trayIcon.displayMessage(meinNotification.getTitle(), meinNotification.getText(), TrayIcon.MessageType.INFO));
+            XCBFix.runLater(() -> trayIcon.displayMessage(meinNotification.getTitle(), meinAuthService.getCompleteNotificationText(meinNotification), TrayIcon.MessageType.INFO));
         });
     }
 

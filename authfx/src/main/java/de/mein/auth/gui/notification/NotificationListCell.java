@@ -54,7 +54,7 @@ public class NotificationListCell extends ListCell<MeinNotification> {
                 lblText.setText(null);
                 setGraphic(null);
             } else {
-                lblText.setText(notification.getText());
+                lblText.setText(meinAuthService.getCompleteNotificationText(notification));
                 lblTitle.setText(notification.getTitle());
                 btnOpen.setOnAction(event -> {
                     N.r(() -> {

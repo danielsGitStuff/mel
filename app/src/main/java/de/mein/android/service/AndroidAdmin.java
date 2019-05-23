@@ -73,13 +73,13 @@ public class AndroidAdmin implements MeinAuthAdmin {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setSmallIcon(icon)
                 .setContentTitle(meinNotification.getTitle())
-                .setContentText(meinNotification.getText())
+                .setContentText(meinAuthService.getCompleteNotificationText(meinNotification))
                 .setContentIntent(pendingIntent);
         if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS) || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
             NotificationCompat.Builder finalBuilder = builder;
             meinNotification.addProgressListener(new MeinNotification.MeinProgressListener() {
                 @Override
-                public void onProgress(MeinNotification notification,int max, int current, boolean indeterminate) {
+                public void onProgress(MeinNotification notification, int max, int current, boolean indeterminate) {
                     finalBuilder.setProgress(max, current, indeterminate);
                     finalBuilder.setContentTitle(meinNotification.getTitle())
                             .setContentText(meinNotification.getText());
@@ -88,7 +88,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
 
                 @Override
                 public void onCancel(MeinNotification notification) {
-                    Notifier.cancel( intent, requestCode);
+                    Notifier.cancel(intent, requestCode);
                 }
 
                 @Override

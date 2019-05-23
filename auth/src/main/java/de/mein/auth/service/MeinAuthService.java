@@ -651,6 +651,13 @@ public class MeinAuthService {
         }
     }
 
+    public String getCompleteNotificationText(MeinNotification notification) {
+        IMeinService meinService = getMeinService(notification.getServiceUuid());
+        final String serviceName = databaseManager.getServiceName(meinService);
+        final String serviceTypeName = databaseManager.getServiceTypeName(meinService);
+        return "from " + serviceTypeName + "/" + serviceName + ": " + notification.getText();
+    }
+
     public void onNotificationFromService(IMeinService meinService, MeinNotification notification) {
         for (MeinAuthAdmin admin : meinAuthAdmins) {
             notification.addProgressListener(admin);

@@ -7,6 +7,7 @@ import de.mein.auth.data.db.*;
 import de.mein.auth.data.db.dao.ApprovalDao;
 import de.mein.auth.data.db.dao.ServiceDao;
 import de.mein.auth.data.db.dao.ServiceTypeDao;
+import de.mein.auth.service.IMeinService;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
@@ -29,6 +30,26 @@ public final class DatabaseManager extends FileRelatedManager {
     protected final ServiceTypeDao serviceTypeDao;
     protected final ServiceDao serviceDao;
     protected final ApprovalDao approvalDao;
+
+    public String getServiceName(IMeinService meinService) {
+        try {
+            Service service = getServiceByUuid(meinService.getUuid());
+            return service.getName().v();
+        } catch (Exception e) {
+            Lok.error("could not gather Service name");
+            return "could not gather Service name";
+        }
+    }
+
+    public String getServiceTypeName(IMeinService meinService) {
+        try {
+            Service service = getServiceByUuid(meinService.getUuid());
+            return getServiceTypeById(service.getTypeId().v()).getType().v();
+        } catch (Exception e) {
+            Lok.error("could not gather Service type");
+            return "could not gather Service type";
+        }
+    }
 
     public ServiceType getServiceTypeById(Long id) throws SqlQueriesException {
         return serviceTypeDao.getServiceTypeById(id);

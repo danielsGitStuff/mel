@@ -1,7 +1,6 @@
 package de.mein.auth.tools;
 
 import de.mein.Lok;
-import de.mein.auth.tools.lock.Transaction;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
@@ -426,8 +425,12 @@ public class N {
         return null;
     }
 
-    public interface ResultRunnble<Ty> {
+    public interface ResultRunnable<Ty> {
         Ty run();
+    }
+
+    public interface ResultExceptionRunnable<Ty> {
+        Ty run() throws Exception;
     }
 
     /**
@@ -448,8 +451,16 @@ public class N {
      * @param <T>
      * @return
      */
-    public static <T> T result(ResultRunnble<T> runnable) {
+    public static <T> T result(ResultRunnable<T> runnable) {
         return runnable.run();
+    }
+
+    public static <T> T result(ResultExceptionRunnable<T> runnable, T onExceptionValue) {
+        try {
+            return runnable.run();
+        } catch (Exception e) {
+            return onExceptionValue;
+        }
     }
 
     public interface Predicate<T> {

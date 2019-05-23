@@ -30,12 +30,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
  * Created by xor on 10/21/16.
  */
 public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> {
+    private MeinNotification latestConflictNotification;
 
     public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
@@ -169,14 +171,15 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     }
 
 
-    private static AtomicInteger DEBUG_COUNTER = new AtomicInteger(1);
-
-    public void onConflicts() {
+    public synchronized void onConflicts() {
         Lok.debug("MeinDriveClientService.onConflicts.oj9h034800");
-        MeinNotification notification = new MeinNotification(uuid, DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED
-                , "Conflict detected [" + DEBUG_COUNTER.getAndIncrement() + "]"
-                , "here we go");
-        meinAuthService.onNotificationFromService(this, notification);
+        if (latestConflictNotification != null) {
+            latestConflictNotification.cancel();
+        }
+        latestConflictNotification = new MeinNotification(uuid, DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED
+                , "Conflict detected!"
+                , "Click to solve!");
+        meinAuthService.onNotificationFromService(this, latestConflictNotification);
     }
 
     /**
