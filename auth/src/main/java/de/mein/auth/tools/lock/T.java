@@ -61,7 +61,7 @@ public class T {
                         }
                         if (readMap.containsKey(o)) {
                             // stop on every read key
-                            N.forEachIgnorantly(readMap.get(o), Key::lock);
+                            N.forEachIgnorantly(readMap.get(o), keyToLockOn::add);
                         }
                     }
                 }
@@ -71,7 +71,7 @@ public class T {
                 key.unlock();
             }
             StackTraceElement[] traceElement = Thread.currentThread().getStackTrace();
-            Key key = new Key(ordinaryObjects, readObjects,traceElement);
+            Key key = new Key(ordinaryObjects, readObjects, traceElement);
             transaction.setKey(key);
             key.lock();
             // update currently held locks

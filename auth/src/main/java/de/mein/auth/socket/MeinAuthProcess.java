@@ -1,22 +1,10 @@
 package de.mein.auth.socket;
 
 import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.UUID;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
@@ -36,7 +24,6 @@ import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.tools.Cryptor;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
 
 /**
@@ -105,7 +92,7 @@ public class MeinAuthProcess extends MeinProcess {
                                         // tell MAS we are connected & authenticated
                                         meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
                                         // propagate that we are connected!
-                                        propagateAuthentication(this.partnerCertificate);
+                                        propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getPort());
                                     } else {
                                         Lok.debug("MeinAuthProcess.isolation.onMessageReceived");
                                         IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
@@ -139,7 +126,12 @@ public class MeinAuthProcess extends MeinProcess {
     }
 
 
-    private void propagateAuthentication(Certificate partnerCertificate) throws JsonSerializationException, IllegalAccessException, SqlQueriesException {
+    private void propagateAuthentication(Certificate partnerCertificate, String address, int port) throws SqlQueriesException {
+        // propagate to database first
+        partnerCertificate.setAddress(address);
+        partnerCertificate.setPort(port);
+        meinAuthSocket.getMeinAuthService().getCertificateManager().updateCertificate(partnerCertificate);
+        // propagate to allowed services
         List<Service> services = meinAuthSocket.getMeinAuthService().getDatabaseManager().getAllowedServices(partnerCertificate.getId().v());
         for (Service service : services) {
             IMeinService ins = meinAuthSocket.getMeinAuthService().getMeinService(service.getUuid().v());
@@ -195,7 +187,7 @@ public class MeinAuthProcess extends MeinProcess {
                             runner.runTry(() -> {
                                 if (job instanceof ConnectJob) {
                                     // propagate that we are connected!
-                                    propagateAuthentication(partnerCertificate);
+                                    propagateAuthentication(partnerCertificate, meinAuthSocket.getSocket().getInetAddress().getHostAddress(), meinAuthSocket.getSocket().getPort());
                                     // done here, set up validationprocess
                                     Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
                                     MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate);

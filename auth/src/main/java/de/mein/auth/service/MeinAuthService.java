@@ -442,7 +442,7 @@ public class MeinAuthService {
                     });
                 });
             }).fail(result -> {
-                Lok.error("MeinAuthService.connectAndCollect.fail");
+                Lok.error("MeinAuthService.connectAndCollect.fail() for: "+address+"");
             });
         }
     }
