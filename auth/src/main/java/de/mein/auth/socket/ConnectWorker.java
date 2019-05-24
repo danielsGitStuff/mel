@@ -81,7 +81,6 @@ public class ConnectWorker extends MeinWorker {
 //            socket.connect(new InetSocketAddress(job.getAddress(), job.getPort()));
             MeinAuthProcess meinAuthProcess = new MeinAuthProcess(meinAuthSocket);
             meinAuthProcess.authenticate(dummyJob);
-            meinAuthService.execute(meinAuthSocket);
         });
         return dummyJob.getPromise();
     }

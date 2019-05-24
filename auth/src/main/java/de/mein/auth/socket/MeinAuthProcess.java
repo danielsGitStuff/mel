@@ -187,6 +187,7 @@ public class MeinAuthProcess extends MeinProcess {
                             runner.runTry(() -> {
                                 if (job instanceof ConnectJob) {
                                     // propagate that we are connected!
+
                                     propagateAuthentication(partnerCertificate, meinAuthSocket.getSocket().getInetAddress().getHostAddress(), meinAuthSocket.getSocket().getPort());
                                     // done here, set up validationprocess
                                     Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
