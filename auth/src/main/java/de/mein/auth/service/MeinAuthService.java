@@ -373,7 +373,7 @@ public class MeinAuthService {
     }
 
 
-    Promise<MeinValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
+    synchronized Promise<MeinValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
         Lok.debug("connect: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
