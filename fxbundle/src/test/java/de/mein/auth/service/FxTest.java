@@ -1,6 +1,7 @@
-package de.mein;
+package de.mein.auth.service;
 
 
+import de.mein.Lok;
 import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.MeinAuthSettings;
@@ -31,7 +32,6 @@ import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.boot.DriveFXBootloader;
-import de.mein.drive.serialization.DriveTest;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveClientService;
 import de.mein.drive.service.MeinDriveServerService;

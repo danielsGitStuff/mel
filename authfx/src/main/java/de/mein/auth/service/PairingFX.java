@@ -1,8 +1,9 @@
-package de.mein.auth.gui;
+package de.mein.auth.service;
 
 import de.mein.Lok;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.gui.AuthSettingsFX;
 import de.mein.auth.gui.controls.CertListCell;
 import de.mein.auth.gui.controls.UnkownListCell;
 import de.mein.auth.service.MeinAuthAdminFX;

@@ -1,5 +1,6 @@
-package de.mein;
+package de.mein.auth.service;
 
+import de.mein.Lok;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;

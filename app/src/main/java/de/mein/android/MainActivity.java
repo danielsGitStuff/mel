@@ -26,6 +26,7 @@ import com.google.android.material.navigation.NavigationView;
 import androidx.documentfile.provider.DocumentFile;
 import de.mein.BuildConfig;
 
+import de.mein.auth.service.NetworkDiscoveryController;
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -52,7 +53,6 @@ import de.mein.android.controller.EditServiceController;
 import de.mein.android.controller.GuiController;
 import de.mein.android.controller.InfoController;
 import de.mein.android.controller.LogCatController;
-import de.mein.android.controller.NetworkDiscoveryController;
 import de.mein.android.controller.SettingsController;
 import de.mein.android.controller.intro.IntroWrapper;
 import de.mein.android.controller.intro.LoadingWrapper;
@@ -350,52 +350,6 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         }
     }
 
-    private void debugStuff2() {
-        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        Lok.debug("MainActivity.debugStuff2.DEBUG:ACTIVE");
-        Notifier.toast(this, "WARNING: DEBUG");
-        annoyWithPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE
-                , Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS).done(result -> {
-            androidService.getMeinAuthService().addRegisterHandler(new IRegisterHandler() {
-                @Override
-                public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
-                    listener.onCertificateAccepted(request, certificate);
-                }
-
-                @Override
-                public void onRegistrationCompleted(Certificate partnerCertificate) {
-
-                }
-
-                @Override
-                public void onRemoteRejected(Certificate partnerCertificate) {
-
-                }
-
-                @Override
-                public void onLocallyRejected(Certificate partnerCertificate) {
-
-                }
-
-                @Override
-                public void onRemoteAccepted(Certificate partnerCertificate) {
-
-                }
-
-                @Override
-                public void onLocallyAccepted(Certificate partnerCertificate) {
-
-                }
-            });
-            N.r(() -> androidService.getMeinAuthService().connect("10.0.2.2", 8888, 8889, true));
-        });
-    }
 
 
     @Override
@@ -515,110 +469,6 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
             this.guiController.onStop();
     }
 
-    private void debugStuff() throws InterruptedException {
-        Notifier.toast(this, "WARNING: DEBUG");
-        MeinAuthService meinAuthService = androidService.getMeinAuthService();
-        Lok.debug(meinAuthService);
-        Promise<MeinValidationProcess, Exception, Void> promise = meinAuthService.connect("10.0.2.2", 8888, 8889, true);
-        promise.done(meinValidationProcess -> N.r(() -> {
-            Request<MeinServicesPayload> gotAllowedServices = meinAuthService.getAllowedServices(meinValidationProcess.getConnectedId());
-            gotAllowedServices.done(meinServicesPayload -> N.r(() -> {
-                Promise<Void, List<String>, Void> permissionsGranted = MainActivity.this.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
-                permissionsGranted.done(nil -> Threadder.runNoTryThread(() -> {
-                    BashTools.init();
-                    Thread.sleep(1000);
-                    AFile download = AFile.instance(AFile.instance(Environment.getExternalStorageDirectory()), "Download");
-                    driveDir = AFile.instance(download, "drive");
-                    N.r(() -> CertificateManager.deleteDirectory(driveDir));
-                    driveDir.mkdirs();
-                    BashTools.mkdir(driveDir);
-                    DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
-                    //TestDirCreator.createTestDir(driveDir, " kek");
-                    driveCreateController.createDriveClientService("drive.debug",
-                            driveDir,
-                            meinValidationProcess.getConnectedId(), meinServicesPayload.getServices().get(0).getUuid().v(), DriveSettings.DEFAULT_WASTEBIN_RATIO, DriveSettings.DEFAULT_WASTEBIN_MAXDAYS);
-//                    serviceCreated.done(meinDriveClientService -> {
-//                                N.r(() -> {
-//                                    Lok.debug("successssss");
-//                                    DriveSyncListener syncListener = new DriveSyncListener() {
-//                                        @Override
-//                                        public void onSyncFailed() {
-//
-//                                        }
-//
-//                                        @Override
-//                                        public void onTransfersDone() {
-////                                            N.r(() -> {
-////                                                Order order = new Order();
-////                                                DriveDatabaseManager dbManager = meinDriveClientService.getDriveDatabaseManager();
-////                                                StageDao stageDao = dbManager.getStageDao();
-////                                                FsDao fsDao = dbManager.getFsDao();
-////                                                // pretend the server deleted "samedir"
-////                                                StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_STAGED, null, null);
-////                                                FsDirectory root = fsDao.getRootDirectory();
-////                                                List<GenericFSEntry> content = fsDao.getContentByFsDirectory(root.getId().v());
-////                                                root.addContent(content);
-////                                                root.removeSubFsDirecoryByName("samedir");
-////                                                root.calcContentHash();
-////                                                Stage rootStage = new Stage().setStageSet(stageSet.getId().v())
-////                                                        .setContentHash(root.getContentHash().v())
-////                                                        .setFsId(root.getId().v())
-////                                                        .setIsDirectory(true)
-////                                                        .setName(root.getAccountType().v())
-////                                                        .setOrder(order.ord())
-////                                                        .setVersion(root.getVersion().v())
-////                                                        .setDeleted(false);
-////                                                stageDao.insert(rootStage);
-////                                                GenericFSEntry sameDir = fsDao.getGenericSubByName(root.getId().v(), "samedir");
-////                                                Stage sameStage = GenericFSEntry.generic2Stage(sameDir, stageSet.getId().v());
-////                                                sameStage.setDeleted(true);
-////                                                stageDao.insert(sameStage);
-////
-////                                                //pretend that we have added a file to the local "samedir"
-////                                                StageSet localStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_FS, DriveStrings.STAGESET_STATUS_STAGED, null, null);
-////                                                FsDirectory fsDirectory = new FsDirectory(new File("bla"));
-////                                                fsDirectory.addDummyFsFile("same1.txt");
-////                                                fsDirectory.addDummyFsFile("same2.txt");
-////                                                fsDirectory.addDummyFsFile("same3.txt");
-////                                                fsDirectory.calcContentHash();
-////                                                sameDir = fsDao.getGenericSubByName(root.getId().v(), "samedir");
-////                                                sameStage = GenericFSEntry.generic2Stage(sameDir, stageSet.getId().v());
-////                                                sameStage.setContentHash(fsDirectory.getContentHash().v());
-////                                                sameStage.setStageSet(localStageSet.getId().v());
-////                                                stageDao.insert(sameStage);
-////                                                Stage same3 = new Stage().setContentHash("5")
-////                                                        .setDeleted(false)
-////                                                        .setFsParentId(sameStage.getFsId())
-////                                                        .setParentId(sameStage.getId())
-////                                                        .setIsDirectory(false)
-////                                                        .setName("same3.txt")
-////                                                        .setSynced(true)
-////                                                        .setStageSet(localStageSet.getId().v());
-////                                                stageDao.insert(same3);
-////                                                meinDriveClientService.addJob(new CommitJob());
-////                                            });
-//                                        }
-//
-//                                        @Override
-//                                        public void onSyncDoneImpl() {
-//
-//                                        }
-//                                    };
-//                                    //meinDriveClientService.setSyncListener(syncListener);
-//                                    meinDriveClientService.syncThisClient();
-//                                });
-//                            }
-//                    );
-                }));
-            })).fail(result -> {
-                Lok.debug("erererere." + result);
-            });
-
-        })).fail(result -> {
-            Lok.debug("errrrr." + result);
-        });
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -691,45 +541,6 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
                 navigationView.refreshDrawableState();
                 Lok.debug("");
             }));
-        }
-    }
-
-    /**
-     * debug function to figure out if opening an {@link java.io.InputStream} on a file which is currently written to will throw exceptions
-     */
-    private void testFileWrite() {
-        FileOutputStream fos = null;
-        FileInputStream fis = null;
-        try {
-            File file = new File(SAFAccessor.getExternalSDPath() + "target");
-            AFile target = AFile.instance(file);
-            String path = target.getAbsolutePath();
-            target.createNewFile();
-            fos = target.outputStream();
-            fos.write("test".getBytes());
-            AFile duplicate = AFile.instance(file);
-            fis = duplicate.inputStream();
-            byte[] bytes = new byte[4];
-            fis.read(bytes);
-            String result = new String(bytes);
-            Lok.debug(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

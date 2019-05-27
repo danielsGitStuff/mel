@@ -1,4 +1,4 @@
-package de.mein.android.controller;
+package de.mein.auth.service;
 
 import android.view.View;
 import android.widget.Button;
@@ -9,6 +9,7 @@ import android.widget.ListView;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
+import de.mein.android.controller.WakelockedGuiController;
 import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
 import de.mein.android.view.KnownCertListAdapter;
@@ -47,8 +48,8 @@ public class NetworkDiscoveryController extends WakelockedGuiController {
         environment.deleteObservers();
         environment.deleteObservers();
         environment.addObserver((observable, o) -> {
-            Lok.debug("NetworkDiscoveryController.discover.adds: "+environment.getUnknownAuthInstances().size());
-            if(environment.getUnknownAuthInstances().size()==2)
+            Lok.debug("NetworkDiscoveryController.discover.adds: " + environment.getUnknownAuthInstances().size());
+            if (environment.getUnknownAuthInstances().size() == 2)
                 Lok.debug("debug");
             unkownListAdapter.clear().addAll(environment.getUnknownAuthInstances());
             knownCertListAdapter.clear();
