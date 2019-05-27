@@ -313,21 +313,6 @@ public class MeinAuthService {
         return job.getPromise();
     }
 
-//    public ConnectResult connectLocked(Long certificateId) throws InterruptedException, SqlQueriesException {
-//        Promise<MeinValidationProcess, Exception, Void> deferred = connect(certificateId);
-//        CountWaitLock lock = new CountWaitLock();
-//        ConnectResult connectResult = new ConnectResult();
-//        deferred.done(validationProcess -> {
-//            connectResult.setValidationProcess(validationProcess);
-//            lock.unlock();
-//        }).fail(exception -> {
-//            connectResult.setException(exception);
-//            lock.unlock();
-//        });
-//        lock.lock();
-//        return connectResult;
-//    }
-
     public synchronized Promise<MeinValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
