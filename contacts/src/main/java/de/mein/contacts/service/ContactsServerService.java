@@ -14,6 +14,7 @@ import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.NewVersionDetails;
 import de.mein.auth.data.ServiceDetails;
 import de.mein.contacts.data.db.PhoneBook;
+import de.mein.contacts.data.db.PhoneBookWrapper;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.jobs.AnswerQueryJob;
 import de.mein.contacts.jobs.UpdatePhoneBookJob;
@@ -53,7 +54,8 @@ public class ContactsServerService extends ContactsService {
         if (job instanceof AnswerQueryJob) {
             AnswerQueryJob answerQueryJob = (AnswerQueryJob) job;
             PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(databaseManager.getSettings().getMasterPhoneBookId());
-            answerQueryJob.getRequest().resolve(phoneBook);
+            PhoneBookWrapper wrapper = new PhoneBookWrapper(phoneBook);
+            answerQueryJob.getRequest().resolve(wrapper);
         } else if (job instanceof UpdatePhoneBookJob) {
             UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
             try {
