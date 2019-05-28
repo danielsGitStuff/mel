@@ -49,13 +49,14 @@ public class ContactsServerService extends ContactsService {
         Lok.debug("ContactsServerService.workWork.nothing here yet");
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
         ContactsSettings settings = databaseManager.getSettings();
+
         if (job instanceof AnswerQueryJob) {
             AnswerQueryJob answerQueryJob = (AnswerQueryJob) job;
             PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(databaseManager.getSettings().getMasterPhoneBookId());
             answerQueryJob.getRequest().resolve(phoneBook);
         } else if (job instanceof UpdatePhoneBookJob) {
+            UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
             try {
-                UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
                 PhoneBook phoneBook = updatePhoneBookJob.getPhoneBook();
                 phoneBook.getOriginal().v(false);
                 PhoneBook masterPhoneBook = databaseManager.getFlatMasterPhoneBook();
@@ -72,8 +73,10 @@ public class ContactsServerService extends ContactsService {
                     updatePhoneBookJob.getPromise().reject(null);
                 }
             } finally {
-                if (job.getPromise().isPending())
-                    job.getPromise().reject(null);
+                if (updatePhoneBookJob.getRequest().isPending()) {
+                    updatePhoneBookJob.getRequest().reject(null);
+                    updatePhoneBookJob.getPromise().reject(null);
+                }
             }
         } else if (job instanceof ServiceRequestHandlerJob) {
             ServiceRequestHandlerJob messageHandlerJob = (ServiceRequestHandlerJob) job;

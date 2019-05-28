@@ -138,6 +138,8 @@ public class MeinRequest extends MeinMessage {
 
     public MeinResponse respondError(Exception e) {
         MeinResponse response = reponse().setState(MeinStrings.msg.STATE_ERR);
+        if (e == null)
+            return response;
         if (e instanceof ResponseException)
             response.setException((ResponseException) e);
         else {

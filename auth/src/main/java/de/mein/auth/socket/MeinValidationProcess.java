@@ -10,6 +10,7 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.MeinService;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
@@ -319,17 +320,9 @@ public class MeinValidationProcess extends MeinProcess {
     }
 
     private void handleError(MeinRequest request, Exception e) {
+        Lok.debug("handling error on " + meinAuthSocket.getMeinAuthService().getName());
         MeinResponse response = request.respondError(e);
-        try {
-            Lok.error("MeinValidationProcess for " + meinAuthSocket.getMeinAuthService().getName() + ".handleError");
-            e.printStackTrace();
-            send(response);
-            Lok.error("MeinValidationProcess for " + meinAuthSocket.getMeinAuthService().getName() + ".handleError.done");
-        } catch (JsonSerializationException e1) {
-            e1.printStackTrace();
-        } catch (IllegalAccessException e1) {
-            e1.printStackTrace();
-        }
+        N.oneLine(() -> send(response));
     }
 
     private boolean isServiceAllowed(String serviceUuid) throws SqlQueriesException {
