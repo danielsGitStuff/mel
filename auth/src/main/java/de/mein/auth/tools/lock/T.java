@@ -6,12 +6,14 @@ import de.mein.auth.tools.N;
 import java.util.*;
 
 @SuppressWarnings("Duplicates")
+/**
+ *      Central point that controls all living {@link Transaction} objects.
+ */
 public class T {
 
     private static String locker = "LOCK!!!";
     private static Map<Object, Key> lockMap = new HashMap<>();
     private static Map<Object, Set<Key>> readMap = new HashMap<>();
-    //    private static Map<Object, Key> writeMap = new HashMap<>();
     private static Long LOCK_ID_COUNT = 0L;
 
     /**
@@ -47,7 +49,6 @@ public class T {
                             if (lockMap.containsKey(oo)) {
                                 Key key = lockMap.get(oo);
                                 keyToLockOn.add(key);
-//                                key.lock();
                             }
                         }
                     } else {
@@ -57,7 +58,6 @@ public class T {
                             // stop on the write/normal key
                             Key key = lockMap.get(o);
                             keyToLockOn.add(key);
-//                            key.lock();
                         }
                         if (readMap.containsKey(o)) {
                             // stop on every read key
@@ -116,14 +116,6 @@ public class T {
             }
             Key key = new Key(ordinaryObjects, readObjects);
             transaction.setKey(key);
-//            key.lock();
-            // update currently held locks
-//            N.forEach(ordinaryObjects, o -> lockMap.put(o, key));
-//            N.forEach(readObjects, o -> {
-//                if (!readMap.containsKey(o))
-//                    readMap.put(o, new HashSet<>());
-//                readMap.get(o).add(key);
-//            });
         } catch (Exception e) {
             Lok.error(e.toString());
             end(transaction);
@@ -155,7 +147,7 @@ public class T {
         readMap.clear();
     }
 
-    public static void release(Transaction transaction) {
+    static void release(Transaction transaction) {
         synchronized (locker) {
             Key key = transaction.getKey();
             for (Object o : key.getObjects())
@@ -170,10 +162,8 @@ public class T {
         }
     }
 
-    public static void access(Transaction transaction) {
+    static void access(Transaction transaction) {
         try {
-            Set<Object> ordinaryObjects = new HashSet<>();
-            Set<Object> readObjects = new HashSet<>();
             Set<Key> keyToLockOn = new HashSet<>();
             synchronized (locker) {
                 for (Object o : transaction.getKey().getObjects()) {
