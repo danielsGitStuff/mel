@@ -55,6 +55,10 @@ public class DriveDatabaseManager extends FileRelatedManager {
         ISQLQueries createConnection(DriveDatabaseManager driveDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
     }
 
+    public static SQLConnectionCreator getSqlqueriesCreator() {
+        return sqlqueriesCreator;
+    }
+
     private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> {
         File f = new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME);
         return new SQLQueries(SQLConnector.createSqliteConnection(f), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer())        ;

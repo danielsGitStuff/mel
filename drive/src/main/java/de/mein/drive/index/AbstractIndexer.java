@@ -6,6 +6,7 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
+import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.ModifiedAndInode;
 import de.mein.drive.data.DriveStrings;
@@ -109,7 +110,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Iterator<AFile> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<AFile> it, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
+        //todo debug
+        OTimer timer = new OTimer("initStage().inserts");
+        IndexIterator iterator = new IndexIterator(it,fsDao,stageDao);
+
 //        stageDao.lockWrite();
         stageSet = stageDao.createStageSet(stageSetType, null, null, null);
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
@@ -117,11 +122,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         this.stageSetId = stageSet.getId().v();
         while (iterator.hasNext()) {
             AFile f = iterator.next();
-//            Lok.debug("AbstractIndexer[" + stageSetId + "].initStage.fromBashTools: " + path);
-            //todo debug
-            if (f.getName().equals("the better life")) {
-                Lok.debug("AbstractIndexer.initStage.debughegßeg");
-            }
             AFile parent = f.getParentFile();
             FsDirectory fsParent = null;
             FsEntry fsEntry = null;
@@ -160,27 +160,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage.setFsParentId(fsParent.getId().v());
             }
             // we found everything which already exists in das datenbank
-            Stage stageParent = stageDao.getStageByPath(stageSet.getId().v(), parent);
-            stageParent = connectToFs(parent);
-//            if (stageParent == null && parent.getAbsolutePath().length() >= rootPathLength) {
-//                stageParent = new Stage().setStageSet(stageSet.getId().v());
-//                if (fsParent == null) {
-//                    //todo check if necessary
-//                    stageParent = connectToFs(,stageParent, parent);
-//                } else {
-//                    stageParent.setName(fsParent.getName().v())
-//                            .setFsId(fsParent.getId().v())
-//                            .setFsParentId(fsParent.getParentId().v())
-//                            .setStageSet(stageSet.getId().v())
-//                            .setOldVersion(fsParent.getOldVersion().v())
-//                            .setIsDirectory(fsParent.getIsDirectory().v());
-//                    File exists = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), fsParent);
-//                    stageParent.setDeleted(!exists.exists());
-//                }
-//                stageParent.setOrder(order.ord());
-//                stageParent.setSynced(true);
-//                stageDao.insert(stageParent);
-//            }
+            timer.start();
+            Stage stageParent = connectToFs(parent);
+            timer.stop();
+
             if (stageParent != null)
                 stage.setParentId(stageParent.getId());
             if (fsParent != null) {
@@ -200,6 +183,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
         }
         // done here. set the indexer to work
+
+        timer.print();
     }
 
     private void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {

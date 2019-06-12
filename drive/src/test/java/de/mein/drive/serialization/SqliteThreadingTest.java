@@ -3,6 +3,7 @@ package de.mein.drive.serialization;
 import de.mein.Lok;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.file.AFile;
+import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -30,8 +31,11 @@ import java.util.concurrent.Future;
 @SuppressWarnings("Duplicates")
 public class SqliteThreadingTest {
 
+
+
     @Test
     public void thread() throws Exception {
+        AFile.configure(new DefaultFileConfiguration());
         AFile testDir = AFile.instance("test");
         AFile rootFile = AFile.instance(testDir, "root");
         CertificateManager.deleteDirectory(testDir);
@@ -53,7 +57,7 @@ public class SqliteThreadingTest {
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
             //find sql file in workingdir
-            DriveDatabaseManager.DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> String.class.getResourceAsStream("/de/mein/drive/drive.sql");
+            DriveDatabaseManager.DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> DriveDatabaseManager.class.getResourceAsStream("/de/mein/drive/drive.sql");
             sqliteExecutor.executeStream(driveSqlInputStreamInjector.createSqlFileInputStream());
         }
 
@@ -175,4 +179,6 @@ public class SqliteThreadingTest {
         }
         return stageSet;
     }
+
+
 }

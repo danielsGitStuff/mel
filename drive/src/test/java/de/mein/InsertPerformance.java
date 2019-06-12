@@ -15,20 +15,27 @@ import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveServerService;
+import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.RWLock;
+import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
+import de.mein.sql.conn.SQLConnector;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
+import de.mein.sql.transform.SqlResultTransformer;
+import org.graalvm.compiler.word.Word;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Random;
 import java.util.UUID;
 
@@ -42,16 +49,29 @@ public class InsertPerformance {
     Order order = new Order();
     OTimer timer = new OTimer("insert");
 
-    @Before
-    public void init() throws Exception {
+    @Test
+    public void transaction() throws Exception {
+        before();
+        File dbFile = new File("performance.db");
+        if (dbFile.exists())
+            dbFile.delete();
+        SQLQueries sqlQueries = new SQLQueries(SQLConnector.createSqliteConnection(dbFile), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
+        String createStmt = "create table test(id integer not null primary key autoincrement,txt text)";
+        sqlQueries.execute(createStmt, null);
+    }
+
+    public void before() throws Exception {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
         AFile.configure(new DefaultFileConfiguration());
         BashTools.init();
-        WORKING_DIR = AFile.instance("perf.test");
+        WORKING_DIR = AFile.instance("/home/xor/Downloads/perf.test");
+        BashTools.rmRf(WORKING_DIR);
         ROOT_DIR = AFile.instance(WORKING_DIR, "root");
+
+        TestDirCreator.createFilesTestDir(ROOT_DIR, 4000);
 
 
         RWLock lock = new RWLock().lockWrite();
@@ -68,6 +88,37 @@ public class InsertPerformance {
         }));
         lock.lockWrite();
         stageDao = mds.v.getDriveDatabaseManager().getStageDao();
+    }
+
+    @Test
+    public void testDir() throws Exception {
+        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
+        AFile.configure(new DefaultFileConfiguration());
+        BashTools.init();
+        WORKING_DIR = AFile.instance("/home/xor/Downloads/perf.test");
+        BashTools.rmRf(WORKING_DIR);
+        ROOT_DIR = AFile.instance(WORKING_DIR, "root");
+
+        TestDirCreator.createFilesTestDir(ROOT_DIR, 4000);
+
+        RWLock lock = new RWLock().lockWrite();
+        MeinAuthSettings settings = MeinAuthSettings.createDefaultSettings();
+        settings.setWorkingDirectory(new File(WORKING_DIR.getAbsolutePath()));
+        meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
+        meinBoot.boot().done(mas -> N.r(() -> {
+            DriveCreateController dcc = new DriveCreateController(mas);
+            DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
+                mds.v = (MeinDriveServerService) driveService;
+                lock.unlockWrite();
+            };
+            dcc.createDriveServerService("test", ROOT_DIR, .5f, 300);
+        }));
+        lock.lockWrite();
+        stageDao = mds.v.getDriveDatabaseManager().getStageDao();
+        Lok.debug("done");
     }
 
 
@@ -121,7 +172,7 @@ public class InsertPerformance {
 
     @After
     public void after() throws InterruptedException, IOException {
-        meinBoot.shutDown();
-        BashTools.rmRf(WORKING_DIR);
+//        meinBoot.shutDown();
+//        BashTools.rmRf(WORKING_DIR);
     }
 }

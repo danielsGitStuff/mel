@@ -2,9 +2,11 @@ package de.mein.drive.index;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.auth.file.FFile;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
+import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
@@ -12,6 +14,8 @@ import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
+import de.mein.sql.ISQLQueries;
+import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
@@ -80,9 +84,36 @@ public class IndexerRunnable extends AbstractIndexer {
             indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
             Transaction transaction = T.lockingTransaction(T.read(fsDao));
             try {
+                //todo debug
+//                Iterator<AFile> found = new Iterator<AFile>() {
+//                    int count = 0;
+//
+//                    @Override
+//                    public boolean hasNext() {
+//                        return count < 200000;
+//                    }
+//
+//                    @Override
+//                    public AFile next() {
+//                        FFile fFile = new FFile();
+//
+//                        count++;
+//                        return fFile;
+//                    }
+//                };
+                ISQLQueries sqlQueries = stageDao.getSqlQueries();
                 Iterator<AFile> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
+                Lok.debug("starting stageset initialization");
+                OTimer timerInit = new OTimer("init stageset").start();
+                sqlQueries.beginTransaction();
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
+//                sqlQueries.commit();
+                timerInit.stop().print().reset();
+                OTimer timerExamine = new OTimer("examine stageset").start();
+//                sqlQueries.beginTransaction();
                 examineStage();
+                sqlQueries.commit();
+                timerExamine.stop().print();
                 fastBooting = false;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -95,7 +126,7 @@ public class IndexerRunnable extends AbstractIndexer {
             Lok.debug("IndexerRunnable.runTry.save in mem db");
             transaction = T.lockingTransaction(fsDao);
             for (IndexListener listener : listeners)
-                listener.done(stageSetId,transaction);
+                listener.done(stageSetId, transaction);
             transaction.end();
             Lok.debug("IndexerRunnable.runTry.done");
             if (!startedPromise.isResolved())
