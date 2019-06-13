@@ -102,7 +102,7 @@ public class InsertPerformance {
         BashTools.rmRf(WORKING_DIR);
         ROOT_DIR = AFile.instance(WORKING_DIR, "root");
 
-        TestDirCreator.createFilesTestDir(ROOT_DIR, 12000);
+        TestDirCreator.createFilesTestDir(ROOT_DIR, 4000);
 
         RWLock lock = new RWLock().lockWrite();
         MeinAuthSettings settings = MeinAuthSettings.createDefaultSettings();

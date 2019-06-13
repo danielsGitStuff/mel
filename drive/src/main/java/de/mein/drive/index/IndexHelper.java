@@ -71,17 +71,18 @@ public class IndexHelper {
         Stack<AFile> remainingParts = new Stack<>();
         {
             AFile currentDir = directory;
-            while (!currentDir.getAbsolutePath().equals(fileStack.peek().getAbsolutePath())) {
+            while (currentDir.getAbsolutePath().length() >= fileStack.peek().getAbsolutePath().length()
+                    && !currentDir.getAbsolutePath().equals(fileStack.peek().getAbsolutePath())) {
                 remainingParts.push(currentDir);
                 currentDir = currentDir.getParentFile();
             }
         }
 
+
         while (!remainingParts.empty()) {
             final AFile part = remainingParts.pop();
             fileStack.push(part);
 
-            Stage alreadyStaged = null;
 
             // fs comes first. if the peek element on stack is null all of the successors are null as well.
             // otherwise not every fs entry was connected to the root directory.
@@ -101,32 +102,66 @@ public class IndexHelper {
                 // otherwise the connection to the root element is lost.
                 Stage peekStage = stageStack.peek();
 
-
-
-                Stage stageToAdd = new Stage()
-                        .setName(part.getName())
-                        .setIsDirectory(true)
-                        .setStageSet(stageSetId)
-                        .setOrder(order.ord())
-                        .setDeleted(!part.exists());
+                // check for disconnection
                 if (peekFsEntry == null && peekStage == null) {
                     Lok.error("connection to the root directory has been lost.");
                 }
+
+                Stage alreadyStaged = null;
+                if (peekFsEntry != null) {
+                    alreadyStaged = stageDao.getStageByFsId(peekFsEntry.getId().v(), stageSetId);
+                }
+                if (alreadyStaged == null && peekStage != null) {
+                    alreadyStaged = stageDao.getStageByStageSetParentName(stageSetId, peekStage.getId(), part.getName());
+                }
+
+                Stage stageToAdd;
+                if (alreadyStaged != null)
+                    stageToAdd = alreadyStaged;
+                else {
+                    stageToAdd = new Stage()
+                            .setName(part.getName())
+                            .setIsDirectory(true)
+                            .setStageSet(stageSetId)
+                            .setOrder(order.ord());
+                }
+                stageToAdd.setDeleted(!part.exists());
+
                 if (peekFsEntry != null) {
                     stageToAdd.setFsId(peekFsEntry.getId().v());
                 }
                 // set parent ids
                 if (peekStage != null) {
-                    stageToAdd.setParentId(peekStage.getParentId());
+                    stageToAdd.setParentId(peekStage.getParentId())
+                            .setFsParentId(peekStage.getFsId());
                 }
                 if (previousFsPeek != null) {
                     stageToAdd.setFsParentId(previousFsPeek.getId().v());
                 }
+                // update database
+                if (stageToAdd.getIdPair().isNull()) {
+                    stageDao.insert(stageToAdd);
+                }
+                stageStack.push(stageToAdd);
+                stageMap.put(stageToAdd.getId(), stageToAdd);
             }
         }
-
-        // push the remaining parts onto the stacks
-
+        if (stageStack.empty()) {
+            Stage stageToAdd = new Stage()
+                    .setStageSet(stageSetId);
+            N.oneLine(() -> {
+                FsEntry fsRoot = fsDao.getRootDirectory();
+                stageToAdd.setFsId(fsRoot.getId().v())
+                        .setName(fsRoot.getName().v())
+                        .setIsDirectory(true)
+                        .setOrder(order.ord())
+                        .setDeleted(false);
+            });
+            stageDao.insert(stageToAdd);
+            stageStack.push(stageToAdd);
+            stageMap.put(stageToAdd.getId(), stageToAdd);
+        }
+        return stageStack.peek();
 
     }
 
