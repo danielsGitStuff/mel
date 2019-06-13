@@ -365,18 +365,7 @@ StageDao extends Dao.LockingDao {
     }
 
     public void update(Stage stage) throws SqlQueriesException {
-        //todo debug
-        if (stage.getDeletedPair().equalsValue(true))
-            Lok.debug("StageDao.update.debug.1");
-        if (stage.getId() == null)
-            Lok.debug("StageDao.update.debug.2");
-        if (stage.getId() == 63)
-            Lok.debug("StageDao.update.debug.3");
         StageSet stageSet = this.getStageSetById(stage.getStageSet());
-        if (!stageSet.fromFs() && stage.getSyncedPair().notNull() && stage.getNamePair().equalsValue("same1.txt"))
-            Lok.warn("debip");
-        if (stageSet.getId().v().toString().equals("5") && stage.getSyncedPair().notNull() && stage.getNamePair().equalsValue("same1.txt"))
-            Lok.warn("asod");
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(stage.getId());
@@ -388,7 +377,6 @@ StageDao extends Dao.LockingDao {
      * "converts" a stage to an FsFile/FsDirectory. RETAINS version if available. If not
      *
      * @param stage
-     * @param version
      * @return
      * @throws SqlQueriesException
      */

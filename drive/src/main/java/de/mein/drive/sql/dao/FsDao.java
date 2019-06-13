@@ -193,25 +193,11 @@ public class FsDao extends Dao {
 
     public FsEntry insert(FsEntry fsEntry) throws SqlQueriesException {
         Long id;
-        // todo debug
-        if (fsEntry.getContentHash().notNull() && fsEntry.getContentHash().equals("c72eb02c586d74bc41ad680ba5f184f3"))
-            System.err.println("FsDao.insert.debug");
-        if (fsEntry.getContentHash().notNull() && fsEntry.getContentHash().v().equals("51037a4a37730f52c8732586d3aaa316"))
-            Lok.debug("FsDao.insert.debugf934wt0ß4");
-        if (!fsEntry.getName().v().equals("[root]") && fsEntry.getParentId().isNull())
-            Lok.debug("FsDao.insert.debug3");
-        if (fsEntry.getName().v().equals("samesub1.txt"))
-            Lok.debug("FsDao.insert.4");
-        if (fsEntry.getName().v().equals("sub2.txt") && fsEntry.getSynced().v())
-            Lok.debug("FsDao.insert.debug5");
-        if (fsEntry.getName().v().equals("sub1.txt") && fsEntry.getSynced().v())
-            Lok.debug("FsDao.insert.debug3");
-        if (fsEntry.getId().v() != null)
+        if (fsEntry.getId().notNull())
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
         else
             id = sqlQueries.insert(fsEntry);
-        if (id == 7)
-            Lok.debug("FsDao.insert.debug238rz2f9");
+
         fsEntry.getId().v(id);
         return fsEntry;
     }

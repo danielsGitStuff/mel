@@ -78,13 +78,11 @@ public class IndexHelper {
             }
         }
 
-
         while (!remainingParts.empty()) {
             final AFile part = remainingParts.pop();
             fileStack.push(part);
 
-
-            // fs comes first. if the peek element on stack is null all of the successors are null as well.
+            // fs comes first. if the peek element on stack is null all of the (fs) successors are null as well.
             // otherwise not every fs entry was connected to the root directory.
             FsEntry peekFsEntry = null;
             final FsEntry previousFsPeek = fsEntryStack.peek();
@@ -146,6 +144,8 @@ public class IndexHelper {
                 stageMap.put(stageToAdd.getId(), stageToAdd);
             }
         }
+        // if nothing is on the stage stack here, you are working on the root dir.
+        // and that has not been created yet (as a stage).
         if (stageStack.empty()) {
             Stage stageToAdd = new Stage()
                     .setStageSet(stageSetId);
@@ -161,11 +161,14 @@ public class IndexHelper {
             stageStack.push(stageToAdd);
             stageMap.put(stageToAdd.getId(), stageToAdd);
         }
+        // at this point all 3 stacks should have the same size
+        if (!(stageStack.size() == fileStack.size() && fileStack.size() == fsEntryStack.size()))
+            Lok.error("stack size matters but does not match!");
         return stageStack.peek();
 
     }
 
-    private void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
+    void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
         if (databaseManager.getDriveSettings().getFastBoot()) {
             try {
                 ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
