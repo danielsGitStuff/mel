@@ -67,7 +67,7 @@ public class IndexerRunnable extends AbstractIndexer {
     @Override
     public void runImpl() {
         try {
-            Lok.debug("IndexerRunnable.runTry.roaming");
+            Lok.debug("roaming...");
             // if root directory does not exist: create one
             FsDirectory fsRoot; //= databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
             if (rootDirectory.getId() == null) {
@@ -125,12 +125,12 @@ public class IndexerRunnable extends AbstractIndexer {
             }
 
 
-            Lok.debug("IndexerRunnable.runTry.save in mem db");
+            Lok.debug("save in  db");
             transaction = T.lockingTransaction(fsDao);
             for (IndexListener listener : listeners)
                 listener.done(stageSetId, transaction);
             transaction.end();
-            Lok.debug("IndexerRunnable.runTry.done");
+            Lok.debug("done");
             if (!startedPromise.isResolved())
                 startedPromise.resolve(this);
         } catch (Exception e) {
