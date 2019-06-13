@@ -116,6 +116,7 @@ public class BashToolsUnix implements BashToolsImpl {
     public void rmRf(AFile directory) throws IOException {
         String[] args = new String[]{BIN_PATH, "-c", "rm -rf " + escapeAbsoluteFilePath(directory)};
         Process proc = new ProcessBuilder(args).start();
+        N.oneLine(proc::waitFor);
     }
 
     @Override

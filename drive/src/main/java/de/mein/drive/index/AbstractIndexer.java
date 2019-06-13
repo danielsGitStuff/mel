@@ -110,16 +110,21 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Iterator<AFile> it, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<AFile> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
         //todo debug
-        OTimer timer = new OTimer("initStage().inserts");
-        IndexIterator iterator = new IndexIterator(it,fsDao,stageDao);
+        OTimer timer = new OTimer("initStage().connect2fs");
+        OTimer timerc2fsInternal1 = new OTimer("connect2fs.internal.1");
+        OTimer timerc2fsInternal2 = new OTimer("connect2fs.internal.2");
+
+//        IndexIterator iterator = new IndexIterator(it, databaseManager);
 
 //        stageDao.lockWrite();
         stageSet = stageDao.createStageSet(stageSetType, null, null, null);
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         String path = "none yet";
         this.stageSetId = stageSet.getId().v();
+
+        IndexHelper indexHelper = new IndexHelper(databaseManager, stageSetId, order);
         while (iterator.hasNext()) {
             AFile f = iterator.next();
             AFile parent = f.getParentFile();
@@ -134,10 +139,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 fsParent = fsDao.getFsDirectoryByPath(parent);
             // find its relating FsEntry
             if (fsParent != null) {
-                GenericFSEntry genDummy = new GenericFSEntry();
-                genDummy.getParentId().v(fsParent.getId());
-                genDummy.getName().v(f.getName());
-                GenericFSEntry gen = fsDao.getGenericFileByName(genDummy);
+                GenericFSEntry genParentDummy = new GenericFSEntry();
+                genParentDummy.getParentId().v(fsParent.getId());
+                genParentDummy.getName().v(f.getName());
+                GenericFSEntry gen = fsDao.getGenericFileByName(genParentDummy);
                 if (gen != null) {
                     fsEntry = gen.ins();
                 }
@@ -161,7 +166,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             // we found everything which already exists in das datenbank
             timer.start();
-            Stage stageParent = connectToFs(parent);
+            Stage stageParent = indexHelper.connectToFs(parent);
             timer.stop();
 
             if (stageParent != null)
@@ -185,6 +190,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // done here. set the indexer to work
 
         timer.print();
+        timerc2fsInternal1.print();
+        timerc2fsInternal2.print();
     }
 
     private void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
@@ -206,7 +213,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
     }
 
-    private Stage connectToFs(AFile directory) throws SqlQueriesException {
+    private Stage connectToFs(AFile directory, OTimer timer1, OTimer timer2) throws SqlQueriesException {
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         if (directory.getAbsolutePath().length() < rootPathLength)
             return null;
@@ -226,7 +233,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 .setDeleted(!bottomFile.exists())
                 .setStageSet(stageSetId)
                 .setOrder(order.ord());
+        timer1.start();
         Stage alreadyStaged = stageDao.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
+        timer1.stop();
         if (alreadyStaged == null) {
             // copy contenthash etc if the file had not been touched
             fastBoot(bottomFile, bottomFsEntry, bottomStage);
@@ -234,6 +243,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         } else {
             bottomStage = alreadyStaged;
         }
+        timer2.start();
         Stage oldeBottom = bottomStage;
         while (!fileStack.empty()) {
             AFile file = fileStack.pop();
@@ -254,6 +264,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             oldeBottom = alreadyStaged;
         }
+        timer2.stop();
         if (alreadyStaged != null)
             return alreadyStaged;
         return bottomStage;
@@ -432,7 +443,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage.setiNode(modifiedAndInode.getiNode());
                 stage.setModified(modifiedAndInode.getModified());
                 stage.setSize(stageFile.length());
-            }else {
+            } else {
                 // test evaluation
                 Eva.flag("fast spawn 1");
             }

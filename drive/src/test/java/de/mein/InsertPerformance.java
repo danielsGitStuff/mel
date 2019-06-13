@@ -102,7 +102,7 @@ public class InsertPerformance {
         BashTools.rmRf(WORKING_DIR);
         ROOT_DIR = AFile.instance(WORKING_DIR, "root");
 
-        TestDirCreator.createFilesTestDir(ROOT_DIR, 4000);
+        TestDirCreator.createFilesTestDir(ROOT_DIR, 12000);
 
         RWLock lock = new RWLock().lockWrite();
         MeinAuthSettings settings = MeinAuthSettings.createDefaultSettings();
@@ -138,7 +138,7 @@ public class InsertPerformance {
                 .setVersion(3L)
                 .setStageSet(stageSet.getId().v());
         stageDao.insert(root);
-        iteration(root, 2000, 1L, 200000L);
+        iteration(root, 2000, 1L, 2000L);
 
     }
 
