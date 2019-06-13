@@ -85,16 +85,29 @@ public abstract class AbstractIndexer extends DeferredRunnable {
      */
     protected void examineStage() throws SqlQueriesException, IOException {
         //todo problem
+        OTimer timer = new OTimer("examine all");
+        OTimer timer1 = new OTimer("examine 1");
+        OTimer timer2 = new OTimer("examine 2");
+        OTimer timer3 = new OTimer("examine 2");
+        OTimer timerRoam1 = new OTimer("roamdDirectory.internal.1");
+        OTimer timerRoam2 = new OTimer("roamdDirectory.internal.2");
+        timer.start();
         N.sqlResource(stageDao.getStagesByStageSet(stageSetId), stages -> {
             Stage stage = stages.getNext();
             while (stage != null) {
                 // build a File
+                timer1.start();
                 String path = buildPathFromStage(stage);
                 AFile f = AFile.instance(path);
+                timer1.stop();
                 if (stage.getIsDirectory()) {
-                    roamDirectoryStage(stage, f);
+                    timer2.start();
+                    roamDirectoryStage(stage, f, timerRoam1, timerRoam2);
+                    timer2.stop();
                 } else {
+                    timer3.start();
                     this.updateFileStage(stage, f);
+                    timer3.stop();
                 }
                 stage = stages.getNext();
             }
@@ -107,14 +120,20 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             stageDao.deleteStageSet(stageSetId);
             stageSetId = null;
         }
+        timer.stop().print();
+        timer1.print();
+        timer2.print();
+        timer3.print();
+        timerRoam1.print();
+        timerRoam2.print();
     }
 
 
     protected void initStage(String stageSetType, Iterator<AFile> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
         //todo debug
         OTimer timer = new OTimer("initStage().connect2fs");
-        OTimer timerc2fsInternal1 = new OTimer("connect2fs.internal.1");
-        OTimer timerc2fsInternal2 = new OTimer("connect2fs.internal.2");
+        OTimer timerInternal1 = new OTimer("initStage.internal.1");
+        OTimer timerInternal2 = new OTimer("initStage.internal.2");
 
 //        IndexIterator iterator = new IndexIterator(it, databaseManager);
 
@@ -131,6 +150,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             FsDirectory fsParent = null;
             FsEntry fsEntry = null;
             Stage stage;
+
+            timerInternal1.start();
+
             // find the actual relating FsEntry of the parent directory
             // android does not recognize --mindepth when calling find. if we find the root directory here we must skip it.
             if (parent == null || parent.getAbsolutePath().length() < rootPathLength)
@@ -151,6 +173,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             if (fsEntry == null && f.isDirectory()) {
                 fsEntry = fsDao.getFsDirectoryByPath(f);
             }
+            timerInternal1.stop();
             //file might been deleted yet :(
             if (!f.exists() && fsEntry == null)
                 continue;
@@ -165,10 +188,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage.setFsParentId(fsParent.getId().v());
             }
             // we found everything which already exists in das datenbank
+
             timer.start();
             Stage stageParent = indexHelper.connectToFs(parent);
             timer.stop();
-
+            timerInternal2.start();
             if (stageParent != null)
                 stage.setParentId(stageParent.getId());
             if (fsParent != null) {
@@ -185,13 +209,14 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             stage.setOrder(order.ord());
             stageDao.insert(stage);
+            timerInternal2.stop();
 
         }
         // done here. set the indexer to work
 
         timer.print();
-        timerc2fsInternal1.print();
-        timerc2fsInternal2.print();
+        timerInternal1.print();
+        timerInternal2.print();
     }
 
     private void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
@@ -213,81 +238,22 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
     }
 
-    private Stage connectToFs(AFile directory, OTimer timer1, OTimer timer2) throws SqlQueriesException {
-        final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
-        if (directory.getAbsolutePath().length() < rootPathLength)
-            return null;
-        Stack<AFile> fileStack = new Stack<>();
-        AFile parent = directory;
-        while (parent.getAbsolutePath().length() > rootPathLength) {
-            fileStack.push(parent);
-            parent = parent.getParentFile();
-        }
-        FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
-        AFile bottomFile = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), bottomFsEntry);
-        Stage bottomStage = new Stage();
-        bottomStage.setName(bottomFsEntry.getName().v())
-                .setFsParentId(bottomFsEntry.getParentId().v())
-                .setFsId(bottomFsEntry.getId().v())
-                .setIsDirectory(true)
-                .setDeleted(!bottomFile.exists())
-                .setStageSet(stageSetId)
-                .setOrder(order.ord());
-        timer1.start();
-        Stage alreadyStaged = stageDao.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
-        timer1.stop();
-        if (alreadyStaged == null) {
-            // copy contenthash etc if the file had not been touched
-            fastBoot(bottomFile, bottomFsEntry, bottomStage);
-            stageDao.insert(bottomStage);
-        } else {
-            bottomStage = alreadyStaged;
-        }
-        timer2.start();
-        Stage oldeBottom = bottomStage;
-        while (!fileStack.empty()) {
-            AFile file = fileStack.pop();
-            bottomStage = new Stage()
-                    .setName(file.getName())
-                    .setIsDirectory(true)
-                    .setStageSet(stageSetId)
-                    .setFsParentId(oldeBottom.getFsId())
-                    .setParentId(oldeBottom.getId())
-                    .setOrder(order.ord())
-                    .setDeleted(!file.exists());
-            alreadyStaged = stageDao.getStageByStageSetParentName(stageSetId, oldeBottom.getId(), file.getName());
-            //stageDao.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
-            if (alreadyStaged == null) {
-                stageDao.insert(bottomStage);
-                alreadyStaged = bottomStage;
-                //oldeBottom = bottomStage;
-            }
-            oldeBottom = alreadyStaged;
-        }
-        timer2.stop();
-        if (alreadyStaged != null)
-            return alreadyStaged;
-        return bottomStage;
-    }
-
     @Override
     public String getRunnableName() {
         return getClass().getSimpleName() + " for " + serviceName;
     }
 
-    protected void roamDirectoryStage(Stage stage, AFile stageFile) throws SqlQueriesException, IOException, InterruptedException {
+    protected void roamDirectoryStage(Stage stage, AFile stageFile, OTimer timer1, OTimer timer2) throws SqlQueriesException, IOException, InterruptedException {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
-        //todo debug
-        if (stage.getName().equalsIgnoreCase("dictionary"))
-            Lok.debug("AbstractIndexer.examineStage.debug345");
+
         Lok.debug("AbstractIndexer.roamDirectoryStage: " + stageFile.getAbsolutePath());
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
         AFile[] files = stageFile.listFiles();
         AFile[] subDirs = stageFile.listDirectories();
-        if (files == null || subDirs == null)
-            Lok.debug("AbstractIndexer[" + stageSetId + "].roamDirectoryStage.dbuer903tj");
+
+
         // map will contain all FsEntry that must be deleted
         Map<String, GenericFSEntry> stuffToDelete = new HashMap<>();
         if (stage.getFsId() != null) {
@@ -335,11 +301,19 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stageDao.update(alreadyOnStage);
             }
         }
+        timer1.start();
         if (files != null) {
+            // this speeds up things dramatically
+            Map<String, Stage> contentMap = new HashMap<>();
+            {
+                List<Stage> content = stageDao.getStageContent(stage.getId());
+                N.forEach(content, stage1 -> contentMap.put(stage1.getName(), stage1));
+            }
             for (AFile subFile : files) {
                 newFsDirectory.addFile(new FsFile(subFile));
                 // check if which subFiles are on stage or fs. if not, index them
-                Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subFile.getName());
+
+                Stage subStage = contentMap.get(subFile.getName());
                 FsFile subFsFile = fsDao.getFileByName(stage.getFsId(), subFile.getName());
                 if (subStage == null && subFsFile == null) {
                     // stage
@@ -351,17 +325,12 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                             .setDeleted(false)
                             .setOrder(order.ord());
                     stageDao.insert(subStage);
-                    //todo debug
-                    if (subStage.getId() == null)
-                        Lok.debug("AbstractIndexer.roamDirectoryStage.debugong04");
                     this.updateFileStage(subStage, subFile);
                     subStage.setOrder(order.ord());
                 }
             }
         }
-        //todo debug
-        if (subDirs == null)
-            Lok.debug("AbstractIndexer.roamDirectoryStage.debug.1");
+        timer1.stop();
         if (subDirs != null)
             for (AFile subDir : subDirs) {
                 if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath()))

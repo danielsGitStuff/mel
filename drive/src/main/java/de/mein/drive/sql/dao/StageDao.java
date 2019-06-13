@@ -347,11 +347,11 @@ StageDao extends Dao.LockingDao {
 
     public Stage getStageByStageSetParentName(Long stageSetId, Long parentId, String name) throws SqlQueriesException {
         Stage dummy = new Stage();
-        String where = dummy.getParentIdPair().k() + "=? and " + dummy.getNamePair().k() + "=? and " + dummy.getStageSetPair().k() + "=?";
+        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getParentIdPair().k() + "=? and " + dummy.getNamePair().k() + "=?";
         List<Object> args = new ArrayList<>();
+        args.add(stageSetId);
         args.add(parentId);
         args.add(name);
-        args.add(stageSetId);
         List<Stage> res = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
         if (res.size() == 1)
             return res.get(0);
@@ -386,6 +386,7 @@ StageDao extends Dao.LockingDao {
 
     /**
      * "converts" a stage to an FsFile/FsDirectory. RETAINS version if available. If not
+     *
      * @param stage
      * @param version
      * @return
@@ -570,4 +571,6 @@ StageDao extends Dao.LockingDao {
                 + " = " + s.getTableName() + "." + s.getFsParentIdPair().k() + ") where " + s.getStageSetPair().k() + " = ?";
         sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId, stageSetId));
     }
+
+
 }
