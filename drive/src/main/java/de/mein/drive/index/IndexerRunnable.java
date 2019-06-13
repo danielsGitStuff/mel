@@ -102,7 +102,9 @@ public class IndexerRunnable extends AbstractIndexer {
 //                    }
 //                };
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
+                OTimer timerFind = new OTimer("bash.find").start();
                 Iterator<AFile> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
+                timerFind.stop().print();
                 Lok.debug("starting stageset initialization");
                 OTimer timerInit = new OTimer("init stageset").start();
                 sqlQueries.beginTransaction();
