@@ -51,9 +51,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     protected String buildPathFromStage(Stage stage) throws SqlQueriesException {
-        //todo debug
-        if (stage.getName().equals("testdir2"))
-            Lok.debug("AbstractIndexer.buildPathFromStage.debug.1");
         String res = "";
         if (stage.getFsParentId() != null) {
             FsDirectory fsParent = fsDao.getDirectoryById(stage.getFsParentId());
@@ -68,11 +65,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             FsDirectory fs = fsDao.getDirectoryById(stage.getFsId());
             if (fs.isRoot())
                 return databaseManager.getDriveSettings().getRootDirectory().getPath();
+            Lok.error("this method failed");
             res = "2";
         }
-        //todo debug
-        if (res.length() == 0)
-            Lok.debug("AbstractIndexer.buildPathFromStage.debug.2");
         return res;
     }
 
