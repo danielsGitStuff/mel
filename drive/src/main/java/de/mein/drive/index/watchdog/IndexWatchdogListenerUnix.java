@@ -2,24 +2,27 @@ package de.mein.drive.index.watchdog;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.drive.data.PathCollection;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.sql.FsDirectory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-@Deprecated
 /**
  * Created by xor on 7/11/16.
  */
+@SuppressWarnings("Duplicates")
 class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
-    // todo debug
-    private Map<String, WatchKey> keyMap = new HashMap<>();
+    // we
+    private final UnixReferenceFileHandler unixReferenceFileHandler;
+    private boolean firstRun = true;
 
     IndexWatchdogListenerUnix(MeinDriveService meinDriveService, WatchService watchService) {
         super(meinDriveService, "IndexWatchdogListenerUnix", watchService);
+        unixReferenceFileHandler = new UnixReferenceFileHandler(meinDriveService.getServiceInstanceWorkingDirectory(), meinDriveService.getDriveSettings().getRootDirectory().getOriginalFile(), AFile.instance(meinDriveService.getDriveSettings().getTransferDirectory().getAbsolutePath()));
     }
 
     @Override
@@ -27,7 +30,6 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
         try {
             Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
             WatchKey key = path.register(watchService, KINDS);
-            keyMap.put(path.toString(), key);
             Lok.debug("IndexWatchdogListener.foundDirectory: " + path.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -36,44 +38,44 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
 
 
     @Override
-    public void watchDirectory(AFile dir) {
+    public void runImpl() {
         try {
-            Path path = Paths.get(dir.getAbsolutePath());
-            WatchKey key = path.register(watchService, KINDS);
-            keyMap.put(dir.getAbsolutePath(), key);
-//            Lok.debug("IndexWatchdogListener.watchDirectory: " + path.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void run() {
-        try {
+            if (firstRun)
+                unixReferenceFileHandler.onStart();
+            firstRun = false;
+            /**
+             * cause the WatchService sometimes confuses the WatchKeys when creating folders we have to go around that.
+             * We will only process all "delete" and "modify" (cause they can be ongoing for some time) events directly.
+             * when an Event pops up, we will start the Timer and once it is finished we ask the Bash to show us every new/modified
+             * File or Directory.
+             */
             while (!isStopped()) {
                 WatchKey watchKey = watchService.take();
                 ignoredSemaphore.acquire();
-                Path keyPath = (Path) watchKey.watchable();
-                for (WatchEvent<?> event : watchKey.pollEvents()) {
-                    Path eventPath = (Path) event.context();
-                    String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
-                    if (!ignoredMap.containsKey(absolutePath)) {
-                        Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
-                        AFile object = AFile.instance(absolutePath);
-                        analyze(event, object);
-                    } else {
-                        Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].IGN event[" + event.kind() + "] for: " + absolutePath);
-                        int amount = ignoredMap.get(absolutePath);
-                        amount--;
-                        if (amount == 0) {
-                            Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].STOP IGN for: " + absolutePath);
-                            ignoredMap.remove(absolutePath);
-                        } else
-                            ignoredMap.put(absolutePath, amount);
+                try {
+                    Path keyPath = (Path) watchKey.watchable();
+                    for (WatchEvent<?> event : watchKey.pollEvents()) {
+                        Path eventPath = (Path) event.context();
+                        String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
+                        if (!absolutePath.startsWith(transferDirectoryPath)) {
+                            AFile file = AFile.instance(absolutePath);
+                            // todo debug
+                            Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
+                            if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
+                                // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
+                                if (meinDriveService.getMeinAuthService().getPowerManager().heavyWorkAllowed())
+                                    watchDogTimer.start();
+                                Lok.debug("ignored/broken WatchService");
+                            } else {
+                                analyze(event, file);
+                                Lok.debug("analyzed");
+                            }
+                        }
+                        watchKey.reset();
                     }
-                    watchKey.reset();
+                } finally {
+                    ignoredSemaphore.release();
                 }
-                ignoredSemaphore.release();
                 // reset the key
                 boolean valid = watchKey.reset();
             }
@@ -82,11 +84,49 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
         }
     }
 
+//    todo debug, remove
+//    private Set<String> debugKeys = new HashSet<>();
 
     @Override
-    public void runImpl() {
-
+    public void watchDirectory(AFile dir) {
+        try {
+            Path path = Paths.get(dir.getAbsolutePath());
+            WatchKey key = path.register(watchService, KINDS);
+//            debugKeys.add(dir.getAbsolutePath());
+            Lok.debug("watch: " + path.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    @Override
+    public void onTimerStopped() {
+        Lok.debug("IndexWatchdogListener.onTimerStopped");
+        PathCollection pathCollection = new PathCollection();
+
+        try {
+            /**
+             * we cannot retrieve all newly created things, so we have to do it now.
+             * and watching the directories as well
+             */
+            List<AFile> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            pathCollection.addAll(paths);
+            for (AFile f : paths) {
+                if (f.exists() && f.isDirectory()) {
+                    watchDirectory(f);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //meinDriveService.addJob(new FsSyncJob(pathCollection));
+        stageIndexer.examinePaths(this, pathCollection);
+        pathCollection = new PathCollection();
+    }
+
+    @Override
+    public void onShutDown() {
+        super.onShutDown();
+    }
 
 }

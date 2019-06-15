@@ -242,22 +242,18 @@ public class BashToolsUnix implements BashToolsImpl {
         File f = new File("/proc/sys/fs/inotify/max_user_watches");
         List<String> lines = Files.readAllLines(Paths.get(f.toURI()));
         return Long.parseLong(lines.get(0));
-//        String[] args = new String[]{BIN_PATH, "-c", "cat " + "/proc/sys/fs/inotify/max_user_watches"};
+    }
+
+    public Long countSubDirs(File dir) throws IOException, InterruptedException {
+
+//        String[] args = new String[]{BIN_PATH, "-c", "find " + escapeAbsoluteFilePath(AFile.instance(dir)) + "  -mindepth 1  -type d | wc -l"};
 //        Process proc = new ProcessBuilder(args).start();
+//        proc.waitFor(10,TimeUnit.SECONDS);
+//        Files.dire
 //        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 //        String line = reader.readLine();
 ////        String[] split = line.split(" ");
-//        Long limit = Long.parseLong(line);
-//        return limit;
-    }
-
-    public Long countSubDirs(File dir) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "find " + escapeAbsoluteFilePath(AFile.instance(dir)) + "  -mindepth 1  -type d | wc -l"};
-        Process proc = new ProcessBuilder(args).start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        String line = reader.readLine();
-//        String[] split = line.split(" ");
-        Long subDirCount = Long.parseLong(line);
-        return subDirCount;
+//        Long subDirCount = Long.parseLong(line);
+//        return subDirCount;
     }
 }

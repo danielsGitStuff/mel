@@ -36,7 +36,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
             watchdogListener = new IndexWatchDogListenerWindows(meinDriveService1, watchService1);
         } else {
             Lok.debug("WatchDog.unix");
-            watchdogListener = new IndexWatchdogListenerUnix2(meinDriveService1, watchService1);
+            watchdogListener = new IndexWatchdogListenerUnix(meinDriveService1, watchService1);
         }
         watchdogListener.meinDriveService = meinDriveService1;
         watchdogListener.meinDriveService.execute(watchdogListener);

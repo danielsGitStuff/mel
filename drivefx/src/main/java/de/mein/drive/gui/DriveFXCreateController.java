@@ -67,25 +67,36 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                 txtPath.setText(dir.getAbsolutePath());
                 // check if inotify limit is suffiently high on LINUX
                 if (!BashTools.isWindows) {
-                    BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.getInstance();
-                    try {
-                        final Long inotifyLimit = bashToolsUnix.getInotifyLimit();
-                        final Long subDirCount = bashToolsUnix.countSubDirs(dir);
-                        // I think a 30% safety margin should be sufficient
-                        final Long treshold = Double.valueOf(subDirCount * 1.33).longValue();
-                        if (treshold > inotifyLimit){
-                            // ask the user to increase inotify limit
+                    N.thread(() -> {
+                        BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.getInstance();
+                        try {
+                            final Long inotifyLimit = bashToolsUnix.getInotifyLimit();
+                            final Long subDirCount = bashToolsUnix.countSubDirs(dir);
+                            // I think a 30% safety margin should be sufficient
+                            final Long treshold = Double.valueOf(subDirCount * 1.33).longValue();
+                            if (treshold > inotifyLimit) {
+                                // ask the user to increase inotify limit
+                                XCBFix.runLater(() -> {
+                                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                                    alert.setTitle("Inotify Limit too low");
+                                    alert.setHeaderText("header text");
+                                    alert.setContentText("content text");
+                                    alert.showAndWait();
+                                });
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }catch (InterruptedException e){
                             XCBFix.runLater(() -> {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                                alert.setTitle("Inotify Limit too low");
+                                alert.setTitle("Inotify Limit proably too low");
                                 alert.setHeaderText("header text");
-                                alert.setContentText("content text");
+                                alert.setContentText("tried to figure out how many subdirectories are in the share but it took too long.");
                                 alert.showAndWait();
                             });
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    });
+
                 }
             } else {
                 txtPath.setText(null);
