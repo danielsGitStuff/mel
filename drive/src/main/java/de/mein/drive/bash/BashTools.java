@@ -19,12 +19,18 @@ import de.mein.auth.file.AFile;
 @SuppressWarnings("Duplicates")
 public abstract class BashTools {
 
+    public static BashToolsImpl getInstance() {
+        return instance;
+    }
+
 
     private static BashToolsImpl instance;
 
+    public static final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+
     public static void init() {
         if (instance == null)
-            if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+            if (isWindows) {
                 instance = new BashToolsWindows();
             } else {
                 instance = new BashToolsUnix();

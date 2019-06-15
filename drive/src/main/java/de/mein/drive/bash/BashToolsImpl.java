@@ -39,4 +39,5 @@ public interface BashToolsImpl {
     void mkdir(AFile dir) throws IOException;
 
     boolean mv(File source, File target) throws IOException;
+
 }

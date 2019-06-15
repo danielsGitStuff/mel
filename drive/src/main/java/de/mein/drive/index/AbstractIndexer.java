@@ -218,7 +218,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
 
-        Lok.debug("AbstractIndexer.roamDirectoryStage: " + stageFile.getAbsolutePath());
+//        Lok.debug("AbstractIndexer.roamDirectoryStage: " + stageFile.getAbsolutePath());
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
         AFile[] files = stageFile.listFiles();

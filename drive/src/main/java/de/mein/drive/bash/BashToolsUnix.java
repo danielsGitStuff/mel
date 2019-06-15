@@ -12,6 +12,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -232,5 +234,30 @@ public class BashToolsUnix implements BashToolsImpl {
             return true;
         Lok.debug("BashToolsUnix.mv");
         return false;
+    }
+
+
+    public Long getInotifyLimit() throws IOException {
+        // "cat /proc/sys/fs/inotify/max_user_watches";
+        File f = new File("/proc/sys/fs/inotify/max_user_watches");
+        List<String> lines = Files.readAllLines(Paths.get(f.toURI()));
+        return Long.parseLong(lines.get(0));
+//        String[] args = new String[]{BIN_PATH, "-c", "cat " + "/proc/sys/fs/inotify/max_user_watches"};
+//        Process proc = new ProcessBuilder(args).start();
+//        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+//        String line = reader.readLine();
+////        String[] split = line.split(" ");
+//        Long limit = Long.parseLong(line);
+//        return limit;
+    }
+
+    public Long countSubDirs(File dir) throws IOException {
+        String[] args = new String[]{BIN_PATH, "-c", "find " + escapeAbsoluteFilePath(AFile.instance(dir)) + "  -mindepth 1  -type d | wc -l"};
+        Process proc = new ProcessBuilder(args).start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String line = reader.readLine();
+//        String[] split = line.split(" ");
+        Long subDirCount = Long.parseLong(line);
+        return subDirCount;
     }
 }
