@@ -24,9 +24,46 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by xor on 5/2/16.
  */
 public abstract class MeinService extends MeinWorker implements IMeinService {
+    protected final File serviceInstanceWorkingDirectory;
+    protected final String uuid;
+//    private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
+    protected final Long serviceTypeId;
+    //cache stuff
+    protected final File cacheDirectory;
+    private final Bootloader.BootLevel bootLevel;
+    private final Semaphore threadSemaphore = new Semaphore(1, true);
+    private final LinkedList<MeinThread> threadQueue = new LinkedList<>();
+    private final ThreadFactory threadFactory = new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            MeinThread meinThread = null;
+            //noinspection Duplicates
+            try {
+                threadSemaphore.acquire();
+                meinThread = threadQueue.poll();
+                threadSemaphore.release();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return meinThread;
+        }
+    };
+    protected MeinAuthService meinAuthService;
     private ReentrantLock isolatedLock = new ReentrantLock();
     private Map<String, DeferredObject<? extends MeinIsolatedProcess, Exception, Void>> isolatedDeferredMap = new HashMap<>();
-//    private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
+    private Bootloader.BootLevel reachedBootLevel;
+    private ExecutorService executorService;
+    public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, Bootloader.BootLevel bootLevel) {
+        this.meinAuthService = meinAuthService;
+        this.serviceInstanceWorkingDirectory = serviceInstanceWorkingDirectory;
+        this.serviceTypeId = serviceTypeId;
+        this.uuid = uuid;
+        this.bootLevel = bootLevel;
+        this.reachedBootLevel = Bootloader.BootLevel.NONE;
+        executorService = createExecutorService(threadFactory);
+        this.cacheDirectory = new File(serviceInstanceWorkingDirectory.getAbsolutePath() + File.separator + "cache");
+        cacheDirectory.mkdirs();
+    }
 
     @Override
     public synchronized void onIsolatedConnectionEstablished(MeinIsolatedProcess isolatedProcess) {
@@ -58,47 +95,6 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
         });
         isolatedLock.unlock();
         return deferred;
-    }
-
-
-    protected final File serviceInstanceWorkingDirectory;
-    private final Bootloader.BootLevel bootLevel;
-    private Bootloader.BootLevel reachedBootLevel;
-    protected MeinAuthService meinAuthService;
-    protected final String uuid;
-    protected final Long serviceTypeId;
-    private ExecutorService executorService;
-    private final Semaphore threadSemaphore = new Semaphore(1, true);
-    private final LinkedList<MeinThread> threadQueue = new LinkedList<>();
-    //cache stuff
-    protected final File cacheDirectory;
-    private final ThreadFactory threadFactory = new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            MeinThread meinThread = null;
-            //noinspection Duplicates
-            try {
-                threadSemaphore.acquire();
-                meinThread = threadQueue.poll();
-                threadSemaphore.release();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return meinThread;
-        }
-    };
-
-
-    public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, Bootloader.BootLevel bootLevel) {
-        this.meinAuthService = meinAuthService;
-        this.serviceInstanceWorkingDirectory = serviceInstanceWorkingDirectory;
-        this.serviceTypeId = serviceTypeId;
-        this.uuid = uuid;
-        this.bootLevel = bootLevel;
-        this.reachedBootLevel = Bootloader.BootLevel.NONE;
-        executorService = createExecutorService(threadFactory);
-        this.cacheDirectory = new File(serviceInstanceWorkingDirectory.getAbsolutePath() + File.separator + "cache");
-        cacheDirectory.mkdirs();
     }
 
     public Bootloader.BootLevel getServiceBootType() {

@@ -60,14 +60,16 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
 
     @Override
     public MeinDriveService bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
-        N.r(() -> {
+        try {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + DriveStrings.SETTINGS_FILE_NAME);
             driveSettings = DriveSettings.load(jsonFile);
             meinDriveService = spawn(meinAuthService, serviceDescription, driveSettings);
             Lok.debug(meinAuthService.getName() + ", booted to level 1: " + meinDriveService.getClass().getSimpleName());
             meinAuthService.registerMeinService(meinDriveService);
-//            meinDriveService.getStartedDeferred().done(result -> booted.resolve(null)).fail(e -> booted.reject(new BootException(this, e)));
-        });
+        } catch (Exception e) {
+            Lok.error(e.toString());
+            throw new BootException(this, e);
+        }
         return meinDriveService;
     }
 

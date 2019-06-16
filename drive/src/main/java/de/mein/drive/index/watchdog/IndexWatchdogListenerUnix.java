@@ -89,14 +89,15 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
 
     @Override
     public void watchDirectory(AFile dir) throws IOException {
-//        try {
+        try {
         Path path = Paths.get(dir.getAbsolutePath());
         WatchKey key = path.register(watchService, KINDS);
 //            debugKeys.add(dir.getAbsolutePath());
 //            Lok.debug("watch: " + path.toString());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//    }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+    }
 
     }
 

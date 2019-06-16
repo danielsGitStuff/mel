@@ -9,6 +9,7 @@ import de.mein.auth.data.db.ServiceType
 import de.mein.auth.service.power.PowerManager
 import de.mein.auth.tools.BackgroundExecutor
 import de.mein.auth.tools.MeinDeferredManager
+import de.mein.auth.tools.N
 import de.mein.sql.SqlQueriesException
 
 import org.jdeferred.Promise
@@ -89,10 +90,27 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     private fun bootStage2() {
         if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
             outstandingBootloaders.forEach { bootloader ->
-                bootloader.bootLevel2()//?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
+                try {
+                    bootloader.bootLevel2()
+                            .fail({ handleBootError(bootloader, it) })
+                } catch (e: Bootloader.BootException) {
+                    handleBootError(bootloader, e)
+                }
+                //?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
             }
             outstandingBootloaders.clear()
         }
+    }
+
+    private fun handleBootError(service: Service, e: Bootloader.BootException) {
+        service.lastErrorMessage.v(e.message)
+        service.lastErrorTimeStamp.v(Date().time)
+        meinAuthService!!.databaseManager!!.updateService(service)
+    }
+
+    private fun handleBootError(bootloader: Bootloader<*>, e: Bootloader.BootException) {
+        val service = meinAuthService!!.databaseManager!!.getServiceByUuid(bootloader.meinService!!.uuid)
+        handleBootError(service, e)
     }
 
 
@@ -153,10 +171,14 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
             val dummyBootloader = createBootLoader(meinAuthService, bootClass)
             val services = meinAuthService!!.databaseManager.getActiveServicesByType(dummyBootloader.getTypeId())
             services.filter { service -> meinAuthService!!.getMeinService(service.uuid.v()) == null }.forEach { service ->
-                val bootloader = createBootLoader(meinAuthService, bootClass)
-                val meinService = bootloader.bootLevel1(meinAuthService, service)
-                if (meinService.bootLevel == Bootloader.BootLevel.LONG){
-                    outstandingBootloaders += bootloader
+                try {
+                    val bootloader = createBootLoader(meinAuthService, bootClass)
+                    val meinService = bootloader.bootLevel1(meinAuthService, service)
+                    if (meinService.bootLevel == Bootloader.BootLevel.LONG) {
+                        outstandingBootloaders += bootloader
+                    }
+                } catch (e: Bootloader.BootException) {
+                    handleBootError(service, e)
                 }
             }
         }

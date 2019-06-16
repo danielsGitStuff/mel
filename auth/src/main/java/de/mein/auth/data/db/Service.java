@@ -12,7 +12,10 @@ public class Service extends SQLTableObject implements SerializableEntity {
     private Pair<String> uuid = new Pair<>(String.class, "uuid");
     private Pair<Long> typeId = new Pair<>(Long.class, "typeid");
     private Pair<String> name = new Pair<>(String.class, "name");
-    private Pair<Boolean> active = new Pair<>(Boolean.class,"active");
+    private Pair<Boolean> active = new Pair<>(Boolean.class, "active");
+    private Pair<String> lastErrorMessage = new Pair<>(String.class, "lasterrormessage");
+    private Pair<Long> lastErrorTimeStamp = new Pair<>(Long.class, "lasterrortimestamp");
+
     private Boolean running;
 
     public Service() {
@@ -26,13 +29,21 @@ public class Service extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(uuid, typeId, name, active);
+        populateInsert(uuid, typeId, name, active, lastErrorMessage, lastErrorTimeStamp);
         populateAll(id);
+    }
+
+    public Pair<Long> getLastErrorTimeStamp() {
+        return lastErrorTimeStamp;
     }
 
     public Service setRunning(boolean running) {
         this.running = running;
         return this;
+    }
+
+    public Pair<String> getLastErrorMessage() {
+        return lastErrorMessage;
     }
 
     public boolean isRunning() {
