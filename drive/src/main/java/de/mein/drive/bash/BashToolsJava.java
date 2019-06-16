@@ -58,19 +58,19 @@ public class BashToolsJava implements BashToolsImpl {
         }
         file.createNewFile();
         BashToolsJava bashToolsJava = new BashToolsJava();
-        Iterator<AFile> iterator = bashToolsJava.find(dir, prune);
+        Iterator<AFile<?>> iterator = bashToolsJava.find(dir, prune);
         while (iterator.hasNext())
             Lok.debug("BashToolsJava.main: " + iterator.next());
         //Lok.debug("BashToolsJava.main.max: " + max);
     }
 
     @Override
-    public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
+    public Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
         Stack<Iterator<AFile>> fileStack = new Stack<>();
         String prunePath = pruneDir.getAbsolutePath();
         Lok.debug("BashToolsJava.find.prune: " + prunePath);
         fileStack.push(Arrays.asList(directory.listContent()).iterator());
-        return new Iterator<AFile>() {
+        return new Iterator<AFile<?>>() {
             String nextLine = null;
 
             private void fastForward() {

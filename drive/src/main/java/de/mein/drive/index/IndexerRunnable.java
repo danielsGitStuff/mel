@@ -81,29 +81,12 @@ public class IndexerRunnable extends AbstractIndexer {
                     fsRoot.setOriginalFile(AFile.instance(rootDirectory.getOriginalFile()));
                 }
             }
-            indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
             Transaction transaction = T.lockingTransaction(T.read(fsDao));
             try {
-                //todo debug
-//                Iterator<AFile> found = new Iterator<AFile>() {
-//                    int count = 0;
-//
-//                    @Override
-//                    public boolean hasNext() {
-//                        return count < 200000;
-//                    }
-//
-//                    @Override
-//                    public AFile next() {
-//                        FFile fFile = new FFile();
-//
-//                        count++;
-//                        return fFile;
-//                    }
-//                };
+                indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
                 OTimer timerFind = new OTimer("bash.find").start();
-                Iterator<AFile> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
+                Iterator<AFile<?>> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
                 timerFind.stop().print();
                 Lok.debug("starting stageset initialization");
                 OTimer timerInit = new OTimer("init stageset").start();

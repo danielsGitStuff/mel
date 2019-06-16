@@ -55,6 +55,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
                     stagingDoneListener.onStagingFsEventsDone(stageSetId);
             } catch (Exception e) {
                 e.printStackTrace();
+                // todo check for inotify exceeded. if so, stop the service
             } finally {
                 if (!unlocked) {
                     Lok.debug("StageIndexerRunnable[" + stageSetId + "].runImpl.unlocking on " + Thread.currentThread().getName());

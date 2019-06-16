@@ -12,11 +12,11 @@ import de.mein.auth.file.AFile;
  * Created by xor on 11/13/16.
  */
 public class PathCollection {
-    private List<AFile> paths = new ArrayList<>();
+    private List<AFile<?>> paths = new ArrayList<>();
     private Set<String> pathSet = new HashSet<>();
 
 
-    public List<AFile> getPaths() {
+    public List<AFile<?>> getPaths() {
         return paths;
     }
 

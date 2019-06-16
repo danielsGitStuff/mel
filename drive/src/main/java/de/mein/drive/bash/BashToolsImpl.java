@@ -30,7 +30,7 @@ public interface BashToolsImpl {
 
     List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException;
 
-    Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException;
+    Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException;
 
     Promise<Long, Exception, Void> getInode(AFile f);
 

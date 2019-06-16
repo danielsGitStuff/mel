@@ -88,15 +88,16 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
 //    private Set<String> debugKeys = new HashSet<>();
 
     @Override
-    public void watchDirectory(AFile dir) {
-        try {
-            Path path = Paths.get(dir.getAbsolutePath());
-            WatchKey key = path.register(watchService, KINDS);
+    public void watchDirectory(AFile dir) throws IOException {
+//        try {
+        Path path = Paths.get(dir.getAbsolutePath());
+        WatchKey key = path.register(watchService, KINDS);
 //            debugKeys.add(dir.getAbsolutePath());
-            Lok.debug("watch: " + path.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//            Lok.debug("watch: " + path.toString());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//    }
+
     }
 
     @Override
@@ -118,6 +119,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            // todo check for inotify exceeded. if so, stop the service
         }
         //meinDriveService.addJob(new FsSyncJob(pathCollection));
         stageIndexer.examinePaths(this, pathCollection);

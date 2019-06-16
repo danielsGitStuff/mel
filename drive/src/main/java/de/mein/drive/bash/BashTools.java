@@ -62,7 +62,7 @@ public abstract class BashTools {
     }
 
 
-    public static Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
+    public static Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
         return instance.find(directory, pruneDir);
     }
 

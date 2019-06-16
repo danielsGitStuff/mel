@@ -123,7 +123,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Iterator<AFile> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<AFile<?>> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
         OTimer timer = new OTimer("initStage().connect2fs");
         OTimer timerInternal1 = new OTimer("initStage.internal.1");
         OTimer timerInternal2 = new OTimer("initStage.internal.2");

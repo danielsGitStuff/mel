@@ -14,6 +14,7 @@ import de.mein.sql.SqlQueriesException;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by xor on 10.07.2016.
@@ -48,7 +49,7 @@ public class Indexer {
         indexerRunnable.getIndexWatchdogListener().foundDirectory(fsDirectory);
     }
 
-    public void watchDirectory(AFile dir) {
+    public void watchDirectory(AFile dir) throws IOException {
         indexerRunnable.getIndexWatchdogListener().watchDirectory(dir);
     }
 

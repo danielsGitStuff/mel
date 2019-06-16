@@ -82,7 +82,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         this.stageIndexer = stageIndexer;
     }
 
-    public abstract void watchDirectory(AFile dir);
+    public abstract void watchDirectory(AFile dir) throws IOException;
 
     @Override
     public void done(Long stageSetId, Transaction transaction) {
