@@ -1,11 +1,8 @@
 package de.mein.contacts
 
-import de.mein.Lok
 import de.mein.auth.service.Bootloader
 import de.mein.auth.tools.N
-import de.mein.auth.tools.WaitLock
 import de.mein.contacts.data.ContactStrings
-import de.mein.contacts.data.ContactsClientSettings
 import de.mein.contacts.data.ContactsSettings
 import de.mein.auth.data.ServiceDetails
 import de.mein.contacts.service.ContactsClientService
@@ -20,9 +17,8 @@ import java.sql.SQLException
 
 import de.mein.auth.data.JsonSettings
 import de.mein.auth.data.db.Service
-import de.mein.auth.data.db.ServiceType
+import de.mein.auth.service.BootException
 import de.mein.auth.service.MeinAuthService
-import de.mein.auth.service.MeinBoot
 import de.mein.auth.tools.CountdownLock
 import de.mein.core.serialize.exceptions.JsonDeserializationException
 import de.mein.core.serialize.exceptions.JsonSerializationException
@@ -34,7 +30,7 @@ import de.mein.sql.SqlQueriesException
 
 open class ContactsBootloader : Bootloader<ContactsService>() {
 
-    @Throws(Bootloader.BootException::class)
+    @Throws(BootException::class)
     fun createService(name: String, contactsSettings: ContactsSettings<*>): ContactsService? {
         var contactsService: ContactsService? = null
         val meinBoot = meinAuthService.meinBoot
@@ -71,19 +67,19 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
 //                waitLock.lock()
 //            }
         } catch (e: IllegalAccessException) {
-            throw Bootloader.BootException(this, e)
+            throw BootException(this, e)
         } catch (e: JsonSerializationException) {
-            throw Bootloader.BootException(this, e)
+            throw BootException(this, e)
         } catch (e: IOException) {
-            throw Bootloader.BootException(this, e)
+            throw BootException(this, e)
         } catch (e: SqlQueriesException) {
-            throw Bootloader.BootException(this, e)
+            throw BootException(this, e)
         }
 
         return contactsService
     }
 
-    @Throws(Bootloader.BootException::class)
+    @Throws(BootException::class)
     private fun boot(meinAuthService: MeinAuthService, service: Service, contactsSettings: ContactsSettings<*>?): ContactsService {
         val workingDirectory = meinAuthService.meinBoot.createServiceInstanceWorkingDir(service)
         var contactsService: ContactsService
@@ -125,7 +121,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
                 }
             }
         } catch (e: Exception) {
-            throw Bootloader.BootException(this, e)
+            throw BootException(this, e)
         }
 
         meinAuthService.execute(contactsService)
@@ -158,7 +154,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
         return "synchronizes you contacts"
     }
 
-    @Throws(Bootloader.BootException::class)
+    @Throws(BootException::class)
     override fun bootLevel1Impl(meinAuthService: MeinAuthService, serviceDescription: Service): ContactsService {
         val instanceDir = meinAuthService.meinBoot.createServiceInstanceWorkingDir(serviceDescription)
         val jsonFile = File(instanceDir, ContactStrings.SETTINGS_FILE_NAME)
@@ -166,20 +162,20 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
         try {
             contactsSettings = JsonSettings.load(jsonFile) as ContactsSettings<*>
         } catch (e: IOException) {
-            throw Bootloader.BootException(this, e)
+            throw BootException(this, e)
         } catch (e: JsonDeserializationException) {
-            throw Bootloader.BootException(this, e)
+            throw BootException(this, e)
         } catch (e: JsonSerializationException) {
-            throw Bootloader.BootException(this, e)
+            throw BootException(this, e)
         } catch (e: IllegalAccessException) {
-            throw Bootloader.BootException(this, e)
+            throw BootException(this, e)
         }
 
         return boot(meinAuthService, serviceDescription, contactsSettings)
     }
 
-    @Throws(Bootloader.BootException::class)
-    override fun bootLevel2Impl(): Promise<Void, Bootloader.BootException, Void>? {
+    @Throws(BootException::class)
+    override fun bootLevel2Impl(): Promise<Void, BootException, Void>? {
         return null
     }
 }

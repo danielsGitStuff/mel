@@ -102,6 +102,7 @@ public class MeinAuthService {
         this.certificateManager = new CertificateManager(workingDirectory, databaseManager.getSqlQueries(), 2048);
         try {
             this.certificateManager.maintenance();
+            this.databaseManager.maintenance();
         } catch (Exception e) {
             e.printStackTrace();
         }

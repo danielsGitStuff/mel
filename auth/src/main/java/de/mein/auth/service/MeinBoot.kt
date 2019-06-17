@@ -5,11 +5,11 @@ import de.mein.MeinRunnable
 import de.mein.auth.MeinAuthAdmin
 import de.mein.auth.data.MeinAuthSettings
 import de.mein.auth.data.db.Service
+import de.mein.auth.data.db.ServiceError
 import de.mein.auth.data.db.ServiceType
 import de.mein.auth.service.power.PowerManager
 import de.mein.auth.tools.BackgroundExecutor
 import de.mein.auth.tools.MeinDeferredManager
-import de.mein.auth.tools.N
 import de.mein.sql.SqlQueriesException
 
 import org.jdeferred.Promise
@@ -93,7 +93,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
                 try {
                     bootloader.bootLevel2()
                             .fail({ handleBootError(bootloader, it) })
-                } catch (e: Bootloader.BootException) {
+                } catch (e: BootException) {
                     handleBootError(bootloader, e)
                 }
                 //?.always { _, _, _ -> outstandingBootloaders.remove(bootloader) }
@@ -102,13 +102,12 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
         }
     }
 
-    private fun handleBootError(service: Service, e: Bootloader.BootException) {
-        service.lastErrorMessage.v(e.message)
-        service.lastErrorTimeStamp.v(Date().time)
+    private fun handleBootError(service: Service, e: BootException) {
+        service.lastError = ServiceError(e)
         meinAuthService!!.databaseManager!!.updateService(service)
     }
 
-    private fun handleBootError(bootloader: Bootloader<*>, e: Bootloader.BootException) {
+    private fun handleBootError(bootloader: Bootloader<*>, e: BootException) {
         val service = meinAuthService!!.databaseManager!!.getServiceByUuid(bootloader.meinService!!.uuid)
         handleBootError(service, e)
     }
@@ -177,7 +176,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
                     if (meinService.bootLevel == Bootloader.BootLevel.LONG) {
                         outstandingBootloaders += bootloader
                     }
-                } catch (e: Bootloader.BootException) {
+                } catch (e: BootException) {
                     handleBootError(service, e)
                 }
             }

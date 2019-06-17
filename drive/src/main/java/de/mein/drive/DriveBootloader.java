@@ -4,6 +4,7 @@ import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.db.Service;
+import de.mein.auth.service.BootException;
 import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinValidationProcess;

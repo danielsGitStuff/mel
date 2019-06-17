@@ -14,8 +14,7 @@ CREATE TABLE "service" (
    name    TEXT    NOT NULL,
    typeid  INTEGER NOT NULL,
    active INTEGER  not null,
-   lasterrormessage text,
-   lasterrortimestamp integer,
+   lasterror text,
   FOREIGN KEY ( typeid ) REFERENCES servicetype (id)
 );
 CREATE TABLE  certificate  (
