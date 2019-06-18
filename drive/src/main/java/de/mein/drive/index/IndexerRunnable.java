@@ -103,6 +103,7 @@ public class IndexerRunnable extends AbstractIndexer {
             } catch (Exception e) {
                 e.printStackTrace();
                 startedPromise.reject(e);
+                return;
             } finally {
                 transaction.end();
             }
