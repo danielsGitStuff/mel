@@ -238,16 +238,16 @@ open class BashToolsUnix : BashToolsImpl {
     @Throws(IOException::class, InterruptedException::class)
     fun countSubDirs(dir: File): Long? {
         var count: Long = 0L
-//        var finished = false
-//        val thread = Thread(Runnable {
-//            dir.walkTopDown().onEnter { file -> file.isDirectory }
-//                    .forEach { count++ }
-//            finished = true
-//        })
-//        thread.start()
-//        thread.join(10000)
-//        if (!finished)
-//            throw InterruptedException("counting subdirectories did not finish withing time limit")
+        var finished = false
+        val thread = Thread(Runnable {
+            dir.walkTopDown().onEnter { file -> file.isDirectory }
+                    .forEach { count++ }
+            finished = true
+        })
+        thread.start()
+        thread.join(10000)
+        if (!finished)
+            throw InterruptedException("counting subdirectories did not finish withing time limit")
         return count
     }
 

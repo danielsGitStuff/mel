@@ -108,6 +108,7 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     }
 
     private fun handleBootError(bootloader: Bootloader<*>, e: BootException) {
+        meinAuthService?.unregisterMeinService(bootloader.meinService.uuid)
         val service = meinAuthService!!.databaseManager!!.getServiceByUuid(bootloader.meinService!!.uuid)
         handleBootError(service, e)
     }
