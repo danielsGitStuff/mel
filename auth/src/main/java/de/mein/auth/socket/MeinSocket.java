@@ -21,7 +21,6 @@ import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-
 /**
  * Created by xor on 09.08.2016.
  */
@@ -161,6 +160,9 @@ public class MeinSocket extends DeferredRunnable {
         v = vv.getAndIncrement();
         if (meinAuthService != null)
             meinAuthService.addMeinSocket(this);
+        // todo debug
+        if (v==0)
+            Lok.debug("debug");
     }
 
 
@@ -262,10 +264,11 @@ public class MeinSocket extends DeferredRunnable {
         } finally {
             Lok.debug(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());
             N.r(this::onSocketClosed);
-            N.s(() -> in.close());
-            N.s(() -> out.close());
-            N.s(() -> socket.close());
-            N.s(() -> socketWorker.shutDown());
+            shutDown();
+//            N.s(() -> in.close());
+//            N.s(() -> out.close());
+//            N.s(() -> socket.close());
+//            N.s(() -> socketWorker.shutDown());
         }
     }
 
@@ -286,9 +289,8 @@ public class MeinSocket extends DeferredRunnable {
             N.s(() -> in.close());
             N.s(() -> out.close());
             N.s(() -> socket.close());
-            queueLock.unlock();
             if (socketWorker != null) {
-                socketWorker.onShutDown();
+                socketWorker.shutDown();
             }
             shutDown();
 //            N.s(() -> this.thread.interrupt());

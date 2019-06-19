@@ -150,7 +150,8 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     @Override
     public void onClose(int code, String reason, boolean remote) {
         Lok.debug(meinAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
-        process.onSocketClosed(code, reason, remote);
+        if (process != null)
+            process.onSocketClosed(code, reason, remote);
         meinAuthService.onSocketClosed(this);
     }
 
@@ -209,6 +210,9 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
 
     @Override
     protected void onSocketClosed() {
+        //todo debug
+        if (Thread.currentThread().getName().toLowerCase().contains("meinworker"))
+            Lok.debug("debug");
         meinAuthService.onSocketClosed(this);
     }
 

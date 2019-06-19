@@ -22,11 +22,11 @@ public abstract class DeferredRunnable implements MeinRunnable {
             line += "/" + thread.getName();
         Lok.debug(line);
         stopped = true;
-        if (thread != null) {
-            thread.interrupt();
-        } else {
-            Lok.error(getClass().getSimpleName() + ".shutDown: Thread was null :'(  " + getRunnableName());
-        }
+//        if (thread != null) {
+//            thread.interrupt();
+//        } else {
+//            Lok.error(getClass().getSimpleName() + ".shutDown: Thread was null :'(  " + getRunnableName());
+//        }
         onShutDown();
     }
 
@@ -66,8 +66,8 @@ public abstract class DeferredRunnable implements MeinRunnable {
 
     public void stop() {
         stopped = true;
-        if (thread != null)
-            thread.interrupt();
+//        if (thread != null)
+//            thread.interrupt();
     }
 
     public DeferredRunnable setStartedPromise(DeferredObject<DeferredRunnable, Exception, Void> startedPromise) {

@@ -40,7 +40,6 @@ public class MeinAuthSocketOpener extends DeferredRunnable {
                 Socket socket = this.serverSocket.accept();
                 MeinSocket meinSocket = new MeinAuthSocket(meinAuthService, socket);
                 meinSocket.start();
-
             }
         } catch (Exception e) {
             if (!isStopped()) {

@@ -188,8 +188,6 @@ public class ConnectWorker extends MeinWorker {
     }
 
     private void stopConnecting() {
-        if (meinAuthSocket != null)
-            meinAuthSocket.stop();
         shutDown();
     }
 
@@ -224,6 +222,8 @@ public class ConnectWorker extends MeinWorker {
 
     @Override
     public void shutDown() {
+        if (meinAuthSocket != null)
+            meinAuthSocket.stop();
         super.shutDown();
     }
 }
