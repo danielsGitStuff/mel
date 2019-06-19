@@ -235,8 +235,10 @@ open class BashToolsUnix : BashToolsImpl {
         return false
     }
 
+    class SubDirCount(val counted:Long,val completed:Boolean)
+
     @Throws(IOException::class, InterruptedException::class)
-    fun countSubDirs(dir: File): Long? {
+    fun countSubDirs(dir: File): SubDirCount {
         var count: Long = 0L
         var finished = false
         val thread = Thread(Runnable {
@@ -246,9 +248,10 @@ open class BashToolsUnix : BashToolsImpl {
         })
         thread.start()
         thread.join(10000)
-        if (!finished)
-            throw InterruptedException("counting subdirectories did not finish withing time limit")
-        return count
+        if (!finished) {
+            return SubDirCount(count,false)
+        }
+        return SubDirCount(count,true)
     }
 
     companion object {
