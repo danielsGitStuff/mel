@@ -104,9 +104,6 @@ public class ConnectWorker extends MeinWorker {
         });
 
         Lok.debug("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
-        //todo debug
-        if (address.equals("192.168.1.103"))
-            Lok.debug("debug");
         meinAuthService.getPowerManager().wakeLock(this);
         if (job instanceof ConnectJob) {
             DeferredObject result = job.getPromise();

@@ -28,7 +28,7 @@ public class ApprovalDao extends Dao {
         Certificate c = new Certificate();
         Service s = new Service();
         Approval a = new Approval();
-        String query = "select s." + s.getId().k() + ",s." + s.getUuid().k() + ",s." + s.getTypeId().k() + ",s." + s.getName().k() + ", s."+s.getActivePair().k()
+        String query = "select s." + s.getId().k() + ",s." + s.getUuid().k() + ",s." + s.getTypeId().k() + ",s." + s.getName().k() + ", s." + s.getActivePair().k()
                 + " from (" + c.getTableName()
                 + " c left join " + a.getTableName() + "  a on c." + c.getId().k() + "=a." + a.getCertificateId().k()
                 + ") left join " + s.getTableName() + " s on a." + a.getServiceId().k() + "=s." + s.getId().k()
@@ -44,7 +44,12 @@ public class ApprovalDao extends Dao {
         Certificate c = new Certificate();
         Service s = new Service();
         Approval a = new Approval();
-        String query = "select s." + s.getId().k() + ",s." + s.getUuid().k() + ",s." + s.getTypeId().k() + ",s." + s.getName().k() + ", s." + s.getActivePair().k() +
+        String query = "select s." + s.getId().k()
+                + ",s." + s.getUuid().k()
+                + ",s." + s.getTypeId().k()
+                + ",s." + s.getName().k()
+                + ",s." + s.getLastErrorPair().k()
+                + ",s." + s.getActivePair().k() +
                 " from (" + c.getTableName() +
                 " c inner join " + a.getTableName() + "  a on c." + c.getId().k() + "=a." + a.getCertificateId().k() +
                 ") left join " + s.getTableName() + " s on a." + a.getServiceId().k() + "=s." + s.getId().k() + " where c." + c.getId().k() + "=? and " + s.getActivePair().k() + "=?";
