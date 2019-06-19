@@ -1,6 +1,10 @@
 package de.mein.auth.data.db;
 
+import de.mein.auth.tools.N;
+import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
+import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
+import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 
@@ -12,7 +16,23 @@ public class Service extends SQLTableObject implements SerializableEntity {
     private Pair<String> uuid = new Pair<>(String.class, "uuid");
     private Pair<Long> typeId = new Pair<>(Long.class, "typeid");
     private Pair<String> name = new Pair<>(String.class, "name");
-    private Pair<Boolean> active = new Pair<>(Boolean.class,"active");
+    private Pair<Boolean> active = new Pair<>(Boolean.class, "active");
+    @JsonIgnore
+    private Pair<String> lastErrorString = new Pair<>(String.class, "lasterror");
+    @JsonIgnore
+    private ServiceError lastError;
+
+    public void setLastError(ServiceError lastError) {
+        this.lastError = lastError;
+        if (lastError != null) {
+            N.oneLine(() -> lastErrorString.v(SerializableEntitySerializer.serialize(lastError)));
+        }
+    }
+
+    public ServiceError getLastError() {
+        return lastError;
+    }
+
     private Boolean running;
 
     public Service() {
@@ -26,13 +46,24 @@ public class Service extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(uuid, typeId, name, active);
+        populateInsert(uuid, typeId, name, active, lastErrorString);
         populateAll(id);
+        lastErrorString.setSetListener(value -> {
+            if (value != null) {
+                N.oneLine(() -> lastError = (ServiceError) SerializableEntityDeserializer.deserialize(value));
+            }
+            return value;
+        });
     }
+
 
     public Service setRunning(boolean running) {
         this.running = running;
         return this;
+    }
+
+    public Pair<String> getLastErrorPair() {
+        return lastErrorString;
     }
 
     public boolean isRunning() {

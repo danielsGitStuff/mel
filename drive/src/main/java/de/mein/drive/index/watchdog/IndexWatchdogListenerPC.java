@@ -61,6 +61,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            // todo check for inotify exceeded. if so, stop the service
         }
     }
 

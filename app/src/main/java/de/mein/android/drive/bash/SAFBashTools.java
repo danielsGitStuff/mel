@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 import de.mein.android.file.AndroidFileConfiguration;
-import de.mein.android.file.DFileRecursiveIterator;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsImpl;
@@ -67,7 +66,7 @@ public class SAFBashTools implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
+    public Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
         //testing needed which one is faster.
         return bashToolsAndroid.find(directory, pruneDir);
 //        return new DFileRecursiveIterator(context, directory, pruneDir);

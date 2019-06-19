@@ -27,7 +27,7 @@ public class BashToolsAndroid extends BashToolsUnix {
 
     public BashToolsAndroid(Context context) {
         this.context = context;
-        BIN_PATH = "/system/bin/sh";
+        setBIN_PATH("/system/bin/sh");
         javaBashTools = new BashToolsJava();
         testCommands();
     }
@@ -72,7 +72,7 @@ public class BashToolsAndroid extends BashToolsUnix {
     }
 
     private Streams testCommand(String cmd) throws IOException, InterruptedException {
-        String[] args = new String[]{BIN_PATH, "-c",
+        String[] args = new String[]{getBIN_PATH(), "-c",
                 cmd};
         Lok.debug("BashToolsUnix.exec: " + cmd);
         Process proc = new ProcessBuilder(args).start();
@@ -89,7 +89,7 @@ public class BashToolsAndroid extends BashToolsUnix {
 
     @Override
     public ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException {
-        String[] args = new String[]{BIN_PATH, "-c", "ls -id " + escapeAbsoluteFilePath(file)};
+        String[] args = new String[]{getBIN_PATH(), "-c", "ls -id " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line = reader.readLine();
@@ -100,7 +100,7 @@ public class BashToolsAndroid extends BashToolsUnix {
     }
 
     @Override
-    public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
+    public Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
         if (findFallBack != null)
             return findFallBack.find(directory, pruneDir);
         return super.find(directory, pruneDir);

@@ -35,7 +35,7 @@ public class BashCommandsTest {
 
     @Test
     public void bashFind() throws Exception {
-        Iterator<AFile> iterator = BashTools.find(testDir, AFile.instance("blaaaa"));
+        Iterator<AFile<?>> iterator = BashTools.find(testDir, AFile.instance("blaaaa"));
         while (iterator.hasNext())
             Lok.debug(iterator.next());
         Lok.debug("BashCommandsTest.bashtest.end");

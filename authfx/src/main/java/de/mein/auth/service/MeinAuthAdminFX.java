@@ -7,10 +7,7 @@ import de.mein.auth.MeinNotification;
 import de.mein.auth.boot.BootLoaderFX;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.gui.AuthSettingsFX;
-import de.mein.auth.gui.RemoteServiceChooserFX;
-import de.mein.auth.gui.ServiceSettingsFX;
-import de.mein.auth.gui.XCBFix;
+import de.mein.auth.gui.*;
 import de.mein.auth.gui.notification.NotificationCenter;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
@@ -127,10 +124,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                         ImageView image = new ImageView(new Image(bootLoaderFX.getIconURL(), IMAGE_SIZE, IMAGE_SIZE, true, true));
                         button.setGraphic(image);
                         button.setOnAction(event -> {
-                            IMeinService meinService = meinAuthService.getMeinService(serviceJoinServiceType.getUuid().v());
-                            loadSettingsFX(bootLoaderFX.getEditFXML(meinService), null);
-                            ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
-                            serviceSettingsFX.feed(serviceJoinServiceType);
+                            showService(bootLoaderFX, serviceJoinServiceType);
                         });
                     }
                     vboxServices.getChildren().add(button);
@@ -178,6 +172,22 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                 e.printStackTrace();
             }
         });
+    }
+
+    private void showService(BootLoaderFX bootLoaderFX, ServiceJoinServiceType serviceJoinServiceType) {
+        IMeinService meinService = meinAuthService.getMeinService(serviceJoinServiceType.getUuid().v());
+        if (meinService == null) {
+            N.r(() -> {
+                Service service = meinAuthService.getDatabaseManager().getServiceByUuid(serviceJoinServiceType.getUuid().v());
+                loadSettingsFX( "de/mein/auth/error.fxml");
+                ErrorController errorController = (ErrorController) contentController;
+                errorController.showError(service);
+            });
+        } else {
+            loadSettingsFX(bootLoaderFX.getEditFXML(meinService), null);
+            ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
+            serviceSettingsFX.feed(serviceJoinServiceType);
+        }
     }
 
     public void setStage(Stage stage) {
@@ -348,8 +358,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
      * @param resourceBundle
      */
     private void loadSettingsFX(String resource, ResourceBundle resourceBundle) {
-        N runner = new N(e -> e.printStackTrace());
-        runner.r(() -> {
+        N.r(() -> {
             lblTitle.setVisible(true);
             contentController = null;
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));

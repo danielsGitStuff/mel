@@ -256,6 +256,11 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     @Override
+    public void beginTransaction() throws SQLException {
+
+    }
+
+    @Override
     public void commit() throws SQLException {
 
     }
@@ -331,7 +336,7 @@ public class AndroidSQLQueries extends ISQLQueries {
                     else if (a.getClass().equals(Integer.class))
                         values[pos] = (Short) a;
                     else {
-                        Lok.debug("TYPE:CONVERSION:FAILED:FOR: " + a.getClass().getSimpleName());
+                        Lok.error("TYPE:CONVERSION:FAILED:FOR: " + a.getClass().getSimpleName());
                     }
                 }
                 pos++;

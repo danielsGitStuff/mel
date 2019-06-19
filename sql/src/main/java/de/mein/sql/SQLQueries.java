@@ -17,11 +17,11 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class SQLQueries extends ISQLQueries {
     @Override
-    public void enableWAL() throws SqlQueriesException{
+    public void enableWAL() throws SqlQueriesException {
         try {
-           PreparedStatement stmt = connection.prepareStatement("PRAGMA journal_mode=WAL");
-           stmt.execute();
-           stmt.close();
+            PreparedStatement stmt = connection.prepareStatement("PRAGMA journal_mode=WAL");
+            stmt.execute();
+            stmt.close();
         } catch (SQLException e) {
             throw new SqlQueriesException(e);
         }
@@ -460,13 +460,15 @@ public class SQLQueries extends ISQLQueries {
     }
 
 
+    @Override
     public void beginTransaction() throws SQLException {
         connection.setAutoCommit(false);
     }
 
-
+    @Override
     public void commit() throws SQLException {
         connection.commit();
+        connection.setAutoCommit(true);
     }
 
 

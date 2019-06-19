@@ -76,6 +76,10 @@ CREATE INDEX sstageid
   ON stage (fsparentid);
 CREATE INDEX sstageparent
   ON stage (fsid);
+CREATE INDEX sstagestack
+    ON stage (stageset,fsid);
+CREATE INDEX sstagelookup1
+    ON stage (stageset,parentid);
 CREATE INDEX sssssesion
   ON stage (stageSet);
 CREATE TABLE transfer (

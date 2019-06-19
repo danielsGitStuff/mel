@@ -36,7 +36,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
             watchdogListener = new IndexWatchDogListenerWindows(meinDriveService1, watchService1);
         } else {
             Lok.debug("WatchDog.unix");
-            watchdogListener = new IndexWatchdogListenerUnix2(meinDriveService1, watchService1);
+            watchdogListener = new IndexWatchdogListenerUnix(meinDriveService1, watchService1);
         }
         watchdogListener.meinDriveService = meinDriveService1;
         watchdogListener.meinDriveService.execute(watchdogListener);
@@ -82,7 +82,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         this.stageIndexer = stageIndexer;
     }
 
-    public abstract void watchDirectory(AFile dir);
+    public abstract void watchDirectory(AFile dir) throws IOException;
 
     @Override
     public void done(Long stageSetId, Transaction transaction) {

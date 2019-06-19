@@ -6,7 +6,6 @@ import de.mein.auth.data.db.Service;
 import org.jdeferred.Promise;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -99,20 +98,6 @@ public abstract class Bootloader<T extends MeinService> {
      */
     public Promise<Void, BootException, Void> bootLevel2Impl() throws BootException {
         return null;
-    }
-
-    public static class BootException extends Exception {
-        public final Bootloader bootloader;
-
-        public BootException(Bootloader bootloader, Exception e) {
-            super(e);
-            this.bootloader = bootloader;
-        }
-
-        public BootException(Bootloader bootloader, String s) {
-            super(new Exception(s));
-            this.bootloader = bootloader;
-        }
     }
 
 

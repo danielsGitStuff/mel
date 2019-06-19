@@ -70,6 +70,10 @@ public final class DatabaseManager extends FileRelatedManager {
         getSqlQueries().onShutDown();
     }
 
+    public void maintenance() throws SqlQueriesException {
+        serviceDao.cleanErrors();
+    }
+
     public interface SqlInputStreamInjector {
         InputStream createSqlFileInputStream();
     }

@@ -2,9 +2,11 @@ package de.mein.drive.index;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.auth.file.FFile;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
+import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
@@ -12,6 +14,8 @@ import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
+import de.mein.sql.ISQLQueries;
+import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
@@ -63,7 +67,7 @@ public class IndexerRunnable extends AbstractIndexer {
     @Override
     public void runImpl() {
         try {
-            Lok.debug("IndexerRunnable.runTry.roaming");
+            Lok.debug("roaming...");
             // if root directory does not exist: create one
             FsDirectory fsRoot; //= databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
             if (rootDirectory.getId() == null) {
@@ -77,27 +81,40 @@ public class IndexerRunnable extends AbstractIndexer {
                     fsRoot.setOriginalFile(AFile.instance(rootDirectory.getOriginalFile()));
                 }
             }
-            indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
             Transaction transaction = T.lockingTransaction(T.read(fsDao));
             try {
-                Iterator<AFile> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
+                indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
+                ISQLQueries sqlQueries = stageDao.getSqlQueries();
+                OTimer timerFind = new OTimer("bash.find").start();
+                Iterator<AFile<?>> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
+                timerFind.stop().print();
+                Lok.debug("starting stageset initialization");
+                OTimer timerInit = new OTimer("init stageset").start();
+                sqlQueries.beginTransaction();
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
+//                sqlQueries.commit();
+                timerInit.stop().print().reset();
+                OTimer timerExamine = new OTimer("examine stageset").start();
+//                sqlQueries.beginTransaction();
                 examineStage();
+                sqlQueries.commit();
+                timerExamine.stop().print();
                 fastBooting = false;
             } catch (Exception e) {
                 e.printStackTrace();
                 startedPromise.reject(e);
+                return;
             } finally {
                 transaction.end();
             }
 
 
-            Lok.debug("IndexerRunnable.runTry.save in mem db");
+            Lok.debug("save in  db");
             transaction = T.lockingTransaction(fsDao);
             for (IndexListener listener : listeners)
-                listener.done(stageSetId,transaction);
+                listener.done(stageSetId, transaction);
             transaction.end();
-            Lok.debug("IndexerRunnable.runTry.done");
+            Lok.debug("done");
             if (!startedPromise.isResolved())
                 startedPromise.resolve(this);
         } catch (Exception e) {

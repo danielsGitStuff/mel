@@ -6,7 +6,6 @@ import de.mein.auth.service.Bootloader
 import de.mein.auth.service.MeinAuthService
 import de.mein.auth.tools.N
 import de.mein.auth.tools.WaitLock
-import org.jdeferred.Promise
 import java.io.File
 
 class CalendarBootloader : Bootloader<CalendarService>() {

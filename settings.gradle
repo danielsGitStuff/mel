@@ -1,4 +1,4 @@
-include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':calendar', ':serverparts', ':messenger'
+include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':calendar', ':serverparts'
 //include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':contacts', ':icons', ':konsole', ':lok', ':calendar', ':serverparts', ':messenger'
 
 project(':json').projectDir = new File('json')

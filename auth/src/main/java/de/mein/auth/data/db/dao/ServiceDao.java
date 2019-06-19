@@ -46,4 +46,12 @@ public class ServiceDao extends Dao {
         args.add(serviceId);
         sqlQueries.delete(service, service.getId().k() + "=?", args);
     }
+
+    public void cleanErrors() throws SqlQueriesException {
+        Service s = new Service();
+        String stmt = "update " + s.getTableName() + " set " + s.getLastErrorPair().k() + "=?";
+        List<Object> args = new ArrayList<>();
+        args.add(null);
+        sqlQueries.execute(stmt, args);
+    }
 }

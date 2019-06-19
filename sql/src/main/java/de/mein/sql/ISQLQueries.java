@@ -174,6 +174,8 @@ public abstract class ISQLQueries {
     public abstract void unlockWrite();
 
 
+    public abstract void beginTransaction() throws SQLException;
+
     public abstract void commit() throws SQLException;
 
     public abstract void onShutDown();

@@ -22,21 +22,24 @@ public class BashToolsJava implements BashToolsImpl {
 
     @Override
     public Set<Long> getINodesOfDirectory(AFile file) throws IOException {
+        Lok.error("NOT:IMPLEMENTED");
         return null;
     }
 
     @Override
     public ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException {
+        Lok.error("NOT:IMPLEMENTED");
         return null;
     }
 
     @Override
     public void rmRf(AFile directory) throws IOException {
-
+        Lok.error("NOT:IMPLEMENTED");
     }
 
     @Override
     public List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
+        Lok.error("NOT:IMPLEMENTED");
         return null;
     }
 
@@ -46,7 +49,7 @@ public class BashToolsJava implements BashToolsImpl {
     public static void main(String[] args) throws Exception {
         AFile.configure(new DefaultFileConfiguration());
         AFile dir = AFile.instance("bash.test");
-        AFile prune =AFile.instance(dir.getAbsolutePath() + File.separator + "prune");
+        AFile prune = AFile.instance(dir.getAbsolutePath() + File.separator + "prune");
         File file = new File(dir.getAbsolutePath() + File.separator + "file");
         dir.mkdirs();
         prune.mkdirs();
@@ -55,19 +58,19 @@ public class BashToolsJava implements BashToolsImpl {
         }
         file.createNewFile();
         BashToolsJava bashToolsJava = new BashToolsJava();
-        Iterator<AFile> iterator = bashToolsJava.find(dir, prune);
+        Iterator<AFile<?>> iterator = bashToolsJava.find(dir, prune);
         while (iterator.hasNext())
             Lok.debug("BashToolsJava.main: " + iterator.next());
         //Lok.debug("BashToolsJava.main.max: " + max);
     }
 
     @Override
-    public Iterator<AFile> find(AFile directory, AFile pruneDir) throws IOException {
+    public Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
         Stack<Iterator<AFile>> fileStack = new Stack<>();
         String prunePath = pruneDir.getAbsolutePath();
         Lok.debug("BashToolsJava.find.prune: " + prunePath);
         fileStack.push(Arrays.asList(directory.listContent()).iterator());
-        return new Iterator<AFile>() {
+        return new Iterator<AFile<?>>() {
             String nextLine = null;
 
             private void fastForward() {
@@ -152,11 +155,13 @@ public class BashToolsJava implements BashToolsImpl {
 
     @Override
     public Promise<Long, Exception, Void> getInode(AFile f) {
+        Lok.error("NOT:IMPLEMENTED");
         return null;
     }
 
     @Override
     public Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
+        Lok.error("NOT:IMPLEMENTED");
         return null;
     }
 
@@ -165,7 +170,7 @@ public class BashToolsJava implements BashToolsImpl {
         int i = 0;
         while (!dir.exists()) {
             dir.mkdirs();
-            Lok.debug("BashToolsJava.mkdir."+i);
+            Lok.debug("BashToolsJava.mkdir." + i);
         }
     }
 

@@ -6,20 +6,25 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.gui.EmbeddedServiceSettingsFX;
+import de.mein.auth.gui.XCBFix;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
+import de.mein.drive.bash.BashTools;
+import de.mein.drive.bash.BashToolsUnix;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import org.jdeferred.Promise;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by xor on 10/20/16.
@@ -60,6 +65,39 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             File dir = directoryChooser.showDialog(stage);
             if (dir != null) {
                 txtPath.setText(dir.getAbsolutePath());
+                // check if inotify limit is suffiently high on LINUX
+                if (!BashTools.isWindows) {
+                    N.thread(() -> {
+                        BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.getInstance();
+                        try {
+                            final Long inotifyLimit = bashToolsUnix.getInotifyLimit();
+                            final Long subDirCount = bashToolsUnix.countSubDirs(dir);
+                            // I think a 30% safety margin should be sufficient
+                            final Long treshold = Double.valueOf(subDirCount * 1.33).longValue();
+                            if (treshold > inotifyLimit) {
+                                // ask the user to increase inotify limit
+                                XCBFix.runLater(() -> {
+                                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                                    alert.setTitle("Inotify Limit too low");
+                                    alert.setHeaderText("header text");
+                                    alert.setContentText("content text");
+                                    alert.showAndWait();
+                                });
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }catch (InterruptedException e){
+                            XCBFix.runLater(() -> {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Inotify Limit proably too low");
+                                alert.setHeaderText("header text");
+                                alert.setContentText("tried to figure out how many subdirectories are in the share but it took too long.");
+                                alert.showAndWait();
+                            });
+                        }
+                    });
+
+                }
             } else {
                 txtPath.setText(null);
             }

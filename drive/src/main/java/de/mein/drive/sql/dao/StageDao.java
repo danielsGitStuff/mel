@@ -347,11 +347,11 @@ StageDao extends Dao.LockingDao {
 
     public Stage getStageByStageSetParentName(Long stageSetId, Long parentId, String name) throws SqlQueriesException {
         Stage dummy = new Stage();
-        String where = dummy.getParentIdPair().k() + "=? and " + dummy.getNamePair().k() + "=? and " + dummy.getStageSetPair().k() + "=?";
+        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getParentIdPair().k() + "=? and " + dummy.getNamePair().k() + "=?";
         List<Object> args = new ArrayList<>();
+        args.add(stageSetId);
         args.add(parentId);
         args.add(name);
-        args.add(stageSetId);
         List<Stage> res = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
         if (res.size() == 1)
             return res.get(0);
@@ -365,18 +365,7 @@ StageDao extends Dao.LockingDao {
     }
 
     public void update(Stage stage) throws SqlQueriesException {
-        //todo debug
-        if (stage.getDeletedPair().equalsValue(true))
-            Lok.debug("StageDao.update.debug.1");
-        if (stage.getId() == null)
-            Lok.debug("StageDao.update.debug.2");
-        if (stage.getId() == 63)
-            Lok.debug("StageDao.update.debug.3");
         StageSet stageSet = this.getStageSetById(stage.getStageSet());
-        if (!stageSet.fromFs() && stage.getSyncedPair().notNull() && stage.getNamePair().equalsValue("same1.txt"))
-            Lok.warn("debip");
-        if (stageSet.getId().v().toString().equals("5") && stage.getSyncedPair().notNull() && stage.getNamePair().equalsValue("same1.txt"))
-            Lok.warn("asod");
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
         args.add(stage.getId());
@@ -386,8 +375,8 @@ StageDao extends Dao.LockingDao {
 
     /**
      * "converts" a stage to an FsFile/FsDirectory. RETAINS version if available. If not
+     *
      * @param stage
-     * @param version
      * @return
      * @throws SqlQueriesException
      */
@@ -570,4 +559,6 @@ StageDao extends Dao.LockingDao {
                 + " = " + s.getTableName() + "." + s.getFsParentIdPair().k() + ") where " + s.getStageSetPair().k() + " = ?";
         sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId, stageSetId));
     }
+
+
 }
