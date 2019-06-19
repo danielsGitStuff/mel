@@ -77,6 +77,7 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
+import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.bash.BashTools;
@@ -186,6 +187,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Eva.enable();
         //dev();
         Tools.init(this.getApplicationContext());
         runningColor = getResources().getColor(R.color.stateRunning);

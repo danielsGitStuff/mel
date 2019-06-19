@@ -3,11 +3,13 @@ package de.mein.auth.tools;
 import de.mein.Lok;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
+
 import org.junit.Test;
 import org.junit.runners.model.TestTimedOutException;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.*;
@@ -144,6 +146,97 @@ class TTest {
             waitLock.unlock();
         });
         Lok.debug("wait 4 unlock");
+        waitLock.lock().lock();
+        assertFalse(triggerFlag);
+        Lok.debug("done");
+    }
+
+    @org.junit.jupiter.api.Test
+    void finallyTest() {
+        Semaphore semaphore = new Semaphore(1, false);
+//        t = T.lockingTransaction(A, B);
+        Thread thread1 = new Thread(() -> {
+            Transaction t1 = T.lockingTransaction(A, B);
+            t1.run(() -> {
+                Lok.debug("got t1");
+                try {
+                    semaphore.acquire();
+                } catch (InterruptedException e) {
+                    Lok.error("died sucessfully");
+                    e.printStackTrace();
+                } finally {
+                    Lok.error("died finally");
+                    semaphore.acquire();
+                    Lok.error("got no semaphore");
+                    t1.end();
+                }
+            });
+
+
+        });
+
+        Thread thread3 = new Thread(() -> {
+//            N.r(() -> Thread.sleep(100));
+            Lok.debug("trying to get t3");
+            Transaction t3 = T.lockingTransaction(A, B);
+            Lok.debug("got t3");
+            t3.end();
+            waitLock.unlock();
+        });
+
+        Thread thread2 = new Thread(() -> {
+            N.r(() -> Thread.sleep(1000));
+            Lok.debug("killing thread1");
+            thread1.interrupt();
+            thread3.start();
+        });
+
+        thread1.start();
+        thread2.start();
+        waitLock.lock().lock();
+        assertFalse(triggerFlag);
+        Lok.debug("done");
+    }
+
+
+    @org.junit.jupiter.api.Test
+    void lockThenThreadDies() {
+//        t = T.lockingTransaction(A, B);
+        Thread thread1 = new Thread(() -> {
+            Transaction t1 = T.lockingTransaction(A, B);
+            Lok.debug("got t1");
+            Semaphore semaphore = new Semaphore(1, false);
+            try {
+                semaphore.acquire();
+            } catch (InterruptedException e) {
+                Lok.error("died sucessfully");
+                e.printStackTrace();
+            } finally {
+                Lok.error("died finally");
+                t1.end();
+            }
+            N.r(() -> Thread.sleep(5000));
+
+        });
+
+        Thread thread3 = new Thread(() -> {
+//            N.r(() -> Thread.sleep(100));
+            Lok.debug("trying to get t3");
+            Transaction t3 = T.lockingTransaction(A, B);
+            Lok.debug("got t3");
+            t3.end();
+            waitLock.unlock();
+        });
+
+        Thread thread2 = new Thread(() -> {
+            N.r(() -> Thread.sleep(1000));
+            Lok.debug("killing thread1");
+            thread1.interrupt();
+            thread3.start();
+        });
+
+        thread1.start();
+        thread2.start();
         waitLock.lock().lock();
         assertFalse(triggerFlag);
         Lok.debug("done");

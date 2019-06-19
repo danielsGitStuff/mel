@@ -27,6 +27,23 @@ public class T {
     }
 
     /**
+     * Runs a {@link Transaction.TransactionRunnable} on objects and calls end() finally.
+     * Useful when the current thread might die during waiting for or even running the transaction.
+     * @param runnable
+     * @param objects
+     */
+    public static void lockingRun(Transaction.TransactionRunnable runnable, Object... objects) {
+        Transaction transaction = null;
+        try {
+            transaction = T.lockingTransaction(objects);
+        } finally {
+            transaction.run(runnable);
+            if (transaction != null)
+                transaction.end();
+        }
+    }
+
+    /**
      * You can lock on all Objects that you put in here. If you want some objects read locked only call T.read(yourObjectHere).
      *
      * @param objects

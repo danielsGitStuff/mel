@@ -28,12 +28,13 @@ public class Transaction<P> {
     /**
      * Ends the transaction. It calls all {@link TransactionRunnable}s and stops holding any locks afterwards.
      */
-    public synchronized void end() {
+    public synchronized Transaction<P> end() {
         if (!finished) {
             finished = true;
             N.forEachIgnorantly(after, TransactionRunnable::run);
             T.end(this);
         }
+        return this;
     }
 
     Key getKey() {
