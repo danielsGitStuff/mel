@@ -194,6 +194,9 @@ public class MeinAuthProcess extends MeinProcess {
                                     MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate);
                                     // tell MAS we are connected & authenticated
                                     meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
+                                    //todo debug
+                                    if (job.getPromise().isResolved())
+                                        Lok.debug("bug!");
                                     job.getPromise().resolve(validationProcess);
                                     //
                                     final Long[] actualRemoteCertId = new Long[1];

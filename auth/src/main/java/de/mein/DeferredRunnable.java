@@ -11,7 +11,7 @@ import org.jdeferred.impl.DeferredObject;
 public abstract class DeferredRunnable implements MeinRunnable {
     protected DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
     protected Thread thread;
-    private boolean stopped = false;
+    protected boolean stopped = false;
 
     /**
      * you must not override this
@@ -21,9 +21,9 @@ public abstract class DeferredRunnable implements MeinRunnable {
         if (thread != null)
             line += "/" + thread.getName();
         Lok.debug(line);
+        stopped = true;
         if (thread != null) {
             thread.interrupt();
-            stopped = true;
         } else {
             Lok.error(getClass().getSimpleName() + ".shutDown: Thread was null :'(  " + getRunnableName());
         }

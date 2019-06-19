@@ -281,14 +281,16 @@ public class MeinSocket extends DeferredRunnable {
     public void stop() {
         try {
             Lok.debug(getClass().getSimpleName() + ".stop() on " + Thread.currentThread().getName());
+            stopped = true;
             N.s(() -> in.close());
             N.s(() -> out.close());
-            N.s(() -> this.thread.interrupt());
             N.s(() -> socket.close());
             queueLock.unlock();
             if (socketWorker != null) {
                 socketWorker.onShutDown();
             }
+            shutDown();
+//            N.s(() -> this.thread.interrupt());
         } catch (Exception e) {
             e.printStackTrace();
         }

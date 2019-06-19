@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Key {
     private final Set<Object> objects;
     private final Set<Object> readObjects;
-    private final WaitLock lock;
+    private final WLock lock;
     private StackTraceElement[] traceElement;
     // this helps you debugging
     private long id;
@@ -22,7 +22,7 @@ public class Key {
     Key(Set<Object> objects, Set<Object> readObjects) {
         this.objects = objects;
         this.readObjects = readObjects;
-        this.lock = new WaitLock();
+        this.lock = new WLock();
         this.id = ID_COUNTER.getAndIncrement();
     }
 
@@ -45,7 +45,11 @@ public class Key {
     }
 
     void lock() {
-        this.lock.lock();
+        try {
+            this.lock.lock();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     void unlock() {

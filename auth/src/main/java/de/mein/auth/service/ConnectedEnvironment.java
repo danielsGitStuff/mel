@@ -8,6 +8,8 @@ import de.mein.Lok;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
+import de.mein.auth.tools.lock.T;
+import de.mein.auth.tools.lock.Transaction;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,7 +20,7 @@ import java.util.Map;
 /**
  * Created by xor on 13.10.2016.
  */
-public class ConnectedEnvironment extends WaitLock {
+public class ConnectedEnvironment {
     private Map<Long, MeinValidationProcess> idValidateProcessMap = new HashMap<>();
     private Map<String, MeinValidationProcess> addressValidateProcessMap = new HashMap<>();
     private Map<Long, Deferred<MeinValidationProcess, Exception, Void>> currentlyConnectingCertIds = new HashMap<>();
@@ -56,16 +58,6 @@ public class ConnectedEnvironment extends WaitLock {
         addressValidateProcessMap.remove(process.getAddressString());
         idValidateProcessMap.remove(process.getConnectedId());
 //        semaphore.release();
-    }
-
-    @Override
-    public synchronized WaitLock lock() {
-        return super.lock();
-    }
-
-    @Override
-    public WaitLock unlock() {
-        return super.unlock();
     }
 
     /**
@@ -128,7 +120,7 @@ public class ConnectedEnvironment extends WaitLock {
 
     public void shutDown() {
         Lok.debug("attempting shutdown");
-        this.lock();
+        Transaction transaction = T.lockingTransaction(this);
         N.forEachAdvIgnorantly(currentlyConnectingAddresses, (stoppable, index, s, meinValidationProcessExceptionVoidDeferred) -> {
             meinValidationProcessExceptionVoidDeferred.reject(new Exception("shutting down"));
         });
@@ -137,7 +129,7 @@ public class ConnectedEnvironment extends WaitLock {
         });
         currentlyConnectingAddresses.clear();
         currentlyConnectingCertIds.clear();
-        this.unlock();
+        transaction.end();
         Lok.debug("success");
     }
 }

@@ -32,6 +32,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -44,6 +45,13 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     protected MeinProcess process;
     protected Certificate partnerCertificate;
     private AConnectJob connectJob;
+    //todo debug
+    private static AtomicLong ID_COUNT = new AtomicLong(0L);
+    private final Long DEBUG_ID = ID_COUNT.getAndIncrement();
+
+    public Long getDEBUG_ID() {
+        return DEBUG_ID;
+    }
 
     public AConnectJob getConnectJob() {
         return connectJob;

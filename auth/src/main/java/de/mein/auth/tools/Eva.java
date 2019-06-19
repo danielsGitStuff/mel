@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import de.mein.Lok;
 
 /**
-
  * Currently used for testing. Does nothing if not explicitly turned on by calling enable().
  * Created by xor on 27.08.2017.
  */
@@ -35,6 +34,11 @@ public class Eva {
 
     public void print(String appendix) {
         Lok.debug(key + "." + countMap.get(key).get() + (appendix != null ? "." + appendix : ""));
+    }
+
+    public static void trace() {
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        N.forEach(stack, stackTraceElement -> Lok.debug("     " + stackTraceElement.getFileName() + "/" + stackTraceElement.getMethodName() + "/" + stackTraceElement.getLineNumber()));
     }
 
     public interface EvaRun {
