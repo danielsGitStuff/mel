@@ -1,6 +1,7 @@
 package de.mein.drive.gui;
 
 import de.mein.Lok;
+import de.mein.MeinRunnable;
 import de.mein.auth.data.EmptyPayload;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
@@ -20,7 +21,9 @@ import de.mein.drive.data.DriveStrings;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import org.jdeferred.Promise;
 
@@ -31,9 +34,10 @@ import java.io.IOException;
  * Created by xor on 10/20/16.
  */
 public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
-
     @FXML
-    private Button btnPath;
+    private HBox hboxCount;
+    @FXML
+    private Button btnPath, btnCount;
 
     @FXML
     private TextField txtName, txtPath;
@@ -60,6 +64,35 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     @Override
     public void init() {
         driveCreateController = new DriveCreateController(meinAuthService);
+        if (BashTools.isWindows) {
+            hboxCount.setVisible(false);
+            hboxCount.setManaged(false);
+        } else {
+            // show linux related inotify stuff
+            btnCount.setOnAction(event -> N.r(() -> {
+                File dir = new File(txtPath.getText());
+                if (dir.exists()) {
+                    XCBFix.runLater(() -> btnCount.setText("counting..."));
+                    MeinRunnable runnable = new MeinRunnable() {
+
+                        @Override
+                        public String getRunnableName() {
+                            return "counting dirs: " + dir.getAbsolutePath();
+                        }
+
+                        @Override
+                        public void run() {
+                            N.r(() -> {
+                                BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.getInstance();
+                                BashToolsUnix.SubDirCount subdirs = bashToolsUnix.countSubDirs(dir);
+                                XCBFix.runLater(() -> btnCount.setText("subdirs: " + subdirs.getCounted()));
+                            });
+                        }
+                    };
+                    meinAuthService.execute(runnable);
+                }
+            }));
+        }
         btnPath.setOnAction(event -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Choose Storage Directory");
@@ -78,8 +111,8 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                             if (treshold > inotifyLimit) {
                                 // ask the user to increase inotify limit
                                 Lok.error("inotify limit insufficient!");
-                                Lok.error("current: "+inotifyLimit);
-                                Lok.error("required: "+subDirCount.getCounted()+", recommended: "+treshold);
+                                Lok.error("current: " + inotifyLimit);
+                                Lok.error("required: " + subDirCount.getCounted() + ", recommended: " + treshold);
                                 XCBFix.runLater(() -> {
                                     Alert alert = new Alert(Alert.AlertType.ERROR);
                                     alert.setTitle("Inotify Limit too low");
@@ -90,13 +123,13 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                             }
                         } else {
                             Lok.error("inotify limit probably insufficient!");
-                            Lok.error("current: "+inotifyLimit);
-                            Lok.error("required: "+subDirCount.getCounted()+", recommended: "+treshold);
+                            Lok.error("current: " + inotifyLimit);
+                            Lok.error("required: " + subDirCount.getCounted() + ", recommended: " + treshold);
                             XCBFix.runLater(() -> {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
                                 alert.setTitle("Inotify Limit proably too low");
-                                alert.setHeaderText("subdirs found so far: "+subDirCount.getCounted());
-                                alert.setContentText("current: "+inotifyLimit);
+                                alert.setHeaderText("subdirs found so far: " + subDirCount.getCounted());
+                                alert.setContentText("current: " + inotifyLimit);
                                 alert.showAndWait();
                             });
                         }
