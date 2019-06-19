@@ -84,9 +84,9 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
     }
 
     @Override
-    public void suspend() {
-        Lok.debug("suspend");
-        super.suspend();
+    public void stop() {
+        Lok.debug("stop");
+        super.stop();
         lock.unlockWrite();
     }
 

@@ -64,7 +64,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
         return startedPromise;
     }
 
-    public void suspend() {
+    public void stop() {
         stopped = true;
         if (thread != null)
             thread.interrupt();

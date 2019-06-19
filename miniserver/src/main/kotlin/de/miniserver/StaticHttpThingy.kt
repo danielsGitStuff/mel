@@ -70,8 +70,9 @@ class StaticHttpThingy(private val port: Int) : DeferredRunnable() {
         Lok.debug("http is up")
     }
 
-    fun stop() {
+    override fun stop() {
         server.stop(0)
+        super.stop()
     }
 
 }

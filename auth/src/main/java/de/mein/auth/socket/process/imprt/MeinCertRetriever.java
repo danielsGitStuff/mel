@@ -58,10 +58,6 @@ public class MeinCertRetriever extends DeferredRunnable {
     }
 
 
-    public void stop() {
-
-    }
-
     @Override
     public String getRunnableName() {
         return getClass().getSimpleName();

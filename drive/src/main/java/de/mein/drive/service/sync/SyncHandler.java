@@ -113,7 +113,7 @@ public abstract class SyncHandler {
 
     public void suspend() {
         if (transferManager != null)
-            this.transferManager.suspend();
+            this.transferManager.stop();
     }
 
     public void onFileTransferFailed(String hash) {

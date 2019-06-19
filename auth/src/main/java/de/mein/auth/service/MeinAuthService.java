@@ -32,7 +32,6 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.auth.tools.lock.T;
@@ -641,7 +640,7 @@ public class MeinAuthService {
         uuidServiceMapSemaphore.lock();
         for (IMeinService service : uuidServiceMap.values()) {
             if (service instanceof MeinService) {
-                N.r(((MeinService) service)::suspend);
+                N.r(((MeinService) service)::stop);
             }
         }
         uuidServiceMapSemaphore.unlock();

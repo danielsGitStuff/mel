@@ -89,9 +89,9 @@ public abstract class MeinWorker extends DeferredRunnable {
         waitLock.unlock();
     }
 
-    public void suspend() {
+    public void stop() {
         queueLock.unlockWrite();
-        super.suspend();
+        super.stop();
         waitLock.unlock();
     }
 }

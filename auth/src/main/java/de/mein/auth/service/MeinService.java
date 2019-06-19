@@ -166,12 +166,12 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     /**
      * stop all workers threads here.
      */
-    public void suspend() {
+    public void stop() {
         if (executorService != null) {
             executorService.shutdown();
             executorService = null;
         }
-        super.suspend();
+        super.stop();
     }
 
     public void resume() {

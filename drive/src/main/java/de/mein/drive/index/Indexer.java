@@ -2,7 +2,6 @@ package de.mein.drive.index;
 
 import de.mein.DeferredRunnable;
 import de.mein.auth.file.AFile;
-import de.mein.auth.tools.N;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.sync.SyncHandler;
@@ -13,7 +12,6 @@ import de.mein.sql.SqlQueriesException;
 
 import org.jdeferred.impl.DeferredObject;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -72,7 +70,7 @@ public class Indexer {
     }
 
     public void suspend() {
-        indexerRunnable.suspend();
+        indexerRunnable.stop();
     }
 
     public void resume() {

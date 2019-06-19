@@ -71,8 +71,9 @@ class HttpThingy(private val port: Int, val redirectPort: Int?) : DeferredRunnab
         Lok.debug("http is up")
     }
 
-    fun stop() {
+    override fun stop() {
         server.stop(0)
+        super.stop()
     }
 
 }

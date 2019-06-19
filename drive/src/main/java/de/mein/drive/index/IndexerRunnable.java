@@ -2,7 +2,6 @@ package de.mein.drive.index;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
-import de.mein.auth.file.FFile;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
@@ -15,7 +14,6 @@ import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.sql.ISQLQueries;
-import de.mein.sql.SQLQueries;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
@@ -133,7 +131,7 @@ public class IndexerRunnable extends AbstractIndexer {
         return getClass().getSimpleName() + " for " + databaseManager.getDriveSettings().getRootDirectory().getPath();
     }
 
-    public void suspend() {
-        indexWatchdogListener.suspend();
+    public void stop() {
+        indexWatchdogListener.stop();
     }
 }

@@ -152,8 +152,9 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         return server
     }
 
-    fun stop() {
+    override fun stop() {
         server.stop(0)
+        super.stop()
     }
 
 

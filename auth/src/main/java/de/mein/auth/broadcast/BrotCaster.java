@@ -37,8 +37,8 @@ public abstract class BrotCaster extends DeferredRunnable {
     }
 
     @Override
-    public void suspend() {
-        super.suspend();
+    public void stop() {
+        super.stop();
         N.s(()->socket.close());
         socket = null;
     }
