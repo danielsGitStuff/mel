@@ -1,5 +1,6 @@
 package de.mein.drive.gui;
 
+import de.mein.Lok;
 import de.mein.auth.data.EmptyPayload;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
@@ -76,6 +77,9 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                         if (subDirCount.getCompleted()) {
                             if (treshold > inotifyLimit) {
                                 // ask the user to increase inotify limit
+                                Lok.error("inotify limit insufficient!");
+                                Lok.error("current: "+inotifyLimit);
+                                Lok.error("required: "+subDirCount.getCounted()+", recommended: "+treshold);
                                 XCBFix.runLater(() -> {
                                     Alert alert = new Alert(Alert.AlertType.ERROR);
                                     alert.setTitle("Inotify Limit too low");
@@ -85,6 +89,9 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                                 });
                             }
                         } else {
+                            Lok.error("inotify limit probably insufficient!");
+                            Lok.error("current: "+inotifyLimit);
+                            Lok.error("required: "+subDirCount.getCounted()+", recommended: "+treshold);
                             XCBFix.runLater(() -> {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
                                 alert.setTitle("Inotify Limit proably too low");
