@@ -1,7 +1,5 @@
 package de.mein.drive.bash;
 
-import org.jdeferred.Promise;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -14,7 +12,7 @@ import de.mein.auth.file.DefaultFileConfiguration;
  * Created by xor on 7/24/17.
  */
 
-public class BashToolsJava implements BashToolsImpl {
+public class BashToolsAndroidJavaImpl implements BashToolsImpl {
     @Override
     public void setBinPath(String binPath) {
 
@@ -27,7 +25,7 @@ public class BashToolsJava implements BashToolsImpl {
     }
 
     @Override
-    public FsBashDetails getModifiedAndINodeOfFile(AFile file) throws IOException {
+    public FsBashDetails getFsBashDetails(AFile file) throws IOException {
         Lok.error("NOT:IMPLEMENTED");
         return null;
     }
@@ -57,18 +55,18 @@ public class BashToolsJava implements BashToolsImpl {
             new File(prune.getAbsolutePath() + File.separator + i).createNewFile();
         }
         file.createNewFile();
-        BashToolsJava bashToolsJava = new BashToolsJava();
-        Iterator<AFile<?>> iterator = bashToolsJava.find(dir, prune);
+        BashToolsAndroidJavaImpl bashToolsAndroidJavaImpl = new BashToolsAndroidJavaImpl();
+        Iterator<AFile<?>> iterator = bashToolsAndroidJavaImpl.find(dir, prune);
         while (iterator.hasNext())
-            Lok.debug("BashToolsJava.main: " + iterator.next());
-        //Lok.debug("BashToolsJava.main.max: " + max);
+            Lok.debug("BashToolsAndroidJavaImpl.main: " + iterator.next());
+        //Lok.debug("BashToolsAndroidJavaImpl.main.max: " + max);
     }
 
     @Override
     public Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
         Stack<Iterator<AFile>> fileStack = new Stack<>();
         String prunePath = pruneDir.getAbsolutePath();
-        Lok.debug("BashToolsJava.find.prune: " + prunePath);
+        Lok.debug("BashToolsAndroidJavaImpl.find.prune: " + prunePath);
         fileStack.push(Arrays.asList(directory.listContent()).iterator());
         return new Iterator<AFile<?>>() {
             String nextLine = null;
@@ -165,13 +163,18 @@ public class BashToolsJava implements BashToolsImpl {
         int i = 0;
         while (!dir.exists()) {
             dir.mkdirs();
-            Lok.debug("BashToolsJava.mkdir." + i);
+            Lok.debug("BashToolsAndroidJavaImpl.mkdir." + i);
         }
     }
 
     @Override
     public boolean mv(File source, File target) throws IOException {
-        System.err.println("BashToolsJava.mv.NOT:IMPLEMENTED");
+        System.err.println("BashToolsAndroidJavaImpl.mv.NOT:IMPLEMENTED");
+        return false;
+    }
+
+    @Override
+    public boolean isSymLink(AFile f) {
         return false;
     }
 }

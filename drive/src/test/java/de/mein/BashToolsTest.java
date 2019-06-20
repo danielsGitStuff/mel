@@ -47,7 +47,7 @@ public class BashToolsTest {
         files.stream().filter(File::exists).forEach(f -> N.r(() -> {
             Lok.debug("BashToolsTest.escapePaths");
             BashTools.init();
-            FsBashDetails fsBashDetails = BashTools.getINodeOfFile(new FFile(f));
+            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(new FFile(f));
             Lok.debug("BashToolsTest.escapePaths: " + fsBashDetails.getiNode().toString() + " " + fsBashDetails.getModified().toString());
             count.getAndSet(count.get() + 1);
         }));

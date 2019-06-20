@@ -99,7 +99,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     timer2.stop();
                 } else {
                     timer3.start();
-                    this.updateFileStage(stage, f, timerUpdate1, timerUpdate2);
+                    this.updateFileStage(stage, f, timerUpdate1, timerUpdate2, null);
                     timer3.stop();
                 }
                 stage = stages.getNext();
@@ -226,15 +226,17 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
 
+        //todo debug
+        if (stageFile.getName().equals("wrong"))
+            Lok.debug("debug");
 
-        FsBashDetails fsBashDetails = BashTools.getINodeOfFile(stageFile);
-        if (fsBashDetails.isSymLink()) {
-            databaseManager.getDriveSettings().getDriveDetails().usesSymLinks(true);
+        FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
+        // skip if drive ignores symlinks
+        if (fsBashDetails.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
             return;
         }
 
 
-//        Lok.debug("AbstractIndexer.roamDirectoryStage: " + stageFile.getAbsolutePath());
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
         AFile[] files = stageFile.listFiles();
@@ -296,11 +298,16 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 N.forEach(content, stage1 -> contentMap.put(stage1.getName(), stage1));
             }
             for (AFile subFile : files) {
-                newFsDirectory.addFile(new FsFile(subFile));
                 // check if which subFiles are on stage or fs. if not, index them
 
                 Stage subStage = contentMap.get(subFile.getName());
                 FsFile subFsFile = fsDao.getFileByName(stage.getFsId(), subFile.getName());
+                FsBashDetails subFsBashDetails = BashTools.getFsBashDetails(subFile);
+                if (subFsBashDetails.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
+                    continue;
+                }
+                newFsDirectory.addFile(new FsFile(subFile));
+
                 if (subStage == null && subFsFile == null) {
                     // stage
                     subStage = new Stage().setName(subFile.getName())
@@ -311,8 +318,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                             .setDeleted(false)
                             .setOrder(order.ord());
                     stageDao.insert(subStage);
-                    this.updateFileStage(subStage, subFile, null, null);
-                    subStage.setOrder(order.ord());
+                    this.updateFileStage(subStage, subFile, null, null, subFsBashDetails);
+//                    subStage.setOrder(order.ord());
                 }
             }
         }
@@ -320,7 +327,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             for (AFile subDir : subDirs) {
                 if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath()))
                     continue;
+                FsBashDetails subDirDetails = BashTools.getFsBashDetails(subDir);
                 stuffToDelete.remove(subDir.getName());
+
+                if (subDirDetails.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks())
+                    continue;
                 // if subDir is on stage or fs we don't have to roam it
                 Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subDir.getName());
                 FsDirectory leSubDirectory = null;
@@ -360,7 +371,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         stage.setContentHash(newFsDirectory.getContentHash().v());
         RWLock waitLock = new RWLock().lockWrite();
         stage.setModified(fsBashDetails.getModified())
-                .setiNode(fsBashDetails.getiNode());
+                .setiNode(fsBashDetails.getiNode())
+                .setSymLink(fsBashDetails.isSymLink());
         if (stage.getFsId() != null) {
             FsDirectory oldFsDirectory = fsDao.getFsDirectoryById(stage.getFsId());
             if (oldFsDirectory.getContentHash().v().equals(newFsDirectory.getContentHash().v()))
@@ -373,14 +385,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         waitLock.lockWrite();
     }
 
-    private void updateFileStage(Stage stage, AFile stageFile, OTimer timer1, OTimer timer2) throws IOException, SqlQueriesException, InterruptedException {
+    private void updateFileStage(Stage stage, AFile stageFile, OTimer timer1, OTimer timer2, FsBashDetails fsBashDetails) throws IOException, SqlQueriesException, InterruptedException {
         // skip hashing if information is complete & fastBoot is enabled-> speeds up booting
         if (stageFile.exists()) {
-
-
-            //todo debug
-            if (stageFile.getName().equals("right") || stageFile.getName().equals("wrong"))
-                Lok.debug("debug");
 
             if (timer1 != null)
                 timer1.start();
@@ -391,16 +398,17 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     || stage.getModifiedPair().isNull()
                     || stage.getSizePair().isNull()) {
 
-                FsBashDetails fsBashDetails = BashTools.getINodeOfFile(stageFile);
-                stage.setContentHash(Hash.md5(stageFile.inputStream()));
+                if (fsBashDetails == null)
+                    fsBashDetails = BashTools.getFsBashDetails(stageFile);
+                if (fsBashDetails.isSymLink()) {
+                    stage.setSymLink(true);
+                    stage.setContentHash("0");
+                } else {
+                    stage.setSize(stageFile.length());
+                    stage.setContentHash(Hash.md5(stageFile.inputStream()));
+                }
                 stage.setiNode(fsBashDetails.getiNode());
                 stage.setModified(fsBashDetails.getModified());
-                stage.setSize(stageFile.length());
-
-                //todo deal with symlinks here
-                if (fsBashDetails.isSymLink()) {
-                    Lok.debug("updating symlink file");
-                }
 
             }
 
@@ -414,11 +422,20 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 FsEntry fsEntry = fsDao.getFile(stage.getFsId());
                 if (fsEntry.getContentHash().v().equals(stage.getContentHash()))
                     stageDao.deleteStageById(stage.getId());
-                else
+                else {
+                    if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
+                        stageDao.deleteStageById(stage.getId());
+                    } else {
+                        stageDao.update(stage);
+                    }
+                }
+            } else {
+                if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
+                    stageDao.deleteStageById(stage.getId());
+                } else {
                     stageDao.update(stage);
-            } else
-                stageDao.update(stage);
-
+                }
+            }
             if (timer2 != null)
                 timer2.stop();
 

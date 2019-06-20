@@ -793,7 +793,7 @@ public class DriveTest {
                 DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                     lock.lockWrite();
                 };
-                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, useSymLinks);
+                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, false);
                 lock.lockWrite();
                 Lok.debug("DriveTest.startServer.booted");
             });
@@ -905,14 +905,14 @@ public class DriveTest {
                                                         .setTestdir2(testdir2);
                                                 clientDriveService.setSyncListener(clientSyncListener);
                                             };
-                                            new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, useSymLinks);
+                                            new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, false);
                                         });
                                     }).start()
                             );
                         });
                     });
                 });
-                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, useSymLinks);
+                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, false);
             });
         });
         //lock.lockWrite();

@@ -9,11 +9,8 @@ import java.util.Iterator;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
-import de.mein.drive.bash.BashTools;
-import de.mein.drive.bash.BashToolsException;
-import de.mein.drive.bash.BashToolsJava;
-import de.mein.drive.bash.BashToolsUnix;
-import de.mein.drive.bash.FsBashDetails;
+import de.mein.drive.bash.*;
+import de.mein.drive.bash.BashToolsAndroidJavaImpl;
 
 /**
  * Created by xor on 7/20/17.
@@ -21,14 +18,14 @@ import de.mein.drive.bash.FsBashDetails;
 
 public class BashToolsAndroid extends BashToolsUnix {
     private final Context context;
-    private BashToolsJava javaBashTools;
-    private BashToolsJava findFallBack;
+    private BashToolsAndroidJavaImpl javaBashTools;
+    private BashToolsAndroidJavaImpl findFallBack;
 
 
     public BashToolsAndroid(Context context) {
         this.context = context;
         setBIN_PATH("/system/bin/sh");
-        javaBashTools = new BashToolsJava();
+        javaBashTools = new BashToolsAndroidJavaImpl();
         testCommands();
     }
 
@@ -89,7 +86,7 @@ public class BashToolsAndroid extends BashToolsUnix {
     }
 
     @Override
-    public FsBashDetails getModifiedAndINodeOfFile(AFile file) throws IOException {
+    public FsBashDetails getFsBashDetails(AFile file) throws IOException {
         String[] args = new String[]{getBIN_PATH(), "-c", "ls -id " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));

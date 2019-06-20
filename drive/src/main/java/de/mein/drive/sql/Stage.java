@@ -27,6 +27,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private static final String MERGED = "merged";
     private static final String ORDER = "ord";
     private static final String REMOVE = "rem";
+    private static final String SYMLINK = "sym";
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> parentId = new Pair<>(Long.class, PARENTID);
     private Pair<Long> fsId = new Pair<>(Long.class, FSID);
@@ -50,6 +51,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private Pair<Long> order = new Pair<>(Long.class, ORDER);
     @JsonIgnore
     private Pair<Boolean> remove = new Pair<>(Boolean.class, REMOVE);
+    private Pair<Boolean> isSymLink = new Pair<>(Boolean.class, SYMLINK);
 
 
     public Stage() {
@@ -63,7 +65,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, iNode, modified, deleted, stageSet, size, synced, merged, order);
+        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, isSymLink, iNode, modified, deleted, stageSet, size, synced, merged, order);
         populateAll(id);
     }
 
@@ -201,6 +203,14 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         return this;
     }
 
+    public Pair<Boolean> getIsSymLinkPair() {
+        return isSymLink;
+    }
+
+    public Boolean isSymLink() {
+        return isSymLink.notNull() && isSymLink.v();
+    }
+
     public Long getStageSet() {
         return stageSet.v();
     }
@@ -300,5 +310,10 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public Pair<String> getContentHashPair() {
         return contentHash;
+    }
+
+    public Stage setSymLink(boolean symLink) {
+        isSymLink.v(symLink);
+        return this;
     }
 }

@@ -160,7 +160,7 @@ public class Wastebin {
             if (f.exists()) {
                 indexer.ignorePath(f.getAbsolutePath(), 1);
                 if (f.isFile()) {
-                    FsBashDetails fsBashDetails = BashTools.getINodeOfFile(f);
+                    FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f);
                     Waste waste = wasteDao.getWasteByInode(fsBashDetails.getiNode());
                     if (waste != null) {
                         // we once wanted this file to be deleted. check if it did not change in the meantime
@@ -225,7 +225,7 @@ public class Wastebin {
         FsDirectory fsDirectory = fsDao.getFsDirectoryByPath(dir);
         AFile[] files = dir.listFiles();
         for (AFile f : files) {
-            FsBashDetails fsBashDetails = BashTools.getINodeOfFile(f);
+            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f);
             String contentHash = findHashOfFile(f, fsBashDetails.getiNode());
             if (contentHash != null) {
                 moveToBin(f, contentHash, fsBashDetails);
@@ -315,7 +315,7 @@ public class Wastebin {
      * @throws IOException
      */
     public void deleteUnknown(AFile file) throws IOException, SqlQueriesException, InterruptedException {
-        FsBashDetails fsBashDetails = BashTools.getINodeOfFile(file);
+        FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
         AFile target = AFile.instance(deferredDir, fsBashDetails.getiNode().toString());
         file.move(target);
 

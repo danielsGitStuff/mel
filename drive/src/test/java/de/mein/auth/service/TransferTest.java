@@ -164,7 +164,7 @@ public class TransferTest {
                 bootLock.unlock();
             };
             DriveCreateController createController = new DriveCreateController(meinAuthService);
-            createController.createDriveServerService("server", root, .5f, 666, useSymLinks);
+            createController.createDriveServerService("server", root, .5f, 666, false);
         });
         bootLock.lock();
         return serverService.get();
@@ -181,7 +181,7 @@ public class TransferTest {
                     clientService.set((MeinDriveClientService) driveService);
                     bootLock.unlock();
                 });
-                new DriveCreateController(meinAuthService).createDriveClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666, useSymLinks);
+                new DriveCreateController(meinAuthService).createDriveClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666, false);
             })
             ).start());
         });

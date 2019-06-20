@@ -51,7 +51,7 @@ public class SAFBashTools implements BashToolsImpl {
     }
 
     @Override
-    public FsBashDetails getModifiedAndINodeOfFile(AFile file) throws IOException, InterruptedException {
+    public FsBashDetails getFsBashDetails(AFile file) throws IOException, InterruptedException {
         return null;
     }
 

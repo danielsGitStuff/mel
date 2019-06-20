@@ -19,7 +19,7 @@ public interface BashToolsImpl {
 
     Set<Long> getINodesOfDirectory(AFile file) throws IOException;
 
-    FsBashDetails getModifiedAndINodeOfFile(AFile file) throws IOException, InterruptedException;
+    FsBashDetails getFsBashDetails(AFile file) throws IOException, InterruptedException;
 
     /**
      * rm -rf

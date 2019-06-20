@@ -19,6 +19,8 @@ import java.util.concurrent.Executors
  */
 open class BashToolsUnix : BashToolsImpl {
     override fun isSymLink(f: AFile<out AFile<*>>?): Boolean {
+        if (f == null)
+            return false
         return Files.isSymbolicLink(Paths.get(f.absolutePath))
     }
 
@@ -68,7 +70,7 @@ open class BashToolsUnix : BashToolsImpl {
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    override fun getModifiedAndINodeOfFile(file: AFile<*>): FsBashDetails {
+    override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
         val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %Y\\ %F " + escapeAbsoluteFilePath(file))
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
@@ -206,7 +208,7 @@ open class BashToolsUnix : BashToolsImpl {
             val f = AFile.instance("f")
             f.mkdirs()
             val bashToolsUnix = BashToolsUnix()
-            val modifiedAndInode = bashToolsUnix.getModifiedAndINodeOfFile(f)
+            val modifiedAndInode = bashToolsUnix.getFsBashDetails(f)
             Lok.debug("mod " + modifiedAndInode.modified + " ... inode " + modifiedAndInode.getiNode())
             f.delete()
         }

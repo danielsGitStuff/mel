@@ -34,7 +34,7 @@ class BashToolsWindows : BashToolsImpl {
     }
 
     @Throws(IOException::class)
-    override fun getModifiedAndINodeOfFile(file: AFile<*>): FsBashDetails {
+    override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")

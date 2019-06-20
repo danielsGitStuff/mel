@@ -61,7 +61,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
 
     private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> {
         File f = new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME);
-        return new SQLQueries(SQLConnector.createSqliteConnection(f), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer())        ;
+        return new SQLQueries(SQLConnector.createSqliteConnection(f), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
     };
 
     public static void setSqlqueriesCreator(SQLConnectionCreator sqlqueriesCreator) {
@@ -104,10 +104,14 @@ public class DriveDatabaseManager extends FileRelatedManager {
          java.sql.Connection conn = driver.connect(url, config.toProperties());
          */
         sqlQueries = sqlqueriesCreator.createConnection(this, meinDriveService.getUuid());
+        {
         SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
         st.execute();
-        st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
-        st.execute();
+        }
+        {
+            SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
+            st.execute();
+        }
 //        sqlQueries.enableWAL();
 
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());

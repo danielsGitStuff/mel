@@ -71,7 +71,7 @@ public abstract class SyncHandler {
             Lok.debug("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
             // check if there already is a file & delete
             if (target.exists()) {
-                FsBashDetails fsBashDetails = BashTools.getINodeOfFile(target);
+                FsBashDetails fsBashDetails = BashTools.getFsBashDetails(target);
                 // file had to be marked as deleted before, which means the inode and so on appear in the wastebin
                 Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(fsBashDetails.getiNode());
                 GenericFSEntry genericFSEntry = fsDao.getGenericByINode(fsBashDetails.getiNode());
@@ -94,7 +94,7 @@ public abstract class SyncHandler {
                 }
             }
             indexer.ignorePath(target.getAbsolutePath(), 1);
-            FsBashDetails fsBashDetails = BashTools.getINodeOfFile(source);
+            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(source);
             fsTarget.getiNode().v(fsBashDetails.getiNode());
             fsTarget.getModified().v(fsBashDetails.getModified());
             fsTarget.getSize().v(source.length());
@@ -186,7 +186,7 @@ public abstract class SyncHandler {
             }
             //indexer.stopIgnore(target.getAbsolutePath());
             RWLock waitLock = new RWLock();
-            FsBashDetails fsBashDetails = BashTools.getINodeOfFile(target);
+            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(target);
             fsTarget.getiNode().v(fsBashDetails.getiNode());
             fsTarget.getModified().v(fsBashDetails.getModified());
             fsTarget.getSize().v(target.length());
@@ -328,7 +328,7 @@ public abstract class SyncHandler {
                                     // delete file. consider that it might be in the same state as the stage
                                     AFile stageFile = stageDao.getFileByStage(stage);
                                     if (stageFile.exists()) {
-                                        FsBashDetails fsBashDetails = BashTools.getINodeOfFile(stageFile);
+                                        FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
                                         if (stage.getiNode() == null || stage.getModified() == null ||
                                                 !(fsBashDetails.getiNode().equals(stage.getiNode()) && fsBashDetails.getModified().equals(stage.getModified()))) {
                                             wastebin.deleteUnknown(stageFile);
@@ -422,7 +422,7 @@ public abstract class SyncHandler {
     }
 
     private void updateInodeModified(FsEntry entry, AFile f) throws SqlQueriesException, IOException, InterruptedException {
-        FsBashDetails fsBashDetails = BashTools.getINodeOfFile(f);
+        FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f);
         entry.getiNode().v(fsBashDetails.getiNode());
         entry.getModified().v(fsBashDetails.getModified());
         fsDao.update(entry);

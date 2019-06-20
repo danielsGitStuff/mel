@@ -1,7 +1,5 @@
 package de.mein.drive.bash;
 
-import org.jdeferred.Promise;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,14 +17,16 @@ import de.mein.auth.file.AFile;
 @SuppressWarnings("Duplicates")
 public abstract class BashTools {
 
+    public static final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+    private static BashToolsImpl instance;
+
     public static BashToolsImpl getInstance() {
         return instance;
     }
 
-
-    private static BashToolsImpl instance;
-
-    public static final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+    public static void setInstance(BashToolsImpl instance) {
+        BashTools.instance = instance;
+    }
 
     public static void init() {
         if (instance == null)
@@ -41,38 +41,28 @@ public abstract class BashTools {
         instance.setBinPath(binPath);
     }
 
-
     public static Set<Long> getINodesOfDirectory(AFile file) throws IOException {
         return instance.getINodesOfDirectory(file);
     }
 
-
-    public static FsBashDetails getINodeOfFile(AFile file) throws IOException, InterruptedException {
-        return instance.getModifiedAndINodeOfFile(file);
+    public static FsBashDetails getFsBashDetails(AFile file) throws IOException, InterruptedException {
+        return instance.getFsBashDetails(file);
     }
-
 
     public static void rmRf(AFile directory) throws IOException {
         instance.rmRf(directory);
     }
 
-
     public static List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         return instance.stuffModifiedAfter(referenceFile, directory, pruneDir);
     }
-
 
     public static Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
         return instance.find(directory, pruneDir);
     }
 
-
     public static Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return instance.stuffModifiedAfter(originalFile, pruneDir, timeStamp);
-    }
-
-    public static void setInstance(BashToolsImpl instance) {
-        BashTools.instance = instance;
     }
 
     public static Iterator<AFile> inputStreamToFileIterator(InputStream inputStream) {

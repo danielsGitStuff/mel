@@ -252,6 +252,9 @@ StageDao extends Dao.LockingDao {
     }
 
     public Stage insert(Stage stage) throws SqlQueriesException {
+        //todo debug
+        if (stage.getName().equals("wrong") || stage.getName().equals("symfile"))
+            Lok.debug("debug");
         try {
             Long id = sqlQueries.insert(stage);
             return stage.setId(id);

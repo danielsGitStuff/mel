@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-@SuppressWarnings("Duplicates")
 public class IndexHelper {
 
     private final DriveDatabaseManager databaseManager;
@@ -173,7 +172,7 @@ public class IndexHelper {
     void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
         if (databaseManager.getDriveSettings().getFastBoot()) {
             try {
-                FsBashDetails fsBashDetails = BashTools.getINodeOfFile(file);
+                FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
                 if (fsEntry.getModified().equalsValue(fsBashDetails.getModified())
                         && fsEntry.getiNode().equalsValue(fsBashDetails.getiNode())
                         && ((fsEntry.getIsDirectory().v() && file.isDirectory()) || fsEntry.getSize().equalsValue(file.length()))) {
@@ -182,6 +181,8 @@ public class IndexHelper {
                     stage.setContentHash(fsEntry.getContentHash().v());
                     stage.setSize(fsEntry.getSize().v());
                     stage.setSynced(true);
+                    if (fsBashDetails.isSymLink())
+                        stage.setSymLink(true);
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
