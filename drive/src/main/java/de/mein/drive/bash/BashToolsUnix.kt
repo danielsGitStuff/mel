@@ -5,9 +5,6 @@ import de.mein.auth.file.AFile
 import de.mein.auth.tools.N
 import de.mein.auth.file.DefaultFileConfiguration
 
-import org.jdeferred.Promise
-import org.jdeferred.impl.DeferredObject
-
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
@@ -16,13 +13,14 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 
 /**
  * Created by xor on 13.07.2017.
  */
 open class BashToolsUnix : BashToolsImpl {
+    override fun isSymLink(f: AFile<out AFile<*>>?): Boolean {
+        return Files.isSymbolicLink(Paths.get(f.absolutePath))
+    }
 
     protected var BIN_PATH = "/bin/sh"
     private val executorService = Executors.newCachedThreadPool()
@@ -179,23 +177,24 @@ open class BashToolsUnix : BashToolsImpl {
         return false
     }
 
-    class SubDirCount(val counted: Long, val completed: Boolean)
+    class ShareFolderProperties(val counted: Long, val containsSymLinks: Boolean)
 
     @Throws(IOException::class, InterruptedException::class)
-    fun countSubDirs(dir: File): SubDirCount {
+    fun getShareFolderPropeties(dir: File): ShareFolderProperties {
         var count: Long = 0L
-        var finished = false
+        var containsSymLinks = false;
         val thread = Thread(Runnable {
-            dir.walkTopDown().onEnter { file -> file.isDirectory }
-                    .forEach { count++ }
-            finished = true
+            dir.walkTopDown().onEnter { file ->
+                if (Files.isSymbolicLink(Paths.get(file.toURI()))) {
+                    containsSymLinks = true
+                    false
+                } else
+                    file.isDirectory
+            }.forEach { count++ }
         })
         thread.start()
-        thread.join(10000)
-        if (!finished) {
-            return SubDirCount(count, false)
-        }
-        return SubDirCount(count, true)
+        thread.join()
+        return ShareFolderProperties(count, containsSymLinks)
     }
 
     companion object {

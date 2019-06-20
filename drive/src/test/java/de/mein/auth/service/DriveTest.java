@@ -11,8 +11,6 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.file.FFile;
-import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
@@ -795,7 +793,7 @@ public class DriveTest {
                 DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                     lock.lockWrite();
                 };
-                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30);
+                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, useSymLinks);
                 lock.lockWrite();
                 Lok.debug("DriveTest.startServer.booted");
             });
@@ -907,14 +905,14 @@ public class DriveTest {
                                                         .setTestdir2(testdir2);
                                                 clientDriveService.setSyncListener(clientSyncListener);
                                             };
-                                            new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30);
+                                            new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, useSymLinks);
                                         });
                                     }).start()
                             );
                         });
                     });
                 });
-                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30);
+                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, useSymLinks);
             });
         });
         //lock.lockWrite();

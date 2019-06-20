@@ -9,7 +9,7 @@ public class DriveDetails extends ServicePayload {
     private String role;
     private long lastSyncVersion;
     private String serviceUuid;
-    private boolean containsSymLinks = false;
+    private boolean usesSymLinks = false;
 
     public DriveDetails setLastSyncVersion(long lastSyncVersion) {
         this.lastSyncVersion = lastSyncVersion;
@@ -38,11 +38,12 @@ public class DriveDetails extends ServicePayload {
         return role;
     }
 
-    public void containsSymLinks(boolean containsSymLinks) {
-        this.containsSymLinks = containsSymLinks;
+    public DriveDetails setUsesSymLinks(boolean usesSymLinks) {
+        this.usesSymLinks = usesSymLinks;
+        return this;
     }
 
-    public boolean containsSymLinks() {
-        return containsSymLinks;
+    public boolean usesSymLinks() {
+        return usesSymLinks;
     }
 }

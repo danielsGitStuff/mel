@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.RowConstraints?>
-
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
 <VBox xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="de.mein.drive.gui.DriveFXCreateController">
     <Label styleClass="lbl-center-section" text="Name"/>
@@ -18,8 +13,19 @@
         <TextField styleClass="txt-edit" fx:id="txtPath" text="/home/xor/Downloads/mel/" HBox.hgrow="ALWAYS"/>
         <Button styleClass="btn" fx:id="btnPath" text="Chose"/>
     </HBox>
+    <Label styleClass="lbl-center-section" text="Setup"/>
+    <Label styleClass="lbl"
+           text="Looking for symbolic links and counting subdirectories. This may take a few seconds."/>
     <HBox fx:id="hboxCount">
-        <Button styleClass="btn" fx:id="btnCount" text="Count" HBox.hgrow="ALWAYS"/>
+        <Button styleClass="btn" fx:id="btnCheck" text="Check" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
     </HBox>
+    <TextFlow>
+        <Text fx:id="lblHints" styleClass="text" text="hints go here"/>
+    </TextFlow>
+    <!--    <Label styleClass="lbl" text="Hints" fx:id="lblHints" wrapText="true"/>-->
+    <Label styleClass="lbl-center-section" text="Compatibility"/>
+    <CheckBox fx:id="cbIgnoreSymLinks" text="ignore SymLinks" selected="true"/>
+
+
     <Label styleClass="lbl-center-section" text="Choose Role"/>
 </VBox>

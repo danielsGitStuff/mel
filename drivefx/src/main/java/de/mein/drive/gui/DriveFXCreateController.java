@@ -1,6 +1,5 @@
 package de.mein.drive.gui;
 
-import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.auth.data.EmptyPayload;
 import de.mein.auth.data.NetworkEnvironment;
@@ -9,6 +8,7 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.gui.EmbeddedServiceSettingsFX;
 import de.mein.auth.gui.XCBFix;
+import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
@@ -19,46 +19,57 @@ import de.mein.drive.bash.BashToolsUnix;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import org.jdeferred.Promise;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Created by xor on 10/20/16.
  */
 public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     @FXML
+    private Text lblHints;
+    @FXML
+    private CheckBox cbIgnoreSymLinks;
+    @FXML
     private HBox hboxCount;
     @FXML
-    private Button btnPath, btnCount;
+    private Button btnPath, btnCheck;
 
     @FXML
     private TextField txtName, txtPath;
 
     private DriveCreateController driveCreateController;
+    private MeinAuthAdminFX meinAuthAdminFX;
 
     @Override
     public void onPrimaryClicked() {
         N.r(() -> {
-            String name = txtName.getText().trim();
-            Boolean isServer = this.isServerSelected();
-            String role = isServer ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
-            String path = txtPath.getText();
+            final String name = txtName.getText().trim();
+            final boolean isServer = this.isServerSelected();
+            final String role = isServer ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
+            final String path = txtPath.getText();
+            final boolean useSymLinks = !cbIgnoreSymLinks.isSelected();
             if (isServer)
-                driveCreateController.createDriveServerService(name, AFile.instance(path), 0.1f, 30);
+                driveCreateController.createDriveServerService(name, AFile.instance(path), 0.1f, 30, useSymLinks);
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                driveCreateController.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30);
+                driveCreateController.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30,useSymLinks);
             }
         });
+    }
+
+    @Override
+    public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
+        super.configureParentGui(meinAuthAdminFX);
+        meinAuthAdminFX.setPrimaryButtonText("Create File Share");
+        meinAuthAdminFX.hideBottomButtons();
+        this.meinAuthAdminFX = meinAuthAdminFX;
     }
 
     @Override
@@ -69,10 +80,14 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             hboxCount.setManaged(false);
         } else {
             // show linux related inotify stuff
-            btnCount.setOnAction(event -> N.r(() -> {
+            btnCheck.setOnAction(event -> N.r(() -> {
                 File dir = new File(txtPath.getText());
                 if (dir.exists()) {
-                    XCBFix.runLater(() -> btnCount.setText("counting..."));
+
+                    XCBFix.runLater(() -> {
+                        btnCheck.setVisible(false);
+                        meinAuthAdminFX.hideBottomButtons();
+                    });
                     MeinRunnable runnable = new MeinRunnable() {
 
                         @Override
@@ -83,9 +98,27 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                         @Override
                         public void run() {
                             N.r(() -> {
+
                                 BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.getInstance();
-                                BashToolsUnix.SubDirCount subdirs = bashToolsUnix.countSubDirs(dir);
-                                XCBFix.runLater(() -> btnCount.setText("subdirs: " + subdirs.getCounted()));
+                                BashToolsUnix.ShareFolderProperties props = bashToolsUnix.getShareFolderPropeties(dir);
+                                Long inotifyLimit = bashToolsUnix.getInotifyLimit();
+                                Long proposedInotifyThreshold = Double.valueOf(props.getCounted() * 1.33).longValue();
+
+                                XCBFix.runLater(() -> {
+                                    String hint = "Contains SymLinks: " + (props.getContainsSymLinks() ? "yes" : "no") + "\n";
+                                    if (props.getContainsSymLinks()) {
+                                        hint += "      SymLinks are not supported on Android.\n"
+                                                + "      If you plan sharing this to an Android device tick 'ignore SymLinks' below.\n";
+                                    }
+                                    hint += "Subdirs: " + props.getCounted() + ", Inotify limit: " + inotifyLimit + " -> " + (inotifyLimit <= props.getCounted() ? "PROBLEM!\n" : "ok\n");
+                                    if (inotifyLimit <= props.getCounted()) {
+                                        hint += "      You set the user watch limit too low.\n" +
+                                                "      Your should increase the limit to about: " + proposedInotifyThreshold;
+                                    }
+                                    lblHints.setText(hint);
+                                    btnCheck.setVisible(true);
+                                    meinAuthAdminFX.showPrimaryButtonOnly();
+                                });
                             });
                         }
                     };
@@ -99,43 +132,6 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             File dir = directoryChooser.showDialog(stage);
             if (dir != null) {
                 txtPath.setText(dir.getAbsolutePath());
-                // check if inotify limit is suffiently high on LINUX
-                if (!BashTools.isWindows) {
-                    N.thread(() -> {
-                        BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.getInstance();
-                        final Long inotifyLimit = bashToolsUnix.getInotifyLimit();
-                        final BashToolsUnix.SubDirCount subDirCount = bashToolsUnix.countSubDirs(dir);
-                        // I think a 30% safety margin should be sufficient
-                        final Long treshold = Double.valueOf(subDirCount.getCounted() * 1.33).longValue();
-                        if (subDirCount.getCompleted()) {
-                            if (treshold > inotifyLimit) {
-                                // ask the user to increase inotify limit
-                                Lok.error("inotify limit insufficient!");
-                                Lok.error("current: " + inotifyLimit);
-                                Lok.error("required: " + subDirCount.getCounted() + ", recommended: " + treshold);
-                                XCBFix.runLater(() -> {
-                                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                                    alert.setTitle("Inotify Limit too low");
-                                    alert.setHeaderText("required: " + treshold);
-                                    alert.setContentText("current: " + inotifyLimit);
-                                    alert.showAndWait();
-                                });
-                            }
-                        } else {
-                            Lok.error("inotify limit probably insufficient!");
-                            Lok.error("current: " + inotifyLimit);
-                            Lok.error("required: " + subDirCount.getCounted() + ", recommended: " + treshold);
-                            XCBFix.runLater(() -> {
-                                Alert alert = new Alert(Alert.AlertType.ERROR);
-                                alert.setTitle("Inotify Limit proably too low");
-                                alert.setHeaderText("subdirs found so far: " + subDirCount.getCounted());
-                                alert.setContentText("current: " + inotifyLimit);
-                                alert.showAndWait();
-                            });
-                        }
-                    });
-
-                }
             } else {
                 txtPath.setText(null);
             }

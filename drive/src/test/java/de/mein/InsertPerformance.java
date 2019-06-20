@@ -17,7 +17,6 @@ import de.mein.drive.DriveCreateController;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveServerService;
-import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.dao.StageDao;
@@ -28,14 +27,11 @@ import de.mein.sql.conn.SQLConnector;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import de.mein.sql.transform.SqlResultTransformer;
-import org.graalvm.compiler.word.Word;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Random;
 import java.util.UUID;
 
@@ -84,7 +80,7 @@ public class InsertPerformance {
                 mds.v = (MeinDriveServerService) driveService;
                 lock.unlockWrite();
             };
-            dcc.createDriveServerService("test", ROOT_DIR, .5f, 300);
+            dcc.createDriveServerService("test", ROOT_DIR, .5f, 300, useSymLinks);
         }));
         lock.lockWrite();
         stageDao = mds.v.getDriveDatabaseManager().getStageDao();
@@ -114,7 +110,7 @@ public class InsertPerformance {
                 mds.v = (MeinDriveServerService) driveService;
                 lock.unlockWrite();
             };
-            dcc.createDriveServerService("test", ROOT_DIR, .5f, 300);
+            dcc.createDriveServerService("test", ROOT_DIR, .5f, 300, useSymLinks);
         }));
         lock.lockWrite();
         stageDao = mds.v.getDriveDatabaseManager().getStageDao();

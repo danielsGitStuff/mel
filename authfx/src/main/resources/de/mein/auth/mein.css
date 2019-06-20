@@ -2,6 +2,10 @@
     -fx-padding: 5;
 }
 
+.text{
+    -fx-fill: #ffffff;
+}
+
 .lbl-center, .lbl-center-section {
     -fx-alignment: center;
     -fx-pref-width: Infinity;

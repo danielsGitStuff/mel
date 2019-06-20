@@ -5,8 +5,6 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.auth.file.AFile;
-import de.mein.drive.sql.dao.FsDao;
-import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +26,7 @@ public class DriveSettings extends JsonSettings {
     private Long maxWastebinSize;
     private Long maxAge = 30L;
     private AFile transferDirectory;
+    private Boolean useSymLinks = true;
 
     private boolean fastBoot = true;
 
@@ -36,6 +35,15 @@ public class DriveSettings extends JsonSettings {
         rootDirectory.setOriginalFile(rootFile);
         rootDirectory.backup();
         return rootDirectory;
+    }
+
+    public DriveSettings setUseSymLinks(Boolean useSymLinks) {
+        this.useSymLinks = useSymLinks;
+        return this;
+    }
+
+    public Boolean getUseSymLinks() {
+        return useSymLinks;
     }
 
     public boolean isServer() {

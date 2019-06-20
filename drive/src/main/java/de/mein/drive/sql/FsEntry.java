@@ -2,7 +2,6 @@ package de.mein.drive.sql;
 
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
-import de.mein.sql.IPairSetListener;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 
@@ -22,6 +21,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     private static final String SYNCED = "synced";
     private static final String MODIFIED = "modified";
     private static final String SIZE = "size";
+    private static final String SYMLINK = "sym";
 
     protected Pair<Long> id = new Pair<>(Long.class, ID);
     protected Pair<String> name = new Pair<>(String.class, NAME);
@@ -36,6 +36,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     // tells whether or not the file was already put/seen in its logical place on FS
     protected Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);
     protected Pair<Long> size = new Pair<>(Long.class, SIZE);
+    protected Pair<Boolean> isSymlink = new Pair<>(Boolean.class, SYMLINK);
 
     public FsEntry() {
         init();
@@ -56,7 +57,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     @Override
     protected void init() {
-        populateInsert(name, parentId, version, contentHash, isDirectory, synced, iNode, modified, size);
+        populateInsert(name, parentId, version, contentHash, isDirectory, synced, iNode, modified, size, isSymlink);
         populateAll(id);
     }
 
@@ -107,5 +108,17 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     public Pair<Long> getSize() {
         return size;
+    }
+
+    public void setSymLink(boolean isSymLink) {
+        this.isSymlink.v(isSymLink);
+    }
+
+    public Pair<Boolean> getIsSymlink() {
+        return isSymlink;
+    }
+
+    public boolean isSymlink() {
+        return isSymlink.notNull() && isSymlink.v();
     }
 }

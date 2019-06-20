@@ -11,9 +11,6 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
-import de.mein.auth.service.IMeinService;
-import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
@@ -160,7 +157,7 @@ public class PerfTransferTest {
         Promise<PerfTransferTest, Void, Void> promise = create();
         promise.done(test -> N.r(() -> {
             DriveCreateController createController = new DriveCreateController(test.mas);
-            createController.createDriveServerService("server", AFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30);
+            createController.createDriveServerService("server", AFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30, useSymLinks);
             Lok.debug("PerfTransferTest.startSource.done");
         }));
         lock.lockWrite().lockWrite();
@@ -185,7 +182,7 @@ public class PerfTransferTest {
                             DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                                 Lok.debug("PerfTransferTest.startTarget.done");
                             };
-                            createController.createDriveClientService("client", AFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30);
+                            createController.createDriveClientService("client", AFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30, useSymLinks);
                         }
                     });
                 });

@@ -7,8 +7,6 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
-import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
@@ -166,7 +164,7 @@ public class TransferTest {
                 bootLock.unlock();
             };
             DriveCreateController createController = new DriveCreateController(meinAuthService);
-            createController.createDriveServerService("server", root, .5f, 666);
+            createController.createDriveServerService("server", root, .5f, 666, useSymLinks);
         });
         bootLock.lock();
         return serverService.get();
@@ -183,7 +181,7 @@ public class TransferTest {
                     clientService.set((MeinDriveClientService) driveService);
                     bootLock.unlock();
                 });
-                new DriveCreateController(meinAuthService).createDriveClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666);
+                new DriveCreateController(meinAuthService).createDriveClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666, useSymLinks);
             })
             ).start());
         });

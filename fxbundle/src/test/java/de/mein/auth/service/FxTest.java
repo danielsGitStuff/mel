@@ -13,7 +13,6 @@ import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.gui.RegisterHandlerFX;
-import de.mein.auth.service.*;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
@@ -269,7 +268,7 @@ public class FxTest {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
                     DriveCreateController createController = new DriveCreateController(meinAuthService);
-                    createController.createDriveClientService("drive client", testdir, 1L, tmp, 0.1f, 30);
+                    createController.createDriveClientService("drive client", testdir, 1L, tmp, 0.1f, 30, useSymLinks);
                     Lok.debug("FxTest.connectAcceptingClient");
                 }));
 
@@ -343,7 +342,7 @@ public class FxTest {
                     FxTest.tmp = driveService.getUuid();
                     connectAcceptingClient();
                 })).start();
-                createController.createDriveServerService("testiServer", testdir, 0.1f, 30);
+                createController.createDriveServerService("testiServer", testdir, 0.1f, 30, useSymLinks);
 //                FxTest.tmp = serverService.getUuid();
 //                connectAcceptingClient();
             });
@@ -418,7 +417,7 @@ public class FxTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                createController.createDriveServerService("testiServer", testdir, 0.1f, 30);
+                createController.createDriveServerService("testiServer", testdir, 0.1f, 30, useSymLinks);
                 // create contacts server too
 
                 ContactsSettings settings = new ContactsSettings();
@@ -747,13 +746,13 @@ public class FxTest {
                                         clientDriveService.setSyncListener(clientSyncListener);
                                         ((MeinDriveClientService) clientDriveService).syncThisClient();
                                     })).start();
-                                    new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30);
+                                    new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30, useSymLinks);
                                 });
                             });
                         });
                     });
                 })).start();
-                new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30);
+                new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30, useSymLinks);
             });
         });
         lock.lockWrite();

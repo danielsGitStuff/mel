@@ -1,7 +1,6 @@
 package de.mein.drive;
 
 import de.mein.Lok;
-import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.file.AFile;
@@ -53,9 +52,13 @@ public class DriveCreateController {
         meinAuthService.getMeinBoot().bootServices();
     }
 
-    public void createDriveServerService(String name, AFile rootFile, float wastebinRatio, long maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+    public void createDriveServerService(String name, AFile rootFile, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         RootDirectory rootDirectory = DriveSettings.buildRootDirectory(rootFile);
-        de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_SERVER).setRootDirectory(rootDirectory).setMaxAge(maxDays);
+        de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings()
+                .setRole(DriveStrings.ROLE_SERVER)
+                .setRootDirectory(rootDirectory)
+                .setMaxAge(maxDays)
+                .setUseSymLinks(useSymLinks);
         AFile transferDir = AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR);
         transferDir.mkdirs();
         driveSettings.setTransferDirectory(transferDir);
@@ -69,13 +72,14 @@ public class DriveCreateController {
         return deferred;
     }
 
-    public void createDriveClientService(String name, AFile rootFile, Long certId, String serviceUuid, float wastebinRatio, long maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
+    public void createDriveClientService(String name, AFile rootFile, Long certId, String serviceUuid, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
 //        //create Service
         RootDirectory rootDirectory = DriveSettings.buildRootDirectory(rootFile);
         de.mein.drive.data.DriveSettings driveSettingsCfg = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
         driveSettingsCfg.setTransferDirectory(AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR));
         driveSettingsCfg.setMaxWastebinSize((long) (driveSettingsCfg.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         driveSettingsCfg.setMaxAge(maxDays);
+        driveSettingsCfg.setUseSymLinks(useSymLinks);
         driveSettingsCfg.getClientSettings().setInitFinished(false);
         driveSettingsCfg.getClientSettings().setServerCertId(certId);
         driveSettingsCfg.getClientSettings().setServerServiceUuid(serviceUuid);

@@ -106,4 +106,8 @@ public abstract class BashTools {
     public static boolean mv(File source, File target) throws IOException {
         return instance.mv(source, target);
     }
+
+    public static boolean isSymLink(AFile f) {
+        return instance.isSymLink(f);
+    }
 }

@@ -7,8 +7,6 @@ import androidx.core.app.NotificationCompat;
 
 import android.view.ViewGroup;
 
-import org.jdeferred.Promise;
-
 import de.mein.R;
 import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
@@ -25,7 +23,6 @@ import de.mein.android.boot.AndroidBootLoader;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.data.DriveStrings;
-import de.mein.drive.service.MeinDriveClientService;
 
 /**
  * Created by xor on 2/25/17.
@@ -45,11 +42,11 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
                 String name = driveCreateGuiController.getName();
                 AFile rootFile = driveCreateGuiController.getRootFile();
                 if (driveCreateGuiController.isServer()) {
-                    driveCreateController.createDriveServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays());
+                    driveCreateController.createDriveServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), useSymLinks);
                 } else {
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedService().getUuid().v();
-                    driveCreateController.createDriveClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays());
+                    driveCreateController.createDriveClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), useSymLinks);
                     //promise.done(meinDriveClientService -> N.r(() -> meinDriveClientService.syncThisClient()));
                 }
             });

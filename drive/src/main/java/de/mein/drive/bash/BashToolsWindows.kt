@@ -13,6 +13,16 @@ import java.util.stream.Stream
  * Created by xor on 13.07.2017.
  */
 class BashToolsWindows : BashToolsImpl {
+    override fun isSymLink(f: AFile<out AFile<*>>?): Boolean {
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        return false
+    }
 
     override fun setBinPath(binPath: String) {
         Lok.debug("BashToolsWindows.setBinPath")

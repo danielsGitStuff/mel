@@ -142,6 +142,15 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
             timerInternal1.start();
 
+            try {
+                if (BashTools.isSymLink(f)) {
+                    if (!databaseManager.getDriveSettings().getUseSymLinks())
+                        continue;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             // find the actual relating FsEntry of the parent directory
             // android does not recognize --mindepth when calling find. if we find the root directory here we must skip it.
             if (parent == null || parent.getAbsolutePath().length() < rootPathLength)
@@ -220,7 +229,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
         FsBashDetails fsBashDetails = BashTools.getINodeOfFile(stageFile);
         if (fsBashDetails.isSymLink()) {
-            databaseManager.getDriveSettings().getDriveDetails().containsSymLinks(true);
+            databaseManager.getDriveSettings().getDriveDetails().usesSymLinks(true);
             return;
         }
 
@@ -368,7 +377,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // skip hashing if information is complete & fastBoot is enabled-> speeds up booting
         if (stageFile.exists()) {
 
-            //todo deal with symlinks here
 
             //todo debug
             if (stageFile.getName().equals("right") || stageFile.getName().equals("wrong"))
@@ -384,11 +392,16 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     || stage.getSizePair().isNull()) {
 
                 FsBashDetails fsBashDetails = BashTools.getINodeOfFile(stageFile);
-
                 stage.setContentHash(Hash.md5(stageFile.inputStream()));
                 stage.setiNode(fsBashDetails.getiNode());
                 stage.setModified(fsBashDetails.getModified());
                 stage.setSize(stageFile.length());
+
+                //todo deal with symlinks here
+                if (fsBashDetails.isSymLink()) {
+                    Lok.debug("updating symlink file");
+                }
+
             }
 
             if (timer1 != null)
