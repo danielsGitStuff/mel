@@ -51,10 +51,12 @@ public class IndexHelper {
     Stage connectToFs(AFile directory) throws SqlQueriesException {
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         String targetPath = directory.getAbsolutePath();
+        if (targetPath.length() < rootPathLength)
+            return null;
         String stackPath = fileStack.peek().getAbsolutePath();
 
         // remove everything from the stacks that does not lead to the directory
-        while (stackPath.length() > targetPath.length() || !targetPath.startsWith(stackPath)) {
+        while (fileStack.size() > 1 && (stackPath.length() > targetPath.length() || !targetPath.startsWith(stackPath))) {
             fileStack.pop();
             stackPath = fileStack.peek().getAbsolutePath();
             if (stageStack.size() > 0) {
