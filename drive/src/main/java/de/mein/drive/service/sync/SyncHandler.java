@@ -7,7 +7,7 @@ import de.mein.auth.tools.N;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.bash.BashTools;
-import de.mein.drive.bash.ModifiedAndInode;
+import de.mein.drive.bash.FsBashDetails;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
@@ -71,20 +71,20 @@ public abstract class SyncHandler {
             Lok.debug("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
             // check if there already is a file & delete
             if (target.exists()) {
-                ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(target);
+                FsBashDetails fsBashDetails = BashTools.getINodeOfFile(target);
                 // file had to be marked as deleted before, which means the inode and so on appear in the wastebin
-                Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(modifiedAndInode.getiNode());
-                GenericFSEntry genericFSEntry = fsDao.getGenericByINode(modifiedAndInode.getiNode());
+                Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(fsBashDetails.getiNode());
+                GenericFSEntry genericFSEntry = fsDao.getGenericByINode(fsBashDetails.getiNode());
                 if (target.isFile()) {
                     if (waste != null) {
-                        if (waste.getModified().v().equals(modifiedAndInode.getModified())) {
+                        if (waste.getModified().v().equals(fsBashDetails.getModified())) {
                             wastebin.moveToBin(waste, target);
                         } else {
                             System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
                             System.err.println("SyncHandler.moveFile: " + target.getAbsolutePath());
                         }
-                    } else if ((fsTarget.getModified().isNull() || (fsTarget.getModified().notNull() && !fsTarget.getModified().v().equals(modifiedAndInode.getModified())))
-                            || (fsTarget.getiNode().isNull() || fsTarget.getiNode().notNull() && !fsTarget.getiNode().v().equals(modifiedAndInode.getiNode()))) {
+                    } else if ((fsTarget.getModified().isNull() || (fsTarget.getModified().notNull() && !fsTarget.getModified().v().equals(fsBashDetails.getModified())))
+                            || (fsTarget.getiNode().isNull() || fsTarget.getiNode().notNull() && !fsTarget.getiNode().v().equals(fsBashDetails.getiNode()))) {
                         //file is not equal to the one in the fs table
                         wastebin.deleteUnknown(target);
                     } else {
@@ -94,9 +94,9 @@ public abstract class SyncHandler {
                 }
             }
             indexer.ignorePath(target.getAbsolutePath(), 1);
-            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(source);
-            fsTarget.getiNode().v(modifiedAndInode.getiNode());
-            fsTarget.getModified().v(modifiedAndInode.getModified());
+            FsBashDetails fsBashDetails = BashTools.getINodeOfFile(source);
+            fsTarget.getiNode().v(fsBashDetails.getiNode());
+            fsTarget.getModified().v(fsBashDetails.getModified());
             fsTarget.getSize().v(source.length());
             fsTarget.getSynced().v(true);
             boolean moved = source.move(target);
@@ -186,9 +186,9 @@ public abstract class SyncHandler {
             }
             //indexer.stopIgnore(target.getAbsolutePath());
             RWLock waitLock = new RWLock();
-            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(target);
-            fsTarget.getiNode().v(modifiedAndInode.getiNode());
-            fsTarget.getModified().v(modifiedAndInode.getModified());
+            FsBashDetails fsBashDetails = BashTools.getINodeOfFile(target);
+            fsTarget.getiNode().v(fsBashDetails.getiNode());
+            fsTarget.getModified().v(fsBashDetails.getModified());
             fsTarget.getSize().v(target.length());
             driveDatabaseManager.getFsDao().update(fsTarget);
             waitLock.lockWrite();
@@ -328,9 +328,9 @@ public abstract class SyncHandler {
                                     // delete file. consider that it might be in the same state as the stage
                                     AFile stageFile = stageDao.getFileByStage(stage);
                                     if (stageFile.exists()) {
-                                        ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
+                                        FsBashDetails fsBashDetails = BashTools.getINodeOfFile(stageFile);
                                         if (stage.getiNode() == null || stage.getModified() == null ||
-                                                !(modifiedAndInode.getiNode().equals(stage.getiNode()) && modifiedAndInode.getModified().equals(stage.getModified()))) {
+                                                !(fsBashDetails.getiNode().equals(stage.getiNode()) && fsBashDetails.getModified().equals(stage.getModified()))) {
                                             wastebin.deleteUnknown(stageFile);
 //                                            stage.setSynced(false);
                                             // we could search more recent stagesets to find some clues here and prevent deleteUnknown().
@@ -422,9 +422,9 @@ public abstract class SyncHandler {
     }
 
     private void updateInodeModified(FsEntry entry, AFile f) throws SqlQueriesException, IOException, InterruptedException {
-        ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
-        entry.getiNode().v(modifiedAndInode.getiNode());
-        entry.getModified().v(modifiedAndInode.getModified());
+        FsBashDetails fsBashDetails = BashTools.getINodeOfFile(f);
+        entry.getiNode().v(fsBashDetails.getiNode());
+        entry.getModified().v(fsBashDetails.getModified());
         fsDao.update(entry);
     }
 

@@ -6,7 +6,7 @@ import de.mein.auth.tools.N;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.bash.BashTools;
-import de.mein.drive.bash.ModifiedAndInode;
+import de.mein.drive.bash.FsBashDetails;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.Indexer;
@@ -160,8 +160,8 @@ public class Wastebin {
             if (f.exists()) {
                 indexer.ignorePath(f.getAbsolutePath(), 1);
                 if (f.isFile()) {
-                    ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
-                    Waste waste = wasteDao.getWasteByInode(modifiedAndInode.getiNode());
+                    FsBashDetails fsBashDetails = BashTools.getINodeOfFile(f);
+                    Waste waste = wasteDao.getWasteByInode(fsBashDetails.getiNode());
                     if (waste != null) {
                         // we once wanted this file to be deleted. check if it did not change in the meantime
                         if (waste.getInode().v().equals(fsFile.getiNode().v()) && waste.getModified().v().equals(fsFile.getModified().v())) {
@@ -201,14 +201,14 @@ public class Wastebin {
         return null;
     }
 
-    private void moveToBin(AFile file, String contentHash, ModifiedAndInode modifiedAndInode) throws SqlQueriesException {
+    private void moveToBin(AFile file, String contentHash, FsBashDetails fsBashDetails) throws SqlQueriesException {
         //todo debug
         if (contentHash.equals("9471e9c1779a51bb6fcb5735127c0701"))
             Lok.debug("Wastebin.moveToBin.debugjfc03jg0w");
         Waste waste = new Waste();
-        waste.getModified().v(modifiedAndInode.getModified());
+        waste.getModified().v(fsBashDetails.getModified());
         waste.getHash().v(contentHash);
-        waste.getInode().v(modifiedAndInode.getiNode());
+        waste.getInode().v(fsBashDetails.getiNode());
         waste.getInplace().v(false);
         waste.getName().v(file.getName());
         waste.getSize().v(file.length());
@@ -225,10 +225,10 @@ public class Wastebin {
         FsDirectory fsDirectory = fsDao.getFsDirectoryByPath(dir);
         AFile[] files = dir.listFiles();
         for (AFile f : files) {
-            ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(f);
-            String contentHash = findHashOfFile(f, modifiedAndInode.getiNode());
+            FsBashDetails fsBashDetails = BashTools.getINodeOfFile(f);
+            String contentHash = findHashOfFile(f, fsBashDetails.getiNode());
             if (contentHash != null) {
-                moveToBin(f, contentHash, modifiedAndInode);
+                moveToBin(f, contentHash, fsBashDetails);
             } else {
                 System.err.println("Wastebin.recursiveDelete.0ig4");
                 f.delete();
@@ -315,8 +315,8 @@ public class Wastebin {
      * @throws IOException
      */
     public void deleteUnknown(AFile file) throws IOException, SqlQueriesException, InterruptedException {
-        ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
-        AFile target = AFile.instance(deferredDir, modifiedAndInode.getiNode().toString());
+        FsBashDetails fsBashDetails = BashTools.getINodeOfFile(file);
+        AFile target = AFile.instance(deferredDir, fsBashDetails.getiNode().toString());
         file.move(target);
 
         //if dir?!?!
@@ -332,8 +332,8 @@ public class Wastebin {
         String hash = Hash.md5(target.inputStream());
         Waste waste = new Waste();
         waste.getHash().v(hash);
-        waste.getInode().v(modifiedAndInode.getiNode());
-        waste.getModified().v(modifiedAndInode.getModified());
+        waste.getInode().v(fsBashDetails.getiNode());
+        waste.getModified().v(fsBashDetails.getModified());
         waste.getInplace().v(false);
         waste.getSize().v(target.length());
         waste.getName().v(file.getName());

@@ -14,7 +14,7 @@ import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsImpl;
-import de.mein.drive.bash.ModifiedAndInode;
+import de.mein.drive.bash.FsBashDetails;
 
 public class SAFBashTools implements BashToolsImpl {
     private final Context context;
@@ -51,7 +51,7 @@ public class SAFBashTools implements BashToolsImpl {
     }
 
     @Override
-    public ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException, InterruptedException {
+    public FsBashDetails getModifiedAndINodeOfFile(AFile file) throws IOException, InterruptedException {
         return null;
     }
 
@@ -70,11 +70,6 @@ public class SAFBashTools implements BashToolsImpl {
         //testing needed which one is faster.
         return bashToolsAndroid.find(directory, pruneDir);
 //        return new DFileRecursiveIterator(context, directory, pruneDir);
-    }
-
-    @Override
-    public Promise<Long, Exception, Void> getInode(AFile f) {
-        return null;
     }
 
     @Override

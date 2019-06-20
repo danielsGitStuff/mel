@@ -6,7 +6,7 @@ import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.bash.BashTools;
-import de.mein.drive.bash.ModifiedAndInode;
+import de.mein.drive.bash.FsBashDetails;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsEntry;
 import de.mein.drive.sql.Stage;
@@ -173,12 +173,12 @@ public class IndexHelper {
     void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
         if (databaseManager.getDriveSettings().getFastBoot()) {
             try {
-                ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(file);
-                if (fsEntry.getModified().equalsValue(modifiedAndInode.getModified())
-                        && fsEntry.getiNode().equalsValue(modifiedAndInode.getiNode())
+                FsBashDetails fsBashDetails = BashTools.getINodeOfFile(file);
+                if (fsEntry.getModified().equalsValue(fsBashDetails.getModified())
+                        && fsEntry.getiNode().equalsValue(fsBashDetails.getiNode())
                         && ((fsEntry.getIsDirectory().v() && file.isDirectory()) || fsEntry.getSize().equalsValue(file.length()))) {
-                    stage.setiNode(modifiedAndInode.getiNode());
-                    stage.setModified(modifiedAndInode.getModified());
+                    stage.setiNode(fsBashDetails.getiNode());
+                    stage.setModified(fsBashDetails.getModified());
                     stage.setContentHash(fsEntry.getContentHash().v());
                     stage.setSize(fsEntry.getSize().v());
                     stage.setSynced(true);

@@ -19,7 +19,7 @@ public interface BashToolsImpl {
 
     Set<Long> getINodesOfDirectory(AFile file) throws IOException;
 
-    ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException, InterruptedException;
+    FsBashDetails getModifiedAndINodeOfFile(AFile file) throws IOException, InterruptedException;
 
     /**
      * rm -rf
@@ -32,12 +32,9 @@ public interface BashToolsImpl {
 
     Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException;
 
-    Promise<Long, Exception, Void> getInode(AFile f);
-
     Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException;
 
     void mkdir(AFile dir) throws IOException;
 
     boolean mv(File source, File target) throws IOException;
-
 }

@@ -47,7 +47,7 @@ public abstract class BashTools {
     }
 
 
-    public static ModifiedAndInode getINodeOfFile(AFile file) throws IOException, InterruptedException {
+    public static FsBashDetails getINodeOfFile(AFile file) throws IOException, InterruptedException {
         return instance.getModifiedAndINodeOfFile(file);
     }
 
@@ -66,10 +66,6 @@ public abstract class BashTools {
         return instance.find(directory, pruneDir);
     }
 
-
-    public static Promise<Long, Exception, Void> getInode(AFile f) {
-        return instance.getInode(f);
-    }
 
     public static Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return instance.stuffModifiedAfter(originalFile, pruneDir, timeStamp);

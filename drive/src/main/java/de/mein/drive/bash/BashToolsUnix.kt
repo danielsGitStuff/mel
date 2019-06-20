@@ -15,7 +15,6 @@ import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
@@ -36,17 +35,6 @@ open class BashToolsUnix : BashToolsImpl {
             val lines = Files.readAllLines(Paths.get(f.toURI()))
             return java.lang.Long.parseLong(lines[0])
         }
-
-
-    @Throws(IOException::class)
-    fun getModifiedAndInode(file: AFile<*>): ModifiedAndInode {
-        val args = arrayOf(BIN_PATH, "-c", "stat -c %Y\" \"%i " + escapeAbsoluteFilePath(file))
-        val proc = ProcessBuilder(*args).start()
-        val reader = BufferedReader(InputStreamReader(proc.inputStream))
-        val line = reader.readLine()
-        val split = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        return ModifiedAndInode(java.lang.Long.parseLong(split[0]), java.lang.Long.parseLong(split[1]))
-    }
 
 
     override fun setBinPath(binPath: String) {
@@ -82,8 +70,8 @@ open class BashToolsUnix : BashToolsImpl {
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    override fun getModifiedAndINodeOfFile(file: AFile<*>): ModifiedAndInode {
-        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %Y " + escapeAbsoluteFilePath(file))
+    override fun getModifiedAndINodeOfFile(file: AFile<*>): FsBashDetails {
+        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %Y\\ %F " + escapeAbsoluteFilePath(file))
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
@@ -106,7 +94,8 @@ open class BashToolsUnix : BashToolsImpl {
         val parts = line!!.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val iNode = java.lang.Long.parseLong(parts[0])
         val modified = java.lang.Long.parseLong(parts[1])
-        return ModifiedAndInode(modified, iNode)
+        val symLink = parts[2].startsWith("sym")
+        return FsBashDetails(modified, iNode, symLink)
     }
 
     /**
@@ -160,51 +149,6 @@ open class BashToolsUnix : BashToolsImpl {
         return exec("find " + escapeAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeAbsoluteFilePath(pruneDir) + " -prune -o -print")
     }
 
-    override fun getInode(f: AFile<*>): Promise<Long, Exception, Void> {
-        val deferred = DeferredObject<Long, Exception, Void>()
-        executorService.execute {
-            N.r {
-                val ba = "ls -i -d " + escapeAbsoluteFilePath(f)
-                val args = arrayOf(BIN_PATH, "-c", ba)
-                var inode: Long?
-                var lines: List<String>
-                var hasFinished = false
-                var proc: Process? = null
-                while (!hasFinished) {
-                    try {
-                        proc = ProcessBuilder(*args).start()
-                        hasFinished = proc!!.waitFor(10, TimeUnit.SECONDS)
-                        if (!hasFinished) {
-                            val errorReader = BufferedReader(InputStreamReader(proc.errorStream))
-//                            val errors = errorReader.lines().collect<List<String>, Any>(Collectors.toList())
-                            Lok.debug("BashTools.stuffModifiedAfter.did not finish")
-                        }
-                        // try to read anyway.
-                        // the process might have come to an end but Process.waitFor() does not always finish.
-                        Lok.debug("BashTools.stuffModifiedAfter")
-                        val reader = BufferedReader(InputStreamReader(proc.inputStream))
-                        Lok.debug("BashTools.stuffModifiedAfter.collecting.result")
-                        lines = reader.lines().collect(Collectors.toList())
-//                        lines = reader.lines().collect<List<String>, Any>(Collectors.toList())
-                        lines.forEach { s -> Lok.debug("BashTools.getNodeAndTime.LLLL $s") }
-                        val s = lines[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                        if (s[0].isEmpty())
-                            Lok.debug("BashTools.getNodeAndTime")
-                        inode = java.lang.Long.parseLong(s[0])
-                        deferred.resolve(inode)
-                        hasFinished = true
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        proc!!.destroyForcibly()
-                        continue
-                    }
-
-                }
-            }
-        }
-        return deferred
-    }
-
     override fun stuffModifiedAfter(directory: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): Iterator<AFile<*>>? {
         System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(")
         return null
@@ -235,7 +179,7 @@ open class BashToolsUnix : BashToolsImpl {
         return false
     }
 
-    class SubDirCount(val counted:Long,val completed:Boolean)
+    class SubDirCount(val counted: Long, val completed: Boolean)
 
     @Throws(IOException::class, InterruptedException::class)
     fun countSubDirs(dir: File): SubDirCount {
@@ -249,13 +193,12 @@ open class BashToolsUnix : BashToolsImpl {
         thread.start()
         thread.join(10000)
         if (!finished) {
-            return SubDirCount(count,false)
+            return SubDirCount(count, false)
         }
-        return SubDirCount(count,true)
+        return SubDirCount(count, true)
     }
 
     companion object {
-
 
         @Throws(Exception::class)
         @JvmStatic
@@ -264,7 +207,7 @@ open class BashToolsUnix : BashToolsImpl {
             val f = AFile.instance("f")
             f.mkdirs()
             val bashToolsUnix = BashToolsUnix()
-            val modifiedAndInode = bashToolsUnix.getModifiedAndInode(f)
+            val modifiedAndInode = bashToolsUnix.getModifiedAndINodeOfFile(f)
             Lok.debug("mod " + modifiedAndInode.modified + " ... inode " + modifiedAndInode.getiNode())
             f.delete()
         }

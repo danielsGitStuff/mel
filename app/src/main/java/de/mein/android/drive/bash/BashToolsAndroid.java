@@ -13,7 +13,7 @@ import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsJava;
 import de.mein.drive.bash.BashToolsUnix;
-import de.mein.drive.bash.ModifiedAndInode;
+import de.mein.drive.bash.FsBashDetails;
 
 /**
  * Created by xor on 7/20/17.
@@ -32,15 +32,16 @@ public class BashToolsAndroid extends BashToolsUnix {
         testCommands();
     }
 
+
     private void testCommands() {
         // find
         // in case find fails and we are on android 5+ we can use the storage access framework instead of the bash.
         // but in case it works we will stick to that
         String cmd = "";
-        AFile cacheDir =AFile.instance(context.getCacheDir());
+        AFile cacheDir = AFile.instance(context.getCacheDir());
         AFile dir = AFile.instance(cacheDir, "bash.test");
         AFile prune = AFile.instance(dir, "prune");
-        AFile file = AFile.instance(dir,"file");
+        AFile file = AFile.instance(dir, "file");
         try {
             dir.mkdirs();
             prune.mkdirs();
@@ -88,7 +89,7 @@ public class BashToolsAndroid extends BashToolsUnix {
     }
 
     @Override
-    public ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException {
+    public FsBashDetails getModifiedAndINodeOfFile(AFile file) throws IOException {
         String[] args = new String[]{getBIN_PATH(), "-c", "ls -id " + escapeAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -96,7 +97,11 @@ public class BashToolsAndroid extends BashToolsUnix {
         line = line.trim();
         String[] parts = line.split(" ");
         Long iNode = Long.parseLong(parts[0]);
-        return new ModifiedAndInode(file.lastModified(), iNode);
+        /**
+         * Testing revealed that Android P (maybe even earlier) does not support creating symlinks via terminal.
+         * Thus supporting symlinks on Android is pointless.
+         */
+        return new FsBashDetails(file.lastModified(), iNode, false);
     }
 
     @Override

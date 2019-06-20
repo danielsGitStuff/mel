@@ -2,12 +2,10 @@ package de.mein.drive.bash
 
 import de.mein.Lok
 import de.mein.auth.file.AFile
-import de.mein.drive.bash.BashToolsWindows.Companion.CHARSET
 
 import org.jdeferred.Promise
 
 import java.io.*
-import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.stream.Stream
 
@@ -26,12 +24,20 @@ class BashToolsWindows : BashToolsImpl {
     }
 
     @Throws(IOException::class)
-    override fun getModifiedAndINodeOfFile(file: AFile<*>): ModifiedAndInode {
+    override fun getModifiedAndINodeOfFile(file: AFile<*>): FsBashDetails {
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+
         //reads something like "File ID is 0x0000000000000000000200000000063a"
         val result = execLine("fsutil", "file", "queryfileid", file.absolutePath)
         val id = result!!.substring(11)
         val iNode = java.lang.Long.decode(id)
-        return ModifiedAndInode(file.lastModified(), iNode)
+        return FsBashDetails(file.lastModified(), iNode, false)
     }
 
     @Throws(IOException::class)
@@ -96,12 +102,8 @@ class BashToolsWindows : BashToolsImpl {
         val cmd = ("dir /b/s \"" + directory.absolutePath
                 + "\" | findstr /v \"" + pruneDir.absolutePath + "\"")
         return execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")!!.lines()
-                .map { it :String -> AFile.instance(it) }.iterator()
-                //.map<AFile>(Function<String, AFile> { it:String -> AFile.instance(it) }).iterator()
-    }
-
-    override fun getInode(f: AFile<*>): Promise<Long, Exception, Void>? {
-        return null
+                .map { it: String -> AFile.instance(it) }.iterator()
+        //.map<AFile>(Function<String, AFile> { it:String -> AFile.instance(it) }).iterator()
     }
 
     @Throws(IOException::class, InterruptedException::class)
@@ -115,7 +117,7 @@ class BashToolsWindows : BashToolsImpl {
         val reader = WindowsPowerReader(InputStreamReader(process.inputStream))
         reader.prependLine(prependLine)
         //process.waitFor();
-        return reader.lines().map { it:String -> AFile.instance(it) }
+        return reader.lines().map { it: String -> AFile.instance(it) }
 //        return reader.lines().map(Function<String, AFile<*>> { s: String -> AFile.instance(s) })
     }
 

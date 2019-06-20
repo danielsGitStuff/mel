@@ -9,6 +9,7 @@ public class DriveDetails extends ServicePayload {
     private String role;
     private long lastSyncVersion;
     private String serviceUuid;
+    private boolean containsSymLinks = false;
 
     public DriveDetails setLastSyncVersion(long lastSyncVersion) {
         this.lastSyncVersion = lastSyncVersion;
@@ -35,5 +36,13 @@ public class DriveDetails extends ServicePayload {
 
     public String getRole() {
         return role;
+    }
+
+    public void containsSymLinks(boolean containsSymLinks) {
+        this.containsSymLinks = containsSymLinks;
+    }
+
+    public boolean containsSymLinks() {
+        return containsSymLinks;
     }
 }

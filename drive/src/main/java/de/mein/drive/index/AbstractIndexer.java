@@ -3,12 +3,11 @@ package de.mein.drive.index;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
-import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.bash.BashTools;
-import de.mein.drive.bash.ModifiedAndInode;
+import de.mein.drive.bash.FsBashDetails;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.sql.*;
@@ -218,6 +217,14 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
 
+
+        FsBashDetails fsBashDetails = BashTools.getINodeOfFile(stageFile);
+        if (fsBashDetails.isSymLink()) {
+            databaseManager.getDriveSettings().getDriveDetails().containsSymLinks(true);
+            return;
+        }
+
+
 //        Lok.debug("AbstractIndexer.roamDirectoryStage: " + stageFile.getAbsolutePath());
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
@@ -343,9 +350,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         newFsDirectory.calcContentHash();
         stage.setContentHash(newFsDirectory.getContentHash().v());
         RWLock waitLock = new RWLock().lockWrite();
-        ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
-        stage.setModified(modifiedAndInode.getModified())
-                .setiNode(modifiedAndInode.getiNode());
+        stage.setModified(fsBashDetails.getModified())
+                .setiNode(fsBashDetails.getiNode());
         if (stage.getFsId() != null) {
             FsDirectory oldFsDirectory = fsDao.getFsDirectoryById(stage.getFsId());
             if (oldFsDirectory.getContentHash().v().equals(newFsDirectory.getContentHash().v()))
@@ -362,6 +368,12 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // skip hashing if information is complete & fastBoot is enabled-> speeds up booting
         if (stageFile.exists()) {
 
+            //todo deal with symlinks here
+
+            //todo debug
+            if (stageFile.getName().equals("right") || stageFile.getName().equals("wrong"))
+                Lok.debug("debug");
+
             if (timer1 != null)
                 timer1.start();
 
@@ -371,11 +383,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     || stage.getModifiedPair().isNull()
                     || stage.getSizePair().isNull()) {
 
-                ModifiedAndInode modifiedAndInode = BashTools.getINodeOfFile(stageFile);
+                FsBashDetails fsBashDetails = BashTools.getINodeOfFile(stageFile);
 
                 stage.setContentHash(Hash.md5(stageFile.inputStream()));
-                stage.setiNode(modifiedAndInode.getiNode());
-                stage.setModified(modifiedAndInode.getModified());
+                stage.setiNode(fsBashDetails.getiNode());
+                stage.setModified(fsBashDetails.getModified());
                 stage.setSize(stageFile.length());
             }
 

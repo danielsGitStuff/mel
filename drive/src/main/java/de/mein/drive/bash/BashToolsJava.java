@@ -27,7 +27,7 @@ public class BashToolsJava implements BashToolsImpl {
     }
 
     @Override
-    public ModifiedAndInode getModifiedAndINodeOfFile(AFile file) throws IOException {
+    public FsBashDetails getModifiedAndINodeOfFile(AFile file) throws IOException {
         Lok.error("NOT:IMPLEMENTED");
         return null;
     }
@@ -153,11 +153,6 @@ public class BashToolsJava implements BashToolsImpl {
         };
     }
 
-    @Override
-    public Promise<Long, Exception, Void> getInode(AFile f) {
-        Lok.error("NOT:IMPLEMENTED");
-        return null;
-    }
 
     @Override
     public Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
