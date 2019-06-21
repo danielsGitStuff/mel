@@ -177,4 +177,16 @@ public class BashToolsAndroidJavaImpl implements BashToolsImpl {
     public boolean isSymLink(AFile f) {
         return false;
     }
+
+    @Override
+    public Map<String, FsBashDetails> getContentFsBashDetails(AFile file) {
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        return null;
+    }
 }

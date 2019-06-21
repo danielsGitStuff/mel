@@ -105,8 +105,8 @@ public class DriveDatabaseManager extends FileRelatedManager {
          */
         sqlQueries = sqlqueriesCreator.createConnection(this, meinDriveService.getUuid());
         {
-        SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
-        st.execute();
+            SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
+            st.execute();
         }
         {
             SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
@@ -129,6 +129,9 @@ public class DriveDatabaseManager extends FileRelatedManager {
 //        this.driveSettings.setMaxWastebinSize(driveSettingsCfg.getMaxWastebinSize());
 //        this.driveSettings.setMaxAge(driveSettingsCfg.getMaxAge());
 //        this.driveSettings.setFastBoot(driveSettingsCfg.getFastBoot());
+
+        //todo debug
+//        sqlQueries.execute("delete from fsentry where parentid not null", ISQLQueries.whereArgs());
 
         fsDao = new FsDao(this, sqlQueries);
         stageDao = new StageDao(driveSettings, sqlQueries, fsDao);

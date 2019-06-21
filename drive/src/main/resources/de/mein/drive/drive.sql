@@ -16,7 +16,7 @@ CREATE TABLE fsentry
     inode       INTEGER,
     modified    INTEGER,
     size        INTEGER,
-    sym         INTEGER,
+    sym         text,
     FOREIGN KEY (parentid) REFERENCES fsentry (id)
 );
 CREATE INDEX eversion
@@ -42,7 +42,7 @@ CREATE TABLE stage
     version     INTEGER,
     contenthash TEXT,
     dir         INTEGER NOT NULL,
-    sym         INTEGER,
+    sym         text,
     inode       INTEGER,
     modified    INTEGER,
     deleted     INTEGER NOT NULL,

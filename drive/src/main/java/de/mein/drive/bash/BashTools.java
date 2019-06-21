@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import de.mein.Lok;
@@ -99,5 +100,9 @@ public abstract class BashTools {
 
     public static boolean isSymLink(AFile f) {
         return instance.isSymLink(f);
+    }
+
+    public static Map<String, FsBashDetails> getContentFsBashDetails(AFile file) {
+        return instance.getContentFsBashDetails(file);
     }
 }

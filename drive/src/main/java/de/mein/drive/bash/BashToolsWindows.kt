@@ -3,8 +3,6 @@ package de.mein.drive.bash
 import de.mein.Lok
 import de.mein.auth.file.AFile
 
-import org.jdeferred.Promise
-
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.stream.Stream
@@ -13,6 +11,18 @@ import java.util.stream.Stream
  * Created by xor on 13.07.2017.
  */
 class BashToolsWindows : BashToolsImpl {
+    override fun getContentFsBashDetails(file: AFile<out AFile<*>>?): MutableMap<String, FsBashDetails> {
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        System.exit(-1)
+        return mutableMapOf()
+    }
+
     override fun isSymLink(f: AFile<out AFile<*>>?): Boolean {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
@@ -47,7 +57,9 @@ class BashToolsWindows : BashToolsImpl {
         val result = execLine("fsutil", "file", "queryfileid", file.absolutePath)
         val id = result!!.substring(11)
         val iNode = java.lang.Long.decode(id)
-        return FsBashDetails(file.lastModified(), iNode, false)
+        val symLinkTarget = "not implemented yet"
+        val name = "NAME"
+        return FsBashDetails(file.lastModified(), iNode, false, symLinkTarget, name)
     }
 
     @Throws(IOException::class)

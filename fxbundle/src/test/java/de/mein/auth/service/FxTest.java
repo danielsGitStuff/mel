@@ -268,7 +268,7 @@ public class FxTest {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
                     DriveCreateController createController = new DriveCreateController(meinAuthService);
-                    createController.createDriveClientService("drive client", testdir, 1L, tmp, 0.1f, 30, useSymLinks);
+                    createController.createDriveClientService("drive client", testdir, 1L, tmp, 0.1f, 30, false);
                     Lok.debug("FxTest.connectAcceptingClient");
                 }));
 
@@ -342,7 +342,7 @@ public class FxTest {
                     FxTest.tmp = driveService.getUuid();
                     connectAcceptingClient();
                 })).start();
-                createController.createDriveServerService("testiServer", testdir, 0.1f, 30, useSymLinks);
+                createController.createDriveServerService("testiServer", testdir, 0.1f, 30, false);
 //                FxTest.tmp = serverService.getUuid();
 //                connectAcceptingClient();
             });
@@ -417,7 +417,7 @@ public class FxTest {
             });
             N.r(() -> {
                 DriveCreateController createController = new DriveCreateController(meinAuthService);
-                createController.createDriveServerService("testiServer", testdir, 0.1f, 30, useSymLinks);
+                createController.createDriveServerService("testiServer", testdir, 0.1f, 30, false);
                 // create contacts server too
 
                 ContactsSettings settings = new ContactsSettings();
@@ -746,13 +746,13 @@ public class FxTest {
                                         clientDriveService.setSyncListener(clientSyncListener);
                                         ((MeinDriveClientService) clientDriveService).syncThisClient();
                                     })).start();
-                                    new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30, useSymLinks);
+                                    new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30, false);
                                 });
                             });
                         });
                     });
                 })).start();
-                new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30, useSymLinks);
+                new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30, false);
             });
         });
         lock.lockWrite();

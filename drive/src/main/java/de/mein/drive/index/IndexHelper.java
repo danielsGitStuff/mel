@@ -182,7 +182,7 @@ public class IndexHelper {
                     stage.setSize(fsEntry.getSize().v());
                     stage.setSynced(true);
                     if (fsBashDetails.isSymLink())
-                        stage.setSymLink(true);
+                        stage.setSymLink(fsBashDetails.getSymLinkTarget());
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();

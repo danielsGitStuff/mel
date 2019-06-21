@@ -36,7 +36,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     // tells whether or not the file was already put/seen in its logical place on FS
     protected Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);
     protected Pair<Long> size = new Pair<>(Long.class, SIZE);
-    protected Pair<Boolean> isSymlink = new Pair<>(Boolean.class, SYMLINK);
+    protected Pair<String> symLink = new Pair<>(String.class, SYMLINK);
 
     public FsEntry() {
         init();
@@ -57,7 +57,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     @Override
     protected void init() {
-        populateInsert(name, parentId, version, contentHash, isDirectory, synced, iNode, modified, size, isSymlink);
+        populateInsert(name, parentId, version, contentHash, isDirectory, synced, iNode, modified, size, symLink);
         populateAll(id);
     }
 
@@ -110,15 +110,15 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
         return size;
     }
 
-    public void setSymLink(boolean isSymLink) {
-        this.isSymlink.v(isSymLink);
+    public void setSymLink(String symLink) {
+        this.symLink.v(symLink);
     }
 
-    public Pair<Boolean> getIsSymlink() {
-        return isSymlink;
+    public Pair<String> getSymLink() {
+        return symLink;
     }
 
     public boolean isSymlink() {
-        return isSymlink.notNull() && isSymlink.v();
+        return symLink.notNull();
     }
 }

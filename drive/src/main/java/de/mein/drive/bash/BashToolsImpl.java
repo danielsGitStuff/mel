@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import de.mein.auth.file.AFile;
@@ -39,4 +40,6 @@ public interface BashToolsImpl {
     boolean mv(File source, File target) throws IOException;
 
     boolean isSymLink(AFile f);
+
+    Map<String, FsBashDetails> getContentFsBashDetails(AFile file);
 }

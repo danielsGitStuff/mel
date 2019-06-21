@@ -7,12 +7,16 @@ public class FsBashDetails {
     private final Long modified;
     private final Long iNode;
     private final boolean isSymLink;
+    private final String symLinkTarget;
+    private final String name;
 
 
-    public FsBashDetails(Long modified, Long iNode, boolean isSymLink) {
+    public FsBashDetails(Long modified, Long iNode, boolean isSymLink, String symLinkTarget, String name) {
         this.modified = modified;
         this.iNode = iNode;
         this.isSymLink = isSymLink;
+        this.symLinkTarget = symLinkTarget;
+        this.name = name;
     }
 
     public Long getiNode() {
@@ -25,5 +29,13 @@ public class FsBashDetails {
 
     public boolean isSymLink() {
         return isSymLink;
+    }
+
+    public String getSymLinkTarget() {
+        return symLinkTarget;
+    }
+
+    public String getName() {
+        return name;
     }
 }

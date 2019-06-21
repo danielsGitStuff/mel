@@ -43,7 +43,7 @@ public class BashToolsAndroid extends BashToolsUnix {
             dir.mkdirs();
             prune.mkdirs();
             file.createNewFile();
-            cmd = "find \"" + dir.getAbsolutePath() + "\" -path " + escapeAbsoluteFilePath(prune) + " -prune -o -print";
+            cmd = "find \"" + dir.getAbsolutePath() + "\" -path " + escapeQuotedAbsoluteFilePath(prune) + " -prune -o -print";
             Streams streams = testCommand(cmd);
             Iterator<AFile> iterator = streams.stdout;
             while (iterator.hasNext()) {
@@ -87,7 +87,7 @@ public class BashToolsAndroid extends BashToolsUnix {
 
     @Override
     public FsBashDetails getFsBashDetails(AFile file) throws IOException {
-        String[] args = new String[]{getBIN_PATH(), "-c", "ls -id " + escapeAbsoluteFilePath(file)};
+        String[] args = new String[]{getBIN_PATH(), "-c", "ls -id " + escapeQuotedAbsoluteFilePath(file)};
         Process proc = new ProcessBuilder(args).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line = reader.readLine();
@@ -98,7 +98,7 @@ public class BashToolsAndroid extends BashToolsUnix {
          * Testing revealed that Android P (maybe even earlier) does not support creating symlinks via terminal.
          * Thus supporting symlinks on Android is pointless.
          */
-        return new FsBashDetails(file.lastModified(), iNode, false);
+        return new FsBashDetails(file.lastModified(), iNode, false, null, file.getName());
     }
 
     @Override

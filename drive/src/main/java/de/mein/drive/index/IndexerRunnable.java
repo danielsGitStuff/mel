@@ -71,7 +71,6 @@ public class IndexerRunnable extends AbstractIndexer {
             if (rootDirectory.getId() == null) {
                 fsRoot = (FsDirectory) new FsDirectory().setName("[root]").setVersion(0L);
                 fsRoot.setOriginalFile(AFile.instance(rootDirectory.getOriginalFile()));
-                fsRoot.setSymLink(false);
                 fsRoot = (FsDirectory) databaseManager.getFsDao().insert(fsRoot);
                 databaseManager.getDriveSettings().getRootDirectory().setId(fsRoot.getId().v());
             } else {
