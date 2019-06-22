@@ -1,5 +1,6 @@
 package de.mein.drive.bash;
 
+import de.mein.drive.sql.FsEntry;
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -42,4 +43,6 @@ public interface BashToolsImpl {
     boolean isSymLink(AFile f);
 
     Map<String, FsBashDetails> getContentFsBashDetails(AFile file);
+
+    void lnS(AFile file, String target);
 }

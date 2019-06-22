@@ -205,6 +205,7 @@ public abstract class SyncHandler {
         commitStage(stageSetId, transaction, null);
     }
 
+
     /**
      * @param stageSetId
      */
@@ -223,19 +224,40 @@ public abstract class SyncHandler {
             //check if sufficient space is available
             if (!stageSet.fromFs())
                 quotaManager.freeSpaceForStageSet(stageSetId);
-            N.sqlResource(stageDao.getStagesByStageSet(stageSetId), stages -> {
+
+            // delete all files
+            N.readSqlResourceIgnorantly(stageDao.getDeletedFileStagesByStageSet(stageSetId), (stages, stage) -> {
+                if (stage.getFsIdPair().notNull()) {
+                    wastebin.deleteFsEntry(stage.getFsId());
+                } else {
+                    Lok.error("DEBUG!!!");
+                    Lok.error("DEBUG!!!");
+                    Lok.error("DEBUG!!!");
+                }
+            });
+
+            // delete all folders
+            N.readSqlResourceIgnorantly(stageDao.getDeletedDirectoryStagesByStageSet(stageSetId), (sqlResource, dirStage) -> {
+                AFile f = stageDao.getFileByStage(dirStage);
+                wastebin.deleteUnknown(f);
+            });
+
+            // put new stuff in place
+            N.sqlResource(stageDao.getNotDeletedStagesByStageSet(stageSetId), stages -> {
                 Stage stage = stages.getNext();
                 while (stage != null) {
+
                     if (stage.getFsId() == null) {
                         if (stage.getIsDirectory()) {
-                            if (stage.getFsId() != null) {
-                                FsDirectory dbDir = fsDao.getDirectoryById(stage.getId());
-                                dbDir.getVersion().v(localVersion);
-                                dbDir.getContentHash().v(stage.getContentHash());
-                                dbDir.getModified().v(stage.getModified());
-                                dbDir.getSymLink().v(stage.getSymLink());
-                                fsDao.update(dbDir);
-                            } else {
+//                            if (stage.getFsId() != null) {
+//                                FsDirectory dbDir = fsDao.getDirectoryById(stage.getId());
+//                                dbDir.getVersion().v(localVersion);
+//                                dbDir.getContentHash().v(stage.getContentHash());
+//                                dbDir.getModified().v(stage.getModified());
+//                                dbDir.getSymLink().v(stage.getSymLink());
+//                                fsDao.update(dbDir);
+//                            } else
+                            {
                                 FsDirectory dir = new FsDirectory();
                                 dir.getVersion().v(localVersion);
                                 dir.getContentHash().v(stage.getContentHash());
@@ -253,7 +275,9 @@ public abstract class SyncHandler {
                                 if (stageIdFsIdMap != null) {
                                     stageIdFsIdMap.put(stage.getId(), dir.getId().v());
                                 }
+
                                 this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), dir);
+
                                 stage.setFsId(dir.getId().v());
                             }
                         } else {
@@ -286,7 +310,10 @@ public abstract class SyncHandler {
                             if (fsFile.getContentHash().isNull())
                                 Lok.debug("debug");
                             fsDao.insert(fsFile);
-                            if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
+                            if (fsFile.isSymlink()) {
+                                AFile f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
+                                BashTools.lnS(f, fsFile.getSymLink().v());
+                            } else if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
                                 TransferDetails details = new TransferDetails();
                                 details.getAvailable().v(stage.getSynced());
                                 details.getCertId().v(stageSet.getOriginCertId());
@@ -310,7 +337,8 @@ public abstract class SyncHandler {
                         if ((stage.getDeleted() != null && stage.getDeleted() && stage.getSynced() != null && stage.getSynced()) || (stage.getIsDirectory() && stage.getDeleted())) {
                             //if (stage.getDeleted() != null && stage.getSynced() != null && (stage.getDeleted() && stage.getSynced())) {
                             //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
-                            wastebin.deleteFsEntry(stage.getFsId());
+//                            wastebin.deleteFsEntry(stage.getFsId());
+                            Lok.debug("debug");
                         } else {
                             FsEntry fsEntry = stageDao.stage2FsEntry(stage);
                             if (fsEntry.getVersion().isNull()) {
@@ -414,7 +442,11 @@ public abstract class SyncHandler {
         if (fsEntry.getIsDirectory().v()) {
             path += fsEntry.getName().v();
             AFile target = AFile.instance(path);
-            if (!target.exists()) {
+            if (fsEntry.isSymlink()) {
+                if (!target.exists()) {
+                    BashTools.lnS(target, fsEntry.getSymLink().v());
+                }
+            } else if (!target.exists()) {
                 indexer.ignorePath(path, 1);
                 Lok.debug("SyncHandler.createDirs: " + target.getAbsolutePath());
                 target.mkdirs();

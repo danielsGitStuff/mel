@@ -11,6 +11,8 @@ import java.util.Set;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.drive.sql.FsDirectory;
+import de.mein.drive.sql.FsEntry;
 
 /**
  * Created by xor on 10/28/16.
@@ -104,5 +106,10 @@ public abstract class BashTools {
 
     public static Map<String, FsBashDetails> getContentFsBashDetails(AFile file) {
         return instance.getContentFsBashDetails(file);
+    }
+
+    public static void lnS(AFile file, String target) {
+        Lok.debug("creating symlink: '" + file.getAbsolutePath() + "' -> '" + target + "'");
+        instance.lnS(file, target);
     }
 }

@@ -64,11 +64,7 @@ open class BashToolsUnix : BashToolsImpl {
      * @return
      */
     protected fun escapeQuotedAbsoluteFilePath(file: AFile<*>): String {
-        return ("\"" + file.absolutePath
-                .replace("\"".toRegex(), "\\\\\"")
-                .replace("`".toRegex(), "\\\\`")
-                .replace("\\$".toRegex(), "\\\\\\$")
-                + "\"")
+        return ("\"${escapeAbsoluteFilePath(file)}\"")
     }
 
     /**
@@ -84,6 +80,13 @@ open class BashToolsUnix : BashToolsImpl {
                 .replace("\\$".toRegex(), "\\\\\\$")
                 .replace(" ".toRegex(), "\\ ")
 
+    }
+
+    override fun lnS(file: AFile<*>, target: String?) {
+        val filePath = escapeQuotedAbsoluteFilePath(file)
+        val args = arrayOf(BIN_PATH, "-c", "ln -s ${filePath} ${if (target != null) target else ""}")
+        val proc = ProcessBuilder(*args).start()
+        proc.waitFor()
     }
 
     @Throws(IOException::class, InterruptedException::class)

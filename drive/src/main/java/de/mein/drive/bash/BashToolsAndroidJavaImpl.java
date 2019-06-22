@@ -189,4 +189,16 @@ public class BashToolsAndroidJavaImpl implements BashToolsImpl {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED");
         return null;
     }
+
+    @Override
+    public void lnS(AFile file, String target) {
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED");
+        System.exit(-1);
+    }
 }

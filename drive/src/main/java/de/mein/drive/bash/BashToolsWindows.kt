@@ -11,6 +11,17 @@ import java.util.stream.Stream
  * Created by xor on 13.07.2017.
  */
 class BashToolsWindows : BashToolsImpl {
+    override fun lnS(file: AFile<out AFile<*>>?, target: String?) {
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        System.exit(-1)
+    }
+
     override fun getContentFsBashDetails(file: AFile<out AFile<*>>?): MutableMap<String, FsBashDetails> {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")

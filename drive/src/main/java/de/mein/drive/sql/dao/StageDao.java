@@ -266,8 +266,30 @@ StageDao extends Dao.LockingDao {
 
     public ISQLResource<Stage> getStagesByStageSet(Long stageSetId) throws SqlQueriesException {
         Stage dummy = new Stage();
-        String where = dummy.getStageSetPair().k() + "=? order by " + dummy.getIdPair().k() + " asc";
+        String where = dummy.getStageSetPair().k() + "=? order by " + dummy.getOrderPair().k() + " asc";
         return sqlQueries.loadResource(dummy.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId));
+    }
+
+    private ISQLResource<Stage> getDeletedStagesByStageSetImpl(Long stageSetId, boolean deleted, boolean isDir) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        String where = dummy.getStageSetPair().k() + "=? and "
+                + dummy.getDeletedPair().k() + "=? and "
+                + dummy.getIsDirectoryPair().k() + "=? order by " + dummy.getOrderPair().k() + " asc";
+        return sqlQueries.loadResource(dummy.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId, deleted, isDir));
+    }
+
+    public ISQLResource<Stage> getDeletedDirectoryStagesByStageSet(Long stageSetId) throws SqlQueriesException {
+        return getDeletedStagesByStageSetImpl(stageSetId, true, true);
+    }
+
+    public ISQLResource<Stage> getDeletedFileStagesByStageSet(Long stageSetId) throws SqlQueriesException {
+        return getDeletedStagesByStageSetImpl(stageSetId, true, false);
+    }
+
+    public ISQLResource<Stage> getNotDeletedStagesByStageSet(Long stageSetId) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getDeletedPair().k() + "=? order by " + dummy.getOrderPair().k() + " asc";
+        return sqlQueries.loadResource(dummy.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId, false));
     }
 
     @Deprecated
