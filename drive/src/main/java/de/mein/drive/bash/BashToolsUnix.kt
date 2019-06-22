@@ -112,29 +112,29 @@ open class BashToolsUnix : BashToolsImpl {
         val modified = java.lang.Long.parseLong(parts[1])
         val symLink = parts[2].startsWith("sym")
         val name = file.name
-        var symLinkTarget: String? = null
-        if (symLink) {
-            symLinkTarget = parts[6]
-            symLinkTarget = symLinkTarget.drop(1).dropLast(1)
-        }
+        var symLinkTarget: String? = if (symLink)
+            parseSymLink(file, parts[6])
+        else
+            null
         return FsBashDetails(modified, iNode, symLink, symLinkTarget, name)
     }
 
     /**
      * parses an output line from stat
      */
-    private fun parseStatLine(line: String): FsBashDetails {
-        val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        val iNode = java.lang.Long.parseLong(parts[0])
-        val modified = java.lang.Long.parseLong(parts[1])
-        val symLink = parts[2].startsWith("sym")
-        val name = "NAME"
+    private fun parseSymLink(file: AFile<*>, line: String): String {
         var symLinkTarget: String? = null
-        if (symLink) {
-            symLinkTarget = parts[6]
-            symLinkTarget = symLinkTarget.drop(1).dropLast(1)
-        }
-        return FsBashDetails(modified, iNode, symLink, symLinkTarget, name)
+        val originalSym = line.drop(1).dropLast(1)
+        val parentCanonical = file.parentFile.canonicalPath
+        val completePath = parentCanonical + File.separator + originalSym
+        val ComplecteCanonical = File(completePath).canonicalPath
+        symLinkTarget = ComplecteCanonical.drop(parentCanonical.length)
+
+        if (symLinkTarget == "")
+            symLinkTarget = "."
+        if (symLinkTarget.startsWith(File.separator))
+            symLinkTarget = symLinkTarget.drop(1)
+        return symLinkTarget
     }
 
     override fun getContentFsBashDetails(directory: AFile<*>): MutableMap<String, FsBashDetails> {
