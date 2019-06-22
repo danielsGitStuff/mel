@@ -41,7 +41,7 @@ public class ConnectWorker extends MeinWorker {
         Objects.requireNonNull(connectJob);
         this.meinAuthService = meinAuthService;
         this.connectJob = connectJob;
-        connectJob.getPromise().always((state, resolved, rejected) -> shutDown());
+        connectJob.getPromise().always((state, resolved, rejected) -> super.shutDown());
         addJob(connectJob);
     }
 

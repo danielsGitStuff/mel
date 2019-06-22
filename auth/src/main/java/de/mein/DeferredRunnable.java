@@ -43,7 +43,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
         thread = Thread.currentThread();
         thread.setName(getRunnableName());
         runImpl();
-        Lok.debug(getClass().getSimpleName() + ".run.done on " + thread.getName());
+//        Lok.debug(getClass().getSimpleName() + ".run.done on " + thread.getName());
     }
 
     /**

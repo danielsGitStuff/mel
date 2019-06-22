@@ -55,9 +55,9 @@ public abstract class MeinWorker extends DeferredRunnable {
                 RWLock shutDownLock = new RWLock().lockWrite();
                 workDonePromise.done(result -> shutDownLock.unlockWrite());
                 shutDownLock.lockWrite();
-                Lok.debug("MeinWorker.runImpl.work done. shutting down");
+//                Lok.debug("MeinWorker.runImpl.work done. shutting down");
             }
-            Lok.debug(getClass().getSimpleName() + " has finished");
+//            Lok.debug(getClass().getSimpleName() + " has finished");
         } catch (Exception e) {
             e.printStackTrace();
         }

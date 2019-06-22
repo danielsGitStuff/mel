@@ -32,7 +32,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 
-
 /**
  * Created by xor on 10/21/16.
  */
@@ -52,7 +51,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     @Override
     protected void onSyncReceived(Request request) {
-        Lok.debug( "MeinDriveServerService.onSyncReceived");
+        Lok.debug("MeinDriveServerService.onSyncReceived");
         SyncTask task = (SyncTask) request.getPayload();
         SyncTask answer = new SyncTask(cacheDirectory, DriveSettings.CACHE_LIST_SIZE);
         answer.setCacheId(CachedData.randomId());
@@ -78,7 +77,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     @Override
     protected boolean workWorkWork(Job unknownJob) {
-       Lok.debug(meinAuthService.getName() + ".MeinDriveServerService.workWorkWork :)");
+        Lok.debug(meinAuthService.getName() + ".MeinDriveServerService.workWorkWork :)");
         try {
             if (unknownJob instanceof ServiceRequestHandlerJob) {
                 ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
@@ -146,7 +145,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
         DeferredObject<DeferredRunnable, Exception, Void> indexingDone = super.startIndexer();
         stageIndexer.setStagingDoneListener(stageSetId -> {
-           Lok.debug(meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
+            Lok.debug(meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
             // staging is done. stage data is up to date. time to commit to fs
             FsDao fsDao = driveDatabaseManager.getFsDao();
             StageDao stageDao = driveDatabaseManager.getStageDao();
@@ -156,9 +155,12 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 //todo conflict checks
                 N.r(() -> syncHandler.commitStage(stageSetId, transaction));
                 transaction.end();
+                Lok.debug("committed stageset " + stageSetId);
                 propagateNewVersion();
             } else {
                 stageDao.deleteStageSet(stageSetId);
+                Lok.debug("deleted stageset " + stageSetId);
+
             }
             /*
             // tell everyone fs has a new version

@@ -41,42 +41,13 @@ import java.util.concurrent.atomic.AtomicLong;
 @SuppressWarnings("Duplicates")
 public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketListener {
 
-
     protected MeinProcess process;
     protected Certificate partnerCertificate;
     private AConnectJob connectJob;
-    //todo debug
-    private static AtomicLong ID_COUNT = new AtomicLong(0L);
-    private final Long DEBUG_ID = ID_COUNT.getAndIncrement();
-
-    public Long getDEBUG_ID() {
-        return DEBUG_ID;
-    }
-
-    public AConnectJob getConnectJob() {
-        return connectJob;
-    }
 
     public MeinAuthSocket(MeinAuthService meinAuthService) {
         super(meinAuthService, null);
         setListener(this);
-    }
-
-    public Certificate getPartnerCertificate() {
-        return partnerCertificate;
-    }
-
-    MeinAuthSocket setProcess(MeinProcess process) {
-        this.process = process;
-        return this;
-    }
-
-    public String getAddressString() {
-        return MeinAuthSocket.getAddressString(socket.getInetAddress(), socket.getPort());
-    }
-
-    public static String getAddressString(InetAddress address, int port) {
-        return address.getHostAddress() + ":" + port;
     }
 
     public MeinAuthSocket(MeinAuthService meinAuthService, Socket socket) {
@@ -88,6 +59,25 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         super(meinAuthService, null);
         this.connectJob = connectJob;
         setListener(this);
+    }
+
+
+
+    public static String getAddressString(InetAddress address, int port) {
+        return address.getHostAddress() + ":" + port;
+    }
+
+
+    public AConnectJob getConnectJob() {
+        return connectJob;
+    }
+
+    public Certificate getPartnerCertificate() {
+        return partnerCertificate;
+    }
+
+    public String getAddressString() {
+        return MeinAuthSocket.getAddressString(socket.getInetAddress(), socket.getPort());
     }
 
     public MeinAuthSocket allowIsolation() {
@@ -193,7 +183,6 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         return partnerCertificate;
     }
 
-
     public void sendBlock(byte[] block) throws IOException {
         assert block.length == MeinSocket.BLOCK_SIZE;
         out.write(block);
@@ -218,6 +207,11 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
 
     public MeinProcess getProcess() {
         return process;
+    }
+
+    MeinAuthSocket setProcess(MeinProcess process) {
+        this.process = process;
+        return this;
     }
 
     @Override

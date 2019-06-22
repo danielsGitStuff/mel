@@ -145,7 +145,10 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
         super.startIndexer();
-        stageIndexer.setStagingDoneListener(stageSetId -> addJob(new CommitJob()));
+        stageIndexer.setStagingDoneListener(stageSetId -> {
+            Lok.debug("committed stageset " + stageSetId);
+            addJob(new CommitJob());
+        });
         return startIndexerDonePromise;
     }
 
