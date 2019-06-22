@@ -104,7 +104,7 @@ public class ServerSyncHandler extends SyncHandler {
             // TODO setup transfers
             List<GenericFSEntry> delta = fsDao.getDelta(oldVersion);
             for (GenericFSEntry genericFSEntry : delta) {
-                if (!genericFSEntry.getIsDirectory().v()) {
+                if (!genericFSEntry.getIsDirectory().v() && !genericFSEntry.isSymlink()) {
                     TransferDetails details = new TransferDetails();
                     details.getCertId().v(request.getPartnerCertificate().getId().v());
                     details.getHash().v(genericFSEntry.getContentHash().v());

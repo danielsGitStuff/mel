@@ -286,7 +286,7 @@ public abstract class SyncHandler {
                             if (fsFile.getContentHash().isNull())
                                 Lok.debug("debug");
                             fsDao.insert(fsFile);
-                            if (!stageSet.fromFs() && !stage.getIsDirectory()) {
+                            if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
                                 TransferDetails details = new TransferDetails();
                                 details.getAvailable().v(stage.getSynced());
                                 details.getCertId().v(stageSet.getOriginCertId());
@@ -351,7 +351,7 @@ public abstract class SyncHandler {
                                 fsEntry.getSynced().v(true);
                             }
                             fsDao.insertOrUpdate(fsEntry);
-                            if (stageSet.getOriginCertId().notNull() && !stage.getIsDirectory()) {
+                            if (stageSet.getOriginCertId().notNull() && !stage.getIsDirectory() && !stage.isSymLink()) {
                                 TransferDetails details = new TransferDetails();
                                 details.getCertId().v(stageSet.getOriginCertId());
                                 details.getServiceUuid().v(stageSet.getOriginServiceUuid());
