@@ -130,7 +130,7 @@ public abstract class SyncHandler {
     }
 
     /**
-     * @param file file in working directory
+     * @param file        file in working directory
      * @param hash
      * @param transaction
      * @return true if the file is new on the device (not a copy). so it can be transferred to other devices.
@@ -233,6 +233,7 @@ public abstract class SyncHandler {
                                 dbDir.getVersion().v(localVersion);
                                 dbDir.getContentHash().v(stage.getContentHash());
                                 dbDir.getModified().v(stage.getModified());
+                                dbDir.getSymLink().v(stage.getSymLink());
                                 fsDao.update(dbDir);
                             } else {
                                 FsDirectory dir = new FsDirectory();
@@ -241,6 +242,7 @@ public abstract class SyncHandler {
                                 dir.getName().v(stage.getName());
                                 dir.getModified().v(stage.getModified());
                                 dir.getiNode().v(stage.getiNode());
+                                dir.getSymLink().v(stage.getSymLink());
                                 Long fsParentId = null;
                                 if (stage.getParentId() != null) {
                                     fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
@@ -274,6 +276,7 @@ public abstract class SyncHandler {
                             fsFile.getModified().v(stage.getModified());
                             fsFile.getiNode().v(stage.getiNode());
                             fsFile.getSize().v(stage.getSize());
+                            fsFile.getSymLink().v(stage.getSymLink());
                             if (stageSet.fromFs()) {
                                 fsFile.getSynced().v(true);
                             } else {

@@ -227,9 +227,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             return;
 
         //todo debug
-        if (stageFile.getName().equals("wrong"))
+        if (stageFile.getName().equals("subb"))
             Lok.debug("debug");
-        if (stage.getName().equals("[root]"))
+        if (stage.getName().equals("right"))
             Lok.debug("debug");
 
         //todo weiter hier"
@@ -238,7 +238,29 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // skip if drive ignores symlinks
         if (fsBashDetails.isSymLink()) {
             if (databaseManager.getDriveSettings().getUseSymLinks()) {
-                if (!isValidSymLink(stageFile, fsBashDetails)) {
+                if (isValidSymLink(stageFile, fsBashDetails)) {
+                    stage.setSymLink(fsBashDetails.getSymLinkTarget())
+                            .setContentHash("0")
+                            .setModified(fsBashDetails.getModified())
+                            .setiNode(fsBashDetails.getiNode());
+                    // this is a symlink now but we have to delete whatever was in there before
+                    if (stage.getFsIdPair().notNull()) {
+                        List<GenericFSEntry> content = fsDao.getContentByFsDirectory(stage.getFsId());
+                        for (GenericFSEntry entry : content) {
+                            //todo debug
+                            if (entry.getName().equalsValue("t"))
+                                Lok.debug("debug");
+                            Stage delStage = GenericFSEntry.generic2Stage(entry, stageSetId);
+                            delStage.setParentId(stage.getId());
+                            delStage.setDeleted(true);
+                            delStage.setOrder(order.ord());
+                            stageDao.insert(delStage);
+                        }
+                    }
+                    stageDao.update(stage);
+                    return;
+
+                } else {
                     stageDao.deleteStageById(stage.getId());
                     return;
                 }
@@ -356,18 +378,23 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 Stage subStage = contentMap.get(subDir.getName());
                 FsBashDetails subDirDetails = bashDetailsMap.get(subDir.getName()); //BashTools.getFsBashDetails(subDir);
                 stuffToDelete.remove(subDir.getName());
+                if (subDirDetails == null)
+                    Lok.debug("debug");
 
+                // if symlink, remove everything further down in the db file tree and skip the rest
                 if (subDirDetails.isSymLink()) {
                     if (!databaseManager.getDriveSettings().getUseSymLinks()) {
                         if (subStage != null)
                             stageDao.deleteStageById(subStage.getId());
                         continue;
                     }
-                    if (!isValidSymLink(subDir, subDirDetails)) {
+                    if (isValidSymLink(subDir, subDirDetails)) {
+                        Lok.debug("debug");
+                    } else {
                         if (subStage != null)
                             stageDao.deleteStageById(subStage.getId());
-                        continue;
                     }
+                    continue;
                 }
                 if (subDirDetails.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks())
                     continue;
@@ -436,8 +463,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
      * @param fsBashDetails
      * @return
      */
-    private boolean isValidSymLink(AFile file, FsBashDetails fsBashDetails) {
-        if (file.getName().equals("subbb"))
+    private boolean isValidSymLink(AFile file, FsBashDetails fsBashDetails) throws IOException {
+        if (file.getName().equals("subb"))
             Lok.debug("debug");
         if (!fsBashDetails.isSymLink())
             return false;
@@ -447,19 +474,22 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         final String path = N.result(() -> {
             if (targetPath.startsWith(File.separator))
                 return targetPath;
-            return parent.getAbsolutePath() + File.separator + targetPath;
+            try {
+                return parent.getCanonicalPath() + File.separator + targetPath;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return "NEIN!";
         });
         if (path.length() <= rootPath.length())
             return false;
         if (!path.startsWith(rootPath))
             return false;
+        // check if is inside root dir
         File f = new File(path);
-        try {
-            String canPath = f.getCanonicalPath();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return path.startsWith(rootPath);
+        String canPath = f.getCanonicalPath();
+        return canPath.length() >= rootPath.length() && canPath.startsWith(rootPath);
+//        return path.startsWith(rootPath);
     }
 
     private void updateFileStage(Stage stage, AFile stageFile, OTimer timer1, OTimer timer2, FsBashDetails fsBashDetails) throws IOException, SqlQueriesException, InterruptedException {
@@ -468,6 +498,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
             if (timer1 != null)
                 timer1.start();
+            // might have been set before. obey
+            if (stage.getDeletedPair().equalsValue(true))
+                return;
 
             if (!fastBooting
                     || stage.getContentHashPair().isNull()
@@ -475,6 +508,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     || stage.getModifiedPair().isNull()
                     || stage.getSizePair().isNull()) {
 
+                //todo debug
+                if (stageFile.getAbsolutePath().equals("/home/xor/Downloads/mel/right/t"))
+                    Lok.debug("debug");
                 if (fsBashDetails == null)
                     fsBashDetails = BashTools.getFsBashDetails(stageFile);
                 if (fsBashDetails.isSymLink()) {

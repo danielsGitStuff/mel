@@ -74,6 +74,11 @@ public class JFile extends AFile<JFile> {
     }
 
     @Override
+    public String getCanonicalPath() throws IOException {
+        return this.file.getCanonicalPath();
+    }
+
+    @Override
     public String getName() {
         return file.getName();
     }

@@ -139,7 +139,7 @@ open class BashToolsUnix : BashToolsImpl {
 
     override fun getContentFsBashDetails(directory: AFile<*>): MutableMap<String, FsBashDetails> {
         val map = mutableMapOf<String, FsBashDetails>()
-        val path = "${escapeAbsoluteFilePath(directory)}${File.separator}*"
+        val path = "\"${escapeAbsoluteFilePath(directory)}${File.separator}\"*"
 //        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %Y\\ '%F'\\ %N\\ %n " + path)
         val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ //\\ %Y\\ //\\ '%F'\\ //\\ %N\\ //\\ %n " + path)
 
@@ -166,15 +166,16 @@ open class BashToolsUnix : BashToolsImpl {
                 val details = FsBashDetails(modified, iNode, symLink, symLinkTarget, name)
                 map[details.name] = details
             }
-        } else {
-            args.forEach {
-                Lok.error("arg: $it")
-            }
-            val r = BufferedReader(InputStreamReader(proc.errorStream))
-            r.lines().forEach {
-                Lok.error(it)
-            }
         }
+//        else {
+//            args.forEach {
+//                Lok.error("arg: $it")
+//            }
+//            val r = BufferedReader(InputStreamReader(proc.errorStream))
+//            r.lines().forEach {
+//                Lok.error(it)
+//            }
+//        }
         return map
     }
 

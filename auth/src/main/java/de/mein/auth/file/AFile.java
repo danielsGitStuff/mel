@@ -38,6 +38,8 @@ public abstract class AFile<T extends  AFile> {
      */
     public abstract boolean hasSubContent(T subFile);
 
+    public abstract String getCanonicalPath() throws IOException;
+
 
     /**
      * creates common instances of {@link AFile}s

@@ -134,6 +134,11 @@ public class FFile extends AFile<FFile> {
     }
 
     @Override
+    public String getCanonicalPath() throws IOException {
+        return file.getCanonicalPath();
+    }
+
+    @Override
     public Long getFreeSpace() {
         return file.getFreeSpace();
     }

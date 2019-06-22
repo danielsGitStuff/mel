@@ -5,6 +5,7 @@ import de.mein.sql.ISQLResource;
 import de.mein.sql.SQLTableObject;
 import de.mein.sql.SqlQueriesException;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
 

@@ -30,8 +30,9 @@ public class DriveSettings extends JsonSettings {
 
     private boolean fastBoot = true;
 
-    public static RootDirectory buildRootDirectory(AFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException {
-        RootDirectory rootDirectory = new RootDirectory().setPath(rootFile.getAbsolutePath());
+    public static RootDirectory buildRootDirectory(AFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
+        String path = rootFile.getCanonicalPath();
+        RootDirectory rootDirectory = new RootDirectory().setPath(path);
         rootDirectory.setOriginalFile(rootFile);
         rootDirectory.backup();
         return rootDirectory;

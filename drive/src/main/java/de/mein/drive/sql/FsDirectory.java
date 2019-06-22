@@ -29,10 +29,23 @@ public class FsDirectory extends FsEntry {
     }
 
     private static void feedToMessageDigest(MessageDigest digest, List<? extends FsEntry> entries, String appendix) {
+        Map<String, FsEntry> map = new HashMap<>();
         List<String> sorted = new ArrayList<>(entries.size());
-        N.forEach(entries, fsDirectory -> sorted.add(fsDirectory.getName().v()));
+        N.forEach(entries, fsDirectory -> {
+            sorted.add(fsDirectory.getName().v());
+            map.put(fsDirectory.getName().v(), fsDirectory);
+        });
         Collections.sort(sorted);
-        N.forEach(sorted, name -> digest.update(name.getBytes()));
+//        N.forEach(sorted, name -> digest.update(name.getBytes()));
+        N.forEach(sorted, name -> {
+            digest.update(name.getBytes());
+            FsEntry entry = map.get(name);
+            if (entry.isSymlink()) {
+                digest.update(entry.getSymLink().v().getBytes());
+            } else {
+                digest.update("!".getBytes());
+            }
+        });
         digest.update(appendix.getBytes());
     }
 
