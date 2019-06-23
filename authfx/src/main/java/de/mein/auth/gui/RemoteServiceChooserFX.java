@@ -97,19 +97,21 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
             });
             listCerts.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 listServices.getItems().clear();
-                Lok.debug("DriveFXCreateController.init");
-                Certificate certificate = (Certificate) newValue;
-                foundServices.lockRead();
-                for (ServiceJoinServiceType service : foundServices.get(certificate.getId().v())) {
-                    listServices.getItems().add(service);
+                if (newValue != null) {
+                    Lok.debug("DriveFXCreateController.init");
+                    Certificate certificate = (Certificate) newValue;
+                    foundServices.lockRead();
+                    for (ServiceJoinServiceType service : foundServices.get(certificate.getId().v())) {
+                        listServices.getItems().add(service);
+                    }
+                    foundServices.unlockRead();
                 }
-                foundServices.unlockRead();
             });
             listServices.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 ServiceJoinServiceType service = (ServiceJoinServiceType) newValue;
                 this.selectedService = service;
                 this.selectedCertificate = (Certificate) listCerts.getSelectionModel().selectedItemProperty().get();
-                this.embeddedServiceSettingsFX.onServiceSelected(this.selectedCertificate,this.selectedService);
+                this.embeddedServiceSettingsFX.onServiceSelected(this.selectedCertificate, this.selectedService);
             });
             meinAuthService.discoverNetworkEnvironment();
         });

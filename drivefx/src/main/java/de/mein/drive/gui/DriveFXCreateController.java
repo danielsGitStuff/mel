@@ -140,8 +140,23 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     }
 
     @Override
-    public void onServiceSelected(Certificate selectedCertificate, ServiceJoinServiceType selectedService) {
+    public void onRbServerSelected() {
+        cbIgnoreSymLinks.selectedProperty().setValue(true);
+        cbIgnoreSymLinks.disableProperty().setValue(false);
+    }
 
+    @Override
+    public void onRbClientSelected() {
+        cbIgnoreSymLinks.disableProperty().setValue(true);
+    }
+
+    @Override
+    public void onServiceSelected(Certificate selectedCertificate, ServiceJoinServiceType selectedService) {
+        if (selectedService != null && selectedService.getAdditionalServicePayload() != null) {
+            DriveDetails driveDetails = (DriveDetails) selectedService.getAdditionalServicePayload();
+            // server dictates whether to user symlinks or not
+            cbIgnoreSymLinks.selectedProperty().setValue(!driveDetails.usesSymLinks());
+        }
     }
 
     @Override
@@ -172,20 +187,29 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     public void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
         try {
             if (service.getType().v().equals(new DriveBootloader().getName())) {
-                Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
-                Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
-                connected.done(mvp -> N.r(() -> {
-                    Request promise = mvp.request(service.getUuid().v(), new EmptyPayload(DriveStrings.INTENT_DRIVE_DETAILS));
-                    promise.done(result -> N.r(() -> {
-                        DriveDetails driveDetails = (DriveDetails) result;
-                        if (driveDetails.getRole() != null && driveDetails.getRole().equals(DriveStrings.ROLE_SERVER)) {
-                            //finally found one
-                            foundServices.lockWrite();
-                            foundServices.add(certificate, service);
-                            foundServices.unlockWrite();
-                        }
-                    }));
-                }));
+                if (service.getAdditionalServicePayload() != null) {
+                    DriveDetails driveDetails = (DriveDetails) service.getAdditionalServicePayload();
+                    if (driveDetails.getRole().equals(DriveStrings.ROLE_SERVER)) {
+                        Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
+                        foundServices.lockWrite();
+                        foundServices.add(certificate, service);
+                        foundServices.unlockWrite();
+                    }
+                }
+//                Certificate certificate = meinAuthService.getCertificateManager().getCertificateById(certId);
+//                Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
+//                connected.done(mvp -> N.r(() -> {
+//                    Request promise = mvp.request(service.getUuid().v(), new EmptyPayload(DriveStrings.INTENT_DRIVE_DETAILS));
+//                    promise.done(result -> N.r(() -> {
+//                        DriveDetails driveDetails = (DriveDetails) result;
+//                        if (driveDetails.getRole() != null && driveDetails.getRole().equals(DriveStrings.ROLE_SERVER)) {
+//                            //finally found one
+//                            foundServices.lockWrite();
+//                            foundServices.add(certificate, service);
+//                            foundServices.unlockWrite();
+//                        }
+//                    }));
+//                }));
 
             }
         } catch (Exception e) {
