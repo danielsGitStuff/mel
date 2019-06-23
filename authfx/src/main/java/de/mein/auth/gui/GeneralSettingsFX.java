@@ -23,7 +23,7 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
     private TextField txtName, txtPort, txtSslPort;
 
     @Override
-    public void onPrimaryClicked() {
+    public boolean onPrimaryClicked() {
         Lok.debug("GeneralSettingsFX.onPrimaryClicked");
         MeinAuthSettings settings = meinAuthService.getSettings();
         settings.setName(txtName.getText());
@@ -35,6 +35,7 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     private TextFormatter.Change numbersOnly(TextFormatter.Change change) {

@@ -32,7 +32,7 @@ public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
     }
 
     @Override
-    public void onPrimaryClicked() {
+    public boolean onPrimaryClicked() {
         try {
             String name = txtName.getText();
             ContactsBootloader bootloader =(ContactsBootloader)  meinAuthService.getMeinBoot().getBootLoader(ContactStrings.NAME);
@@ -42,6 +42,7 @@ public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
         } catch (BootException | IllegalAccessException | SqlQueriesException | InstantiationException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     @Override

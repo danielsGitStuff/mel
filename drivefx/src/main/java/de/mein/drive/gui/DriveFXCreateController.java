@@ -94,25 +94,25 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     }
 
     @Override
-    public void onPrimaryClicked() {
+    public boolean onPrimaryClicked() {
         File dir = new File(txtPath.getText());
         if (!dir.exists()) {
 
-            return;
+            return false;
         }
         if (!dir.isDirectory()) {
 
-            return;
+            return false;
         }
         if (!dir.canWrite()) {
 
-            return;
+            return false;
         }
         if (!BashTools.isWindows && !shareWasChecked) {
             checkShare();
-            return;
+            return false;
         }
-        N.r(() -> {
+        return N.result(() -> {
             final String name = txtName.getText().trim();
             final boolean isServer = this.isServerSelected();
             final String path = txtPath.getText();
@@ -124,7 +124,8 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
                 driveCreateController.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
             }
-        });
+            return true;
+        }, false);
     }
 
     @Override

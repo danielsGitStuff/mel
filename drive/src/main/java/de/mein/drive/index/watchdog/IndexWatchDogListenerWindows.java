@@ -28,10 +28,6 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
     }
 
 
-    @Override
-    public void foundDirectory(FsDirectory fsDirectory) {
-
-    }
 
     @Override
     public void onTimerStopped() {

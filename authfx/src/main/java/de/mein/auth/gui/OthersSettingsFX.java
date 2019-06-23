@@ -5,7 +5,6 @@ import de.mein.auth.gui.controls.CertListCell;
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.tools.N;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 
 /**
@@ -18,13 +17,14 @@ public class OthersSettingsFX extends AuthSettingsFX {
     private Certificate selectedCert;
 
     @Override
-    public void onPrimaryClicked() {
+    public boolean onPrimaryClicked() {
         N.r(() -> {
             if (selectedCert != null) {
                 meinAuthService.getCertificateManager().deleteCertificate(selectedCert);
                 showCerts();
             }
         });
+        return false;
     }
 
     @Override

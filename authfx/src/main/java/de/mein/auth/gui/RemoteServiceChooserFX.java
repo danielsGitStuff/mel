@@ -47,8 +47,8 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
     }
 
     @Override
-    public void onPrimaryClicked() {
-        N.thread(() -> embeddedServiceSettingsFX.onPrimaryClicked());
+    public boolean onPrimaryClicked() {
+        return embeddedServiceSettingsFX.onPrimaryClicked();
     }
 
     public boolean isServerSelected() {

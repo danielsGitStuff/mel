@@ -9,7 +9,6 @@ import de.mein.drive.sql.FsDirectory;
 public interface IndexListener {
 
 
-    void foundDirectory(FsDirectory fsDirectory);
 
     void done(Long stageSetId, Transaction transaction);
 }

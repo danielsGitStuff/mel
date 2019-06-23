@@ -29,13 +29,14 @@ public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable 
     private TableView<ServiceJoinServiceType> table;
 
     @Override
-    public void onPrimaryClicked() {
+    public boolean onPrimaryClicked() {
         Lok.debug("ApprovalSettingsFX.onPrimaryClicked");
         try {
             meinAuthService.saveApprovals(approvalMatrix);
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     @Override

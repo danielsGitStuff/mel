@@ -8,7 +8,6 @@ import de.mein.auth.service.MeinService;
 import de.mein.auth.tools.N;
 import de.mein.sql.SqlQueriesException;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 /**
@@ -55,8 +54,9 @@ public abstract class ServiceSettingsFX<T extends MeinService> extends AuthSetti
     }
 
     @Override
-    public void onPrimaryClicked() {
+    public boolean onPrimaryClicked() {
         applyName();
+        return false;
     }
 
     @Override

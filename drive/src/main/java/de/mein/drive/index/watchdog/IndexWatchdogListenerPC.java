@@ -17,6 +17,7 @@ import java.nio.file.*;
  */
 
 public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
+    protected final boolean useSymLinks;
     protected WatchService watchService;
     protected WatchEvent.Kind<?>[] KINDS = new WatchEvent.Kind<?>[]{StandardWatchEventKinds.ENTRY_MODIFY,
             StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE};
@@ -28,6 +29,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
         this.watchService = watchService;
         this.setStageIndexer(meinDriveService.getStageIndexer());
         this.transferDirectoryPath = meinDriveService.getDriveSettings().getTransferDirectory().getAbsolutePath();
+        this.useSymLinks = meinDriveService.getDriveSettings().getUseSymLinks();
     }
 
     protected void analyze(WatchEvent<?> event, AFile file) {

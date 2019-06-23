@@ -5,8 +5,9 @@ package de.mein.drive.gui;
  */
 public class DriveFXEditServerController extends DriveFXEditBaseController {
     @Override
-    public void onPrimaryClicked() {
+    public boolean onPrimaryClicked() {
         applyName();
+        return false;
     }
 
     @Override

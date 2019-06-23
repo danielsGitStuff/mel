@@ -26,18 +26,6 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
     }
 
     @Override
-    public void foundDirectory(FsDirectory fsDirectory) {
-        try {
-            Path path = Paths.get(fsDirectory.getOriginal().getAbsolutePath());
-            WatchKey key = path.register(watchService, KINDS);
-            Lok.debug("IndexWatchdogListener.foundDirectory: " + path.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    @Override
     public void runImpl() {
         try {
             if (firstRun)
@@ -91,6 +79,8 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
     public void watchDirectory(AFile dir) throws IOException {
         try {
             Path path = Paths.get(dir.getAbsolutePath());
+            if (Files.isSymbolicLink(path))
+                return;
             WatchKey key = path.register(watchService, KINDS);
 //            debugKeys.add(dir.getAbsolutePath());
 //            Lok.debug("watch: " + path.toString());

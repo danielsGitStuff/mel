@@ -43,9 +43,7 @@ public class Indexer {
         indexerRunnable.getIndexWatchdogListener().stopIgnore(path);
     }
 
-    public void watchFsDirectory(FsDirectory fsDirectory) {
-        indexerRunnable.getIndexWatchdogListener().foundDirectory(fsDirectory);
-    }
+
 
     public void watchDirectory(AFile dir) throws IOException {
         indexerRunnable.getIndexWatchdogListener().watchDirectory(dir);

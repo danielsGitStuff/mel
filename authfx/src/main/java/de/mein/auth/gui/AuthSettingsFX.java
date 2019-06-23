@@ -14,8 +14,9 @@ public abstract class AuthSettingsFX {
 
     /**
      * called when bottom right button is clicked (usually 'Apply')
+     * @return
      */
-    public abstract void onPrimaryClicked();
+    public abstract boolean onPrimaryClicked();
 
     public void setMeinAuthService(MeinAuthService meinAuthService){
         this.meinAuthService = meinAuthService;

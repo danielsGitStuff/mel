@@ -11,12 +11,10 @@ import de.mein.update.CurrentJar;
 import de.mein.update.UpdateHandler;
 import de.mein.update.Updater;
 import de.mein.update.VersionAnswer;
-import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
@@ -45,9 +43,10 @@ public class AboutFX extends AuthSettingsFX {
     private Updater updater;
 
     @Override
-    public void onPrimaryClicked() {
+    public boolean onPrimaryClicked() {
 
 
+        return false;
     }
 
     @Override

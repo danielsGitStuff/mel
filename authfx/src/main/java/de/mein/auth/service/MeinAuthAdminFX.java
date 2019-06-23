@@ -179,7 +179,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         if (meinService == null) {
             N.r(() -> {
                 Service service = meinAuthService.getDatabaseManager().getServiceByUuid(serviceJoinServiceType.getUuid().v());
-                loadSettingsFX( "de/mein/auth/error.fxml");
+                loadSettingsFX("de/mein/auth/error.fxml");
                 ErrorController errorController = (ErrorController) contentController;
                 errorController.showError(service);
             });
@@ -218,9 +218,10 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         });
         btnPrimary.setOnAction(event -> {
             if (contentController != null) {
-                contentController.onPrimaryClicked();
-                contentController = null;
-                paneContainer.getChildren().clear();
+                if (contentController.onPrimaryClicked()) {
+                    contentController = null;
+                    paneContainer.getChildren().clear();
+                }
             }
         });
         btnOthers.setOnAction(event -> {

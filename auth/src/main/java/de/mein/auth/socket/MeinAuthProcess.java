@@ -1,5 +1,6 @@
 package de.mein.auth.socket;
 
+import de.mein.auth.service.MeinService;
 import org.jdeferred.Promise;
 
 import java.io.IOException;
@@ -245,8 +246,11 @@ public class MeinAuthProcess extends MeinProcess {
         List<ServiceJoinServiceType> servicesJoinTypes = meinAuthService.getDatabaseManager().getAllowedServicesJoinTypes(partnerCertificate.getId().v());
         //set flag for running Services, then add to result
         for (ServiceJoinServiceType service : servicesJoinTypes) {
-            boolean running = meinAuthService.getMeinService(service.getUuid().v()) != null;
-            service.setRunning(running);
+            MeinService meinService = meinAuthService.getMeinService(service.getUuid().v());
+            service.setRunning(meinService != null);
+            if (meinService != null) {
+                service.setAdditionalServicePayload(meinService.addAdditionalServiceInfo());
+            }
             payload.addService(service);
         }
         response.setPayLoad(payload);

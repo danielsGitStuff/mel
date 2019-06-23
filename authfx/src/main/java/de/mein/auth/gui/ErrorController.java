@@ -16,8 +16,9 @@ public class ErrorController extends AuthSettingsFX {
     private TextArea txtJson;
 
     @Override
-    public void onPrimaryClicked() {
+    public boolean onPrimaryClicked() {
 
+        return false;
     }
 
     @Override

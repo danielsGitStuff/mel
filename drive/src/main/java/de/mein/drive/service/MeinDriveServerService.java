@@ -181,10 +181,6 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     protected IndexListener createIndexListener() {
         IndexListener indexListener = new IndexListener() {
 
-            @Override
-            public void foundDirectory(FsDirectory fsDirectory) {
-
-            }
 
             @Override
             public void done(Long stageSetId, Transaction transaction) {
