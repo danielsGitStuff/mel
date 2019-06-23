@@ -7,11 +7,9 @@ import android.widget.EditText;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceGuiController;
-import de.mein.auth.data.db.Service;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.sql.SqlQueriesException;
 
 /**
  * Created by xor on 8/25/17.
@@ -39,7 +37,8 @@ public class AndroidDriveEditGuiController extends AndroidServiceGuiController {
     }
 
     @Override
-    public void onOkClicked() {
+    public boolean onOkClicked() {
         //todo handle change of path
+        return false;
     }
 }

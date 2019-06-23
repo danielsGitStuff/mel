@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.Button;
@@ -32,7 +33,7 @@ import de.mein.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.N;
+import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 
@@ -42,7 +43,6 @@ import de.mein.drive.data.DriveStrings;
 
 public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooserController {
 
-    private static final int REQUEST_DIRECTORY = 987;
     private EditText txtPath, txtMaxSize, txtMaxDays;
     private SeekBar maxSizeSeekBar;
     private Button btnPath, btnOptional;
@@ -51,13 +51,48 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     private Long availableSpace;
     private boolean optionalCollapsed = true;
     private RelativeLayout optionalContainer;
-    private TextView lblPercent;
+    private TextView lblPercent, lblHint;
     private boolean isEditingMaxSizeText = false;
     private int maxDays;
     private Long wastebinSize;
     // this is required for android 5+ only.
     private Uri rootTreeUri;
     private AFile rootFile;
+    private RelativeLayout container;
+
+    private void showIncompatibleState() {
+        this.createServiceController.setBtnCreateTitle(R.string.incompatible);
+        this.createServiceController.setBtnCreateEnabled(false);
+        lblHint.setVisibility(View.VISIBLE);
+        lblHint.setText(R.string.driveIncompatibleServerService);
+        container.invalidate();
+        createServiceController.invalidateLayout();
+    }
+
+    private void showNormalState() {
+        this.createServiceController.setBtnCreateTitle(R.string.btnCreate);
+        this.createServiceController.setBtnCreateEnabled(true);
+        lblHint.setVisibility(View.GONE);
+        container.invalidate();
+        createServiceController.invalidateLayout();
+    }
+
+    @Override
+    protected void onServiceSelected(Long selectedCertId, ServiceJoinServiceType selectedService) {
+        if (selectedService.getAdditionalServicePayload() != null) {
+            DriveDetails driveDetails = (DriveDetails) selectedService.getAdditionalServicePayload();
+            if (driveDetails.usesSymLinks()) {
+                showIncompatibleState();
+            } else {
+                showNormalState();
+            }
+        }
+    }
+
+    @Override
+    protected void onRbServerSelected() {
+        showNormalState();
+    }
 
     public AFile getRootFile() {
         return rootFile;
@@ -105,6 +140,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 
     @Override
     protected void initEmbedded() {
+        container = rootView.findViewById(R.id.tbl);
         wastebinRatio = DriveSettings.DEFAULT_WASTEBIN_RATIO;
         txtPath = rootView.findViewById(R.id.txtPath);
         btnPath = rootView.findViewById(R.id.btnPath);
@@ -114,6 +150,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         btnOptional = rootView.findViewById(R.id.btnOptional);
         optionalContainer = rootView.findViewById(R.id.optionalContainer);
         lblPercent = rootView.findViewById(R.id.lblPercent);
+        lblHint = rootView.findViewById(R.id.lblHint);
         setPath(createDrivePath());
         btnPath.setOnClickListener(view -> {
             Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
@@ -296,7 +333,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 
     @Override
     protected boolean showService(ServiceJoinServiceType service) {
-        return service.getType().v().equals(DriveStrings.NAME);
+        return service.getType().v().equals(DriveStrings.NAME) && service.getAdditionalServicePayload() != null;
     }
 
     private String createDrivePath() {
@@ -311,8 +348,9 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     }
 
     @Override
-    public void onOkClicked() {
+    public boolean onOkClicked() {
 
+        return false;
     }
 
     public int getMaxDays() {

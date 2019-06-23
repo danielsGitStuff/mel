@@ -5,7 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 
-import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.Tools;
 
@@ -51,7 +50,7 @@ public abstract class AndroidServiceGuiController {
     /**
      * is called when user presses apply button when editing server
      */
-    public abstract void onOkClicked();
+    public abstract boolean onOkClicked();
 
     public void setOnPermissionsGrantedListener(PermissionsGrantedListener permissionsGrantedListener) {
         this.permissionsGrantedListener = permissionsGrantedListener;

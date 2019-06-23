@@ -53,11 +53,6 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     }
 
     @Override
-    public void foundDirectory(FsDirectory fsDirectory) {
-        watch(fsDirectory.getOriginal());
-    }
-
-    @Override
     public void onShutDown() {
         for (Watcher watcher : watchers.values())
             watcher.stopWatching();

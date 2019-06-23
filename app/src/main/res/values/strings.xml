@@ -155,5 +155,7 @@
     <string name="success">Success</string>
     <string name="successCreateService">Service successfully created.</string>
     <string name="errorCreateService">Creating Service failed.</string>
+    <string name="incompatible">Incompatible</string>
+    <string name="driveIncompatibleServerService">The server uses symbolic links which -unless you got root- are not supported on Android. A compatibility mode is currently not available.</string>
 
 </resources>

@@ -155,5 +155,7 @@
     <string name="success">Erfolgreich</string>
     <string name="successCreateService">Der Dienst ward erstellt!</string>
     <string name="errorCreateService">Der Diensterstellungsvorgang scheiterte!</string>
+    <string name="incompatible">Incompatible</string>
+    <string name="driveIncompatibleServerService">Der Server nutzt symoblische Links, die, ohne Rootrechte, von Android nicht unterstützt werden. Ein Kompatibelitätsmodus ist zur Zeit noch nicht verfügbar.</string>
 
 </resources>

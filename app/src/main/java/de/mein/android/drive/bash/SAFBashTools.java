@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import de.mein.android.file.AndroidFileConfiguration;
@@ -86,5 +87,20 @@ public class SAFBashTools implements BashToolsImpl {
     public boolean mv(File source, File target) throws IOException {
         bashToolsAndroid.mv(source, target);
         return false;
+    }
+
+    @Override
+    public boolean isSymLink(AFile f) {
+        return false;
+    }
+
+    @Override
+    public Map<String, FsBashDetails> getContentFsBashDetails(AFile file) {
+        return bashToolsAndroid.getContentFsBashDetails(file);
+    }
+
+    @Override
+    public void lnS(AFile file, String target) {
+        // symlinks do not work on Android
     }
 }

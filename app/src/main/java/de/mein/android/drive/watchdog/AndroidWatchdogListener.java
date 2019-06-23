@@ -74,11 +74,6 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
     }
 
     @Override
-    public void foundDirectory(FsDirectory fsDirectory) {
-        Lok.debug("AndroidWatchdogListener.foundDirectory");
-    }
-
-    @Override
     public void onShutDown() {
 
     }

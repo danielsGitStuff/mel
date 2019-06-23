@@ -2,7 +2,6 @@ package de.mein.android.contacts.controller;
 
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.EditText;
 
 import de.mein.R;
 import de.mein.android.MeinActivity;
@@ -44,7 +43,8 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
     }
 
     @Override
-    public void onOkClicked() {
+    public boolean onOkClicked() {
 
+        return false;
     }
 }

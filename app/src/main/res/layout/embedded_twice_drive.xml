@@ -7,14 +7,23 @@
     android:layout_height="wrap_content"
     android:layout_alignParentTop="true"
     android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin">
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin">
+
+    <TextView
+        android:id="@+id/lblHint"
+        android:visibility="gone"
+        android:background="@color/colorLabelBackground"
+        android:textColor="@color/colorAccent"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent" />
 
     <TextView
         android:id="@+id/lblPath"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/lblHint"
         android:layout_alignBaseline="@id/txtPath"
         android:text="@string/editServiceDrivePath" />
 
@@ -22,9 +31,10 @@
         android:id="@+id/txtPath"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/lblHint"
         android:layout_toEndOf="@+id/lblPath"
         android:ems="10"
-        android:text="/storage/emulated/0/Download/drive" />
+        android:text="/storage/emulated/0/Download/" />
 
     <Button
         android:id="@+id/btnPath"
@@ -48,6 +58,7 @@
         android:text="@string/editServiceDriveUnimportant"
         android:textAllCaps="false" />
 
+
     <RelativeLayout
         android:id="@+id/optionalContainer"
         android:layout_width="match_parent"
@@ -70,9 +81,9 @@
             android:id="@+id/txtMaxDays"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentStart="true"
             android:layout_below="@id/lblMaxDays"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
             android:gravity="end"
             android:inputType="number"
             android:paddingBottom="8dp"
@@ -92,8 +103,8 @@
             style="@style/Widget.AppCompat.SeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
             android:layout_below="@+id/lblMaxSize"
+            android:layout_alignParentStart="true"
             android:max="1000"
             android:padding="5dp"
             android:progress="10" />
@@ -102,8 +113,8 @@
             android:id="@+id/lblPercent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@id/txtMaxSize"
             android:layout_below="@id/maxSizeSeekBar"
+            android:layout_alignBaseline="@id/txtMaxSize"
             android:layout_toStartOf="@id/txtMaxSize"
             android:paddingEnd="5dp"
             android:text="0% = " />
@@ -121,9 +132,9 @@
             android:id="@+id/lblMaxSizeUnit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@id/maxSizeSeekBar"
             android:layout_alignBaseline="@id/txtMaxSize"
             android:layout_alignParentEnd="true"
-            android:layout_below="@id/maxSizeSeekBar"
             android:text="mb" />
     </RelativeLayout>
 

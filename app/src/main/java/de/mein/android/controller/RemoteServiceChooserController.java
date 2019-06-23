@@ -1,6 +1,7 @@
 package de.mein.android.controller;
 
 import androidx.core.content.ContextCompat;
+
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -28,6 +29,8 @@ import de.mein.auth.service.MeinAuthService;
 public abstract class RemoteServiceChooserController extends AndroidServiceGuiController {
 
 
+    protected CreateServiceController createServiceController;
+
     protected abstract void initEmbedded();
 
     private RadioButton rdServer, rdClient;
@@ -38,10 +41,10 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
     protected MeinAuthService meinAuthService;
     private ListView knownCertList, serviceList;
     private ViewGroup chooserContent;
-    private TextView lblKnownMA,lblServices;
+    private TextView lblKnownMA, lblServices;
 
     public RemoteServiceChooserController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup, int embeddedResource) {
-        super(activity,viewGroup, R.layout.embedded_create_service_chooser);
+        super(activity, viewGroup, R.layout.embedded_create_service_chooser);
         this.meinAuthService = meinAuthService;
         chooserContent = rootView.findViewById(R.id.chooserContent);
         View root = View.inflate(activity, embeddedResource, chooserContent);
@@ -69,12 +72,22 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
             selectedService = drivesListAdapter.getItemT(position);
             int colour = ContextCompat.getColor(rootView.getContext(), R.color.colorListSelected);
             view.setBackgroundColor(colour);
+            onServiceSelected(selectedCertId, selectedService);
         });
         RadioGroup radioGroup = rootView.findViewById(R.id.rdgClient);
         if (radioGroup != null) {
-            radioGroup.setOnCheckedChangeListener((group, checkedId) -> checkRadioButtons());
+            radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+                if (checkRadioButtons())
+                    onRbServerSelected();
+                else
+                    onRbClientSelected();
+            });
             checkRadioButtons();
         }
+    }
+
+    protected void onServiceSelected(Long selectedCertId, ServiceJoinServiceType selectedService) {
+
     }
 
     protected abstract boolean showService(ServiceJoinServiceType service);
@@ -108,10 +121,11 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
     }
 
 
-    private void checkRadioButtons() {
+    private boolean checkRadioButtons() {
         if (rdServer.isChecked()) {
             hideServiceChooser();
             selectedCertId = null;
+            return true;
         } else {
             showServiceChooser();
             try {
@@ -135,8 +149,16 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }
+        return false;
+    }
+
+    protected void onRbServerSelected() {
+
+    }
+
+    protected void onRbClientSelected() {
+
     }
 
     public boolean isServer() {
@@ -149,5 +171,9 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
 
     public ServiceJoinServiceType getSelectedService() {
         return selectedService;
+    }
+
+    public void setCreateServiceController(CreateServiceController createServiceController) {
+        this.createServiceController = createServiceController;
     }
 }

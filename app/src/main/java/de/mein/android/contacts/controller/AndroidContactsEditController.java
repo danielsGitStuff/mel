@@ -7,13 +7,10 @@ import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.MeinActivity;
 import de.mein.android.contacts.data.AndroidContactSettings;
-import de.mein.android.contacts.service.AndroidContactsClientService;
-import de.mein.android.contacts.service.AndroidContactsServerService;
 import de.mein.android.controller.AndroidServiceGuiController;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
-import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.service.ContactsService;
 
 /**
@@ -40,8 +37,9 @@ public class AndroidContactsEditController extends AndroidServiceGuiController {
     }
 
     @Override
-    public void onOkClicked() {
+    public boolean onOkClicked() {
         androidContactSettings.setPersistToPhoneBook(cbStoreToPhoneBook.isChecked());
         N.r(() -> contactsService.getSettings().save());
+        return false;
     }
 }

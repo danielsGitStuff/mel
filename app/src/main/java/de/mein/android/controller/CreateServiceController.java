@@ -46,10 +46,12 @@ public class CreateServiceController extends WakelockedGuiController implements 
         public void onClick(View v) {
             if (bootLoader != null) {
                 try {
-                    currentController.setName(txtName.getText().toString());
-                    bootLoader.createService(activity, activity.getAndroidService().getMeinAuthService(), currentController);
-                    mainActivity.showMenuServices();
-                    mainActivity.showMessage(R.string.success, R.string.successCreateService);
+                    if (currentController.onOkClicked()) {
+                        currentController.setName(txtName.getText().toString());
+                        bootLoader.createService(activity, activity.getAndroidService().getMeinAuthService(), currentController);
+                        mainActivity.showMenuServices();
+                        mainActivity.showMessage(R.string.success, R.string.successCreateService);
+                    }
                 } catch (Exception e) {
                     mainActivity.showMessage(R.string.error, R.string.errorCreateService);
                 }
@@ -69,6 +71,10 @@ public class CreateServiceController extends WakelockedGuiController implements 
 
     }
 
+    public void invalidateLayout(){
+        embedded.invalidate();
+    }
+
     private void showSelected() {
         N.r(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
@@ -76,6 +82,10 @@ public class CreateServiceController extends WakelockedGuiController implements 
                 embedded.removeAllViews();
                 currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
                 currentController.setOnPermissionsGrantedListener(this);
+                if (currentController instanceof RemoteServiceChooserController){
+                    RemoteServiceChooserController chooserController = (RemoteServiceChooserController) currentController;
+                    chooserController.setCreateServiceController(this);
+                }
                 if (activity.hasPermissions(bootLoader.getPermissions())) {
                     onPermissionsGranted();
                 } else {
@@ -146,5 +156,13 @@ public class CreateServiceController extends WakelockedGuiController implements 
     @Override
     public Integer getHelp() {
         return R.string.createServiceHelp;
+    }
+
+    public void setBtnCreateTitle(int resource) {
+        btnCreate.setText(resource);
+    }
+
+    public void setBtnCreateEnabled(boolean enabled) {
+        btnCreate.setEnabled(enabled);
     }
 }
