@@ -32,4 +32,27 @@ public abstract class EmbeddedServiceSettingsFX extends AuthSettingsFX {
         meinAuthAdminFX.setPrimaryButtonText("Apply");
         meinAuthAdminFX.showPrimaryButtonOnly();
     }
+
+    /**
+     * server radio button selected
+     */
+    public void onRbServerSelected() {
+
+    }
+
+    /**
+     * client radio button selected
+     */
+    public void onRbClientSelected() {
+
+    }
+
+    /**
+     * user wants to create a client and selected a service
+     * @param selectedCertificate
+     * @param selectedService
+     */
+    public void onServiceSelected(Certificate selectedCertificate, ServiceJoinServiceType selectedService) {
+
+    }
 }

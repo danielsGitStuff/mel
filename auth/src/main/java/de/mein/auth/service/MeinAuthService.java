@@ -550,8 +550,6 @@ public class MeinAuthService {
 //    private static AtomicLong closeCount = new AtomicLong(0L);
 
     public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
-        //todo debug
-        Lok.debug("removing closed socket(" + meinAuthSocket.getDEBUG_ID() + ") :" + meinAuthSocket.getAddressString());
 //        Eva.trace();
 //        final long debugCount = closeCount.getAndIncrement();
 //        Lok.debug("debug close 1 /" + debugCount);

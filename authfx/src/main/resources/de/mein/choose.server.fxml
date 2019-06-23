@@ -14,8 +14,8 @@
 
         </VBox>
         <HBox GridPane.rowIndex="0">
-            <RadioButton styleClass="rdio" fx:id="rdServer" text="Server" />
-            <RadioButton styleClass="rdio" fx:id="rdClient" selected="true" text="Client" />
+            <RadioButton styleClass="rdio" fx:id="rdServer" text="Server" selected="true" />
+            <RadioButton styleClass="rdio" fx:id="rdClient" text="Client" />
         </HBox>
         <Label styleClass="lbl" style="-fx-padding: 0px 0px 0px 10px" text="Available MeinAuths &amp; Services:" fx:id="lblAvailable"/>
         <HBox fx:id="paneAvailable">

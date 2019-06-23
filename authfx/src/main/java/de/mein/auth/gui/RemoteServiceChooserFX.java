@@ -55,18 +55,20 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
         return rdServer.isSelected();
     }
 
-    private void showServer() {
+    private void onServerSelected() {
         rdClient.selectedProperty().setValue(false);
         rdServer.selectedProperty().setValue(true);
         paneAvailable.setVisible(false);
         paneAvailable.setManaged(false);
+        embeddedServiceSettingsFX.onRbServerSelected();
     }
 
-    private void showClient() {
+    private void onClientSelected() {
         rdClient.selectedProperty().setValue(true);
         rdServer.selectedProperty().setValue(false);
         paneAvailable.setVisible(true);
         paneAvailable.setManaged(true);
+        embeddedServiceSettingsFX.onRbClientSelected();
     }
 
     @Override
@@ -74,9 +76,9 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
         Lok.debug("RemoteServiceChooserFX.init");
         listCerts.setCellFactory(param -> new CertListCell());
         listServices.setCellFactory(param -> new ServiceListCell());
-        rdServer.setOnAction(event -> showServer());
+        rdServer.setOnAction(event -> onServerSelected());
         rdClient.setOnAction(event -> {
-            showClient();
+            onClientSelected();
             listCerts.getItems().clear();
             listServices.getItems().clear();
             NetworkEnvironment env = meinAuthService.getNetworkEnvironment();
@@ -107,6 +109,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
                 ServiceJoinServiceType service = (ServiceJoinServiceType) newValue;
                 this.selectedService = service;
                 this.selectedCertificate = (Certificate) listCerts.getSelectionModel().selectedItemProperty().get();
+                this.embeddedServiceSettingsFX.onServiceSelected(this.selectedCertificate,this.selectedService);
             });
             meinAuthService.discoverNetworkEnvironment();
         });

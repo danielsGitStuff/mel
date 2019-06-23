@@ -13,18 +13,12 @@
         <TextField styleClass="txt-edit" fx:id="txtPath" text="/home/xor/Downloads/mel/" HBox.hgrow="ALWAYS"/>
         <Button styleClass="btn" fx:id="btnPath" text="Chose"/>
     </HBox>
+
     <Label styleClass="lbl-center-section" text="Setup"/>
-    <Label styleClass="lbl"
-           text="Looking for symbolic links and counting subdirectories. This may take a few seconds."/>
-    <HBox fx:id="hboxCount">
-        <Button styleClass="btn" fx:id="btnCheck" text="Check" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-    </HBox>
+    <CheckBox fx:id="cbIgnoreSymLinks" text="ignore SymLinks" selected="true"/>
     <TextFlow>
         <Text fx:id="lblHints" styleClass="text" text="hints go here"/>
     </TextFlow>
-    <!--    <Label styleClass="lbl" text="Hints" fx:id="lblHints" wrapText="true"/>-->
-    <Label styleClass="lbl-center-section" text="Compatibility"/>
-    <CheckBox fx:id="cbIgnoreSymLinks" text="ignore SymLinks" selected="true"/>
 
 
     <Label styleClass="lbl-center-section" text="Choose Role"/>

@@ -20,7 +20,6 @@ import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveStrings;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import org.jdeferred.Promise;
@@ -31,14 +30,15 @@ import java.io.File;
  * Created by xor on 10/20/16.
  */
 public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
+    private final String DEFAULT_PRIMARY_BTN_TEXT = "Create File Share";
+    private boolean shareWasChecked = false;
     @FXML
     private Text lblHints;
     @FXML
     private CheckBox cbIgnoreSymLinks;
+
     @FXML
-    private HBox hboxCount;
-    @FXML
-    private Button btnPath, btnCheck;
+    private Button btnPath;
 
     @FXML
     private TextField txtName, txtPath;
@@ -46,12 +46,75 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     private DriveCreateController driveCreateController;
     private MeinAuthAdminFX meinAuthAdminFX;
 
+    private void checkShare() {
+        File dir = new File(txtPath.getText());
+        if (dir.exists()) {
+
+            XCBFix.runLater(() -> {
+                meinAuthAdminFX.setPrimaryButtonText("checking share directory...");
+            });
+            MeinRunnable runnable = new MeinRunnable() {
+
+                @Override
+                public String getRunnableName() {
+                    return "counting dirs: " + dir.getAbsolutePath();
+                }
+
+                @Override
+                public void run() {
+                    N.r(() -> {
+
+                        BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.getInstance();
+                        BashToolsUnix.ShareFolderProperties props = bashToolsUnix.getShareFolderPropeties(dir);
+                        Long inotifyLimit = bashToolsUnix.getInotifyLimit();
+                        Long proposedInotifyThreshold = Double.valueOf(props.getCounted() * 1.33).longValue();
+
+                        XCBFix.runLater(() -> {
+                            String hint = "Contains SymLinks: " + (props.getContainsSymLinks() ? "yes" : "no") + "\n";
+                            if (props.getContainsSymLinks()) {
+                                hint += "      SymLinks are not supported on Android.\n"
+                                        + "      If you plan sharing this to an Android device tick 'ignore SymLinks' below.\n";
+                            }
+                            hint += "Subdirs: " + props.getCounted() + ", Inotify limit: " + inotifyLimit + " -> " + (inotifyLimit <= props.getCounted() ? "PROBLEM!\n" : "ok\n");
+                            if (inotifyLimit <= props.getCounted()) {
+                                hint += "      You set the user watch limit too low.\n" +
+                                        "      Your should increase the limit to about: " + proposedInotifyThreshold;
+                            }
+                            shareWasChecked = true;
+                            lblHints.setText(hint);
+                            meinAuthAdminFX.setPrimaryButtonText(DEFAULT_PRIMARY_BTN_TEXT);
+                            meinAuthAdminFX.showPrimaryButtonOnly();
+
+                        });
+                    });
+                }
+            };
+            meinAuthService.execute(runnable);
+        }
+    }
+
     @Override
     public void onPrimaryClicked() {
+        File dir = new File(txtPath.getText());
+        if (!dir.exists()) {
+
+            return;
+        }
+        if (!dir.isDirectory()) {
+
+            return;
+        }
+        if (!dir.canWrite()) {
+
+            return;
+        }
+        if (!BashTools.isWindows && !shareWasChecked) {
+            checkShare();
+            return;
+        }
         N.r(() -> {
             final String name = txtName.getText().trim();
             final boolean isServer = this.isServerSelected();
-            final String role = isServer ? DriveStrings.ROLE_SERVER : DriveStrings.ROLE_CLIENT;
             final String path = txtPath.getText();
             final boolean useSymLinks = !cbIgnoreSymLinks.isSelected();
             if (isServer)
@@ -59,7 +122,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                driveCreateController.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30,useSymLinks);
+                driveCreateController.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
             }
         });
     }
@@ -67,66 +130,24 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     @Override
     public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
         super.configureParentGui(meinAuthAdminFX);
-        meinAuthAdminFX.setPrimaryButtonText("Create File Share");
-        meinAuthAdminFX.hideBottomButtons();
+        if (BashTools.isWindows) {
+            meinAuthAdminFX.setPrimaryButtonText(DEFAULT_PRIMARY_BTN_TEXT);
+        } else {
+            meinAuthAdminFX.setPrimaryButtonText("Check Folder");
+        }
         this.meinAuthAdminFX = meinAuthAdminFX;
+    }
+
+    @Override
+    public void onServiceSelected(Certificate selectedCertificate, ServiceJoinServiceType selectedService) {
+
     }
 
     @Override
     public void init() {
         driveCreateController = new DriveCreateController(meinAuthService);
-        if (BashTools.isWindows) {
-            hboxCount.setVisible(false);
-            hboxCount.setManaged(false);
-        } else {
-            // show linux related inotify stuff
-            btnCheck.setOnAction(event -> N.r(() -> {
-                File dir = new File(txtPath.getText());
-                if (dir.exists()) {
-
-                    XCBFix.runLater(() -> {
-                        btnCheck.setVisible(false);
-                        meinAuthAdminFX.hideBottomButtons();
-                    });
-                    MeinRunnable runnable = new MeinRunnable() {
-
-                        @Override
-                        public String getRunnableName() {
-                            return "counting dirs: " + dir.getAbsolutePath();
-                        }
-
-                        @Override
-                        public void run() {
-                            N.r(() -> {
-
-                                BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.getInstance();
-                                BashToolsUnix.ShareFolderProperties props = bashToolsUnix.getShareFolderPropeties(dir);
-                                Long inotifyLimit = bashToolsUnix.getInotifyLimit();
-                                Long proposedInotifyThreshold = Double.valueOf(props.getCounted() * 1.33).longValue();
-
-                                XCBFix.runLater(() -> {
-                                    String hint = "Contains SymLinks: " + (props.getContainsSymLinks() ? "yes" : "no") + "\n";
-                                    if (props.getContainsSymLinks()) {
-                                        hint += "      SymLinks are not supported on Android.\n"
-                                                + "      If you plan sharing this to an Android device tick 'ignore SymLinks' below.\n";
-                                    }
-                                    hint += "Subdirs: " + props.getCounted() + ", Inotify limit: " + inotifyLimit + " -> " + (inotifyLimit <= props.getCounted() ? "PROBLEM!\n" : "ok\n");
-                                    if (inotifyLimit <= props.getCounted()) {
-                                        hint += "      You set the user watch limit too low.\n" +
-                                                "      Your should increase the limit to about: " + proposedInotifyThreshold;
-                                    }
-                                    lblHints.setText(hint);
-                                    btnCheck.setVisible(true);
-                                    meinAuthAdminFX.showPrimaryButtonOnly();
-                                });
-                            });
-                        }
-                    };
-                    meinAuthService.execute(runnable);
-                }
-            }));
-        }
         btnPath.setOnAction(event -> {
+            shareWasChecked = false;
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Choose Storage Directory");
             File dir = directoryChooser.showDialog(stage);
@@ -136,6 +157,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                 txtPath.setText(null);
             }
         });
+        txtPath.textProperty().addListener(event -> shareWasChecked = false);
 
     }
 
