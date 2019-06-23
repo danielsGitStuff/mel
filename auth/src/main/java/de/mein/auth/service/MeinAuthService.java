@@ -692,8 +692,11 @@ public class MeinAuthService {
         List<ServiceJoinServiceType> services = databaseManager.getAllowedServicesJoinTypes(certId);
         //set flag for running Services, then add to result
         for (ServiceJoinServiceType service : services) {
-            boolean running = getMeinService(service.getUuid().v()) != null;
-            service.setRunning(running);
+            MeinService meinService = getMeinService(service.getUuid().v());
+            service.setRunning(meinService != null);
+            if (meinService != null) {
+                service.setAdditionalServicePayload(meinService.addAdditionalServiceInfo());
+            }
             payload.addService(service);
         }
         return payload;

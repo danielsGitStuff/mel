@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.core.serialize.SerializableEntity;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class MeinService extends MeinWorker implements IMeinService {
     protected final File serviceInstanceWorkingDirectory;
     protected final String uuid;
-//    private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
+    //    private Map<String, MeinIsolatedProcess> isolatedProcessMap = new HashMap<>();
     protected final Long serviceTypeId;
     //cache stuff
     protected final File cacheDirectory;
@@ -53,6 +54,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     private Map<String, DeferredObject<? extends MeinIsolatedProcess, Exception, Void>> isolatedDeferredMap = new HashMap<>();
     private Bootloader.BootLevel reachedBootLevel;
     private ExecutorService executorService;
+
     public MeinService(MeinAuthService meinAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, Bootloader.BootLevel bootLevel) {
         this.meinAuthService = meinAuthService;
         this.serviceInstanceWorkingDirectory = serviceInstanceWorkingDirectory;
@@ -89,7 +91,7 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
             return alreadyDeferred;
         }
         DeferredObject<T, Exception, Void> deferred = meinAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
-        isolatedDeferredMap.put(key,deferred);
+        isolatedDeferredMap.put(key, deferred);
         deferred.done(result -> {
             Lok.debug("am i first?");
         });
@@ -192,4 +194,14 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     }
 
 
+    /**
+     * The other side is asking for services it might want to communicate with and you answer with a list of allowed
+     * {@link de.mein.auth.data.db.ServiceJoinServiceType}s. Additional info (that is not part auf the MeinAuth databse) might be required.
+     * Return it here.
+     *
+     * @return
+     */
+    public SerializableEntity addAdditionalServiceInfo() {
+        return null;
+    }
 }

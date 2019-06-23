@@ -17,6 +17,15 @@ public class ServiceJoinServiceType extends SQLTableObject implements Serializab
     @JsonIgnore
     private boolean running;
 
+    private SerializableEntity additionalServicePayload;
+
+    public void setAdditionalServicePayload(SerializableEntity additionalServicePayload) {
+        this.additionalServicePayload = additionalServicePayload;
+    }
+
+    public SerializableEntity getAdditionalServicePayload() {
+        return additionalServicePayload;
+    }
 
     public ServiceJoinServiceType() {
         init();

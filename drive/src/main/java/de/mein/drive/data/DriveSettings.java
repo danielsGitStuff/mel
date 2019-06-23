@@ -52,7 +52,7 @@ public class DriveSettings extends JsonSettings {
     }
 
     public DriveDetails getDriveDetails() {
-        return new DriveDetails().setLastSyncVersion(lastSyncedVersion).setRole(role);
+        return new DriveDetails().setLastSyncVersion(lastSyncedVersion).setRole(role).setUsesSymLinks(useSymLinks);
     }
 
 

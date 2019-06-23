@@ -11,6 +11,7 @@ import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
+import de.mein.core.serialize.SerializableEntity;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -226,5 +227,10 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     @Override
     public void onServiceRegistered() {
         Lok.debug("registered");
+    }
+
+    @Override
+    public SerializableEntity addAdditionalServiceInfo() {
+        return driveSettings.getDriveDetails();
     }
 }
