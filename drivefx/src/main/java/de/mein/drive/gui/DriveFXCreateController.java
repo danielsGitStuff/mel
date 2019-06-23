@@ -141,7 +141,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
 
     @Override
     public void onRbServerSelected() {
-        cbIgnoreSymLinks.selectedProperty().setValue(true);
+        cbIgnoreSymLinks.selectedProperty().setValue(false);
         cbIgnoreSymLinks.disableProperty().setValue(false);
     }
 
