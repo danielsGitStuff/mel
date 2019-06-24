@@ -18,7 +18,7 @@
         android:layout_height="64dp"
         android:layout_alignParentTop="true"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        app:srcCompat="@drawable/new_icon" />
+        app:srcCompat="@drawable/exchange_graphic" />
 
     <TextView
         android:layout_width="match_parent"

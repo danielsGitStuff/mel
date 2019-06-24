@@ -80,7 +80,7 @@ public class AndroidRegHandler implements IRegisterHandler {
             RegBundle bundle = regBundles.remove(hash);
             CharSequence title = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTitleCompleted);
             CharSequence text = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTextCompleted);
-            Notifier.notification(bundle.getNotificationRequestCode(), R.drawable.icon_notification_2, Notifier.CHANNEL_ID_SILENT, title, text, ":)");
+            Notifier.notification(bundle.getNotificationRequestCode(), R.drawable.icon_notification, Notifier.CHANNEL_ID_SILENT, title, text, ":)");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -95,7 +95,7 @@ public class AndroidRegHandler implements IRegisterHandler {
             RegBundle bundle = regBundles.remove(hash);
             CharSequence title = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTitleRemoteRejected);
             CharSequence text = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTextRemoteRejected);
-            Notifier.notification(bundle.getNotificationRequestCode(), R.drawable.icon_notification_2, Notifier.CHANNEL_ID_SILENT, title, text, ":)");
+            Notifier.notification(bundle.getNotificationRequestCode(), R.drawable.icon_notification, Notifier.CHANNEL_ID_SILENT, title, text, ":)");
             if (certActivity != null)
                 certActivity.onRemoteRejected();
         } catch (IOException e) {

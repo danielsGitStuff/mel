@@ -114,7 +114,7 @@ public class Notifier {
         Notification notification = builder.setSmallIcon(iconResource)
                 .setContentTitle(title)
                 .setContentText(text)
-                .addAction(R.drawable.new_icon, title, intent)
+                .addAction(R.drawable.exchange_graphic, title, intent)
                 .build();
         Notifier.createNotificationManager(context).notify(requestCode, notification);
     }
@@ -132,7 +132,7 @@ public class Notifier {
     }
 
     public static void pendingNotification(int requestCode, Intent intent, @NonNull String channelId, CharSequence title, CharSequence text, CharSequence ticker) {
-        pendingNotificationWithIcon(requestCode, R.drawable.icon_notification_2, intent, channelId, title, text, ticker);
+        pendingNotificationWithIcon(requestCode, R.drawable.icon_notification, intent, channelId, title, text, ticker);
     }
 
 }
