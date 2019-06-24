@@ -155,29 +155,38 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         lblHint = rootView.findViewById(R.id.lblHint);
         setPath(createDrivePath());
         btnPath.setOnClickListener(view -> {
-            // alert first
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-            builder.setMessage(R.string.permissionWriteMessage)
-                    .setTitle(R.string.permissionWriteTitle)
-                    .setPositiveButton(R.string.btnOk, null);
+            // explain permissions to user first
+//            activity.askUserForPermissions(new AndroidDriveBootloader().getPermissions(),R.string.permissionWriteTitle,R.string.permanentNotificationText,() -> {});
+            if (!activity.hasPermissions(new AndroidDriveBootloader().getPermissions())) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setMessage(R.string.permissionWriteMessage)
+                        .setTitle(R.string.permissionWriteTitle)
+                        .setPositiveButton(R.string.btnOk, (dialog, which) -> {
+                            Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
+                            permissionsPromise.done(nil -> {
+                                if (permissionsGrantedListener != null)
+                                    permissionsGrantedListener.onPermissionsGranted();
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    if (!SAFAccessor.hasExternalSdCard() || SAFAccessor.canWriteExternal()) {
+                                        launchDirChooser();
+                                    } else {
+                                        SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
+                                            launchDirChooser();
+                                        }).fail(Throwable::printStackTrace);
+                                    }
+                                } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
+                                    launchDirChooser();
+                                }
+                            }).fail(result -> Notifier.toast(activity, R.string.toastDrivePermissionsRequired));
+                        });
 
-            AlertDialog alertDialog = builder.create();
-            alertDialog.show();
-            Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
-            permissionsPromise.done(nil -> {
-                if (permissionsGrantedListener != null)
-                    permissionsGrantedListener.onPermissionsGranted();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    if (!SAFAccessor.hasExternalSdCard() || SAFAccessor.canWriteExternal()) {
-                        launchDirChooser();
-                    } else {
-                        SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
-                            launchDirChooser();
-                        }).fail(Throwable::printStackTrace);
-                    }
-                } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
-                    launchDirChooser();
-                }
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            } else {
+                launchDirChooser();
+            }
+
+
 //
 //                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 //                i.addCategory(Intent.CATEGORY_DEFAULT);
@@ -232,11 +241,6 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 //                });
 
 //
-
-
-            }).fail(result -> {
-                Notifier.toast(activity, R.string.toastDrivePermissionsRequired);
-            });
 
 
         });

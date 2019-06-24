@@ -8,6 +8,7 @@ import android.widget.ListView;
 
 import de.mein.Lok;
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.WakelockedGuiController;
 import de.mein.android.service.AndroidPowerManager;
@@ -31,7 +32,7 @@ public class NetworkDiscoveryController extends WakelockedGuiController {
     private final EditText txtAddress, txtPort, txtDeliveryPort;
     private final Button btnConnect;
 
-    public NetworkDiscoveryController(MeinActivity activity, LinearLayout content) {
+    public NetworkDiscoveryController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_discover);
         this.listKnown = rootView.findViewById(R.id.listKnown);
         this.listUnkown = rootView.findViewById(R.id.listUnknown);

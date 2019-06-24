@@ -3,6 +3,7 @@ package de.mein.android.controller;
 import android.view.View;
 import android.view.ViewGroup;
 
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidService;
 import de.mein.android.service.AndroidServiceBind;
@@ -15,12 +16,12 @@ import de.mein.android.service.AndroidServiceBind;
  */
 public abstract class GuiController implements AndroidServiceBind {
 
-    protected final MeinActivity activity;
+    protected final MainActivity activity;
     protected final View rootView;
 
     protected AndroidService androidService;
 
-    protected GuiController(MeinActivity activity, ViewGroup content, int resourceId) {
+    protected GuiController(MainActivity activity, ViewGroup content, int resourceId) {
         content.removeAllViews();
         this.activity = activity;
         this.rootView = View.inflate(activity, resourceId, content);

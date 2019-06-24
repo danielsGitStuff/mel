@@ -11,6 +11,7 @@ import java.util.Map;
 
 import de.mein.Lok;
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.auth.data.ApprovalMatrix;
 import de.mein.auth.data.db.Approval;
@@ -34,7 +35,7 @@ public class AccessController extends GuiController {
     private ApprovalMatrix matrix;
     private Long selectedCertId;
 
-    public AccessController(MeinActivity activity, LinearLayout content) {
+    public AccessController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_access);
         this.listCertificates = rootView.findViewById(R.id.listCertificates);
         this.listServices = rootView.findViewById(R.id.listServices);

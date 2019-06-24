@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
 import de.mein.android.service.AndroidService;
@@ -23,7 +24,7 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
         void introDone();
     }
 
-    protected MeinActivity meinActivity;
+    protected MainActivity meinActivity;
     private LinearLayout container;
     private AppCompatImageButton btnForward, btnPrevious;
     protected TextView lblTitle;
@@ -33,7 +34,7 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
     protected int maxIndex = 4;
     protected IntroDoneListener introDoneListener;
 
-    public IntroWrapper(MeinActivity meinActivity) {
+    public IntroWrapper(MainActivity meinActivity) {
         super(meinActivity.getApplicationContext());
         this.meinActivity = meinActivity;
         init(meinActivity.getApplicationContext());
@@ -120,7 +121,7 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
         lblIndex.setText(index + "/" + 4);
     }
 
-    public MeinActivity getMeinActivity() {
+    public MainActivity getMeinActivity() {
         return meinActivity;
     }
 

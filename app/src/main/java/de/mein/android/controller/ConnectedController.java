@@ -7,6 +7,7 @@ import android.widget.ListView;
 
 import androidx.appcompat.app.AlertDialog;
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
 import de.mein.android.service.AndroidService;
@@ -24,7 +25,7 @@ public class ConnectedController extends GuiController {
     private KnownCertListAdapter listCertAdapter;
     private Certificate selectedCert;
 
-    public ConnectedController(MeinActivity activity, LinearLayout content) {
+    public ConnectedController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_connected);
         btnDelete = rootView.findViewById(R.id.btnDelete);
         listCertificates = rootView.findViewById(R.id.listCertificates);

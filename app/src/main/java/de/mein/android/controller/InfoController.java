@@ -21,6 +21,7 @@ import java.util.List;
 
 import de.mein.Lok;
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
 import de.mein.android.Tools;
@@ -38,7 +39,7 @@ public class InfoController extends GuiController implements PowerManager.IPower
     private LinearLayout permissionReasonContainer;
     private PowerView powerView;
 
-    public InfoController(MeinActivity activity, LinearLayout content) {
+    public InfoController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_info);
         lblStatus = rootView.findViewById(R.id.lblStatus);
         powerView = rootView.findViewById(R.id.powerView);
@@ -95,7 +96,7 @@ public class InfoController extends GuiController implements PowerManager.IPower
 
     private void updateGui() {
         activity.runOnUiThread(() -> {
-            if (androidService.isRunning()) {
+            if (androidService != null && androidService.isRunning()) {
                 lblStatus.setText(R.string.stateRunning);
                 lblStatus.setBackgroundColor(Color.parseColor("#ff99cc00"));
                 powerView.setPowerManager((AndroidPowerManager) androidService.getMeinAuthService().getPowerManager());

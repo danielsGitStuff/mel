@@ -1,11 +1,12 @@
 package de.mein.android.controller.intro;
 
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidService;
 
 public class LoadingWrapper extends IntroWrapper {
-    public LoadingWrapper(MeinActivity meinActivity) {
+    public LoadingWrapper(MainActivity meinActivity) {
         super(meinActivity);
         maxIndex = 1;
     }

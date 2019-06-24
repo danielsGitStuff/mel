@@ -3,6 +3,7 @@ package de.mein.android.controller;
 import android.view.ViewGroup;
 
 import de.mein.Lok;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
@@ -15,7 +16,7 @@ import de.mein.android.service.AndroidService;
 public abstract class WakelockedGuiController extends GuiController {
     private AndroidPowerManager powerManager;
 
-    protected WakelockedGuiController(MeinActivity activity, ViewGroup content, int resourceId) {
+    protected WakelockedGuiController(MainActivity activity, ViewGroup content, int resourceId) {
         super(activity, content, resourceId);
     }
 

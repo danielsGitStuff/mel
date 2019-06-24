@@ -7,6 +7,7 @@ import android.widget.TextView;
 
 import de.mein.Lok;
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
@@ -53,7 +54,7 @@ public class LogCatController extends GuiController {
 
     private boolean logEnabled = true;
 
-    public LogCatController(MeinActivity activity, LinearLayout content) {
+    public LogCatController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_logcat);
         this.txtLogCat = rootView.findViewById(R.id.txtLogCat);
         this.btnToggle = rootView.findViewById(R.id.btnToggleWakeLock);
