@@ -158,7 +158,7 @@ public class SettingsController extends GuiController {
                                 if (done > 0) {
                                     p = (int) ((float) done / (float) length * 100f);
                                 }
-                                Notifier.progress(requestCode, R.drawable.icon_notification_2, Notifier.CHANNEL_ID_SILENT, titleReceiving, null, null, 100, p);
+                                Notifier.progress(requestCode, R.drawable.icon_notification, Notifier.CHANNEL_ID_SILENT, titleReceiving, null, null, 100, p);
                             }
 
                             @Override

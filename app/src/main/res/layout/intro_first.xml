@@ -13,7 +13,7 @@
         android:layout_alignParentEnd="true"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        app:srcCompat="@drawable/new_icon" />
+        app:srcCompat="@drawable/exchange_graphic" />
 
     <TextView
         android:id="@+id/text"

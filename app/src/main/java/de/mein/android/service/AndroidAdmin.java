@@ -45,7 +45,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
         String intention = meinNotification.getIntention();
         Class activityClass = null;
         NotificationCompat.Builder builder = null;
-        int icon = R.mipmap.icon_app_legacy;
+        int icon = R.mipmap.ic_launcher;
         try {
             Bootloader bootLoader = meinAuthService.getMeinBoot().getBootLoader(meinService);
             if (bootLoader instanceof AndroidBootLoader) {

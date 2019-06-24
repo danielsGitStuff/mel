@@ -248,7 +248,7 @@ public class AndroidService extends Service {
         Notification notification = new NotificationCompat.Builder(this, Notifier.CHANNEL_ID_SILENT)
                 .setContentTitle(getText(R.string.app_name))
                 .setContentText(getText(R.string.permanentNotificationText))
-                .setSmallIcon(R.drawable.icon_notification_2)
+                .setSmallIcon(R.drawable.icon_notification)
                 .setContentIntent(pendingIntent)
                 .setTicker("starting...")
                 .build();
