@@ -13,7 +13,6 @@ import java.util.Scanner;
 import de.mein.Lok;
 import de.mein.MeinInjector;
 import de.mein.android.drive.bash.BashToolsAndroid;
-import de.mein.android.drive.bash.SAFBashTools;
 import de.mein.android.drive.watchdog.RecursiveWatcher;
 import de.mein.auth.tools.N;
 import de.mein.contacts.ContactsInjector;

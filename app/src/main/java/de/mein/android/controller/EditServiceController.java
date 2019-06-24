@@ -81,6 +81,7 @@ public class EditServiceController extends GuiController {
             service.shutDown();
             try {
                 androidService.getMeinAuthService().getDatabaseManager().deleteService(EditServiceController.this.service.getServiceId().v());
+
             } catch (SqlQueriesException e) {
                 e.printStackTrace();
             }

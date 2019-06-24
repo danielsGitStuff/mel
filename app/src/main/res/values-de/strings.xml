@@ -96,7 +96,7 @@
     <string name="toastDrivePermissionsRequired">Ohne die nötige Berechtigung kannst du keinen Speicherort wählen.</string>
     <string name="driveChoosePath">Bitte wähle einen Speicherort.</string>
     <string name="invalidDirectory">Das gewählte Verzeichnis ist ungültig!</string>
-    <string name="permissionWriteMessage">Mit Android KitKat wurde eine neue Zugriffsmethode für den externen Speicher implementiert. Sie ist Müll. Ich musste java.io.File ersetzen. Dieser Worjaround benötigt diese Berechtigung.</string>
+    <string name="permissionWriteMessage">Mit Android KitKat wurde eine neue Zugriffsmethode für den externen Speicher implementiert. Sie ist Müll. Ich musste java.io.File ersetzen. Dieser Workaround benötigt diese Berechtigung. Bitte selektiere das Wurzelverzeichnis der externen Speicherkarte im nächsten Dialog.</string>
     <string name="permissionWriteTitle">Berechtigung benötigt.</string>
     <string name="btnActivate">Aktivieren</string>
     <string name="stateStopped">Gestoppt</string>

@@ -24,9 +24,11 @@ import android.widget.TextView;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.documentfile.provider.DocumentFile;
+
 import de.mein.BuildConfig;
 
 import de.mein.auth.service.NetworkDiscoveryController;
+
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -42,6 +44,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.Versioner;
@@ -160,7 +163,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     private void dev() {
         Lok.warn("DEV DEV DEV DEV DEV START");
         annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
-            N.r(() ->{
+            N.r(() -> {
                 JFile f = new JFile("/storage/emulated/0/Download/mel/kkk.txt");
                 boolean ex = f.exists();
                 DocumentFile srcDoc = f.createDocFile();
@@ -353,7 +356,6 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     }
 
 
-
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -384,6 +386,10 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void showInfo() {
+        enableGuiController(new InfoController(this, content));
     }
 
     @SuppressWarnings("StatementWithEmptyBody")

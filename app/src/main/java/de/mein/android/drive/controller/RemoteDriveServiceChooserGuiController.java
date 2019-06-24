@@ -15,6 +15,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
+import androidx.appcompat.app.AlertDialog;
+
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -153,6 +155,14 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         lblHint = rootView.findViewById(R.id.lblHint);
         setPath(createDrivePath());
         btnPath.setOnClickListener(view -> {
+            // alert first
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setMessage(R.string.permissionWriteMessage)
+                    .setTitle(R.string.permissionWriteTitle)
+                    .setPositiveButton(R.string.btnOk, null);
+
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
             Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
             permissionsPromise.done(nil -> {
                 if (permissionsGrantedListener != null)
@@ -349,7 +359,11 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 
     @Override
     public boolean onOkClicked() {
-
+        if (rootFile == null || !rootFile.exists())
+            return false;
+        File f = new File(rootFile.getAbsolutePath());
+        if (!f.canWrite())
+            return false;
         return false;
     }
 

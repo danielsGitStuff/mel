@@ -96,7 +96,7 @@
     <string name="toastDrivePermissionsRequired">Cannot choose a working directory for the drive service unless you grant the required permission.</string>
     <string name="driveChoosePath">Please choose a storage directory</string>
     <string name="invalidDirectory">The chosen directory is invalid.</string>
-    <string name="permissionWriteMessage">Write permission to external storage is required since Android introduced the storage access framework which is rubbish. So I replaced the java.io.File by something that works and requires the permission.</string>
+    <string name="permissionWriteMessage">Write permission to external storage is required since Android introduced the storage access framework which is rubbish. So I replaced the java.io.File by something that works and requires the permission. Please select the root directory of your external sd card in the following dialog.</string>
     <string name="permissionWriteTitle">Permission required.</string>
     <string name="btnActivate">Activate</string>
     <string name="stateStopped">Stopped</string>

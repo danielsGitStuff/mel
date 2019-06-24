@@ -49,6 +49,7 @@ public class CreateServiceController extends WakelockedGuiController implements 
                     if (currentController.onOkClicked()) {
                         currentController.setName(txtName.getText().toString());
                         bootLoader.createService(activity, activity.getAndroidService().getMeinAuthService(), currentController);
+                        mainActivity.showInfo();
                         mainActivity.showMenuServices();
                         mainActivity.showMessage(R.string.success, R.string.successCreateService);
                     }
@@ -71,7 +72,7 @@ public class CreateServiceController extends WakelockedGuiController implements 
 
     }
 
-    public void invalidateLayout(){
+    public void invalidateLayout() {
         embedded.invalidate();
     }
 
@@ -82,7 +83,7 @@ public class CreateServiceController extends WakelockedGuiController implements 
                 embedded.removeAllViews();
                 currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMeinAuthService(), null);
                 currentController.setOnPermissionsGrantedListener(this);
-                if (currentController instanceof RemoteServiceChooserController){
+                if (currentController instanceof RemoteServiceChooserController) {
                     RemoteServiceChooserController chooserController = (RemoteServiceChooserController) currentController;
                     chooserController.setCreateServiceController(this);
                 }

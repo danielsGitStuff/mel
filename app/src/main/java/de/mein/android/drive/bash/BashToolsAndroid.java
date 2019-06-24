@@ -47,18 +47,17 @@ public class BashToolsAndroid extends BashToolsUnix {
             Streams streams = testCommand(cmd);
             Iterator<AFile> iterator = streams.stdout;
             while (iterator.hasNext()) {
-                System.err.println("no SAF");
+                Lok.error("no SAF");
                 AFile line = iterator.next();
                 if (line.equals(prune.getAbsolutePath())) {
                     throw new BashToolsException("'find' ignored '-prune");
                 }
             }
             while (streams.stderr.hasNext())
-                System.err.println(getClass().getSimpleName() + ".testCommands(): " + streams.stderr.next());
+                Lok.error("testCommands(): " + streams.stderr.next());
         } catch (Exception e) {
-            System.err.println(getClass().getSimpleName() + ".did not work as expected: " + cmd);
-            System.err.println(getClass().getSimpleName() + ".using.fallback.for 'find'");
-
+            Lok.error("did not work as expected: " + cmd);
+            Lok.error("using.fallback.for 'find'");
             findFallBack = javaBashTools;
             e.printStackTrace();
         }
