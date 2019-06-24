@@ -58,7 +58,6 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             if (it.requestURI?.toString() == "/")
                 respondPage(it, pageHello())
             else {
-                Lok.debug("### strange uri: ${it.requestURI}")
                 it.close()
             }
         }

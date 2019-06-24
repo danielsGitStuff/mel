@@ -88,12 +88,12 @@ public class IndexerRunnable extends AbstractIndexer {
                 timerFind.stop().print();
                 Lok.debug("starting stageset initialization");
                 OTimer timerInit = new OTimer("init stageset").start();
-//                sqlQueries.beginTransaction();
+                sqlQueries.beginTransaction();
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
                 timerInit.stop().print().reset();
                 OTimer timerExamine = new OTimer("examine stageset").start();
                 examineStage();
-//                sqlQueries.commit();
+                sqlQueries.commit();
                 timerExamine.stop().print();
                 fastBooting = false;
             } catch (Exception e) {
