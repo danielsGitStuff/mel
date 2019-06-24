@@ -45,6 +45,6 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
     @Override
     public boolean onOkClicked() {
 
-        return false;
+        return true;
     }
 }
