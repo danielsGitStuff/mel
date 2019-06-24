@@ -227,6 +227,8 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     @Override
     public SerializableEntity addAdditionalServiceInfo() {
-        return driveSettings.getDriveDetails();
+        DriveDetails driveDetails = driveSettings.getDriveDetails();
+        driveDetails.setDirectoryCount(driveDatabaseManager.getFsDao().countDirectories());
+        return driveDetails;
     }
 }

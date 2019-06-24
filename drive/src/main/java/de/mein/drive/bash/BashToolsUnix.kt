@@ -149,27 +149,27 @@ open class BashToolsUnix : BashToolsImpl {
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
-        proc.waitFor()
-        if (proc.exitValue() == 0) {
-            reader.lines().forEach { line ->
-                val parts = line.split("\\ //\\ ".toRegex()).toTypedArray()
+//        proc.waitFor()
+//        if (proc.exitValue() == 0) {
+        reader.lines().forEach { line ->
+            val parts = line.split("\\ //\\ ".toRegex()).toTypedArray()
 
 //                val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                val iNode = java.lang.Long.parseLong(parts[0])
-                val modified = java.lang.Long.parseLong(parts[1])
-                val symLink = parts[2].startsWith("sym")
-                val absolutePath = parts[4]
-                val name = File(absolutePath).name
-                var symLinkTarget: String? = null
-                if (symLink) {
-                    // parse something like: "'/a/b '-> '/c/d'"
-                    // drop quotes, spaces etc
-                    symLinkTarget = parts[3].drop(absolutePath.length + 7).dropLast(1)
-                }
-                val details = FsBashDetails(modified, iNode, symLink, symLinkTarget, name)
-                map[details.name] = details
+            val iNode = java.lang.Long.parseLong(parts[0])
+            val modified = java.lang.Long.parseLong(parts[1])
+            val symLink = parts[2].startsWith("sym")
+            val absolutePath = parts[4]
+            val name = File(absolutePath).name
+            var symLinkTarget: String? = null
+            if (symLink) {
+                // parse something like: "'/a/b '-> '/c/d'"
+                // drop quotes, spaces etc
+                symLinkTarget = parts[3].drop(absolutePath.length + 7).dropLast(1)
             }
+            val details = FsBashDetails(modified, iNode, symLink, symLinkTarget, name)
+            map[details.name] = details
         }
+//        }
 //        else {
 //            args.forEach {
 //                Lok.error("arg: $it")

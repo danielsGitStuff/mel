@@ -10,6 +10,16 @@ public class DriveDetails extends ServicePayload {
     private long lastSyncVersion;
     private String serviceUuid;
     private boolean usesSymLinks = false;
+    private Long directoryCount;
+
+    public DriveDetails setDirectoryCount(Long directoryCount) {
+        this.directoryCount = directoryCount;
+        return this;
+    }
+
+    public Long getDirectoryCount() {
+        return directoryCount;
+    }
 
     public DriveDetails setLastSyncVersion(long lastSyncVersion) {
         this.lastSyncVersion = lastSyncVersion;
