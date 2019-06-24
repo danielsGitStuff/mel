@@ -578,4 +578,11 @@ public class FsDao extends Dao {
         Integer result = sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(false, hash));
         return SqliteConverter.intToBoolean(result);
     }
+
+    public Long countDirectories() {
+        FsEntry dummy = new FsDirectory();
+        return N.result(() -> sqlQueries.queryValue("select count(*) from " + dummy.getTableName()
+                        + " where " + dummy.getIsDirectory().k() + "=?", Long.class, ISQLQueries.whereArgs(true))
+                , 0L);
+    }
 }
