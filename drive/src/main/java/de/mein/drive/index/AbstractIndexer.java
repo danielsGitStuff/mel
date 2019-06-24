@@ -226,12 +226,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
 
-        //todo debug
-        if (stageFile.getName().equals("subb"))
-            Lok.debug("debug");
-        if (stage.getName().equals("right"))
-            Lok.debug("debug");
-
         //todo weiter hier"
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
 
@@ -247,9 +241,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     if (stage.getFsIdPair().notNull()) {
                         List<GenericFSEntry> content = fsDao.getContentByFsDirectory(stage.getFsId());
                         for (GenericFSEntry entry : content) {
-                            //todo debug
-                            if (entry.getName().equalsValue("t"))
-                                Lok.debug("debug");
                             Stage delStage = GenericFSEntry.generic2Stage(entry, stageSetId);
                             delStage.setParentId(stage.getId());
                             delStage.setDeleted(true);

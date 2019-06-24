@@ -61,7 +61,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -329,7 +329,7 @@ public class MeinAuthService {
         // check if already connected via id and address
         Transaction transaction = null;
         try {
-            transaction = T.lockingTransaction(connectedEnvironment);
+            transaction = T.lockingTransaction(T.read(connectedEnvironment));
             Promise<MeinValidationProcess, Exception, Void> def = connectedEnvironment.currentlyConnecting(certificateId);
             if (def != null) {
                 return def;
@@ -343,14 +343,14 @@ public class MeinAuthService {
                 connectedEnvironment.currentlyConnecting(certificateId, deferred);
                 job.getPromise().done(result -> {
                     // use a new transaction, because we want connect in parallel.
-                    Transaction t = T.lockingTransaction(connectedEnvironment);
-                    connectedEnvironment.removeCurrentlyConnecting(certificateId);
-                    t.end();
+                    T.lockingTransaction(connectedEnvironment)
+                            .run(() -> connectedEnvironment.removeCurrentlyConnecting(certificateId))
+                            .end();
                     deferred.resolve(result);
                 }).fail(result -> {
-                    Transaction t = T.lockingTransaction(connectedEnvironment);
-                    connectedEnvironment.removeCurrentlyConnecting(certificateId);
-                    t.end();
+                    T.lockingTransaction(connectedEnvironment)
+                            .run(() -> connectedEnvironment.removeCurrentlyConnecting(certificateId))
+                            .end();
                     deferred.reject(result);
                 });
                 execute(new ConnectWorker(this, job));
@@ -763,4 +763,19 @@ public class MeinAuthService {
         return cacheDir;
     }
 
+    public boolean isConnectedTo(Long certId) {
+        AtomicBoolean connected = new AtomicBoolean(false);
+        return N.result(() -> {
+            Transaction transaction = null;
+            try {
+                transaction = T.lockingTransaction(T.read(connectedEnvironment));
+                if (connectedEnvironment.getValidationProcess(certId) != null)
+                    connected.set(true);
+            } finally {
+                if (transaction != null)
+                    transaction.end();
+            }
+            return connected.get();
+        }, false);
+    }
 }

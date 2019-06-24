@@ -82,8 +82,15 @@ public class MeinAuthProcess extends MeinProcess {
                             try {
                                 if (r.getDecryptedSecret().equals(mySecret)) {
                                     if (finalIsolationDetails == null) {
-                                        //todo debug
                                         partnerAuthenticated = true;
+
+                                        // check if already connected to that cert
+                                        if (meinAuthSocket.getMeinAuthService().isConnectedTo(partnerCertificate.getId().v())) {
+                                            Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing...");
+                                            this.stop();
+                                            return;
+                                        }
+
                                         // get all allowed Services
                                         MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
                                         send(response);
@@ -187,17 +194,20 @@ public class MeinAuthProcess extends MeinProcess {
                         answer.getAnswerDeferred().done(result1 -> {
                             runner.runTry(() -> {
                                 if (job instanceof ConnectJob) {
+                                    // check if already connected to that cert
+                                    if (meinAuthSocket.getMeinAuthService().isConnectedTo(partnerCertificate.getId().v())) {
+                                        Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing...");
+                                        this.stop();
+                                        job.getPromise().reject(new Exception("already connected to id: " + partnerCertificate.getId().v()));
+                                        return;
+                                    }
                                     // propagate that we are connected!
-
                                     propagateAuthentication(partnerCertificate, meinAuthSocket.getSocket().getInetAddress().getHostAddress(), meinAuthSocket.getSocket().getPort());
                                     // done here, set up validationprocess
                                     Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
                                     MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate);
                                     // tell MAS we are connected & authenticated
                                     meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
-                                    //todo debug
-                                    if (job.getPromise().isResolved())
-                                        Lok.debug("bug!");
                                     job.getPromise().resolve(validationProcess);
                                     //
                                     final Long[] actualRemoteCertId = new Long[1];
