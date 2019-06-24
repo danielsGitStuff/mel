@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg848"
+   version="1.1"
+   viewBox="0 0 8.4666659 8.4666659"
+   height="32"
+   width="32">
+  <defs
+     id="defs842" />
+  <metadata
+     id="metadata845">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(0,-288.53334)"
+     id="layer1">
+    <g
+       id="flowRoot1424"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.12908948,0,0,0.12908885,10.049924,282.35399)"
+       aria-label="Mel">
+      <path
+         id="path3781"
+         style="fill:#ffffff;fill-opacity:1"
+         d="M -60.673828,88.044494 -51.376953,64.8609 h 4.84375 v 28.4375 h -3.75 V 82.20465 l 0.371094,-11.894531 -9.355469,22.988281 h -2.851563 l -9.335937,-23.027344 0.371094,11.933594 V 93.2984 h -3.75 V 64.8609 h 4.84375 z" />
+      <path
+         id="path3783"
+         style="fill:#ffffff;fill-opacity:0"
+         d="m -23.740234,89.606994 q -1.035157,1.5625 -2.929688,2.832031 -1.894531,1.25 -5.019531,1.25 -4.414063,0 -7.070313,-2.871094 -2.636718,-2.871093 -2.636718,-7.34375 v -0.820312 q 0,-3.457031 1.308593,-5.878906 1.328125,-2.441407 3.4375,-3.710938 2.109375,-1.289062 4.492188,-1.289062 4.53125,0 6.601562,2.96875 2.089844,2.949218 2.089844,7.382812 v 1.621094 h -14.296875 q 0.07813,2.910156 1.71875,4.960937 1.660156,2.03125 4.550781,2.03125 1.914063,0 3.242188,-0.78125 1.328125,-0.78125 2.324219,-2.089843 z m -8.417969,-14.863281 q -2.148438,0 -3.632813,1.5625 -1.484375,1.5625 -1.855468,4.492187 h 10.566406 v -0.273437 q -0.136719,-2.109375 -1.230469,-3.945313 -1.074219,-1.835937 -3.847656,-1.835937 z" />
+      <path
+         id="path3785"
+         style="fill:#ffffff;fill-opacity:1"
+         d="m -15.361328,63.2984 v 30 h -3.632813 v -30 z" />
+    </g>
+    <g
+       id="flowRoot1424-7"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.12908948,0,0,0.12908885,10.050011,283.57215)"
+       aria-label="Mel">
+      <path
+         id="path3788"
+         style="fill:#000000;fill-opacity:0"
+         d="M -60.673828,88.044494 -51.376953,64.8609 h 4.84375 v 28.4375 h -3.75 V 82.20465 l 0.371094,-11.894531 -9.355469,22.988281 h -2.851563 l -9.335937,-23.027344 0.371094,11.933594 V 93.2984 h -3.75 V 64.8609 h 4.84375 z" />
+      <path
+         id="path3790"
+         style="fill:#57bf40;fill-opacity:1"
+         d="m -23.740234,89.606994 q -1.035157,1.5625 -2.929688,2.832031 -1.894531,1.25 -5.019531,1.25 -4.414063,0 -7.070313,-2.871094 -2.636718,-2.871093 -2.636718,-7.34375 v -0.820312 q 0,-3.457031 1.308593,-5.878906 1.328125,-2.441407 3.4375,-3.710938 2.109375,-1.289062 4.492188,-1.289062 4.53125,0 6.601562,2.96875 2.089844,2.949218 2.089844,7.382812 v 1.621094 h -14.296875 q 0.07813,2.910156 1.71875,4.960937 1.660156,2.03125 4.550781,2.03125 1.914063,0 3.242188,-0.78125 1.328125,-0.78125 2.324219,-2.089843 z m -8.417969,-14.863281 q -2.148438,0 -3.632813,1.5625 -1.484375,1.5625 -1.855468,4.492187 h 10.566406 v -0.273437 q -0.136719,-2.109375 -1.230469,-3.945313 -1.074219,-1.835937 -3.847656,-1.835937 z" />
+      <path
+         id="path3792"
+         style="fill:#000000;fill-opacity:0"
+         d="m -15.361328,63.2984 v 30 h -3.632813 v -30 z" />
+    </g>
+  </g>
+</svg>

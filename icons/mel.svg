@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="32"
+   height="32"
+   viewBox="0 0 8.4666659 8.4666659"
+   version="1.1"
+   id="svg848"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="mel.svg"
+   inkscape:export-filename="/home/xor/Documents/dev/IdeaProjects/drive/icons/mel.png"
+   inkscape:export-xdpi="99.900002"
+   inkscape:export-ydpi="99.900002">
+  <defs
+     id="defs842" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="12.380178"
+     inkscape:cx="21.376108"
+     inkscape:cy="31.597563"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:snap-bbox="true"
+     inkscape:snap-bbox-midpoints="false"
+     inkscape:bbox-paths="true"
+     inkscape:snap-midpoints="true"
+     inkscape:object-nodes="false"
+     units="px"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-page="true" />
+  <metadata
+     id="metadata845">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-288.53334)">
+    <rect
+       style="fill:#545454;fill-opacity:1;stroke:#000000;stroke-width:0.26609072;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:0.1;stroke-dasharray:none;stroke-dashoffset:37.45999908;stroke-opacity:1;paint-order:markers stroke fill"
+       id="rect1422"
+       width="8.2005749"
+       height="8.2005348"
+       x="0.13304536"
+       y="288.66638"
+       rx="0.97190499"
+       ry="0.97190011" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot1424"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.12908948,0,0,0.12908885,10.049924,282.35399)"><flowRegion
+         id="flowRegion1426"><rect
+           id="rect1428"
+           width="234.86116"
+           height="73.56546"
+           x="-78.134743"
+           y="56.51799" /></flowRegion><flowPara
+         id="flowPara1430"
+         style="fill:#ffffff;fill-opacity:1">M<flowSpan
+   style="fill:#ffffff;fill-opacity:0"
+   id="flowSpan832">e</flowSpan>l</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot1424-7"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.12908948,0,0,0.12908885,10.050011,283.57215)"><flowRegion
+         id="flowRegion1426-5"><rect
+           id="rect1428-3"
+           width="234.86116"
+           height="73.56546"
+           x="-78.134743"
+           y="56.51799" /></flowRegion><flowPara
+         id="flowPara1430-5"><flowSpan
+           style="fill:#000000;fill-opacity:0"
+           id="flowSpan1480">M</flowSpan><flowSpan
+           style="fill:#57bf40;fill-opacity:1"
+           id="flowSpan840">e</flowSpan><flowSpan
+           style="fill:#000000;fill-opacity:0"
+           id="flowSpan1502">l</flowSpan></flowPara></flowRoot>  </g>
+</svg>
