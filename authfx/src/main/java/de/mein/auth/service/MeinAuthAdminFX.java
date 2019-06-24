@@ -48,6 +48,8 @@ import java.util.List;
  * Created by xor on 6/25/16.
  */
 public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotification.MeinProgressListener {
+    private  static final String APP_ICON_RES = "/de/mein/icon/tray.png";
+
 
     private static final int IMAGE_SIZE = 22;
     public static final String GLOBAL_STYLE_CSS = "/de/mein/modena_dark.css";
@@ -269,8 +271,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
         //If the icon is a file
         //URL url = MeinAuthAdmin.class.getResource("de/mein/icon/app_square.png");
-        final String res = "/de/mein/icon/app_square.png";
-        BufferedImage img = ImageIO.read(getClass().getResourceAsStream(res));
+        BufferedImage img = ImageIO.read(getClass().getResourceAsStream(APP_ICON_RES));
         //Alternative (if the icon is on the classpath):
         trayIcon = new TrayIcon(img, "Tray Demo");
         //Let the system resizes the image if needed
@@ -444,7 +445,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     }
 
     public static Stage createStage(Scene scene) {
-        Image image = new Image("/de/mein/icon/app_square.png");
+        Image image = new Image(APP_ICON_RES);
         Stage stage = new Stage();
         stage.getIcons().add(image);
         scene.getStylesheets().add(GLOBAL_STYLE_CSS);
