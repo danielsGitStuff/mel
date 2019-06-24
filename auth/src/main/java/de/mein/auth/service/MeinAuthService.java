@@ -654,6 +654,7 @@ public class MeinAuthService {
 
     public void resume() {
         Lok.debug("resume");
+        meinBoot.onHeavyWorkAllowed();
         uuidServiceMapSemaphore.lock();
         List<DeferredObject> servicesStarted = new ArrayList<>();
         for (IMeinService service : uuidServiceMap.values()) {
@@ -667,7 +668,6 @@ public class MeinAuthService {
             }
         }
         uuidServiceMapSemaphore.unlock();
-        meinBoot.onHeavyWorkAllowed();
         // reconnect everything after resume
         meinAuthWorker.addJob(new NetworkEnvDiscoveryJob());
         DeferredObject[] arr = N.arr.fromCollection(servicesStarted, N.converter(DeferredObject.class, element -> element));
