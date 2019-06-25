@@ -179,7 +179,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
 
     @Override
     public String getTitle() {
-        return "Create a new Drive instance";
+        return getString("create.title");
     }
 
 

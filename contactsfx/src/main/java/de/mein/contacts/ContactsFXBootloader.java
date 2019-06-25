@@ -6,6 +6,9 @@ import de.mein.auth.service.IMeinService;
 import de.mein.contacts.service.ContactsServerService;
 import de.mein.contacts.service.ContactsService;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 /**
  * Created by xor on 9/21/17.
  */
@@ -34,6 +37,11 @@ public class ContactsFXBootloader extends ContactsBootloader implements BootLoad
     @Override
     public String getIconURL() {
         return "de/mein/contacts/contacts.png";
+    }
+
+    @Override
+    public ResourceBundle getResourceBundle(Locale locale) {
+        return ResourceBundle.getBundle("de/mein/contacts/strings", locale);
     }
 
 //    public ContactsService createService(String name, String role) throws SqlQueriesException, InstantiationException, IllegalAccessException, JsonSerializationException, IOException, ClassNotFoundException, SQLException, JsonDeserializationException {

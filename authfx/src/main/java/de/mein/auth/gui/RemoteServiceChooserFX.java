@@ -122,10 +122,11 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
         return embeddedServiceSettingsFX == null ? null : embeddedServiceSettingsFX.getTitle();
     }
 
-    public void createFXML(String fxml) {
+    public void createFXML(String fxml, ResourceBundle resourceBundle) {
         N.r(() -> {
 //            showBottomButtons();
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(fxml));
+            lo.setResources(resourceBundle);
             Pane pane = lo.load();
             embeddedServiceSettingsFX = lo.getController();
             embeddedServiceSettingsFX.setRemoteServiceChooserFX(this);

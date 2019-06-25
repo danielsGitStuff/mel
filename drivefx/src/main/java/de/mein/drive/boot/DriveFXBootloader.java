@@ -8,6 +8,9 @@ import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.service.MeinDriveService;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 /**
  * Created by xor on 9/21/16.
  */
@@ -45,5 +48,11 @@ public class DriveFXBootloader extends DriveBootloader implements BootLoaderFX<M
     @Override
     public String getIconURL() {
         return "de/mein/drive/drive.png";
+    }
+
+    @Override
+    public ResourceBundle getResourceBundle(Locale locale) {
+        return ResourceBundle.getBundle("de/mein/drive/strings", locale);
+
     }
 }

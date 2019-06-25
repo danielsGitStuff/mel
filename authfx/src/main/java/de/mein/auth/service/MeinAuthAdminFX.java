@@ -83,6 +83,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     private TrayIcon trayIcon;
     private NotificationCenter notificationCenter;
     private ResourceBundle resourceBundle;
+    private Locale locale;
 
     @Override
     public void start(MeinAuthService meinAuthService) {
@@ -335,13 +336,14 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         if (bootLoader instanceof BootLoaderFX) {
             showPrimaryButtonOnly();
             BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
+            ResourceBundle resourceBundle = bootLoaderFX.getResourceBundle(locale);
             if (bootLoaderFX.embedCreateFXML()) {
                 loadSettingsFX("de/mein/choose.server.fxml");
                 RemoteServiceChooserFX remoteServiceChooserFX = (RemoteServiceChooserFX) contentController;
-                remoteServiceChooserFX.createFXML(((BootLoaderFX) bootLoader).getCreateFXML());
+                remoteServiceChooserFX.createFXML(((BootLoaderFX) bootLoader).getCreateFXML(), resourceBundle);
                 lblTitle.setText(contentController.getTitle());
             } else {
-                loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML(), null);
+                loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML(), resourceBundle);
             }
         } else {
             Lok.debug("MeinAuthAdminFX.onCreateMenuItemClicked.NO.FX.BOOTLOADER");
@@ -409,12 +411,14 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                     FxApp.setRunAfterStart(() -> {
                         try {
                             Lok.debug("MeinAuthAdminFX.load...");
+                            Locale locale = Locale.GERMAN;
                             FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getResource("/de/mein/auth/mainwindow.fxml"));
-                            ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/mainwindow", Locale.GERMAN);
+                            ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/mainwindow", locale);
                             loader.setResources(resourceBundle);
                             HBox root = null;
                             root = loader.load();
                             meinAuthAdminFXES[0] = loader.getController();
+                            meinAuthAdminFXES[0].locale = locale;
                             meinAuthAdminFXES[0].resourceBundle = resourceBundle;
                             meinAuthAdminFXES[0].start(meinAuthService);
                             Scene scene = new Scene(root);

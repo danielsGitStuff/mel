@@ -3,6 +3,9 @@ package de.mein.auth.boot;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.service.IMeinService;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 /**
  * Created by xor on 9/21/16.
  */
@@ -20,4 +23,6 @@ public interface BootLoaderFX<T extends IMeinService> {
     String getPopupFXML(IMeinService meinService, MeinNotification dataObject);
 
     String getIconURL();
+
+    ResourceBundle getResourceBundle(Locale locale);
 }
