@@ -50,7 +50,7 @@ public class OthersSettingsFX extends AuthSettingsFX {
 
     @Override
     public String getTitle() {
-        return "Other (known) instances";
+        return getString("others.title");
     }
 
     @Override

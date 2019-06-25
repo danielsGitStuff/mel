@@ -92,8 +92,8 @@
     <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
         <bottom>
             <HBox fx:id="hBoxButtons" alignment="CENTER" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">
-                <Button fx:id="btnSecondary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Refresh" HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnPrimary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Apply" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnSecondary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%refresh" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnPrimary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%apply" HBox.hgrow="ALWAYS" />
             </HBox>
         </bottom>
         <top>

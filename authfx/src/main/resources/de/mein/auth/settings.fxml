@@ -6,19 +6,19 @@
 <VBox xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="de.mein.auth.gui.GeneralSettingsFX" stylesheets="@mein.css" prefHeight="400" prefWidth="600">
 
-    <Label styleClass="lbl-center-section" text="SSL-Port"/>
+    <Label styleClass="lbl-center-section" text="%settings.sslport"/>
     <TextField styleClass="txt-edit" fx:id="txtSslPort"/>
-    <Label styleClass="lbl-center-section" text="Port"/>
+    <Label styleClass="lbl-center-section" text="%settings.certport"/>
     <TextField styleClass="txt-edit" fx:id="txtPort"/>
 
-    <Label styleClass="lbl-center-section" text="Name"/>
+    <Label styleClass="lbl-center-section" text="%settings.name"/>
     <TextField styleClass="txt-edit" fx:id="txtName"/>
 
-    <Label styleClass="lbl-center-section" text="Working Directory"/>
+    <Label styleClass="lbl-center-section" text="%settings.workingDir"/>
     <HBox prefHeight="100.0" prefWidth="200.0">
         <children>
-            <TextField styleClass="txt-edit" fx:id="txtWorkingDirectory" HBox.hgrow="ALWAYS"/>
-            <Button styleClass="btn" fx:id="btnChoosedir" mnemonicParsing="false" text="Choose"/>
+            <TextField styleClass="txt-edit" fx:id="txtWorkingDirectory" HBox.hgrow="ALWAYS" editable="false"/>
+            <!--            <Button styleClass="btn" fx:id="btnChoosedir" mnemonicParsing="false" text="%settings.btn.dir"/>-->
         </children>
     </HBox>
 </VBox>

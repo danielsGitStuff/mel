@@ -5,6 +5,7 @@ import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinAuthAdminFX;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 
@@ -15,7 +16,7 @@ import java.util.ResourceBundle;
 /**
  * Created by xor on 18.09.2016.
  */
-public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
+public class GeneralSettingsFX extends AuthSettingsFX {
 
     @FXML
     protected TextField txtWorkingDirectory;
@@ -48,8 +49,9 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        txtPort.setTextFormatter(new TextFormatter<>(change -> numbersOnly(change)));
-        txtSslPort.setTextFormatter(new TextFormatter<>(change -> numbersOnly(change)));
+        super.initialize(location, resources);
+        txtPort.setTextFormatter(new TextFormatter<>(this::numbersOnly));
+        txtSslPort.setTextFormatter(new TextFormatter<>(this::numbersOnly));
         Lok.debug("GeneralSettingsFX.initialize");
     }
 
@@ -65,12 +67,12 @@ public class GeneralSettingsFX extends AuthSettingsFX implements Initializable {
 
     @Override
     public String getTitle() {
-        return "General stuff";
+        return getString("settings.title");
     }
 
     @Override
     public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
-        meinAuthAdminFX.setPrimaryButtonText("Apply");
+        meinAuthAdminFX.setPrimaryButtonText(getString("settings.btnApply"));
         meinAuthAdminFX.showPrimaryButtonOnly();
     }
 }

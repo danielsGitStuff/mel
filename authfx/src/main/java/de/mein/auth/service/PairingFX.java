@@ -20,7 +20,7 @@ import java.util.ResourceBundle;
 /**
  * Created by xor on 10/25/16.
  */
-public class PairingFX extends AuthSettingsFX implements Initializable {
+public class PairingFX extends AuthSettingsFX {
     private NetworkEnvironment environment;
     @FXML
     private ListView<NetworkEnvironment.UnknownAuthInstance> listAll;
@@ -48,7 +48,7 @@ public class PairingFX extends AuthSettingsFX implements Initializable {
 
     @Override
     public String getTitle() {
-        return "Find other instances";
+        return getString("pairing.title");
     }
 
     private void discover() {
@@ -75,6 +75,7 @@ public class PairingFX extends AuthSettingsFX implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        super.initialize(location, resources);
         listAll.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selected) -> {
             if (selected != null) {
                 txtAddress.setText(selected.getAddress());
@@ -86,7 +87,7 @@ public class PairingFX extends AuthSettingsFX implements Initializable {
 
     @Override
     public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
-        meinAuthAdminFX.setPrimaryButtonText("Connect");
+        meinAuthAdminFX.setPrimaryButtonText(getString("pairing.pair"));
         meinAuthAdminFX.showPrimaryButtonOnly();
     }
 }

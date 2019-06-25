@@ -16,12 +16,4 @@
             </columns>
         </TableView>
     </center>
-    <!--<top>-->
-            <!--<HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" BorderPane.alignment="TOP_LEFT">-->
-                <!--<Label text="filter Services" />-->
-                <!--<TextField fx:id="txtServiceFilter" />-->
-                <!--<Label text="filter Certificates" />-->
-                <!--<TextField fx:id="txtCertificateFilter" />-->
-            <!--</HBox>-->
-    <!--</top>-->
 </BorderPane>

@@ -23,7 +23,7 @@ import java.util.ResourceBundle;
 /**
  * Created by xor on 9/22/16.
  */
-public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable {
+public class ApprovalSettingsFX extends AuthSettingsFX{
     private ApprovalMatrix approvalMatrix;
     @FXML
     private TableView<ServiceJoinServiceType> table;
@@ -53,7 +53,7 @@ public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable 
             if (table != null) {
                 new ArrayList<TableColumn>(table.getColumns())
                         .forEach(tableColumn -> table.getColumns().remove(tableColumn));
-                TableColumn<ServiceJoinServiceType, String> servicesColumn = new TableColumn<>("Services");
+                TableColumn<ServiceJoinServiceType, String> servicesColumn = new TableColumn<>(getString("%access.services"));
                 servicesColumn.setStyle("-fx-background-color:rgba(0, 0, 0, 0.05)");
                 servicesColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getName().v()));
                 table.getColumns().add(servicesColumn);
@@ -78,17 +78,12 @@ public class ApprovalSettingsFX extends AuthSettingsFX implements Initializable 
 
     @Override
     public String getTitle() {
-        return "Which services shall speak to whom?";
+        return getString("access.title");
     }
 
     @Override
     public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
-        meinAuthAdminFX.setPrimaryButtonText("Apply");
+        meinAuthAdminFX.setPrimaryButtonText(getString("apply"));
         meinAuthAdminFX.showPrimaryButtonOnly();
-    }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-
     }
 }
