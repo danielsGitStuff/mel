@@ -309,12 +309,13 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
     private NotificationCenter loadNotificationCenter() throws IOException {
         if (notificationCenter == null) {
             FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("de/mein/auth/notificationcenter.fxml"));
+            loader.setResources(resourceBundle);
             Parent root = loader.load();
             NotificationCenter notificationCenter = loader.getController();
             notificationCenter.setMeinAuthAdminFX(this);
             Scene scene = new Scene(root);
             Stage stage = createStage(scene);
-            stage.setTitle("Notification Center");
+            stage.setTitle(resourceBundle.getString("notificationCenter"));
             stage.setScene(scene);
             stage.show();
             Lok.debug("MeinAuthAdminFX.displayTray");

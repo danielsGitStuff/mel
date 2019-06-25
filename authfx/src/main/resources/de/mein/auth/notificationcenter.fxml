@@ -10,6 +10,6 @@
       prefHeight="400.0" prefWidth="600.0">
     <ListView styleClass="lst" fx:id="list" VBox.vgrow="ALWAYS"/>
     <HBox>
-        <Button fx:id="btnClose" text="Close" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnClose" text="%close" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
     </HBox>
 </VBox>
