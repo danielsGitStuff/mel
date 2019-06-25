@@ -9,7 +9,7 @@
     <string name="coupleNotificationCertTitle">Pairing Attempt!</string>
     <string name="coupleNotificationCertText">Your Drive instance wants to get to know another one.</string>
     <string name="slogan">No Clouds included!</string>
-    <string name="permanentNotificationText">This notification prevents Drive from being shut down.</string>
+    <string name="permanentDriveWriteText">This notification prevents Drive from being shut down.</string>
     <string name="btnOk">Ok</string>
     <string name="titleHelp">Help</string>
     <string name="accessHelp">Left column: all other Drive instances known to you. When clicking on one of them the right column will show all existing services. Ticking the boxes will allow the other instance to talk to this specific Service.</string>
@@ -97,7 +97,7 @@
     <string name="driveChoosePath">Please choose a storage directory</string>
     <string name="invalidDirectory">The chosen directory is invalid.</string>
     <string name="permissionWriteMessage">Write permission to external storage is required since Android introduced the storage access framework which is rubbish. So I replaced the java.io.File by something that works and requires the permission. Please select the root directory of your external sd card in the following dialog.</string>
-    <string name="permissionWriteTitle">Permission required.</string>
+    <string name="permissionRequiredTitle">Permission required.</string>
     <string name="btnActivate">Activate</string>
     <string name="stateStopped">Stopped</string>
     <string name="stateRunning">Running</string>
@@ -157,5 +157,7 @@
     <string name="errorCreateService">Creating Service failed.</string>
     <string name="incompatible">Incompatible</string>
     <string name="driveIncompatibleServerService">The server uses symbolic links which -unless you got root- are not supported on Android. A compatibility mode is currently not available.</string>
+    <string name="permissionDefaultText">The services asks for some permissions.</string>
+    <string name="permissionContacts">As this is a service that is supposed to synchronize contacts, you habe to grant the obvious permission in the next dialog.</string>
 
 </resources>

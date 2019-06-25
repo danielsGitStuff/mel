@@ -39,7 +39,6 @@ import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
-import de.mein.auth.service.MeinService;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
@@ -247,7 +246,7 @@ public class AndroidService extends Service {
         Notifier.createNotificationManager(this);
         Notification notification = new NotificationCompat.Builder(this, Notifier.CHANNEL_ID_SILENT)
                 .setContentTitle(getText(R.string.app_name))
-                .setContentText(getText(R.string.permanentNotificationText))
+                .setContentText(getText(R.string.permanentDriveWriteText))
                 .setSmallIcon(R.drawable.icon_notification)
                 .setContentIntent(pendingIntent)
                 .setTicker("starting...")

@@ -10,7 +10,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.ContactsContract;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,13 +26,13 @@ import androidx.documentfile.provider.DocumentFile;
 
 import de.mein.BuildConfig;
 
+import de.mein.android.controller.PermissionsGrantedListener;
+import de.mein.android.drive.AndroidDriveBootloader;
 import de.mein.auth.service.NetworkDiscoveryController;
 
+import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,9 +64,6 @@ import de.mein.android.file.SAFAccessor;
 import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
 import de.mein.android.service.AndroidServiceBind;
-import de.mein.auth.data.MeinRequest;
-import de.mein.auth.data.access.CertificateManager;
-import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
@@ -75,16 +71,8 @@ import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.power.PowerManager;
-import de.mein.auth.socket.process.reg.IRegisterHandler;
-import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mein.auth.socket.process.val.MeinServicesPayload;
-import de.mein.auth.socket.MeinValidationProcess;
-import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
-import de.mein.drive.DriveCreateController;
-import de.mein.drive.bash.BashTools;
-import de.mein.drive.data.DriveSettings;
 
 
 public class MainActivity extends MeinActivity implements PowerManager.IPowerStateListener<AndroidPowerManager> {
@@ -558,4 +546,38 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     }
 
 
+    /**
+     * ask user for permission and do thing upon approval or denial. calls onSuccess when permissions granted or permissions had already been granted.
+     *
+     * @param permissions                permissions you want
+     * @param permissionsGrantedListener
+     * @param permissionTitle
+     * @param permissionText
+     * @param onSuccess
+     * @param onFail
+     */
+    public void askUserForPermissions(String[] permissions
+            , PermissionsGrantedListener permissionsGrantedListener
+            , int permissionTitle
+            , int permissionText
+            , Runnable onSuccess
+            , FailCallback onFail) {
+        if (!hasPermissions(permissions)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(permissionText)
+                    .setTitle(permissionTitle)
+                    .setPositiveButton(R.string.btnOk, (dialog, which) -> {
+                        Promise<Void, List<String>, Void> permissionsPromise = annoyWithPermissions(permissions);
+                        permissionsPromise.done(nil -> {
+                            if (permissionsGrantedListener != null)
+                                permissionsGrantedListener.onPermissionsGranted();
+                            onSuccess.run();
+                        }).fail(onFail);
+                    });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        } else {
+            onSuccess.run();
+        }
+    }
 }

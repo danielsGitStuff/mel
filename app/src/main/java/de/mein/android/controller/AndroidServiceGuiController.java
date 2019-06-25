@@ -5,7 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 
-import de.mein.android.MeinActivity;
+import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.Tools;
 
 /**
@@ -14,7 +15,7 @@ import de.mein.android.Tools;
 
 public abstract class AndroidServiceGuiController {
     protected final View rootView;
-    protected final MeinActivity activity;
+    protected final MainActivity activity;
     protected String name;
     protected final View.OnFocusChangeListener hideKeyboardOnFocusLostListener = new View.OnFocusChangeListener() {
         @Override
@@ -35,7 +36,7 @@ public abstract class AndroidServiceGuiController {
         return name;
     }
 
-    public AndroidServiceGuiController(MeinActivity activity, ViewGroup embedded, int resource) {
+    public AndroidServiceGuiController(MainActivity activity, ViewGroup embedded, int resource) {
         this.rootView = activity.getLayoutInflater().inflate(resource, embedded);
         this.activity = activity;
 
@@ -54,5 +55,13 @@ public abstract class AndroidServiceGuiController {
 
     public void setOnPermissionsGrantedListener(PermissionsGrantedListener permissionsGrantedListener) {
         this.permissionsGrantedListener = permissionsGrantedListener;
+    }
+
+    public int getPermissionsTitle() {
+        return R.string.permissionRequiredTitle;
+    }
+
+    public int getPermissionsText() {
+        return R.string.permissionDefaultText;
     }
 }

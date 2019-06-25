@@ -5,6 +5,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceGuiController;
 import de.mein.auth.service.IMeinService;
@@ -21,7 +22,7 @@ public class AndroidDriveEditGuiController extends AndroidServiceGuiController {
     private Button btnPath;
 
 
-    public AndroidDriveEditGuiController(MeinAuthService meinAuthService, MeinActivity activity, IMeinService iMeinService, ViewGroup rootView) {
+    public AndroidDriveEditGuiController(MeinAuthService meinAuthService, MainActivity activity, IMeinService iMeinService, ViewGroup rootView) {
         super(activity, rootView, R.layout.embedded_twice_drive);
         this.runningInstance = (MeinDriveService) iMeinService;
         txtPath.setText(this.runningInstance.getDriveSettings().getRootDirectory().getPath());

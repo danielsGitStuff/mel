@@ -9,7 +9,7 @@
     <string name="coupleNotificationCertTitle">Kopplungsversuch!</string>
     <string name="coupleNotificationCertText">Eine andere Driveinstanz möchte diese hier kennenlernen.</string>
     <string name="slogan">Mit ohne Wolken!</string>
-    <string name="permanentNotificationText">Die Notification soll das Beenden durch Android verhindern.</string>
+    <string name="permanentDriveWriteText">Die Notification soll das Beenden durch Android verhindern.</string>
     <string name="btnOk">Ok</string>
     <string name="titleHelp">Hilfe</string>
     <string name="accessHelp">Linke Spalte: Alle anderen, dir bekannten Driveinstanzen. Wenn du drauf tippst zeigt dir rechte Spalte alle verfügbaren Dienste an. Wenn du ein Häckchen setzt, darf diese Instanz mit diesem Dienst \"reden\".</string>
@@ -97,7 +97,7 @@
     <string name="driveChoosePath">Bitte wähle einen Speicherort.</string>
     <string name="invalidDirectory">Das gewählte Verzeichnis ist ungültig!</string>
     <string name="permissionWriteMessage">Mit Android KitKat wurde eine neue Zugriffsmethode für den externen Speicher implementiert. Sie ist Müll. Ich musste java.io.File ersetzen. Dieser Workaround benötigt diese Berechtigung. Bitte selektiere das Wurzelverzeichnis der externen Speicherkarte im nächsten Dialog.</string>
-    <string name="permissionWriteTitle">Berechtigung benötigt.</string>
+    <string name="permissionRequiredTitle">Berechtigung benötigt.</string>
     <string name="btnActivate">Aktivieren</string>
     <string name="stateStopped">Gestoppt</string>
     <string name="stateRunning">Läuft</string>
@@ -157,5 +157,7 @@
     <string name="errorCreateService">Der Diensterstellungsvorgang scheiterte!</string>
     <string name="incompatible">Incompatible</string>
     <string name="driveIncompatibleServerService">Der Server nutzt symoblische Links, die, ohne Rootrechte, von Android nicht unterstützt werden. Ein Kompatibelitätsmodus ist zur Zeit noch nicht verfügbar.</string>
+    <string name="permissionDefaultText">Der Dienst erbittet einige Berechtigungen.</string>
+    <string name="permissionContacts">Da dieser Dienst deine Kontaktdaten synchronisieren soll, braucht es die offensichtliche Berechtigung.</string>
 
 </resources>

@@ -4,7 +4,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 
 import de.mein.R;
-import de.mein.android.MeinActivity;
+import de.mein.android.MainActivity;
 import de.mein.android.controller.RemoteServiceChooserController;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
@@ -17,7 +17,7 @@ import de.mein.contacts.data.ContactStrings;
 public class RemoteContactsServiceChooserGuiController extends RemoteServiceChooserController {
     private CheckBox cbStoreToPhoneBook;
 
-    public RemoteContactsServiceChooserGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup) {
+    public RemoteContactsServiceChooserGuiController(MeinAuthService meinAuthService, MainActivity activity, ViewGroup viewGroup) {
         super(meinAuthService, activity, viewGroup, R.layout.embedded_twice_contacts);
     }
 
@@ -46,5 +46,10 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
     public boolean onOkClicked() {
 
         return true;
+    }
+
+    @Override
+    public int getPermissionsText() {
+        return R.string.permissionContacts;
     }
 }

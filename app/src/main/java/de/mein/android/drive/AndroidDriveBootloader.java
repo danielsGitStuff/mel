@@ -53,7 +53,7 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
     }
 
     @Override
-    public AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
+    public AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MainActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance) {
         if (runningInstance == null) {
             return new RemoteDriveServiceChooserGuiController(meinAuthService, activity, embedded);
         } else {

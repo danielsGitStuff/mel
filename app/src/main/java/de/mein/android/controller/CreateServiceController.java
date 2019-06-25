@@ -87,17 +87,18 @@ public class CreateServiceController extends WakelockedGuiController implements 
                     RemoteServiceChooserController chooserController = (RemoteServiceChooserController) currentController;
                     chooserController.setCreateServiceController(this);
                 }
+
                 if (activity.hasPermissions(bootLoader.getPermissions())) {
                     onPermissionsGranted();
                 } else {
                     btnCreate.setOnClickListener(v -> {
-                        activity.annoyWithPermissions(bootLoader.getPermissions())
-                                .done(result -> {
-                                    Notifier.toast(activity, "granted");
-                                    btnCreate.setOnClickListener(defaultBtnCreateListener);
-                                    btnCreate.setText(R.string.btnCreate);
-                                })
-                                .fail(r -> Notifier.toast(mainActivity, R.string.infufficientPermissions));
+                        activity.askUserForPermissions(bootLoader.getPermissions()
+                                , this
+                                , currentController.getPermissionsTitle()
+                                , currentController.getPermissionsText(),
+                                this::onPermissionsGranted
+                                , r -> Notifier.toast(mainActivity, R.string.infufficientPermissions)
+                        );
                     });
                     btnCreate.setText(R.string.btnCreateRequestPerm);
                 }

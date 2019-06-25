@@ -5,6 +5,7 @@ import android.widget.CheckBox;
 
 import de.mein.Lok;
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.contacts.data.AndroidContactSettings;
 import de.mein.android.controller.AndroidServiceGuiController;
@@ -22,7 +23,7 @@ public class AndroidContactsEditController extends AndroidServiceGuiController {
     private CheckBox cbStoreToPhoneBook;
     private ContactsService contactsService;
 
-    public AndroidContactsEditController(MeinAuthService meinAuthService, MeinActivity activity, IMeinService runningInstance, ViewGroup embedded) {
+    public AndroidContactsEditController(MeinAuthService meinAuthService, MainActivity activity, IMeinService runningInstance, ViewGroup embedded) {
         super(activity, embedded, R.layout.embedded_twice_contacts);
         this.contactsService = (ContactsService) runningInstance;
         androidContactSettings = (AndroidContactSettings) contactsService.getSettings().getPlatformContactSettings();

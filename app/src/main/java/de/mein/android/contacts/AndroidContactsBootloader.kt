@@ -12,6 +12,7 @@ import java.sql.SQLException
 
 import de.mein.Lok
 import de.mein.R
+import de.mein.android.MainActivity
 import de.mein.android.MeinActivity
 import de.mein.android.Notifier
 import de.mein.android.Threadder
@@ -39,6 +40,7 @@ import de.mein.sql.SqlQueriesException
  */
 
 class AndroidContactsBootloader : ContactsBootloader(), AndroidBootLoader<ContactsService> {
+
     @Throws(JsonDeserializationException::class, JsonSerializationException::class, IOException::class, SQLException::class, SqlQueriesException::class, IllegalAccessException::class, ClassNotFoundException::class)
     override fun createServerInstance(meinAuthService: MeinAuthService, workingDirectory: File, serviceId: Long?, serviceTypeId: String, contactsSettings: ContactsSettings<*>): ContactsService {
         return AndroidContactsServerService(meinAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings)
@@ -71,7 +73,7 @@ class AndroidContactsBootloader : ContactsBootloader(), AndroidBootLoader<Contac
 
     }
 
-    override fun inflateEmbeddedView(embedded: ViewGroup, activity: MeinActivity, meinAuthService: MeinAuthService, runningInstance: IMeinService?): AndroidServiceGuiController {
+    override fun inflateEmbeddedView(embedded: ViewGroup, activity: MainActivity, meinAuthService: MeinAuthService, runningInstance: IMeinService?): AndroidServiceGuiController {
         return runningInstance?.let { AndroidContactsEditController(meinAuthService, activity, it, embedded) }
                 ?: RemoteContactsServiceChooserGuiController(meinAuthService, activity, embedded)
     }

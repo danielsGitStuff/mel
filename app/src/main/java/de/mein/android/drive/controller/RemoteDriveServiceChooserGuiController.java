@@ -15,16 +15,13 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
-import androidx.appcompat.app.AlertDialog;
-
 import org.jdeferred.Promise;
 
 import java.io.File;
-import java.util.List;
 
 import de.mein.Lok;
 import de.mein.R;
-import de.mein.android.MeinActivity;
+import de.mein.android.MainActivity;
 import de.mein.android.Notifier;
 import de.mein.android.Tools;
 import de.mein.android.controller.RemoteServiceChooserController;
@@ -100,7 +97,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         return rootFile;
     }
 
-    public RemoteDriveServiceChooserGuiController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup) {
+    public RemoteDriveServiceChooserGuiController(MeinAuthService meinAuthService, MainActivity activity, ViewGroup viewGroup) {
         super(meinAuthService, activity, viewGroup, R.layout.embedded_twice_drive);
     }
 
@@ -119,24 +116,6 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
         result.done(chosenDir -> {
             setPath(chosenDir.getAbsolutePath());
-//            AFile testFile = AFile.instance(chosenDir, "testi.txt");
-//            try {
-//                if (testFile.createNewFile() || testFile.exists()) {
-//                    FileOutputStream fos = testFile.outputStream();
-//                    fos.write("kekse?".getBytes());
-//                    FileInputStream fin = testFile.inputStream();
-//                    byte[] bytes = new byte[6];
-//                    fin.read(bytes);
-//                    String read = new String(bytes);
-//                    AFile subDir = AFile.instance(chosenDir, "subtest");
-//                    subDir.mkdirs();
-//                    AFile target = AFile.instance(new File(subDir.getAbsolutePath() + File.separator + "target.txt"));
-//                    testFile.move(target);
-//                    Lok.debug("RemoteDriveServiceChooserGuiController.launchDirChooser");
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
         });
     }
 
@@ -156,93 +135,24 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         setPath(createDrivePath());
         btnPath.setOnClickListener(view -> {
             // explain permissions to user first
-//            activity.askUserForPermissions(new AndroidDriveBootloader().getPermissions(),R.string.permissionWriteTitle,R.string.permanentNotificationText,() -> {});
-            if (!activity.hasPermissions(new AndroidDriveBootloader().getPermissions())) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                builder.setMessage(R.string.permissionWriteMessage)
-                        .setTitle(R.string.permissionWriteTitle)
-                        .setPositiveButton(R.string.btnOk, (dialog, which) -> {
-                            Promise<Void, List<String>, Void> permissionsPromise = activity.annoyWithPermissions(new AndroidDriveBootloader().getPermissions());
-                            permissionsPromise.done(nil -> {
-                                if (permissionsGrantedListener != null)
-                                    permissionsGrantedListener.onPermissionsGranted();
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                    if (!SAFAccessor.hasExternalSdCard() || SAFAccessor.canWriteExternal()) {
-                                        launchDirChooser();
-                                    } else {
-                                        SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
-                                            launchDirChooser();
-                                        }).fail(Throwable::printStackTrace);
-                                    }
-                                } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
+            activity.askUserForPermissions(new AndroidDriveBootloader().getPermissions()
+                    , permissionsGrantedListener
+                    , R.string.permissionRequiredTitle
+                    , R.string.permanentDriveWriteText
+                    , () -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            if (!SAFAccessor.hasExternalSdCard() || SAFAccessor.canWriteExternal()) {
+                                launchDirChooser();
+                            } else {
+                                SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
                                     launchDirChooser();
-                                }
-                            }).fail(result -> Notifier.toast(activity, R.string.toastDrivePermissionsRequired));
-                        });
-
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
-            } else {
-                launchDirChooser();
-            }
-
-
-//
-//                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-//                i.addCategory(Intent.CATEGORY_DEFAULT);
-//                activity.launchActivityForResult(Intent.createChooser(i, "Choose directory"), (resultCode, intentResult) -> {
-//                    // Persist access permissions.
-//                    if (resultCode == Activity.RESULT_OK) {
-//                        rootTreeUri = intentResult.getData();
-//                        final int takeFlags = intentResult.getFlags()
-//                                & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-//                        activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
-//                        List<UriPermission> uris = activity.getContentResolver().getPersistedUriPermissions();
-//
-//                        N.r(() -> {
-//                            //save external sdcard uri
-//                            File externalRoot = null;
-//                            List<String> paths = new ArrayList<>();
-//                            File[] candidates = Tools.getApplicationContext().getExternalFilesDirs("external");
-//                            File notThis = Tools.getApplicationContext().getExternalFilesDir("external");
-//                            for (File candidate : candidates) {
-//                                if (candidate != null && !candidate.equals(notThis)) {
-//                                    int cut = candidate.getAbsolutePath().lastIndexOf("/Android/data");
-//                                    if (cut > 0) {
-//                                        String path = candidate.getAbsolutePath().substring(0, cut);
-//                                        externalRoot = new File(path);
-//                                    }
-//                                }
-//                            }
-//                            Tools.getSharedPreferences().edit()
-//                                    .putString(SAFAccessor.EXT_SD_CARD_URI, rootTreeUri.toString())
-//                                    .putString(SAFAccessor.EXT_SD_CARD_PATH, externalRoot.getAbsolutePath())
-//                                    .commit();
-//                            String testPath = "/storage/3352-1DEE/s/touched.txt";
-//                            File testFile = new File(testPath);
-//                            boolean isExternal = testFile.getCanonicalPath().startsWith(externalRoot.getCanonicalPath());
-//                            if (isExternal) {
-//                                String treeUriString = Tools.getSharedPreferences().getString(SAFAccessor.EXT_SD_CARD_URI, null);
-//                                Uri treeUri = Uri.parse(treeUriString);
-//                                DocumentFile rootDocFile = DocumentFile.fromTreeUri(Tools.getApplicationContext(), treeUri);
-//                                String stripped = testPath.substring(externalRoot.getAbsolutePath().length() + 1);
-//                                String[] parts = stripped.split("/");
-//                                DocumentFile sub1 = rootDocFile.findFile(parts[0]);
-//                                DocumentFile sub2 = sub1.findFile(parts[1]);
-//                                Lok.debug("RemoteDriveServiceChooserGuiController.initEmbedded");
-//                            }
-//                            Lok.debug("RemoteDriveServiceChooserGuiController.initEmbedded");
-//
-//                        });
-//
-//
-//
-//                    }
-//                });
-
-//
-
-
+                                }).fail(Throwable::printStackTrace);
+                            }
+                        } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
+                            launchDirChooser();
+                        }
+                    }
+                    , result -> Notifier.toast(activity, R.string.toastDrivePermissionsRequired));
         });
         maxSizeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -377,5 +287,10 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 
     public float getWastebinRatio() {
         return wastebinRatio;
+    }
+
+    @Override
+    public int getPermissionsText() {
+        return R.string.permanentDriveWriteText;
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.core.app.NotificationCompat;
 import android.view.ViewGroup;
 
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.controller.AndroidServiceGuiController;
 import de.mein.auth.MeinNotification;
@@ -19,7 +20,7 @@ public interface AndroidBootLoader<T extends IMeinService> {
 
     void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceGuiController currentController);
 
-    AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MeinActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance);
+    AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MainActivity activity, MeinAuthService meinAuthService, IMeinService runningInstance);
 
     String[] getPermissions();
 

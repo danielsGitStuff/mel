@@ -14,6 +14,7 @@ import java.util.List;
 
 import de.mein.Lok;
 import de.mein.R;
+import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.view.KnownCertListAdapter;
 import de.mein.android.view.ServicesListAdapter;
@@ -43,7 +44,7 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
     private ViewGroup chooserContent;
     private TextView lblKnownMA, lblServices;
 
-    public RemoteServiceChooserController(MeinAuthService meinAuthService, MeinActivity activity, ViewGroup viewGroup, int embeddedResource) {
+    public RemoteServiceChooserController(MeinAuthService meinAuthService, MainActivity activity, ViewGroup viewGroup, int embeddedResource) {
         super(activity, viewGroup, R.layout.embedded_create_service_chooser);
         this.meinAuthService = meinAuthService;
         chooserContent = rootView.findViewById(R.id.chooserContent);
