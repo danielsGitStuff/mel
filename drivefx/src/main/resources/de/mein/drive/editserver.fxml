@@ -9,19 +9,19 @@
 
 
         <GridPane maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-            <Label text="Role: " GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Label text="%edit.role" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
             <Label fx:id="lblRole" GridPane.columnIndex="1" GridPane.rowIndex="0">
                 <font>
                     <Font name="System Bold" size="13.0"/>
                 </font>
             </Label>
-            <Label text="Name" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <Label text="%edit.name" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
             <TextField fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name" GridPane.columnIndex="1"
                        GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
-            <Label text="Path" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <Label text="%edit.path" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
             <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
-                <TextField fx:id="txtPath" text="/home/xor/Documents/seminar/" HBox.hgrow="ALWAYS"/>
-                <Button fx:id="btnChosePath" text="chose"/>
+                <TextField editable="false" fx:id="txtPath" text="/home/xor/Documents/seminar/" HBox.hgrow="ALWAYS"/>
+                <!--                <Button fx:id="btnChosePath" text="chose"/>-->
             </HBox>
             <columnConstraints>
                 <ColumnConstraints/>

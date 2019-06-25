@@ -3,8 +3,12 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import java.lang.String?>
 <VBox xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="de.mein.auth.gui.GeneralSettingsFX" stylesheets="@mein.css" prefHeight="400" prefWidth="600">
+
+    <Label styleClass="lbl-center-section" text="%settings.lang"/>
+    <ComboBox fx:id="comboLang" styleClass="combo" />
 
     <Label styleClass="lbl-center-section" text="%settings.sslport"/>
     <TextField styleClass="txt-edit" fx:id="txtSslPort"/>

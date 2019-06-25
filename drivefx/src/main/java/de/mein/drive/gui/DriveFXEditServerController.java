@@ -17,6 +17,6 @@ public class DriveFXEditServerController extends DriveFXEditBaseController {
 
     @Override
     public String getTitle() {
-        return "Edit Drive server settings";
+        return getString("edit.title.server");
     }
 }

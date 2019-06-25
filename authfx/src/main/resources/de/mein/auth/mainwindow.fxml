@@ -14,61 +14,69 @@
 <?import javafx.scene.text.Font?>
 
 <?import javafx.scene.layout.Pane?>
-<HBox maxHeight="Infinity" maxWidth="1.7976931348623157E308" prefHeight="600" prefWidth="800" stylesheets="@mein.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.service.MeinAuthAdminFX">
+<HBox maxHeight="Infinity" maxWidth="1.7976931348623157E308" prefHeight="600" prefWidth="800" stylesheets="@mein.css"
+      xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="de.mein.auth.service.MeinAuthAdminFX">
     <BorderPane maxHeight="1.7976931348623157E308" style="-fx-padding:0 1 0 0">
         <top>
             <Accordion BorderPane.alignment="CENTER">
                 <panes>
-                    <TitledPane text="MeinAuth">
+                    <TitledPane text="Mel">
                         <content>
                             <VBox>
                                 <children>
 
 
-                                    <Button fx:id="btnInfo" alignment="TOP_LEFT" maxWidth="Infinity" mnemonicParsing="false" text="Info">
+                                    <Button fx:id="btnInfo" alignment="TOP_LEFT" maxWidth="Infinity"
+                                            mnemonicParsing="false" text="%btn.info">
                                         <graphic>
-                                            <ImageView fx:id="imgInfo" />
+                                            <ImageView fx:id="imgInfo"/>
                                         </graphic>
                                     </Button>
 
-                                    <Button fx:id="btnOthers" alignment="TOP_LEFT" maxWidth="Infinity" mnemonicParsing="false" text="Connected Instances">
+                                    <Button fx:id="btnOthers" alignment="TOP_LEFT" maxWidth="Infinity"
+                                            mnemonicParsing="false" text="%btn.instances">
                                         <graphic>
-                                            <ImageView fx:id="imgOthers" />
+                                            <ImageView fx:id="imgOthers"/>
                                         </graphic>
                                     </Button>
 
-                                    <Button fx:id="btnPairing" alignment="TOP_LEFT" maxWidth="Infinity" mnemonicParsing="false" text="Pairing">
+                                    <Button fx:id="btnPairing" alignment="TOP_LEFT" maxWidth="Infinity"
+                                            mnemonicParsing="false" text="%btn.pairing">
                                         <graphic>
-                                            <ImageView fx:id="imgPairing" />
+                                            <ImageView fx:id="imgPairing"/>
                                         </graphic>
                                     </Button>
 
 
-                                    <Button fx:id="btnAccess" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity" mnemonicParsing="false" prefHeight="20.0" text="Access">
+                                    <Button fx:id="btnAccess" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity"
+                                            mnemonicParsing="false" prefHeight="20.0" text="%btn.access">
                                         <graphic>
-                                            <ImageView fx:id="imgAccess" />
+                                            <ImageView fx:id="imgAccess"/>
                                         </graphic>
                                     </Button>
-                                    <Button fx:id="btnSettings" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity" mnemonicParsing="false" prefHeight="20.0" text="Settings">
+                                    <Button fx:id="btnSettings" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity"
+                                            mnemonicParsing="false" prefHeight="20.0" text="%btn.settings">
                                         <graphic>
-                                            <ImageView fx:id="imgSettings" />
+                                            <ImageView fx:id="imgSettings"/>
                                         </graphic>
                                     </Button>
 
-                                    <Button fx:id="btnAbout" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity" mnemonicParsing="false" prefHeight="20.0" text="About">
+                                    <Button fx:id="btnAbout" alignment="TOP_LEFT" maxHeight="20" maxWidth="Infinity"
+                                            mnemonicParsing="false" prefHeight="20.0" text="%btn.about">
                                         <graphic>
-                                            <ImageView fx:id="imgAbout" />
+                                            <ImageView fx:id="imgAbout"/>
                                         </graphic>
                                     </Button>
 
                                 </children>
                                 <rotationAxis>
-                                    <Point3D />
+                                    <Point3D/>
                                 </rotationAxis>
                             </VBox>
                         </content>
                     </TitledPane>
-                    <TitledPane fx:id="tpServices" text="Services">
+                    <TitledPane fx:id="tpServices" text="%services">
                         <content>
                             <VBox fx:id="vboxServices">
 
@@ -81,30 +89,35 @@
         <bottom>
             <Button fx:id="btnNotifications" maxWidth="Infinity" text="%notifications">
                 <graphic>
-                    <ImageView fx:id="imgNotifications" />
+                    <ImageView fx:id="imgNotifications"/>
                 </graphic>
             </Button>
         </bottom>
         <opaqueInsets>
-            <Insets />
+            <Insets/>
         </opaqueInsets>
     </BorderPane>
     <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
         <bottom>
-            <HBox fx:id="hBoxButtons" alignment="CENTER" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">
-                <Button fx:id="btnSecondary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%refresh" HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnPrimary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%apply" HBox.hgrow="ALWAYS" />
+            <HBox fx:id="hBoxButtons" alignment="CENTER" maxWidth="1.7976931348623157E308"
+                  BorderPane.alignment="CENTER">
+                <Button fx:id="btnSecondary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%refresh"
+                        HBox.hgrow="ALWAYS"/>
+                <Button fx:id="btnPrimary" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%apply"
+                        HBox.hgrow="ALWAYS"/>
             </HBox>
         </bottom>
         <top>
-            <Label visible="false" fx:id="lblTitle" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="tittle" text="Title Goes Here">
+            <Label visible="false" fx:id="lblTitle" alignment="CENTER" maxWidth="1.7976931348623157E308"
+                   styleClass="tittle" text="Title Goes Here">
                 <!--<font>-->
-                    <!--<Font name="System Bold" size="14.0" />-->
+                <!--<Font name="System Bold" size="14.0" />-->
                 <!--</font>-->
             </Label>
         </top>
         <center>
-            <AnchorPane fx:id="paneContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">
+            <AnchorPane fx:id="paneContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                        BorderPane.alignment="CENTER">
 
             </AnchorPane>
         </center>

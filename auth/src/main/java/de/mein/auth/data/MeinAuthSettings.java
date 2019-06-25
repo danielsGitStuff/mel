@@ -34,6 +34,7 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
     private String updateUrl, variant;
     @JsonIgnore
     private boolean headless = false;
+    private String language;
 
     public MeinAuthSettings setVariant(String variant) {
         this.variant = variant;
@@ -203,8 +204,6 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
     public MeinAuthSettings setWorkingDirectory(File workingDirectory) {
         this.workingDirectory = workingDirectory;
         this.workingdirectoryPath = workingDirectory.getAbsolutePath();
-        File jsonFile = new File(workingDirectory.getAbsolutePath() + File.separator + DEFAULT_FILE);
-        this.setJsonFile(jsonFile);
         return this;
     }
 
@@ -232,5 +231,14 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
 
     public boolean isHeadless() {
         return headless;
+    }
+
+    public MeinAuthSettings setLanguage(String language) {
+        this.language = language;
+        return this;
+    }
+
+    public String getLanguage() {
+        return language;
     }
 }

@@ -81,6 +81,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                                         "      Your should increase the limit to about: " + proposedInotifyThreshold;
                             }
                             shareWasChecked = true;
+                            lblHints.setVisible(true);
                             lblHints.setText(hint);
                             meinAuthAdminFX.setPrimaryButtonText(DEFAULT_PRIMARY_BTN_TEXT);
                             meinAuthAdminFX.showPrimaryButtonOnly();
@@ -134,7 +135,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
         if (BashTools.isWindows) {
             meinAuthAdminFX.setPrimaryButtonText(DEFAULT_PRIMARY_BTN_TEXT);
         } else {
-            meinAuthAdminFX.setPrimaryButtonText("Check Folder");
+            meinAuthAdminFX.setPrimaryButtonText(getString("choose.btn.checkDir"));
         }
         this.meinAuthAdminFX = meinAuthAdminFX;
     }
@@ -173,7 +174,10 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
                 txtPath.setText(null);
             }
         });
-        txtPath.textProperty().addListener(event -> shareWasChecked = false);
+        txtPath.textProperty().addListener(event -> {
+            shareWasChecked = false;
+            lblHints.setVisible(false);
+        });
 
     }
 

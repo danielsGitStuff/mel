@@ -188,7 +188,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                 errorController.showError(service);
             });
         } else {
-            loadSettingsFX(bootLoaderFX.getEditFXML(meinService), null);
+            loadSettingsFX(bootLoaderFX.getEditFXML(meinService), bootLoaderFX.getResourceBundle(locale));
             ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
             serviceSettingsFX.feed(serviceJoinServiceType);
         }
@@ -411,7 +411,11 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                     FxApp.setRunAfterStart(() -> {
                         try {
                             Lok.debug("MeinAuthAdminFX.load...");
-                            Locale locale = Locale.GERMAN;
+                            Locale locale;
+                            if (meinAuthService.getSettings().getLanguage() == null)
+                                locale = new Locale(Locale.getDefault().getLanguage(), "");
+                            else
+                                locale = new Locale(meinAuthService.getSettings().getLanguage(), "");
                             FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getResource("/de/mein/auth/mainwindow.fxml"));
                             ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/mainwindow", locale);
                             loader.setResources(resourceBundle);
@@ -421,6 +425,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                             meinAuthAdminFXES[0].locale = locale;
                             meinAuthAdminFXES[0].resourceBundle = resourceBundle;
                             meinAuthAdminFXES[0].start(meinAuthService);
+                            N.r(() -> meinAuthService.getSettings().setLanguage(locale.getLanguage()).save());
                             Scene scene = new Scene(root);
                             //apply theme
                             scene.getStylesheets().add(MeinAuthAdmin.class.getResource(GLOBAL_STYLE_CSS).toExternalForm());

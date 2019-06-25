@@ -6,6 +6,7 @@ import de.mein.auth.service.MeinAuthAdminFX;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 
@@ -17,7 +18,8 @@ import java.util.ResourceBundle;
  * Created by xor on 18.09.2016.
  */
 public class GeneralSettingsFX extends AuthSettingsFX {
-
+    @FXML
+    protected ComboBox comboLang;
     @FXML
     protected TextField txtWorkingDirectory;
     @FXML
@@ -31,6 +33,8 @@ public class GeneralSettingsFX extends AuthSettingsFX {
         settings.setPort(Integer.parseInt(txtSslPort.getText()));
         settings.setDeliveryPort(Integer.parseInt(txtPort.getText()));
         settings.setWorkingDirectory(new File(txtWorkingDirectory.getText()));
+        String language = comboLang.getSelectionModel().getSelectedItem().toString();
+        settings.setLanguage(language);
         try {
             settings.save();
         } catch (Exception e) {
@@ -63,6 +67,8 @@ public class GeneralSettingsFX extends AuthSettingsFX {
         txtName.setText(settings.getName());
         txtPort.setText(String.valueOf(settings.getDeliveryPort()));
         txtSslPort.setText(String.valueOf(settings.getPort()));
+        comboLang.getItems().addAll("de", "en");
+        comboLang.getSelectionModel().select(settings.getLanguage());
     }
 
     @Override

@@ -11,6 +11,11 @@
     -fx-pref-width: Infinity;
 }
 
+.combo{
+    -fx-pref-width: Infinity;
+    -fx-text-fill: #9eb34d;
+}
+
 .lbl-center-section, .lbl-section {
     -fx-background-color: #4f4f4f;
 }

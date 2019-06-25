@@ -58,6 +58,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
     private void onServerSelected() {
         rdClient.selectedProperty().setValue(false);
         rdServer.selectedProperty().setValue(true);
+        lblAvailable.setVisible(false);
         paneAvailable.setVisible(false);
         paneAvailable.setManaged(false);
         embeddedServiceSettingsFX.onRbServerSelected();
@@ -66,6 +67,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
     private void onClientSelected() {
         rdClient.selectedProperty().setValue(true);
         rdServer.selectedProperty().setValue(false);
+        lblAvailable.setVisible(true);
         paneAvailable.setVisible(true);
         paneAvailable.setManaged(true);
         embeddedServiceSettingsFX.onRbClientSelected();
