@@ -79,7 +79,7 @@
             </Accordion>
         </top>
         <bottom>
-            <Button fx:id="btnNotifications" maxWidth="Infinity" text="Notifications">
+            <Button fx:id="btnNotifications" maxWidth="Infinity" text="%notifications">
                 <graphic>
                     <ImageView fx:id="imgNotifications" />
                 </graphic>

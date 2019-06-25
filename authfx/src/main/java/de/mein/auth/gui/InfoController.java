@@ -9,7 +9,9 @@ import javafx.scene.layout.GridPane;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.URL;
 import java.util.Enumeration;
+import java.util.ResourceBundle;
 
 public class InfoController extends AuthSettingsFX {
     @FXML
@@ -60,12 +62,12 @@ public class InfoController extends AuthSettingsFX {
         });
         N.r(() -> {
             if (meinAuthService != null) {
-                lblStatus.setText("working!");
+                lblStatus.setText(getString("info.status.working"));
                 lblStatus.getStyleClass().clear();
                 lblStatus.getStyleClass().add("lbl-positive");
                 lblName.setText(meinAuthService.getName());
             } else {
-                lblStatus.setText("not working!");
+                lblStatus.setText(resources.getString("info.status.notWorking"));
                 lblName.setText("-");
                 lblStatus.getStyleClass().clear();
                 lblStatus.getStyleClass().add("lbl-negative");
@@ -75,11 +77,13 @@ public class InfoController extends AuthSettingsFX {
 
     @Override
     public String getTitle() {
-        return "Info goes here";
+        return resources.getString("info.title");
+//        return "Info goes here";
     }
 
     @Override
     public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
         meinAuthAdminFX.hideBottomButtons();
     }
+
 }

@@ -9,11 +9,11 @@
 <?import javafx.scene.layout.VBox?>
 <VBox stylesheets="@mein.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.auth.gui.InfoController">
 
-        <Label styleClass="lbl-center-section" text="Status:"  />
+        <Label styleClass="lbl-center-section" text="%info.status"  />
         <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblStatus" text="status goes here"/>
-        <Label styleClass="lbl-center-section" text="Name:" />
+        <Label styleClass="lbl-center-section" text="%info.name" />
         <Label styleClass="lbl" fx:id="lblName" text="name goes here"  />
-        <Label styleClass="lbl-center-section" alignment="CENTER" maxWidth="1.7976931348623157E308" text="Your network interfaces and IP addresses: ">
+        <Label styleClass="lbl-center-section" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%info.interfaces">
             <padding>
                 <Insets top="5" />
             </padding>

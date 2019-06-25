@@ -15,6 +15,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Region;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
@@ -89,13 +90,7 @@ public class AboutFX extends AuthSettingsFX {
                 currentJarFile = new File(CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation().toURI());
                 if (!currentJarFile.getAbsolutePath().endsWith(".jar")) {
                     Lok.error("Seems I am not a jar. I won't update myself then ;)");
-                    XCBFix.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Update Info");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Seems this is not started from a single jar-file. I don't know where to put the update then. So I won't update.");
-                        alert.showAndWait();
-                    });
+                    FxApp.showErrorDialog(getString("about.alert.title"),getString("about.err.notAJar"));
                     return;
                 }
                 Lok.debug("current path is " + currentJarFile.getAbsolutePath());
@@ -126,7 +121,6 @@ public class AboutFX extends AuthSettingsFX {
 
                 @Override
                 public void onProgress(Updater updater, Long done, Long length) {
-//                    Lok.debug("update: " + done + "/" + length);
                 }
 
                 @Override
@@ -134,7 +128,6 @@ public class AboutFX extends AuthSettingsFX {
                     Lok.debug("available");
                     N.r(() -> {
                         Long currentVersion = Versioner.getBuildVersion();
-//                        if (currentVersion < ve.getVersion()) {
                         Lok.debug("update available from " + currentVersion + " to " + ve.getVersion() + ", hash " + ve.getHash());
                         AboutFX.this.updater = updater;
                         versionEntry.set(ve);
@@ -145,20 +138,13 @@ public class AboutFX extends AuthSettingsFX {
                             File targetFile = new File(meinAuthService.getWorkingDirectory(), "update.jar");
                             updater.loadUpdate(versionEntry.get(), targetFile);
                         });
-//                        }
                     });
                 }
 
                 @Override
                 public void onNoUpdateAvailable(Updater updater) {
                     Lok.debug("no new version available");
-                    XCBFix.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Update Info");
-                        alert.setHeaderText(null);
-                        alert.setContentText("There is no new version available.");
-                        alert.showAndWait();
-                    });
+                    FxApp.showInfoDialog(getString("about.alert.title"),getString("about.alert.noNewVersion"));
                 }
             });
 
@@ -167,34 +153,9 @@ public class AboutFX extends AuthSettingsFX {
 
     }
 
-//    private File getCurrentJarFile() {
-//        String prop = System.getProperty("java.class.path");
-//        if (prop == null) {
-//            Lok.debug("java.class.path was null");
-//            return null;
-//        }
-//        File base = new File("f").getAbsoluteFile().getParentFile();
-//        Lok.debug("comparing with base: " + base.getAbsolutePath());
-//        String separator = System.getProperty("path.separator");
-//        Arrays.stream(prop.split(separator)).forEach(s -> Lok.debug("path1: " + s));
-//        // we assume that the applications runs from one jar.
-////        File jarFile =  new File(CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation().toURI());
-////        Arrays.stream(prop.split(separator)).forEach(s -> {
-////            boolean match = s.startsWith(base.getAbsolutePath());
-////            Lok.debug("part: "+s+" -> "+match);
-////            N.r( () -> {
-////              File f =  new File(AboutFX.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-////              Lok.debug(">>> "+f.getAbsolutePath());
-////            });
-////        });
-//        Optional<String> path = Arrays.stream(prop.split(separator)).filter(s -> s.startsWith(base.getAbsolutePath())).findFirst();
-//        Lok.debug("found matching path? " + path.isPresent());
-//        return path.map(s -> new File(s).getAbsoluteFile()).orElse(null);
-//    }
-
     @Override
     public String getTitle() {
-        return "About";
+        return getString("about.title");
     }
 
     @Override

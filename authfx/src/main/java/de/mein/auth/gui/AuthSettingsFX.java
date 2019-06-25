@@ -2,23 +2,33 @@ package de.mein.auth.gui;
 
 import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.service.MeinAuthService;
+import javafx.fxml.Initializable;
 import javafx.stage.Stage;
+
+import java.net.URL;
+import java.util.ResourceBundle;
 
 /**
  * Created by xor on 18.09.2016.
  */
-public abstract class AuthSettingsFX {
+public abstract class AuthSettingsFX implements Initializable {
 
     protected MeinAuthService meinAuthService;
     protected Stage stage;
+    protected ResourceBundle resources;
+
+    protected String getString(String key) {
+        return resources.getString(key);
+    }
 
     /**
      * called when bottom right button is clicked (usually 'Apply')
+     *
      * @return
      */
     public abstract boolean onPrimaryClicked();
 
-    public void setMeinAuthService(MeinAuthService meinAuthService){
+    public void setMeinAuthService(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
         this.init();
     }
@@ -34,6 +44,7 @@ public abstract class AuthSettingsFX {
 
     /**
      * override to hide buttons or something
+     *
      * @param meinAuthAdminFX
      */
     public abstract void configureParentGui(MeinAuthAdminFX meinAuthAdminFX);
@@ -51,5 +62,10 @@ public abstract class AuthSettingsFX {
 
     public Stage getStage() {
         return stage;
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        this.resources = resources;
     }
 }

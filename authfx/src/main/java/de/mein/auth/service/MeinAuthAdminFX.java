@@ -39,6 +39,7 @@ import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -48,7 +49,7 @@ import java.util.List;
  * Created by xor on 6/25/16.
  */
 public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotification.MeinProgressListener {
-    private  static final String APP_ICON_RES = "/de/mein/icon/tray.png";
+    private static final String APP_ICON_RES = "/de/mein/icon/tray.png";
 
 
     private static final int IMAGE_SIZE = 22;
@@ -196,6 +197,9 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         this.stage = stage;
     }
 
+    public void showInfo() {
+        loadSettingsFX("de/mein/auth/info.fxml");
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -210,7 +214,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
             }
         });
         btnSettings.setOnAction(event -> loadSettingsFX("de/mein/auth/settings.fxml"));
-        btnInfo.setOnAction(event -> loadSettingsFX("de/mein/auth/info.fxml"));
+        btnInfo.setOnAction(event -> showInfo());
         btnSecondary.setOnAction(event -> {
             if (contentController != null) {
                 contentController.onSecondaryClicked();
@@ -404,15 +408,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                     FxApp.setRunAfterStart(() -> {
                         try {
                             Lok.debug("MeinAuthAdminFX.load...");
-                            FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/mainwindow.fxml"));
-                            // Intellij Idea might crash here cause it cannot find the locale.
-                            // Workaround: Settings/Build&Exec.../Gradle/Runner -> check "Delegate IDE build/run actions to gradle"
-                            ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/FxUi", new ResourceBundle.Control() {
-                                @Override
-                                public List<Locale> getCandidateLocales(String name, Locale locale) {
-                                    return Collections.singletonList(Locale.ROOT);
-                                }
-                            });
+                            FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getResource("/de/mein/auth/mainwindow.fxml"));
+                            ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/mainwindow", Locale.GERMAN);
                             loader.setResources(resourceBundle);
                             HBox root = null;
                             root = loader.load();
@@ -424,7 +421,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                             scene.getStylesheets().add(MeinAuthAdmin.class.getResource(GLOBAL_STYLE_CSS).toExternalForm());
 
                             Stage stage = createStage(scene);
-                            stage.setTitle(resourceBundle.getString("windowTitle") + " '" + meinAuthService.getName() + "'");
+                            stage.setTitle(resourceBundle.getString("windowTitle") + ": '" + meinAuthService.getName() + "'");
                             stage.show();
                             stage.setOnCloseRequest(event -> {
                                 meinAuthAdminFXES[0].shutDown();
@@ -432,6 +429,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                             });
                             meinAuthAdminFXES[0].setStage(stage);
                             meinAuthAdminFXES[0].showServices();
+                            meinAuthAdminFXES[0].showInfo();
                             lock.unlock();
                         } catch (IOException e) {
                             e.printStackTrace();
