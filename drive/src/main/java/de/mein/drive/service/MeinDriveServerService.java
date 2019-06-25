@@ -179,23 +179,15 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     @Override
     protected IndexListener createIndexListener() {
-        IndexListener indexListener = new IndexListener() {
-
-
-            @Override
-            public void done(Long stageSetId, Transaction transaction) {
-                N.r(() -> {
-                    driveDatabaseManager.updateVersion();
-                    if (stageSetId != null) {
-                        if (driveDatabaseManager.getMeinDriveService() instanceof MeinDriveServerService)
-                            syncHandler.commitStage(stageSetId, transaction);
-                    } else {
-                        Lok.debug("MeinDriveServerService.done(). StageSet was empty");
-                    }
-                });
+        return (stageSetId, transaction) -> N.r(() -> {
+            driveDatabaseManager.updateVersion();
+            if (stageSetId != null) {
+                if (driveDatabaseManager.getMeinDriveService() instanceof MeinDriveServerService)
+                    syncHandler.commitStage(stageSetId, transaction);
+            } else {
+                Lok.debug("MeinDriveServerService.done(). StageSet was empty");
             }
-        };
-        return indexListener;
+        });
     }
 
     @Override
