@@ -189,7 +189,7 @@ public class SettingsController extends GuiController {
 
                 });
             } else {
-                Notifier.toast(activity, R.string.permanentDriveWriteText);
+                Notifier.toast(activity, R.string.permanentNotification);
                 activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             }
         }));

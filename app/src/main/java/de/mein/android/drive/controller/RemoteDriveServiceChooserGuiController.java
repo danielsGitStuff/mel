@@ -138,7 +138,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
             activity.askUserForPermissions(new AndroidDriveBootloader().getPermissions()
                     , permissionsGrantedListener
                     , R.string.permissionRequiredTitle
-                    , R.string.permanentDriveWriteText
+                    , R.string.permissionDriveWriteMessage
                     , () -> {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             if (!SAFAccessor.hasExternalSdCard() || SAFAccessor.canWriteExternal()) {
@@ -261,9 +261,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     }
 
     private String createDrivePath() {
-        File debug = Environment.getExternalStorageDirectory();
-        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        return new File(downloadDir, "drive").getAbsolutePath();
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
     }
 
     public boolean isValid() {
@@ -291,6 +289,6 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 
     @Override
     public int getPermissionsText() {
-        return R.string.permanentDriveWriteText;
+        return R.string.permissionDriveWriteMessage;
     }
 }
