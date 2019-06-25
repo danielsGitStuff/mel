@@ -86,7 +86,7 @@ public class PairingFX extends AuthSettingsFX implements Initializable {
 
     @Override
     public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
-        meinAuthAdminFX.setPrimaryButtonText("Apply");
+        meinAuthAdminFX.setPrimaryButtonText("Connect");
         meinAuthAdminFX.showPrimaryButtonOnly();
     }
 }
