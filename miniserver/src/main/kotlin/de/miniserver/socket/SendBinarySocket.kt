@@ -24,7 +24,7 @@ constructor(socket: Socket, private val fileRepository: FileRepository) : Simple
             if (s.startsWith(MeinStrings.update.QUERY_FILE)) {
                 val hash = s.substring(MeinStrings.update.QUERY_FILE.length, s.length)
                 val f = fileRepository[hash].file
-                Lok.debug("reading file: " + f.absolutePath)
+                Lok.info("reading file: " + f.absolutePath)
                 fin = FileInputStream(f)
                 val bytes = ByteArray(MeinSocket.BLOCK_SIZE)
                 var read: Int

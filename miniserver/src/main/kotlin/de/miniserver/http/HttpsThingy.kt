@@ -93,14 +93,14 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/api/") {
             val json = String(it.requestBody.readBytes())
             val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
-            Lok.debug("launching build")
+            Lok.info("launching build")
             if (buildRequest.pw == miniServer.secretProperties["buildPassword"] && buildRequest.valid)
                 GlobalScope.launch {
                     val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)
                     deploy.run()
                 }
             else
-                Lok.debug("build denied")
+                Lok.info("build denied")
         }
         server.createContext("/css.css") {
             respondText(it, "/de/miniserver/css.css")
@@ -109,20 +109,20 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             if (it.requestMethod == "POST") {
                 val values = readPostValues(it)
                 val pw = values["pw"]
-//                Lok.debug("##  pw: '$pw', pw is '${miniServer.secretProperties["buildPassword"]}'")
+//                Lok.info("##  pw: '$pw', pw is '${miniServer.secretProperties["buildPassword"]}'")
 //                val arguments = it.requestURI.path.substring("/private/loggedIn".length).split(" ")
 //                val targetPage = values["target"]
                 when (pw) {
                     null -> {
-//                        Lok.debug("## no password")
+//                        Lok.info("## no password")
                         respondPage(it, pageHello())
                     }
                     miniServer.secretProperties["buildPassword"] -> {
-//                        Lok.debug("## build password OK!")
+//                        Lok.info("## build password OK!")
                         respondPage(it, pageBuild(pw))
                     }
                     else -> {
-//                        Lok.debug("## password did not match")
+//                        Lok.info("## password did not match")
                         respondPage(it, pageHello())
                     }
                 }
@@ -156,7 +156,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/files/") {
             val uri = it.requestURI
             val hash = uri.path.substring("/files/".length, uri.path.length)
-            Lok.debug("serving file: $hash")
+            Lok.info("serving file: $hash")
             try {
                 val bytes = miniServer.fileRepository[hash].bytes
                 with(it) {
@@ -165,7 +165,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     responseBody.close()
                 }
             } catch (e: Exception) {
-                Lok.debug("did not find a file for ${hash}")
+                Lok.error("did not find a file for ${hash}")
                 /**
                  * does not work yet
                  */

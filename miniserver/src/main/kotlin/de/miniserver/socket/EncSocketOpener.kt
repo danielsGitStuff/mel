@@ -26,14 +26,14 @@ class EncSocketOpener(private val certificateManager: CertificateManager, privat
 
     override fun runImpl() {
         N.r {
-            Lok.debug("binding auth socket opener to    : $port")
+            Lok.info("binding auth socket opener to    : $port")
             serverSocket = ServerSocket()
             serverSocket = certificateManager.createServerSocket()
             serverSocket!!.bind(InetSocketAddress(port))
-            Lok.debug("successfully bound auth socket to: $port")
+            Lok.info("successfully bound auth socket to: $port")
             while (!Thread.currentThread().isInterrupted) {
                 val socket = serverSocket!!.accept()
-                Lok.debug("socket from ${socket.inetAddress.hostAddress} accepted")
+                Lok.info("socket from ${socket.inetAddress.hostAddress} accepted")
                 val encSocket = EncSocket(socket, versionAnswer)
                 miniServer.execute(encSocket)
             }

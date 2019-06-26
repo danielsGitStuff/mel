@@ -22,7 +22,7 @@ class Processor( vararg command: String) {
     var process: Process? = null
 
     fun run(wait: Boolean = true, redirectOutput: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE, redirectError: ProcessBuilder.Redirect = ProcessBuilder.Redirect.PIPE): Processor {
-        Lok.debug("bash: $cmdLine")
+        Lok.info("bash: $cmdLine")
         process = ProcessBuilder(*command)
                 .redirectOutput(redirectOutput)
                 .redirectError(redirectError).start()
@@ -31,9 +31,9 @@ class Processor( vararg command: String) {
         else
             return this
         exitCode = process?.exitValue()
-        process!!.inputStream.bufferedReader().lines().forEach { Lok.debug(it) }
+        process!!.inputStream.bufferedReader().lines().forEach { Lok.info(it) }
         if (exitCode == 0) {
-            Lok.debug("command '$cmdLine' succeeded")
+            Lok.info("command '$cmdLine' succeeded")
             return this
         }
         Lok.error("command '$cmdLine' finished with $exitCode")
@@ -53,7 +53,7 @@ class Processor( vararg command: String) {
         val exit = process.exitValue()
         process.inputStream.bufferedReader().lines().forEach { println(it) }
         if (exit == 0) {
-            Lok.debug("command '$cmdLine' succeeded")
+            Lok.info("command '$cmdLine' succeeded")
             return true
         }
         Lok.error("command '$cmdLine' finished with $exit")
@@ -65,10 +65,10 @@ class Processor( vararg command: String) {
     companion object {
         fun runProcesses(name: String, vararg processors: Processor) {
             processors.find { processor -> !processor.run().success }?.let {
-                it.errorLines?.forEach { Lok.debug(it) }
+                it.errorLines?.forEach { Lok.info(it) }
                 error("'$name' failed: ${it.cmdLine}")
             }
-            Lok.debug("'$name' successful")
+            Lok.info("'$name' successful")
 
         }
     }

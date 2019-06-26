@@ -139,7 +139,7 @@ constructor(val config: ServerConfig) {
 
 
         //looking for jar, apk and their appropriate version.txt
-        Lok.debug("looking for files in ${filesDir.absolutePath}")
+        Lok.info("looking for files in ${filesDir.absolutePath}")
         for (f in filesDir.listFiles { f -> f.isFile && (f.name.endsWith(".jar") || f.name.endsWith(".apk")) }!!) {
             val hash: String = Hash.sha256(FileInputStream(f))
             val propertiesFile = File(filesDir, f.name + MeinStrings.update.INFO_APPENDIX)
@@ -147,8 +147,8 @@ constructor(val config: ServerConfig) {
             val version: Long?
             if (!propertiesFile.exists())
                 continue
-            Lok.debug("reading binary: " + f.absolutePath)
-            Lok.debug("reading  props: " + propertiesFile.absolutePath)
+            Lok.info("reading binary: " + f.absolutePath)
+            Lok.info("reading  props: " + propertiesFile.absolutePath)
             val properties = Properties()
             properties.load(FileInputStream(propertiesFile))
 
@@ -200,11 +200,11 @@ constructor(val config: ServerConfig) {
             httpSocketOpener?.start()
         }
 
-        Lok.debug("I am up!")
+        Lok.info("I am up!")
     }
 
     fun shutdown() {
-        Lok.debug("shutting down...")
+        Lok.info("shutting down...")
         executorService!!.shutdown()
         binarySocketOpener!!.onShutDown()
         httpsSocketOpener?.stop()
@@ -216,20 +216,20 @@ constructor(val config: ServerConfig) {
         }
         try {
             executorService!!.awaitTermination(5, TimeUnit.SECONDS)
-            Lok.debug("is down: " + executorService!!.isShutdown)
+            Lok.info("is down: " + executorService!!.isShutdown)
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
-        Lok.debug("bye...")
+        Lok.info("bye...")
     }
 
     fun reboot(serverDir: File, serverJar: File) {
-        Lok.debug("doing a reboot...")
+        Lok.info("doing a reboot...")
         if (config.restartCommand.isEmpty()) {
-            Lok.debug("starting server jar ${serverJar.absolutePath}")
+            Lok.info("starting server jar ${serverJar.absolutePath}")
             val runtimeMxBean = ManagementFactory.getRuntimeMXBean()
             val vmArguments = runtimeMxBean.inputArguments
-            vmArguments.forEach { a -> Lok.debug("jvm arg: $a") }
+            vmArguments.forEach { a -> Lok.info("jvm arg: $a") }
             val commands = mutableListOf<String>()
             commands.add("java")
             commands.addAll(vmArguments)
@@ -248,13 +248,13 @@ constructor(val config: ServerConfig) {
             }
 //        commands.addAll(listOf("&", "detach"))
             Processor(*commands.toTypedArray()).run(false)
-            Lok.debug("command succeeded")
-            Lok.debug("done")
+            Lok.info("command succeeded")
+            Lok.info("done")
             exitProcess(0)
         } else {
-            Lok.debug("restarting using restartCommand: ${config.restartCommand}")
+            Lok.info("restarting using restartCommand: ${config.restartCommand}")
             Processor(*config.restartCommand.toTypedArray()).run(false)
-            Lok.debug("command executed successfully")
+            Lok.info("command executed successfully")
         }
     }
 
@@ -267,7 +267,10 @@ constructor(val config: ServerConfig) {
 
         @JvmStatic
         fun main(arguments: Array<String>) {
-            Lok.setLokImpl(LokImpl().setup(30, true))
+            val lokImpl = LokImpl().setup(30, true)
+            lokImpl.setPrintDebug(false)
+            Lok.setLokImpl(lokImpl)
+
             val konsole = Konsole(ServerConfig())
             konsole.optional("-create-cert", "name of the certificate", { result, args -> result.certName = args[0] }, Konsole.dependsOn("-pubkey", "-privkey"))
                     .optional("-cert", "path to certificate", { result, args -> result.certPath = Konsole.check.checkRead(args[0]) }, Konsole.dependsOn("-pubkey", "-privkey"))
@@ -289,7 +292,7 @@ constructor(val config: ServerConfig) {
                 workingDirectory = File(konsole.result.workingPath)
                 workingDirectory.mkdirs()
                 val outFile = File(workingDirectory, "output.log")
-                Lok.debug("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")
+                Lok.info("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")
                 if (outFile.exists())
                     outFile.delete()
                 val outWriter = outFile.outputStream().bufferedWriter()
@@ -298,8 +301,8 @@ constructor(val config: ServerConfig) {
                     outWriter.newLine()
                     outWriter.flush()
                 }
-                Lok.debug("starting in: " + File("").absolutePath)
-                Lok.debug("starting with parameters: ${arguments.fold("") { acc: String, s: String -> "$acc $s" }}")
+                Lok.info("starting in: " + File("").absolutePath)
+                Lok.info("starting with parameters: ${arguments.fold("") { acc: String, s: String -> "$acc $s" }}")
             } catch (e: Konsole.KonsoleWrongArgumentsException) {
                 Lok.error(e.javaClass.simpleName + ": " + e.message)
                 System.exit(1)
@@ -312,8 +315,8 @@ constructor(val config: ServerConfig) {
 
             val config = konsole.result
 
-            Lok.debug("dir: " + workingDirectory!!.absolutePath)
-            Lok.debug("auth port: ${config.authPort}, transfer port: ${config.transferPort}, http port: ${config.httpPort}")
+            Lok.info("dir: " + workingDirectory!!.absolutePath)
+            Lok.info("auth port: ${config.authPort}, transfer port: ${config.transferPort}, http port: ${config.httpPort}")
             var miniServer: MiniServer? = null
             try {
                 miniServer = MiniServer(config)

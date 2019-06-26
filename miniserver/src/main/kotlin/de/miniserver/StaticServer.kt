@@ -118,7 +118,7 @@ class StaticServer(val config: StaticConfig){
             httpSocketOpener?.start()
         }
 
-        Lok.debug("I am up!")
+        Lok.info("I am up!")
     }
 
     companion object {
@@ -151,7 +151,7 @@ class StaticServer(val config: StaticConfig){
                 workingDirectory = File(konsole.result.workingPath)
                 workingDirectory.mkdirs()
                 val outFile = File(workingDirectory, "output.log")
-                Lok.debug("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")
+                Lok.info("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")
                 if (outFile.exists())
                     outFile.delete()
                 val outWriter = outFile.outputStream().bufferedWriter()
@@ -160,8 +160,8 @@ class StaticServer(val config: StaticConfig){
                     outWriter.newLine()
                     outWriter.flush()
                 }
-                Lok.debug("starting in: " + File("").absolutePath)
-                Lok.debug("starting with parameters: ${arguments.fold("") { acc: String, s: String -> "$acc $s" }}")
+                Lok.info("starting in: " + File("").absolutePath)
+                Lok.info("starting with parameters: ${arguments.fold("") { acc: String, s: String -> "$acc $s" }}")
             } catch (e: Konsole.KonsoleWrongArgumentsException) {
                 Lok.error(e.javaClass.simpleName + ": " + e.message)
                 System.exit(1)
@@ -174,8 +174,8 @@ class StaticServer(val config: StaticConfig){
 
             val config = konsole.result
 
-            Lok.debug("dir: " + workingDirectory!!.absolutePath)
-            Lok.debug("auth port: ${config.authPort}, transfer port: ${config.transferPort}, http port: ${config.httpPort}")
+            Lok.info("dir: " + workingDirectory!!.absolutePath)
+            Lok.info("auth port: ${config.authPort}, transfer port: ${config.transferPort}, http port: ${config.httpPort}")
             var staticServer: StaticServer? = null
             try {
                 staticServer = StaticServer(config)

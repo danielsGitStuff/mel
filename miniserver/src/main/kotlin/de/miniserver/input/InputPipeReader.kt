@@ -31,7 +31,7 @@ class InputPipeReader private constructor(val workingDirectory: File, val fileNa
 
         /// build pipe
         ProcessBuilder("mkfifo", pipeFile.absolutePath).start().waitFor()
-        Lok.debug("pipe created ${pipeFile.absolutePath}")
+        Lok.info("pipe created ${pipeFile.absolutePath}")
 
         GlobalScope.launch {
             //build cat
@@ -39,9 +39,9 @@ class InputPipeReader private constructor(val workingDirectory: File, val fileNa
             b.redirectOutput(ProcessBuilder.Redirect.PIPE)
                     .redirectError(ProcessBuilder.Redirect.PIPE)
             process = b.start()
-            Lok.debug("cat started on ${pipeFile.absolutePath}")
+            Lok.info("cat started on ${pipeFile.absolutePath}")
             val input = process.inputStream.read()
-            Lok.debug("stopping, read: $input")
+            Lok.info("stopping, read: $input")
             if (input > 0)
                 System.exit(0)
         }

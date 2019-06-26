@@ -92,17 +92,17 @@ class StaticHttpsThingy(private val port: Int, private val staticServer: StaticS
 
 
 
-        Lok.debug("binding https to           : $port")
+        Lok.info("binding https to           : $port")
         server = createServer()
-        Lok.debug("successfully bound https to: $port")
+        Lok.info("successfully bound https to: $port")
         server.createContext("/") {
         }
 
         val root = File(staticServer.config.staticPath)
         val rootLength = root.absolutePath.length
-        Lok.debug(root.absolutePath)
+        Lok.info(root.absolutePath)
         val pathList = mutableListOf<File>()
-//        root.listFiles({ dir, name ->  true}).forEach { Lok.debug(it.absolutePath) }
+//        root.listFiles({ dir, name ->  true}).forEach { Lok.info(it.absolutePath) }
         root.walkTopDown().filter { it.isFile && it.extension.isNotEmpty() }.forEach { file ->
             val path = file.absolutePath.substring(rootLength, file.absolutePath.length)
             val staticPage = StaticPage(file.absolutePath)
@@ -125,6 +125,6 @@ class StaticHttpsThingy(private val port: Int, private val staticServer: StaticS
 
         server.executor = executor
         server.start()
-        Lok.debug("https is up")
+        Lok.info("https is up")
     }
 }

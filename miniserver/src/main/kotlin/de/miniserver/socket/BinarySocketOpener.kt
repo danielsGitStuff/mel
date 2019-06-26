@@ -23,10 +23,10 @@ class BinarySocketOpener(private val port: Int, private val miniServer: MiniServ
 
     override fun runImpl() {
         N.r {
-            Lok.debug("binding binary socket opener to    : $port")
+            Lok.info("binding binary socket opener to    : $port")
             serverSocket = ServerSocket()
             serverSocket!!.bind(InetSocketAddress(port))
-            Lok.debug("successfully bound binary socket to: $port")
+            Lok.info("successfully bound binary socket to: $port")
             while (!Thread.currentThread().isInterrupted) {
                 val socket = serverSocket!!.accept()
                 val sendBinarySocket = SendBinarySocket(socket, fileRepository)

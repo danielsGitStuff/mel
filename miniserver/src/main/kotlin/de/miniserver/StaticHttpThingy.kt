@@ -49,15 +49,15 @@ class StaticHttpThingy(private val port: Int) : DeferredRunnable() {
 
 
     fun start() {
-        Lok.debug("binding http to           : $port")
+        Lok.info("binding http to           : $port")
         server = HttpServer.create(InetSocketAddress(port), 0)
-        Lok.debug("successfully bound http to: $port")
+        Lok.info("successfully bound http to: $port")
         // create the index page context
         server.createContext("/") {
             val enteredHost = it.requestHeaders.getFirst("Host")
             it.responseHeaders.add("Location", "https://$enteredHost")
             with(it) {
-                Lok.debug("sending https redirect to $remoteAddress")
+                Lok.info("sending https redirect to $remoteAddress")
 //                val content = "???"
                 sendResponseHeaders(301, -1)
 //                responseBody.write(content.toByteArray())
@@ -67,7 +67,7 @@ class StaticHttpThingy(private val port: Int) : DeferredRunnable() {
 
         server.executor = executor
         server.start()
-        Lok.debug("http is up")
+        Lok.info("http is up")
     }
 
     override fun stop() {

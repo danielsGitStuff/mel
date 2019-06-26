@@ -12,9 +12,9 @@ import java.util.*
 class Deploy(val miniServer: MiniServer, private val secretFile: File, val buildRequest: BuildRequest) {
     var props: Properties = Properties()
     fun run() {
-        N.r { Lok.debug("run()") }
+        N.r { Lok.info("run()") }
         GlobalScope.launch {
-            N.r { Lok.debug("running") }
+            N.r { Lok.info("running") }
             props.load(secretFile.inputStream())
             fetch()
             val p = File(props.getProperty("projectRootDir")).absolutePath
@@ -24,7 +24,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
             val secretDir = File(serverDir, "secret")
             val gradle = File(projectRootDir, "gradlew")
             val miniServerTarget = File(serverDir, "miniserver.jar")
-            Lok.debug("working dir ${projectRootDir.absolutePath}")
+            Lok.info("working dir ${projectRootDir.absolutePath}")
 
             // pull
 //            Processor.runProcesses("test git", Processor("ssh", "-T", "git@github.com"))
@@ -76,7 +76,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (keyStorePropFile.exists())
                     keyStorePropFile.delete()
             }
-            Lok.debug("setting up deployed dir ${serverDir.absolutePath}")
+            Lok.info("setting up deployed dir ${serverDir.absolutePath}")
             if (serverDir.exists()) {
                 // move secret dir
                 val secretDir = File(serverDir, "secret")
@@ -135,7 +135,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
 
     private fun fetch() {
-        Lok.debug("skipping fetch for now...")
+        Lok.info("skipping fetch for now...")
     }
 }
 
