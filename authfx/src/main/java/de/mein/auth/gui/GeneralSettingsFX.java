@@ -1,6 +1,7 @@
 package de.mein.auth.gui;
 
 import de.mein.Lok;
+import de.mein.auth.FxApp;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinAuthAdminFX;
 import javafx.fxml.FXML;
@@ -69,6 +70,11 @@ public class GeneralSettingsFX extends AuthSettingsFX {
         txtSslPort.setText(String.valueOf(settings.getPort()));
         comboLang.getItems().addAll("de", "en");
         comboLang.getSelectionModel().select(settings.getLanguage());
+        comboLang.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != oldValue) {
+                FxApp.showInfoDialog(getString("settings.alert.title"), getString("settings.alert.text"));
+            }
+        });
     }
 
     @Override
