@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx/8.0.121"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mein.contacts.gui.ContactsFXCreateController">
-    <Label styleClass="lbl-center-section" text="Name"/>
-    <TextField styleClass="txt-edit" fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name"/>
-    <Label styleClass="lbl-center-section" text="Choose Role"/>
+    <Label styleClass="lbl-center-section" text="%create.name"/>
+    <TextField styleClass="txt-edit" fx:id="txtName" maxWidth="1.7976931348623157E308" text="%create.exampleName"/>
+    <Label styleClass="lbl-center-section" text="%create.chooseRole"/>
 </VBox>

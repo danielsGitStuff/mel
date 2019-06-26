@@ -55,7 +55,7 @@ public class OthersSettingsFX extends AuthSettingsFX {
 
     @Override
     public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
-        meinAuthAdminFX.setPrimaryButtonText("Delete");
+        meinAuthAdminFX.setPrimaryButtonText(getString("delete"));
         meinAuthAdminFX.showPrimaryButtonOnly();
     }
 }

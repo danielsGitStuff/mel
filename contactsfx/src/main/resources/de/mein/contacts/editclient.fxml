@@ -15,15 +15,15 @@
 
 
         <GridPane maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-            <Label text="Role: " GridPane.columnIndex="0" GridPane.rowIndex="0" />
+            <Label text="%edit.role" GridPane.columnIndex="0" GridPane.rowIndex="0" />
             <Label fx:id="lblRole" GridPane.columnIndex="1" GridPane.rowIndex="0">
             <font>
                <Font name="System Bold" size="13.0" />
             </font></Label>
-            <Label text="Name" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+            <Label text="%edit.name" GridPane.columnIndex="0" GridPane.rowIndex="1" />
             <TextField fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
 
-            <Button fx:id="btnSync" maxWidth="1.7976931348623157E308" text="Sync" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
+            <Button fx:id="btnSync" maxWidth="1.7976931348623157E308" text="%edit.btn.sync" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
         </GridPane>
     </children>
 </VBox>

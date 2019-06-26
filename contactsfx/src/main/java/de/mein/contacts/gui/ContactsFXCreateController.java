@@ -52,6 +52,6 @@ public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
 
     @Override
     public String getTitle() {
-        return null;
+        return getString("create.title");
     }
 }

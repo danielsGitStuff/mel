@@ -3,6 +3,7 @@ package de.mein.contacts.gui;
 import de.mein.Lok;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.gui.ServiceSettingsFX;
+import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.contacts.service.ContactsService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -33,9 +34,12 @@ public abstract class ContactsFXEditBaseController extends ServiceSettingsFX<Con
 
     @Override
     public String getTitle() {
-        return "Contacts";
+        return getString("edit.title");
     }
 
-
-
+    @Override
+    public void configureParentGui(MeinAuthAdminFX meinAuthAdminFX) {
+        meinAuthAdminFX.setPrimaryButtonText(getString("edit.apply"));
+        meinAuthAdminFX.setSecondaryButtonText(getString("edit.delete"));
+    }
 }
