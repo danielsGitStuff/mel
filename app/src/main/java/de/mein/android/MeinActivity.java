@@ -37,8 +37,7 @@ import de.mein.auth.tools.N;
  * Created by xor on 03.08.2017.
  */
 
-public abstract class MeinActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public abstract class MeinActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private static Map<Integer, List<MeinActivityPayload>> launchPayloads = new HashMap<>();
     protected AndroidService androidService;
     /**
@@ -125,9 +124,11 @@ public abstract class MeinActivity extends AppCompatActivity
         return androidService;
     }
 
-    protected void onAndroidServiceAvailable(AndroidService androidService){
+    protected void onAndroidServiceAvailable(AndroidService androidService) {
         this.androidService = androidService;
-    };
+    }
+
+    ;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

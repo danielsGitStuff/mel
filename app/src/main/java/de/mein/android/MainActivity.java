@@ -87,7 +87,6 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     private ImageButton btnHelp;
     private int stoppedColor;
     private int runningColor;
-    private AndroidPowerManager powerManager;
 
     /**
      * show a simple dialog where the user can only click ok
@@ -138,13 +137,19 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         }
     }
 
+    private AndroidPowerManager getPowerManager() {
+        if (androidService == null)
+            return null;
+        return androidService.getAndroidPowerManager();
+    }
+
     @Override
     protected void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
         Lok.debug("MainActivity.onAndroidServiceAvailable");
         if (serviceBind != null)
             serviceBind.onAndroidServiceAvailable(androidService);
-        this.powerManager = (AndroidPowerManager) androidService.getMeinAuthService().getPowerManager();
+        AndroidPowerManager powerManager = getPowerManager();
         powerManager.addStateListener(this);
     }
 
@@ -168,6 +173,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     }
 
     private void updateBarColor() {
+        AndroidPowerManager powerManager = getPowerManager();
         if (powerManager != null && toolbar != null) {
             boolean run = powerManager.runWhenOverride(powerManager.isPowered(), powerManager.isWifi());
             int color = run ? runningColor : stoppedColor;
@@ -453,6 +459,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     @Override
     protected void onStart() {
         super.onStart();
+        AndroidPowerManager powerManager = getPowerManager();
         if (powerManager != null)
             powerManager.addStateListener(this);
     }
@@ -460,6 +467,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     @Override
     protected void onStop() {
         super.onStop();
+        AndroidPowerManager powerManager = getPowerManager();
         if (powerManager != null)
             powerManager.removeListener(this);
         if (this.guiController != null)
@@ -469,6 +477,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     @Override
     protected void onResume() {
         super.onResume();
+        updateBarColor();
     }
 
     public void showMenuServices() {

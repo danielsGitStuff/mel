@@ -19,7 +19,6 @@ public class AndroidPowerManager extends PowerManager {
     private static final String PREF_POWER_NO_WIFI = "p.pnw";
     private static final String PREF_NO_POWER_WIFI = "p.npw";
     private static final String PREF_NO_POWER_NO_WIFI = "p.npnw";
-    private final android.os.PowerManager osPowerManager;
     private Map<Object, StackTraceElement[]> wakeLockCallers = new HashMap<>();
     private android.os.PowerManager.WakeLock wakeLock;
     private WatchDogTimer wakeTimer;
@@ -34,7 +33,6 @@ public class AndroidPowerManager extends PowerManager {
 
     public AndroidPowerManager(MeinAuthSettings meinAuthSettings, android.os.PowerManager osPowerManager) {
         super(meinAuthSettings);
-        this.osPowerManager = osPowerManager;
         powerWifi = Tools.getSharedPreferences().getBoolean(PREF_POWER_WIFI, true);
         powerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_POWER_NO_WIFI, false);
         noPowerWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_WIFI, false);
@@ -225,15 +223,19 @@ public class AndroidPowerManager extends PowerManager {
 
     @Override
     public void wakeLock(Object caller) {
-        wakeAccessLock.lock();
         Lok.debug("aquire");
-        if (!wakeLockCallers.containsKey(caller)) {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            stackTrace = Arrays.copyOfRange(stackTrace, 3, stackTrace.length);
-            wakeLockCallers.put(caller, stackTrace);
-            wakeLock.acquire();
+        wakeAccessLock.lock();
+        Lok.debug("aquired");
+        try {
+            if (!wakeLockCallers.containsKey(caller)) {
+                StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                stackTrace = Arrays.copyOfRange(stackTrace, 3, stackTrace.length);
+                wakeLockCallers.put(caller, stackTrace);
+                wakeLock.acquire();
+            }
+        } finally {
+            wakeAccessLock.unlock();
         }
-        wakeAccessLock.unlock();
     }
 
     @Override
