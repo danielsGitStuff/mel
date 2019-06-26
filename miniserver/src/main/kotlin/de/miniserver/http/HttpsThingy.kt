@@ -16,6 +16,8 @@ import java.util.*
 
 object ContentType {
     const val SVG = "image/svg+xml"
+    const val WEBP = "image/webp"
+    const val JPG = "image/jpeg"
 }
 
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port, miniServer.httpCertificateManager.sslContext) {
@@ -84,6 +86,14 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             val fileName = uri.path.substring("/svg/".length, uri.path.length)
             if (fileName.endsWith(".svg"))
                 respondText(it, "/de/miniserver/svg/$fileName", contentType = ContentType.SVG)
+            else
+                respondPage(it, pageHello())
+        }
+        server.createContext("/webp/") {
+            val uri = it.requestURI
+            val fileName = uri.path.substring("/webp/".length, uri.path.length)
+            if (fileName.endsWith(".webp"))
+                respondText(it, "/de/miniserver/webp/$fileName", contentType = ContentType.WEBP)
             else
                 respondPage(it, pageHello())
         }

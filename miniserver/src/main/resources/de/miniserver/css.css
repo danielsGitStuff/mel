@@ -7,6 +7,14 @@ a {
     color: #57bf40;
 }
 
+.code{
+    /*display: block;*/
+    background-color: darkgrey;
+    color: black;
+    margin: .2em;
+    padding: .2em;
+}
+
 input {
     color: white;
     background-color: #545454;

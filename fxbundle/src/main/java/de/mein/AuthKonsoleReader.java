@@ -29,6 +29,7 @@ public class AuthKonsoleReader {
                     .optional("-d", "path of working directory. certificate and key pair is stored there", (result, args) -> result.setWorkingDirectory(new File(args[0])))
                     .optional("-headless", "starts without JavaFx GUI", (result, args) -> result.setHeadless())
                     .optional("-dev", "for dev purposes only", (result, args) -> Lok.error("DEV DEV DEV DEV DEV"))
+                    .optional("-name", "name for this instance", (result, args) -> result.setName(args[0]))
                     .handle(arguments);
         }
         return meinAuthSettings;

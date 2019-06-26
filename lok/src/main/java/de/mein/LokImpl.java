@@ -107,8 +107,6 @@ public class LokImpl {
     public void debug(Object msg) {
         if (printDebug) {
             String line = fabricate(findStackElement(), "d", msg, true);
-            if (this.lineCount == 197)
-                System.out.println("LokImpl.debug");
             System.out.println(line);
         }
         if (devMatchLine!= null && devMatchLine.equals(msg))

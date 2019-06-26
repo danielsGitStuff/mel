@@ -226,12 +226,12 @@ public class AndroidService extends Service {
             } else {
                 meinAuthSettings = MeinAuthSettings.createDefaultSettings();
                 meinAuthSettings.setWorkingDirectory(workingDir)
-                        .setName("MeinAuthOnAndroid")
+                        .setName("Mel on Android")
                         .setVariant(MeinStrings.update.VARIANT_APK);
                 meinAuthSettings.setJsonFile(settingsFile).save();
             }
         } catch (IOException | JsonDeserializationException | JsonSerializationException | IllegalAccessException e) {
-            System.err.println("loading existing meinauth.settings failed :(");
+            Lok.error(  "loading existing meinauth.settings failed :(");
             e.printStackTrace();
         }
         Lok.debug("AndroidService.onCreate");

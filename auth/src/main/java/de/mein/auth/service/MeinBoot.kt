@@ -211,8 +211,8 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
         val DEFAULT_WORKING_DIR_NAME = "mein.auth"
         val DEFAULT_SETTINGS_FILE_NAME = "auth.settings"
         private val logger = Logger.getLogger(MeinBoot::class.java.name)
-        val defaultWorkingDir1 = File("meinauth.workingdir.1")
-        val defaultWorkingDir2 = File("meinauth.workingdir.2")
+        val defaultWorkingDir1 = File("mel.data")
+        val defaultWorkingDir2 = File("mel.data.2")
 
         @JvmStatic
         fun main(args: Array<String>) {
