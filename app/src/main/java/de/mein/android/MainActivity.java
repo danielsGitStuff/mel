@@ -150,7 +150,9 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         if (serviceBind != null)
             serviceBind.onAndroidServiceAvailable(androidService);
         AndroidPowerManager powerManager = getPowerManager();
-        powerManager.addStateListener(this);
+        if (powerManager != null) {
+            powerManager.addStateListener(this);
+        }
     }
 
     private void dev() {
