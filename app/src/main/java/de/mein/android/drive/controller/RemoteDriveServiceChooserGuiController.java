@@ -276,7 +276,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         File f = new File(rootFile.getAbsolutePath());
         if (!f.canWrite())
             return false;
-        return false;
+        return true;
     }
 
     public int getMaxDays() {
