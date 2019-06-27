@@ -93,7 +93,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             val uri = it.requestURI
             val fileName = uri.path.substring("/webp/".length, uri.path.length)
             if (fileName.endsWith(".webp"))
-                respondText(it, "/de/miniserver/webp/$fileName", contentType = ContentType.WEBP)
+                respondBinary(it,"/de/miniserver/webp/$fileName",contentType = ContentType.WEBP)
             else
                 respondPage(it, pageHello())
         }

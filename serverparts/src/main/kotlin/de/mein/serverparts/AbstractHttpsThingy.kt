@@ -72,19 +72,26 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     fun respondBinary(ex: HttpExchange, path: String, contentType: String? = null, cache: Boolean = false) {
         with(ex) {
             de.mein.Lok.debug("sending $path to $remoteAddress")
-            if (contentType != null)
-                responseHeaders.add("Content-Type", contentType)
-            val page: Page
-            page = if (Page.pageRepo[path] == null) {
-                val bytes = javaClass.getResourceAsStream(path).readBytes()
-                Page(path, bytes, cache = cache)
-            } else {
-                Page.pageRepo[path]!!
+            var page: Page? = null
+            try {
+                if (contentType != null)
+                    responseHeaders.add("Content-Type", contentType)
+                page = if (Page.pageRepo[path] == null) {
+                    val bytes = this@AbstractHttpsThingy.javaClass.getResourceAsStream(path).readBytes()
+                    Page(path, bytes, cache = cache)
+                } else {
+                    Page.pageRepo[path]!!
+                }
+            } catch (e: Exception) {
+                Lok.error("KKKKK")
+            } finally {
+                if (page != null) {
+                    sendResponseHeaders(200, page.bytes.size.toLong())
+                    responseBody.write(page.bytes)
+                }
+                responseBody.close()
+                responseHeaders
             }
-            sendResponseHeaders(200, page.bytes.size.toLong())
-            responseBody.write(page.bytes)
-            responseBody.close()
-            responseHeaders
         }
     }
 
@@ -92,14 +99,23 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     fun respondText(ex: HttpExchange, path: String, contentType: String? = null, vararg replacers: Replacer) {
         with(ex) {
             de.mein.Lok.debug("sending $path to $remoteAddress")
-            if (contentType != null) {
-                responseHeaders.add("Content-Type", contentType)
+            var page: Page? = null
+            try {
+                if (contentType != null) {
+                    responseHeaders.add("Content-Type", contentType)
+                }
+                page = Page(path, *replacers)
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+            } finally {
+                if (page != null) {
+                    sendResponseHeaders(200, page.bytes.size.toLong())
+                    responseBody.write(page.bytes)
+                }
+                responseBody.close()
+                responseHeaders
             }
-            val page = Page(path, *replacers)
-            sendResponseHeaders(200, page.bytes.size.toLong())
-            responseBody.write(page.bytes)
-            responseBody.close()
-            responseHeaders
+
         }
     }
 
@@ -118,7 +134,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     fun respondPage(ex: HttpExchange, page: Page?) {
         with(ex) {
             Lok.debug("sending '${page?.path}' to $remoteAddress")
-                responseHeaders.add("Content-Type", "text/html; charset=UTF-8")
+            responseHeaders.add("Content-Type", "text/html; charset=UTF-8")
             sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
             responseBody.write(page?.bytes ?: "404".toByteArray())
             responseBody.close()
