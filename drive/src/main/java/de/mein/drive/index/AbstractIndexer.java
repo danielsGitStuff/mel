@@ -370,7 +370,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 FsBashDetails subDirDetails = bashDetailsMap.get(subDir.getName()); //BashTools.getFsBashDetails(subDir);
                 stuffToDelete.remove(subDir.getName());
                 if (subDirDetails == null)
-                    Lok.debug("debug");
+                    Lok.debug("could not find bashdetails for: "+subDir.getAbsolutePath());
 
                 // if symlink, remove everything further down in the db file tree and skip the rest
                 if (subDirDetails.isSymLink()) {
