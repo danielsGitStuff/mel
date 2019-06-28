@@ -1,15 +1,14 @@
 package de.mein.auth.gui;
 
 import de.mein.Lok;
+import de.mein.LokImpl;
 import de.mein.auth.FxApp;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinAuthAdminFX;
+import de.mein.auth.tools.DBLockImpl;
+import de.mein.auth.tools.N;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
+import javafx.scene.control.*;
 
 import java.io.File;
 import java.net.URL;
@@ -20,11 +19,13 @@ import java.util.ResourceBundle;
  */
 public class GeneralSettingsFX extends AuthSettingsFX {
     @FXML
+    private CheckBox cbLogToDB;
+    @FXML
     protected ComboBox comboLang;
     @FXML
     protected TextField txtWorkingDirectory;
     @FXML
-    private TextField txtName, txtPort, txtSslPort;
+    private TextField txtName, txtPort, txtSslPort, txtLogToDB;
 
     @Override
     public boolean onPrimaryClicked() {
@@ -34,6 +35,13 @@ public class GeneralSettingsFX extends AuthSettingsFX {
         settings.setPort(Integer.parseInt(txtSslPort.getText()));
         settings.setDeliveryPort(Integer.parseInt(txtPort.getText()));
         settings.setWorkingDirectory(new File(txtWorkingDirectory.getText()));
+        if (cbLogToDB.selectedProperty().get()) {
+            settings.setPreserveLogLinesInDb(Long.parseLong(txtLogToDB.getText()));
+            N.r(() -> DBLockImpl.setupDBLockImpl(meinAuthService.getSettings()));
+        } else {
+            settings.setPreserveLogLinesInDb(0L);
+            Lok.setLokImpl(new LokImpl().setup(0, true));
+        }
         String language = comboLang.getSelectionModel().getSelectedItem().toString();
         settings.setLanguage(language);
         try {
@@ -44,7 +52,7 @@ public class GeneralSettingsFX extends AuthSettingsFX {
         return false;
     }
 
-    private TextFormatter.Change numbersOnly(TextFormatter.Change change) {
+    private TextFormatter.Change positiveNumbersOnly(TextFormatter.Change change) {
         String text = change.getText();
         if (text.matches("[0-9]*")) {
             return change;
@@ -55,8 +63,19 @@ public class GeneralSettingsFX extends AuthSettingsFX {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         super.initialize(location, resources);
-        txtPort.setTextFormatter(new TextFormatter<>(this::numbersOnly));
-        txtSslPort.setTextFormatter(new TextFormatter<>(this::numbersOnly));
+        txtPort.setTextFormatter(new TextFormatter<>(this::positiveNumbersOnly));
+        txtSslPort.setTextFormatter(new TextFormatter<>(this::positiveNumbersOnly));
+        txtLogToDB.setTextFormatter(new TextFormatter<Object>(this::positiveNumbersOnly));
+        txtLogToDB.textProperty().addListener((observable, oldValue, newValue) -> {
+            Long value = N.result(() -> Long.parseLong(newValue), 0L);
+            if (value < 1L) {
+                cbLogToDB.selectedProperty().set(false);
+            } else
+                cbLogToDB.selectedProperty().set(true);
+        });
+        cbLogToDB.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            txtLogToDB.setVisible(newValue);
+        });
         Lok.debug("GeneralSettingsFX.initialize");
     }
 
@@ -75,6 +94,11 @@ public class GeneralSettingsFX extends AuthSettingsFX {
                 FxApp.showInfoDialog(getString("settings.alert.title"), getString("settings.alert.text"));
             }
         });
+        Long preservedLines = settings.getPreserveLogLinesInDb();
+        txtLogToDB.setText(String.valueOf(preservedLines));
+        boolean logToDB = preservedLines > 0L;
+        txtLogToDB.setVisible(logToDB);
+        cbLogToDB.selectedProperty().setValue(logToDB);
     }
 
     @Override

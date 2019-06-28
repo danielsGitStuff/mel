@@ -1,11 +1,38 @@
 package de.mein.auth.tools;
 
+import de.mein.Lok;
 import de.mein.LokImpl;
+import de.mein.auth.MeinAuthAdmin;
+import de.mein.auth.data.MeinAuthSettings;
+import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
+import de.mein.sql.conn.SQLConnector;
+import de.mein.sql.transform.SqlResultTransformer;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DBLockImpl extends LokImpl {
+
+    public static void setupDBLockImpl(MeinAuthSettings meinAuthSettings) throws SQLException, ClassNotFoundException, IOException {
+        DBLockImpl lokImpl = new DBLockImpl(meinAuthSettings.getPreserveLogLinesInDb());
+        File logDb = new File(meinAuthSettings.getWorkingDirectory(), "log.db");
+        Lok.debug("opening database: " + logDb.getAbsolutePath());
+        SQLQueries sqlQueries = new SQLQueries(SQLConnector.createSqliteConnection(logDb), SqlResultTransformer.sqliteResultSetTransformer());
+            SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
+            st.execute();
+        SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
+        if (!sqliteExecutor.checkTableExists("log")) {
+            InputStream inputStream = MeinAuthAdmin.class.getClassLoader().getResourceAsStream("de/mein/auth/log.sql");
+            sqliteExecutor.executeStream(inputStream);
+            inputStream.close();
+        }
+        lokImpl.setupLogToDb(sqlQueries);
+        Lok.setLokImpl(lokImpl);
+    }
 
     private final Long limit;
 

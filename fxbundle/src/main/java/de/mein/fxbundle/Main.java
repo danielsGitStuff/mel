@@ -63,21 +63,7 @@ public class Main {
         MeinAuthSettings meinAuthSettings = AuthKonsoleReader.readKonsole(MeinStrings.update.VARIANT_FX, args);
         meinAuthSettings.save();
         if (meinAuthSettings.getPreserveLogLinesInDb() > 0L) {
-            DBLockImpl lokImpl = new DBLockImpl(meinAuthSettings.getPreserveLogLinesInDb());
-            File logDb = new File(meinAuthSettings.getWorkingDirectory(), "log.db");
-            Lok.debug("opening database: " + logDb.getAbsolutePath());
-            SQLQueries sqlQueries = new SQLQueries(SQLConnector.createSqliteConnection(logDb), SqlResultTransformer.sqliteResultSetTransformer());
-//            SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
-//            st.execute();
-            SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
-            if (!sqliteExecutor.checkTableExists("log")) {
-                InputStream inputStream = MeinAuthAdmin.class.getClassLoader().getResourceAsStream("de/mein/auth/log.sql");
-                sqliteExecutor.executeStream(inputStream);
-                inputStream.close();
-            }
-
-            lokImpl.setupLogToDb(sqlQueries);
-            Lok.setLokImpl(lokImpl);
+            DBLockImpl.setupDBLockImpl(meinAuthSettings);
         }
         final boolean canDisplay = N.result(() -> {
             new JFXPanel();

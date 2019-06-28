@@ -19,10 +19,13 @@
     <TextField styleClass="txt-edit" fx:id="txtName"/>
 
     <Label styleClass="lbl-center-section" text="%settings.workingDir"/>
+    <TextField styleClass="txt-edit" fx:id="txtWorkingDirectory" HBox.hgrow="ALWAYS" editable="false"/>
+
+    <Label styleClass="lbl-center-section" text="%settings.log"></Label>
     <HBox prefHeight="100.0" prefWidth="200.0">
         <children>
-            <TextField styleClass="txt-edit" fx:id="txtWorkingDirectory" HBox.hgrow="ALWAYS" editable="false"/>
-            <!--            <Button styleClass="btn" fx:id="btnChoosedir" mnemonicParsing="false" text="%settings.btn.dir"/>-->
+            <CheckBox fx:id="cbLogToDB" text="%settings.cbLogToDB"/>
+            <TextField fx:id="txtLogToDB" styleClass="txt-edit" HBox.hgrow="ALWAYS" />
         </children>
     </HBox>
 </VBox>

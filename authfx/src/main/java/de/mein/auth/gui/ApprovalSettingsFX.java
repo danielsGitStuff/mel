@@ -53,7 +53,7 @@ public class ApprovalSettingsFX extends AuthSettingsFX{
             if (table != null) {
                 new ArrayList<TableColumn>(table.getColumns())
                         .forEach(tableColumn -> table.getColumns().remove(tableColumn));
-                TableColumn<ServiceJoinServiceType, String> servicesColumn = new TableColumn<>(getString("%access.services"));
+                TableColumn<ServiceJoinServiceType, String> servicesColumn = new TableColumn<>(getString("access.services"));
                 servicesColumn.setStyle("-fx-background-color:rgba(0, 0, 0, 0.05)");
                 servicesColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getName().v()));
                 table.getColumns().add(servicesColumn);

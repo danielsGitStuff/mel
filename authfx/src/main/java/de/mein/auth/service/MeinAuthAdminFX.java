@@ -139,7 +139,7 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
                 //create service button
                 ImageView imgCreate = new ImageView(new Image("de/mein/icon/add.png", IMAGE_SIZE * .8, IMAGE_SIZE * .8, true, true));
-                Button btnCreateService = new Button("Create Service");
+                Button btnCreateService = new Button(resourceBundle.getString("btn.createService"));
                 btnCreateService.setGraphic(imgCreate);
                 btnCreateService.setMaxWidth(Double.MAX_VALUE);
                 btnCreateService.setAlignment(Pos.TOP_LEFT);
