@@ -193,7 +193,7 @@ public class SettingsController extends GuiController {
                                 updater.removeUpdateHandler(updateHandler);
                             }
                         };
-                    Updater updater = androidService.getMeinAuthService().getUpdater().addUpdateHandler(updateHandler);
+                    Updater updater = androidService.getMeinAuthService().getUpdater().clearUpdateHandlers().addUpdateHandler(updateHandler);
                     updater.retrieveUpdate();
 
                 });

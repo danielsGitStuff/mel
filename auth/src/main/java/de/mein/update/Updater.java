@@ -96,4 +96,9 @@ public class Updater {
             e.printStackTrace();
         }
     }
+
+    public Updater clearUpdateHandlers() {
+        updateHandlers.clear();
+        return this;
+    }
 }
