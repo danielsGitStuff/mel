@@ -2,11 +2,13 @@ package de.mein.fxbundle;
 
 import de.mein.AuthKonsoleReader;
 import de.mein.Lok;
+import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.gui.RegisterHandlerFX;
+import de.mein.auth.service.MeinAuthAdminFX;
 import de.mein.auth.service.MeinAuthFxLoader;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
@@ -129,9 +131,12 @@ public class Main {
             });
         } else {
             MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootloader.class, ContactsFXBootloader.class);
-            meinBoot.addMeinAuthAdmin(new MeinAuthFxLoader());
+            MeinAuthFxLoader fxLoader = new MeinAuthFxLoader();
+            meinBoot.addMeinAuthAdmin(fxLoader);
             meinBoot.boot().done(meinAuthService -> {
-                meinAuthService.addRegisterHandler(new RegisterHandlerFX());
+                RegisterHandlerFX registerHandlerFX = new RegisterHandlerFX();
+                registerHandlerFX.setup(fxLoader.getMeinAuthAdminFX());
+                meinAuthService.addRegisterHandler(registerHandlerFX);
                 Lok.debug("Main.main.booted");
                 lock.unlockWrite();
             }).fail(exc -> {
