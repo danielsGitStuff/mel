@@ -5,7 +5,7 @@ import de.mein.LokImpl;
 import de.mein.auth.FxApp;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.service.MeinAuthAdminFX;
-import de.mein.auth.tools.DBLockImpl;
+import de.mein.auth.tools.DBLokImpl;
 import de.mein.auth.tools.N;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -37,7 +37,7 @@ public class GeneralSettingsFX extends AuthSettingsFX {
         settings.setWorkingDirectory(new File(txtWorkingDirectory.getText()));
         if (cbLogToDB.selectedProperty().get()) {
             settings.setPreserveLogLinesInDb(Long.parseLong(txtLogToDB.getText()));
-            N.r(() -> DBLockImpl.setupDBLockImpl(meinAuthService.getSettings()));
+            N.r(() -> DBLokImpl.setupDBLockImpl(new File(settings.getWorkingDirectory(), "log.db"), settings.getPreserveLogLinesInDb()));
         } else {
             settings.setPreserveLogLinesInDb(0L);
             Lok.setLokImpl(new LokImpl().setup(0, true));

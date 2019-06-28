@@ -3,7 +3,6 @@ package de.mein.auth.tools;
 import de.mein.Lok;
 import de.mein.LokImpl;
 import de.mein.auth.MeinAuthAdmin;
-import de.mein.auth.data.MeinAuthSettings;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
@@ -15,11 +14,10 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class DBLockImpl extends LokImpl {
+public class DBLokImpl extends LokImpl {
 
-    public static void setupDBLockImpl(MeinAuthSettings meinAuthSettings) throws SQLException, ClassNotFoundException, IOException {
-        DBLockImpl lokImpl = new DBLockImpl(meinAuthSettings.getPreserveLogLinesInDb());
-        File logDb = new File(meinAuthSettings.getWorkingDirectory(), "log.db");
+    public static void setupDBLockImpl( File logDb, long preservedLogLines) throws SQLException, ClassNotFoundException, IOException {
+        DBLokImpl lokImpl = new DBLokImpl(preservedLogLines);
         Lok.debug("opening database: " + logDb.getAbsolutePath());
         SQLQueries sqlQueries = new SQLQueries(SQLConnector.createSqliteConnection(logDb), SqlResultTransformer.sqliteResultSetTransformer());
             SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
@@ -36,7 +34,7 @@ public class DBLockImpl extends LokImpl {
 
     private final Long limit;
 
-    public DBLockImpl(Long preserveLogLinesInDb) {
+    public DBLokImpl(Long preserveLogLinesInDb) {
         this.limit = preserveLogLinesInDb;
     }
 

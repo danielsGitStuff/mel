@@ -2,20 +2,15 @@ package de.mein.fxbundle;
 
 import de.mein.AuthKonsoleReader;
 import de.mein.Lok;
-import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.data.MeinRequest;
-import de.mein.auth.data.db.Certificate;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.gui.RegisterHandlerFX;
 import de.mein.auth.service.MeinAuthFxLoader;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
-import de.mein.auth.socket.process.reg.IRegisterHandler;
-import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mein.auth.tools.DBLockImpl;
+import de.mein.auth.tools.DBLokImpl;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.ContactsBootloader;
@@ -26,18 +21,13 @@ import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCol
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.boot.DriveFXBootloader;
-import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
-import de.mein.sql.conn.SQLConnector;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
-import de.mein.sql.transform.SqlResultTransformer;
 import de.mein.update.CurrentJar;
 import javafx.embed.swing.JFXPanel;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 
 /**
  * Created by xor on 1/15/17.
@@ -63,7 +53,7 @@ public class Main {
         MeinAuthSettings meinAuthSettings = AuthKonsoleReader.readKonsole(MeinStrings.update.VARIANT_FX, args);
         meinAuthSettings.save();
         if (meinAuthSettings.getPreserveLogLinesInDb() > 0L) {
-            DBLockImpl.setupDBLockImpl(meinAuthSettings);
+            DBLokImpl.setupDBLockImpl(new File(meinAuthSettings.getWorkingDirectory(), "log.db"), meinAuthSettings.getPreserveLogLinesInDb());
         }
         final boolean canDisplay = N.result(() -> {
             new JFXPanel();

@@ -7,6 +7,7 @@ import de.mein.MeinThread
 import de.mein.auth.MeinStrings
 import de.mein.auth.data.access.CertificateManager
 import de.mein.auth.data.access.DatabaseManager
+import de.mein.auth.tools.DBLokImpl
 import de.mein.auth.tools.N
 import de.mein.execute.SqliteExecutor
 import de.mein.konsole.Konsole
@@ -285,6 +286,18 @@ constructor(val config: ServerConfig) {
                     .optional("-keysize", "key length for certificate creation. defaults to 2048") { result, args -> result.keySize = args[0].toInt() }
                     .optional("-restart-command", "command that restarts the miniserver application. see readme for more information") { result, args -> if (args.size == 1) result.restartCommand.addAll(Konsole.tokenizeQuotedCommand(args[0])) else throw Konsole.KonsoleWrongArgumentsException("restard comman invalid") }
                     .optional("-keep-binaries", "keep binary files when rebuilding") { result, _ -> result.keepBinaries = true }
+                    .optional("-logtodb", "store the log in a database") { result, args ->
+                        if (args.isNotEmpty() && args[0] != null) {
+                            val value = java.lang.Long.parseLong(args[0])
+                            if (value < 0L) {
+                                Lok.error("-logtodb [value] error: value was smaller the zero")
+                                System.exit(-1)
+                            }
+                            result.preserveLogLinesInDb = value
+                        } else {
+                            result.preserveLogLinesInDb = 1000L
+                        }
+                    }
 
             var workingDirectory: File? = null
             try {
@@ -292,6 +305,8 @@ constructor(val config: ServerConfig) {
                 workingDirectory = File(konsole.result.workingPath)
                 workingDirectory.mkdirs()
                 val outFile = File(workingDirectory, "output.log")
+                if (konsole.result.preserveLogLinesInDb > 0L)
+                    DBLokImpl.setupDBLockImpl(File(workingDirectory, "log.db"), konsole.result.preserveLogLinesInDb)
                 Lok.info("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")
                 if (outFile.exists())
                     outFile.delete()
