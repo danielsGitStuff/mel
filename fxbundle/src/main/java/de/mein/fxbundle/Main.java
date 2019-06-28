@@ -53,7 +53,10 @@ public class Main {
         MeinAuthSettings meinAuthSettings = AuthKonsoleReader.readKonsole(MeinStrings.update.VARIANT_FX, args);
         meinAuthSettings.save();
         if (meinAuthSettings.getPreserveLogLinesInDb() > 0L) {
-            DBLokImpl.setupDBLockImpl(new File(meinAuthSettings.getWorkingDirectory(), "log.db"), meinAuthSettings.getPreserveLogLinesInDb());
+            if (!meinAuthSettings.getWorkingDirectory().exists())
+                meinAuthSettings.getWorkingDirectory().mkdirs();
+            File logFile = new File(meinAuthSettings.getWorkingDirectory(), "log.db");
+            DBLokImpl.setupDBLockImpl(logFile, meinAuthSettings.getPreserveLogLinesInDb());
         }
         final boolean canDisplay = N.result(() -> {
             new JFXPanel();
