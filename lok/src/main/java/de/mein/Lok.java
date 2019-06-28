@@ -50,4 +50,7 @@ public class Lok {
         impl.devOnLineMatches(line,r);
     }
 
+    public static LokImpl getImpl() {
+        return impl;
+    }
 }

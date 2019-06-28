@@ -305,8 +305,11 @@ constructor(val config: ServerConfig) {
                 workingDirectory = File(konsole.result.workingPath)
                 workingDirectory.mkdirs()
                 val outFile = File(workingDirectory, "output.log")
-                if (konsole.result.preserveLogLinesInDb > 0L)
+                if (konsole.result.preserveLogLinesInDb > 0L) {
+                    println("STORING LOG IN DATABASE!")
                     DBLokImpl.setupDBLockImpl(File(workingDirectory, "log.db"), konsole.result.preserveLogLinesInDb)
+                    Lok.getImpl().setPrintDebug(false).setup(30, true)
+                }
                 Lok.info("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")
                 if (outFile.exists())
                     outFile.delete()
