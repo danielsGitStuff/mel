@@ -77,7 +77,7 @@ public class CopyService extends IntentService {
         Lok.debug("CopyService.onHandleIntent");
     }
 
-    public void copyStream(InputStream in, OutputStream out) throws IOException {
+    public static void copyStream(InputStream in, OutputStream out) throws IOException {
         int read = 0;
         do {
             byte[] bytes = new byte[BUFFER_SIZE];

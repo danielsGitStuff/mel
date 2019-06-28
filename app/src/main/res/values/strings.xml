@@ -159,5 +159,11 @@
     <string name="driveIncompatibleServerService">The server uses symbolic links which -unless you got root- are not supported on Android. A compatibility mode is currently not available.</string>
     <string name="permissionDefaultText">The services asks for some permissions.</string>
     <string name="permissionContacts">As this is a service that is supposed to synchronize contacts, you habe to grant the obvious permission in the next dialog.</string>
+    <string name="settingsLokToDb">Log to database</string>
+    <string name="settingsBtnExport">Export</string>
+    <string name="settingsPermissionTitle">Permission required!</string>
+    <string name="settingsPermissionText">Write permission is mandatory to write into the donwload directory (thats how Android works).</string>
+    <string name="settingsPermToastFail">Write permission not granted - won\'t export</string>
+    <string name="settingsLokExportToast">Exported to: </string>
 
 </resources>

@@ -200,8 +200,25 @@
                 android:layout_below="@id/btnShow"
                 android:text="@string/settingsRedirectSysOut" />
 
-            <Button
+            <CheckBox
+                android:id="@+id/cbLokToDb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/btnExportLok"
                 android:layout_below="@id/cbRedirectSysOut"
+                android:text="@string/settingsLokToDb" />
+
+            <Button
+                android:id="@+id/btnExportLok"
+                android:layout_below="@id/cbRedirectSysOut"
+                android:layout_toEndOf="@id/cbLokToDb"
+                android:layout_alignParentEnd="true"
+                android:layout_width="match_parent"
+                android:text="@string/settingsBtnExport"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:layout_below="@id/btnExportLok"
                 android:id="@+id/btnUpdate"
                 android:text="@string/btnUpdate"
                 android:layout_width="match_parent"

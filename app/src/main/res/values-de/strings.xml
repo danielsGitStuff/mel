@@ -159,5 +159,11 @@
     <string name="driveIncompatibleServerService">Der Server nutzt symoblische Links, die, ohne Rootrechte, von Android nicht unterstützt werden. Ein Kompatibelitätsmodus ist zur Zeit noch nicht verfügbar.</string>
     <string name="permissionDefaultText">Der Dienst erbittet einige Berechtigungen.</string>
     <string name="permissionContacts">Da dieser Dienst deine Kontaktdaten synchronisieren soll, braucht es die offensichtliche Berechtigung.</string>
+    <string name="settingsLokToDb">Logge in Datenbank</string>
+    <string name="settingsBtnExport">Exportieren</string>
+    <string name="settingsPermissionTitle">Berechtigung erbeten!</string>
+    <string name="settingsPermissionText">Schreibberechtigung benötigt um ins Downloadverzeichnis zu schreiben. Für Android braucht man das.</string>
+    <string name="settingsPermToastFail">Schreibberechtigung verweigert. Log nicht exportiert.</string>
+    <string name="settingsLokExportToast">Gepseichert unter: </string>
 
 </resources>

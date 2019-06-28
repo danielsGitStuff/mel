@@ -16,12 +16,21 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class DBLokImpl extends LokImpl {
 
-    public static void setupDBLockImpl( File logDb, long preservedLogLines) throws SQLException, ClassNotFoundException, IOException {
+    /**
+     * whether or not to store in database
+     *
+     * @return
+     */
+    protected boolean store() {
+        return limit > 0L;
+    }
+
+    public static void setupDBLockImpl(File logDb, long preservedLogLines) throws SQLException, ClassNotFoundException, IOException {
         DBLokImpl lokImpl = new DBLokImpl(preservedLogLines);
         Lok.debug("opening database: " + logDb.getAbsolutePath());
         SQLQueries sqlQueries = new SQLQueries(SQLConnector.createSqliteConnection(logDb), SqlResultTransformer.sqliteResultSetTransformer());
-            SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
-            st.execute();
+        SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
+        st.execute();
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTableExists("log")) {
             InputStream inputStream = MeinAuthAdmin.class.getClassLoader().getResourceAsStream("de/mein/auth/log.sql");
@@ -87,7 +96,7 @@ public class DBLokImpl extends LokImpl {
         }
     }
 
-    private AtomicLong order = new AtomicLong(0L);
+    protected AtomicLong order = new AtomicLong(0L);
 
     @Override
     public void debug(Object msg) {
@@ -95,6 +104,12 @@ public class DBLokImpl extends LokImpl {
             String mode = "d";
             String line = fabricate(findStackElement(), mode, msg, true);
             System.out.println(line);
+            storeToDb(mode, order.getAndIncrement(), line);
+        }
+    }
+
+    protected void storeToDb(String mode, long orderAndIncrement, String line) {
+        if (store() && sqlQueries != null) {
             try {
                 sqlQueries.insert(new DBLokEntry(mode, order.getAndIncrement(), line));
                 afterInsert();
@@ -110,12 +125,7 @@ public class DBLokImpl extends LokImpl {
             String mode = "e";
             String line = fabricate(findStackElement(), mode, msg, true);
             System.err.println(line);
-            try {
-                sqlQueries.insert(new DBLokEntry(mode, order.getAndIncrement(), line));
-                afterInsert();
-            } catch (SqlQueriesException e) {
-                e.printStackTrace();
-            }
+            storeToDb(mode, order.getAndIncrement(), line);
         }
     }
 
@@ -125,12 +135,7 @@ public class DBLokImpl extends LokImpl {
             String mode = "w";
             String line = fabricate(findStackElement(), mode, msg, true);
             System.out.println(line);
-            try {
-                sqlQueries.insert(new DBLokEntry(mode, order.getAndIncrement(), line));
-                afterInsert();
-            } catch (SqlQueriesException e) {
-                e.printStackTrace();
-            }
+            storeToDb(mode, order.getAndIncrement(), line);
         }
     }
 
@@ -140,18 +145,13 @@ public class DBLokImpl extends LokImpl {
             String mode = "i";
             String line = fabricate(findStackElement(), mode, msg, true);
             System.out.println(line);
-            try {
-                sqlQueries.insert(new DBLokEntry(mode, order.getAndIncrement(), line));
-                afterInsert();
-            } catch (SqlQueriesException e) {
-                e.printStackTrace();
-            }
+            storeToDb(mode, order.getAndIncrement(), line);
         }
     }
 
     private synchronized void afterInsert() {
         // only reorganize if double the limit. this saves runtime
-        if (order.get() > 3 * (limit )-1) {
+        if (order.get() > 3 * (limit) - 1) {
             DBLokEntry entry = new DBLokEntry();
             String deleteStmt = "delete from " + entry.getTableName() + " where " + entry.order.k() + "<?";
             String updateStmt = "update " + entry.getTableName() + " set " + entry.order.k() + "=" + entry.order.k() + " - ?";
@@ -167,9 +167,9 @@ public class DBLokImpl extends LokImpl {
         }
     }
 
-    private SQLQueries sqlQueries;
+    private ISQLQueries sqlQueries;
 
-    public void setupLogToDb(SQLQueries sqlQueries) {
+    public void setupLogToDb(ISQLQueries sqlQueries) {
         this.sqlQueries = sqlQueries;
         try {
             setMaxOrder();
@@ -183,7 +183,7 @@ public class DBLokImpl extends LokImpl {
         DBLokEntry entry = new DBLokEntry();
         String query = "select max(" + entry.order.k() + ") from " + entry.getTableName();
         Long maxOrder = sqlQueries.queryValue(query, Long.class);
-        if (maxOrder!=null) {
+        if (maxOrder != null) {
             this.order.set(maxOrder);
         }
     }

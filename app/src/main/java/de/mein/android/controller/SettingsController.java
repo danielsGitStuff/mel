@@ -18,13 +18,19 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 
 import androidx.core.content.FileProvider;
+
 import de.mein.BuildConfig;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.Versioner;
+import de.mein.android.AndroidLok;
 import de.mein.android.MainActivity;
 import de.mein.android.Notifier;
 import de.mein.android.PreferenceStrings;
@@ -32,6 +38,7 @@ import de.mein.android.Threadder;
 import de.mein.android.Tools;
 import de.mein.android.service.AndroidPowerManager;
 import de.mein.android.service.AndroidService;
+import de.mein.android.service.CopyService;
 import de.mein.android.view.PowerView;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.tools.N;
@@ -45,9 +52,9 @@ import de.mein.update.VersionAnswer;
 
 public class SettingsController extends GuiController {
     private AndroidPowerManager powerManager;
-    private Button btnStartStop, btnApply, btnShow, btnPowerMobile, btnPowerServer, btnAbout, btnUpdate;
+    private Button btnStartStop, btnApply, btnShow, btnPowerMobile, btnPowerServer, btnAbout, btnUpdate, btnExportLok;
     private EditText txtPort, txtCertPort, txtName;
-    private CheckBox cbShowFirstStartDialog, cbRedirectSysOut;
+    private CheckBox cbShowFirstStartDialog, cbRedirectSysOut, cbLokToDb;
     private PowerView powerView;
 
     public SettingsController(MainActivity activity, LinearLayout content) {
@@ -57,7 +64,9 @@ public class SettingsController extends GuiController {
         txtPort = rootView.findViewById(R.id.txtPort);
         cbShowFirstStartDialog = rootView.findViewById(R.id.cbShowFirstStartDialog);
         cbRedirectSysOut = rootView.findViewById(R.id.cbRedirectSysOut);
+        cbLokToDb = rootView.findViewById(R.id.cbLokToDb);
         btnShow = rootView.findViewById(R.id.btnShow);
+        btnExportLok = rootView.findViewById(R.id.btnExportLok);
         // action listeners
         btnStartStop = rootView.findViewById(R.id.btnStart);
         btnApply = rootView.findViewById(R.id.btnApply);
@@ -66,6 +75,7 @@ public class SettingsController extends GuiController {
         btnUpdate = rootView.findViewById(R.id.btnUpdate);
         powerView = rootView.findViewById(R.id.powerView);
         btnAbout = rootView.findViewById(R.id.btnAbout);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
         btnStartStop.setOnClickListener(v1 -> {
             //service
             Intent serviceIntent = new Intent(rootView.getContext(), AndroidService.class);
@@ -77,7 +87,6 @@ public class SettingsController extends GuiController {
         });
         btnApply.setOnClickListener(v1 -> applyInputs());
         cbShowFirstStartDialog.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean(activity.getString(R.string.showIntro), cbShowFirstStartDialog.isChecked());
             editor.apply();
@@ -167,7 +176,7 @@ public class SettingsController extends GuiController {
                                 activity.showMessageBinary(R.string.titleUpdateAvail, R.string.questionDownloadUpdate, (dialog, which) -> {
                                     File parent = Environment.getExternalStoragePublicDirectory("Download");
                                     File updateFile = new File(parent, "update.apk");
-                                    Threadder.runNoTryThread(() -> updater.loadUpdate(versionEntry,updateFile));
+                                    Threadder.runNoTryThread(() -> updater.loadUpdate(versionEntry, updateFile));
                                 }, (dialog, which) -> {
                                     dialog.cancel();
                                     updater.removeUpdateHandler(updateHandler);
@@ -180,7 +189,7 @@ public class SettingsController extends GuiController {
 
                             @Override
                             public void onNoUpdateAvailable(Updater updater) {
-                                activity.showMessage(R.string.infoNoUpdate,R.string.infoNoUpdate);
+                                activity.showMessage(R.string.infoNoUpdate, R.string.infoNoUpdate);
                                 updater.removeUpdateHandler(updateHandler);
                             }
                         };
@@ -192,7 +201,34 @@ public class SettingsController extends GuiController {
                 Notifier.toast(activity, R.string.permanentNotification);
                 activity.annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             }
+
         }));
+        cbLokToDb.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Long preserveLogLines = cbLokToDb.isChecked() ? 2000L : 0L;
+            prefs.edit().putLong(PreferenceStrings.LOK_PRESERVED_LINES, preserveLogLines).apply();
+            AndroidLok.setupDbLok(Tools.getApplicationContext());
+        });
+        btnExportLok.setOnClickListener(v -> N.r(() -> {
+            if (!activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                activity.askUserForPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                        , null
+                        , R.string.settingsPermissionTitle
+                        , R.string.settingsPermissionText
+                        , () -> N.r(this::exportLok)
+                        , result -> Notifier.toast(activity, R.string.settingsPermToastFail));
+            } else {
+                exportLok();
+            }
+        }));
+    }
+
+    private void exportLok() throws IOException {
+        File dbFile = Tools.getApplicationContext().getDatabasePath("log");
+        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File targetFile = new File(downloadDir, "mel.log.db");
+        CopyService.copyStream(new FileInputStream(dbFile), new FileOutputStream(targetFile));
+        String msg = activity.getString(R.string.settingsLokExportToast) + targetFile.getAbsolutePath();
+        Notifier.toast(activity, msg);
     }
 
     private UpdateHandler updateHandler;
@@ -206,6 +242,7 @@ public class SettingsController extends GuiController {
                 txtName.setText(meinAuthSettings.getName());
                 txtCertPort.setText(meinAuthSettings.getDeliveryPort().toString());
                 cbRedirectSysOut.setChecked(Lok.isLineStorageActive());
+                cbLokToDb.setChecked(Tools.getSharedPreferences().getLong(PreferenceStrings.LOK_PRESERVED_LINES, 0L) > 0L);
                 cbRedirectSysOut.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     meinAuthSettings.setRedirectSysout(isChecked);
                     int lines = isChecked ? 200 : 0;

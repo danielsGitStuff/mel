@@ -6,6 +6,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -28,6 +30,8 @@ import de.mein.BuildConfig;
 
 import de.mein.android.controller.PermissionsGrantedListener;
 import de.mein.android.drive.AndroidDriveBootloader;
+import de.mein.android.sql.AndroidDBConnection;
+import de.mein.android.sql.AndroidSQLQueries;
 import de.mein.auth.service.NetworkDiscoveryController;
 
 import org.jdeferred.FailCallback;
@@ -186,7 +190,6 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Eva.enable();
         //dev();
         Tools.init(this.getApplicationContext());
         runningColor = getResources().getColor(R.color.stateRunning);
@@ -199,9 +202,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
                 variant = BuildConfig.BUILD_VARIANT;
             }
         });
-        boolean timestamp = Tools.getSharedPreferences().getBoolean(PreferenceStrings.LOK_TIMESTAMP, true);
-        int lines = Tools.getSharedPreferences().getInt(PreferenceStrings.LOK_LINE_COUNT, 0);
-        Lok.setLokImpl(new AndroidLok().setPrintDebug(true).setup(lines, timestamp));
+        AndroidLok.setupDbLok(this);
         SAFAccessor.setupExternalPath();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));

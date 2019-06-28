@@ -11,6 +11,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import de.mein.auth.MeinAuthAdmin;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -114,6 +115,8 @@ public class AndroidService extends Service {
     }
 
     public AndroidPowerManager getAndroidPowerManager() {
+        if (meinAuthService.getPowerManager() == null)
+            return null;
         return (AndroidPowerManager) meinAuthService.getPowerManager();
     }
 
@@ -237,7 +240,7 @@ public class AndroidService extends Service {
                 meinAuthSettings.setJsonFile(settingsFile).save();
             }
         } catch (IOException | JsonDeserializationException | JsonSerializationException | IllegalAccessException e) {
-            Lok.error(  "loading existing meinauth.settings failed :(");
+            Lok.error("loading existing meinauth.settings failed :(");
             e.printStackTrace();
         }
         Lok.debug("AndroidService.onCreate");
