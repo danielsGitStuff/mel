@@ -15,6 +15,7 @@ import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
+import de.mein.auth.tools.DBLockImpl;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.ContactsBootloader;
@@ -25,11 +26,18 @@ import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCol
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.boot.DriveFXBootloader;
-import de.mein.sql.RWLock;
+import de.mein.execute.SqliteExecutor;
+import de.mein.sql.*;
+import de.mein.sql.conn.SQLConnector;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
+import de.mein.sql.transform.SqlResultTransformer;
 import de.mein.update.CurrentJar;
 import javafx.embed.swing.JFXPanel;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 /**
  * Created by xor on 1/15/17.
@@ -37,7 +45,6 @@ import javafx.embed.swing.JFXPanel;
 @SuppressWarnings("Duplicates")
 public class Main {
     private static void initMein() throws Exception {
-        new JFXPanel();
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
@@ -55,57 +62,85 @@ public class Main {
         lock.lockWrite();
         MeinAuthSettings meinAuthSettings = AuthKonsoleReader.readKonsole(MeinStrings.update.VARIANT_FX, args);
         meinAuthSettings.save();
+        if (meinAuthSettings.getPreserveLogLinesInDb() > 0L) {
+            DBLockImpl lokImpl = new DBLockImpl(meinAuthSettings.getPreserveLogLinesInDb());
+            File logDb = new File(meinAuthSettings.getWorkingDirectory(), "log.db");
+            Lok.debug("opening database: " + logDb.getAbsolutePath());
+            SQLQueries sqlQueries = new SQLQueries(SQLConnector.createSqliteConnection(logDb), SqlResultTransformer.sqliteResultSetTransformer());
+//            SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
+//            st.execute();
+            SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
+            if (!sqliteExecutor.checkTableExists("log")) {
+                InputStream inputStream = MeinAuthAdmin.class.getClassLoader().getResourceAsStream("de/mein/auth/log.sql");
+                sqliteExecutor.executeStream(inputStream);
+                inputStream.close();
+            }
+
+            lokImpl.setupLogToDb(sqlQueries);
+            Lok.setLokImpl(lokImpl);
+        }
+        final boolean canDisplay = N.result(() -> {
+            new JFXPanel();
+            return true;
+        }, false);
+        if (!canDisplay) {
+            Lok.error("Could not initialize UI. Starting headless instead.");
+            Lok.error("You won't be able to interact (pair, grant access, solve conflicts...) with Mel");
+            Lok.error("Otherwise it will synchronize as usual.");
+        }
         // todo debug, remove
-        if (args.length == 1 && args[0].equals("-dev")) {
-            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class, ContactsBootloader.class);
-            meinBoot.boot().done(meinAuthService -> {
-                Lok.debug("Main.main.booted (DEV)");
-                meinAuthService.addRegisterHandler(new IRegisterHandler() {
-                    @Override
-                    public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
-                        N.r(() -> N.forEach(meinAuthService.getCertificateManager().getTrustedCertificates(), oldeCert -> meinAuthService.getCertificateManager().deleteCertificate(oldeCert)));
-                        listener.onCertificateAccepted(request, certificate);
+//        if (args.length == 1 && args[0].equals("-dev")) {
+//            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class, ContactsBootloader.class);
+//            meinBoot.boot().done(meinAuthService -> {
+//                Lok.debug("Main.main.booted (DEV)");
+//                meinAuthService.addRegisterHandler(new IRegisterHandler() {
+//                    @Override
+//                    public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+//                        N.r(() -> N.forEach(meinAuthService.getCertificateManager().getTrustedCertificates(), oldeCert -> meinAuthService.getCertificateManager().deleteCertificate(oldeCert)));
+//                        listener.onCertificateAccepted(request, certificate);
+//
+//                    }
+//
+//                    @Override
+//                    public void onRegistrationCompleted(Certificate partnerCertificate) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onRemoteRejected(Certificate partnerCertificate) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onLocallyRejected(Certificate partnerCertificate) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onRemoteAccepted(Certificate partnerCertificate) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onLocallyAccepted(Certificate partnerCertificate) {
+//
+//                    }
+//
+//                    @Override
+//                    public void setup(MeinAuthAdmin meinAuthAdmin) {
+//
+//                    }
+//                });
+//                meinAuthService.addRegisteredHandler((meinAuthService1, registered) -> {
+//                    N.forEach(meinAuthService.getDatabaseManager().getAllServices(), serviceJoinServiceType -> meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v()));
+//                });
+//                lock.unlockWrite();
+//            }).fail(exc -> {
+//                exc.printStackTrace();
+//            });
+//        } else
 
-                    }
-
-                    @Override
-                    public void onRegistrationCompleted(Certificate partnerCertificate) {
-
-                    }
-
-                    @Override
-                    public void onRemoteRejected(Certificate partnerCertificate) {
-
-                    }
-
-                    @Override
-                    public void onLocallyRejected(Certificate partnerCertificate) {
-
-                    }
-
-                    @Override
-                    public void onRemoteAccepted(Certificate partnerCertificate) {
-
-                    }
-
-                    @Override
-                    public void onLocallyAccepted(Certificate partnerCertificate) {
-
-                    }
-
-                    @Override
-                    public void setup(MeinAuthAdmin meinAuthAdmin) {
-
-                    }
-                });
-                meinAuthService.addRegisteredHandler((meinAuthService1, registered) -> {
-                    N.forEach(meinAuthService.getDatabaseManager().getAllServices(), serviceJoinServiceType -> meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v()));
-                });
-                lock.unlockWrite();
-            }).fail(exc -> {
-                exc.printStackTrace();
-            });
-        } else if (meinAuthSettings.isHeadless()) {
+        if (meinAuthSettings.isHeadless() || !canDisplay) {
             MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class, ContactsBootloader.class);
             meinBoot.boot().done(meinAuthService -> {
                 Lok.debug("Main.main.booted (headless)");

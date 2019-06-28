@@ -3,6 +3,10 @@ DROP TABLE IF EXISTS  type ;
 DROP TABLE IF EXISTS  service ;
 DROP TABLE IF EXISTS  authentication ;
 DROP TABLE IF EXISTS  certificate ;
+DROP TABLE IF EXISTS  approval ;
+DROP TABLE IF EXISTS  servicetype ;
+
+
 CREATE TABLE "servicetype" (
    id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    type         TEXT    NOT NULL UNIQUE,

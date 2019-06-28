@@ -2,11 +2,8 @@ package de.mein;
 
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.konsole.Konsole;
-import de.mein.sql.Pair;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by xor on 1/15/17.
@@ -30,6 +27,18 @@ public class AuthKonsoleReader {
                     .optional("-headless", "starts without JavaFx GUI", (result, args) -> result.setHeadless())
                     .optional("-dev", "for dev purposes only", (result, args) -> Lok.error("DEV DEV DEV DEV DEV"))
                     .optional("-name", "name for this instance", (result, args) -> result.setName(args[0]))
+                    .optional("-logtodb", "[preservedLines]: logs into 'log.db' in the working directory. preservedLines: keep at leat so many line", (result, args) -> {
+                        if (args.length > 0 && args[0] != null) {
+                            Long value = Long.parseLong(args[0]);
+                            if (value < 0L) {
+                                Lok.error("-logtodb [value] error: value was smaller the zero");
+                                System.exit(-1);
+                            }
+                            result.setPreserveLogLinesInDb(value);
+                        } else {
+                            result.setPreserveLogLinesInDb(1000L);
+                        }
+                    })
                     .handle(arguments);
         }
         return meinAuthSettings;

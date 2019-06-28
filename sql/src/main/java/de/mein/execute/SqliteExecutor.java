@@ -85,6 +85,8 @@ public class SqliteExecutor {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+            }finally {
+                in.close();
             }
         }
     }

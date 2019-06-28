@@ -35,6 +35,7 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
     @JsonIgnore
     private boolean headless = false;
     private String language;
+    private Long preserveLogLinesInDb = 0L;
 
     public MeinAuthSettings setVariant(String variant) {
         this.variant = variant;
@@ -85,6 +86,7 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
                 .setUpdateBinaryPort(UPDATE_BINARY_PORT)
                 .setUpdateUrl(UPDATE_DEFAULT_URL)
                 .setVariant(MeinStrings.update.VARIANT_JAR)
+                .setPreserveLogLinesInDb(1000L)
                 .setJsonFile(DEFAULT_FILE);
         return meinAuthSettings;
     }
@@ -240,5 +242,14 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
 
     public String getLanguage() {
         return language;
+    }
+
+    public Long getPreserveLogLinesInDb() {
+        return preserveLogLinesInDb;
+    }
+
+    public MeinAuthSettings setPreserveLogLinesInDb(Long preserveLogLinesInDb) {
+        this.preserveLogLinesInDb = preserveLogLinesInDb;
+        return this;
     }
 }
