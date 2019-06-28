@@ -1,5 +1,6 @@
 package de.mein.auth.socket.process.reg;
 
+import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
 
@@ -47,4 +48,13 @@ public interface IRegisterHandler {
      * @param partnerCertificate
      */
     void onLocallyAccepted(Certificate partnerCertificate);
+
+    /**
+     * called before the {@link MeinAuthAdmin} asks the register handlers to do things
+     *
+     * @param meinAuthAdmin
+     */
+    default void setup(MeinAuthAdmin meinAuthAdmin) {
+
+    }
 }

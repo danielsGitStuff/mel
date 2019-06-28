@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.mein.R;
+import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
@@ -143,6 +144,11 @@ public class AndroidRegHandler implements IRegisterHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void setup(MeinAuthAdmin meinAuthAdmin) {
+        // nothing to do
     }
 
     public void addActivity(String certHash, CertActivity certActivity) {

@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.Lok;
+import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.data.MeinAuthSettings;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
@@ -116,6 +117,11 @@ public class TransferTest {
 
                 @Override
                 public void onLocallyAccepted(Certificate partnerCertificate) {
+
+                }
+
+                @Override
+                public void setup(MeinAuthAdmin meinAuthAdmin) {
 
                 }
             });

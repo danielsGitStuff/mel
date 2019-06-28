@@ -1,6 +1,7 @@
 package de.mein.auth.service;
 
 import de.mein.Lok;
+import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.TestFileCreator;
 import de.mein.auth.data.MeinAuthSettings;
@@ -771,6 +772,11 @@ public class DriveTest {
             public void onLocallyAccepted(Certificate partnerCertificate) {
 
             }
+
+            @Override
+            public void setup(MeinAuthAdmin meinAuthAdmin) {
+
+            }
         };
         // we want to allow every registered Certificate to talk to all available Services
         IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
@@ -857,6 +863,11 @@ public class DriveTest {
 
             @Override
             public void onLocallyAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void setup(MeinAuthAdmin meinAuthAdmin) {
 
             }
         };

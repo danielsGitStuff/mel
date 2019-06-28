@@ -23,9 +23,9 @@
     <top>
         <VBox>
             <HBox alignment="CENTER" prefWidth="200.0" BorderPane.alignment="CENTER">
-                <Label maxWidth="1.7976931348623157E308" text="Hash of my Certificate" HBox.hgrow="ALWAYS"
+                <Label maxWidth="1.7976931348623157E308" text="%hash.my" HBox.hgrow="ALWAYS"
                        styleClass="lbl-section"/>
-                <Label maxWidth="1.7976931348623157E308" text="Hash of remote Certificate" styleClass="lbl-section"/>
+                <Label maxWidth="1.7976931348623157E308" text="%hash.remote" styleClass="lbl-section"/>
             </HBox>
             <HBox alignment="CENTER" prefWidth="200.0" BorderPane.alignment="CENTER">
                 <Label fx:id="lblMyHash" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" styleClass="lbl-hash"
@@ -34,9 +34,9 @@
                        styleClass="lbl-hash"/>
             </HBox>
             <HBox alignment="CENTER" prefWidth="200.0" BorderPane.alignment="CENTER">
-                <Label fx:id="lblMyCert" maxWidth="1.7976931348623157E308" text="My Certificate" HBox.hgrow="ALWAYS"
+                <Label fx:id="lblMyCert" maxWidth="1.7976931348623157E308" text="%myCert" HBox.hgrow="ALWAYS"
                        styleClass="lbl-section"/>
-                <Label fx:id="lblCert" maxWidth="1.7976931348623157E308" text="Cert" styleClass="lbl-section"/>
+                <Label fx:id="lblCert" maxWidth="1.7976931348623157E308" text="%cert" styleClass="lbl-section"/>
             </HBox>
         </VBox>
 

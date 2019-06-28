@@ -10,6 +10,7 @@ import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
 
+import de.mein.auth.MeinAuthAdmin;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -191,6 +192,11 @@ public class AndroidService extends Service {
                 public void onLocallyAccepted(Certificate partnerCertificate) {
 
                 }
+
+                @Override
+                public void setup(MeinAuthAdmin meinAuthAdmin) {
+
+                }
             });
             meinAuthService.addRegisteredHandler((meinAuthService1, registered) -> N.r(() -> {
                 List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
@@ -327,6 +333,11 @@ public class AndroidService extends Service {
             @Override
             public void onLocallyAccepted(Certificate partnerCertificate) {
 
+            }
+
+            @Override
+            public void setup(MeinAuthAdmin meinAuthAdmin) {
+                // nothing to do
             }
         };
         // todo debug

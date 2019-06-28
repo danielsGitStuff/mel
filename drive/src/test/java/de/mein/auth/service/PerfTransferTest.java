@@ -114,6 +114,11 @@ public class PerfTransferTest {
                     public void onLocallyAccepted(Certificate partnerCertificate) {
 
                     }
+
+                    @Override
+                    public void setup(MeinAuthAdmin meinAuthAdmin) {
+
+                    }
                 });
                 mas.addRegisteredHandler((meinAuthService, registered) -> {
                     meinAuthService.getMeinServices().forEach(iMeinService -> N.r(() -> {

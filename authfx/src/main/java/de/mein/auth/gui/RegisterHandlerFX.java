@@ -1,6 +1,7 @@
 package de.mein.auth.gui;
 
 import de.mein.Lok;
+import de.mein.auth.MeinAuthAdmin;
 import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.db.Certificate;
@@ -18,12 +19,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
 import java.security.cert.X509Certificate;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
@@ -48,6 +51,9 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
     private IRegisterHandlerListener listener;
     private Stage stage;
     private MeinRequest request;
+    private MeinAuthAdminFX meinAthuAdminFX;
+    private Locale locale;
+    private ResourceBundle resourceBundle;
 
     public RegisterHandlerFX setRequest(MeinRequest request) {
         this.request = request;
@@ -95,6 +101,8 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
         Platform.setImplicitExit(false);
         XCBFix.runLater(() -> {
             FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("de/mein/auth/service/register.fxml"));
+            ResourceBundle resourceBundle = ResourceBundle.getBundle("de/mein/auth/register", locale);
+            loader.setResources(resourceBundle);
             BorderPane root = null;
             try {
                 root = loader.load();
@@ -109,8 +117,10 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
             Scene scene = new Scene(root);
             scene.getStylesheets().add(MeinAuthAdminFX.GLOBAL_STYLE_CSS);
             Stage stage = new Stage();
-            stage.setTitle("Someone wants to get to know you!");
+            stage.setTitle(resourceBundle.getString("title"));
             stage.setScene(scene);
+            Image image = new Image(MeinAuthAdminFX.APP_ICON_RES);
+            stage.getIcons().add(image);
             stage.show();
             controller.setStage(stage);
         });
@@ -141,6 +151,17 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
     @Override
     public void onLocallyAccepted(Certificate partnerCertificate) {
 
+    }
+
+    @Override
+    public void setup(MeinAuthAdmin meinAuthAdmin) {
+        if (meinAuthAdmin instanceof MeinAuthAdminFX) {
+            this.meinAthuAdminFX = (MeinAuthAdminFX) meinAuthAdmin;
+            this.locale = meinAthuAdminFX.getLocale();
+            this.resourceBundle = meinAthuAdminFX.getResourceBundle();
+        } else {
+            Lok.error("admin is not FX");
+        }
     }
 
     public void setStage(Stage stage) {

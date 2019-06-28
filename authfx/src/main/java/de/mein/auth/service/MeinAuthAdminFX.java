@@ -49,7 +49,7 @@ import java.util.List;
  * Created by xor on 6/25/16.
  */
 public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotification.MeinProgressListener {
-    private static final String APP_ICON_RES = "/de/mein/icon/tray.png";
+    public static final String APP_ICON_RES = "/de/mein/icon/tray.png";
 
 
     private static final int IMAGE_SIZE = 22;
@@ -192,6 +192,14 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
             ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
             serviceSettingsFX.feed(serviceJoinServiceType);
         }
+    }
+
+    public Locale getLocale() {
+        return locale;
+    }
+
+    public ResourceBundle getResourceBundle() {
+        return resourceBundle;
     }
 
     public void setStage(Stage stage) {
@@ -424,7 +432,9 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                             meinAuthAdminFXES[0] = loader.getController();
                             meinAuthAdminFXES[0].locale = locale;
                             meinAuthAdminFXES[0].resourceBundle = resourceBundle;
+                            meinAuthAdminFXES[0].resourceBundle = resourceBundle;
                             meinAuthAdminFXES[0].start(meinAuthService);
+                            meinAuthAdminFXES[0].setupRegisterHandlers();
                             N.r(() -> meinAuthService.getSettings().setLanguage(locale.getLanguage()).save());
                             Scene scene = new Scene(root);
                             //apply theme
@@ -450,6 +460,11 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         );
         lock.lock();
         return meinAuthAdminFXES[0];
+    }
+
+    private void setupRegisterHandlers() {
+        N.forEach(meinAuthService.getRegisterHandlers(), iRegisterHandler -> iRegisterHandler.setup(this));
+
     }
 
     public static Stage createStage(Scene scene) {
