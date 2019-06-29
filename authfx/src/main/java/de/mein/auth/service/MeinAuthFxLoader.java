@@ -17,6 +17,10 @@ public class MeinAuthFxLoader implements MeinAuthAdmin {
         this.meinAuthService = meinAuthService;
     }
 
+    public MeinAuthAdminFX getMeinAuthAdminFX() {
+        return meinAuthAdminFX;
+    }
+
     @Override
     public void onNotificationFromService(IMeinService meinService, MeinNotification notification) {
         meinAuthAdminFX.onNotificationFromService(meinService, notification);
