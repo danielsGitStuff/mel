@@ -142,7 +142,8 @@ open class BashToolsUnix : BashToolsImpl {
 
     override fun getContentFsBashDetails(directory: AFile<*>): MutableMap<String, FsBashDetails> {
         val map = mutableMapOf<String, FsBashDetails>()
-        val path = "\"${escapeAbsoluteFilePath(directory)}${File.separator}\"*"
+        val escaped = escapeAbsoluteFilePath(directory)
+        val path = "\"$escaped${File.separator}\"* \"$escaped${File.separator}\".*"
 //        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %Y\\ '%F'\\ %N\\ %n " + path)
         val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ //\\ %Y\\ //\\ '%F'\\ //\\ %N\\ //\\ %n " + path)
 
