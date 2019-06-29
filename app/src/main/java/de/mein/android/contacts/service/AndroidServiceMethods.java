@@ -164,7 +164,7 @@ public class AndroidServiceMethods {
     }
 
     public void listenForContactsChanges() {
-        watchDogTimer = new WatchDogTimer("contact changes",() -> service.addJob(new ExamineJob()), 20, 100, 100);
+        watchDogTimer = new WatchDogTimer("contact changes", () -> service.addJob(new ExamineJob()), 20, 100, 100);
         Context context = Tools.getApplicationContext();
         observer = new ContentObserver(null) {
             @Override
@@ -199,7 +199,8 @@ public class AndroidServiceMethods {
     }
 
     public void onShutDown() {
-        Tools.getApplicationContext().getContentResolver().unregisterContentObserver(observer);
+        if (observer != null)
+            Tools.getApplicationContext().getContentResolver().unregisterContentObserver(observer);
     }
 
 }
