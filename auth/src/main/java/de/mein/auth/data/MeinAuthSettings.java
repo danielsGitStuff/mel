@@ -86,7 +86,7 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
                 .setUpdateBinaryPort(UPDATE_BINARY_PORT)
                 .setUpdateUrl(UPDATE_DEFAULT_URL)
                 .setVariant(MeinStrings.update.VARIANT_JAR)
-                .setPreserveLogLinesInDb(1000L)
+                .setPreserveLogLinesInDb(0L)
                 .setJsonFile(DEFAULT_FILE);
         return meinAuthSettings;
     }
