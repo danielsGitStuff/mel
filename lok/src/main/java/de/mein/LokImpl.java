@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class LokImpl {
 
+    private int maxLineLength = 500;
     private boolean timeStamp = true;
     private String[] lines = new String[0];
     private long lineCount = 0;
@@ -71,7 +72,10 @@ public class LokImpl {
     }
 
     protected String fabricateLine(StackTraceElement stackTrace, String mode, Object msg) {
-        return "[" + stackTrace.getMethodName() + "][" + stackTrace.getLineNumber() + "].[" + mode + "] = " + (msg == null ? "null" : msg.toString());
+        String line = msg == null ? "null" : msg.toString();
+        if (line.length() > maxLineLength)
+            line = line.substring(0, maxLineLength);
+        return "[" + stackTrace.getMethodName() + "][" + stackTrace.getLineNumber() + "].[" + mode + "] = " + line;
     }
 
     protected synchronized String fabricate(StackTraceElement stackTrace, String mode, Object msg, boolean insertTag) {
@@ -109,7 +113,7 @@ public class LokImpl {
             String line = fabricate(findStackElement(), "d", msg, true);
             System.out.println(line);
         }
-        if (devMatchLine!= null && devMatchLine.equals(msg))
+        if (devMatchLine != null && devMatchLine.equals(msg))
             devMatchRunnable.run();
     }
 
