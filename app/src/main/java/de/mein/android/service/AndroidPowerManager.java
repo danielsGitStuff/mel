@@ -223,9 +223,9 @@ public class AndroidPowerManager extends PowerManager {
 
     @Override
     public void wakeLock(Object caller) {
-        Lok.debug("aquire");
+//        Lok.debug("aquire");
         wakeAccessLock.lock();
-        Lok.debug("aquired");
+//        Lok.debug("aquired");
         try {
             if (!wakeLockCallers.containsKey(caller)) {
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
@@ -241,7 +241,7 @@ public class AndroidPowerManager extends PowerManager {
     @Override
     public void releaseWakeLock(Object caller) {
         wakeAccessLock.lock();
-        Lok.debug("release");
+//        Lok.debug("release");
         if (wakeLockCallers.containsKey(caller)) {
             wakeLockCallers.remove(caller);
             if (wakeLockCallers.isEmpty() && wakeLock.isHeld()) {

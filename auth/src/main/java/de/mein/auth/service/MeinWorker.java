@@ -92,9 +92,9 @@ public abstract class MeinWorker extends DeferredRunnable {
 
     public void stop() {
         //todo debug
-        if (getRunnableName().contains("MeinSocket for MeinAuthOnAndroid/WORK"))
-            Lok.debug("debug");
-        Lok.debug("STOPPING: " + getRunnableName());
+//        if (getRunnableName().contains("MeinSocket for MeinAuthOnAndroid/WORK"))
+//            Lok.debug("debug");
+//        Lok.debug("STOPPING: " + getRunnableName());
         super.stop();
 //        queueLock.unlockWrite();
         waitLock.unlock();

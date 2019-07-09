@@ -170,6 +170,9 @@ public class JFile extends AFile<JFile> {
             DocumentFile folderDoc = createParentDocFile();
             String name = file.getName();
             DocumentFile found = folderDoc.findFile(name);
+            if (found != null && found.isFile()) {
+                found.delete();
+            }
             if (found != null) {
                 return false;
             }
@@ -338,12 +341,14 @@ public class JFile extends AFile<JFile> {
         if (!path.startsWith(storagePath))
             Lok.error("INVALID PATH! tried to find [" + path + "] in [" + storagePath + "]");
         // +1 to get rid of the leading slash
-        stripped = path.substring(0, storagePath.length() + 1);
+        int start = 0;
+        if (path.startsWith("/"))
+            start = 1;
+        stripped = path.substring(storagePath.length());
         return stripped.split(File.separator);
     }
 
     /**
-     *
      * @return the path of the storage the file is stored on
      */
     private String getStoragePath() {

@@ -139,7 +139,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        Lok.debug(meinAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
+//        Lok.debug(meinAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
         if (process != null)
             process.onSocketClosed(code, reason, remote);
         meinAuthService.onSocketClosed(this);
@@ -155,7 +155,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         if (certId != null)
             partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         Socket socket = meinAuthService.getCertificateManager().createSocket();
-        Lok.debug("MeinAuthSocket.connectSSL: " + address + ":" + port);
+//        Lok.debug("MeinAuthSocket.connectSSL: " + address + ":" + port);
         socket.connect(new InetSocketAddress(address, port));
         //stop();
         setSocket(socket);
@@ -199,9 +199,6 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
 
     @Override
     protected void onSocketClosed() {
-        //todo debug
-        if (Thread.currentThread().getName().toLowerCase().contains("meinworker"))
-            Lok.debug("debug");
         meinAuthService.onSocketClosed(this);
     }
 

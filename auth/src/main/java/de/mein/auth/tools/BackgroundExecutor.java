@@ -73,7 +73,7 @@ public abstract class BackgroundExecutor {
             if (wrapper.meinRunnable.getRunnableName().toLowerCase().startsWith("meindriveclientservice for test"))
                 Lok.debug("BackgroundExecutor.execute.debugkßc3ß4");
             startedCounter++;
-            Lok.debug("starting thread no " + startedCounter);
+//            Lok.debug("starting thread no " + startedCounter);
             executorService.execute(wrapper);
         } catch (Exception e) {
             e.printStackTrace();

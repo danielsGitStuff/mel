@@ -103,7 +103,7 @@ public class ConnectWorker extends MeinWorker {
             return false;
         });
 
-        Lok.debug("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
+//        Lok.debug("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
         meinAuthService.getPowerManager().wakeLock(this);
         if (job instanceof ConnectJob) {
             DeferredObject result = job.getPromise();
@@ -207,7 +207,7 @@ public class ConnectWorker extends MeinWorker {
     @Override
     protected void workWork(Job job) throws Exception {
         if (job instanceof ConnectJob) {
-            Lok.debug("Connecting to: " + connectJob.getAddress() + ":" + connectJob.getPort() + "/" + connectJob.getPortCert());
+//            Lok.debug("Connecting to: " + connectJob.getAddress() + ":" + connectJob.getPort() + "/" + connectJob.getPortCert());
 //        MeinAuthSocket meinAuthSocket = new MeinAuthSocket(meinAuthService);
 //        Socket socket = createSocket();
 //        N.oneLine(() -> meinAuthSocket.connect(connectJob));

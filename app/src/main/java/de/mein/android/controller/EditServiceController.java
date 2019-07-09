@@ -77,9 +77,10 @@ public class EditServiceController extends GuiController {
             Lok.debug("showSelected");
         }));
         btnDelete.setOnClickListener(v -> {
-            MeinService service = androidService.getMeinAuthService().getMeinService(EditServiceController.this.service.getUuid().v());
-            service.shutDown();
             try {
+                MeinService service = androidService.getMeinAuthService().getMeinService(EditServiceController.this.service.getUuid().v());
+                if (service != null)
+                    service.shutDown();
                 androidService.getMeinAuthService().getDatabaseManager().deleteService(EditServiceController.this.service.getServiceId().v());
                 activity.showInfo();
             } catch (SqlQueriesException e) {

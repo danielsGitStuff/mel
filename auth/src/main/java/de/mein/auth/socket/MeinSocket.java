@@ -104,7 +104,6 @@ public class MeinSocket extends DeferredRunnable {
         this.thread = new MeinThread(this);
         String name = "THREAD." + (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + "id=" + v + "." + getClass().getSimpleName();
         this.thread.setName(name);
-        Lok.debug("MeinSocket.starting: " + name);
         this.thread.start();
     }
 
@@ -160,9 +159,6 @@ public class MeinSocket extends DeferredRunnable {
         v = vv.getAndIncrement();
         if (meinAuthService != null)
             meinAuthService.addMeinSocket(this);
-        // todo debug
-        if (v==0)
-            Lok.debug("debug");
     }
 
 
@@ -183,7 +179,6 @@ public class MeinSocket extends DeferredRunnable {
     @Override
     public void onShutDown() {
         N.r(() -> {
-            Lok.error(getClass().getName() + ".onShutDown()");
             if (socketWorker != null)
                 socketWorker.shutDown();
         });
@@ -254,21 +249,17 @@ public class MeinSocket extends DeferredRunnable {
                         socketWorker.addJob(new ReceivedJob().setMessage(s));
                 }
             }
-            Lok.debug("MeinSocket.runTry.CLOSING");
+//            Lok.debug("MeinSocket.runTry.CLOSING");
             listener.onClose(42, "don't know shit", true);
         } catch (Exception e) {
-            if (!isStopped()) {
-                String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
-                Lok.error(line);
-            }
+//            if (!isStopped()) {
+//                String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
+//                Lok.error(line);
+//            }
         } finally {
-            Lok.debug(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());
+//            Lok.debug(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());
             N.r(this::onSocketClosed);
             shutDown();
-//            N.s(() -> in.close());
-//            N.s(() -> out.close());
-//            N.s(() -> socket.close());
-//            N.s(() -> socketWorker.shutDown());
         }
     }
 
@@ -283,7 +274,6 @@ public class MeinSocket extends DeferredRunnable {
 
     public void stop() {
         try {
-            Lok.debug(getClass().getSimpleName() + ".stop() on " + Thread.currentThread().getName());
             super.stop();
             stopped = true;
             N.s(() -> in.close());

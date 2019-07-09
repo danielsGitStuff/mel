@@ -1,6 +1,7 @@
 package de.mein.auth.socket;
 
 import de.mein.auth.service.MeinService;
+
 import org.jdeferred.Promise;
 
 import java.io.IOException;
@@ -86,7 +87,7 @@ public class MeinAuthProcess extends MeinProcess {
 
                                         // check if already connected to that cert
                                         if (meinAuthSocket.getMeinAuthService().isConnectedTo(partnerCertificate.getId().v())) {
-                                            Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing...");
+                                            Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
                                             this.stop();
                                             return;
                                         }
@@ -102,7 +103,7 @@ public class MeinAuthProcess extends MeinProcess {
                                         // propagate that we are connected!
                                         propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getPort());
                                     } else {
-                                        Lok.debug("MeinAuthProcess.isolation.onMessageReceived");
+                                        Lok.debug("leaving for IsolationProcess");
                                         IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
                                         Class<? extends MeinIsolatedProcess> isolatedClass = (Class<? extends MeinIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
                                         MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());

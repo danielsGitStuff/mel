@@ -367,11 +367,11 @@ public class MeinAuthService {
 
 
     Promise<MeinValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
-        Lok.debug("connect: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
+//        Lok.debug("connect: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
         Transaction transaction = null;
-        Lok.debug("debug connect 1");
+//        Lok.debug("debug connect 1");
         try {
             transaction = T.lockingTransaction(connectedEnvironment);
             // check if already connected via address
@@ -396,11 +396,11 @@ public class MeinAuthService {
 //            }
         } finally {
             if (transaction != null) {
-                Lok.debug("debug connect 2");
+//                Lok.debug("debug connect 2");
                 Promise<MeinValidationProcess, Exception, Void> def = connectedEnvironment.currentlyConnecting(address, port, portCert);
                 if (def != null) {
                     transaction.end();
-                    Lok.debug("debug connect 2.5");
+//                    Lok.debug("debug connect 2.5");
                     return def;
                 }
                 if ((mvp = connectedEnvironment.getValidationProcess(address)) != null) {
@@ -419,7 +419,7 @@ public class MeinAuthService {
                     });
                     execute(new ConnectWorker(this, job));
                 }
-                Lok.debug("debug connect 3");
+//                Lok.debug("debug connect 3");
                 transaction.end();
             }
         }
@@ -587,7 +587,11 @@ public class MeinAuthService {
 //                    Lok.debug("debug");
 //                Lok.debug("debug close 2.10 /" + debugCount);
                 transaction.end();
-                N.oneLine(() -> connectJob.getPromise().reject(new Exception("connection closed")));
+                N.oneLine(() -> {
+                    if (connectJob.getPromise().isPending()) {
+                        connectJob.getPromise().reject(new Exception("connection closed"));
+                    }
+                });
 //                Lok.debug("debug close 2.11 /" + debugCount);
 //            connectJob.getPromise().reject(null);
             }
