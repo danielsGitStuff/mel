@@ -43,17 +43,19 @@ public class ConnectedEnvironment {
         Transaction transaction = null;
         try {
             transaction = T.lockingTransaction(T.read(this));
-            final MeinValidationProcess mvp = getValidationProcess(certificateId);
             Promise<MeinValidationProcess, Exception, Void> def = currentlyConnecting(certificateId);
             if (def != null) {
                 return def;
             }
-            if (mvp != null) {
-                deferred.resolve(mvp);
-            } else if (getValidationProcess(certificate.getAddress().v(), certificate.getPort().v()) != null) {
-                MeinValidationProcess process = getValidationProcess(certificate.getAddress().v(), certificate.getPort().v());
-                deferred.resolve(process);
-            } else {
+            {
+                MeinValidationProcess mvp = getValidationProcess(certificateId);
+                if (mvp != null) {
+                    return deferred.resolve(mvp);
+                } else if ((mvp = getValidationProcess(certificate.getAddress().v(), certificate.getPort().v())) != null) {
+                    return deferred.resolve(mvp);
+                }
+            }
+            {
                 ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
                 currentlyConnecting(certificateId, deferred);
                 job.getPromise().done(result -> {
@@ -86,17 +88,14 @@ public class ConnectedEnvironment {
         MeinValidationProcess mvp;
         Transaction transaction = null;
         // there are two try catch blocks because the connection code might be interrupted and needs to end the transaction under any circumstances
-//        Lok.debug("debug connect 1");
         try {
             transaction = T.lockingTransaction(this);
         } finally {
             if (transaction != null) {
                 try {
-                    //                Lok.debug("debug connect 2");
                     Promise<MeinValidationProcess, Exception, Void> def = currentlyConnecting(address, port, portCert);
                     if (def != null) {
                         transaction.end();
-//                    Lok.debug("debug connect 2.5");
                         return def;
                     }
                     if ((mvp = getValidationProcess(address, port)) != null) {
@@ -106,7 +105,6 @@ public class ConnectedEnvironment {
                         ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
                         job.getPromise().done(result -> {
                             removeCurrentlyConnecting(address, port, portCert);
-                            //todo #1
                             addValidationProcess(result);
                             deferred.resolve(result);
                         }).fail(result -> {
@@ -115,7 +113,6 @@ public class ConnectedEnvironment {
                         });
                         meinAuthService.execute(new ConnectWorker(meinAuthService, job));
                     }
-//                Lok.debug("debug connect 3");
                 } finally {
                     transaction.end();
                 }
