@@ -42,8 +42,9 @@ public class ConnectedEnvironment {
         return idValidateProcessMap.get(certificateId);
     }
 
-    public MeinValidationProcess getValidationProcess(String address) {
-        return addressValidateProcessMap.get(address);
+    public MeinValidationProcess getValidationProcess(String address, int port) {
+        String completeAddress = address + ":" + port;
+        return addressValidateProcessMap.get(completeAddress);
     }
 
     public List<Long> getConnectedIds() {

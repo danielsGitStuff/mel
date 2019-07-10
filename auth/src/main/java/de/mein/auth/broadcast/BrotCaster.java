@@ -32,14 +32,14 @@ public abstract class BrotCaster extends DeferredRunnable {
 
     @Override
     public void onShutDown() {
-        N.s(()->socket.close());
+        N.s(() -> socket.close());
         socket = null;
     }
 
     @Override
     public void stop() {
         super.stop();
-        N.s(()->socket.close());
+        N.s(() -> socket.close());
         socket = null;
     }
 
@@ -104,6 +104,7 @@ public abstract class BrotCaster extends DeferredRunnable {
 
 
     public void brotcast(int port, String msg) throws IOException {
+        Lok.debug("I'm going to brotcast now!");
         byte[] buf = msg.getBytes();
         InetAddress brotcastAddress = InetAddress.getByName("224.0.0.1"); //this is BrotCast!!!
         //InetAddress brotcastAddress = InetAddress.getByName("localhost"); //this is LocalCast!!!

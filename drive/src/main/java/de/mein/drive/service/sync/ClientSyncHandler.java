@@ -189,6 +189,9 @@ public class ClientSyncHandler extends SyncHandler {
                             stageDao.update(stage);
                         }
                         StageSet stageSet = stageDao.getStageSetById(stageSetId);
+                        //todo debug
+                        if (stageSet == null)
+                            Lok.error("debug");
                         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
                         stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
                         commitStage(stageSetId, transaction);

@@ -78,10 +78,10 @@ public class AndroidPowerManager extends PowerManager {
             } else {
                 this.releaseWakeLock(this);
             }
+            N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
         } else {
             Lok.debug("nothing to do...");
         }
-        N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
     }
 
     public void configure(Boolean powerWifi, Boolean powerNoWifi, Boolean noPowerWifi, Boolean noPowerNoWifi) {

@@ -336,7 +336,7 @@ public class MeinAuthService {
             }
             if (certificateId != null && (mvp = connectedEnvironment.getValidationProcess(certificateId)) != null) {
                 deferred.resolve(mvp);
-            } else if (certificate != null && (mvp = connectedEnvironment.getValidationProcess(certificate.getAddress().v())) != null) {
+            } else if (certificate != null && (mvp = connectedEnvironment.getValidationProcess(certificate.getAddress().v(), certificate.getPort().v())) != null) {
                 deferred.resolve(mvp);
             } else {
                 ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
@@ -371,6 +371,7 @@ public class MeinAuthService {
         DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MeinValidationProcess mvp;
         Transaction transaction = null;
+        // there are two try catch blocks because the connection code might be interrupted and needs to end the transaction under any circumstances
 //        Lok.debug("debug connect 1");
         try {
             transaction = T.lockingTransaction(connectedEnvironment);
@@ -396,31 +397,34 @@ public class MeinAuthService {
 //            }
         } finally {
             if (transaction != null) {
-//                Lok.debug("debug connect 2");
-                Promise<MeinValidationProcess, Exception, Void> def = connectedEnvironment.currentlyConnecting(address, port, portCert);
-                if (def != null) {
-                    transaction.end();
+                try {
+                    //                Lok.debug("debug connect 2");
+                    Promise<MeinValidationProcess, Exception, Void> def = connectedEnvironment.currentlyConnecting(address, port, portCert);
+                    if (def != null) {
+                        transaction.end();
 //                    Lok.debug("debug connect 2.5");
-                    return def;
-                }
-                if ((mvp = connectedEnvironment.getValidationProcess(address)) != null) {
-                    deferred.resolve(mvp);
-                } else {
-                    connectedEnvironment.currentlyConnecting(address, port, portCert, deferred);
-                    ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
-                    job.getPromise().done(result -> {
-                        connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
-                        //todo #1
-                        connectedEnvironment.addValidationProcess(result);
-                        deferred.resolve(result);
-                    }).fail(result -> {
-                        connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
-                        deferred.reject(result);
-                    });
-                    execute(new ConnectWorker(this, job));
-                }
+                        return def;
+                    }
+                    if ((mvp = connectedEnvironment.getValidationProcess(address, port)) != null) {
+                        deferred.resolve(mvp);
+                    } else {
+                        connectedEnvironment.currentlyConnecting(address, port, portCert, deferred);
+                        ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
+                        job.getPromise().done(result -> {
+                            connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
+                            //todo #1
+                            connectedEnvironment.addValidationProcess(result);
+                            deferred.resolve(result);
+                        }).fail(result -> {
+                            connectedEnvironment.removeCurrentlyConnecting(address, port, portCert);
+                            deferred.reject(result);
+                        });
+                        execute(new ConnectWorker(this, job));
+                    }
 //                Lok.debug("debug connect 3");
-                transaction.end();
+                } finally {
+                    transaction.end();
+                }
             }
         }
 

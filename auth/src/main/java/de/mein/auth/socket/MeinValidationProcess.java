@@ -30,7 +30,15 @@ public class MeinValidationProcess extends MeinProcess {
     private final Map<Long, CachedData> cachedForRetrieving = new HashMap<>();
     private final Map<Long, StateMsg> cachedStateMessages = new HashMap<>();
     private final Map<Long, CachedData> cachedForSending = new HashMap<>();
+    private final boolean incoming;
 
+    @Override
+    public String toString() {
+        if (meinAuthSocket != null) {
+            return (incoming ? "incoming " : "outgoing ") + meinAuthSocket.getAddressString() + (meinAuthSocket.isStopped() ? " stopped" : " running");
+        }
+        return super.toString();
+    }
 
     public static class SendException extends Exception {
         public SendException(String msg) {
@@ -38,8 +46,9 @@ public class MeinValidationProcess extends MeinProcess {
         }
     }
 
-    public MeinValidationProcess(MeinAuthSocket meinAuthSocket, Certificate partnercertificate) {
+    public MeinValidationProcess(MeinAuthSocket meinAuthSocket, Certificate partnercertificate, boolean incoming) {
         super(meinAuthSocket);
+        this.incoming = incoming;
         this.meinAuthSocket = meinAuthSocket;
         this.connectedId = partnercertificate.getId().v();
         try {

@@ -97,7 +97,7 @@ public class MeinAuthProcess extends MeinProcess {
                                         send(response);
                                         // done here, set up validationprocess
                                         Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
-                                        MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate);
+                                        MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate, true);
                                         // tell MAS we are connected & authenticated
                                         meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
                                         // propagate that we are connected!
@@ -115,18 +115,20 @@ public class MeinAuthProcess extends MeinProcess {
                                     send(response);
                                 }
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                Lok.debug("leaving, because of exception: " + e.toString());
                                 MeinAuthProcess.this.removeThyself();
                             }
                         });
                         send(answer);
                     } catch (Exception e) {
+                        Lok.debug("leaving, because of exception: " + e.toString());
                         e.printStackTrace();
                     }
                 } else
                     Lok.debug("MeinAuthProcess.onMessageReceived.ELSE1");
         } catch (Exception e) {
             try {
+                Lok.debug("leaving, because of exception: " + e.toString());
                 socket.disconnect();
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -206,7 +208,7 @@ public class MeinAuthProcess extends MeinProcess {
                                     propagateAuthentication(partnerCertificate, meinAuthSocket.getSocket().getInetAddress().getHostAddress(), meinAuthSocket.getSocket().getPort());
                                     // done here, set up validationprocess
                                     Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
-                                    MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate);
+                                    MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate, false);
                                     // tell MAS we are connected & authenticated
                                     meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
                                     job.getPromise().resolve(validationProcess);

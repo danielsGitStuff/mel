@@ -96,9 +96,10 @@ public class MeinAuthWorker extends MeinWorker implements PowerManager.IPowerSta
         super.onShutDown();
     }
 
+
     @Override
     public void onStateChanged(PowerManager powerManager) {
         if (powerManager.heavyWorkAllowed() && powerManager.isWifi())
-            N.thread(() -> brotCaster.discover(meinAuthService.getSettings().getBrotcastPort()));
+            N.thread(meinAuthService::discoverNetworkEnvironment);
     }
 }

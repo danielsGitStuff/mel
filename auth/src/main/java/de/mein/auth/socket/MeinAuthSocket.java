@@ -77,7 +77,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     }
 
     public String getAddressString() {
-        return MeinAuthSocket.getAddressString(socket.getInetAddress(), socket.getPort());
+        return MeinAuthSocket.getAddressString(socket.getInetAddress(), socket.getLocalPort());
     }
 
     public MeinAuthSocket allowIsolation() {

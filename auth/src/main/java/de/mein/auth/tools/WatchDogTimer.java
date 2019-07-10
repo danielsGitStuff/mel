@@ -144,7 +144,7 @@ public class WatchDogTimer extends Timer {
             int count = this.count.decrementAndGet();
             boolean wait = this.wait.get();
             if (wait) {
-                Lok.warn(name + ".runTry.wait");
+//                Lok.warn(name + ".runTry.wait");
                 reset();
             } else {
                 Lok.warn(name + ".runTry." + count);
@@ -160,7 +160,7 @@ public class WatchDogTimer extends Timer {
         }
 
         public void reset() {
-            Lok.warn("WatchDogTimerTask.reset");
+//            Lok.warn("WatchDogTimerTask.reset");
             count.set(startValue);
         }
     }

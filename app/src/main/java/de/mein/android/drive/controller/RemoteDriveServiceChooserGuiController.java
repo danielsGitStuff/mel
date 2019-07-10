@@ -273,7 +273,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     public boolean onOkClicked() {
         if (rootFile == null || !rootFile.exists())
             return false;
-        if ((rootFile.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath()))
+        if (SAFAccessor.hasExternalSdCard() && (rootFile.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath()))
                 && !SAFAccessor.canWriteExternal())
             return false;
         return true;

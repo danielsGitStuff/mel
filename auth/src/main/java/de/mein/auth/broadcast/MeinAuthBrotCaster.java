@@ -130,7 +130,7 @@ public class MeinAuthBrotCaster extends BrotCaster {
 
     @Override
     protected void handleMessage(DatagramPacket packet, byte[] buf) {
-        String brotCast = new String(buf);
+        String brotCast = new String(buf).trim();
         Lok.debug(meinAuthService.getName() + ".MeinAuthBrotCaster.handleMessage.msg: '" + brotCast + "' from address " + packet.getAddress().getHostName());
         try {
             if (!handleDiscover(packet))
