@@ -62,7 +62,6 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     }
 
 
-
     public static String getAddressString(InetAddress address, int port) {
         return address.getHostAddress() + ":" + port;
     }
@@ -77,7 +76,12 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     }
 
     public String getAddressString() {
-        return MeinAuthSocket.getAddressString(socket.getInetAddress(), socket.getLocalPort());
+        int port = N.result(() -> {
+            if (connectJob == null)
+                return socket.getLocalPort();
+            return connectJob.getPort();
+        });
+        return MeinAuthSocket.getAddressString(socket.getInetAddress(), port);
     }
 
     public MeinAuthSocket allowIsolation() {
@@ -155,7 +159,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         if (certId != null)
             partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
         Socket socket = meinAuthService.getCertificateManager().createSocket();
-//        Lok.debug("MeinAuthSocket.connectSSL: " + address + ":" + port);
+        Lok.debug("MeinAuthSocket.connectSSL: " + address + ":" + port);
         socket.connect(new InetSocketAddress(address, port));
         //stop();
         setSocket(socket);
