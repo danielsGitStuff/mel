@@ -436,7 +436,6 @@ public class MeinAuthService {
                 checkedAddresses.put(validationProcess.getAddressString(), true);
                 Request<MeinServicesPayload> gotServicesPromise = this.getAllowedServices(certId);
                 gotServicesPromise.done(meinServicesPayload -> {
-                    Lok.error("MeinAuthService.discoverNetworkEnvironment.NOT.IMPLEMENTED.YET");
                     addToNetworkEnvironment(certId, meinServicesPayload);
                 });
             }

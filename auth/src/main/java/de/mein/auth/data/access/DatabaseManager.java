@@ -64,7 +64,7 @@ public final class DatabaseManager extends FileRelatedManager {
                 + " where " + service.getUuid().k() + "=?";
         String name = getSqlQueries().queryValue(query, String.class, de.mein.sql.ISQLQueries.whereArgs(uuid));
         if (name == null) {
-            String msg = "the service you are looking for (" + uuid + ") does not exist in the databse!";
+            String msg = "the service you are looking for (" + uuid + ") does not exist in the datase!";
             Lok.error(msg);
             throw new SqlQueriesException(msg);
         }

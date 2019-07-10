@@ -92,7 +92,7 @@ public class MeinAuthProcess extends MeinProcess {
                                             // done here, set up validationprocess
                                             Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
                                             // propagate that we are connected!
-                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getPort());
+                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getLocalPort());
                                         }else {
                                             Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
                                             this.stop();
