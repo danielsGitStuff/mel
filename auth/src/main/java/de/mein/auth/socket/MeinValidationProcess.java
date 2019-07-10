@@ -40,6 +40,10 @@ public class MeinValidationProcess extends MeinProcess {
         return super.toString();
     }
 
+    public boolean isClosed() {
+        return meinAuthSocket.isStopped();
+    }
+
     public static class SendException extends Exception {
         public SendException(String msg) {
             super(msg);

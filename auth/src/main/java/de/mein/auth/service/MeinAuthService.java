@@ -17,7 +17,6 @@ import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.jobs.AConnectJob;
-import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.service.power.PowerManager;
@@ -484,22 +483,23 @@ public class MeinAuthService {
     }
 
 
-    public void onSocketAuthenticated(MeinValidationProcess validationProcess) {
-//        Lok.debug("debug authenticated 1");
-        Transaction transaction = null;
-        try {
-            transaction = T.lockingTransaction(connectedEnvironment);
-        } finally {
-//            Lok.debug("debug authenticated 2");
-            if (transaction != null) {
-                connectedEnvironment.addValidationProcess(validationProcess);
-                transaction.end();
-//                Lok.debug("debug authenticated 3");
-            }
-        }
-        T.lockingRun(() -> this.connectedEnvironment.addValidationProcess(validationProcess), connectedEnvironment);
+    public boolean registerValidationProcess(MeinValidationProcess validationProcess) {
+        return connectedEnvironment.registerValidationProcess(validationProcess);
+////        Lok.debug("debug authenticated 1");
+//        Transaction transaction = null;
+//        try {
+//            transaction = T.lockingTransaction(connectedEnvironment);
+//        } finally {
+////            Lok.debug("debug authenticated 2");
+//            if (transaction != null) {
+//                connectedEnvironment.registerValidationProcess(validationProcess);
+//                transaction.end();
+////                Lok.debug("debug authenticated 3");
+//            }
+//        }
+////        T.lockingRun(() -> this.connectedEnvironment.registerValidationProcess(validationProcess), connectedEnvironment);
+//    }
     }
-
 //    private static AtomicLong closeCount = new AtomicLong(0L);
 
     public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
@@ -720,7 +720,7 @@ public class MeinAuthService {
         return cacheDir;
     }
 
-    public boolean isConnectedTo(Long certId) {
+    private boolean isConnectedTo(Long certId) {
         AtomicBoolean connected = new AtomicBoolean(false);
         return N.result(() -> {
             Transaction transaction = null;

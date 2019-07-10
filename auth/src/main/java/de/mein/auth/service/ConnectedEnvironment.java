@@ -105,7 +105,7 @@ public class ConnectedEnvironment {
                         ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
                         job.getPromise().done(result -> {
                             removeCurrentlyConnecting(address, port, portCert);
-                            addValidationProcess(result);
+                            registerValidationProcess(result);
                             deferred.resolve(result);
                         }).fail(result -> {
                             removeCurrentlyConnecting(address, port, portCert);
@@ -124,11 +124,29 @@ public class ConnectedEnvironment {
 
 //    private Semaphore semaphore = new Semaphore(1,true);
 
-    public void addValidationProcess(MeinValidationProcess validationProcess) {
-//        N.r(() -> semaphore.acquire());
-        idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
-        addressValidateProcessMap.put(validationProcess.getAddressString(), validationProcess);
-//        semaphore.release();
+    /**
+     * @param validationProcess
+     * @return true if {@link MeinValidationProcess} has been registered as the only one connected with its {@link Certificate}
+     */
+    boolean registerValidationProcess(MeinValidationProcess validationProcess) {
+        if (validationProcess.isClosed())
+            return false;
+        Transaction transaction = T.lockingTransaction(this);
+        try {
+            MeinValidationProcess existingProcess = idValidateProcessMap.get(validationProcess.getConnectedId());
+            if (existingProcess != null) {
+                if (existingProcess.isClosed())
+                    Lok.error("an old socket was closed and somehow was not thrown away!");
+                return false;
+            }
+            idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
+            addressValidateProcessMap.put(validationProcess.getAddressString(), validationProcess);
+            return true;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            transaction.end();
+        }
     }
 
     public Collection<MeinValidationProcess> getValidationProcesses() {

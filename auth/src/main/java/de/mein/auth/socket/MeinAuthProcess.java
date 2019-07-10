@@ -84,24 +84,20 @@ public class MeinAuthProcess extends MeinProcess {
                                 if (r.getDecryptedSecret().equals(mySecret)) {
                                     if (finalIsolationDetails == null) {
                                         partnerAuthenticated = true;
-
-                                        // check if already connected to that cert
-                                        if (meinAuthSocket.getMeinAuthService().isConnectedTo(partnerCertificate.getId().v())) {
+                                        MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate, true);
+                                        if (meinAuthSocket.getMeinAuthService().registerValidationProcess(validationProcess)){
+                                            // get all allowed Services
+                                            MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
+                                            send(response);
+                                            // done here, set up validationprocess
+                                            Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
+                                            // propagate that we are connected!
+                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getPort());
+                                        }else {
                                             Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
                                             this.stop();
-                                            return;
                                         }
 
-                                        // get all allowed Services
-                                        MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
-                                        send(response);
-                                        // done here, set up validationprocess
-                                        Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
-                                        MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate, true);
-                                        // tell MAS we are connected & authenticated
-                                        meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
-                                        // propagate that we are connected!
-                                        propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getPort());
                                     } else {
                                         Lok.debug("leaving for IsolationProcess");
                                         IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
@@ -198,26 +194,28 @@ public class MeinAuthProcess extends MeinProcess {
                             runner.runTry(() -> {
                                 if (job instanceof ConnectJob) {
                                     // check if already connected to that cert
-                                    if (meinAuthSocket.getMeinAuthService().isConnectedTo(partnerCertificate.getId().v())) {
+                                    MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate, false);
+                                    if (meinAuthSocket.getMeinAuthService().registerValidationProcess(validationProcess)){
+                                        // propagate that we are connected!
+                                        propagateAuthentication(partnerCertificate, meinAuthSocket.getSocket().getInetAddress().getHostAddress(), meinAuthSocket.getSocket().getPort());
+                                        // done here, set up validationprocess
+                                        Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
+                                        // tell MAS we are connected & authenticated
+                                        job.getPromise().resolve(validationProcess);
+                                        //
+                                        final Long[] actualRemoteCertId = new Long[1];
+                                        runner.runTry(() -> {
+                                            actualRemoteCertId[0] = (job.getCertificateId() == null) ? partnerCertificate.getId().v() : job.getCertificateId();
+                                            meinAuthSocket.getMeinAuthService().updateCertAddresses(actualRemoteCertId[0], address, port, job.getPortCert());
+                                        });
+                                    }else {
                                         Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing...");
                                         this.stop();
                                         job.getPromise().reject(new Exception("already connected to id: " + partnerCertificate.getId().v()));
                                         return;
                                     }
-                                    // propagate that we are connected!
-                                    propagateAuthentication(partnerCertificate, meinAuthSocket.getSocket().getInetAddress().getHostAddress(), meinAuthSocket.getSocket().getPort());
-                                    // done here, set up validationprocess
-                                    Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
-                                    MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate, false);
-                                    // tell MAS we are connected & authenticated
-                                    meinAuthSocket.getMeinAuthService().onSocketAuthenticated(validationProcess);
-                                    job.getPromise().resolve(validationProcess);
-                                    //
-                                    final Long[] actualRemoteCertId = new Long[1];
-                                    runner.runTry(() -> {
-                                        actualRemoteCertId[0] = (job.getCertificateId() == null) ? partnerCertificate.getId().v() : job.getCertificateId();
-                                        meinAuthSocket.getMeinAuthService().updateCertAddresses(actualRemoteCertId[0], address, port, job.getPortCert());
-                                    });
+
+
                                 } else if (job instanceof IsolatedConnectJob) {
                                     IsolatedConnectJob isolatedConnectJob = (IsolatedConnectJob) job;
                                     if (partnerCertificate.getId().v() != job.getCertificateId()) {
