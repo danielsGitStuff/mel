@@ -5,11 +5,14 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import de.mein.Lok;
+import de.mein.auth.data.db.Certificate;
+import de.mein.auth.jobs.ConnectJob;
+import de.mein.auth.socket.ConnectWorker;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.WaitLock;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
+import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,6 +28,103 @@ public class ConnectedEnvironment {
     private Map<String, MeinValidationProcess> addressValidateProcessMap = new HashMap<>();
     private Map<Long, Deferred<MeinValidationProcess, Exception, Void>> currentlyConnectingCertIds = new HashMap<>();
     private Map<String, Deferred<MeinValidationProcess, Exception, Void>> currentlyConnectingAddresses = new HashMap<>();
+
+    private final MeinAuthService meinAuthService;
+
+    ConnectedEnvironment(MeinAuthService meinAuthService) {
+        this.meinAuthService = meinAuthService;
+    }
+
+
+    synchronized Promise<MeinValidationProcess, Exception, Void> connect(Certificate certificate) throws SqlQueriesException, InterruptedException {
+        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
+        long certificateId = certificate.getId().v();
+        // check if already connected via id and address
+        Transaction transaction = null;
+        try {
+            transaction = T.lockingTransaction(T.read(this));
+            final MeinValidationProcess mvp = getValidationProcess(certificateId);
+            Promise<MeinValidationProcess, Exception, Void> def = currentlyConnecting(certificateId);
+            if (def != null) {
+                return def;
+            }
+            if (mvp != null) {
+                deferred.resolve(mvp);
+            } else if (getValidationProcess(certificate.getAddress().v(), certificate.getPort().v()) != null) {
+                MeinValidationProcess process = getValidationProcess(certificate.getAddress().v(), certificate.getPort().v());
+                deferred.resolve(process);
+            } else {
+                ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
+                currentlyConnecting(certificateId, deferred);
+                job.getPromise().done(result -> {
+                    // use a new transaction, because we want connect in parallel.
+                    T.lockingTransaction(this)
+                            .run(() -> removeCurrentlyConnecting(certificateId))
+                            .end();
+                    deferred.resolve(result);
+                }).fail(result -> {
+                    T.lockingTransaction(this)
+                            .run(() -> removeCurrentlyConnecting(certificateId))
+                            .end();
+                    deferred.reject(result);
+                });
+                meinAuthService.execute(new ConnectWorker(meinAuthService, job));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (transaction != null) {
+                transaction.end();
+            }
+        }
+        return deferred;
+    }
+
+    Promise<MeinValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
+//        Lok.debug("connect: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
+        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
+        MeinValidationProcess mvp;
+        Transaction transaction = null;
+        // there are two try catch blocks because the connection code might be interrupted and needs to end the transaction under any circumstances
+//        Lok.debug("debug connect 1");
+        try {
+            transaction = T.lockingTransaction(this);
+        } finally {
+            if (transaction != null) {
+                try {
+                    //                Lok.debug("debug connect 2");
+                    Promise<MeinValidationProcess, Exception, Void> def = currentlyConnecting(address, port, portCert);
+                    if (def != null) {
+                        transaction.end();
+//                    Lok.debug("debug connect 2.5");
+                        return def;
+                    }
+                    if ((mvp = getValidationProcess(address, port)) != null) {
+                        deferred.resolve(mvp);
+                    } else {
+                        currentlyConnecting(address, port, portCert, deferred);
+                        ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
+                        job.getPromise().done(result -> {
+                            removeCurrentlyConnecting(address, port, portCert);
+                            //todo #1
+                            addValidationProcess(result);
+                            deferred.resolve(result);
+                        }).fail(result -> {
+                            removeCurrentlyConnecting(address, port, portCert);
+                            deferred.reject(result);
+                        });
+                        meinAuthService.execute(new ConnectWorker(meinAuthService, job));
+                    }
+//                Lok.debug("debug connect 3");
+                } finally {
+                    transaction.end();
+                }
+            }
+        }
+
+        return deferred;
+    }
+
 //    private Semaphore semaphore = new Semaphore(1,true);
 
     public void addValidationProcess(MeinValidationProcess validationProcess) {
