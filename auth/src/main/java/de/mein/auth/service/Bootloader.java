@@ -4,6 +4,7 @@ import de.mein.Lok;
 import de.mein.auth.data.db.Service;
 
 import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
@@ -85,7 +86,7 @@ public abstract class Bootloader<T extends MeinService> {
             return promise;
         } else {
             Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to level 2. But its current level was not 1. current level=" + bootLevel.get());
-            return null;
+            return new DeferredObject<>();
         }
     }
 

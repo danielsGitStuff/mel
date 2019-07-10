@@ -34,7 +34,7 @@
         android:layout_below="@id/lblHint"
         android:layout_toEndOf="@+id/lblPath"
         android:ems="10"
-        android:text="/storage/emulated/0/Download/" />
+        android:text="/storage/emulated/0/mel/" />
 
     <Button
         android:id="@+id/btnPath"
