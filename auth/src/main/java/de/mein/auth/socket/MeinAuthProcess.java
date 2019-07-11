@@ -94,7 +94,8 @@ public class MeinAuthProcess extends MeinProcess {
                                             // propagate that we are connected!
                                             propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getLocalPort());
                                         }else {
-                                            Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
+//                                            Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
+                                            Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists. waiting for the other side to close connection.");
                                             this.stop();
                                         }
 

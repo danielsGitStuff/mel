@@ -90,6 +90,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             DeferredObject<DeferredRunnable, Exception, Void> indexDonePromise = startIndexer(meinDriveService, meinDriveService.getDriveSettings());
             indexDonePromise
                     .done(result -> N.r(() -> {
+                        Lok.debug("indexing done for: " + meinDriveService.getDriveSettings().getRootDirectory().getPath());
                         notification.cancel();
 //                        meinDriveService.onBootLevel2Finished();
                         done.resolve(null);
