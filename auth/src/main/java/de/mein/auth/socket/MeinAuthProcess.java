@@ -96,7 +96,7 @@ public class MeinAuthProcess extends MeinProcess {
                                         }else {
 //                                            Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
                                             Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists. waiting for the other side to close connection.");
-                                            this.stop();
+//                                            this.stop();
                                         }
 
                                     } else {
