@@ -88,6 +88,11 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
     }
 
     @Override
+    public void onSocketClosed(int code, String reason, boolean remote) {
+        super.onSocketClosed(code, reason, remote);
+    }
+
+    @Override
     public void onBlockReceived(BlockReceivedJob blockJob) {
         byte[] bytes = blockJob.getBlock();
         assert bytes.length == MeinSocket.BLOCK_SIZE;
