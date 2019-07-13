@@ -274,6 +274,10 @@ public class MeinSocket extends DeferredRunnable {
 
     public void stop() {
         try {
+            //todo debug
+            String s = socket.getInetAddress().toString();
+            if (socket.getInetAddress().toString().equals("/192.168.1.109"))
+                Lok.debug("debug");
             super.stop();
             stopped = true;
             N.s(() -> in.close());

@@ -61,6 +61,7 @@ import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -339,7 +340,7 @@ public class MeinAuthService {
 //        Transaction transaction = null;
 //        try {
 //            transaction = T.lockingTransaction(T.read(connectedEnvironment));
-//            Promise<MeinValidationProcess, Exception, Void> def = connectedEnvironment.currentlyConnecting(certificateId);
+//            Promise<MeinValidationProcess, Exception, Void> def = connectedEnvironment.isCurrentlyConnecting(certificateId);
 //            if (def != null) {
 //                return def;
 //            }
@@ -349,7 +350,7 @@ public class MeinAuthService {
 //                deferred.resolve(mvp);
 //            } else {
 //                ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-//                connectedEnvironment.currentlyConnecting(certificateId, deferred);
+//                connectedEnvironment.isCurrentlyConnecting(certificateId, deferred);
 //                job.getPromise().done(result -> {
 //                    // use a new transaction, because we want connect in parallel.
 //                    T.lockingTransaction(connectedEnvironment)
@@ -499,61 +500,58 @@ public class MeinAuthService {
 ////        T.lockingRun(() -> this.connectedEnvironment.registerValidationProcess(validationProcess), connectedEnvironment);
 //    }
     }
-//    private static AtomicLong closeCount = new AtomicLong(0L);
+
+    //    private static AtomicLong closeCount = new AtomicLong(0L);
+    private static AtomicInteger DEBUG_count = new AtomicInteger(0);
 
     public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
+        connectedEnvironment.onSocketClosed(meinAuthSocket);
+        sockets.remove(meinAuthSocket);
 //        Eva.trace();
 //        final long debugCount = closeCount.getAndIncrement();
 //        Lok.debug("debug close 1 /" + debugCount);
-        Transaction transaction = null;
-        try {
-            transaction = T.lockingTransaction(connectedEnvironment);
-        } finally {
-//            Lok.debug("debug close 2 /" + debugCount);
-            // we want to ensure this code block can alway run and is not interrupted
-            sockets.remove(meinAuthSocket);
-            // find the socket in the connected environment and remove it
-            AConnectJob connectJob = meinAuthSocket.getConnectJob();
-//            Lok.debug("debug close 2.1 /" + debugCount);
-            if (meinAuthSocket.isValidated() && meinAuthSocket.getProcess() instanceof MeinValidationProcess) {
-//                Lok.debug("debug close 2.2 /" + debugCount);
-                connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
-//                Lok.debug("debug close 2.3 /" + debugCount);
-            } else if (meinAuthSocket.getProcess() instanceof MeinIsolatedFileProcess) {
-//            meinAuthSocket.getProcess().stop();
-                Lok.debug("continue here");
-//                Lok.debug("debug close 2.4 /" + debugCount);
-            } else if (connectJob != null) {
-//                Lok.debug("debug close 2.5 /" + debugCount);
-                if (connectJob.getCertificateId() != null) {
-//                    Lok.debug("debug close 2.6 /" + debugCount);
-                    N.r(() -> connectedEnvironment.removeCurrentlyConnecting(meinAuthSocket.getConnectJob().getCertificateId()));
-//                    Lok.debug("debug close 2.7 /" + debugCount);
-                } else if (connectJob.getAddress() != null) {
-//                    Lok.debug("debug close 2.8 /" + debugCount);
-                    N.r(() -> connectedEnvironment.removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
-//                    Lok.debug("debug close 2.9 /" + debugCount);
-                }
-                //todo debug
-//                if (debugCount == 2L)
-//                    Lok.debug("debug");
-//                Lok.debug("debug close 2.10 /" + debugCount);
-                transaction.end();
-                N.oneLine(() -> {
-                    if (connectJob.getPromise().isPending()) {
-                        connectJob.getPromise().reject(new Exception("connection closed"));
-                    }
-                });
-//                Lok.debug("debug close 2.11 /" + debugCount);
-//            connectJob.getPromise().reject(null);
-            }
-
-            if (transaction != null) {
-                transaction.end();
-//                Lok.debug("debug close 3/" + debugCount);
-            }
-//            Lok.debug("debug close 4/" + debugCount);
-        }
+//        Transaction transaction = null;
+//        try {
+//            transaction = T.lockingTransaction(connectedEnvironment);
+//            final int DE_COUNT = DEBUG_count.incrementAndGet();
+//            Lok.debug("debugzuk " + DE_COUNT);
+//            if (meinAuthSocket.getAddress().startsWith("192.168.1.109"))
+//                Lok.debug("debug");
+//            // we want to ensure this code block can alway run and is not interrupted
+//            sockets.remove(meinAuthSocket);
+//            // find the socket in the connected environment and remove it
+//            AConnectJob connectJob = meinAuthSocket.getConnectJob();
+//            if (meinAuthSocket.isValidated() && meinAuthSocket.getProcess() instanceof MeinValidationProcess) {
+//                connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
+//            } else if (meinAuthSocket.getProcess() instanceof MeinIsolatedFileProcess) {
+//                Lok.debug("continue here");
+//            } else if (connectJob != null) {
+//                if (connectJob.getCertificateId() != null) {
+//                    N.r(() -> connectedEnvironment.removeCurrentlyConnecting(meinAuthSocket.getConnectJob().getCertificateId()));
+//                } else if (connectJob.getAddress() != null) {
+//                    N.r(() -> connectedEnvironment.removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
+//                }
+//                //todo debug
+////                if (debugCount == 2L)
+////                    Lok.debug("debug");
+////                Lok.debug("debug close 2.10 /" + debugCount);
+//                transaction.end();
+//                N.oneLine(() -> {
+//                    if (connectJob.getPromise().isPending()) {
+//                        connectJob.getPromise().reject(new Exception("connection closed"));
+//                    }
+//                });
+////                Lok.debug("debug close 2.11 /" + debugCount);
+////            connectJob.getPromise().reject(null);
+//            }
+//        } finally {
+//
+//            if (transaction != null) {
+//                transaction.end();
+////                Lok.debug("debug close 3/" + debugCount);
+//            }
+////            Lok.debug("debug close 4/" + debugCount);
+//        }
 
 
     }
