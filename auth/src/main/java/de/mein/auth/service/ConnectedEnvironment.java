@@ -136,8 +136,6 @@ public class ConnectedEnvironment {
         return deferred;
     }
 
-//    private Semaphore semaphore = new Semaphore(1,true);
-
     /**
      * @param validationProcess
      * @return true if {@link MeinValidationProcess} has been registered as the only one connected with its {@link Certificate}
@@ -189,10 +187,6 @@ public class ConnectedEnvironment {
         if (meinAuthSocket.getProcess() == null || !(meinAuthSocket.getProcess() instanceof MeinValidationProcess))
             return;
         MeinValidationProcess process = (MeinValidationProcess) meinAuthSocket.getProcess();
-//        N.r(() -> semaphore.acquire());
-        //todo debug
-        if (process.getAddressString().equals("192.168.1.109"))
-            Lok.debug("debug");
         if (addressValidateProcessMap.get(process.getAddressString()) == process)
             addressValidateProcessMap.remove(process.getAddressString());
         if (idValidateProcessMap.get(process.getConnectedId()) == process)
@@ -203,7 +197,6 @@ public class ConnectedEnvironment {
         if (currentlyConnectingCertIds.containsKey(process.getConnectedId())
                 && currentlyConnectingCertIds.get(meinAuthSocket) == meinAuthSocket)
             currentlyConnectingCertIds.remove(process.getConnectedId());
-//        semaphore.release();
     }
 
     /**
@@ -286,7 +279,6 @@ public class ConnectedEnvironment {
             transaction = T.lockingTransaction(this);
             if (meinAuthSocket.getAddress().startsWith("192.168.1.109"))
                 Lok.debug("debug");
-            // we want to ensure this code block can alway run and is not interrupted
             // find the socket in the connected environment and remove it
             AConnectJob connectJob = meinAuthSocket.getConnectJob();
             if (meinAuthSocket.isValidated() && meinAuthSocket.getProcess() instanceof MeinValidationProcess) {
@@ -299,26 +291,18 @@ public class ConnectedEnvironment {
                 } else if (connectJob.getAddress() != null) {
                     N.r(() -> removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
                 }
-                //todo debug
-//                if (debugCount == 2L)
-//                    Lok.debug("debug");
-//                Lok.debug("debug close 2.10 /" + debugCount);
                 transaction.end();
                 N.oneLine(() -> {
                     if (connectJob.getPromise().isPending()) {
                         connectJob.getPromise().reject(new Exception("connection closed"));
                     }
                 });
-//                Lok.debug("debug close 2.11 /" + debugCount);
-//            connectJob.getPromise().reject(null);
             }
         } finally {
 
             if (transaction != null) {
                 transaction.end();
-//                Lok.debug("debug close 3/" + debugCount);
             }
-//            Lok.debug("debug close 4/" + debugCount);
         }
     }
 }

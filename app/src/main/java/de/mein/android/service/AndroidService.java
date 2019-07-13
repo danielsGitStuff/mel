@@ -147,8 +147,6 @@ public class AndroidService extends Service {
                     powerChangeReceiver = new PowerChangeReceiver(this);
                     this.registerReceiver(powerChangeReceiver, powIntentFilter);
                     startedDeferred.resolve(meinAuthService);
-                    // todo debug
-                    //debugStuff();
                 });
                 lock.lockWrite();
 
@@ -343,14 +341,6 @@ public class AndroidService extends Service {
                 // nothing to do
             }
         };
-        // todo debug
-        // we want to allow every registered Certificate to talk to all available Services
-        IRegisteredHandler registeredHandler = (meinAuthService, registered) -> {
-            List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
-            for (ServiceJoinServiceType serviceJoinServiceType : services) {
-                meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
-            }
-        };
         lock.lockWrite();
 
         AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
@@ -363,15 +353,6 @@ public class AndroidService extends Service {
                 Lok.debug("AndroidService.booted");
                 powerManager.setMeinAuthService(meinAuthService);
                 AndroidService.this.meinAuthService = meinAuthService;
-                // todo debug
-                //meinAuthService.addRegisteredHandler(registeredHandler);
-                Long t1 = meinAuthSettings.getWorkingDirectory().lastModified();
-                Lok.debug(t1);
-//                //todo debug
-//                N.forEach(meinAuthService.getMeinServices(),iMeinService -> {
-//                    MeinService meinService = meinAuthService.getMeinService(iMeinService.getUuid());
-//                    meinService.resume();
-//                });
             });
         });
         return promise;
@@ -379,14 +360,7 @@ public class AndroidService extends Service {
         //lock.unlockWrite();
     }
 
-//    @Override
-//    public File getFilesDir() {
-//        return new File("/data/data/" + getPackageName());
-//    }
-
     private void android() throws IOException {
-//        meinBoot.addBootLoaderClass(AndroidDriveBootloader.class);
-
         AndroidInjector.inject(this, getAssets());
     }
 
