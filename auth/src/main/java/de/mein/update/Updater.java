@@ -53,6 +53,8 @@ public class Updater {
     void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
         try {
             Long currentVersion = Versioner.getBuildVersion();
+            Lok.debug("current version: " + currentVersion);
+            Lok.debug("latest version : " + versionEntry.getVersion());
             if (currentVersion >= versionEntry.getVersion()) {
                 Lok.debug("no update necessary :)");
                 N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onNoUpdateAvailable(this));
