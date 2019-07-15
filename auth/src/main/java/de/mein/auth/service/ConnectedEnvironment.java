@@ -116,6 +116,9 @@ public class ConnectedEnvironment {
             if ((mvp = getValidationProcess(address, port)) != null) {
                 deferred.resolve(mvp);
             } else {
+                //todo debug
+                if (address.equals("192.168.1.109"))
+                    Lok.debug("connecting to 192.168.1.109");
                 ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
                 job.getPromise().done(result -> {
                     removeCurrentlyConnecting(address, port, portCert);
@@ -155,7 +158,8 @@ public class ConnectedEnvironment {
             }
             //todo debug
             if (validationProcess.getMeinAuthSocket().getSocket() == null)
-                idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
+                Lok.debug("debug");
+            idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
             addressValidateProcessMap.put(validationProcess.getAddressString(), validationProcess);
             return true;
         } catch (Exception e) {
