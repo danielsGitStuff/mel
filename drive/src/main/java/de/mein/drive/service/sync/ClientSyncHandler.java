@@ -623,9 +623,9 @@ public class ClientSyncHandler extends SyncHandler {
      *
      * @param newVersion
      * @throws SqlQueriesException
-     * @throws InterruptedException
      */
     public void syncFromServer(Long newVersion) throws SqlQueriesException, InterruptedException {
+        Lok.debug();
         WaitLock waitLock = new WaitLock();
         runner.runTry(() -> {
             stageDao.deleteServerStageSets();

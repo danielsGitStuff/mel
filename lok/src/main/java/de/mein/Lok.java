@@ -53,4 +53,8 @@ public class Lok {
     public static LokImpl getImpl() {
         return impl;
     }
+
+    public static void debug() {
+        impl.debug("");
+    }
 }
