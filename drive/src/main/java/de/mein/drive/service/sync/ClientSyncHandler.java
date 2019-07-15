@@ -639,7 +639,7 @@ public class ClientSyncHandler extends SyncHandler {
             //prepare cached answer
             SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE)
                     .setOldVersion(version);
-            sentSyncTask.setServiceUuid(this.clientSettings.getServerServiceUuid());
+//            sentSyncTask.setServiceUuid(this.clientSettings.getServerServiceUuid());
             sentSyncTask.setCacheId(CachedData.randomId());
             sentSyncTask.setIntent(DriveStrings.INTENT_SYNC);
             Request<SyncTask> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncTask);
