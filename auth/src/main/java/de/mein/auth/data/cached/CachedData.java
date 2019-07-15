@@ -177,6 +177,9 @@ public abstract class CachedData extends ServicePayload {
     }
 
     public CachedPart getPart(int partNumber) throws IOException, JsonDeserializationException {
+        //todo debug
+        if (partNumber==8)
+            Lok.debug("debug");
         CachedPart part = CachedPart.read(createCachedPartFile(partNumber));
         return part;
     }

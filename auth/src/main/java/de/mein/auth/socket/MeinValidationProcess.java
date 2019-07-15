@@ -278,6 +278,7 @@ public class MeinValidationProcess extends MeinProcess {
                         MeinResponse response = meinRequest.reponse().setPayLoad(newPayload);
                         if (newPayload instanceof CachedData) {
                             CachedData cachedData = (CachedData) newPayload;
+                            cachedData.setServiceUuid(meinService.getUuid());
                             cachedForSending.put(cachedData.getCacheId(), cachedData);
                         }
                         try {
