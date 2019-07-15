@@ -192,6 +192,9 @@ public class FsDao extends Dao {
 
 
     public FsEntry insert(FsEntry fsEntry) throws SqlQueriesException {
+        //todo debug
+        if (fsEntry.getName().equalsValue("[root]"))
+            Lok.debug("debug");
         Long id;
         if (fsEntry.getId().notNull())
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());

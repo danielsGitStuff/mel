@@ -143,7 +143,7 @@ public abstract class CachedData extends ServicePayload {
         if (partsMissed == null)
             Lok.debug("debu4g");
         partsMissed.remove(cachedPart.getPartNumber());
-        partCount++;
+//        partCount++;
     }
 
     public boolean isComplete() {

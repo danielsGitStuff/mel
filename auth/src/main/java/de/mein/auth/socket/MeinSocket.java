@@ -244,6 +244,7 @@ public class MeinSocket extends DeferredRunnable {
             if (!isStopped()) {
                 String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
                 Lok.error(line);
+                Lok.error("Exception: " + e.toString());
             }
         } finally {
 //            Lok.debug(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());
@@ -252,7 +253,12 @@ public class MeinSocket extends DeferredRunnable {
         }
     }
 
+    public int getV() {
+        return v;
+    }
+
     protected void onSocketClosed() {
+        Lok.debug("closing v=" + v);
         shutDown();
     }
 
