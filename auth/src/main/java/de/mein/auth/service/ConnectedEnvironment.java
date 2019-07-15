@@ -153,7 +153,9 @@ public class ConnectedEnvironment {
                     Lok.error("an old socket is already present for id: " + validationProcess.getConnectedId());
                 return false;
             }
-            idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
+            //todo debug
+            if (validationProcess.getMeinAuthSocket().getSocket() == null)
+                idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
             addressValidateProcessMap.put(validationProcess.getAddressString(), validationProcess);
             return true;
         } catch (Exception e) {

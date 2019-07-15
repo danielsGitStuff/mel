@@ -210,7 +210,7 @@ public class MeinAuthProcess extends MeinProcess {
                                             meinAuthSocket.getMeinAuthService().updateCertAddresses(actualRemoteCertId[0], address, port, job.getPortCert());
                                         });
                                     }else {
-                                        Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing...");
+                                        Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v="+meinAuthSocket.getV());
                                         this.stop();
                                         job.getPromise().reject(new Exception("already connected to id: " + partnerCertificate.getId().v()));
                                         return;

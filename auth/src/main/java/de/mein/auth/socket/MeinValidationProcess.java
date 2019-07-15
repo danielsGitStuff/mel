@@ -44,6 +44,11 @@ public class MeinValidationProcess extends MeinProcess {
         return meinAuthSocket.isStopped();
     }
 
+    public MeinAuthSocket getMeinAuthSocket() {
+        //todo debug
+        return meinAuthSocket;
+    }
+
     public static class SendException extends Exception {
         public SendException(String msg) {
             super(msg);

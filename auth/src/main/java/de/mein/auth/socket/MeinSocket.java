@@ -126,7 +126,7 @@ public class MeinSocket extends DeferredRunnable {
             this.out.writeUTF(json);
             this.out.flush();
         } catch (IOException e) {
-            Lok.error("MeinSocket.send.error");
+            Lok.error("MeinSocket.send.error: " + e.toString() + " v=" + v);
             e.printStackTrace();
         }
     }
@@ -244,7 +244,7 @@ public class MeinSocket extends DeferredRunnable {
             if (!isStopped()) {
                 String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
                 Lok.error(line);
-                Lok.error("Exception: " + e.toString());
+                Lok.error("Exception: " + e.toString() + " v=" + v);
             }
         } finally {
 //            Lok.debug(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());

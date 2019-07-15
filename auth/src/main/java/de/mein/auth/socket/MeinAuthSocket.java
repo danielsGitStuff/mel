@@ -223,7 +223,8 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
         super.stop();
     }
 
-    Socket getSocket() {
+    public Socket getSocket() {
+        //todo debug, make package private
         return socket;
     }
 }
