@@ -174,6 +174,7 @@ public class MeinValidationProcess extends MeinProcess {
                     return false;
                 }
             } else if (deserialized instanceof CachedRequest) {
+
                 CachedRequest cachedRequest = (CachedRequest) deserialized;
                 CachedData alreadyCached = cachedForSending.get(cachedRequest.getCacheId());
                 if (isServiceAllowed(alreadyCached.getServiceUuid())) {
