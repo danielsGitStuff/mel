@@ -17,7 +17,6 @@ import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.jobs.AConnectJob;
-import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.service.power.PowerManager;
@@ -62,6 +61,7 @@ import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -328,51 +328,6 @@ public class MeinAuthService {
             return deferred.reject(new Exception("no certificate found for id: " + certificate));
         }
         return connectedEnvironment.connect(certificate);
-
-//        MeinValidationProcess mvp;
-//        Certificate certificate = certificateManager.getTrustedCertificateById(certificateId);
-//        if (certificate == null) {
-//            Lok.error("No Certificate found for id: " + certificateId);
-//            deferred.reject(new Exception("certificate not found"));
-//            return deferred;
-//        }
-//        // check if already connected via id and address
-//        Transaction transaction = null;
-//        try {
-//            transaction = T.lockingTransaction(T.read(connectedEnvironment));
-//            Promise<MeinValidationProcess, Exception, Void> def = connectedEnvironment.currentlyConnecting(certificateId);
-//            if (def != null) {
-//                return def;
-//            }
-//            if (certificateId != null && (mvp = connectedEnvironment.getValidationProcess(certificateId)) != null) {
-//                deferred.resolve(mvp);
-//            } else if (certificate != null && (mvp = connectedEnvironment.getValidationProcess(certificate.getAddress().v(), certificate.getPort().v())) != null) {
-//                deferred.resolve(mvp);
-//            } else {
-//                ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-//                connectedEnvironment.currentlyConnecting(certificateId, deferred);
-//                job.getPromise().done(result -> {
-//                    // use a new transaction, because we want connect in parallel.
-//                    T.lockingTransaction(connectedEnvironment)
-//                            .run(() -> connectedEnvironment.removeCurrentlyConnecting(certificateId))
-//                            .end();
-//                    deferred.resolve(result);
-//                }).fail(result -> {
-//                    T.lockingTransaction(connectedEnvironment)
-//                            .run(() -> connectedEnvironment.removeCurrentlyConnecting(certificateId))
-//                            .end();
-//                    deferred.reject(result);
-//                });
-//                execute(new ConnectWorker(this, job));
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (transaction != null) {
-//                transaction.end();
-//            }
-//        }
-//        return deferred;
     }
 
 
@@ -437,7 +392,6 @@ public class MeinAuthService {
                 checkedAddresses.put(validationProcess.getAddressString(), true);
                 Request<MeinServicesPayload> gotServicesPromise = this.getAllowedServices(certId);
                 gotServicesPromise.done(meinServicesPayload -> {
-                    Lok.error("MeinAuthService.discoverNetworkEnvironment.NOT.IMPLEMENTED.YET");
                     addToNetworkEnvironment(certId, meinServicesPayload);
                 });
             }
@@ -484,79 +438,16 @@ public class MeinAuthService {
     }
 
 
-    public void onSocketAuthenticated(MeinValidationProcess validationProcess) {
-//        Lok.debug("debug authenticated 1");
-        Transaction transaction = null;
-        try {
-            transaction = T.lockingTransaction(connectedEnvironment);
-        } finally {
-//            Lok.debug("debug authenticated 2");
-            if (transaction != null) {
-                connectedEnvironment.addValidationProcess(validationProcess);
-                transaction.end();
-//                Lok.debug("debug authenticated 3");
-            }
-        }
-        T.lockingRun(() -> this.connectedEnvironment.addValidationProcess(validationProcess), connectedEnvironment);
+    public boolean registerValidationProcess(MeinValidationProcess validationProcess) {
+        return connectedEnvironment.registerValidationProcess(validationProcess);
     }
 
-//    private static AtomicLong closeCount = new AtomicLong(0L);
+    //    private static AtomicLong closeCount = new AtomicLong(0L);
+    private static AtomicInteger DEBUG_count = new AtomicInteger(0);
 
     public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
-//        Eva.trace();
-//        final long debugCount = closeCount.getAndIncrement();
-//        Lok.debug("debug close 1 /" + debugCount);
-        Transaction transaction = null;
-        try {
-            transaction = T.lockingTransaction(connectedEnvironment);
-        } finally {
-//            Lok.debug("debug close 2 /" + debugCount);
-            // we want to ensure this code block can alway run and is not interrupted
-            sockets.remove(meinAuthSocket);
-            // find the socket in the connected environment and remove it
-            AConnectJob connectJob = meinAuthSocket.getConnectJob();
-//            Lok.debug("debug close 2.1 /" + debugCount);
-            if (meinAuthSocket.isValidated() && meinAuthSocket.getProcess() instanceof MeinValidationProcess) {
-//                Lok.debug("debug close 2.2 /" + debugCount);
-                connectedEnvironment.removeValidationProcess((MeinValidationProcess) meinAuthSocket.getProcess());
-//                Lok.debug("debug close 2.3 /" + debugCount);
-            } else if (meinAuthSocket.getProcess() instanceof MeinIsolatedFileProcess) {
-//            meinAuthSocket.getProcess().stop();
-                Lok.debug("continue here");
-//                Lok.debug("debug close 2.4 /" + debugCount);
-            } else if (connectJob != null) {
-//                Lok.debug("debug close 2.5 /" + debugCount);
-                if (connectJob.getCertificateId() != null) {
-//                    Lok.debug("debug close 2.6 /" + debugCount);
-                    N.r(() -> connectedEnvironment.removeCurrentlyConnecting(meinAuthSocket.getConnectJob().getCertificateId()));
-//                    Lok.debug("debug close 2.7 /" + debugCount);
-                } else if (connectJob.getAddress() != null) {
-//                    Lok.debug("debug close 2.8 /" + debugCount);
-                    N.r(() -> connectedEnvironment.removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
-//                    Lok.debug("debug close 2.9 /" + debugCount);
-                }
-                //todo debug
-//                if (debugCount == 2L)
-//                    Lok.debug("debug");
-//                Lok.debug("debug close 2.10 /" + debugCount);
-                transaction.end();
-                N.oneLine(() -> {
-                    if (connectJob.getPromise().isPending()) {
-                        connectJob.getPromise().reject(new Exception("connection closed"));
-                    }
-                });
-//                Lok.debug("debug close 2.11 /" + debugCount);
-//            connectJob.getPromise().reject(null);
-            }
-
-            if (transaction != null) {
-                transaction.end();
-//                Lok.debug("debug close 3/" + debugCount);
-            }
-//            Lok.debug("debug close 4/" + debugCount);
-        }
-
-
+        connectedEnvironment.onSocketClosed(meinAuthSocket);
+        sockets.remove(meinAuthSocket);
     }
 
     public void execute(MeinRunnable runnable) {
@@ -578,7 +469,6 @@ public class MeinAuthService {
             }
         }
         uuidServiceMapSemaphore.unlock();
-//        connectedEnvironment.shutDown();
         Set<MeinSocket> socks = new HashSet<>(sockets);
         for (MeinSocket socket : socks) {
             socket.shutDown();
@@ -720,7 +610,7 @@ public class MeinAuthService {
         return cacheDir;
     }
 
-    public boolean isConnectedTo(Long certId) {
+    private boolean isConnectedTo(Long certId) {
         AtomicBoolean connected = new AtomicBoolean(false);
         return N.result(() -> {
             Transaction transaction = null;

@@ -22,6 +22,7 @@ import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.tools.N;
 
 /**
  * Created by xor on 10/4/17.
@@ -84,6 +85,11 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
                     onRbClientSelected();
             });
             checkRadioButtons();
+        }
+        //todo debug
+        if (activity.getAndroidService() != null) {
+            Lok.debug("debugging...");
+            N.forEach(activity.getAndroidService().getMeinAuthService().getConnectedUserIds(), aLong -> Lok.debug("debug id: " + aLong));
         }
     }
 

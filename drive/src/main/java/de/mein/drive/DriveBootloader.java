@@ -65,6 +65,10 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + DriveStrings.SETTINGS_FILE_NAME);
             driveSettings = DriveSettings.load(jsonFile);
             meinDriveService = spawn(meinAuthService, serviceDescription, driveSettings);
+            if (meinDriveService == null) {
+                Lok.error("Drive did not spawn!!!");
+                throw new Exception("Drive did not spawn!!!");
+            }
             Lok.debug(meinAuthService.getName() + ", booted to level 1: " + meinDriveService.getClass().getSimpleName());
             meinAuthService.registerMeinService(meinDriveService);
         } catch (Exception e) {
@@ -86,6 +90,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             DeferredObject<DeferredRunnable, Exception, Void> indexDonePromise = startIndexer(meinDriveService, meinDriveService.getDriveSettings());
             indexDonePromise
                     .done(result -> N.r(() -> {
+                        Lok.debug("indexing done for: " + meinDriveService.getDriveSettings().getRootDirectory().getPath());
                         notification.cancel();
 //                        meinDriveService.onBootLevel2Finished();
                         done.resolve(null);
@@ -148,36 +153,37 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
         databaseManager.cleanUp();
         meinDriveService.setDriveDatabaseManager(databaseManager);
 
-        if (!driveSettings.isServer() && !driveSettings.getClientSettings().getInitFinished()) N.r(() -> {
-            //pair with server service
-            MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
-            DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
-            Long certId = clientSettings.getServerCertId();
-            String serviceUuid = clientSettings.getServerServiceUuid();
-            CountdownLock lock = new CountdownLock(1);
+        if (!driveSettings.isServer() && !driveSettings.getClientSettings().getInitFinished())
+            N.r(() -> {
+                //pair with server service
+                MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
+                DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
+                Long certId = clientSettings.getServerCertId();
+                String serviceUuid = clientSettings.getServerServiceUuid();
+                CountdownLock lock = new CountdownLock(1);
 
-            // allow server service to talk to us
-            meinAuthService.getDatabaseManager().grant(service.getId().v(), certId);
+                // allow server service to talk to us
+                meinAuthService.getDatabaseManager().grant(service.getId().v(), certId);
 
-            Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
-            DriveDetails driveDetails = new DriveDetails().setRole(DriveStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.getUuid().v())
-                    .setUsesSymLinks(driveSettings.getUseSymLinks());
-            driveDetails.setIntent(DriveStrings.INTENT_REG_AS_CLIENT);
-            connected.done(validationProcess -> N.r(() -> validationProcess.request(serviceUuid, driveDetails).done(result -> N.r(() -> {
-                Lok.debug("Service created and paired");
-                clientSettings.setInitFinished(true);
-                driveSettings.save();
-                lock.unlock();
-            })))).fail(result -> N.r(() -> {
-                Lok.debug("DriveCreateController.createDriveClientService.FAIL");
-                result.printStackTrace();
-                meinDriveClientService.shutDown();
-                meinAuthService.getDatabaseManager().revoke(service.getId().v(), certId);
-                meinAuthService.getDatabaseManager().deleteService(service.getId().v());
-                lock.unlock();
-            }));
-            lock.lock();
-        });
+                Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(certId);
+                DriveDetails driveDetails = new DriveDetails().setRole(DriveStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.getUuid().v())
+                        .setUsesSymLinks(driveSettings.getUseSymLinks());
+                driveDetails.setIntent(DriveStrings.INTENT_REG_AS_CLIENT);
+                connected.done(validationProcess -> N.r(() -> validationProcess.request(serviceUuid, driveDetails).done(result -> N.r(() -> {
+                    Lok.debug("Service created and paired");
+                    clientSettings.setInitFinished(true);
+                    driveSettings.save();
+                    lock.unlock();
+                })))).fail(result -> N.r(() -> {
+                    Lok.debug("DriveCreateController.createDriveClientService.FAIL");
+                    result.printStackTrace();
+                    meinDriveClientService.shutDown();
+                    meinAuthService.getDatabaseManager().revoke(service.getId().v(), certId);
+                    meinAuthService.getDatabaseManager().deleteService(service.getId().v());
+                    lock.unlock();
+                }));
+                lock.lock();
+            });
 
 //        Lok.debug("DriveBootloader.spawn.done");
 //        meinDriveService.setStartedPromise(this.startIndexer(meinDriveService, driveSettings));

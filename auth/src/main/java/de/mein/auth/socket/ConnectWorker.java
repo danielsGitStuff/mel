@@ -14,12 +14,14 @@ import de.mein.auth.tools.CountdownLock;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URISyntaxException;
@@ -43,6 +45,11 @@ public class ConnectWorker extends MeinWorker {
         this.connectJob = connectJob;
         connectJob.getPromise().always((state, resolved, rejected) -> super.shutDown());
         addJob(connectJob);
+    }
+
+    public ConnectWorker(MeinAuthService meinAuthService, MeinAuthSocket meinAuthSocket) {
+        this(meinAuthService, meinAuthSocket.getConnectJob());
+        this.meinAuthSocket = meinAuthSocket;
     }
 
 
@@ -75,7 +82,8 @@ public class ConnectWorker extends MeinWorker {
             dummyJob.getPromise().reject(e);
         });
         runner.runTry(() -> {
-            meinAuthSocket = new MeinAuthSocket(meinAuthService, dummyJob);
+            if (meinAuthSocket == null)
+                meinAuthSocket = new MeinAuthSocket(meinAuthService, dummyJob);
             meinAuthSocket.setRunnableName("-> " + originalJob.getAddress() + ":" + connectJob.getPort());
 //            Socket socket = meinAuthService.getCertificateManager().createSocket();
 //            socket.connect(new InetSocketAddress(job.getAddress(), job.getPort()));
@@ -108,7 +116,8 @@ public class ConnectWorker extends MeinWorker {
         if (job instanceof ConnectJob) {
             DeferredObject result = job.getPromise();
             N runner = new N(e -> {
-                result.reject(e);
+                if (result.isPending())
+                    result.reject(e);
                 meinAuthService.getPowerManager().releaseWakeLock(this);
                 stopConnecting();
                 lock.unlock();
@@ -182,7 +191,6 @@ public class ConnectWorker extends MeinWorker {
                     .fail(result -> stopConnecting())
                     .always((state, resolved, rejected) -> {
                         meinAuthService.getPowerManager().releaseWakeLock(ConnectWorker.this);
-                        shutDown();
                     });
         }
     }

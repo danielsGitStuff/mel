@@ -40,6 +40,10 @@ public class MeinValidationProcess extends MeinProcess {
         return super.toString();
     }
 
+    public boolean isClosed() {
+        return meinAuthSocket.isStopped();
+    }
+
     public static class SendException extends Exception {
         public SendException(String msg) {
             super(msg);
@@ -147,9 +151,6 @@ public class MeinValidationProcess extends MeinProcess {
                     CachedData cachedData = (CachedData) stateMsg.getPayload();
                     cachedData.setCacheDirectory(meinAuthSocket.getMeinAuthService().getCacheDir());
                     cachedData.initPartsMissed(cachedData.getPartCount());
-                    //todo debug
-                    if (cachedData.getClass().getSimpleName().startsWith("SyncTask"))
-                        Lok.debug("debug  ");
                     if (cachedData.isComplete() && cachedStateMessages.containsKey(cachedData.getCacheId())) {
                         // the message is complete -> nothing to do here
                         return false;
@@ -173,8 +174,10 @@ public class MeinValidationProcess extends MeinProcess {
                     return false;
                 }
             } else if (deserialized instanceof CachedRequest) {
+
                 CachedRequest cachedRequest = (CachedRequest) deserialized;
-                if (isServiceAllowed(cachedRequest.getServiceUuid())) {
+                CachedData alreadyCached = cachedForSending.get(cachedRequest.getCacheId());
+                if (isServiceAllowed(alreadyCached.getServiceUuid())) {
                     CachedData cachedData = cachedForSending.get(cachedRequest.getCacheId());
                     CachedPart part = cachedData.getPart(cachedRequest.getPartNumber());
                     send(part);
@@ -184,10 +187,6 @@ public class MeinValidationProcess extends MeinProcess {
                 CachedDoneMessage cachedDoneMessage = (CachedDoneMessage) deserialized;
                 if (isServiceAllowed(cachedDoneMessage.getServiceUuid())) {
                     CachedData cachedData = cachedForSending.remove(cachedDoneMessage.getCacheId());
-                    //todo debug
-                    if (cachedData == null) {
-                        Lok.debug("MeinValidationProcess.handleCached.debug234");
-                    }
                     cachedData.cleanUp();
                 }
                 return true;

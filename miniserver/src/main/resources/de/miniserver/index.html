@@ -23,7 +23,7 @@
 
 
             <span class="intro">Wolkenfrei und synchron mit Me<span class="mel">l</span>!</span><br>
-            <span class="smallIntro" style="color: red">Betaversion: Zur Zeit nur Linux & Android. Java 12 benötigt.</span><br>
+            <span class="smallIntro" style="color: red">Betaversion: Zur Zeit nur Linux & Android. Java 11 benötigt.</span><br>
             <span class="smallIntro">...synchronisiert Dateien und Kontakte deines Telefons zu einem anderen. Oder zu einem Computer. Leise und im Hintergrund.</span><br>
             <a href="#linkDownload">
                 <button id="btnToDownload">Download</button>
@@ -152,17 +152,18 @@
         <div class="content" style="text-align: start">
             <h2 style="text-align: start">Was ist mit der Sicherheit?</h2>
             <span class="text">
-            Mel baut grundsätzlich nur verschlüsselte Verbindungen auf. Es nutzt SSL aus der Java-Runtime. Mel sendet keinerlei Daten an irgendwen.</span><br><br><br>
-            <span class="text">Um deine anderen Geräte in deinem Netzwerk zu finden, startet Mel einen Broadcast, der von allen Geräten im Netzwerk empfangen wird.
-                Dieser enthält ausschließlich die Informationen, dass es sich um eine Mel-Instanz handelt und auf welchen Ports sie kommuniziert.
-                Die Geräte versuchen dann sich gegenseitig zu verbinden. Dies gelingt nur, wenn sie vorher gekoppelt wurden.
-            </span><br><br>
-            <span class="text">Du kannst in den Einstellungen nach Updates suche, die Mel in Zukunft mit mehr Funktionen ausstattet. Dabei wird lediglich eine Anfrage an den Updateserver geschickt.
-                Diese enthält keine Informationen über dich. (Um genau zu sein, lautet sie immer "v?")
-            </span><br>
-            <!--<div style="text-align: center">-->
-            <!--<img src="schema.svg" style="width: 32em">-->
-            <!--</div>-->
+            Mel baut grundsätzlich nur verschlüsselte Verbindungen auf. Es nutzt SSL aus der Java-Runtime. Für die Schlüsselgenerierung kommt <a href="https://www.bouncycastle.org/">Bouncy Castle</a>.
+            Denn eine alte Programmiererweisheit lautet: mach keine eigene Krypto!</span>
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content" style="text-align: start">
+            <h2 style="text-align: start">Privatssphäre?</h2>
+            <span class="text">
+                Keine Cloud (Modewort für "anderer Leute Computer"), keine Analysen und sinnloses Zeug. Mel telefoniert höchstens zum Updateserver, falls du auf den Aktualisierenbutton drückst.
+                Innerhalb des Netzwerks werden ebenfalls keine identifizierenden Informationen an Unbekannte versendet.
+            </span>
         </div>
     </div>
 

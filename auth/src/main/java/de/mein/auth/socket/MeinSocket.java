@@ -189,8 +189,6 @@ public class MeinSocket extends DeferredRunnable {
 
     private CountWaitLock queueLock = new CountWaitLock();
 
-    //todo debug
-    private static int msgCount = 0;
 
     @Override
     public void runImpl() {
@@ -201,9 +199,6 @@ public class MeinSocket extends DeferredRunnable {
             if (in == null || out == null)
                 streams();
             socketWorker = new SocketWorker(this, listener);
-            //todo debug
-            if (meinAuthService.getName().equals("MA2") && socketWorker.index == 6)
-                Lok.debug("delme");
             meinAuthService.execute(socketWorker);
             while (!isStopped()) {
                 if (isIsolated && allowIsolation) {
@@ -232,12 +227,6 @@ public class MeinSocket extends DeferredRunnable {
                             continue;
                         }
                     }
-
-                    msgCount++;
-                    //todo debug
-                    if (msgCount == 12)
-                        Lok.debug("debug");
-                    Lok.debug("count: " + msgCount);
                     Lok.debug("   " + meinAuthService.getName() + ".MeinSocket.runTry.got(" + socket.getInetAddress() + "): " + s);
                     if (s.equals(MeinStrings.msg.MODE_ISOLATE) && allowIsolation) {
                         if (!isIsolated)
@@ -252,10 +241,10 @@ public class MeinSocket extends DeferredRunnable {
 //            Lok.debug("MeinSocket.runTry.CLOSING");
             listener.onClose(42, "don't know shit", true);
         } catch (Exception e) {
-//            if (!isStopped()) {
-//                String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
-//                Lok.error(line);
-//            }
+            if (!isStopped()) {
+                String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
+                Lok.error(line);
+            }
         } finally {
 //            Lok.debug(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());
             N.r(this::onSocketClosed);

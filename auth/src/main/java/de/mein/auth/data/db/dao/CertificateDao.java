@@ -45,9 +45,10 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
     }
 
     public void updateCertificate(Certificate certificate) throws SqlQueriesException {
-        List<Object> whereArgs = new ArrayList<>();
-        whereArgs.add(certificate.getId().v());
-        sqlQueries.update(certificate, certificate.getId().k() + "=?", whereArgs);
+        //todo debug
+        if (certificate.getPort().notEqualsValue(8888))
+            Lok.debug("debug");
+        sqlQueries.update(certificate, certificate.getId().k() + "=?", ISQLQueries.whereArgs(certificate.getId().v()));
     }
 
     public Certificate getTrustedCertificateByUuid(String uuid) throws SqlQueriesException {

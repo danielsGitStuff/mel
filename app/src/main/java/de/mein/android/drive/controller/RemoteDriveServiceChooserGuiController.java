@@ -261,7 +261,9 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     }
 
     private String createDrivePath() {
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+        //todo debug
+        return  "/storage/emulated/0/mel";
+//        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
     }
 
     public boolean isValid() {

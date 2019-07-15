@@ -39,25 +39,20 @@ public abstract class MeinWorker extends DeferredRunnable {
                         workWork(job);
                         workDonePromise.resolve(null);
                     } catch (Exception e) {
-                        e.printStackTrace();/*
-                            if (job.getPromise() != null)
-                                job.getPromise().reject(e);*/
+                        e.printStackTrace();
                     }
                 } else {
                     // wait here if no jobs are available
                     if (workDonePromise != null)
                         N.s(() -> workDonePromise.resolve(null));
                     N.r(() -> waitLock.lock());
-                    //Lok.debug(getRunnableName() + "...unlocked");
                 }
             }
             if (workDonePromise != null) {
                 RWLock shutDownLock = new RWLock().lockWrite();
                 workDonePromise.done(result -> shutDownLock.unlockWrite());
                 shutDownLock.lockWrite();
-//                Lok.debug("MeinWorker.runImpl.work done. shutting down");
             }
-//            Lok.debug(getClass().getSimpleName() + " has finished");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,17 +81,10 @@ public abstract class MeinWorker extends DeferredRunnable {
     @Override
     public void onShutDown() {
         stop();
-//        queueLock.unlockWrite();
-//        waitLock.unlock();
     }
 
     public void stop() {
-        //todo debug
-//        if (getRunnableName().contains("MeinSocket for MeinAuthOnAndroid/WORK"))
-//            Lok.debug("debug");
-//        Lok.debug("STOPPING: " + getRunnableName());
         super.stop();
-//        queueLock.unlockWrite();
         waitLock.unlock();
     }
 }

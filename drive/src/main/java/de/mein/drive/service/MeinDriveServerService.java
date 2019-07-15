@@ -146,7 +146,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
         DeferredObject<DeferredRunnable, Exception, Void> indexingDone = super.startIndexer();
         stageIndexer.setStagingDoneListener(stageSetId -> {
-            Lok.debug(meinAuthService.getName() + ".MeinDriveService.workWork.STAGE.DONE");
+            Lok.debug(meinAuthService.getName() + " first indexing done!");
             // staging is done. stage data is up to date. time to commit to fs
             FsDao fsDao = driveDatabaseManager.getFsDao();
             StageDao stageDao = driveDatabaseManager.getStageDao();

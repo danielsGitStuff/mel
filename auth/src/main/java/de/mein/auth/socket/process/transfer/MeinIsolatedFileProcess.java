@@ -82,6 +82,15 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
         meinAuthSocket.getMeinAuthService().execute(this);
     }
 
+    @Override
+    public void stop() {
+        super.stop();
+    }
+
+    @Override
+    public void onSocketClosed(int code, String reason, boolean remote) {
+        super.onSocketClosed(code, reason, remote);
+    }
 
     @Override
     public void onBlockReceived(BlockReceivedJob blockJob) {
