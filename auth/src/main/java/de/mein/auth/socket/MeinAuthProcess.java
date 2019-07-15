@@ -215,8 +215,13 @@ public class MeinAuthProcess extends MeinProcess {
                                         });
                                     } else {
                                         Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v=" + meinAuthSocket.getV());
-                                        this.stop();
-                                        job.getPromise().reject(new Exception("already connected to id: " + partnerCertificate.getId().v()));
+                                        //todo debug
+                                        //should stop here
+//                                        this.stop();
+//                                        job.getPromise().reject(new Exception("already connected to id: " + partnerCertificate.getId().v()));
+//                                        return;
+
+                                        job.getPromise().resolve(validationProcess);
                                         return;
                                     }
 
