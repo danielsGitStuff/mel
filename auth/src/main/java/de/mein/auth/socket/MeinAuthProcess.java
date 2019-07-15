@@ -85,7 +85,7 @@ public class MeinAuthProcess extends MeinProcess {
                                     if (finalIsolationDetails == null) {
                                         partnerAuthenticated = true;
                                         MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate, true);
-                                        if (meinAuthSocket.getMeinAuthService().registerValidationProcess(validationProcess)){
+                                        if (meinAuthSocket.getMeinAuthService().registerValidationProcess(validationProcess)) {
                                             // get all allowed Services
                                             MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
                                             send(response);
@@ -93,7 +93,7 @@ public class MeinAuthProcess extends MeinProcess {
                                             Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
                                             // propagate that we are connected!
                                             propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getLocalPort());
-                                        }else {
+                                        } else {
 //                                            Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
                                             Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists. waiting for the other side to close connection.");
 //                                            this.stop();
@@ -159,6 +159,10 @@ public class MeinAuthProcess extends MeinProcess {
         final String address = job.getAddress();
         final Integer port = job.getPort();
 //        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
+
+        //todo debug
+        Lok.debug("auth v=" + meinAuthSocket.getV());
+
         try {
             meinAuthSocket.connectSSL(id, address, port);
             mySecret = UUID.randomUUID().toString();
@@ -196,7 +200,7 @@ public class MeinAuthProcess extends MeinProcess {
                                 if (job instanceof ConnectJob) {
                                     // check if already connected to that cert
                                     MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate, false);
-                                    if (meinAuthSocket.getMeinAuthService().registerValidationProcess(validationProcess)){
+                                    if (meinAuthSocket.getMeinAuthService().registerValidationProcess(validationProcess)) {
                                         // propagate that we are connected!
                                         propagateAuthentication(partnerCertificate, meinAuthSocket.getSocket().getInetAddress().getHostAddress(), meinAuthSocket.getSocket().getPort());
                                         // done here, set up validationprocess
@@ -209,8 +213,8 @@ public class MeinAuthProcess extends MeinProcess {
                                             actualRemoteCertId[0] = (job.getCertificateId() == null) ? partnerCertificate.getId().v() : job.getCertificateId();
                                             meinAuthSocket.getMeinAuthService().updateCertAddresses(actualRemoteCertId[0], address, port, job.getPortCert());
                                         });
-                                    }else {
-                                        Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v="+meinAuthSocket.getV());
+                                    } else {
+                                        Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v=" + meinAuthSocket.getV());
                                         this.stop();
                                         job.getPromise().reject(new Exception("already connected to id: " + partnerCertificate.getId().v()));
                                         return;

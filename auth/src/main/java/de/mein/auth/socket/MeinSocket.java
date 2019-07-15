@@ -227,7 +227,7 @@ public class MeinSocket extends DeferredRunnable {
                             continue;
                         }
                     }
-                    Lok.debug("   " + meinAuthService.getName() + ".MeinSocket.runTry.got(" + socket.getInetAddress() + "): " + s);
+                    Lok.debug("   " + meinAuthService.getName() + "(v=" + v + ")got(" + socket.getInetAddress() + "): " + s);
                     if (s.equals(MeinStrings.msg.MODE_ISOLATE) && allowIsolation) {
                         if (!isIsolated)
                             send(MeinStrings.msg.MODE_ISOLATE);
