@@ -175,7 +175,8 @@ public class MeinValidationProcess extends MeinProcess {
                 }
             } else if (deserialized instanceof CachedRequest) {
                 CachedRequest cachedRequest = (CachedRequest) deserialized;
-                if (isServiceAllowed(cachedRequest.getServiceUuid())) {
+                CachedData alreadyCached = cachedForSending.get(cachedRequest.getCacheId());
+                if (isServiceAllowed(alreadyCached.getServiceUuid())) {
                     CachedData cachedData = cachedForSending.get(cachedRequest.getCacheId());
                     CachedPart part = cachedData.getPart(cachedRequest.getPartNumber());
                     send(part);

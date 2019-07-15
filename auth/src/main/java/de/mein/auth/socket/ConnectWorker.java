@@ -116,7 +116,8 @@ public class ConnectWorker extends MeinWorker {
         if (job instanceof ConnectJob) {
             DeferredObject result = job.getPromise();
             N runner = new N(e -> {
-                result.reject(e);
+                if (result.isPending())
+                    result.reject(e);
                 meinAuthService.getPowerManager().releaseWakeLock(this);
                 stopConnecting();
                 lock.unlock();
