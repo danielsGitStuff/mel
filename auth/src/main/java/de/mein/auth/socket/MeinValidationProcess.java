@@ -154,11 +154,17 @@ public class MeinValidationProcess extends MeinProcess {
                     }
                     // its new. is must get a cache id and folder
                     CachedData cachedData = (CachedData) stateMsg.getPayload();
-                    cachedData.setCacheDirectory(meinAuthSocket.getMeinAuthService().getCacheDir());
-                    cachedData.initPartsMissed(cachedData.getPartCount());
                     if (cachedData.isComplete() && cachedStateMessages.containsKey(cachedData.getCacheId())) {
                         // the message is complete -> nothing to do here
                         return false;
+                    } else {
+                        MeinService service = meinAuthSocket.getMeinAuthService().getMeinService(cachedData.getServiceUuid());
+                        if (service!=null) {
+                            cachedData.setCacheDirectory(service.getCacheDirectory());
+                            cachedData.initPartsMissed(cachedData.getPartCount());
+                        }else {
+                            Lok.error("got some cached data but no service!");
+                        }
                     }
 
                     //todo debug

@@ -22,6 +22,7 @@ import de.mein.drive.service.sync.ClientSyncHandler;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.StageSet;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
@@ -111,19 +112,25 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             }
             return true;
         } else if (unknownJob instanceof SyncClientJob) {
+            syncJobCount.decrementAndGet();
             N.r(() -> syncHandler.syncFromServer(((SyncClientJob) unknownJob).getNewVersion()));
         }
         return false;
     }
 
+    private AtomicInteger syncJobCount = new AtomicInteger(0);
 
     @Override
     public void addJob(Job job) {
         //todo debug
         if (job instanceof Job.ConnectionAuthenticatedJob)
             Lok.debug("MeinDriveClientService.addJob.debug123");
-        if (job instanceof SyncClientJob)
+        if (job instanceof SyncClientJob) {
             Lok.debug("MeinDriveClientService.addJob.debug345");
+            int count = syncJobCount.incrementAndGet();
+            if (count > 1)
+                return;
+        }
         super.addJob(job);
     }
 
@@ -155,7 +162,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     protected IndexListener createIndexListener() {
         return new IndexListener() {
-
 
 
             @Override
