@@ -1,15 +1,14 @@
 package de.mein.drive.tasks;
 
-import de.mein.Lok;
-import de.mein.auth.data.cached.CachedIterable;
+import de.mein.auth.data.cached.CachedList;
 import de.mein.auth.service.Bootloader;
 
 import java.io.File;
 
-public class AvailableHashesContainer extends CachedIterable<AvailHashEntry> {
+public class AvailableHashesContainer extends CachedList<AvailHashEntry> {
 
-    public AvailableHashesContainer(File cacheDir, int partSize) {
-        super(cacheDir, partSize);
+    public AvailableHashesContainer(File cacheDir, Long cacheId, int partSize) {
+        super(cacheDir, cacheId, partSize);
         this.level = Bootloader.BootLevel.LONG;
     }
 

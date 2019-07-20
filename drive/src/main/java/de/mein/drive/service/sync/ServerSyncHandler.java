@@ -9,6 +9,7 @@ import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.core.serialize.exceptions.MeinJsonException;
 import de.mein.drive.data.*;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.service.MeinDriveService;
@@ -136,8 +137,7 @@ public class ServerSyncHandler extends SyncHandler {
         Lok.error("NOT:IMPLEMENTED:YET.");
         try {
             ISQLResource<FsFile> availableHashes = driveDatabaseManager.getTransferDao().getAvailableTransfersFromHashes(availableHashesContainer.iterator());
-            AvailableHashesContainer result = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
-            result.setCacheId(availableHashesContainer.getCacheId());
+            AvailableHashesContainer result = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), availableHashesContainer.getCacheId(),DriveSettings.CACHE_LIST_SIZE);
 //            N.sqlResource(availableHashes,sqlResource -> {
 //                FsFile fsFile = sqlResource.getNext();
 //                while (fsFile!= null){
@@ -150,9 +150,11 @@ public class ServerSyncHandler extends SyncHandler {
             result.toDisk();
             result.loadFirstCached();
             request.resolve(result);
-        } catch (SqlQueriesException | IOException | InstantiationException | NoSuchMethodException | JsonDeserializationException | JsonSerializationException e) {
+        } catch (SqlQueriesException | IOException | MeinJsonException e) {
             e.printStackTrace();
             request.reject(e);
+        }
+        finally {
             availableHashesContainer.cleanUp();
         }
     }

@@ -57,15 +57,15 @@ public class SerializableEntitySerializer extends FieldSerializer {
         this.refIdCount = 0L;
     }
 
-    public static String serialize(SerializableEntity entity, int range) throws JsonSerializationException, IllegalAccessException {
+    public static String serialize(SerializableEntity entity, int range) throws JsonSerializationException {
         return serialize(entity, null, range);
     }
 
-    public static String serialize(SerializableEntity entity) throws JsonSerializationException, IllegalAccessException {
+    public static String serialize(SerializableEntity entity) throws JsonSerializationException {
         return SerializableEntitySerializer.serialize(entity, null, Integer.MAX_VALUE);
     }
 
-    public static String serialize(SerializableEntity entity, TraceManager traceManager, int range) throws JsonSerializationException, IllegalAccessException {
+    public static String serialize(SerializableEntity entity, TraceManager traceManager, int range) throws JsonSerializationException {
         SerializableEntitySerializer serializer = new SerializableEntitySerializer().setTraceManager(traceManager);
         serializer.setEntity(entity).setTraversalDepth(range);
         return serializer.JSON();

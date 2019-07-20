@@ -20,13 +20,14 @@ import java.util.Set;
  * The overall class for anything which is cached. Its name is required to identify as a certain cached object.
  * Tells you how many parts the data is divided to.
  */
+@Deprecated
 public abstract class CachedData extends ServicePayload {
     protected Long cacheId;
     /**
      * the number of parts which are present (on disk or in memory)
      */
     protected int partCount = 0;
-    protected CachedPart part;
+    protected CachedPartOlde part;
     protected File cacheDir;
     protected int partSize;
     @JsonIgnore
@@ -111,7 +112,7 @@ public abstract class CachedData extends ServicePayload {
      * @throws InvocationTargetException
      * @throws InstantiationException
      */
-    protected void write(CachedPart part) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InvocationTargetException, InstantiationException {
+    protected void write(CachedPartOlde part) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InvocationTargetException, InstantiationException {
         //serialize actual list, create a new one
         part.setSerialized();
         String json = SerializableEntitySerializer.serialize(part);
@@ -134,11 +135,11 @@ public abstract class CachedData extends ServicePayload {
         this.cacheDir = cacheDirectory;
     }
 
-    public CachedPart getPart() {
+    public CachedPartOlde getPart() {
         return part;
     }
 
-    public void onReceivedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    public void onReceivedPart(CachedPartOlde cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         write(cachedPart);
         if (partsMissed == null)
             Lok.debug("debu4g");
@@ -176,11 +177,11 @@ public abstract class CachedData extends ServicePayload {
         return partsMissed.iterator().next();
     }
 
-    public CachedPart getPart(int partNumber) throws IOException, JsonDeserializationException {
+    public CachedPartOlde getPart(int partNumber) throws IOException, JsonDeserializationException {
         //todo debug
         if (partNumber == 8)
             Lok.debug("debug");
-        CachedPart part = CachedPart.read(createCachedPartFile(partNumber));
+        CachedPartOlde part = CachedPartOlde.read(createCachedPartFile(partNumber));
         return part;
     }
 

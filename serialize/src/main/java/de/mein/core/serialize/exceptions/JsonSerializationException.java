@@ -8,7 +8,7 @@ package de.mein.core.serialize.exceptions;
  * @author xor
  *
  */
-public class JsonSerializationException extends Exception {
+public class JsonSerializationException extends MeinJsonException {
 
     public JsonSerializationException(Exception e) {
         super(e);

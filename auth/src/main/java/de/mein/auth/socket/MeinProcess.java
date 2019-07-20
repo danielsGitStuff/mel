@@ -6,10 +6,12 @@ import de.mein.auth.data.*;
 import de.mein.auth.data.db.Certificate;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
+import de.mein.core.serialize.exceptions.MeinJsonException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
 import org.jdeferred.impl.DeferredObject;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,7 +33,7 @@ public abstract class MeinProcess implements IRequestHandler {
     }
 
 
-    protected void send(SerializableEntity meinMessage) throws JsonSerializationException, IllegalAccessException {
+    protected void send(SerializableEntity meinMessage) throws JsonSerializationException {
         String json = SerializableEntitySerializer.serialize(meinMessage);
        Lok.debug(meinAuthSocket.getMeinAuthService().getName() + ".send: " + json);
         meinAuthSocket.send(json);
@@ -82,7 +84,7 @@ public abstract class MeinProcess implements IRequestHandler {
         meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this);
     }
 
-    public abstract void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket);
+    public abstract void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) throws IOException, MeinJsonException;
 
     public void onSocketClosed(int code, String reason, boolean remote) {
         // nothing here yet

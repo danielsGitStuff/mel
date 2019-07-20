@@ -4,6 +4,7 @@ import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.data.ClientData;
 import de.mein.auth.data.cached.CachedData;
+import de.mein.auth.data.cached.CachedInitializer;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
@@ -54,8 +55,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     protected void onSyncReceived(Request request) {
         Lok.debug("MeinDriveServerService.onSyncReceived");
         SyncTask task = (SyncTask) request.getPayload();
-        SyncTask answer = new SyncTask(cacheDirectory, DriveSettings.CACHE_LIST_SIZE);
-        answer.setCacheId(CachedData.randomId());
+        SyncTask answer = new SyncTask(cacheDirectory, CachedInitializer.randomId(),DriveSettings.CACHE_LIST_SIZE);
         Transaction transaction = T.lockingTransaction(T.read(driveDatabaseManager.getFsDao()));
         try {
             ISQLResource<GenericFSEntry> delta = driveDatabaseManager.getDeltaResource(task.getOldVersion());

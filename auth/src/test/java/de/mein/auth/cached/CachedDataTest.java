@@ -1,9 +1,7 @@
 package de.mein.auth.cached;
 
 import de.mein.Lok;
-import de.mein.auth.data.cached.CachedData;
-import de.mein.auth.data.cached.CachedIterable;
-import de.mein.auth.data.cached.CachedPart;
+import de.mein.auth.data.cached.*;
 import de.mein.auth.tools.F;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
@@ -38,15 +36,14 @@ public class CachedDataTest {
         }
     }
 
-    private CachedIterable<A> iterable;
-    private CachedIterable<A> emptyIterable;
+    private CachedList<A> iterable;
+    private CachedList<A> emptyIterable;
     private final File cacheDir = new File("cache.test");
     private final File cache1 = new File(cacheDir, "c1");
     private final File cache2 = new File(cacheDir, "c2");
     private final int PART_SIZE = 5;
     private final Long CACHE_ID = 666L;
     private Field partsMissedField;
-
 
 
     @Test
@@ -93,11 +90,9 @@ public class CachedDataTest {
         cacheDir.mkdirs();
         cache1.mkdirs();
         cache2.mkdirs();
-        iterable = new CachedIterable<>(cache1, PART_SIZE);
-        iterable.setCacheId(CACHE_ID);
-        emptyIterable = new CachedIterable<>(cache2, PART_SIZE);
-        emptyIterable.setCacheId(CACHE_ID);
-        partsMissedField = CachedData.class.getDeclaredField("partsMissed");
+        iterable = new CachedList<>(cache1, CACHE_ID, PART_SIZE);
+        emptyIterable = new CachedList<>(cache2, CACHE_ID, PART_SIZE);
+        partsMissedField = CachedInitializer.class.getDeclaredField("partsMissed");
         partsMissedField.setAccessible(true);
     }
 
@@ -156,7 +151,6 @@ public class CachedDataTest {
         assertTrue(partsMissed.isEmpty());
         Lok.debug("done");
     }
-
 
     @Test
     public void missingPartsRequested() throws Exception {

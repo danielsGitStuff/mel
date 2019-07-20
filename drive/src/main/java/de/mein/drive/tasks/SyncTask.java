@@ -2,9 +2,9 @@ package de.mein.drive.tasks;
 
 
 import de.mein.Lok;
+import de.mein.auth.data.cached.CachedList;
 import de.mein.auth.service.Bootloader;
 import de.mein.core.serialize.JsonIgnore;
-import de.mein.auth.data.cached.CachedIterable;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.StageSet;
@@ -16,7 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Created by xor on 10/27/16.
  */
-public class SyncTask extends CachedIterable<GenericFSEntry> {
+public class SyncTask extends CachedList<GenericFSEntry> {
     private long oldVersion;
     private Long newVersion;
     @JsonIgnore
@@ -25,8 +25,8 @@ public class SyncTask extends CachedIterable<GenericFSEntry> {
     private boolean retrieveMissingInformation = true;
     private StageSet stageSet;
 
-    public SyncTask(File cacheDir, int partSize) {
-        super(cacheDir, partSize);
+    public SyncTask(File cacheDir, Long cacheId, int partSize) {
+        super(cacheDir, cacheId, partSize);
         this.level = Bootloader.BootLevel.LONG;
     }
 

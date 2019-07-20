@@ -13,16 +13,16 @@ import java.util.Iterator;
 /**
  * Data structure which caches its elements to disk once it has reached its maximum size.
  */
-public class CachedIterable<T extends SerializableEntity> extends CachedData implements Iterable<T> {
+public class CachedList<T extends SerializableEntity> extends CachedInitializer<CachedListPart> implements Iterable<T> {
 
     private long size = 0;
 
 
-    public CachedIterable(File cacheDir, int partSize) {
-        super(cacheDir, partSize);
+    public CachedList(File cacheDir, long cacheId, int partSize) {
+        super(cacheDir, cacheId, partSize);
     }
 
-    public CachedIterable() {
+    public CachedList() {
     }
 
     public void add(T elem) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InstantiationException, InvocationTargetException {
@@ -54,7 +54,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
      * call this when done with adding all elements.
      */
     @Override
-    public void toDisk() throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    public void toDisk() throws JsonSerializationException, IOException {
         if (part == null) {
             this.part = new CachedListPart(cacheId, partCount, partSize);
         }
@@ -73,7 +73,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
                 File file = createCachedPartFile(i);
                 file.delete();
             } catch (Exception e) {
-                Lok.error("CachedIterable.cleanUp.err(cacheId= " + cacheId + " part= " + part + " cacheDir.null= " + (cacheDir == null) + ")");
+                Lok.error("CachedList.cleanUp.err(cacheId= " + cacheId + " part= " + part + " cacheDir.null= " + (cacheDir == null) + ")");
                 e.printStackTrace();
             }
         }
@@ -87,15 +87,14 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
             if (part != null && !part.isSerialized())
                 write(part);
             return new CachedIterator(this);
-        } catch (JsonSerializationException | IllegalAccessException | IOException | NoSuchMethodException
-                | InstantiationException | InvocationTargetException e) {
+        } catch (JsonSerializationException | IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
     @Override
-    public void onReceivedPart(CachedPart cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    public void onReceivedPart(CachedPart cachedPart) throws JsonSerializationException, IOException {
         if (cachedPart != null) {
             super.onReceivedPart(cachedPart);
             size += cachedPart.size();
@@ -115,7 +114,7 @@ public class CachedIterable<T extends SerializableEntity> extends CachedData imp
     public void loadFirstCached() throws IOException, JsonDeserializationException {
         if (partCount > 1) {
             File file = createCachedPartFile(1);
-            part = CachedPart.read(file);
+            part = (CachedListPart) CachedPart.read(file);
         }
     }
 }

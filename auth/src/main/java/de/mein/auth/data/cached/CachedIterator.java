@@ -10,13 +10,14 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 
-public class CachedIterator<T extends SerializableEntity> extends CachedData implements Iterator<T> {
+public class CachedIterator<T extends SerializableEntity>  implements Iterator<T> {
 
-    private CachedIterable iterable;
+    private int partCount;
+    private CachedList iterable;
     private int pos = 0;
     private Iterator<SerializableEntity> partIterator;
 
-    public CachedIterator(CachedIterable iterable) {
+    public CachedIterator(CachedList iterable) {
         this.iterable = iterable;
         partCount = 1;
     }
@@ -48,11 +49,5 @@ public class CachedIterator<T extends SerializableEntity> extends CachedData imp
             e.printStackTrace();
         }
         return null;
-    }
-
-    @Override
-    public void toDisk() throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        //nothing to do here
-        Lok.warn("this method has no purpose on an iterator. you probably wanted to call it on another object.");
     }
 }

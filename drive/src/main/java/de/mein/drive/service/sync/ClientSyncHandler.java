@@ -2,6 +2,7 @@ package de.mein.drive.service.sync;
 
 import de.mein.Lok;
 import de.mein.auth.data.cached.CachedData;
+import de.mein.auth.data.cached.CachedInitializer;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
@@ -73,8 +74,7 @@ public class ClientSyncHandler extends SyncHandler {
             Lok.debug("asking for new available hashes....");
             TransferDao transferDao = driveDatabaseManager.getTransferDao();
             ISQLResource<TransferDetails> transfers = transferDao.getNotStartedNotAvailableTransfers(driveSettings.getClientSettings().getServerCertId());
-            AvailableHashesContainer availableHashesTask = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
-            availableHashesTask.setCacheId(CachedData.randomId());
+            AvailableHashesContainer availableHashesTask = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE);
             availableHashesTask.setIntent(DriveStrings.INTENT_ASK_HASHES_AVAILABLE);
             N.readSqlResource(transfers, (sqlResource, transfer) -> {
                 availableHashesTask.add(new AvailHashEntry(transfer.getHash().v()));
@@ -169,10 +169,8 @@ public class ClientSyncHandler extends SyncHandler {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(clientSettings.getServerCertId());
                 connected.done(mvp -> transaction.run(() -> {
 // load to cached data structure
-                    Commit commit = new Commit(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE);
-                    commit.setCacheId(CachedData.randomId());
+                    Commit commit = new Commit(meinDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE, clientSettings.getServerServiceUuid());
                     N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
-                    commit.setServiceUuid(meinDriveService.getUuid());
                     commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
                     commit.setIntent(DriveStrings.INTENT_COMMIT);
                     Request committed = mvp.request(clientSettings.getServerServiceUuid(), commit);
@@ -637,10 +635,9 @@ public class ClientSyncHandler extends SyncHandler {
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
             StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), newVersion);
             //prepare cached answer
-            SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), DriveSettings.CACHE_LIST_SIZE)
+            SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE)
                     .setOldVersion(version);
 //            sentSyncTask.setServiceUuid(this.clientSettings.getServerServiceUuid());
-            sentSyncTask.setCacheId(CachedData.randomId());
             sentSyncTask.setIntent(DriveStrings.INTENT_SYNC);
             Request<SyncTask> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncTask);
             request.done(syncTask -> runner.runTry(() -> {
@@ -704,7 +701,7 @@ public class ClientSyncHandler extends SyncHandler {
         DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
         Map<Long, Long> entryIdStageIdMap = new HashMap<>();
         Order order = new Order();
-        syncTask.setCacheDirectory(meinDriveService.getCacheDirectory());
+        syncTask.setCacheDir(meinDriveService.getCacheDirectory());
         Iterator<GenericFSEntry> iterator = syncTask.iterator();
         if (!iterator.hasNext()) {
             syncTask.cleanUp();
