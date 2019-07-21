@@ -157,8 +157,8 @@ public class MeinAuthBrotCaster extends BrotCaster {
         Pattern pattern = Pattern.compile(disciverRegex);
         Matcher matcher = pattern.matcher(brotCast);
         if (matcher.matches()) {
-            if (brotCasterListener != null)
-                brotCasterListener.onHasAddress(packet.getAddress(), extractPort(brotCast), extractDeliveryPort(brotCast));
+//            if (brotCasterListener != null)
+//                brotCasterListener.onHasAddress(packet.getAddress(), extractPort(brotCast), extractDeliveryPort(brotCast));
             String answerString = meinAuthService.getSettings().getDiscoverAnswer();
             DatagramPacket answer = new DatagramPacket(answerString.getBytes(), answerString.getBytes().length, packet.getAddress(), packet.getPort());
             socket.send(answer);
