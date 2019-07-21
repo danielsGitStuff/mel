@@ -370,7 +370,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 FsBashDetails subDirDetails = bashDetailsMap.get(subDir.getName()); //BashTools.getFsBashDetails(subDir);
                 stuffToDelete.remove(subDir.getName());
                 if (subDirDetails == null)
-                    Lok.debug("could not find bashdetails for: "+subDir.getAbsolutePath());
+                    Lok.debug("could not find bashdetails for: " + subDir.getAbsolutePath());
 
                 // if symlink, remove everything further down in the db file tree and skip the rest
                 if (subDirDetails.isSymLink()) {
@@ -493,6 +493,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             if (stage.getDeletedPair().equalsValue(true))
                 return;
 
+            FsEntry fsEntry = null;
+            if (stage.getFsIdPair().notNull())
+                fsEntry = fsDao.getFile(stage.getFsId());
             if (!fastBooting
                     || stage.getContentHashPair().isNull()
                     || stage.getiNodePair().isNull()
@@ -509,7 +512,16 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     stage.setContentHash("0");
                 } else {
                     stage.setSize(stageFile.length());
-                    stage.setContentHash(Hash.md5(stageFile.inputStream()));
+                    stage.setModified(fsBashDetails.getModified());
+                    stage.setiNode(fsBashDetails.getiNode());
+                    if (fastBooting && fsEntry != null
+                            && fsEntry.getModified().equalsValue(fsBashDetails.getModified())
+                            && fsEntry.getiNode().equalsValue(fsBashDetails.getiNode())) {
+                        // assume that nothing changed
+                        stage.setContentHash(fsEntry.getContentHash().v());
+                    } else {
+                        stage.setContentHash(Hash.md5(stageFile.inputStream()));
+                    }
                 }
                 stage.setiNode(fsBashDetails.getiNode());
                 stage.setModified(fsBashDetails.getModified());
@@ -522,9 +534,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 timer2.start();
 
             // stage can be deleted if nothing changed
-            if (stage.getFsId() != null) {
-                FsEntry fsEntry = fsDao.getFile(stage.getFsId());
-                if (fsEntry.getContentHash().v().equals(stage.getContentHash()))
+            if (fsEntry != null) {
+                if (fsEntry.getContentHash().v().equals(stage.getContentHash())
+                        && fsEntry.getiNode().equalsValue(stage.getContentHash())
+                        && fsEntry.getModified().equalsValue(stage.getModified())
+                        && fsEntry.getSize().equalsValue(stage.getSize()))
                     stageDao.deleteStageById(stage.getId());
                 else {
                     if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
