@@ -700,7 +700,7 @@ public class ClientSyncHandler extends SyncHandler {
         DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
         Map<Long, Long> entryIdStageIdMap = new HashMap<>();
         Order order = new Order();
-        syncAnswer.setCacheDir(meinDriveService.getCacheDirectory());
+//        syncAnswer.setCacheDir(meinDriveService.getCacheDirectory());
         Iterator<GenericFSEntry> iterator = syncAnswer.iterator();
         if (!iterator.hasNext()) {
             syncAnswer.cleanUp();

@@ -35,7 +35,7 @@ public abstract class MeinProcess implements IRequestHandler {
 
     protected void send(SerializableEntity meinMessage) throws JsonSerializationException {
         String json = SerializableEntitySerializer.serialize(meinMessage);
-       Lok.debug(meinAuthSocket.getMeinAuthService().getName() + ".send: " + json);
+//       Lok.debug(meinAuthSocket.getMeinAuthService().getName() + ".send: " + json);
         meinAuthSocket.send(json);
     }
 

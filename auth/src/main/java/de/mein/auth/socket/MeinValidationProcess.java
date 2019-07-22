@@ -88,12 +88,17 @@ public class MeinValidationProcess extends MeinProcess {
 
     @Override
     public synchronized void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) throws IOException, MeinJsonException {
+//todo debug
+        if (deserialized.getClass().getSimpleName().toLowerCase().equals("cachedlistpart")) {
+            Lok.debug();
+        }
 
         if (!handleCached(deserialized) && !handleAnswer(deserialized)) {
             try {
                 if (!handleGetServices(deserialized)) {
                     if (!handleServiceInteraction(deserialized)) {
                         Lok.debug("MeinValidationProcess.onMessageReceived.something exploded here :/");
+                        handleServiceInteraction(deserialized);
                     }
                 }
             } catch (Exception e) {
@@ -123,9 +128,11 @@ public class MeinValidationProcess extends MeinProcess {
                 cachedStateMessages.put(initializer.getCacheId(), stateMsg);
                 // set it up correctly
                 initializer.setCacheDir(meinAuthSocket.getMeinAuthService().getCacheDir());
-                initializer.initPartsMissed();
-                if (initializer.getPart() != null) {
-                    initializer.onReceivedPart(initializer.getPart());
+                if (!initializer.isComplete()) {
+                    initializer.initPartsMissed();
+                    if (initializer.getPart() != null) {
+                        initializer.onReceivedPart(initializer.getPart());
+                    }
                 }
                 if (initializer.isComplete()) {
                     // clean up and deal with the message
@@ -334,6 +341,12 @@ public class MeinValidationProcess extends MeinProcess {
 //        }
 //    }
     private boolean handleServiceInteraction(SerializableEntity deserialized) throws SqlQueriesException {
+        if (deserialized instanceof StateMsg) {
+            StateMsg st = (StateMsg) deserialized;
+            if (st.getPayload() instanceof CachedInitializer) {
+                Lok.debug();
+            }
+        }
         if (deserialized instanceof MeinMessage) {
             MeinMessage message = (MeinMessage) deserialized;
             ServicePayload payload = message.getPayload();

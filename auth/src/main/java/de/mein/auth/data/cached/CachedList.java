@@ -1,6 +1,7 @@
 package de.mein.auth.data.cached;
 
 import de.mein.Lok;
+import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -14,7 +15,7 @@ import java.util.Iterator;
  * Data structure which caches its elements to disk once it has reached its maximum size.
  */
 public class CachedList<T extends SerializableEntity> extends CachedInitializer<CachedListPart> implements Iterable<T> {
-
+    @JsonIgnore
     private long size = 0;
 
 
