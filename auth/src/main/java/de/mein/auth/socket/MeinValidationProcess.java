@@ -18,6 +18,7 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.exceptions.MeinJsonException;
 import de.mein.sql.SqlQueriesException;
+
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.IOException;
@@ -143,6 +144,9 @@ public class MeinValidationProcess extends MeinProcess {
         } else if (deserialized instanceof AbstractCachedMessage) {
             AbstractCachedMessage cachedMessage = (AbstractCachedMessage) deserialized;
             Long cacheId = cachedMessage.getCacheId();
+            //todo debug
+            if (cacheId == null)
+                Lok.debug();
             if (cachedMessage instanceof CachedRequest) {
                 // partner asks for a cached part
                 if (cachedForSending.containsKey(cacheId)) {
@@ -396,7 +400,7 @@ public class MeinValidationProcess extends MeinProcess {
                     return true;
                 }
                 // clean up if it was cached
-                if (deserialized.getPayload() instanceof CachedInitializer){
+                if (deserialized.getPayload() instanceof CachedInitializer) {
                     CachedInitializer initializer = (CachedInitializer) deserialized.getPayload();
                     initializer.cleanUp();
                 }

@@ -12,7 +12,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 public abstract class CachedPart extends AbstractCachedMessage {
-    private Long cacheId;
     private int partNumber;
     private boolean serialized = false;
     private int size = 0;
