@@ -256,7 +256,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     return;
 
                 } else {
-                    stageDao.deleteStageById(stage.getId());
+                    stageDao.markRemoved(stage.getId());
+//                    stageDao.deleteStageById(stage.getId());
                     return;
                 }
             } else {
@@ -381,14 +382,16 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 if (subDirDetails.isSymLink()) {
                     if (!databaseManager.getDriveSettings().getUseSymLinks()) {
                         if (subStage != null)
-                            stageDao.deleteStageById(subStage.getId());
+                            stageDao.markRemoved(subStage.getId());
+//                            stageDao.deleteStageById(subStage.getId());
                         continue;
                     }
                     if (isValidSymLink(subDir, subDirDetails)) {
                         Lok.debug("debug");
                     } else {
                         if (subStage != null)
-                            stageDao.deleteStageById(subStage.getId());
+                            stageDao.markRemoved(subStage.getId());
+//                            stageDao.deleteStageById(subStage.getId());
                     }
                     continue;
                 }
@@ -544,17 +547,20 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                         && fsEntry.getiNode().equalsValue(stage.getContentHash())
                         && fsEntry.getModified().equalsValue(stage.getModified())
                         && fsEntry.getSize().equalsValue(stage.getSize()))
-                    stageDao.deleteStageById(stage.getId());
+                    stageDao.markRemoved(stage.getId());
+//                    stageDao.deleteStageById(stage.getId());
                 else {
                     if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
-                        stageDao.deleteStageById(stage.getId());
+                        stageDao.markRemoved(stage.getId());
+//                        stageDao.deleteStageById(stage.getId());
                     } else {
                         stageDao.update(stage);
                     }
                 }
             } else {
                 if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
-                    stageDao.deleteStageById(stage.getId());
+                    stageDao.markRemoved(stage.getId());
+//                    stageDao.deleteStageById(stage.getId());
                 } else {
                     stageDao.update(stage);
                 }

@@ -295,7 +295,7 @@ public class ClientSyncHandler extends SyncHandler {
                 return;
             } else if (stagedFromFs.size() > 1) {
                 // merge again
-                meinDriveService.addJob(new CommitJob());
+                meinDriveServichttps://pr0gramm.com/tope.addJob(new CommitJob());
                 return;
             } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
                 syncFromServer(null);
@@ -466,11 +466,13 @@ public class ClientSyncHandler extends SyncHandler {
                             deleteStage = true;
                     }
                     if (deleteStage)
-                        stageDao.deleteStageById(stage.getId());
+                        stageDao.markRemoved(stage.getId());
+//                        stageDao.deleteStageById(stage.getId());
                 }
                 stage = stages.getNext();
             }
         });
+        stageDao.deleteMarkedForRemoval(stageSetId);
     }
 
     /**

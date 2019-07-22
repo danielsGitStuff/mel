@@ -2,7 +2,10 @@ package de.mein.android.sql;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteCursor;
+import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQuery;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -49,7 +52,7 @@ public class AndroidSQLQueries extends ISQLQueries {
     @Override
     public <T extends SQLTableObject> ISQLResource<T> loadResource(List<Pair<?>> columns, Class<T> clazz, String where, List<Object> whereArgs) throws SqlQueriesException {
         String query = ISQLQueries.buildQueryFrom(columns, clazz, where);
-        Cursor cursor = db.rawQuery(query, this.argsToStringArgs(whereArgs));
+        SQLiteCursor cursor = (SQLiteCursor) db.rawQuery(query, this.argsToStringArgs(whereArgs));
         AndroidSQLResource<T> resource = new AndroidSQLResource<>(cursor, clazz);
         return resource;
     }
@@ -281,7 +284,7 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     @Override
     public <T extends SQLTableObject> ISQLResource<T> loadQueryResource(String query, List<Pair<?>> allAttributes, Class<T> clazz, List<Object> args) {
-        Cursor cursor = db.rawQuery(query, this.argsToStringArgs(args));
+        SQLiteCursor cursor = (SQLiteCursor) db.rawQuery(query, this.argsToStringArgs(args));
         AndroidSQLResource<T> resource = new AndroidSQLResource<>(cursor, clazz);
         return resource;
     }

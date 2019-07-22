@@ -22,7 +22,6 @@ public class PathCollection {
 
     public PathCollection addPath(AFile file) {
         if (!pathSet.contains(file.getAbsolutePath())) {
-            Lok.debug("PathCollection.addPath: "+file);
             paths.add(file);
             pathSet.add(file.getAbsolutePath());
         }

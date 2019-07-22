@@ -214,7 +214,7 @@ open class BashToolsUnix : BashToolsImpl {
         val iterator = BashTools.inputStreamToFileIterator(proc.inputStream)
         while (iterator.hasNext()) {
             val path = iterator.next()
-            Lok.debug(javaClass.simpleName + ".stuffModifiedAfter.collected: " + path)
+//            Lok.debug(javaClass.simpleName + ".stuffModifiedAfter.collected: " + path)
             result.add(path)
         }
         Lok.debug("BashTools.stuffModifiedAfter.collecting.done")

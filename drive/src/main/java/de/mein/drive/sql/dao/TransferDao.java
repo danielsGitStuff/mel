@@ -1,5 +1,8 @@
 package de.mein.drive.sql.dao;
 
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
+
 import de.mein.Lok;
 import de.mein.auth.data.db.MissingHash;
 import de.mein.auth.tools.N;
@@ -27,11 +30,19 @@ public class TransferDao extends Dao {
     }
 
     public void insert(TransferDetails transferDetails) throws SqlQueriesException {
-        //todo debug
-        if (transferDetails.getHash().equalsValue("238810397cd86edae7957bca350098bc"))
-            Lok.warn("debug");
-        Long id = sqlQueries.insert(transferDetails);
-        transferDetails.getId().v(id);
+        try {
+            Long id = sqlQueries.insert(transferDetails);
+            transferDetails.getId().v(id);
+        } catch (SqlQueriesException sqlQueriesException) {
+            // non unique transfers happen quite often and thats normal. don't fill the logs with that.
+            if (sqlQueriesException.getException() instanceof SQLiteException) {
+                SQLiteException sqLiteException = (SQLiteException) sqlQueriesException.getException();
+                if (sqLiteException.getResultCode() != SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
+                    throw sqlQueriesException;
+
+            }
+        }
+
     }
 
     public TransferDetails getOneTransfer() throws SqlQueriesException {
