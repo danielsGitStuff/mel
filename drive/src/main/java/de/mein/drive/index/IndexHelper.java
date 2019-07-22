@@ -122,7 +122,8 @@ public class IndexHelper {
                             .setName(part.getName())
                             .setIsDirectory(true)
                             .setStageSet(stageSetId)
-                            .setOrder(order.ord());
+                            .setOrder(order.ord())
+                            .setRelativePath(targetPath.substring(rootPathLength));
                 }
                 stageToAdd.setDeleted(!part.exists());
 
@@ -156,7 +157,8 @@ public class IndexHelper {
                         .setName(fsRoot.getName().v())
                         .setIsDirectory(true)
                         .setOrder(order.ord())
-                        .setDeleted(false);
+                        .setDeleted(false)
+                .setRelativePath(targetPath.substring(rootPathLength));
             });
             stageDao.insert(stageToAdd);
             stageStack.push(stageToAdd);

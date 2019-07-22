@@ -30,6 +30,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     protected final StageDao stageDao;
     protected final FsDao fsDao;
     private final String serviceName;
+    private final int rootPathLength;
     protected StageSet stageSet;
     protected Long stageSetId;
     private Order order = new Order();
@@ -42,6 +43,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         this.stageDao = databaseManager.getStageDao();
         this.fsDao = databaseManager.getFsDao();
         this.serviceName = databaseManager.getMeinDriveService().getRunnableName();
+        this.rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
     }
 
     @Override
@@ -205,6 +207,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             if (stage.getIsDirectory()) {
                 indexWatchdogListener.watchDirectory(f);
             }
+            // relative path speeds up conflict lookup vastly
+            stage.setRelativePath(f.getCanonicalPath().substring(rootPathLength));
             stage.setOrder(order.ord());
             stageDao.insert(stage);
             timerInternal2.stop();
@@ -336,7 +340,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                             .setFsParentId(stage.getFsId())
                             .setStageSet(stageSetId)
                             .setDeleted(false)
-                            .setOrder(order.ord());
+                            .setOrder(order.ord())
+                            .setRelativePath(subFile.getAbsolutePath().substring(rootPathLength));
 
                     FsBashDetails subFsBashDetails = bashDetailsMap.get(subFile.getName());
                     if (subFsBashDetails == null)
