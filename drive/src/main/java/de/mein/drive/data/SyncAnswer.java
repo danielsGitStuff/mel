@@ -1,5 +1,9 @@
-package de.mein.drive.tasks;
+package de.mein.drive.data;
 
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import de.mein.Lok;
 import de.mein.auth.data.cached.CachedList;
@@ -9,14 +13,10 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.StageSet;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * Created by xor on 10/27/16.
  */
-public class SyncTask extends CachedList<GenericFSEntry> {
+public class SyncAnswer extends CachedList<GenericFSEntry> {
     private long oldVersion;
     private Long newVersion;
     @JsonIgnore
@@ -25,7 +25,7 @@ public class SyncTask extends CachedList<GenericFSEntry> {
     private boolean retrieveMissingInformation = true;
     private StageSet stageSet;
 
-    public SyncTask(File cacheDir, Long cacheId, int partSize) {
+    public SyncAnswer(File cacheDir, Long cacheId, int partSize) {
         super(cacheDir, cacheId, partSize);
         this.level = Bootloader.BootLevel.LONG;
     }
@@ -35,7 +35,7 @@ public class SyncTask extends CachedList<GenericFSEntry> {
         super.add(elem);
     }
 
-    public SyncTask() {
+    public SyncAnswer() {
         Lok.debug("debug");
         this.level = Bootloader.BootLevel.LONG;
     }
@@ -44,17 +44,17 @@ public class SyncTask extends CachedList<GenericFSEntry> {
         return stageSetId;
     }
 
-    public SyncTask setStageSetId(Long stageSetId) {
+    public SyncAnswer setStageSetId(Long stageSetId) {
         this.stageSetId = stageSetId;
         return this;
     }
 
-    public SyncTask setOldVersion(long oldVersion) {
+    public SyncAnswer setOldVersion(long oldVersion) {
         this.oldVersion = oldVersion;
         return this;
     }
 
-    public SyncTask setNewVersion(long newVersion) {
+    public SyncAnswer setNewVersion(long newVersion) {
         this.newVersion = newVersion;
         return this;
     }
@@ -63,7 +63,7 @@ public class SyncTask extends CachedList<GenericFSEntry> {
         return newVersion;
     }
 
-    public SyncTask setRetrieveMissingInformation(boolean retrieveMissingInformation) {
+    public SyncAnswer setRetrieveMissingInformation(boolean retrieveMissingInformation) {
         this.retrieveMissingInformation = retrieveMissingInformation;
         return this;
     }

@@ -3,7 +3,6 @@ package de.mein.drive.service;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.data.ClientData;
-import de.mein.auth.data.cached.CachedData;
 import de.mein.auth.data.cached.CachedInitializer;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
@@ -16,13 +15,13 @@ import de.mein.core.serialize.SerializableEntity;
 import de.mein.drive.data.DriveDetails;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.data.SyncAnswer;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.service.sync.ServerSyncHandler;
-import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.GenericFSEntry;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
-import de.mein.drive.tasks.SyncTask;
+import de.mein.drive.tasks.SyncRequest;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
@@ -54,8 +53,8 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     @Override
     protected void onSyncReceived(Request request) {
         Lok.debug("MeinDriveServerService.onSyncReceived");
-        SyncTask task = (SyncTask) request.getPayload();
-        SyncTask answer = new SyncTask(cacheDirectory, CachedInitializer.randomId(),DriveSettings.CACHE_LIST_SIZE);
+        SyncRequest task = (SyncRequest) request.getPayload();
+        SyncAnswer answer = new SyncAnswer(cacheDirectory,CachedInitializer.randomId(),DriveSettings.CACHE_LIST_SIZE);
         Transaction transaction = T.lockingTransaction(T.read(driveDatabaseManager.getFsDao()));
         try {
             ISQLResource<GenericFSEntry> delta = driveDatabaseManager.getDeltaResource(task.getOldVersion());

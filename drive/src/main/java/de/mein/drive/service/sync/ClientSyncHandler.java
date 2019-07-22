@@ -1,7 +1,6 @@
 package de.mein.drive.service.sync;
 
 import de.mein.Lok;
-import de.mein.auth.data.cached.CachedData;
 import de.mein.auth.data.cached.CachedInitializer;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.file.AFile;
@@ -26,7 +25,7 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.drive.tasks.AvailHashEntry;
 import de.mein.drive.tasks.AvailableHashesContainer;
-import de.mein.drive.tasks.SyncTask;
+import de.mein.drive.tasks.SyncRequest;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
@@ -635,18 +634,18 @@ public class ClientSyncHandler extends SyncHandler {
             long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
             StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), newVersion);
             //prepare cached answer
-            SyncTask sentSyncTask = new SyncTask(meinDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE)
+            SyncRequest sentSyncRequest = new SyncRequest()
                     .setOldVersion(version);
-//            sentSyncTask.setServiceUuid(this.clientSettings.getServerServiceUuid());
-            sentSyncTask.setIntent(DriveStrings.INTENT_SYNC);
-            Request<SyncTask> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncTask);
-            request.done(syncTask -> runner.runTry(() -> {
+//            sentSyncRequest.setServiceUuid(this.clientSettings.getServerServiceUuid());
+            sentSyncRequest.setIntent(DriveStrings.INTENT_SYNC);
+            Request<SyncAnswer> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncRequest);
+            request.done(syncAnswer -> runner.runTry(() -> {
                 try {
-                    syncTask.setStageSet(stageSet);
+                    syncAnswer.setStageSet(stageSet);
                     //server might have gotten a new version in the mean time and sent us that
-                    stageSet.setVersion(syncTask.getNewVersion());
+                    stageSet.setVersion(syncAnswer.getNewVersion());
                     stageDao.updateStageSet(stageSet);
-                    Promise<Long, Void, Void> promise = this.sync2Stage(syncTask);
+                    Promise<Long, Void, Void> promise = this.sync2Stage(syncAnswer);
                     promise.done(nil -> runner.runTry(() -> {
                         try {
                             meinDriveService.addJob(new CommitJob());
@@ -692,24 +691,24 @@ public class ClientSyncHandler extends SyncHandler {
     /**
      * delta goes in here
      *
-     * @param syncTask contains delta
+     * @param syncAnswer contains delta
      * @return stageSetId in Promise
      * @throws SqlQueriesException
      */
-    private Promise<Long, Void, Void> sync2Stage(SyncTask syncTask) throws SqlQueriesException, InterruptedException {
+    private Promise<Long, Void, Void> sync2Stage(SyncAnswer syncAnswer) throws SqlQueriesException, InterruptedException {
         DeferredObject<Void, Void, Void> communicationDone = new DeferredObject<>();
         DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
         Map<Long, Long> entryIdStageIdMap = new HashMap<>();
         Order order = new Order();
-        syncTask.setCacheDir(meinDriveService.getCacheDirectory());
-        Iterator<GenericFSEntry> iterator = syncTask.iterator();
+        syncAnswer.setCacheDir(meinDriveService.getCacheDirectory());
+        Iterator<GenericFSEntry> iterator = syncAnswer.iterator();
         if (!iterator.hasNext()) {
-            syncTask.cleanUp();
+            syncAnswer.cleanUp();
             finished.reject(null);
             return finished;
         }
-        StageSet stageSet = syncTask.getStageSet();
-        syncTask.setStageSetId(stageSet.getId().v());
+        StageSet stageSet = syncAnswer.getStageSet();
+        syncAnswer.setStageSetId(stageSet.getId().v());
         // stage first
         while (iterator.hasNext()) {
             GenericFSEntry genericFSEntry = iterator.next();
@@ -717,7 +716,7 @@ public class ClientSyncHandler extends SyncHandler {
             stage.setOrder(order.ord());
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
-        syncTask.cleanUp();
+        syncAnswer.cleanUp();
         // check if something was deleted
         List<Stage> stages = stageDao.getDirectoriesByStageSet(stageSet.getId().v());
         Map<Long, FsDirectory> fsDirIdsToRetrieve = new HashMap<>();

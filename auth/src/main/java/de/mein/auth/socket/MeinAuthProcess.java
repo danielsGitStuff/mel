@@ -257,6 +257,7 @@ public class MeinAuthProcess extends MeinProcess {
             });
             send(request);
         } catch (Exception e) {
+            Lok.error("Exception occured: " + e.toString() + " v=" + meinAuthSocket.getV());
             job.getPromise().reject(e);
         }
     }
