@@ -92,7 +92,7 @@ public class MeinValidationProcess extends MeinProcess {
         if (!handleCached(deserialized) && !handleAnswer(deserialized)) {
             try {
                 if (!handleGetServices(deserialized)) {
-                    if (!handleServiceInteraction((StateMsg) deserialized)) {
+                    if (!handleServiceInteraction(deserialized)) {
                         Lok.debug("MeinValidationProcess.onMessageReceived.something exploded here :/");
                     }
                 }
@@ -333,7 +333,7 @@ public class MeinValidationProcess extends MeinProcess {
 //            return true;
 //        }
 //    }
-    private boolean handleServiceInteraction(StateMsg deserialized) throws SqlQueriesException {
+    private boolean handleServiceInteraction(SerializableEntity deserialized) throws SqlQueriesException {
         if (deserialized instanceof MeinMessage) {
             MeinMessage message = (MeinMessage) deserialized;
             ServicePayload payload = message.getPayload();
@@ -400,9 +400,12 @@ public class MeinValidationProcess extends MeinProcess {
                     return true;
                 }
                 // clean up if it was cached
-                if (deserialized.getPayload() instanceof CachedInitializer) {
-                    CachedInitializer initializer = (CachedInitializer) deserialized.getPayload();
-                    initializer.cleanUp();
+                if (deserialized instanceof StateMsg) {
+                    StateMsg stateMsg = (StateMsg) deserialized;
+                    if (stateMsg.getPayload() instanceof CachedInitializer) {
+                        CachedInitializer initializer = (CachedInitializer) stateMsg.getPayload();
+                        initializer.cleanUp();
+                    }
                 }
             }
         } else if (deserialized instanceof MeinResponse) {
@@ -450,7 +453,8 @@ public class MeinValidationProcess extends MeinProcess {
         return meinAuthSocket.getMeinAuthService().getDatabaseManager().isApproved(partnerCertificate.getId().v(), service.getId().v());
     }
 
-    private boolean handleGetServices(SerializableEntity deserialized) throws JsonSerializationException, IllegalAccessException, SqlQueriesException {
+    private boolean handleGetServices(SerializableEntity deserialized) throws
+            JsonSerializationException, IllegalAccessException, SqlQueriesException {
         if (deserialized instanceof MeinRequest) {
             MeinRequest request = (MeinRequest) deserialized;
             ServicePayload payload = request.getPayload();
@@ -475,7 +479,8 @@ public class MeinValidationProcess extends MeinProcess {
 //    }
 
 
-    protected void send(SerializableEntity serializableEntity) throws JsonSerializationException {
+    protected void send(SerializableEntity serializableEntity) throws
+            JsonSerializationException {
         if (serializableEntity instanceof MeinMessage) {
             ServicePayload payload = ((MeinMessage) serializableEntity).getPayload();
             if (payload instanceof CachedInitializer) {
@@ -486,7 +491,8 @@ public class MeinValidationProcess extends MeinProcess {
         super.send(serializableEntity);
     }
 
-    public Request request(String serviceUuid, ServicePayload payload) throws JsonSerializationException {
+    public Request request(String serviceUuid, ServicePayload payload) throws
+            JsonSerializationException {
         meinAuthSocket.getMeinAuthService().getPowerManager().wakeLock(MeinValidationProcess.this);
         Request promise = new Request().setServiceUuid(serviceUuid);
         MeinRequest request = new MeinRequest(serviceUuid, null);
@@ -541,7 +547,8 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
-    public void message(String serviceUuid, ServicePayload payload) throws JsonSerializationException, IllegalAccessException {
+    public void message(String serviceUuid, ServicePayload payload) throws
+            JsonSerializationException, IllegalAccessException {
         MeinMessage message = new MeinMessage(serviceUuid, null).setPayLoad(payload);
         send(message);
     }
