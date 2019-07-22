@@ -91,7 +91,7 @@ public class MeinValidationProcess extends MeinProcess {
         if (!handleCached(deserialized) && !handleAnswer(deserialized)) {
             try {
                 if (!handleGetServices(deserialized)) {
-                    if (!handleServiceInteraction(deserialized)) {
+                    if (!handleServiceInteraction((StateMsg) deserialized)) {
                         Lok.debug("MeinValidationProcess.onMessageReceived.something exploded here :/");
                     }
                 }
@@ -131,10 +131,14 @@ public class MeinValidationProcess extends MeinProcess {
                     cachedForRequesting.remove(initializer.getCacheId());
                     cachedStateMessages.remove(initializer.getCacheId());
                     send(new CachedDoneMessage().setCacheId(initializer.getCacheId()));
-                    onMessageReceived(deserialized, meinAuthSocket);
-                    initializer.cleanUp();
+//                    onMessageReceived(deserialized, meinAuthSocket);
+//                    initializer.cleanUp();
+                    return false;
+                } else {
+                    // ask for more
+                    send(new CachedRequest().setPartNumber(initializer.getNextPartNumber()).setCacheId(initializer.getCacheId()));
+                    return true;
                 }
-                return true;
             }
         } else if (deserialized instanceof AbstractCachedMessage) {
             AbstractCachedMessage cachedMessage = (AbstractCachedMessage) deserialized;
@@ -165,7 +169,7 @@ public class MeinValidationProcess extends MeinProcess {
                         cachedForRequesting.remove(cacheId);
                         StateMsg stateMsg = cachedStateMessages.get(cacheId);
                         send(new CachedDoneMessage().setCacheId(cacheId));
-                        onMessageReceived(stateMsg,meinAuthSocket);
+                        onMessageReceived(stateMsg, meinAuthSocket);
                         return false;
                     } else {
                         send(new CachedRequest().setCacheId(cacheId).setPartNumber(initializer.getNextPartNumber()));
@@ -325,7 +329,7 @@ public class MeinValidationProcess extends MeinProcess {
 //            return true;
 //        }
 //    }
-    private boolean handleServiceInteraction(SerializableEntity deserialized) throws SqlQueriesException {
+    private boolean handleServiceInteraction(StateMsg deserialized) throws SqlQueriesException {
         if (deserialized instanceof MeinMessage) {
             MeinMessage message = (MeinMessage) deserialized;
             ServicePayload payload = message.getPayload();
@@ -390,6 +394,11 @@ public class MeinValidationProcess extends MeinProcess {
                     MeinMessage meinMessage = (MeinMessage) deserialized;
                     meinService.handleMessage(meinMessage.getPayload(), this.partnerCertificate);
                     return true;
+                }
+                // clean up if it was cached
+                if (deserialized.getPayload() instanceof CachedInitializer){
+                    CachedInitializer initializer = (CachedInitializer) deserialized.getPayload();
+                    initializer.cleanUp();
                 }
             }
         } else if (deserialized instanceof MeinResponse) {
