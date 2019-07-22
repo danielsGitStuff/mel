@@ -98,7 +98,6 @@ public class MeinValidationProcess extends MeinProcess {
                 if (!handleGetServices(deserialized)) {
                     if (!handleServiceInteraction(deserialized)) {
                         Lok.debug("MeinValidationProcess.onMessageReceived.something exploded here :/");
-                        handleServiceInteraction(deserialized);
                     }
                 }
             } catch (Exception e) {
@@ -341,12 +340,6 @@ public class MeinValidationProcess extends MeinProcess {
 //        }
 //    }
     private boolean handleServiceInteraction(SerializableEntity deserialized) throws SqlQueriesException {
-        if (deserialized instanceof StateMsg) {
-            StateMsg st = (StateMsg) deserialized;
-            if (st.getPayload() instanceof CachedInitializer) {
-                Lok.debug();
-            }
-        }
         if (deserialized instanceof MeinMessage) {
             MeinMessage message = (MeinMessage) deserialized;
             ServicePayload payload = message.getPayload();

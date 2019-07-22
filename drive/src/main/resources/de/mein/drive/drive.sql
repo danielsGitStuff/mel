@@ -38,6 +38,7 @@ CREATE TABLE stage
     fsid        INTEGER,
     name        TEXT,
     fsparentid  INTEGER,
+    path TEXT not null,
     rem         INTEGER,
     version     INTEGER,
     contenthash TEXT,

@@ -28,6 +28,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private static final String ORDER = "ord";
     private static final String REMOVE = "rem";
     private static final String SYMLINK = "sym";
+    private static final String REL_PATH = "path";
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> parentId = new Pair<>(Long.class, PARENTID);
     private Pair<Long> fsId = new Pair<>(Long.class, FSID);
@@ -52,6 +53,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     @JsonIgnore
     private Pair<Boolean> remove = new Pair<>(Boolean.class, REMOVE);
     private Pair<String> symLink = new Pair<>(String.class, SYMLINK);
+    @JsonIgnore
+    private Pair<String> relativePath = new Pair<>(String.class, REL_PATH);
 
 
     public Stage() {
@@ -65,7 +68,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, deleted, stageSet, size, synced, merged, order);
+        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, deleted, stageSet, size, synced, merged, order, relativePath);
         populateAll(id);
     }
 
@@ -75,6 +78,19 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public Stage setId(Long id) {
         this.id.v(id);
+        return this;
+    }
+
+    public Pair<String> getRelativePathPair() {
+        return relativePath;
+    }
+
+    public String getRelativePath() {
+        return relativePath.v();
+    }
+
+    public Stage setRelativePath(String relativePath) {
+        this.relativePath.v(relativePath);
         return this;
     }
 
