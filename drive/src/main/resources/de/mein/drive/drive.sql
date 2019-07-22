@@ -38,7 +38,6 @@ CREATE TABLE stage
     fsid        INTEGER,
     name        TEXT,
     fsparentid  INTEGER,
-    path        TEXT    not null,
     rem         INTEGER,
     version     INTEGER,
     contenthash TEXT,
@@ -88,8 +87,6 @@ CREATE INDEX sstagelookup1
     ON stage (stageset, parentid);
 CREATE INDEX sssssesion
     ON stage (stageSet);
-create index sspath
-    on stage (path);
 CREATE TABLE transfer
 (
     id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

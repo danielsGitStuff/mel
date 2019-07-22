@@ -208,7 +208,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 indexWatchdogListener.watchDirectory(f);
             }
             // relative path speeds up conflict lookup vastly
-            stage.setRelativePath(f.getCanonicalPath().substring(rootPathLength));
+//            stage.setRelativePath(f.getCanonicalPath().substring(rootPathLength));
             stage.setOrder(order.ord());
             stageDao.insert(stage);
             timerInternal2.stop();
@@ -340,8 +340,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                             .setFsParentId(stage.getFsId())
                             .setStageSet(stageSetId)
                             .setDeleted(false)
-                            .setOrder(order.ord())
-                            .setRelativePath(subFile.getAbsolutePath().substring(rootPathLength));
+                            .setOrder(order.ord());
+//                            .setRelativePath(subFile.getAbsolutePath().substring(rootPathLength));
 
                     FsBashDetails subFsBashDetails = bashDetailsMap.get(subFile.getName());
                     if (subFsBashDetails == null)

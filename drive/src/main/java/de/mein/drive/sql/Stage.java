@@ -53,8 +53,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     @JsonIgnore
     private Pair<Boolean> remove = new Pair<>(Boolean.class, REMOVE);
     private Pair<String> symLink = new Pair<>(String.class, SYMLINK);
-    @JsonIgnore
-    private Pair<String> relativePath = new Pair<>(String.class, REL_PATH);
+//    @JsonIgnore
+//    private Pair<String> relativePath = new Pair<>(String.class, REL_PATH);
 
 
     public Stage() {
@@ -68,7 +68,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, deleted, stageSet, size, synced, merged, order, relativePath);
+        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, deleted, stageSet, size, synced, merged, order);
         populateAll(id);
     }
 
@@ -81,18 +81,18 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         return this;
     }
 
-    public Pair<String> getRelativePathPair() {
-        return relativePath;
-    }
-
-    public String getRelativePath() {
-        return relativePath.v();
-    }
-
-    public Stage setRelativePath(String relativePath) {
-        this.relativePath.v(relativePath);
-        return this;
-    }
+//    public Pair<String> getRelativePathPair() {
+//        return relativePath;
+//    }
+//
+//    public String getRelativePath() {
+//        return relativePath.v();
+//    }
+//
+//    public Stage setRelativePath(String relativePath) {
+//        this.relativePath.v(relativePath);
+//        return this;
+//    }
 
     public Boolean isMerged() {
         return merged.v();

@@ -133,6 +133,9 @@ StageDao extends Dao.LockingDao {
         return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, ISQLQueries.whereArgs(stageSetId, false));
     }
 
+
+
+    @Deprecated
     public AFile getFileByStage(Stage stage) throws SqlQueriesException {
         if (stage.getName().equals("samesub1.txt")) // todo debug
             System.err.println("StageDao.getFileByStage.debug 34234234");

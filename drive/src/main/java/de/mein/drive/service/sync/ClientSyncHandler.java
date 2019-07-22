@@ -12,6 +12,7 @@ import de.mein.auth.tools.Order;
 import de.mein.auth.tools.WaitLock;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
+import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.*;
 import de.mein.drive.data.conflict.ConflictSolver;
@@ -512,7 +513,7 @@ public class ClientSyncHandler extends SyncHandler {
                         stageDao.flagMerged(right.getId(), true);
                     } else {
                         // only merge if file exists
-                        AFile fLeft = stageDao.getFileByStage(left);
+//                        AFile fLeft = stageDao.getFileByStage(left);
 //                        if (fLeft.exists() || left.getSynced()) {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
                         stage.mergeValuesFrom(left);
@@ -582,18 +583,27 @@ public class ClientSyncHandler extends SyncHandler {
      */
     @SuppressWarnings("Duplicates")
     private void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStageMerger merger, ConflictSolver conflictSolver) throws SqlQueriesException {
+        OTimer timer1 = new OTimer("iter 1");
+        OTimer timer2 = new OTimer("iter 2");
+        OTimer timer3 = new OTimer("iter 3");
         N.sqlResource(stageDao.getStagesResource(lStageSet.getId().v()), lStages -> {
             Stage lStage = lStages.getNext();
             while (lStage != null) {
                 //todo debug
                 if (lStage.getName().equals("same2.txt"))
                     Lok.debug("ClientSyncHandler.iterateStageSets.debugmf03nm");
+                timer1.start();
                 AFile lFile = stageDao.getFileByStage(lStage);
+                timer1.stop();
+                timer2.start();
                 Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
+                timer2.stop();
                 if (conflictSolver != null)
                     conflictSolver.solve(lStage, rStage);
                 else {
+                    timer3.start();
                     AFile rFile = (rStage != null) ? AFile.instance(lFile.getAbsolutePath()) : null;
+                    timer3.stop();
                     merger.stuffFound(lStage, rStage, lFile, rFile);
                 }
                 if (rStage != null)
@@ -601,6 +611,9 @@ public class ClientSyncHandler extends SyncHandler {
                 lStage = lStages.getNext();
             }
         });
+        timer1.print().reset();
+        timer2.print().reset();
+        timer3.print().reset();
         N.sqlResource(stageDao.getNotMergedStagesResource(rStageSet.getId().v()), rStages -> {
             Stage rStage = rStages.getNext();
             while (rStage != null) {
