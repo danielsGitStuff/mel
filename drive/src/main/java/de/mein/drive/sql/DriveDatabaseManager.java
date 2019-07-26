@@ -105,7 +105,8 @@ public class DriveDatabaseManager extends FileRelatedManager {
          */
         sqlQueries = sqlqueriesCreator.createConnection(this, meinDriveService.getUuid());
         {
-            SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
+            Lok.error("synchronous PRAGMA is turned on!");
+            SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=ON");
             st.execute();
         }
         {

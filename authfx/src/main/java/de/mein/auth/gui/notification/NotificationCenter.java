@@ -41,7 +41,7 @@ public class NotificationCenter {
     public void showNotifications() {
         XCBFix.runLater(() -> {
             list.setItems(meinAuthAdminFX.getNotifications());
-            list.setCellFactory(param -> new NotificationListCell(meinAuthService));
+            list.setCellFactory(param -> new NotificationListCell(meinAuthService,meinAuthAdminFX.getResourceBundle()));
             Lok.debug("NotificationCenter.showNotifications");
         });
     }

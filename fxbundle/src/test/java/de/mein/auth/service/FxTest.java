@@ -37,6 +37,7 @@ import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.GenericFSEntry;
+import de.mein.sql.Hash;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 import org.jdeferred.Promise;
@@ -85,6 +86,7 @@ public class FxTest {
         DriveTest driveTest = new DriveTest();
         MeinAuthSettings json1 = new DriveTest().createJson1();
         MeinAuthSettings json2 = new DriveTest().createJson2();
+
 
         MeinBoot meinBoot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class, ContactsFXBootloader.class).addMeinAuthAdmin(new MeinAuthFxLoader());
 

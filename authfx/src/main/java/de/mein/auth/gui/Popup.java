@@ -13,6 +13,8 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
+import java.util.ResourceBundle;
+
 public class Popup {
 
     @FXML
@@ -20,10 +22,11 @@ public class Popup {
     @FXML
     private Button btnOk;
 
-    public Popup(MeinAuthService meinAuthService, MeinNotification notification, String containingPath) {
+    public Popup(MeinAuthService meinAuthService, MeinNotification notification, String containingPath, ResourceBundle meinAuthResourceBundle) {
         N.r(() -> {
             //load the popup first
             FXMLLoader loader = new FXMLLoader(MeinAuthAdminFX.class.getClassLoader().getResource("de/mein/auth/popup.fxml"));
+            loader.setResources(meinAuthResourceBundle);
             loader.setController(this);
             Parent root = null;
             root = loader.load();

@@ -230,6 +230,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
 
+
         //todo weiter hier"
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
 
@@ -326,6 +327,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             List<Stage> content = stageDao.getStageContent(stage.getId());
             N.forEach(content, stage1 -> contentMap.put(stage1.getName(), stage1));
         }
+
+        //todo debug
+        if (stageFile.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir1/sub2/sub22"))
+            Lok.debug();
+
         if (files != null) {
             for (AFile subFile : files) {
                 // check if which subFiles are on stage or fs. if not, index them
@@ -363,6 +369,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     stageDao.insert(subStage);
                     this.updateFileStage(subStage, subFile, null, null, subFsBashDetails);
 //                    subStage.setOrder(order.ord());
+                } else if (subStage != null && !subStage.getIsDirectory()) {
+                    // do not forget to add this!
+                    newFsDirectory.addFile(new FsFile(subFile));
                 }
             }
         }

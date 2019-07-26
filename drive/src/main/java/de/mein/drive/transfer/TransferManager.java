@@ -108,7 +108,8 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                 // these only contain certId and serviceUuid
                 List<TransferDetails> groupedTransferSets = transferDao.getTwoTransferSets();
                 // check if groupedTransferSets are active yet
-                if (groupedTransferSets.size() == 0 || allTransferSetsAreActive(groupedTransferSets)) {
+                activeTransfersLock.lock();
+                if ((groupedTransferSets.size() == 0 || allTransferSetsAreActive(groupedTransferSets)) && activeTransfers.size() == 0) {
                     Lok.debug("TransferManager.WAIT");
                     meinDriveService.onTransfersDone();
                     lock.lockWrite();
@@ -116,7 +117,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {
                         Lok.debug("TransferManager.run.22222");
                         // skip if already active
-                        activeTransfersLock.lock();
+//                        activeTransfersLock.lock();
                         if (activeTransfers.containsKey(activeTransferKey(groupedTransferSet))) {
                             activeTransfersLock.unlock();
                             continue;
@@ -145,9 +146,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                         // check if files remain
                         boolean transfersRemain = transferDao.hasNotStartedTransfers(groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
                         if (transfersRemain) {
-                            activeTransfersLock.lock();
                             activeTransfers.put(activeTransferKey(groupedTransferSet), null);
-                            activeTransfersLock.unlock();
                             // ask the network for files
                             retrieveFromCert(groupedTransferSet);
                         }
@@ -156,6 +155,9 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
+            }finally {
+                activeTransfersLock.unlock();
+
             }
         }
         shutDown();
@@ -332,9 +334,9 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                         transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
                     }
                     deferred.resolve(strippedTransferDetails);
-                    meinAuthService.getPowerManager().releaseWakeLock(this);
                 } catch (Exception e) {
                     deferred.reject(strippedTransferDetails);
+                }finally {
                     meinAuthService.getPowerManager().releaseWakeLock(this);
                 }
             }

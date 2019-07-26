@@ -285,7 +285,7 @@ public class ClientSyncHandler extends SyncHandler {
             if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
                 // method should create a new CommitJob with conflict solving details
                 handleConflict(updateSets.get(0), stagedFromFs.get(0), transaction);
-                setupTransfer();
+//                setupTransfer();
                 Lok.debug("setupTransfers() was here before");
                 //transferManager.research();
                 return;

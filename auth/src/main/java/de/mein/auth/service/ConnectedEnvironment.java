@@ -108,6 +108,8 @@ public class ConnectedEnvironment {
                 Lok.debug("debug1");
             if (address.equals("192.168.1.109") && debug_count.getAndIncrement() == 1)
                 Lok.debug("debug2");
+            if (regOnUnkown)
+                Lok.debug();
             Lok.debug("connect to: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
             MeinAuthSocket def = isCurrentlyConnecting(address, port, portCert);
             if (def != null) {
@@ -125,6 +127,8 @@ public class ConnectedEnvironment {
                     registerValidationProcess(result);
                     deferred.resolve(result);
                 }).fail(result -> {
+                    if (regOnUnkown)
+                        Lok.debug("connect debug");
                     removeCurrentlyConnecting(address, port, portCert);
                     deferred.reject(result);
                 });

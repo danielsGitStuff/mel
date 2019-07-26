@@ -18,9 +18,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 
 public class NotificationListCell extends ListCell<MeinNotification> {
     private final MeinAuthService meinAuthService;
+    private final ResourceBundle meinAuthResourceBundle;
     @FXML
     private Label lblText, lblTitle;
     @FXML
@@ -32,10 +34,12 @@ public class NotificationListCell extends ListCell<MeinNotification> {
     @FXML
     private HBox box;
 
-    public NotificationListCell(MeinAuthService meinAuthService) {
+    public NotificationListCell(MeinAuthService meinAuthService, ResourceBundle meinAuthResourceBundle) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/mein/auth/notificationlistcell.fxml"));
+        loader.setResources(meinAuthResourceBundle);
         loader.setController(this);
         this.meinAuthService = meinAuthService;
+        this.meinAuthResourceBundle = meinAuthResourceBundle;
         try {
             loader.load();
         } catch (IOException e) {
@@ -64,7 +68,7 @@ public class NotificationListCell extends ListCell<MeinNotification> {
                         if (bootloader instanceof BootLoaderFX) {
                             BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
                             String containingPath = bootLoaderFX.getPopupFXML(meinService, notification);
-                            Popup popup = new Popup(meinAuthService, notification, containingPath);
+                            Popup popup = new Popup(meinAuthService, notification, containingPath, meinAuthResourceBundle);
                         }
                     });
                 });

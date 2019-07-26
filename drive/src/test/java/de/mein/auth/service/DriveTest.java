@@ -843,7 +843,7 @@ public class DriveTest {
 
             @Override
             public void onRegistrationCompleted(Certificate partnerCertificate) {
-
+                Lok.debug("registration complete");
             }
 
             @Override
@@ -899,9 +899,9 @@ public class DriveTest {
                         Lok.debug("DriveFXTest.driveGui.2.booted");
                         meinAuthService2 = ma2;
                         meinAuthService2.addRegisterHandler(allowRegisterHandler);
-                        runner.runTry(() -> {
+                        meinAuthService2.addRegisteredHandler((meinAuthService, registered) -> runner.runTry(() -> {
                             // connect first. this step will register
-                            Promise<MeinValidationProcess, Exception, Void> connectPromise = meinAuthService2.connect("localhost", 8888, 8889, true);
+                            Promise<MeinValidationProcess, Exception, Void> connectPromise = meinAuthService2.connect("localhost", 8888, 8889, false);
                             connectPromise.done(meinValidationProcess -> new Thread(() -> {
                                         runner.runTry(() -> {
                                             Lok.debug("DriveFXTest.driveGui.connected");
@@ -920,6 +920,10 @@ public class DriveTest {
                                         });
                                     }).start()
                             );
+
+                        }));
+                        runner.runTry(() -> {
+                            meinAuthService2.connect("localhost", 8888, 8889, true);
                         });
                     });
                 });
@@ -931,11 +935,11 @@ public class DriveTest {
     }
 
     public static MeinAuthSettings createJson2() {
-        MeinAuthSettings settings =  new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
+        MeinAuthSettings settings = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2").setVariant(MeinStrings.update.VARIANT_JAR);
-        settings.setJsonFile(new File(MeinBoot.Companion.getDefaultWorkingDir2(),MeinBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
+        settings.setJsonFile(new File(MeinBoot.Companion.getDefaultWorkingDir2(), MeinBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
         return settings;
     }
 
@@ -943,7 +947,7 @@ public class DriveTest {
         MeinAuthSettings settings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1").setVariant(MeinStrings.update.VARIANT_JAR);
-        settings.setJsonFile(new File(MeinBoot.Companion.getDefaultWorkingDir1(),MeinBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
+        settings.setJsonFile(new File(MeinBoot.Companion.getDefaultWorkingDir1(), MeinBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
         return settings;
     }
 
