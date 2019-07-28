@@ -27,7 +27,6 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
     private static final java.lang.String CERT_PORT = "certport";
     private static final java.lang.String NAME = "name";
     private static final java.lang.String TRUSTED = "trusted";
-    private static final java.lang.String GREETING = "greeting";
     private static final java.lang.String WIFI = "wifi";
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<String> uuid = new Pair<>(String.class, UUID);
@@ -38,7 +37,6 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
     private Pair<Integer> certDeliveryPort = new Pair<>(Integer.class, CERT_PORT);
     private Pair<String> name = new Pair<>(String.class, NAME);
     private Pair<Boolean> trusted = new Pair<>(Boolean.class, TRUSTED);
-    private Pair<String> greeting = new Pair<>(String.class, GREETING);
     private Pair<String> wifi = new Pair<>(String.class, WIFI);
 
     @JsonIgnore
@@ -48,15 +46,6 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
     public int hashCode() {
         int hash = (id.v() == null) ? super.hashCode() : id.v().hashCode();
         return hash;
-    }
-
-    public Certificate setGreeting(String greeting) {
-        this.greeting.v(greeting);
-        return this;
-    }
-
-    public Pair<String> getGreeting() {
-        return greeting;
     }
 
     @Override
@@ -96,7 +85,7 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
             }
             return value;
         });
-        populateInsert(uuid, answerUuid, name, certificate, address, greeting, port, certDeliveryPort, trusted, hash, wifi);
+        populateInsert(uuid, answerUuid, name, certificate, address, port, certDeliveryPort, trusted, hash, wifi);
         populateAll(id);
     }
 

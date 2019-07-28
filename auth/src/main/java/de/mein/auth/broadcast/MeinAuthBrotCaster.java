@@ -77,14 +77,14 @@ public class MeinAuthBrotCaster extends BrotCaster {
     }
 
     private Certificate findCertificate(String greeting) throws SqlQueriesException {
-        List<Certificate> possibleCertificates = meinAuthService.getCertificateManager().getCertificatesByGreeting(greeting);
-        if (possibleCertificates.size() == 0)
-            Lok.debug("MeinAuthBrotCaster.findCertificate.don't know that guy");
-        else if (possibleCertificates.size() > 1)
-            Lok.debug("MeinAuthBrotCaster.findCertificate.know too many of these guys");
-        else {
-            return possibleCertificates.get(0);
-        }
+//        List<Certificate> possibleCertificates = meinAuthService.getCertificateManager().getCertificatesByGreeting(greeting);
+//        if (possibleCertificates.size() == 0)
+//            Lok.debug("MeinAuthBrotCaster.findCertificate.don't know that guy");
+//        else if (possibleCertificates.size() > 1)
+//            Lok.debug("MeinAuthBrotCaster.findCertificate.know too many of these guys");
+//        else {
+//            return possibleCertificates.get(0);
+//        }
         return null;
     }
 

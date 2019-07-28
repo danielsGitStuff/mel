@@ -28,7 +28,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-
 /**
  * transfers certificates and imports them into the database
  * Created by xor on 4/18/16.
@@ -89,7 +88,7 @@ public class MeinCertRetriever extends DeferredRunnable {
 
                 @Override
                 public void onMessage(MeinSocket meinSocket, String messageString) {
-                   Lok.debug(meinAuthService.getName() + ".MeinCertRetriever.onMessage.got: " + messageString);
+                    Lok.debug(meinAuthService.getName() + ".MeinCertRetriever.onMessage.got: " + messageString);
                     try {
                         SerializableEntityDeserializer deserializer = new SerializableEntityDeserializer();
                         MeinResponse response = (MeinResponse) SerializableEntityDeserializer.deserialize(messageString);
@@ -99,7 +98,7 @@ public class MeinCertRetriever extends DeferredRunnable {
                         if (isItMe) {
                             deferred.reject(new ShamefulSelfConnectException());
                         } else {
-                            Certificate result = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), null, address, port, portCert, certificate.getGreeting().v());
+                            Certificate result = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), null, address, port, portCert);
                             deferred.resolve(result);
                             // lock.unlockWrite();
                         }

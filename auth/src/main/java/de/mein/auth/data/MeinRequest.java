@@ -4,6 +4,7 @@ import de.mein.Lok;
 import de.mein.auth.MeinStrings;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.socket.MeinSocket;
+import de.mein.auth.tools.Eva;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import org.jdeferred.impl.DeferredObject;
@@ -106,6 +107,11 @@ public class MeinRequest extends MeinMessage {
 
     public MeinRequest setUserUuid(String userUuid) {
         this.userUuid = userUuid;
+        //todo debug
+        if (userUuid.equals("00000000-a00a-a00a-a00a-000000000003")) {
+            Eva.eva();
+            Lok.debug("debug");
+        }
         return this;
     }
 

@@ -62,7 +62,6 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
                         Certificate certificate = new Certificate();
                         certificate.setCertificate(x509Certificate.getEncoded());
                         certificate.setName(meinAuthService.getName());
-                        certificate.setGreeting(meinAuthService.getSettings().getGreeting());
                         certificate.setPort(meinAuthService.getSettings().getPort());
                         certificate.setCertDeliveryPort(meinAuthService.getSettings().getDeliveryPort());
                         MeinResponse answer = createCertDeliveryAnswer(request, certificate);

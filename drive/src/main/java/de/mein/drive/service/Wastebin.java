@@ -19,6 +19,7 @@ import de.mein.sql.Hash;
 import de.mein.sql.SqlQueriesException;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -310,11 +311,15 @@ public class Wastebin {
     /**
      * deletes the file immediately but does not assume its content(hash).
      * the content hash is determined deferred.
+     * This method might crash in between (eg. if a file has been deleted by now)
      *
      * @param file
      * @throws IOException
      */
-    public void deleteUnknown(AFile file) throws IOException, SqlQueriesException, InterruptedException {
+    public void deleteUnknown(AFile file) throws SqlQueriesException, IOException, InterruptedException {
+        //todo debug
+        if (file.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir1/samedir"))
+            Lok.debug();
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
         AFile target = AFile.instance(deferredDir, fsBashDetails.getiNode().toString());
         file.move(target);

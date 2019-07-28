@@ -111,7 +111,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                 activeTransfersLock.lock();
                 if ((groupedTransferSets.size() == 0 || allTransferSetsAreActive(groupedTransferSets)) && activeTransfers.size() == 0) {
                     Lok.debug("TransferManager.WAIT");
-                    meinDriveService.onTransfersDone();
+//                    meinDriveService.onTransfersDone();
                     lock.lockWrite();
                 } else {
                     for (TransferDetails groupedTransferSet : groupedTransferSets) {
@@ -155,7 +155,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
-            }finally {
+            } finally {
                 activeTransfersLock.unlock();
 
             }
@@ -191,6 +191,8 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                     .setText("!")
                     .finish();
         }
+        if (activeTransfers.isEmpty())
+            meinDriveService.onTransfersDone();
         activeTransfersLock.unlock();
     }
 
@@ -336,7 +338,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                     deferred.resolve(strippedTransferDetails);
                 } catch (Exception e) {
                     deferred.reject(strippedTransferDetails);
-                }finally {
+                } finally {
                     meinAuthService.getPowerManager().releaseWakeLock(this);
                 }
             }

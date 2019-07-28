@@ -1,5 +1,6 @@
 package de.mein.auth.jobs;
 
+import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 
 import java.util.UUID;
@@ -18,7 +19,7 @@ public class IsolatedConnectJob<T extends MeinIsolatedProcess> extends AConnectJ
         this.remoteServiceUuid = remoteServiceUuid;
         this.ownServiceUuid = ownServiceUuid;
         this.processClass = isolatedServiceClass;
-        this.isolatedUuid = UUID.randomUUID().toString();
+        this.isolatedUuid = CertificateManager.randomUUID().toString();
     }
 
     public Class<T> getProcessClass() {

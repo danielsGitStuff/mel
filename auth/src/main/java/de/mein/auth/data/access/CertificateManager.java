@@ -32,6 +32,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -147,7 +148,7 @@ public class CertificateManager extends FileRelatedManager {
         return publicKey;
     }
 
-    public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String answerUuidString, String address, Integer port, Integer portCert, String greeting) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
+    public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String answerUuidString, String address, Integer port, Integer portCert) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
         AtomicReference<Certificate> certificate = new AtomicReference<>(new Certificate());
         String uuid = getNewUUID();
         Transaction transaction = T.lockingTransaction(certificateDao);
@@ -164,7 +165,6 @@ public class CertificateManager extends FileRelatedManager {
                     .setName(name)
                     .setPort(port)
                     .setCertDeliveryPort(portCert)
-                    .setGreeting(greeting)
                     .setTrusted(false);
             certificate.set(certificateDao.insertCertificate(certificate.get()));
             this.storeCertInKeyStore(uuid, x509Certificate);
@@ -274,10 +274,21 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public String getNewUUID() throws SqlQueriesException {
-        UUID uuid = UUID.randomUUID();
+        UUID uuid = CertificateManager.randomUUID();
         while (certificateDao.existsUUID(uuid.toString()))
-            uuid = UUID.randomUUID();
+            uuid = CertificateManager.randomUUID();
         return uuid.toString();
+    }
+
+    private static AtomicInteger UUID_DEBUG = new AtomicInteger(0);
+
+    public static UUID randomUUID() {
+        //c31f20ef-b75d-42e8-b881-b9bf81d3ec0b
+        int value = UUID_DEBUG.getAndIncrement();
+        String str = "00000000-a00a-a00a-a00a-"+String.format("%08d",value);
+
+        return UUID.fromString(str);
+//        return UUID.fromString("UUID=" + UUID_DEBUG.getAndIncrement());
     }
 
     public SSLContext getSSLContext() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
@@ -345,13 +356,6 @@ public class CertificateManager extends FileRelatedManager {
         certificateDao.updateCertificate(partnerCertificate);
         transaction.end();
         return partnerCertificate;
-    }
-
-    public List<Certificate> getCertificatesByGreeting(String greeting) throws SqlQueriesException {
-        Transaction transaction = T.lockingTransaction(T.read(certificateDao));
-        List<Certificate> certs = certificateDao.getCertificatesByGreeting(greeting);
-        transaction.end();
-        return certs;
     }
 
     public void deleteCertificate(Certificate certificate) throws SqlQueriesException {

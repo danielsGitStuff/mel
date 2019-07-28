@@ -238,6 +238,8 @@ public abstract class SyncHandler {
 
             // delete all folders
             N.readSqlResourceIgnorantly(stageDao.getDeletedDirectoryStagesByStageSet(stageSetId), (sqlResource, dirStage) -> {
+                if (dirStage.getFsIdPair().notNull())
+                    fsDao.deleteById(dirStage.getFsId());
                 AFile f = stageDao.getFileByStage(dirStage);
                 wastebin.deleteUnknown(f);
             });

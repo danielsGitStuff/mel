@@ -98,7 +98,6 @@ public class MeinRegisterProcess extends MeinProcess {
         myCert.setCertificate(meinAuthSocket.getMeinAuthService().getCertificateManager().getMyX509Certificate().getEncoded());
         MeinAuthSettings settings = meinAuthSocket.getMeinAuthService().getSettings();
         myCert.setPort(settings.getPort())
-                .setGreeting(settings.getGreeting())
                 .setCertDeliveryPort(settings.getDeliveryPort());
         MeinRequest request = new MeinRequest(MeinStrings.SERVICE_NAME, MeinStrings.msg.INTENT_REGISTER)
                 .setCertificate(myCert)
@@ -191,7 +190,7 @@ public class MeinRegisterProcess extends MeinProcess {
                                     String address = meinAuthSocket.getAddress();
                                     int port = certificate.getPort().v();
                                     int portCert = certificate.getCertDeliveryPort().v();
-                                    partnerCertificate = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), certificate.getAnswerUuid().v(), address, port, portCert, certificate.getGreeting().v());
+                                    partnerCertificate = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), certificate.getAnswerUuid().v(), address, port, portCert);
                                     certificateManager.trustCertificate(partnerCertificate.getId().v(), true);
                                     MeinRegisterProcess.this.sendConfirmation(true);
                                     for (IRegisteredHandler handler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()) {

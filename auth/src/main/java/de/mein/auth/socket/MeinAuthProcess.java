@@ -1,10 +1,12 @@
 package de.mein.auth.socket;
 
+import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.service.MeinService;
 
 import org.jdeferred.Promise;
 
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,7 +69,7 @@ public class MeinAuthProcess extends MeinProcess {
                         this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateByUuid(request.getUserUuid());
                         assert partnerCertificate != null;
                         this.decryptedSecret = meinAuthSocket.getMeinAuthService().getCertificateManager().decrypt(request.getSecret());
-                        this.mySecret = UUID.randomUUID().toString();
+                        this.mySecret = CertificateManager.randomUUID().toString();
                         IsolationDetails isolationDetails = null;
                         if (request.getPayload() != null && request.getPayload() instanceof IsolationDetails) {
                             isolationDetails = (IsolationDetails) request.getPayload();
@@ -92,7 +94,10 @@ public class MeinAuthProcess extends MeinProcess {
                                             // done here, set up validationprocess
                                             Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
                                             // propagate that we are connected!
-                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getLocalPort());
+                                            // note: if the connection is incoming, we cannot use the ports from the socket here.
+                                            // whenever an outgoing connection is set up a random high port is used to do so (port 50k+)
+                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), partnerCertificate.getPort().v());
+//                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getLocalPort());
                                         } else {
 //                                            Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
                                             Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists. waiting for the other side to close connection.");
@@ -165,14 +170,14 @@ public class MeinAuthProcess extends MeinProcess {
 
         try {
             meinAuthSocket.connectSSL(id, address, port);
-            mySecret = UUID.randomUUID().toString();
+            mySecret = CertificateManager.randomUUID().toString();
             if (partnerCertificate == null)
                 this.partnerCertificate = meinAuthSocket.getTrustedPartnerCertificate();
             N runner = new N(e -> {
                 e.printStackTrace();
                 job.getPromise().reject(e);
             });
-            this.mySecret = UUID.randomUUID().toString();
+            this.mySecret = CertificateManager.randomUUID().toString();
             byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
             MeinRequest request = new MeinRequest(MeinStrings.SERVICE_NAME, MeinStrings.msg.INTENT_AUTH)
                     .setRequestHandler(this).queue().setSecret(secret)

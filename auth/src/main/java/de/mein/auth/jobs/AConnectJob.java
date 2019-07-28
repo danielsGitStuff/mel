@@ -1,6 +1,9 @@
 package de.mein.auth.jobs;
 
 
+import de.mein.Lok;
+import de.mein.auth.tools.Eva;
+
 /**
  * Created by xor on 12/13/16.
  */
@@ -14,6 +17,13 @@ public abstract class AConnectJob<R, P> extends Job<R, Exception, P> {
         this.address = address;
         this.port = port;
         this.portCert = portCert;
+        //todo debug
+        if (port == 8888) {
+            Eva.flag("ccc");
+            Lok.debug("debug ccc=" + Eva.getFlagCount("ccc"));
+            if (Eva.getFlagCount("ccc") > 12)
+                Lok.debug();
+        }
     }
 
     public AConnectJob setCertificateId(Long certificateId) {

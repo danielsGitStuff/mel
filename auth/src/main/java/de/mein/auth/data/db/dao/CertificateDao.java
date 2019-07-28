@@ -30,7 +30,7 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
 
     public Certificate insertCertificate(Certificate certificate) throws SqlQueriesException {
         //todo debug
-        if (certificate.getAddress().notNull() && certificate.getAddress().v().startsWith("/"))
+        if (certificate.getName().equalsValue("MA2"))
             Lok.debug("debug");
         return certificate.setId(sqlQueries.insert(certificate));
     }
@@ -46,7 +46,7 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
 
     public void updateCertificate(Certificate certificate) throws SqlQueriesException {
         //todo debug
-        if (certificate.getPort().notEqualsValue(8888))
+        if (certificate.getName().equalsValue("MA2"))
             Lok.debug("debug");
         sqlQueries.update(certificate, certificate.getId().k() + "=?", ISQLQueries.whereArgs(certificate.getId().v()));
     }
@@ -85,19 +85,6 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         List<Object> args = new ArrayList<>();
         args.add(id);
         sqlQueries.delete(dummy, dummy.getId().k() + "=?", args);
-    }
-
-    public List<Certificate> getCertificatesByGreeting(String greeting) throws SqlQueriesException {
-        Certificate dummy = new Certificate();
-        String where = dummy.getGreeting().k() + "=?";
-        List<Object> args = new ArrayList<>();
-        args.add(greeting);
-        List<SQLTableObject> re = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
-        List<Certificate> result = new ArrayList<>();
-        for (SQLTableObject cert : re) {
-            result.add((Certificate) cert);
-        }
-        return result;
     }
 
     public Certificate getCertificateByBytes(byte[] certBytes) throws SqlQueriesException {

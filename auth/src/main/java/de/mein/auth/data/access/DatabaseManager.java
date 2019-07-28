@@ -157,7 +157,7 @@ public final class DatabaseManager extends FileRelatedManager {
 
     public Service createService(Long typeId, String name) throws SqlQueriesException {
         Service service = new Service()
-                .setUuid(UUID.randomUUID().toString())
+                .setUuid(CertificateManager.randomUUID().toString())
                 .setTypeId(typeId)
                 .setName(name)
                 .setActive(true);

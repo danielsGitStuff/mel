@@ -70,7 +70,7 @@ public class CertificateManagerTest {
 
     @After
     public void after() throws IOException {
-      F.rmRf(new File("z_test"));
+        F.rmRf(new File("z_test"));
     }
 
     @Test
@@ -85,8 +85,8 @@ public class CertificateManagerTest {
     public void registerCertificateFail() throws Exception, SqlQueriesException {
         X509Certificate x509Certificate = genCert();
         byte[] byteCert = x509Certificate.getEncoded();
-        UUID uuid = UUID.randomUUID();
-        Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null, "huiii");
+        UUID uuid = CertificateManager.randomUUID();
+        Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null);
         // the next line should return n zero length list, cause the certificate is not trusted now
         Certificate dbCertificate = certificateManager.getTrustedCertificates().get(0);
         X509Certificate dbX509Certificate = CertificateManager.loadX509CertificateFromBytes(dbCertificate.getCertificate().v());
@@ -96,13 +96,13 @@ public class CertificateManagerTest {
         assertEquals(Arrays.toString(byteCert), Arrays.toString(dbCertificate.getCertificate().v()));
     }
 
-@Test
+    @Test
     public void registerCertificate() throws Exception, SqlQueriesException {
         X509Certificate x509Certificate = genCert();
         byte[] byteCert = x509Certificate.getEncoded();
-        UUID uuid = UUID.randomUUID();
-        Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null, "huiii");
-        certificateManager.trustCertificate(buildCertificate.getId().v(),true);
+        UUID uuid = CertificateManager.randomUUID();
+        Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null);
+        certificateManager.trustCertificate(buildCertificate.getId().v(), true);
         Certificate dbCertificate = certificateManager.getTrustedCertificates().get(0);
         X509Certificate dbX509Certificate = CertificateManager.loadX509CertificateFromBytes(dbCertificate.getCertificate().v());
         assertEquals(x509Certificate, dbX509Certificate);
@@ -148,7 +148,7 @@ public class CertificateManagerTest {
         Certificate certificate = new Certificate();
         certificate.setCertificate(certificateManager.getMyX509Certificate().getEncoded());
         certificate.setAnswerUuid("some address");
-        UUID uuid = UUID.randomUUID();
+        UUID uuid = CertificateManager.randomUUID();
         certificate.setUuid(uuid.toString());
         Lok.debug("CertificateManagerTest.storeCertificateDB");
     }

@@ -112,6 +112,7 @@ public class MeinAuthService {
         }
 //        N.r(this.certificateManager::maintenance);
         this.settings = meinAuthSettings;
+        this.settings.save();
         this.updater = new Updater(this);
         this.dbCreatedListener = dbCreatedListener;
         if (this.databaseManager.hadToInitialize() && this.dbCreatedListener != null)

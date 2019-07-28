@@ -24,7 +24,15 @@ public class Eva {
     }
 
     public static int getFlagCount(String flag) {
-        return flagMap.get(flag);
+        try {
+            semaphore.acquire();
+            return flagMap.get(flag);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            semaphore.release();
+        }
+        return -1;
     }
 
 

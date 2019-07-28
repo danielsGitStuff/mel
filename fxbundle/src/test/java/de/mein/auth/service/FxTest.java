@@ -18,6 +18,7 @@ import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.MeinValidationProcess;
+import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
 import de.mein.contacts.ContactsBootloader;
@@ -83,6 +84,7 @@ public class FxTest {
 
     @Test
     public void complexConflict() throws Exception {
+        Eva.enable();
         DriveTest driveTest = new DriveTest();
         MeinAuthSettings json1 = new DriveTest().createJson1();
         MeinAuthSettings json2 = new DriveTest().createJson2();
