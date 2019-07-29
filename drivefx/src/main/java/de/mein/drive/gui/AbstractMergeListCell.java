@@ -66,14 +66,14 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
         HBox.setHgrow(spacer, Priority.ALWAYS);
     }
 
-    protected void addChildren(Pane box, Node... elements) {
+    void addChildren(Pane box, Node... elements) {
         for (Node e : elements)
             box.getChildren().add(e);
     }
 
     abstract Stage getConflictSide(Conflict dependsOn);
 
-    protected static Background BACKGROUND_WHITE = new Background(new BackgroundFill(new Color(.3, .3, .3, 1), CornerRadii.EMPTY, Insets.EMPTY));
+    private static Background BACKGROUND_WHITE = new Background(new BackgroundFill(new Color(.3, .3, .3, 1), CornerRadii.EMPTY, Insets.EMPTY));
 
     @Override
     protected void updateItem(Conflict conflict, boolean empty) {
@@ -101,14 +101,16 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
                 if (conflict.isLeft() && !isLeft() || conflict.isRight() && isLeft() || !conflict.hasDecision()) {
                     if (side != null) {
                         label.setText(side.getName());
-                        lblHash.setText(side.getContentHash());
-                    }
-                    else if (parentDeleted) {
+                        if (side.getDeleted()) {
+                            lblHash.setText("<deleted>");
+                        } else
+                            lblHash.setText(side.getContentHash());
+                    } else if (parentDeleted) {
                         label.setText("<parent deleted>");
-                        lblHash.setText("-");
-                    }
-                    else {
-//                        Lok.error("j9034n3of");
+                        lblHash.setText("<parent deleted>");
+                    } else {
+                        label.setText("not existent");
+                        lblHash.setText("<not existent>");
                     }
                     setGraphic(hbox);
                 } else {
@@ -131,18 +133,18 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
     abstract boolean isLeft();
 
     private Background createSelectedBackground() {
-        return new Background(new BackgroundFill(new Color(.5, .5, 1, 1), CornerRadii.EMPTY, Insets.EMPTY));
+        return new Background(new BackgroundFill(new Color(.5, .5, .5, 1), CornerRadii.EMPTY, Insets.EMPTY));
     }
 
 
     abstract void handleAction(ActionEvent event);
 
     protected Background createDeletedBackground() {
-        return new Background(new BackgroundFill(new Color(1, .7, .7, 1), CornerRadii.EMPTY, Insets.EMPTY));
+        return new Background(new BackgroundFill(new Color(.5, .5, .5, 1), CornerRadii.EMPTY, Insets.EMPTY));
     }
 
     protected Background createDefaultdBackground() {
-        return new Background(new BackgroundFill(new Color(.7, 1, .7, 1), CornerRadii.EMPTY, Insets.EMPTY));
+        return new Background(new BackgroundFill(new Color(.5, .5, .5, 1), CornerRadii.EMPTY, Insets.EMPTY));
     }
 
     /**
