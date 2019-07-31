@@ -273,8 +273,6 @@ public class ConnectedEnvironment {
         Transaction transaction = null;
         try {
             transaction = T.lockingTransaction(this);
-            if (meinAuthSocket.getAddress().startsWith("192.168.1.109"))
-                Lok.debug("debug");
             // find the socket in the connected environment and remove it
             AConnectJob connectJob = meinAuthSocket.getConnectJob();
             if (meinAuthSocket.isValidated() && meinAuthSocket.getProcess() instanceof MeinValidationProcess) {

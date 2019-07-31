@@ -397,11 +397,11 @@ public class SQLQueries extends ISQLQueries {
                 }
             }
             query += toConcat + ")";
-            out("insert.query: " + query);
-            out("insert.attributes: ");
-            for (Pair pair : attributes) {
-                System.out.print(pair.v() + ", ");
-            }
+//            out("insert.query: " + query);
+//            out("insert.attributes: ");
+//            for (Pair pair : attributes) {
+//                System.out.print(pair.v() + ", ");
+//            }
         } catch (Exception e) {
             throw new SqlQueriesException(e);
         }
