@@ -2,8 +2,10 @@ package de.miniserver.input
 
 import de.mein.Lok
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.system.exitProcess
 
 class InputPipeReader private constructor(val workingDirectory: File, val fileName: String) {
     fun stop() {
@@ -40,10 +42,15 @@ class InputPipeReader private constructor(val workingDirectory: File, val fileNa
                     .redirectError(ProcessBuilder.Redirect.PIPE)
             process = b.start()
             Lok.info("cat started on ${pipeFile.absolutePath}")
-            val input = process.inputStream.read()
+
+            var input: Int = 0
+            while (input == 0) {
+                input = process.inputStream.available()
+                delay(1000)
+            }
             Lok.info("stopping, read: $input")
-            if (input > 0)
-                System.exit(0)
+//            if (input > 0)
+            exitProcess(0)
         }
 
     }
