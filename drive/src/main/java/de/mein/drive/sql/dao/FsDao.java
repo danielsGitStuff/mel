@@ -528,7 +528,7 @@ public class FsDao extends Dao {
      */
     public List<String> searchTransfer() throws SqlQueriesException {
         FsFile fsFile = new FsFile();
-        TransferDetails transfer = new TransferDetails();
+        DbTransferDetails transfer = new DbTransferDetails();
         String where = fsFile.getSynced().k() + "=? and exists ( select * from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=f." + fsFile.getContentHash().k() + ")";
         return sqlQueries.loadColumn(fsFile.getContentHash(), String.class, fsFile, "f", where, ISQLQueries.whereArgs(true), null);
     }

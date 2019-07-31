@@ -7,8 +7,6 @@ import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
-import de.mein.core.serialize.exceptions.JsonDeserializationException;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.exceptions.MeinJsonException;
 import de.mein.drive.data.*;
 import de.mein.drive.quota.OutOfSpaceException;
@@ -43,7 +41,7 @@ public class ServerSyncHandler extends SyncHandler {
     }
 
     @Override
-    protected void setupTransferAvailable(TransferDetails details, StageSet stageSet, Stage stage) {
+    protected void setupTransferAvailable(DbTransferDetails details, StageSet stageSet, Stage stage) {
         if (stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_CLIENT))
             details.getAvailable().v(true);
     }
@@ -106,7 +104,7 @@ public class ServerSyncHandler extends SyncHandler {
             List<GenericFSEntry> delta = fsDao.getDelta(oldVersion);
             for (GenericFSEntry genericFSEntry : delta) {
                 if (!genericFSEntry.getIsDirectory().v() && !genericFSEntry.isSymlink()) {
-                    TransferDetails details = new TransferDetails();
+                    DbTransferDetails details = new DbTransferDetails();
                     details.getCertId().v(request.getPartnerCertificate().getId().v());
                     details.getHash().v(genericFSEntry.getContentHash().v());
                     details.getSize().v(genericFSEntry.getSize().v());

@@ -4,9 +4,9 @@ import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.Wastebin;
+import de.mein.drive.sql.DbTransferDetails;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.Stage;
-import de.mein.drive.sql.TransferDetails;
 import de.mein.drive.sql.Waste;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
@@ -30,7 +30,7 @@ public class QuotaManager {
 
     public void freeSpaceForStageSet(Long stageSetId) throws SqlQueriesException, OutOfSpaceException {
         Stage nStage = new Stage();
-        TransferDetails nTransfer = new TransferDetails();
+        DbTransferDetails nTransfer = new DbTransferDetails();
         FsFile nFsEntry = new FsFile();
         Waste nWaste = new Waste();
         /**

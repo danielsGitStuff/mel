@@ -73,7 +73,7 @@ public class ClientSyncHandler extends SyncHandler {
                 return;
             Lok.debug("asking for new available hashes....");
             TransferDao transferDao = driveDatabaseManager.getTransferDao();
-            ISQLResource<TransferDetails> transfers = transferDao.getNotStartedNotAvailableTransfers(driveSettings.getClientSettings().getServerCertId());
+            ISQLResource<DbTransferDetails> transfers = transferDao.getNotStartedNotAvailableTransfers(driveSettings.getClientSettings().getServerCertId());
             AvailableHashesContainer availableHashesTask = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE);
             availableHashesTask.setIntent(DriveStrings.INTENT_ASK_HASHES_AVAILABLE);
             N.readSqlResource(transfers, (sqlResource, transfer) -> {

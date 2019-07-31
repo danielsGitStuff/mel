@@ -19,8 +19,8 @@ import de.mein.drive.index.Indexer;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.Wastebin;
 import de.mein.drive.service.sync.SyncHandler;
+import de.mein.drive.sql.DbTransferDetails;
 import de.mein.drive.sql.FsFile;
-import de.mein.drive.sql.TransferDetails;
 import de.mein.drive.sql.TransferState;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.TransferDao;
@@ -79,7 +79,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
         this.lock.unlockWrite().unlockRead();
     }
 
-    private String activeTransferKey(TransferDetails details) {
+    private String activeTransferKey(DbTransferDetails details) {
         String key = details.getCertId().v() + "." + details.getServiceUuid().v();
         return key;
     }
@@ -107,7 +107,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
             try {
                 Lok.debug("TransferManager.RUN");
                 // these only contain certId and serviceUuid
-                List<TransferDetails> groupedTransferSets = transferDao.getTwoTransferSets();
+                List<DbTransferDetails> groupedTransferSets = transferDao.getTwoTransferSets();
                 // check if groupedTransferSets are active yet
                 activeTransfersLock.lock();
                 if ((groupedTransferSets.size() == 0 || allTransferSetsAreActive(groupedTransferSets)) && activeTransfers.size() == 0) {
@@ -115,7 +115,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
 //                    meinDriveService.onTransfersDone();
                     lock.lockWrite();
                 } else {
-                    for (TransferDetails groupedTransferSet : groupedTransferSets) {
+                    for (DbTransferDetails groupedTransferSet : groupedTransferSets) {
                         Lok.debug("TransferManager.run.22222");
                         // skip if already active
 //                        activeTransfersLock.lock();
@@ -164,7 +164,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
         shutDown();
     }
 
-    private void retrieveFromCert(TransferDetails groupedTransferSet) throws InterruptedException, SqlQueriesException {
+    private void retrieveFromCert(DbTransferDetails groupedTransferSet) throws InterruptedException, SqlQueriesException {
         Promise<MeinIsolatedFileProcess, Exception, Void> connected = meinDriveService.getIsolatedProcess(MeinIsolatedFileProcess.class, groupedTransferSet.getCertId().v(), groupedTransferSet.getServiceUuid().v());
         connected.done(meinIsolatedProcess -> N.r(() -> {
                     // store the isolated process for later
@@ -173,7 +173,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                     activeTransfersLock.unlock();
                     meinIsolatedProcess.addIsolatedProcessListener(this);
 
-                    DeferredObject<TransferDetails, TransferDetails, Void> done = retrieveFiles(meinIsolatedProcess, groupedTransferSet);
+                    DeferredObject<DbTransferDetails, DbTransferDetails, Void> done = retrieveFiles(meinIsolatedProcess, groupedTransferSet);
                     done.done(result -> finishActiveTransfer(groupedTransferSet))
                             .fail(result -> cancelActiveTransfer(groupedTransferSet));
                 })
@@ -184,9 +184,9 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
     }
 
 
-    private void finishActiveTransfer(TransferDetails transferDetails) {
+    private void finishActiveTransfer(DbTransferDetails dbTransferDetails) {
         activeTransfersLock.lock();
-        MeinNotification notification = activeTransfers.remove(activeTransferKey(transferDetails));
+        MeinNotification notification = activeTransfers.remove(activeTransferKey(dbTransferDetails));
         if (notification != null) {
             notification.setTitle("Transfers finished")
                     .setText("!")
@@ -197,9 +197,9 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
         activeTransfersLock.unlock();
     }
 
-    private void cancelActiveTransfer(TransferDetails transferDetails) {
+    private void cancelActiveTransfer(DbTransferDetails dbTransferDetails) {
         activeTransfersLock.lock();
-        MeinNotification notification = activeTransfers.remove(activeTransferKey(transferDetails));
+        MeinNotification notification = activeTransfers.remove(activeTransferKey(dbTransferDetails));
         if (notification != null)
             notification.cancel();
         activeTransfersLock.unlock();
@@ -210,11 +210,11 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
     public void showProgress() {
         activeTransfersLock.lock();
         try {
-            List<TransferDetails> transferSets = transferDao.getTransferSets(null);
-            for (TransferDetails transferDetails : transferSets) {
-                final String key = activeTransferKey(transferDetails);
-                Long max = transferDao.count(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
-                int current = transferDao.countStarted(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
+            List<DbTransferDetails> transferSets = transferDao.getTransferSets(null);
+            for (DbTransferDetails dbTransferDetails : transferSets) {
+                final String key = activeTransferKey(dbTransferDetails);
+                Long max = transferDao.count(dbTransferDetails.getCertId().v(), dbTransferDetails.getServiceUuid().v());
+                int current = transferDao.countStarted(dbTransferDetails.getCertId().v(), dbTransferDetails.getServiceUuid().v());
                 if (activeTransfers.containsKey(key)) {
                     if (notActiveTransfers.containsKey(key)) {
                         MeinNotification notification = notActiveTransfers.remove(key);
@@ -251,8 +251,8 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
         }
     }
 
-    private boolean allTransferSetsAreActive(List<TransferDetails> groupedTransferSets) {
-        for (TransferDetails details : groupedTransferSets) {
+    private boolean allTransferSetsAreActive(List<DbTransferDetails> groupedTransferSets) {
+        for (DbTransferDetails details : groupedTransferSets) {
             if (!activeTransfers.containsKey(activeTransferKey(details)))
                 return false;
         }
@@ -264,11 +264,11 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
      * starts a new Retriever thread that transfers everything from the other side and then shuts down.
      *
      * @param fileProcess
-     * @param strippedTransferDetails
+     * @param strippedDbTransferDetails
      * @return
      */
-    private DeferredObject<TransferDetails, TransferDetails, Void> retrieveFiles(MeinIsolatedFileProcess fileProcess, TransferDetails strippedTransferDetails) {
-        DeferredObject<TransferDetails, TransferDetails, Void> deferred = new DeferredObject<>();
+    private DeferredObject<DbTransferDetails, DbTransferDetails, Void> retrieveFiles(MeinIsolatedFileProcess fileProcess, DbTransferDetails strippedDbTransferDetails) {
+        DeferredObject<DbTransferDetails, DbTransferDetails, Void> deferred = new DeferredObject<>();
         // TransferRetriever retriever = new TransferRetriever(meinAuthService,meinDriveService, this,transferDao, syncHandler);
         MeinRunnable runnable = new MeinRunnable() {
 
@@ -283,13 +283,13 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
 
             @Override
             public String getRunnableName() {
-                return "Retriever for: " + meinAuthService.getName() + "/" + strippedTransferDetails.getCertId().v() + "/" + strippedTransferDetails.getServiceUuid().v();
+                return "Retriever for: " + meinAuthService.getName() + "/" + strippedDbTransferDetails.getCertId().v() + "/" + strippedDbTransferDetails.getServiceUuid().v();
             }
 
             @Override
             public void run() {
                 try {
-                    List<TransferDetails> transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
+                    List<DbTransferDetails> transfers = transferDao.getNotStartedTransfers(strippedDbTransferDetails.getCertId().v(), strippedDbTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
                     meinAuthService.getPowerManager().wakeLock(this);
                     while (transfers.size() > 0) {
                         AtomicInteger countDown = new AtomicInteger(transfers.size());
@@ -298,7 +298,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                         FileTransferDetailSet detailSet = new FileTransferDetailSet();
                         payLoad.setFileTransferDetailSet(detailSet);
                         detailSet.setServiceUuid(meinDriveService.getUuid());
-                        for (TransferDetails transferDetails : transfers) {
+                        for (DbTransferDetails transferDetails : transfers) {
                             transferDetails.getState().v(TransferState.RUNNING);
                             AFile target = AFile.instance(meinDriveService.getDriveSettings().getTransferDirectory(), transferDetails.getHash().v());
                             FileTransferDetail fileTransferDetail = new FileTransferDetail(target, new Random().nextInt(), 0L, transferDetails.getSize().v())
@@ -325,21 +325,21 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                             detailSet.add(fileTransferDetail);
                         }
                         showProgress();
-                        Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(strippedTransferDetails.getCertId().v());
+                        Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(strippedDbTransferDetails.getCertId().v());
                         connected.done(validationProcess -> N.r(() -> {
                             payLoad.setIntent(DriveStrings.INTENT_PLEASE_TRANSFER);
-                            validationProcess.message(strippedTransferDetails.getServiceUuid().v(), payLoad);
+                            validationProcess.message(strippedDbTransferDetails.getServiceUuid().v(), payLoad);
                         })).fail(result -> N.r(() -> {
                             Lok.debug("TransferManager.retrieveFiles.48nf49");
-                            deferred.reject(strippedTransferDetails);
+                            deferred.reject(strippedDbTransferDetails);
                         }));
                         //wait until current batch is transferred
                         lock.lockWrite();
-                        transfers = transferDao.getNotStartedTransfers(strippedTransferDetails.getCertId().v(), strippedTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
+                        transfers = transferDao.getNotStartedTransfers(strippedDbTransferDetails.getCertId().v(), strippedDbTransferDetails.getServiceUuid().v(), FILE_REQUEST_LIMIT_PER_CONNECTION);
                     }
-                    deferred.resolve(strippedTransferDetails);
+                    deferred.resolve(strippedDbTransferDetails);
                 } catch (Exception e) {
-                    deferred.reject(strippedTransferDetails);
+                    deferred.reject(strippedDbTransferDetails);
                 } finally {
                     meinAuthService.getPowerManager().releaseWakeLock(this);
                 }
@@ -364,7 +364,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
         this.lock.unlockWrite();
     }
 
-    public void createTransfer(TransferDetails transfer) throws SqlQueriesException {
+    public void createTransfer(DbTransferDetails transfer) throws SqlQueriesException {
         transferDao.insert(transfer);
     }
 

@@ -10,7 +10,7 @@ import de.mein.drive.data.DriveStrings
 import de.mein.drive.service.MeinDriveService
 import de.mein.drive.service.Wastebin
 import de.mein.drive.service.sync.SyncHandler
-import de.mein.drive.sql.TransferDetails
+import de.mein.drive.sql.DbTransferDetails
 import de.mein.drive.sql.TransferState
 import de.mein.drive.sql.dao.FsDao
 import de.mein.drive.sql.dao.TransferDao
@@ -45,10 +45,15 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
 
 
     override fun onIsolatedProcessEnds(isolatedProcess: MeinIsolatedProcess) {
-        val transaction = T.lockingTransaction(isolatedProcessesMap)
-        isolatedProcessesMap.remove(isolatedProcess.partnerCertificateId)
-        transaction.end()
-
+        val transaction = T.lockingTransaction(isolatedProcessesMap, activeTFSRunnables)
+        try {
+            // keep the house clean
+            isolatedProcessesMap.remove(isolatedProcess.partnerCertificateId)
+            // also stop the retriever - if present
+            activeTFSRunnables.remove(isolatedProcess)?.stop()
+        } finally {
+            transaction.end()
+        }
     }
 
     override fun getRunnableName(): String = "TransferManager for ${meinAuthService.name}"
@@ -63,9 +68,9 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
      * then feed the MeinIsolatedFileProcesses.
      * THIS METHOD BLOCKS!
      */
-    private fun connect2RemainingInstances(transferSets: MutableList<TransferDetails>) {
+    private fun connect2RemainingInstances(dbTransferSets: MutableList<DbTransferDetails>) {
         val transaction = T.lockingTransaction(isolatedProcessesMap)
-        val atomicInt = AtomicInteger(transferSets.size)
+        val atomicInt = AtomicInteger(dbTransferSets.size)
         fun checkAtom() {
             // check if all connections hve been established or failed.
             if (atomicInt.decrementAndGet() == 0) {
@@ -74,13 +79,21 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             }
         }
         if (atomicInt.get() > 0) {
-            transferDao.twoTransferSets.forEach {
-                val isolatedPromise = meinDriveService.getIsolatedProcess(MeinIsolatedFileProcess::class.java, it.certId.v(), it.serviceUuid.v())
-                isolatedPromise.done { isolatedFileProcess ->
-                    isolatedProcessesMap[isolatedFileProcess.partnerCertificateId] = isolatedFileProcess
-                    isolatedFileProcess.addIsolatedProcessListener(this)
-                }.always { _, _, _ -> checkAtom() }
+            val transferSets = transferDao.twoTransferSets
+            if (transferSets.size > 0) {
+                transferSets.forEach {
+                    val isolatedPromise = meinDriveService.getIsolatedProcess(MeinIsolatedFileProcess::class.java, it.certId.v(), it.serviceUuid.v())
+                    isolatedPromise.done { isolatedFileProcess ->
+                        isolatedProcessesMap[isolatedFileProcess.partnerCertificateId] = isolatedFileProcess
+                        checkAtom()
+                        isolatedFileProcess.addIsolatedProcessListener(this)
+                    }.fail { checkAtom() }
+                }
+            } else {
+                transaction.end()
             }
+        } else {
+            transaction.end()
         }
     }
 
@@ -105,7 +118,8 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                             val fsFile = fsFiles[0]
                             val aFile = fsDao.getFileByFsFile(meinDriveService.driveSettings.rootDirectory, fsFile)
                             syncHandler.onFileTransferred(aFile, hash, fsTransaction)
-                            transferDao.deleteByHash(hash)
+                            transferDao.updateStateByHash(hash, TransferState.DONE)
+//                            transferDao.deleteByHash(hash)
                         }
                     }
                 } finally {
@@ -144,9 +158,9 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
         }
     }
 
-    fun createTransfer(details: TransferDetails) {
-        details.state.v(TransferState.NOT_STARTED)
-        transferDao.insert(details)
+    fun createTransfer(detailsDb: DbTransferDetails) {
+        detailsDb.state.v(TransferState.NOT_STARTED)
+        transferDao.insert(detailsDb)
     }
 
     fun start() {
@@ -157,6 +171,19 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
 
     fun resume() {
 
+    }
+
+    fun onTransferFromServiceFinished(retrieveRunnable: TransferFromServiceRunnable) {
+        val transaction = T.lockingTransaction(activeTFSRunnables)
+        try {
+            with(retrieveRunnable.fileProcess) {
+                activeTFSRunnables.remove(this)
+                transferDao.removeDone(this.partnerCertificateId, partnerServiceUuid)
+            }
+        } finally {
+            transaction.end()
+        }
+        retrieveRunnable.fileProcess.stop()
     }
 
 }

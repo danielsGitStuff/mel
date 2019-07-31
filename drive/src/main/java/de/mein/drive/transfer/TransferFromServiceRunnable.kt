@@ -10,7 +10,7 @@ import de.mein.auth.tools.lock.T
 import de.mein.drive.data.DriveStrings
 import de.mein.drive.service.MeinDriveService
 import de.mein.drive.service.sync.SyncHandler
-import de.mein.drive.sql.TransferDetails
+import de.mein.drive.sql.DbTransferDetails
 import de.mein.drive.sql.TransferState
 import de.mein.sql.RWLock
 import java.lang.Exception
@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
 
 class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinIsolatedFileProcess) : MeinRunnable {
+    private lateinit var currentDBSet: MutableMap<FileTransferDetail, DbTransferDetails>
     val driveService: MeinDriveService<out SyncHandler> = fileProcess.service as MeinDriveService<out SyncHandler>
     private val transferDao = tManager.transferDao
     private val fsDao = tManager.fsDao
@@ -30,6 +31,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
     var filesRemain = AtomicLong(0L)
     private val waitLock = RWLock().lockWrite()
 
+
     private fun count(): Long {
         fileCount = transferDao.count(partnerCertId, partnerServiceUuid)
         filesDoneCount = transferDao.countDone(partnerCertId, partnerServiceUuid)
@@ -38,6 +40,15 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
     }
 
     init {
+        // if the isolated process ends, we store everything downloaded so far and set state
+        fileProcess.addIsolatedProcessListener {
+            currentDBSet.forEach {
+                if (it.value.state.notEqualsValue(TransferState.DONE)) {
+                    transferDao.updateTransferredBytes(it.value.id.v(), it.value.transferred.v())
+                    transferDao.updateState(it.value.id.v(), TransferState.SUSPENDED)
+                }
+            }
+        }
         count()
     }
 
@@ -47,20 +58,21 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                 if (count() > 0) {
                     // we will send this to the partner
                     val payload = FileTransferDetailsPayload()
-                    val detailSet = FileTransferDetailSet()
-                    detailSet.serviceUuid = driveService.uuid
-                    payload.fileTransferDetailSet = detailSet;
+                    currentDBSet = mutableMapOf()
+                    val currentDetailSet = FileTransferDetailSet()
+                    currentDetailSet.serviceUuid = driveService.uuid
+                    payload.fileTransferDetailSet = currentDetailSet;
                     // prepare for retrieving the files and fill the payload so the partner can send us what we want
-                    val transfers: MutableList<TransferDetails> = transferDao.getNotStartedTransfers(partnerCertId, partnerServiceUuid, 30)
+                    val dbTransfers: MutableList<DbTransferDetails> = transferDao.getNotStartedTransfers(partnerCertId, partnerServiceUuid, 30)
                     // countdown: when reaching zero we got to load a new batch
-                    val batchCountDown = AtomicInteger(transfers.size)
+                    val batchCountDown = AtomicInteger(dbTransfers.size)
                     fun decreaseBatchCounter() {
                         val count = batchCountDown.decrementAndGet()
                         if (count == 0) {
                             waitLock.unlockWrite()
                         }
                     }
-                    transfers.forEach { dbDetail ->
+                    dbTransfers.forEach { dbDetail ->
                         //update state first
                         dbDetail.state.v(TransferState.RUNNING)
                         transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
@@ -89,9 +101,11 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                             decreaseBatchCounter()
                         }
                         transferDetail.setTransferProgressListener {
-
+                            // store what we currently got
+                            currentDBSet[it]?.transferred?.v(it.position)
                         }
-                        detailSet.add(transferDetail)
+                        currentDetailSet.add(transferDetail)
+                        currentDBSet.put(transferDetail, dbDetail)
                         fileProcess.addFilesReceiving(transferDetail)
                     }
                     val connected = driveService.meinAuthService.connect(partnerCertId)
@@ -114,9 +128,15 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
             Lok.error(e)
         } finally {
             Lok.debug("transfers from $partnerCertId/$partnerServiceUuid finished")
+            tManager.onTransferFromServiceFinished(this)
         }
     }
 
     override fun getRunnableName(): String = "transferring from ${fileProcess.partnerCertificateId}/${fileProcess.partnerServiceUuid}"
+
+    fun stop() {
+        stopped = true
+        waitLock.unlockWrite()
+    }
 
 }

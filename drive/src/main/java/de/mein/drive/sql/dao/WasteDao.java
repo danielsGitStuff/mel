@@ -2,7 +2,7 @@ package de.mein.drive.sql.dao;
 
 import de.mein.Lok;
 import de.mein.drive.sql.FsFile;
-import de.mein.drive.sql.TransferDetails;
+import de.mein.drive.sql.DbTransferDetails;
 import de.mein.drive.sql.Waste;
 import de.mein.sql.Dao;
 import de.mein.sql.ISQLQueries;
@@ -54,7 +54,7 @@ public class WasteDao extends Dao.LockingDao {
      * @return all hashes that are present in waste and transfer
      */
     public List<String> searchTransfer() throws SqlQueriesException {
-        TransferDetails transfer = new TransferDetails();
+        DbTransferDetails transfer = new DbTransferDetails();
         Waste waste = new Waste();
         String where = "exists (select " + transfer.getHash().k() + " from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=w." + waste.getHash().k() + ")";
         return sqlQueries.loadColumn(waste.getHash(), String.class, waste, "w", where, null, null);

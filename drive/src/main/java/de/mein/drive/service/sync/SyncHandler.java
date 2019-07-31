@@ -19,7 +19,6 @@ import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.transfer.TManager;
-import de.mein.drive.transfer.TransferManager;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
 
@@ -318,7 +317,7 @@ public abstract class SyncHandler {
                                 AFile f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
                                 BashTools.lnS(f, fsFile.getSymLink().v());
                             } else if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
-                                TransferDetails details = new TransferDetails();
+                                DbTransferDetails details = new DbTransferDetails();
                                 details.getAvailable().v(stage.getSynced());
                                 details.getCertId().v(stageSet.getOriginCertId());
                                 details.getServiceUuid().v(stageSet.getOriginServiceUuid());
@@ -384,7 +383,7 @@ public abstract class SyncHandler {
                             }
                             fsDao.insertOrUpdate(fsEntry);
                             if (stageSet.getOriginCertId().notNull() && !stage.getIsDirectory() && !stage.isSymLink()) {
-                                TransferDetails details = new TransferDetails();
+                                DbTransferDetails details = new DbTransferDetails();
                                 details.getCertId().v(stageSet.getOriginCertId());
                                 details.getServiceUuid().v(stageSet.getOriginServiceUuid());
                                 details.getHash().v(stage.getContentHash());
@@ -407,7 +406,7 @@ public abstract class SyncHandler {
         });
     }
 
-    protected void setupTransferAvailable(TransferDetails details, StageSet stageSet, Stage stage) {
+    protected void setupTransferAvailable(DbTransferDetails details, StageSet stageSet, Stage stage) {
         if (!stage.getIsDirectory() && stage.getStageSetPair().notNull()) {
             details.getAvailable().v(stage.getSynced());
         }

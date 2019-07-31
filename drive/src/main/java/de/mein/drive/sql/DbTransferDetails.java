@@ -7,7 +7,7 @@ import de.mein.sql.SQLTableObject;
 /**
  * Created by xor on 12/16/16.
  */
-public class TransferDetails extends SQLTableObject {
+public class DbTransferDetails extends SQLTableObject {
 
     private static final String ID = "id";
     private static final String HASH = "hash";
@@ -31,7 +31,7 @@ public class TransferDetails extends SQLTableObject {
     private Pair<Boolean> available = new Pair<>(Boolean.class, AVAILABLE);
 
 
-    public TransferDetails() {
+    public DbTransferDetails() {
         init();
     }
 
