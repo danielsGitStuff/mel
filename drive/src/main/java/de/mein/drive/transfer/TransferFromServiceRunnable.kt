@@ -6,6 +6,7 @@ import de.mein.auth.file.AFile
 import de.mein.auth.socket.process.transfer.FileTransferDetail
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess
+import de.mein.auth.tools.lock.T
 import de.mein.drive.data.DriveStrings
 import de.mein.drive.service.MeinDriveService
 import de.mein.drive.service.sync.SyncHandler
@@ -20,6 +21,7 @@ import kotlin.random.Random
 class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinIsolatedFileProcess) : MeinRunnable {
     val driveService: MeinDriveService<out SyncHandler> = fileProcess.service as MeinDriveService<out SyncHandler>
     private val transferDao = tManager.transferDao
+    private val fsDao = tManager.fsDao
     private val partnerCertId = fileProcess.partnerCertificateId
     private val partnerServiceUuid = fileProcess.partnerServiceUuid
     private var fileCount: Long = 0L
@@ -68,8 +70,16 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                         transferDetail.hash = dbDetail.hash.v()
                         transferDetail.setTransferDoneListener {
                             filesRemain.decrementAndGet()
+                            // update states
                             dbDetail.state.v(TransferState.DONE)
                             transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
+                            // tell the sync handler we got a file
+                            val transaction = T.lockingTransaction(fsDao)
+                            try {
+                                driveService.syncHandler.onFileTransferred(target, dbDetail.hash.v(), transaction)
+                            } finally {
+                                transaction.end()
+                            }
                             decreaseBatchCounter()
                         }
                         transferDetail.setTransferFailedListener {
@@ -81,6 +91,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                         transferDetail.setTransferProgressListener {
 
                         }
+                        detailSet.add(transferDetail)
                         fileProcess.addFilesReceiving(transferDetail)
                     }
                     val connected = driveService.meinAuthService.connect(partnerCertId)
@@ -92,7 +103,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                         stopped = true
                         waitLock.unlockWrite()
                     }
-                    waitLock.lockWrite()
+//                    waitLock.lockWrite()
                 } else {
                     Lok.debug("nothing more to do")
                     stopped = true

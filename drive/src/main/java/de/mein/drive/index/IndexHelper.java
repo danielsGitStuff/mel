@@ -2,6 +2,7 @@ package de.mein.drive.index;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.core.serialize.serialize.tools.OTimer;
@@ -48,11 +49,30 @@ public class IndexHelper {
 
 
     Stage connectToFs(AFile directory) throws SqlQueriesException {
+        // remember: we always deal with directories here. that means that we can ask all DAOs for
+        // directories and don't have to deal with files :)
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         String targetPath = directory.getAbsolutePath();
         if (targetPath.length() < rootPathLength)
             return null;
         String stackPath = fileStack.peek().getAbsolutePath();
+
+
+        if (this.stageSetId >= 3L)
+            Lok.debug("debug");
+        //todo debug
+        if (stackPath.equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir1"))
+            Lok.debug("debug");
+        Lok.debug("target>>>" + targetPath);
+        Lok.debug("stackp>>>" + stackPath);
+
+        //todo debug
+        if (targetPath.equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir1/sub2")) {
+            Eva.flag("a");
+            if (Eva.getFlagCount("a") == 3)
+                Lok.debug();
+            Lok.debug("debug");
+        }
 
         // remove everything from the stacks that does not lead to the directory
         while (fileStack.size() > 1 && (stackPath.length() > targetPath.length() || !targetPath.startsWith(stackPath))) {
@@ -60,6 +80,9 @@ public class IndexHelper {
             stackPath = fileStack.peek().getAbsolutePath();
             if (stageStack.size() > 0) {
                 Stage stage = stageStack.pop();
+                //todo debug
+                if (stageStack.empty())
+                    Lok.debug("debug");
                 if (stage != null)
                     stageMap.remove(stage.getId());
             }
@@ -90,7 +113,8 @@ public class IndexHelper {
             {
                 FsEntry partToAdd = null;
                 if (previousFsPeek != null) {
-                    partToAdd = fsDao.getFileByName(previousFsPeek.getId().v(), part.getName());
+                    partToAdd = fsDao.getSubDirectoryByName(previousFsPeek.getId().v(), part.getName());
+//                    partToAdd = fsDao.getFsFileByName(previousFsPeek.getId().v(), part.getName());
                 }
                 fsEntryStack.push(partToAdd);
                 peekFsEntry = partToAdd;
@@ -99,7 +123,12 @@ public class IndexHelper {
                 // push to stage stack, respect probably added fs entry.
                 // at this point either the fs stack or stage stack must have a non null peek element.
                 // otherwise the connection to the root element is lost.
-                Stage peekStage = stageStack.peek();
+                //todo debug
+                if (stageStack.empty())
+                    Lok.debug("debug");
+                Stage peekStage = null;
+                if (!stageStack.empty())
+                    peekStage = stageStack.peek();
 
                 // check for disconnection
                 if (peekFsEntry == null && peekStage == null) {
@@ -158,17 +187,12 @@ public class IndexHelper {
                         .setIsDirectory(true)
                         .setOrder(order.ord())
                         .setDeleted(false);
-//                .setRelativePath(targetPath.substring(rootPathLength));
             });
             stageDao.insert(stageToAdd);
             stageStack.push(stageToAdd);
             stageMap.put(stageToAdd.getId(), stageToAdd);
         }
-        // at this point all 3 stacks should have the same size
-        if (!(stageStack.size() == fileStack.size() && fileStack.size() == fsEntryStack.size()))
-            Lok.error("stack size matters but does not match!");
         return stageStack.peek();
-
     }
 
     void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {

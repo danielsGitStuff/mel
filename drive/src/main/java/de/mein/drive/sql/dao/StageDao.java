@@ -134,7 +134,6 @@ StageDao extends Dao.LockingDao {
     }
 
 
-
     @Deprecated
     public AFile getFileByStage(Stage stage) throws SqlQueriesException {
         if (stage.getName().equals("samesub1.txt")) // todo debug
@@ -256,7 +255,7 @@ StageDao extends Dao.LockingDao {
 
     public Stage insert(Stage stage) throws SqlQueriesException {
         //todo debug
-        if (stage.getName().equals("wrong") || stage.getName().equals("symfile"))
+        if (stage.getName().equals("testdir2") || stage.getName().equals("symfile"))
             Lok.debug("debug");
         try {
             Long id = sqlQueries.insert(stage);
@@ -348,6 +347,9 @@ StageDao extends Dao.LockingDao {
     }
 
     public void deleteStageSet(Long id) throws SqlQueriesException {
+        //todo debug
+        if (id >= 3)
+            Lok.debug();
         StageSet stageSet = new StageSet();
         List<Object> args = new ArrayList<>();
         args.add(id);

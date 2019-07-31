@@ -201,6 +201,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             if (fsEntry != null) {
                 stage.setFsId(fsEntry.getId().v());
                 stage.setVersion(fsEntry.getVersion().v());
+                stage.setName(fsEntry.getName().v());
             }
             stage.setStageSet(stageSet.getId().v());
             stage.setDeleted(!f.exists());
@@ -337,7 +338,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 // check if which subFiles are on stage or fs. if not, index them
 
                 Stage subStage = contentMap.get(subFile.getName());
-                FsFile subFsFile = fsDao.getFileByName(stage.getFsId(), subFile.getName());
+                FsFile subFsFile = fsDao.getFsFileByName(stage.getFsId(), subFile.getName());
 
                 if (subStage == null && subFsFile == null) {
                     // stage

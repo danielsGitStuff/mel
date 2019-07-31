@@ -764,6 +764,7 @@ public class FxTest {
 
     @Test
     public void firstSync() throws Exception {
+        Eva.enable();
         DriveTest driveTest = new DriveTest();
         MeinAuthSettings json1 = new DriveTest().createJson1();
         MeinAuthSettings json2 = new DriveTest().createJson2();

@@ -108,7 +108,7 @@ public class FsDao extends Dao {
         sqlQueries.update(fsEntry, fsEntry.getId().k() + "=?", whereArgs);
     }
 
-    public FsFile getFileByName(FsFile fsFile) throws SqlQueriesException {
+    public FsFile getFsFileByName(FsFile fsFile) throws SqlQueriesException {
         Long id = fsFile.getParentId().v();
         String where = "";
         List<Object> whereArguments = new ArrayList<>();
@@ -130,11 +130,11 @@ public class FsDao extends Dao {
         }
     }
 
-    public FsFile getFileByName(Long dirId, String name) throws SqlQueriesException {
+    public FsFile getFsFileByName(Long dirId, String name) throws SqlQueriesException {
         FsFile fsFile = new FsFile();
         fsFile.getParentId().v(dirId);
         fsFile.getName().v(name);
-        return getFileByName(fsFile);
+        return getFsFileByName(fsFile);
     }
 
     public List<FsFile> getFilesByHash(String hash) throws SqlQueriesException {
@@ -391,6 +391,13 @@ public class FsDao extends Dao {
         List<FsDirectory> roots = sqlQueries.load(dummy.getAllAttributes(), dummy, where, null, null);
         assert roots.size() == 1;
         return roots.get(0);
+    }
+
+    public GenericFSEntry getGenericChildByName(long parentId, String name) throws SqlQueriesException {
+        GenericFSEntry dummy = new GenericFSEntry();
+        dummy.getParentId().v(parentId);
+        dummy.getName().v(name);
+        return getGenericFileByName(dummy);
     }
 
     public GenericFSEntry getGenericFileByName(GenericFSEntry genericFSEntry) throws SqlQueriesException {
