@@ -62,18 +62,10 @@ public abstract class BackgroundExecutor {
                         return new Thread(r);
                     }
                 });
-            //threadSemaphore.acquire();
-            //if (threadQueue.size() > 1) {
-            //  Lok.debug("BackgroundExecutor.execute");
-            //}
-            //threadQueue.add(new MeinThread(runnable));
+
             threadSemaphore.release();
-            //todo debug
             RunnableWrapper wrapper = new RunnableWrapper(runnable);
-            if (wrapper.meinRunnable.getRunnableName().toLowerCase().startsWith("meindriveclientservice for test"))
-                Lok.debug("BackgroundExecutor.execute.debugkßc3ß4");
             startedCounter++;
-//            Lok.debug("starting thread no " + startedCounter);
             executorService.execute(wrapper);
         } catch (Exception e) {
             e.printStackTrace();

@@ -37,20 +37,10 @@ public class StageIndexerRunnable extends AbstractIndexer {
         if (pathCollection.getPaths().size() > 0) {
             Transaction transaction = T.lockingTransaction(T.read(fsDao));
             try {
-                //todo debug
-                if (Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClientService for MA2"))
-                    Lok.debug("StageIndexerRunnable.runImpl.debug23r2300");
-                Lok.debug("StageIndexerRunnable.runImpl.locking read on " + Thread.currentThread().getName());
-                Lok.debug("StageIndexerRunnable.runImpl.locked");
                 initStage(DriveStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener);
-                //todo debug
-                if (stageSetId == 4)
-                    Lok.debug("AbstractIndexer.initStage.debugjfg3jhgw0");
                 examineStage();
                 transaction.end();
                 unlocked = true;
-                if (Thread.currentThread().getName().startsWith("StageIndexerRunnable[" + stageSetId + "] for MeinDriveClientService for MA2"))
-                    Lok.debug("StageIndexerRunnable[" + stageSetId + "].runImpl.debug8fh384");
                 if (stageSetId != null)
                     stagingDoneListener.onStagingFsEventsDone(stageSetId);
             } catch (Exception e) {

@@ -109,15 +109,6 @@ public class RecursiveWatcher extends IndexWatchdogListener {
         }
         try {
             String fPath = f.getAbsolutePath();
-            //todo debug
-            Map<String, Boolean> flags = flags(event);
-            StringBuilder positiveListBuilder = new StringBuilder();
-            N.forEachAdv(flags, (stoppable, index, s, b) -> {
-                if (b)
-                    positiveListBuilder.append(s).append(",");
-            });
-            positiveListBuilder.append(f.getAbsolutePath());
-            String positiveList = positiveListBuilder.toString();
             if (checkEvent(event, FileObserver.DELETE_SELF)) {
 //                Lok.warn("delete self" + positiveList);
                 this.watchers.remove(f.getAbsolutePath());

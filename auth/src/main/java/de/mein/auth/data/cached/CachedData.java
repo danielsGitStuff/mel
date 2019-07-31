@@ -118,9 +118,6 @@ public abstract class CachedData extends ServicePayload {
         String json = SerializableEntitySerializer.serialize(part);
         //save to file
         File file = createCachedPartFile(part.getPartNumber());
-        // todo debug
-        if (file.getName().equals("null.0.json"))
-            Lok.debug("");
         BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
         out.write(json.getBytes());
         out.close();
@@ -178,9 +175,6 @@ public abstract class CachedData extends ServicePayload {
     }
 
     public CachedPartOlde getPart(int partNumber) throws IOException, JsonDeserializationException {
-        //todo debug
-        if (partNumber == 8)
-            Lok.debug("debug");
         CachedPartOlde part = CachedPartOlde.read(createCachedPartFile(partNumber));
         return part;
     }

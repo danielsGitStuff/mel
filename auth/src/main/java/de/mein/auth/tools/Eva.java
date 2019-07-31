@@ -24,6 +24,8 @@ public class Eva {
     }
 
     public static int getFlagCount(String flag) {
+        if (!ENABLED)
+            return 0;
         try {
             semaphore.acquire();
             return flagMap.get(flag);

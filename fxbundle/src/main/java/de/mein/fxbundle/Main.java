@@ -69,57 +69,6 @@ public class Main {
             Lok.error("You won't be able to interact (pair, grant access, solve conflicts...) with Mel");
             Lok.error("Otherwise it will synchronize as usual.");
         }
-        // todo debug, remove
-//        if (args.length == 1 && args[0].equals("-dev")) {
-//            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class, ContactsBootloader.class);
-//            meinBoot.boot().done(meinAuthService -> {
-//                Lok.debug("Main.main.booted (DEV)");
-//                meinAuthService.addRegisterHandler(new IRegisterHandler() {
-//                    @Override
-//                    public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
-//                        N.r(() -> N.forEach(meinAuthService.getCertificateManager().getTrustedCertificates(), oldeCert -> meinAuthService.getCertificateManager().deleteCertificate(oldeCert)));
-//                        listener.onCertificateAccepted(request, certificate);
-//
-//                    }
-//
-//                    @Override
-//                    public void onRegistrationCompleted(Certificate partnerCertificate) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onRemoteRejected(Certificate partnerCertificate) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onLocallyRejected(Certificate partnerCertificate) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onRemoteAccepted(Certificate partnerCertificate) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onLocallyAccepted(Certificate partnerCertificate) {
-//
-//                    }
-//
-//                    @Override
-//                    public void setup(MeinAuthAdmin meinAuthAdmin) {
-//
-//                    }
-//                });
-//                meinAuthService.addRegisteredHandler((meinAuthService1, registered) -> {
-//                    N.forEach(meinAuthService.getDatabaseManager().getAllServices(), serviceJoinServiceType -> meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v()));
-//                });
-//                lock.unlockWrite();
-//            }).fail(exc -> {
-//                exc.printStackTrace();
-//            });
-//        } else
 
         if (meinAuthSettings.isHeadless() || !canDisplay) {
             MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class, ContactsBootloader.class);

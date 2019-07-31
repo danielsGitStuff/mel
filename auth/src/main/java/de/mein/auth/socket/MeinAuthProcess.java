@@ -164,11 +164,6 @@ public class MeinAuthProcess extends MeinProcess {
         final Long id = job.getCertificateId();
         final String address = job.getAddress();
         final Integer port = job.getPort();
-//        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
-
-        //todo debug
-        Lok.debug("auth v=" + meinAuthSocket.getV());
-
         try {
             meinAuthSocket.connectSSL(id, address, port);
             mySecret = CertificateManager.randomUUID().toString();
@@ -221,12 +216,6 @@ public class MeinAuthProcess extends MeinProcess {
                                         });
                                     } else {
                                         Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v=" + meinAuthSocket.getV());
-                                        //todo debug
-                                        //should stop here
-//                                        this.stop();
-//                                        job.getPromise().reject(new Exception("already connected to id: " + partnerCertificate.getId().v()));
-//                                        return;
-
                                         job.getPromise().resolve(validationProcess);
                                         return;
                                     }

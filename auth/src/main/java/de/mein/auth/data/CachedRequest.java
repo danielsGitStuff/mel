@@ -13,9 +13,6 @@ public class CachedRequest extends AbstractCachedMessage<CachedRequest> {
 
 
     public CachedRequest setPartNumber(int partNumber) {
-        // todo debug
-        if (partNumber == 8)
-            Lok.debug("debug");
         this.partNumber = partNumber;
         return this;
     }

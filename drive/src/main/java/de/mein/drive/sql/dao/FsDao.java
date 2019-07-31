@@ -50,42 +50,6 @@ public class FsDao extends Dao {
         return n;
     }
 
-    private void printGotLock(String method, int n) {
-        Lok.debug("FsDao." + method + "(" + n + ").got.lock.on " + Thread.currentThread().getName());
-    }
-
-//    public void lockRead() {
-//        int n = printLock("lockRead", rcount);
-//        rwLock.readLock().lock();
-//        printGotLock("lockRead", n);
-//    }
-
-//    public void unlockRead() {
-//        printLock("unlockRead", urcount);
-//        rwLock.readLock().unlock();
-//    }
-
-    private String[] lockedAt;
-    private Thread lockedThread;
-
-//    public void lockWrite() {
-//        int n = printLock("lockWrite", wcount);
-//        if (n == 6)
-//            Lok.warn("debug");
-//        rwLock.writeLock().lock();
-//        lockedThread = Thread.currentThread();
-//        lockedAt = N.arr.cast(lockedThread.getStackTrace(), N.converter(String.class, element -> element.getClassName() + "." + element.getMethodName() + "/" + element.getLineNumber()));
-//        printGotLock("lockWrite", n);
-//        //todo debug
-//        if (n == 22)
-//            Lok.debug("FsDao.lockWrite.debugj8ivj450v");
-//    }
-//
-//    public void unlockWrite() {
-//        printLock("unlockWrite", uwcount);
-//        rwLock.writeLock().unlock();
-//    }
-
     private final DriveDatabaseManager driveDatabaseManager;
     private DriveSettings driveSettings;
 
@@ -96,13 +60,6 @@ public class FsDao extends Dao {
 
 
     public void update(FsEntry fsEntry) throws SqlQueriesException {
-        //todo debug
-        if (fsEntry.getName().v().equals("sub1.txt"))
-            Lok.debug("FsDao.update.debug3");
-        if (fsEntry.getName().v().equals("sub2.txt"))
-            Lok.debug("FsDao.update.debug3243");
-        if (!fsEntry.getName().v().equals("[root]") && fsEntry.getParentId().isNull())
-            Lok.debug("FsDao.update.debug3");
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(fsEntry.getId().v());
         sqlQueries.update(fsEntry, fsEntry.getId().k() + "=?", whereArgs);
@@ -166,16 +123,6 @@ public class FsDao extends Dao {
         update(f);
     }
 
-/*
-    public List<FsFile> getByDirectorySync(Long id, Long syncId) throws SqlQueriesException {
-        FsFile file = new FsFile();
-        String where = file.getParentId().k() + "=? and " + file.getOldVersion().k() + ">?";
-        List<Object> whereArguments = new ArrayList<>();
-        whereArguments.add(id);
-        whereArguments.add(syncId);
-        List<SQLTableObject> result = sqlQueries.load(file.getAllAttributes(), file, where, whereArguments);
-        return result;
-    }*/
 
     public FsFile getFile(Long id) throws SqlQueriesException {
         FsFile fsFile = new FsFile();
@@ -192,9 +139,6 @@ public class FsDao extends Dao {
 
 
     public FsEntry insert(FsEntry fsEntry) throws SqlQueriesException {
-        //todo debug
-        if (fsEntry.getName().equalsValue("[root]"))
-            Lok.debug("debug");
         Long id;
         if (fsEntry.getId().notNull())
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
@@ -357,9 +301,6 @@ public class FsDao extends Dao {
         try {
             RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
             String rootPath = rootDirectory.getPath();
-            //todo debug
-            if (f == null)
-                System.err.println("FsDao.getFsDirectoryByPath.debug1");
             //todo Exception here
             if (!f.getAbsolutePath().startsWith(rootPath))
                 return null;
@@ -423,10 +364,6 @@ public class FsDao extends Dao {
     }
 
     public void deleteById(Long fsId) throws SqlQueriesException {
-        //todo debug
-        if (fsId == 7)
-            Lok.debug("FsDao.deleteById.debugjc03jg0äpeg");
-        Lok.debug("FsDao.deleteById: " + fsId);
         List<Object> whereArgs = new ArrayList<>();
         whereArgs.add(fsId);
         FsEntry fsEntry = new GenericFSEntry();
@@ -441,9 +378,6 @@ public class FsDao extends Dao {
     }
 
     public void insertOrUpdate(FsEntry fsEntry) throws SqlQueriesException {
-        //todo debug
-        if (fsEntry.getName().equals("same1.txt") && !fsEntry.getSynced().v())
-            Lok.debug("FsDao.insert.debug3");
         if (fsEntry.getId().v() != null && hasId(fsEntry.getId().v())) {
             update(fsEntry);
         } else {
@@ -535,9 +469,6 @@ public class FsDao extends Dao {
 
     public void setSynced(Long id, boolean synced) throws SqlQueriesException {
         assert id != null;
-        //todo debug
-        if (id == 10 || id == 7)
-            Lok.debug("FsDao.setSynced.debug9uf93");
         FsFile dummy = new FsFile();
         String statement = "update " + dummy.getTableName() + " set " + dummy.getSynced().k() + "=? where " + dummy.getId().k() + "=?";
         sqlQueries.execute(statement, ISQLQueries.whereArgs(synced, id));

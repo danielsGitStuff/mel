@@ -86,9 +86,6 @@ public class Wastebin {
 
     public void deleteFsEntry(Long fsId) throws SqlQueriesException, IOException, InterruptedException {
         GenericFSEntry genericFSEntry = fsDao.getGenericById(fsId);
-        //todo debug
-        if (genericFSEntry == null)
-            Lok.debug("Wastebin.deleteFsEntry.debug1");
         if (genericFSEntry != null) {
             if (genericFSEntry.getIsDirectory().v())
                 deleteDirectory((FsDirectory) genericFSEntry.ins());
@@ -203,9 +200,6 @@ public class Wastebin {
     }
 
     private void moveToBin(AFile file, String contentHash, FsBashDetails fsBashDetails) throws SqlQueriesException {
-        //todo debug
-        if (contentHash.equals("9471e9c1779a51bb6fcb5735127c0701"))
-            Lok.debug("Wastebin.moveToBin.debugjfc03jg0w");
         Waste waste = new Waste();
         waste.getModified().v(fsBashDetails.getModified());
         waste.getHash().v(contentHash);
@@ -220,9 +214,6 @@ public class Wastebin {
     }
 
     private void recursiveDelete(AFile dir) throws SqlQueriesException, IOException, InterruptedException {
-        //todo debug
-        if (dir.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/drivefx/testdir2/samedir/samesub"))
-            Lok.debug("Wastebin.recursiveDelete.debugnfi34fa");
         FsDirectory fsDirectory = fsDao.getFsDirectoryByPath(dir);
         AFile[] files = dir.listFiles();
         for (AFile f : files) {
@@ -282,8 +273,7 @@ public class Wastebin {
                         fsDao.setSynced(fsFile.getId().v(), true);
                         syncHandler.moveFile(wasteFile, fsFile);
                     } else {
-                        //todo debug
-                        System.err.println("Wastebin.restoreFsFiles.degubgseo5ß");
+                        Lok.error("Wastebin.restoreFsFiles");
                     }
                 }
             }
@@ -302,9 +292,6 @@ public class Wastebin {
     }
 
     private AFile getWasteFile(Waste waste) {
-        //todo debug
-        if (waste == null || waste.getHash().isNull())
-            Lok.debug("Wastebin.getWasteFile.debug.1");
         return AFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
     }
 
@@ -317,9 +304,6 @@ public class Wastebin {
      * @throws IOException
      */
     public void deleteUnknown(AFile file) throws SqlQueriesException, IOException, InterruptedException {
-        //todo debug
-        if (file.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir2/samedir"))
-            Lok.debug();
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
         AFile target = AFile.instance(deferredDir, fsBashDetails.getiNode().toString());
         file.move(target);

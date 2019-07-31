@@ -54,7 +54,6 @@ public class MeinValidationProcess extends MeinProcess {
     }
 
     public MeinAuthSocket getMeinAuthSocket() {
-        //todo debug
         return meinAuthSocket;
     }
 
@@ -88,11 +87,6 @@ public class MeinValidationProcess extends MeinProcess {
 
     @Override
     public synchronized void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) throws IOException, MeinJsonException {
-//todo debug
-        if (deserialized.getClass().getSimpleName().toLowerCase().equals("cachedlistpart")) {
-            Lok.debug();
-        }
-
         if (!handleCached(deserialized) && !handleAnswer(deserialized)) {
             try {
                 if (!handleGetServices(deserialized)) {
@@ -150,9 +144,6 @@ public class MeinValidationProcess extends MeinProcess {
         } else if (deserialized instanceof AbstractCachedMessage) {
             AbstractCachedMessage cachedMessage = (AbstractCachedMessage) deserialized;
             Long cacheId = cachedMessage.getCacheId();
-            //todo debug
-            if (cacheId == null)
-                Lok.debug();
             if (cachedMessage instanceof CachedRequest) {
                 // partner asks for a cached part
                 if (cachedForSending.containsKey(cacheId)) {
@@ -193,152 +184,6 @@ public class MeinValidationProcess extends MeinProcess {
         return false;
     }
 
-    private void requestCachedPart(CachedData cachedData) throws JsonSerializationException, IllegalAccessException {
-        CachedRequest cachedRequest = new CachedRequest()
-                .setCacheId(cachedData.getCacheId())
-                .setPartNumber(cachedData.getNextPartNumber());
-        send(cachedRequest);
-    }
-
-//    private void handleCachedFinished(CachedData cachedData) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-//        cachedData.toDisk();
-//        StateMsg stateMsg = cachedStateMessages.get(cachedData.getCacheId());
-//        this.onMessageReceived(stateMsg, meinAuthSocket);
-////        handleAnswer(stateMsg);
-////        cachedData.cleanUp();
-//    }
-
-    /**
-     * handle if deserialized is cached data. data might be requested or come in spontaneously.
-     *
-     * @param deserialized
-     * @return true if the cached data is still incomplete. if complete let the appropriate method take care of it -> false
-     */
-//    private boolean handleCached(SerializableEntity deserialized) {
-//        try {
-//            if (deserialized instanceof CachedData) {
-//                // first part of cached data arrives
-//                CachedData receivedData = (CachedData) deserialized;
-//                CachedData cached = cachedForRetrieving.get(receivedData.getCacheId());
-//                cached.initPartsMissed(cached.getPartCount());
-//                handleReceiveCachedPart(receivedData.getPart());
-//                return true;
-//            } else if (deserialized instanceof CachedPartOlde) {
-//                // a further part of cached data arrives
-//                CachedPartOlde part = (CachedPartOlde) deserialized;
-//                CachedData cachedData = cachedForRetrieving.get(part.getCacheId());
-//                cachedData.onReceivedPart(part);
-//                if (cachedData.isComplete()) {
-//                    handleCachedFinished(cachedData);
-//                    return true;
-//                } else {
-//                    // still not complete
-//                    requestCachedPart(cachedData);
-//                }
-//                return true;
-//            } else if (deserialized instanceof StateMsg) {
-//                StateMsg stateMsg = (StateMsg) deserialized;
-//                if (stateMsg.getPayload() != null && stateMsg.getPayload() instanceof CachedData) {
-//                    // get a chacheId first
-//                    if (stateMsg instanceof MeinResponse) {
-//                        MeinResponse response = (MeinResponse) stateMsg;
-//                        // in case someone sent us data we did not ask for
-//                        if (!requestMap.containsKey(response.getResponseId()))
-//                            return true;
-//                    } else if (stateMsg instanceof MeinRequest) {
-//                        MeinRequest request = (MeinRequest) stateMsg;
-//                        // in case the request to this service was not allowed
-//                        if (!isServiceAllowed(request.getServiceUuid()))
-//                            return true;
-//                    }
-//                    // its new. is must get a cache id and folder
-//                    CachedData cachedData = (CachedData) stateMsg.getPayload();
-//                    if (cachedData.isComplete() && cachedStateMessages.containsKey(cachedData.getCacheId())) {
-//                        // the message is complete -> nothing to do here
-//                        return false;
-//                    } else {
-//                        MeinService service = meinAuthSocket.getMeinAuthService().getMeinService(cachedData.getServiceUuid());
-//                        if (service!=null) {
-//                            cachedData.setCacheDirectory(service.getCacheDirectory());
-//                            cachedData.initPartsMissed(cachedData.getPartCount());
-//                        }else {
-//                            Lok.error("got some cached data but no service!");
-//                        }
-//                    }
-//
-//                    //todo debug
-//                    if (cachedStateMessages.containsKey(cachedData.getCacheId()))
-//                        Lok.debug("debug");
-//
-//                    if (cachedData.isComplete()) {
-//                        // let the other methods work with the payload
-//                        return false;
-//                    } else {
-//                        cachedForRetrieving.put(cachedData.getCacheId(), cachedData);
-//                        cachedStateMessages.put(cachedData.getCacheId(), stateMsg);
-//                        cachedData.toDisk();
-//                        // the answer is not complete. asking for the next part
-//                        // retrieve the next part
-//                        requestCachedPart(cachedData);
-//                        // we took care of it for now.
-//                        return true;
-//                    }
-//                } else {
-//                    // we don't care
-//                    return false;
-//                }
-//            } else if (deserialized instanceof CachedRequest) {
-//
-//                CachedRequest cachedRequest = (CachedRequest) deserialized;
-//                CachedData alreadyCached = cachedForSending.get(cachedRequest.getCacheId());
-//                if (isServiceAllowed(alreadyCached.getServiceUuid())) {
-//                    CachedData cachedData = cachedForSending.get(cachedRequest.getCacheId());
-//                    CachedPartOlde part = cachedData.getPart(cachedRequest.getPartNumber());
-//                    send(part);
-//                }
-//                return true;
-//            } else if (deserialized instanceof CachedDoneMessage) {
-//                CachedDoneMessage cachedDoneMessage = (CachedDoneMessage) deserialized;
-//                if (isServiceAllowed(cachedDoneMessage.getServiceUuid())) {
-//                    CachedData cachedData = cachedForSending.remove(cachedDoneMessage.getCacheId());
-//                    cachedData.cleanUp();
-//                }
-//                return true;
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return false;
-//    }
-
-    /**
-     * reads a {@link CachedPartOlde} and and removes the related {@link CachedData} object from the waiting "list".
-     * calls handleServiceInteraction() when done
-     *
-     * @throws JsonSerializationException
-     * @throws IOException
-     * @throws InvocationTargetException
-     * @throws SqlQueriesException
-     */
-//    private boolean handleReceiveCachedPart(CachedPartOlde cachedPart) throws IllegalAccessException, JsonSerializationException, IOException, InstantiationException, InvocationTargetException, NoSuchMethodException, SqlQueriesException {
-//        CachedData cached = cachedForRetrieving.get(cachedPart.getCacheId());
-//        cached.onReceivedPart(cachedPart);
-//        if (cached.isComplete()) {
-//            cachedForRetrieving.remove(cached.getCacheId());
-//            // update the answer we got before and handle it
-//            StateMsg stateMsg = cachedStateMessages.get(cached.getCacheId());
-//            stateMsg.setPayLoad(cached);
-//            return handleAnswer(stateMsg);
-//        } else {
-//            // retrieve the next part
-//            CachedRequest cachedRequest = new CachedRequest()
-//                    .setCacheId(cached.getCacheId())
-//                    .setPartNumber(cached.getNextPartNumber())
-//                    .setServiceUuid(cached.getServiceUuid());
-//            send(cachedRequest);
-//            return true;
-//        }
-//    }
     private boolean handleServiceInteraction(SerializableEntity deserialized) throws SqlQueriesException {
         if (deserialized instanceof MeinMessage) {
             MeinMessage message = (MeinMessage) deserialized;

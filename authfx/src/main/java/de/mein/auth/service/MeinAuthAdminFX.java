@@ -246,7 +246,6 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
         btnAccess.setOnAction(event -> loadSettingsFX("de/mein/auth/access.fxml"));
         btnPairing.setOnAction(event -> loadSettingsFX("de/mein/auth/pairing.fxml"));
         tpServices.expandedProperty().addListener((observable, oldValue, newValue) -> showServices());
-        //todo debug
         //add system tray
         if (SystemTray.isSupported()) {
             N.r(this::displayTray);

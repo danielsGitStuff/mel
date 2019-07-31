@@ -136,11 +136,6 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     @Throws(IllegalAccessException::class, SqlQueriesException::class, InstantiationException::class)
     fun getBootLoader(typeName: String): Bootloader<out MeinService> {
         var bootClazz: Class<out Bootloader<out MeinService>>? = bootloaderMap[typeName]
-        //todo debug
-        if (bootClazz == null) {
-            val hasType = bootloaderMap.containsKey(typeName)
-            bootClazz = bootloaderMap[typeName]
-        }
         val bootLoader = createBootLoader(meinAuthService, bootClazz!!)
         return bootLoader
     }

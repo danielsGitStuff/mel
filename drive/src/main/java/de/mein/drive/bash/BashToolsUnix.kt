@@ -96,7 +96,6 @@ open class BashToolsUnix : BashToolsImpl {
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
         val line = reader.readLine()
-        //todo debug
         if (line == null) {
             Lok.debug("reading error for: " + args[2])
             try {
@@ -115,7 +114,7 @@ open class BashToolsUnix : BashToolsImpl {
         val modified = java.lang.Long.parseLong(parts[1])
         val symLink = parts[2].startsWith("sym")
         val name = file.name
-        var symLinkTarget: String? = if (symLink)
+        val symLinkTarget: String? = if (symLink)
             parseSymLink(file, parts[6])
         else
             null

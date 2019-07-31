@@ -107,7 +107,6 @@ class BashToolsWindows : BashToolsImpl {
     @Throws(IOException::class)
     private fun execLine(vararg commands: String): String? {
         try {
-            //todo debug
             val process = exec(*commands)
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             return reader.readLine()

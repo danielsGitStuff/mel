@@ -164,11 +164,6 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
             java.security.cert.Certificate cert = sslSocket.getSession().getPeerCertificates()[0];
             byte[] certBytes = cert.getEncoded();
             String hash = Hash.sha256(certBytes);
-            // todo debug
-            List<Certificate> allCerts = meinAuthService.getCertificateManager().getAllCertificateDetails();
-            for (Certificate certificate : allCerts) {
-                Lok.debug("avail cert: id: " + certificate.getId().v() + " , name: " + certificate.getName().v() + " ,hash: " + certificate.getHash().v() + " ,trusted: " + certificate.getTrusted().v());
-            }
             partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateByHash(hash);
             if (partnerCertificate == null) {
                 if (Arrays.equals(meinAuthService.getCertificateManager().getPublicKey().getEncoded(), cert.getPublicKey().getEncoded())) {
@@ -224,7 +219,7 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     }
 
     public Socket getSocket() {
-        //todo debug, make package private
+        //todo make package private
         return socket;
     }
 }

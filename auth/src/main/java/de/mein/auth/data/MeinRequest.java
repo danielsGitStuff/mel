@@ -107,11 +107,6 @@ public class MeinRequest extends MeinMessage {
 
     public MeinRequest setUserUuid(String userUuid) {
         this.userUuid = userUuid;
-        //todo debug
-        if (userUuid.equals("00000000-a00a-a00a-a00a-000000000003")) {
-            Eva.eva();
-            Lok.debug("debug");
-        }
         return this;
     }
 

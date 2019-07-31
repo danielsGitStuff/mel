@@ -57,8 +57,6 @@ public class AndroidContactsServerService extends ContactsServerService {
         }
         databaseManager.maintenance();
         // examine when booted
-        //todo debug
-        //debug();
         addJob(new ExamineJob());
     }
 

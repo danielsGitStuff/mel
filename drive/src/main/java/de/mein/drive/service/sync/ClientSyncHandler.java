@@ -187,9 +187,6 @@ public class ClientSyncHandler extends SyncHandler {
                             stageDao.update(stage);
                         }
                         StageSet stageSet = stageDao.getStageSetById(stageSetId);
-                        //todo debug
-                        if (stageSet == null)
-                            Lok.error("debug");
                         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
                         stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
                         commitStage(stageSetId, transaction);
@@ -354,20 +351,13 @@ public class ClientSyncHandler extends SyncHandler {
      * @param stagedFromFs
      */
     private void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction) throws SqlQueriesException {
-        //todo debug
-        if (serverStageSet.getId().equalsValue(2L)
-                && stagedFromFs.getId().equalsValue(1L))
-            Lok.debug();
         String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
         ConflictSolver conflictSolver;
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
         if (conflictSolverMap.containsKey(identifier)) {
             conflictSolver = conflictSolverMap.get(identifier);
             if (conflictSolver.isSolved()) {
-                //todo debug
-                if (serverStageSet.getId().v() == 3 && stagedFromFs.getId().v() == 6)
-                    Lok.debug("ClientSyncHandler.handleConflict.debung0vbgiw435g");
-                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
+                                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
                 conflictSolver.setSolving(false);
             } else {
                 System.err.println(getClass().getSimpleName() + ".handleConflict(): conflict " + identifier + " was not resolved");
@@ -387,9 +377,6 @@ public class ClientSyncHandler extends SyncHandler {
             } else {
                 // todo FsDir hash conflicts
                 conflictSolver.directoryStuff();
-                //todo debug
-                if (conflictSolver.getMergeStageSet().getId().v() == 8)
-                    Lok.warn("debug");
                 try {
                     this.commitStage(serverStageSet.getId().v(), transaction);
                     this.deleteObsolete(conflictSolver);
@@ -505,9 +492,6 @@ public class ClientSyncHandler extends SyncHandler {
             @Override
             public void stuffFound(Stage left, Stage right, AFile lFile, AFile rFile) throws SqlQueriesException {
                 if (left != null) {
-                    //todo debug
-                    if (left.getId() == 64)
-                        Lok.debug("ClientSyncHandler.stuffFound.debugfin30f");
                     if (right != null) {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
                         stage.mergeValuesFrom(right);
@@ -559,10 +543,6 @@ public class ClientSyncHandler extends SyncHandler {
                                 }
                                 stageDao.insert(stage);
                             }
-                            //todo debug
-                            if (idMapRight.containsKey(right.getId()))
-                                Lok.debug("ClientSyncHandler.stuffFound.debugj9f3jß");
-
                             idMapRight.put(right.getId(), stage.getId());
                         }
                     }
@@ -596,9 +576,6 @@ public class ClientSyncHandler extends SyncHandler {
         N.sqlResource(stageDao.getStagesResource(lStageSet.getId().v()), lStages -> {
             Stage lStage = lStages.getNext();
             while (lStage != null) {
-                //todo debug
-                if (lStage.getName().equals("same2.txt"))
-                    Lok.debug("ClientSyncHandler.iterateStageSets.debugmf03nm");
                 timer1.start();
                 AFile lFile = stageDao.getFileByStage(lStage);
                 timer1.stop();

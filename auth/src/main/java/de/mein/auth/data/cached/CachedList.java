@@ -27,7 +27,6 @@ public class CachedList<T extends SerializableEntity> extends CachedInitializer<
     }
 
     public void add(T elem) throws JsonSerializationException, IllegalAccessException, IOException, NoSuchMethodException, InstantiationException, InvocationTargetException {
-        //todo debug
         if (partCount == 0)
             partCount = 1;
         if (part == null) {
@@ -40,9 +39,6 @@ public class CachedList<T extends SerializableEntity> extends CachedInitializer<
         }
         part.add(elem);
         size++;
-        //todo debug
-        if (size == 11)
-            Lok.debug("debug");
     }
 
     protected void createNewPart() {
@@ -59,9 +55,6 @@ public class CachedList<T extends SerializableEntity> extends CachedInitializer<
         if (part == null) {
             this.part = new CachedListPart(cacheId, partCount, partSize);
         }
-        // todo debug
-        if (cacheDir == null)
-            Lok.debug("debug");
         write(part);
     }
 
@@ -99,9 +92,6 @@ public class CachedList<T extends SerializableEntity> extends CachedInitializer<
         if (cachedPart != null) {
             super.onReceivedPart(cachedPart);
             size += cachedPart.size();
-            //todo debug
-            if (size == 11 || size == 22)
-                Lok.debug("debug");
         }
     }
 

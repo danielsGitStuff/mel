@@ -241,9 +241,6 @@ public class ConflictSolver extends SyncStageMerger {
             while (rightStage != null) {
                 if (rightStage.getIsDirectory()) {
                     FsDirectory contentHashDummy = fsDao.getDirectoryById(rightStage.getFsId());
-                    //todo debug
-                    if (rightStage.getId() == 23L || rightStage.getName().equals("sub2"))
-                        Lok.debug();
                     List<Stage> content = null;
 
                     if (contentHashDummy == null) {
@@ -286,14 +283,6 @@ public class ConflictSolver extends SyncStageMerger {
             stage.setParentId(oldeIdNewIdMapForDirectories.get(parentId));
         }
         stage.setId(null);
-        // if deleted and not in FS -> Its obsolete -> remove here
-//        if (stage.getFsIdPair().isNull() && stage.getDeleted()){
-//            stage.setStageSet(obsoleteStageSet.getId().v());
-//            stage.setOrder(obsoleteOrder.ord());
-//        }else {
-//            stage.setStageSet(stageSetId);
-//            stage.setOrder(order.ord());
-//        }
         stage.setStageSet(stageSetId);
         stage.setOrder(order.ord());
         stageDao.insert(stage);

@@ -57,32 +57,12 @@ public class IndexHelper {
             return null;
         String stackPath = fileStack.peek().getAbsolutePath();
 
-
-        if (this.stageSetId >= 3L)
-            Lok.debug("debug");
-        //todo debug
-        if (stackPath.equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir1"))
-            Lok.debug("debug");
-        Lok.debug("target>>>" + targetPath);
-        Lok.debug("stackp>>>" + stackPath);
-
-        //todo debug
-        if (targetPath.equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir1/sub2")) {
-            Eva.flag("a");
-            if (Eva.getFlagCount("a") == 3)
-                Lok.debug();
-            Lok.debug("debug");
-        }
-
         // remove everything from the stacks that does not lead to the directory
         while (fileStack.size() > 1 && (stackPath.length() > targetPath.length() || !targetPath.startsWith(stackPath))) {
             fileStack.pop();
             stackPath = fileStack.peek().getAbsolutePath();
             if (stageStack.size() > 0) {
                 Stage stage = stageStack.pop();
-                //todo debug
-                if (stageStack.empty())
-                    Lok.debug("debug");
                 if (stage != null)
                     stageMap.remove(stage.getId());
             }
@@ -114,7 +94,6 @@ public class IndexHelper {
                 FsEntry partToAdd = null;
                 if (previousFsPeek != null) {
                     partToAdd = fsDao.getSubDirectoryByName(previousFsPeek.getId().v(), part.getName());
-//                    partToAdd = fsDao.getFsFileByName(previousFsPeek.getId().v(), part.getName());
                 }
                 fsEntryStack.push(partToAdd);
                 peekFsEntry = partToAdd;
@@ -123,9 +102,6 @@ public class IndexHelper {
                 // push to stage stack, respect probably added fs entry.
                 // at this point either the fs stack or stage stack must have a non null peek element.
                 // otherwise the connection to the root element is lost.
-                //todo debug
-                if (stageStack.empty())
-                    Lok.debug("debug");
                 Stage peekStage = null;
                 if (!stageStack.empty())
                     peekStage = stageStack.peek();

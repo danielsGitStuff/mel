@@ -29,9 +29,6 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
     }
 
     public Certificate insertCertificate(Certificate certificate) throws SqlQueriesException {
-        //todo debug
-        if (certificate.getName().equalsValue("MA2"))
-            Lok.debug("debug");
         return certificate.setId(sqlQueries.insert(certificate));
     }
 
@@ -45,9 +42,6 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
     }
 
     public void updateCertificate(Certificate certificate) throws SqlQueriesException {
-        //todo debug
-        if (certificate.getName().equalsValue("MA2"))
-            Lok.debug("debug");
         sqlQueries.update(certificate, certificate.getId().k() + "=?", ISQLQueries.whereArgs(certificate.getId().v()));
     }
 
@@ -55,10 +49,6 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         Certificate dummy = new Certificate();
         String where = dummy.getUuid().k() + "=? and " + dummy.getTrusted().k() + "=?";
         List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(uuid, true));
-        //todo debug
-        if (result.size() == 0) {
-            Lok.error(".getTrustedCertificateByUuid for uuid " + uuid);
-        }
         return (Certificate) result.get(0);
     }
 

@@ -169,9 +169,6 @@ public class FsDirectory extends FsEntry {
         if (!contentSet.contains(f.getName().v())) {
             files.add(f);
             contentSet.add(f.getName().v());
-            //todo debug
-            if (f.getName().isNull())
-                Lok.debug("FsDirectory.addFile");
         }
         return this;
     }

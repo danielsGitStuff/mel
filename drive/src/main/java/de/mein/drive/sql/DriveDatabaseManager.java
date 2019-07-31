@@ -121,20 +121,10 @@ public class DriveDatabaseManager extends FileRelatedManager {
             sqliteExecutor.executeStream(driveSqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
+this.driveSettings.getRootDirectory().backup();
 
-//        File driveSettingsFile = new File(workingDirectory.getAbsolutePath() + File.separator + "drive.settings.json");
-//        this.driveSettings = DriveSettings.load(fsDao, driveSettingsFile, driveSettingsCfg).setRole(driveSettingsCfg.getRole()).setRootDirectory(driveSettingsCfg.getRootDirectory());
-        this.driveSettings.getRootDirectory().backup();
-//        this.driveSettings.getRootDirectory().setOriginalFile(driveSettingsCfg.getRootDirectory().getOriginalFile());
-//        this.driveSettings.setTransferDirectory(AFile.instance(this.driveSettings.getRootDirectory().getOriginalFile(), DriveStrings.TRANSFER_DIR));
-//        this.driveSettings.setMaxWastebinSize(driveSettingsCfg.getMaxWastebinSize());
-//        this.driveSettings.setMaxAge(driveSettingsCfg.getMaxAge());
-//        this.driveSettings.setFastBoot(driveSettingsCfg.getFastBoot());
 
-        //todo debug
-//        sqlQueries.execute("delete from fsentry where parentid not null", ISQLQueries.whereArgs());
-
-        fsDao = new FsDao(this, sqlQueries);
+               fsDao = new FsDao(this, sqlQueries);
         stageDao = new StageDao(driveSettings, sqlQueries, fsDao);
         transferDao = new TransferDao(sqlQueries);
         wasteDao = new WasteDao(sqlQueries);

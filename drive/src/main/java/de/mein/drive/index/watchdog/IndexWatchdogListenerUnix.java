@@ -47,7 +47,6 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
                             AFile file = AFile.instance(absolutePath);
-                            // todo debug
                             Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
@@ -72,8 +71,6 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
         }
     }
 
-//    todo debug, remove
-//    private Set<String> debugKeys = new HashSet<>();
 
     @Override
     public void watchDirectory(AFile dir) throws IOException {

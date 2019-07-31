@@ -329,10 +329,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             N.forEach(content, stage1 -> contentMap.put(stage1.getName(), stage1));
         }
 
-        //todo debug
-        if (stageFile.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir1/sub2/sub22"))
-            Lok.debug();
-
         if (files != null) {
             for (AFile subFile : files) {
                 // check if which subFiles are on stage or fs. if not, index them
@@ -352,13 +348,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 //                            .setRelativePath(subFile.getAbsolutePath().substring(rootPathLength));
 
                     FsBashDetails subFsBashDetails = bashDetailsMap.get(subFile.getName());
-                    if (subFsBashDetails == null)
-                        Lok.debug("debug");
+
                     if (subFsBashDetails.isSymLink()) {
                         if (databaseManager.getDriveSettings().getUseSymLinks()) {
                             if (isValidSymLink(subFile, subFsBashDetails)) {
-                                if (subStage == null || subFsBashDetails == null)
-                                    Lok.debug("debug");
                                 subStage.setSymLink(subFsBashDetails.getSymLinkTarget());
                             }
                         } else {
@@ -520,9 +513,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     || stage.getModifiedPair().isNull()
                     || stage.getSizePair().isNull()) {
 
-                //todo debug
-                if (stageFile.getAbsolutePath().equals("/home/xor/Downloads/mel/right/t"))
-                    Lok.debug("debug");
                 if (fsBashDetails == null)
                     fsBashDetails = BashTools.getFsBashDetails(stageFile);
                 if (fsBashDetails.isSymLink()) {

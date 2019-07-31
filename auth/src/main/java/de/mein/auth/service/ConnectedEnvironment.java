@@ -104,12 +104,6 @@ public class ConnectedEnvironment {
         // there are two try catch blocks because the connection code might be interrupted and needs to end the transaction under any circumstances
         try {
             transaction = T.lockingTransaction(this);
-            if (address.equals("192.168.1.109") && debug_count.getAndIncrement() == 0)
-                Lok.debug("debug1");
-            if (address.equals("192.168.1.109") && debug_count.getAndIncrement() == 1)
-                Lok.debug("debug2");
-            if (regOnUnkown)
-                Lok.debug();
             Lok.debug("connect to: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
             MeinAuthSocket def = isCurrentlyConnecting(address, port, portCert);
             if (def != null) {
@@ -118,17 +112,12 @@ public class ConnectedEnvironment {
             if ((mvp = getValidationProcess(address, port)) != null) {
                 deferred.resolve(mvp);
             } else {
-                //todo debug
-                if (address.equals("192.168.1.109"))
-                    Lok.debug("connecting to 192.168.1.109");
                 ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
                 job.getPromise().done(result -> {
                     removeCurrentlyConnecting(address, port, portCert);
                     registerValidationProcess(result);
                     deferred.resolve(result);
                 }).fail(result -> {
-                    if (regOnUnkown)
-                        Lok.debug("connect debug");
                     removeCurrentlyConnecting(address, port, portCert);
                     deferred.reject(result);
                 });
@@ -160,9 +149,6 @@ public class ConnectedEnvironment {
                     Lok.error("an old socket is already present for id: " + validationProcess.getConnectedId());
                 return false;
             }
-            //todo debug
-            if (validationProcess.getMeinAuthSocket().getSocket() == null)
-                Lok.debug("debug");
             idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
             addressValidateProcessMap.put(validationProcess.getAddressString(), validationProcess);
             return true;

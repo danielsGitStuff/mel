@@ -86,11 +86,6 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
             });
             checkRadioButtons();
         }
-        //todo debug
-        if (activity.getAndroidService() != null) {
-            Lok.debug("debugging...");
-            N.forEach(activity.getAndroidService().getMeinAuthService().getConnectedUserIds(), aLong -> Lok.debug("debug id: " + aLong));
-        }
     }
 
     protected void onServiceSelected(Long selectedCertId, ServiceJoinServiceType selectedService) {

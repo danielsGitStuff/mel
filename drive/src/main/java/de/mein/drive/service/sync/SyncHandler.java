@@ -309,9 +309,6 @@ public abstract class SyncHandler {
                             } else {
                                 fsFile.getSynced().v(false);
                             }
-                            //todo debug
-                            if (fsFile.getContentHash().isNull())
-                                Lok.debug("debug");
                             fsDao.insert(fsFile);
                             if (fsFile.isSymlink()) {
                                 AFile f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);

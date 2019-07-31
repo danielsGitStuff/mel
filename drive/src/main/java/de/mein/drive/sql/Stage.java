@@ -170,9 +170,6 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     }
 
     public Stage setContentHash(String contentHash) {
-        // todo debug
-        if (contentHash.equals("0671d3070be781ede67de7e22c22a130"))
-            Lok.debug();
         this.contentHash.v(contentHash);
         return this;
     }
@@ -294,9 +291,6 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     }
 
     public Stage setSynced(Boolean synced) {
-        //todo debug
-        if (!synced && stageSet.equalsValue(2L) && contentHash.equalsValue("51037a4a37730f52c8732586d3aaa316"))
-            Lok.warn("debug11");
         this.synced.v(synced);
         return this;
     }
