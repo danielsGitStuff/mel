@@ -178,7 +178,9 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
         try {
             with(retrieveRunnable.fileProcess) {
                 activeTFSRunnables.remove(this)
-                transferDao.removeDone(this.partnerCertificateId, partnerServiceUuid)
+                transferDao.removeDone(partnerCertificateId, partnerServiceUuid)
+                if (transferDao.count(partnerCertificateId, partnerServiceUuid) == 0L)
+                    meinDriveService.onTransfersDone()
             }
         } finally {
             transaction.end()

@@ -295,7 +295,8 @@ public class ClientSyncHandler extends SyncHandler {
                 return;
             } else if (stagedFromFs.size() > 1) {
                 // merge again
-                meinDriveServichttps://pr0gramm.com/tope.addJob(new CommitJob());
+                meinDriveServichttps:
+//pr0gramm.com/tope.addJob(new CommitJob());
                 return;
             } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
                 syncFromServer(null);
@@ -353,6 +354,10 @@ public class ClientSyncHandler extends SyncHandler {
      * @param stagedFromFs
      */
     private void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction) throws SqlQueriesException {
+        //todo debug
+        if (serverStageSet.getId().equalsValue(2L)
+                && stagedFromFs.getId().equalsValue(1L))
+            Lok.debug();
         String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
         ConflictSolver conflictSolver;
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.

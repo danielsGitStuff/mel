@@ -255,7 +255,7 @@ StageDao extends Dao.LockingDao {
 
     public Stage insert(Stage stage) throws SqlQueriesException {
         //todo debug
-        if (stage.getName().equals("testdir2") || stage.getName().equals("symfile"))
+        if (stage.getName().equals("sub2") && stage.getContentHashPair().equalsValue("0671d3070be781ede67de7e22c22a130"))
             Lok.debug("debug");
         try {
             Long id = sqlQueries.insert(stage);
@@ -376,6 +376,9 @@ StageDao extends Dao.LockingDao {
     }
 
     public void update(Stage stage) throws SqlQueriesException {
+        //todo debug
+        if (stage.getName().equals("sub2") && stage.getContentHashPair().equalsValue("0671d3070be781ede67de7e22c22a130"))
+            Lok.debug("debug");
         StageSet stageSet = this.getStageSetById(stage.getStageSet());
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();

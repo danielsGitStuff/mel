@@ -170,6 +170,9 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     }
 
     public Stage setContentHash(String contentHash) {
+        // todo debug
+        if (contentHash.equals("0671d3070be781ede67de7e22c22a130"))
+            Lok.debug();
         this.contentHash.v(contentHash);
         return this;
     }

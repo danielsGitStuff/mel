@@ -241,13 +241,22 @@ public class ConflictSolver extends SyncStageMerger {
             while (rightStage != null) {
                 if (rightStage.getIsDirectory()) {
                     FsDirectory contentHashDummy = fsDao.getDirectoryById(rightStage.getFsId());
+                    //todo debug
+                    if (rightStage.getId() == 23L || rightStage.getName().equals("sub2"))
+                        Lok.debug();
+                    List<Stage> content = null;
+
                     if (contentHashDummy == null) {
                         // it is not in fs. just add every child from the Stage
                         contentHashDummy = new FsDirectory();
-                        List<Stage> content = stageDao.getStageContent(rightStage.getId());
+                        content = stageDao.getStageContent(rightStage.getId());
                         for (Stage stage : content) {
-                            if (!stage.getDeleted())
-                                contentHashDummy.addDummyFsFile(stage.getName());
+                            if (!stage.getDeleted()) {
+                                if (stage.getIsDirectory())
+                                    contentHashDummy.addDummySubFsDirectory(stage.getName());
+                                else
+                                    contentHashDummy.addDummyFsFile(stage.getName());
+                            }
                             stageDao.flagMerged(stage.getId(), true);
                         }
                     } else {
@@ -259,6 +268,7 @@ public class ConflictSolver extends SyncStageMerger {
                     // apply delta
                     contentHashDummy.calcContentHash();
                     rightStage.setContentHash(contentHashDummy.getContentHash().v());
+                    Lok.debug();
                 }
                 saveRightStage(rightStage, targetStageSet.getId().v(), oldeIdNewIdMapForDirectories);
                 rightStage = stageSet.getNext();
