@@ -45,10 +45,6 @@ public class CountLock {
 
     public CountLock unlock() {
         synchronized (counter) {
-            //todo debug
-            if (counter.getCount() == 2) {
-                Lok.debug("CountLock.unlock.debug");
-            }
             if (counter.dec() < 1)
                 lock.unlock();
         }

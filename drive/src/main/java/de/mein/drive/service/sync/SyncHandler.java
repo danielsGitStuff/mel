@@ -18,6 +18,7 @@ import de.mein.drive.service.Wastebin;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
+import de.mein.drive.transfer.TManager;
 import de.mein.drive.transfer.TransferManager;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
@@ -38,7 +39,7 @@ import java.util.Stack;
 public abstract class SyncHandler {
     protected final DriveSettings driveSettings;
     protected final MeinDriveService meinDriveService;
-    protected final TransferManager transferManager;
+    protected final TManager transferManager;
     protected final MeinAuthService meinAuthService;
     protected FsDao fsDao;
     protected StageDao stageDao;
@@ -58,8 +59,9 @@ public abstract class SyncHandler {
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
         this.indexer = meinDriveService.getIndexer();
         this.wastebin = meinDriveService.getWastebin();
-        this.transferManager = new TransferManager(meinAuthService, meinDriveService, meinDriveService.getDriveDatabaseManager().getTransferDao()
-                , wastebin, this);
+        this.transferManager = new TManager(meinAuthService,meinDriveService.getDriveDatabaseManager().getTransferDao(),meinDriveService,this,wastebin,fsDao);
+//        this.transferManager = new TransferManager(meinAuthService, meinDriveService, meinDriveService.getDriveDatabaseManager().getTransferDao()
+//                , wastebin, this);
         this.quotaManager = new QuotaManager(meinDriveService);
     }
 

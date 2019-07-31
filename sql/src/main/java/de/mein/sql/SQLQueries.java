@@ -346,6 +346,13 @@ public class SQLQueries extends ISQLQueries {
     public void execute(String statement, List<Object> whereArgs) throws SqlQueriesException {
         lockRead();
         try {
+            out("execute.stmt: " + statement);
+            String attrs = "";
+            if (whereArgs != null)
+                for (Object o : whereArgs) {
+                    attrs += (o == null ? "null" : o.toString()) + ", ";
+                }
+            out("execute.attr: " + attrs);
             PreparedStatement pstmt = connection.prepareStatement(statement);
             if (whereArgs != null && whereArgs != null) {
                 insertArguments(pstmt, whereArgs, 1);
@@ -391,6 +398,10 @@ public class SQLQueries extends ISQLQueries {
             }
             query += toConcat + ")";
             out("insert.query: " + query);
+            out("insert.attributes: ");
+            for (Pair pair : attributes) {
+                System.out.print(pair.v() + ", ");
+            }
         } catch (Exception e) {
             throw new SqlQueriesException(e);
         }
@@ -421,11 +432,14 @@ public class SQLQueries extends ISQLQueries {
             //e.printStackTrace();
             if (reentrantWriteLock != null)
                 reentrantWriteLock.unlock();
+            System.err.println("SQLQueries.insert.excep: " + e.getClass().getSimpleName() + ", msg: " + e.getMessage());
             System.err.println("SQLQueries.insert.query: " + query);
-            System.err.println("SQLQueries.insert.attributes: ");
+            StringBuilder attrs = new StringBuilder();
             for (Pair pair : attributes) {
-                System.err.print(pair.v() + ", ");
+                attrs.append(pair.v()).append(", ");
             }
+            System.err.println("SQLQueries.insert.attributes: " + attrs.toString());
+
             throw new SqlQueriesException(e);
         } finally {
             unlockWrite();

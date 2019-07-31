@@ -61,6 +61,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
     private DriveSyncListener syncListener;
 
+    public S getSyncHandler() {
+        return syncHandler;
+    }
 
     public void setSyncListener(DriveSyncListener syncListener) {
         this.syncListener = syncListener;

@@ -94,7 +94,7 @@ CREATE TABLE transfer
     certid      INTEGER NOT NULL,
     serviceuuid TEXT    NOT NULL,
     size        INTEGER NOT NULL,
-    started     INTEGER NOT NULL,
+    state     TEXT NOT NULL,
     transferred INTEGER NOT NULL DEFAULT 0,
     avail       INTEGER,
     f_delete    integer,

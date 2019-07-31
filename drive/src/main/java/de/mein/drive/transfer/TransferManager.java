@@ -21,6 +21,7 @@ import de.mein.drive.service.Wastebin;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.TransferDetails;
+import de.mein.drive.sql.TransferState;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.sql.RWLock;
@@ -119,10 +120,10 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                         // skip if already active
 //                        activeTransfersLock.lock();
                         if (activeTransfers.containsKey(activeTransferKey(groupedTransferSet))) {
-                            activeTransfersLock.unlock();
+//                            activeTransfersLock.unlock();
                             continue;
                         }
-                        activeTransfersLock.unlock();
+//                        activeTransfersLock.unlock();
                         // todo ask Wastebin for files
                         wastebin.restoreFsFiles(syncHandler);
                         // todo ask FS for files
@@ -212,7 +213,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
             List<TransferDetails> transferSets = transferDao.getTransferSets(null);
             for (TransferDetails transferDetails : transferSets) {
                 final String key = activeTransferKey(transferDetails);
-                int max = transferDao.count(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
+                Long max = transferDao.count(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
                 int current = transferDao.countStarted(transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
                 if (activeTransfers.containsKey(key)) {
                     if (notActiveTransfers.containsKey(key)) {
@@ -223,11 +224,11 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                     if (notification == null) {
                         notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_PROGRESS, "transferring", "");
                         activeTransfers.put(key, notification);
-                        notification.setProgress(max, current, false);
+                        notification.setProgress(Integer.parseInt(max.toString()), current, false);
                         meinAuthService.onNotificationFromService(meinDriveService, notification);
                     } else {
                         if (max > 0)
-                            notification.setProgress(max, current, false);
+                            notification.setProgress(Integer.parseInt(max.toString()), current, false);
                         else {
                             notification.cancel();
                             activeTransfers.remove(key);
@@ -298,20 +299,21 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                         payLoad.setFileTransferDetailSet(detailSet);
                         detailSet.setServiceUuid(meinDriveService.getUuid());
                         for (TransferDetails transferDetails : transfers) {
-                            transferDao.setStarted(transferDetails.getId().v(), true);
-                            transferDetails.getStarted().v(true);
+                            transferDetails.getState().v(TransferState.RUNNING);
                             AFile target = AFile.instance(meinDriveService.getDriveSettings().getTransferDirectory(), transferDetails.getHash().v());
                             FileTransferDetail fileTransferDetail = new FileTransferDetail(target, new Random().nextInt(), 0L, transferDetails.getSize().v())
                                     .setHash(transferDetails.getHash().v())
                                     .setTransferDoneListener(fileTransferDetail1 -> N.r(() -> {
-                                        transferDao.delete(transferDetails.getId().v());
+                                        transferDao.updateState(transferDetails.getId().v(), TransferState.DONE);
+//                                        transferDao.delete(transferDetails.getId().v());
                                         countDown(countDown);
                                         Transaction transaction = T.lockingTransaction(fsDao);
                                         syncHandler.onFileTransferred(target, transferDetails.getHash().v(), transaction);
                                         transaction.end();
                                     }))
                                     .setTransferFailedListener(fileTransferDetail1 -> N.r(() -> {
-                                        transferDao.delete(transferDetails.getId().v());
+                                        transferDao.updateState(transferDetails.getId().v(), TransferState.SUSPENDED);
+//                                        transferDao.delete(transferDetails.getId().v());
                                         countDown(countDown);
                                         syncHandler.onFileTransferFailed(transferDetails.getHash().v());
                                     }))
@@ -372,7 +374,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
     }
 
     @Override
-    public void onIsolatedSocketClosed() {
+    public void onIsolatedProcessEnds(MeinIsolatedProcess isolatedProcess) {
         Lok.debug("");
     }
 }

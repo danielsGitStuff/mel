@@ -10,13 +10,13 @@ import de.mein.auth.tools.ByteTools;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 
+import kotlin.internal.DynamicExtension;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -34,10 +34,14 @@ public abstract class MeinIsolatedProcess extends MeinProcess {
     }
 
 
+    @Deprecated // todo replace with constructor argument
     public void setService(IMeinService service) {
         this.service = service;
     }
 
+    public IMeinService getService() {
+        return service;
+    }
 
     private final Long partnerCertificateId;
     private final String partnerServiceUuid;
@@ -103,12 +107,12 @@ public abstract class MeinIsolatedProcess extends MeinProcess {
     }
 
     public static interface IsolatedProcessListener {
-        void onIsolatedSocketClosed();
+        void onIsolatedProcessEnds(MeinIsolatedProcess isolatedProcess);
     }
 
     @Override
     public void onSocketClosed(int code, String reason, boolean remote) {
         super.onSocketClosed(code, reason, remote);
-        N.forEachIgnorantly(isolatedProcessListeners, IsolatedProcessListener::onIsolatedSocketClosed);
+        N.forEachIgnorantly(isolatedProcessListeners, isolatedProcessListener -> isolatedProcessListener.onIsolatedProcessEnds(this));
     }
 }

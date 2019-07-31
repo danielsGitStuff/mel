@@ -1,9 +1,9 @@
 package de.mein.drive.sql.dao;
 
+import de.mein.drive.sql.TransferState;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
-import de.mein.Lok;
 import de.mein.auth.data.db.MissingHash;
 import de.mein.auth.tools.N;
 import de.mein.drive.sql.FsFile;
@@ -68,11 +68,11 @@ public class TransferDao extends Dao {
      */
     public List<TransferDetails> getTransferSets(Integer limit) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
-        String where = dummy.getStarted().k() + "=?";
+        String where = dummy.getState().k() + "=?";
         String whatElse = "group by " + dummy.getCertId().k() + "," + dummy.getServiceUuid().k();
         if (limit != null)
             whatElse += " limit " + limit;
-        List<TransferDetails> result = sqlQueries.load(ISQLQueries.columns(dummy.getCertId(), dummy.getServiceUuid()), dummy, where, ISQLQueries.whereArgs(false), whatElse);
+        List<TransferDetails> result = sqlQueries.load(ISQLQueries.columns(dummy.getCertId(), dummy.getServiceUuid()), dummy, where, ISQLQueries.whereArgs(TransferState.NOT_STARTED), whatElse);
         return result;
     }
 
@@ -83,9 +83,9 @@ public class TransferDao extends Dao {
 
     public List<TransferDetails> getNotStartedTransfers(Long certId, String serviceUuid, int limit) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
-        String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=? and " + dummy.getStarted().k() + "=? and " + dummy.getDeleted().k() + "=? and " + dummy.getAvailable().k() + "=? ";
+        String where = dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=? and " + dummy.getState().k() + "=? and " + dummy.getDeleted().k() + "=? and " + dummy.getAvailable().k() + "=? ";
         String whatElse = " limit ?";
-        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, false, false, true, limit), whatElse);
+        List<TransferDetails> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, TransferState.NOT_STARTED, false, true, limit), whatElse);
         return result;
     }
 
@@ -94,11 +94,17 @@ public class TransferDao extends Dao {
         sqlQueries.delete(transfer, transfer.getHash().k() + "=?", ISQLQueries.whereArgs(hash));
     }
 
-    public void setStarted(Long id, boolean started) throws SqlQueriesException {
-        TransferDetails details = new TransferDetails();
-        String stmt = "update " + details.getTableName() + " set " + details.getStarted().k() + "=? where " + details.getId().k() + "=?";
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true, id));
+    public void updateState(Long id, TransferState state) throws SqlQueriesException {
+        TransferDetails dummy = new TransferDetails();
+        String stmt = "update " + dummy.getTableName() + " set " + dummy.getState().k() + "=? where " + dummy.getId().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(state, id));
     }
+
+//    private void setStarted(Long id, boolean started) throws SqlQueriesException {
+//        TransferDetails details = new TransferDetails();
+//        String stmt = "update " + details.getTableName() + " set " + details.getState().k() + "=? where " + details.getId().k() + "=?";
+//        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true, id));
+//    }
 
     public boolean hasNotStartedTransfers(Long certId, String serviceUuid) throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
@@ -109,19 +115,28 @@ public class TransferDao extends Dao {
 
     public void resetStarted() throws SqlQueriesException {
         TransferDetails dummy = new TransferDetails();
-        String stmt = "update " + dummy.getTableName() + " set " + dummy.getStarted().k() + "=?";
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(false));
+        String stmt = "update " + dummy.getTableName() + " set " + dummy.getState().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(TransferState.NOT_STARTED));
     }
 
-    public int count(Long certId, String serviceUuid) throws SqlQueriesException {
+    public Long count(Long certId, String serviceUuid) throws SqlQueriesException {
         TransferDetails details = new TransferDetails();
         String query = "select count (*) from " + details.getTableName() + " where " + details.getCertId().k() + "=? and " + details.getServiceUuid().k() + "=?";
-        return sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(certId, serviceUuid));
+        return sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(certId, serviceUuid));
+    }
+
+    public Long countDone(Long certId, String serviceUuid) throws SqlQueriesException {
+        TransferDetails details = new TransferDetails();
+        String query = "select count (*) from " + details.getTableName()
+                + " where " + details.getCertId().k() + "=? and "
+                + details.getServiceUuid().k() + "=? and "
+                + details.getState().k() + "=?";
+        return sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(certId, serviceUuid, TransferState.DONE));
     }
 
     public int countStarted(Long certId, String serviceUuid) throws SqlQueriesException {
         TransferDetails details = new TransferDetails();
-        String query = "select count (*) from " + details.getTableName() + " where " + details.getStarted().k() + "=? and "
+        String query = "select count (*) from " + details.getTableName() + " where " + details.getState().k() + "=? and "
                 + details.getCertId().k() + "=? and "
                 + details.getServiceUuid().k() + "=?";
         return sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(true, certId, serviceUuid));
@@ -163,7 +178,7 @@ public class TransferDao extends Dao {
         List<Pair<?>> attributes = new ArrayList<>();
         attributes.add(t.getHash());
         String query = "select t." + t.getHash().k() + " from " + t.getTableName() + " t left join " + f.getTableName() + " f on f." + f.getContentHash().k() + " = t." + t.getHash().k() + " " +
-                "where t." + t.getStarted().k() + "=? and t." + t.getAvailable().k() + "=? and t." + t.getCertId().k() + "=? group by t." + t.getHash().k();
+                "where t." + t.getState().k() + "=? and t." + t.getAvailable().k() + "=? and t." + t.getCertId().k() + "=? group by t." + t.getHash().k();
         ISQLResource<TransferDetails> result = sqlQueries.loadQueryResource(query, attributes, TransferDetails.class, ISQLQueries.whereArgs(false, false, certId));
         return result;
     }
@@ -199,7 +214,7 @@ public class TransferDao extends Dao {
 
     public void flagNotStartedHashAvailable(String hash) throws SqlQueriesException {
         TransferDetails t = new TransferDetails();
-        String stmt = "update " + t.getTableName() + " set " + t.getAvailable().k() + "=? where " + t.getStarted().k() + "=? and " + t.getHash().k() + "=?";
+        String stmt = "update " + t.getTableName() + " set " + t.getAvailable().k() + "=? where " + t.getState().k() + "=? and " + t.getHash().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(true, false, hash));
     }
 }

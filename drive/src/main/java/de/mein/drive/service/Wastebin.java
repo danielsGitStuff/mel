@@ -318,7 +318,7 @@ public class Wastebin {
      */
     public void deleteUnknown(AFile file) throws SqlQueriesException, IOException, InterruptedException {
         //todo debug
-        if (file.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir1/samedir"))
+        if (file.getAbsolutePath().equals("/home/xor/Documents/dev/IdeaProjects/drive/fxbundle/testdir2/samedir"))
             Lok.debug();
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
         AFile target = AFile.instance(deferredDir, fsBashDetails.getiNode().toString());
@@ -326,7 +326,7 @@ public class Wastebin {
 
         //if dir?!?!
         if (target.isDirectory()) {
-            for (AFile f : target.listFiles()) {
+            for (AFile f : target.listContent()) {
                 deleteUnknown(f);
             }
             target.delete();

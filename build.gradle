@@ -5,7 +5,7 @@ project.ext {
     javaFxModules = ['javafx.controls', 'javafx.fxml' , 'javafx.swing', 'javafx.web']
 }
 buildscript {
-    ext.kotlin_version = '1.3.40'
+    ext.kotlin_version = '1.3.41'
     repositories {
         jcenter()
         mavenCentral()

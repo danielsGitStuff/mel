@@ -886,7 +886,7 @@ public class DriveTest {
         if (clientMeinBoot != null)
             boot2 = clientMeinBoot;
         else
-            boot2 = new MeinBoot(json2, new PowerManager(json2));
+            boot2 = new MeinBoot(json2,new PowerManager(json2),DriveBootloader.class);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 Lok.debug("DriveFXTest.driveGui.1.booted");

@@ -1,5 +1,6 @@
 package de.mein.drive.sql;
 
+import de.mein.core.serialize.JsonIgnore;
 import de.mein.sql.Pair;
 import de.mein.sql.SQLTableObject;
 
@@ -13,7 +14,7 @@ public class TransferDetails extends SQLTableObject {
     private static final String CERTIFICATE_ID = "certid";
     private static final String SERVICE_UUID = "serviceuuid";
     private static final String SIZE = "size";
-    private static final String STARTED = "started";
+    private static final String STATE = "state";
     private static final String TRANSFERRED = "transferred";
     private static final String DELETED = "f_delete";
     private static final String AVAILABLE = "avail";
@@ -23,7 +24,8 @@ public class TransferDetails extends SQLTableObject {
     private Pair<Long> certId = new Pair<>(Long.class, CERTIFICATE_ID);
     private Pair<String> serviceUuid = new Pair<>(String.class, SERVICE_UUID);
     private Pair<Long> size = new Pair<>(Long.class, SIZE);
-    private Pair<Boolean> started = new Pair<>(Boolean.class, STARTED, false);
+    @JsonIgnore
+    private Pair<TransferState> state = new Pair<>(TransferState.class, STATE);
     private Pair<Long> transferred = new Pair<>(Long.class, TRANSFERRED, 0L);
     private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED, false);
     private Pair<Boolean> available = new Pair<>(Boolean.class, AVAILABLE);
@@ -40,7 +42,7 @@ public class TransferDetails extends SQLTableObject {
 
     @Override
     protected void init() {
-        populateInsert(hash, certId, serviceUuid, size, started, transferred, deleted,available);
+        populateInsert(hash, certId, serviceUuid, size, state, transferred, deleted, available);
         populateAll(id);
     }
 
@@ -72,8 +74,8 @@ public class TransferDetails extends SQLTableObject {
         return serviceUuid;
     }
 
-    public Pair<Boolean> getStarted() {
-        return started;
+    public Pair<TransferState> getState() {
+        return state;
     }
 
     public Pair<Boolean> getDeleted() {
