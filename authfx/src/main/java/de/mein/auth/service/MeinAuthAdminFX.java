@@ -39,7 +39,6 @@ import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -188,9 +187,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                 errorController.showError(service);
             });
         } else {
-            loadSettingsFX(bootLoaderFX.getEditFXML(meinService), bootLoaderFX.getResourceBundle(locale));
-            ServiceSettingsFX serviceSettingsFX = (ServiceSettingsFX) contentController;
-            serviceSettingsFX.feed(serviceJoinServiceType);
+            loadServiceSettingsFX(bootLoaderFX.getEditFXML(meinService), bootLoaderFX.getResourceBundle(locale), serviceJoinServiceType);
+
         }
     }
 
@@ -388,6 +386,45 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
             setContentPane(pane);
             Lok.debug("MeinAuthAdminFX.loadSettingsFX.loaded");
         });
+    }
+
+    /**
+     * loads with a given resource bundle
+     *
+     * @param resource
+     * @param resourceBundle
+     * @param serviceJoinServiceType
+     * @return
+     */
+    private void loadServiceSettingsFX(String resource, ResourceBundle resourceBundle, ServiceJoinServiceType serviceJoinServiceType) {
+        try {
+            lblTitle.setVisible(true);
+            lblTitle.setText(this.resourceBundle.getString("service.title"));
+            FXMLLoader containerLoader = new FXMLLoader(getClass().getClassLoader().getResource("de/mein/auth/editservice.fxml"));
+            containerLoader.setResources(this.resourceBundle);
+            Pane containerPane = containerLoader.load();
+            ServiceSettingsController serviceSettingsController = containerLoader.getController();
+//            serviceSettingsController.initialize(lo);
+            contentController = serviceSettingsController;
+            FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
+            if (resourceBundle != null)
+                lo.setResources(resourceBundle);
+            Pane pane = lo.load();
+
+            ServiceSettingsFX embeddedController = lo.getController();
+            serviceSettingsController.setContent(pane, embeddedController);
+            serviceSettingsController.setMeinAuthService(meinAuthService);
+            serviceSettingsController.configureParentGui(this);
+            serviceSettingsController.feed(serviceJoinServiceType);
+//            contentController = lo.getController();
+//            contentController.configureParentGui(this);
+//            contentController.setMeinAuthService(meinAuthService);
+
+            setContentPane(containerPane);
+            Lok.debug("MeinAuthAdminFX.loadSettingsFX.loaded");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 

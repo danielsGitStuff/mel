@@ -2,7 +2,7 @@
     -fx-padding: 5;
 }
 
-.text{
+.text {
     -fx-fill: #ffffff;
 }
 
@@ -11,7 +11,7 @@
     -fx-pref-width: Infinity;
 }
 
-.combo{
+.combo {
     -fx-pref-width: Infinity;
     -fx-text-fill: #9eb34d;
 }
@@ -24,16 +24,35 @@
     -fx-background-color: #57bf40;
 }
 
+.lbl-indifferent {
+    -fx-background-color: #ffcc35;
+}
+
 .lbl-negative {
     -fx-background-color: rgb(204, 0, 0);
 }
 
-.lbl-hash{
+.lbl-state-running {
+    -fx-background-color: #57bf40;
+    -fx-alignment: center;
+}
+
+.lbl-state-booting {
+    -fx-background-color: #ffcc35;
+    -fx-alignment: center;
+}
+
+.lbl-state-stopped {
+    -fx-background-color: rgb(204, 0, 0);
+    -fx-alignment: center;
+}
+
+.lbl-hash {
     -fx-text-fill: #ffcc35;
     -fx-padding: 10;
 }
 
-.txt-cert{
+.txt-cert {
     -fx-text-fill: #57bf40;
 }
 
