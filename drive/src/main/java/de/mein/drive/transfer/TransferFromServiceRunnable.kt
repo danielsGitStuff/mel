@@ -72,50 +72,52 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                             waitLock.unlockWrite()
                         }
                     }
-                    dbTransfers.forEach { dbDetail ->
-                        //update state first
-                        dbDetail.state.v(TransferState.RUNNING)
-                        transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
-                        // find out where to store
-                        val target = AFile.instance(driveService.getDriveSettings().getTransferDirectory(), dbDetail.hash.v())
-                        val transferDetail = FileTransferDetail(target, Random.nextInt(), 0L, dbDetail.size.v())
-                        transferDetail.hash = dbDetail.hash.v()
-                        transferDetail.setTransferDoneListener {
-                            filesRemain.decrementAndGet()
-                            // update states
-                            dbDetail.state.v(TransferState.DONE)
+                    if (dbTransfers.size > 0) {
+                        dbTransfers.forEach { dbDetail ->
+                            //update state first
+                            dbDetail.state.v(TransferState.RUNNING)
                             transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
-                            // tell the sync handler we got a file
-                            val transaction = T.lockingTransaction(fsDao)
-                            try {
-                                driveService.syncHandler.onFileTransferred(target, dbDetail.hash.v(), transaction)
-                            } finally {
-                                transaction.end()
+                            // find out where to store
+                            val target = AFile.instance(driveService.getDriveSettings().getTransferDirectory(), dbDetail.hash.v())
+                            val transferDetail = FileTransferDetail(target, Random.nextInt(), 0L, dbDetail.size.v())
+                            transferDetail.hash = dbDetail.hash.v()
+                            transferDetail.setTransferDoneListener {
+                                filesRemain.decrementAndGet()
+                                // update states
+                                dbDetail.state.v(TransferState.DONE)
+                                transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
+                                // tell the sync handler we got a file
+                                val transaction = T.lockingTransaction(fsDao)
+                                try {
+                                    driveService.syncHandler.onFileTransferred(target, dbDetail.hash.v(), transaction)
+                                } finally {
+                                    transaction.end()
+                                }
+                                decreaseBatchCounter()
                             }
-                            decreaseBatchCounter()
+                            transferDetail.setTransferFailedListener {
+                                filesRemain.decrementAndGet()
+                                dbDetail.state.v(TransferState.SUSPENDED)
+                                transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
+                                decreaseBatchCounter()
+                            }
+                            transferDetail.setTransferProgressListener {
+                                // store what we currently got
+                                currentDBSet[it]?.transferred?.v(it.position)
+                            }
+                            currentDetailSet.add(transferDetail)
+                            currentDBSet.put(transferDetail, dbDetail)
+                            fileProcess.addFilesReceiving(transferDetail)
                         }
-                        transferDetail.setTransferFailedListener {
-                            filesRemain.decrementAndGet()
-                            dbDetail.state.v(TransferState.SUSPENDED)
-                            transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
-                            decreaseBatchCounter()
+                        val connected = driveService.meinAuthService.connect(partnerCertId)
+                        connected.done {
+                            payload.intent = DriveStrings.INTENT_PLEASE_TRANSFER
+                            it.message(partnerServiceUuid, payload)
+                            waitLock.lockWrite()
+                        }.fail {
+                            stopped = true
+                            waitLock.unlockWrite()
                         }
-                        transferDetail.setTransferProgressListener {
-                            // store what we currently got
-                            currentDBSet[it]?.transferred?.v(it.position)
-                        }
-                        currentDetailSet.add(transferDetail)
-                        currentDBSet.put(transferDetail, dbDetail)
-                        fileProcess.addFilesReceiving(transferDetail)
-                    }
-                    val connected = driveService.meinAuthService.connect(partnerCertId)
-                    connected.done {
-                        payload.intent = DriveStrings.INTENT_PLEASE_TRANSFER
-                        it.message(partnerServiceUuid, payload)
-                        waitLock.lockWrite()
-                    }.fail {
-                        stopped = true
-                        waitLock.unlockWrite()
                     }
 //                    waitLock.lockWrite()
                 } else {

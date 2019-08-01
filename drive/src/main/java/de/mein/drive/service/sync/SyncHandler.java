@@ -58,7 +58,7 @@ public abstract class SyncHandler {
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
         this.indexer = meinDriveService.getIndexer();
         this.wastebin = meinDriveService.getWastebin();
-        this.transferManager = new TManager(meinAuthService,meinDriveService.getDriveDatabaseManager().getTransferDao(),meinDriveService,this,wastebin,fsDao);
+        this.transferManager = new TManager(meinAuthService, meinDriveService.getDriveDatabaseManager().getTransferDao(), meinDriveService, this, wastebin, fsDao);
 //        this.transferManager = new TransferManager(meinAuthService, meinDriveService, meinDriveService.getDriveDatabaseManager().getTransferDao()
 //                , wastebin, this);
         this.quotaManager = new QuotaManager(meinDriveService);
@@ -171,6 +171,9 @@ public abstract class SyncHandler {
         Transaction transaction = T.lockingTransaction(T.read());
         AFile target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
         transaction.end();
+        if (source == null)
+            Lok.debug();
+        Lok.debug("SyncHandler.copyFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
         indexer.ignorePath(target.getAbsolutePath(), 2);
         InputStream in = source.inputStream();
         try {

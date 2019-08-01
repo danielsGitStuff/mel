@@ -232,8 +232,8 @@ public class AndroidSQLQueries extends ISQLQueries {
             unlockWrite();
             return id;
         } catch (Exception e) {
-            System.err.println(getClass().getSimpleName() + ".insertWithAttributes().exception");
-            System.err.println("e: " + sqlTableObject.toString());
+            System.err.println(getClass().getSimpleName() + ".insertWithAttributes().exception: " + e.getClass().getSimpleName() + " ... " + e.getMessage());
+//            System.err.println("e: " + sqlTableObject.toString());
             throw new SqlQueriesException(e);
         }
     }
@@ -338,7 +338,9 @@ public class AndroidSQLQueries extends ISQLQueries {
                         values[pos] = (Long) a;
                     else if (a.getClass().equals(Integer.class))
                         values[pos] = (Short) a;
-                    else {
+                    else if (a.getClass().isEnum()) {
+                        values[pos] = (String) ((Enum) a).name();
+                    } else {
                         Lok.error("TYPE:CONVERSION:FAILED:FOR: " + a.getClass().getSimpleName());
                     }
                 }

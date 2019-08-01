@@ -22,7 +22,8 @@ public class DBLokImpl extends LokImpl {
      * @return
      */
     protected boolean store() {
-        return limit > 0L;
+        return false;
+//        return limit > 0L;
     }
 
     public static void setupDBLockImpl(File logDb, long preservedLogLines) throws SQLException, ClassNotFoundException, IOException {

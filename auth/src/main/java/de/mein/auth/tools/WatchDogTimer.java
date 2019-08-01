@@ -49,7 +49,7 @@ public class WatchDogTimer extends Timer {
      * @throws InterruptedException
      */
     public WatchDogTimer start() throws InterruptedException {
-        Lok.warn("started");
+//        Lok.warn("started");
         lock.acquire();
         if (task != null) {
             task.reset();
@@ -58,7 +58,7 @@ public class WatchDogTimer extends Timer {
         if (!runs) {
             //Lok.debug("WatchDogTimer.start.NEWTASK");
             task = new WatchDogTimerTask(name, () -> {
-                Lok.warn(name + ".STOPPPPED");
+//                Lok.warn(name + ".STOPPPPED");
                 lock.acquire();
                 WatchDogTimer.this.runs = false;
                 lock.release();
