@@ -1,9 +1,11 @@
 package de.mein.drive.bash;
 
+import de.mein.core.serialize.SerializableEntity;
+
 /**
  * Created by xor on 8/1/17.
  */
-public class FsBashDetails {
+public class FsBashDetails implements SerializableEntity {
     private final Long modified;
     private final Long iNode;
     private final boolean isSymLink;

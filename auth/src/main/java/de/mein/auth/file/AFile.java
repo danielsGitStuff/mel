@@ -101,7 +101,7 @@ public abstract class AFile<T extends  AFile> {
 
     public abstract boolean isFile();
 
-    public abstract boolean move(T target);
+//    public abstract boolean move(T target);
 
     public abstract boolean isDirectory();
 

@@ -109,7 +109,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                 waitLock.lockWrite()
             } else {
 
-                wastebin.restoreFsFiles(syncHandler)
+                wastebin.restoreFsFiles()
                 val fsTransaction = T.lockingTransaction(fsDao)
                 try {
                     fsDao.searchTransfer().forEach { hash ->

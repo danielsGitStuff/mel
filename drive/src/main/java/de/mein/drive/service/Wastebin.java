@@ -37,6 +37,7 @@ public class Wastebin {
     private final WasteDao wasteDao;
     private final StageDao stageDao;
     private final AFile deferredDir;
+    private SyncHandler syncHandler;
 
     public Wastebin(MeinDriveService meinDriveService) {
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
@@ -142,7 +143,7 @@ public class Wastebin {
     public AFile moveToBin(Waste waste, AFile file) throws SqlQueriesException {
         try {
             AFile target = AFile.instance(wasteDir, waste.getHash().v() + "." + waste.getId().v());
-            file.move(target);
+            syncHandler.getFileDistributor().moveBlocking(file, target, null);
             waste.getInplace().v(true);
             wasteDao.update(waste);
             return target;
@@ -259,7 +260,7 @@ public class Wastebin {
     }
 
 
-    public void restoreFsFiles(SyncHandler syncHandler) throws SqlQueriesException, IOException {
+    public void restoreFsFiles() throws SqlQueriesException, IOException {
         List<String> availableHashes = searchTransfer();
         Transaction transaction = T.lockingTransaction(fsDao);
         try {
@@ -271,7 +272,7 @@ public class Wastebin {
                         AFile wasteFile = AFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
                         wasteDao.delete(waste.getId().v());
                         fsDao.setSynced(fsFile.getId().v(), true);
-                        syncHandler.moveFile(wasteFile, fsFile);
+                        syncHandler.getFileDistributor().moveBlocking(wasteFile, fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v());
                     } else {
                         Lok.error("Wastebin.restoreFsFiles");
                     }
@@ -306,8 +307,7 @@ public class Wastebin {
     public void deleteUnknown(AFile file) throws SqlQueriesException, IOException, InterruptedException {
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
         AFile target = AFile.instance(deferredDir, fsBashDetails.getiNode().toString());
-        file.move(target);
-
+        syncHandler.getFileDistributor().moveBlocking(file, target, null);
         //if dir?!?!
         if (target.isDirectory()) {
             for (AFile f : target.listContent()) {
@@ -336,5 +336,9 @@ public class Wastebin {
 
     public void deleteFlagged() throws SqlQueriesException {
         wasteDao.deleteFlagged();
+    }
+
+    public void setSyncHandler(SyncHandler syncHandler) {
+        this.syncHandler = syncHandler;
     }
 }

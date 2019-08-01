@@ -56,11 +56,6 @@ public class JFile extends AFile<JFile> {
     }
 
 
-    private AndroidFileConfiguration getAndroidConfiguration() {
-        return (AndroidFileConfiguration) AFile.getConfiguration();
-    }
-
-
     @Override
     public String getSeparator() {
         return File.separator;
@@ -107,19 +102,19 @@ public class JFile extends AFile<JFile> {
         return false;
     }
 
-    @Override
-    public boolean move(JFile target) {
-        try {
-            Intent copyIntent = new Intent(Tools.getApplicationContext(), CopyService.class);
-            copyIntent.putExtra(CopyService.SRC_PATH, file.getAbsolutePath());
-            copyIntent.putExtra(CopyService.TRGT_PATH, target.file.getAbsolutePath());
-            copyIntent.putExtra(CopyService.MOVE, true);
-            Tools.getApplicationContext().startService(copyIntent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+//    @Override
+//    public boolean move(JFile target) {
+//        try {
+//            Intent copyIntent = new Intent(Tools.getApplicationContext(), CopyService.class);
+//            copyIntent.putExtra(CopyService.SRC_PATH, file.getAbsolutePath());
+//            copyIntent.putExtra(CopyService.TRGT_PATH, target.file.getAbsolutePath());
+//            copyIntent.putExtra(CopyService.MOVE, true);
+//            Tools.getApplicationContext().startService(copyIntent);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }
 
     @Override
     public boolean isDirectory() {

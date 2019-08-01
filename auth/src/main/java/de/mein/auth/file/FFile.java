@@ -70,10 +70,10 @@ public class FFile extends AFile<FFile> {
         return file.isFile();
     }
 
-    @Override
-    public boolean move(FFile target) {
-        return file.renameTo(new File(target.getAbsolutePath()));
-    }
+//    @Override
+//    public boolean move(FFile target) {
+//        return file.renameTo(new File(target.getAbsolutePath()));
+//    }
 
     @Override
     public boolean isDirectory() {

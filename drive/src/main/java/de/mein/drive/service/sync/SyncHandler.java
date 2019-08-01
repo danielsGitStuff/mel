@@ -11,6 +11,10 @@ import de.mein.drive.bash.FsBashDetails;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
+import de.mein.drive.nio.FileDistributionTask;
+import de.mein.drive.nio.FileDistributor;
+import de.mein.drive.nio.FileDistributorImpl;
+import de.mein.drive.nio.FileJob;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.MeinDriveService;
@@ -40,6 +44,7 @@ public abstract class SyncHandler {
     protected final MeinDriveService meinDriveService;
     protected final TManager transferManager;
     protected final MeinAuthService meinAuthService;
+    private final FileDistributor fileDistributor;
     protected FsDao fsDao;
     protected StageDao stageDao;
     protected N runner = new N(Throwable::printStackTrace);
@@ -48,6 +53,9 @@ public abstract class SyncHandler {
     protected Wastebin wastebin;
     protected QuotaManager quotaManager;
 
+    public FsDao getFsDao() {
+        return fsDao;
+    }
 
     public SyncHandler(MeinAuthService meinAuthService, MeinDriveService meinDriveService) {
         this.meinAuthService = meinAuthService;
@@ -58,59 +66,64 @@ public abstract class SyncHandler {
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
         this.indexer = meinDriveService.getIndexer();
         this.wastebin = meinDriveService.getWastebin();
-        this.transferManager = new TManager(meinAuthService,meinDriveService.getDriveDatabaseManager().getTransferDao(),meinDriveService,this,wastebin,fsDao);
+        this.transferManager = new TManager(meinAuthService, meinDriveService.getDriveDatabaseManager().getTransferDao(), meinDriveService, this, wastebin, fsDao);
 //        this.transferManager = new TransferManager(meinAuthService, meinDriveService, meinDriveService.getDriveDatabaseManager().getTransferDao()
 //                , wastebin, this);
         this.quotaManager = new QuotaManager(meinDriveService);
+        this.fileDistributor = new FileDistributor(this);
     }
 
-    public AFile moveFile(AFile source, FsFile fsTarget) throws SqlQueriesException, IOException {
-        AFile target = null;
-        try {
-            //fsDao.lockWrite();
-            target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
-            Lok.debug("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
-            // check if there already is a file & delete
-            if (target.exists()) {
-                FsBashDetails fsBashDetails = BashTools.getFsBashDetails(target);
-                // file had to be marked as deleted before, which means the inode and so on appear in the wastebin
-                Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(fsBashDetails.getiNode());
-                GenericFSEntry genericFSEntry = fsDao.getGenericByINode(fsBashDetails.getiNode());
-                if (target.isFile()) {
-                    if (waste != null) {
-                        if (waste.getModified().v().equals(fsBashDetails.getModified())) {
-                            wastebin.moveToBin(waste, target);
-                        } else {
-                            System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
-                            System.err.println("SyncHandler.moveFile: " + target.getAbsolutePath());
-                        }
-                    } else if ((fsTarget.getModified().isNull() || (fsTarget.getModified().notNull() && !fsTarget.getModified().v().equals(fsBashDetails.getModified())))
-                            || (fsTarget.getiNode().isNull() || fsTarget.getiNode().notNull() && !fsTarget.getiNode().v().equals(fsBashDetails.getiNode()))) {
-                        //file is not equal to the one in the fs table
-                        wastebin.deleteUnknown(target);
-                    } else {
-                        System.err.println(getClass().getSimpleName() + ".moveFile().errrr.files.identical? .. deleting anyway");
-                        wastebin.deleteUnknown(target);
-                    }
-                }
-            }
-            indexer.ignorePath(target.getAbsolutePath(), 1);
-            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(source);
-            fsTarget.getiNode().v(fsBashDetails.getiNode());
-            fsTarget.getModified().v(fsBashDetails.getModified());
-            fsTarget.getSize().v(source.length());
-            fsTarget.getSynced().v(true);
-            boolean moved = source.move(target);
-            if (!moved || !target.exists())
-                return null;
-            fsDao.update(fsTarget);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            //fsDao.unlockWrite();
-        }
-        return target;
+    public FileDistributor getFileDistributor() {
+        return fileDistributor;
     }
+
+    //    public AFile moveFile(AFile source, FsFile fsTarget) throws SqlQueriesException, IOException {
+//        AFile target = null;
+//        try {
+//            //fsDao.lockWrite();
+//            target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
+//            Lok.debug("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
+//            // check if there already is a file & delete
+//            if (target.exists()) {
+//                FsBashDetails fsBashDetails = BashTools.getFsBashDetails(target);
+//                // file had to be marked as deleted before, which means the inode and so on appear in the wastebin
+//                Waste waste = meinDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(fsBashDetails.getiNode());
+//                GenericFSEntry genericFSEntry = fsDao.getGenericByINode(fsBashDetails.getiNode());
+//                if (target.isFile()) {
+//                    if (waste != null) {
+//                        if (waste.getModified().v().equals(fsBashDetails.getModified())) {
+//                            wastebin.moveToBin(waste, target);
+//                        } else {
+//                            System.err.println("SyncHandler.moveFile: File was modified in the meantime :(");
+//                            System.err.println("SyncHandler.moveFile: " + target.getAbsolutePath());
+//                        }
+//                    } else if ((fsTarget.getModified().isNull() || (fsTarget.getModified().notNull() && !fsTarget.getModified().v().equals(fsBashDetails.getModified())))
+//                            || (fsTarget.getiNode().isNull() || fsTarget.getiNode().notNull() && !fsTarget.getiNode().v().equals(fsBashDetails.getiNode()))) {
+//                        //file is not equal to the one in the fs table
+//                        wastebin.deleteUnknown(target);
+//                    } else {
+//                        System.err.println(getClass().getSimpleName() + ".moveFile().errrr.files.identical? .. deleting anyway");
+//                        wastebin.deleteUnknown(target);
+//                    }
+//                }
+//            }
+//            indexer.ignorePath(target.getAbsolutePath(), 1);
+//            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(source);
+//            fsTarget.getiNode().v(fsBashDetails.getiNode());
+//            fsTarget.getModified().v(fsBashDetails.getModified());
+//            fsTarget.getSize().v(source.length());
+//            fsTarget.getSynced().v(true);
+//            boolean moved = source.move(target);
+//            if (!moved || !target.exists())
+//                return null;
+//            fsDao.update(fsTarget);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        } finally {
+//            //fsDao.unlockWrite();
+//        }
+//        return target;
+//    }
 
     public void suspend() {
         if (transferManager != null)
@@ -141,24 +154,43 @@ public abstract class SyncHandler {
         try {
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             boolean isNew = fsFiles.size() > 0;
-            if (fsFiles.size() > 0) {
-                //TODO check if file is in transfer dir, then move, else copy
-                if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getRootDirectory().getPath())) {
-                    FsFile fsFile = fsFiles.get(0);
-                    file = moveFile(file, fsFile);
-                    fsFile.getSynced().v(true);
-                    fsDao.setSynced(fsFile.getId().v(), true);
-                } else {
-                    Lok.error("NOT:IMPLEMENTED:YET");
-                }
+
+            FileJob fileJob = new FileJob();
+            FileDistributionTask distributionTask = new FileDistributionTask();
+            fileJob.setDistributionTask(distributionTask);
+            distributionTask.setSourceFile(file);
+            // add additional info if file is found in the share folder but not in the transfer folder
+            if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath())) {
+                FsBashDetails bashDetails = BashTools.getFsBashDetails(file);
+                distributionTask.setOptionals(bashDetails, file.length());
+                distributionTask.setDeleteSource(false);
+            } else {
+                // remove from transferdir
+                distributionTask.setDeleteSource(true);
             }
-            if (fsFiles.size() > 1) {
-                for (int i = 1; i < fsFiles.size(); i++) {
-                    FsFile fsFile = fsFiles.get(i);
-                    copyFile(file, fsFile);
-                    fsDao.setSynced(fsFile.getId().v(), true);
-                }
-            }
+            // add file targets
+            N.forEach(fsFiles, fsFile -> distributionTask.addTargetFile(fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v()));
+            // run
+            fileDistributor.addJob(fileJob);
+
+//            if (fsFiles.size() > 0) {
+//                //TODO check if file is in transfer dir, then move, else copy
+//                if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getRootDirectory().getPath())) {
+//                    FsFile fsFile = fsFiles.get(0);
+//                    file = moveFile(file, fsFile);
+//                    fsFile.getSynced().v(true);
+//                    fsDao.setSynced(fsFile.getId().v(), true);
+//                } else {
+//                    Lok.error("NOT:IMPLEMENTED:YET");
+//                }
+//            }
+//            if (fsFiles.size() > 1) {
+//                for (int i = 1; i < fsFiles.size(); i++) {
+//                    FsFile fsFile = fsFiles.get(i);
+//                    copyFile(file, fsFile);
+//                    fsDao.setSynced(fsFile.getId().v(), true);
+//                }
+//            }
             return isNew;
         } catch (Exception e) {
             e.printStackTrace();

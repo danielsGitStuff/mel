@@ -306,6 +306,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         this.wastebin = new Wastebin(this);
         this.syncHandler = initSyncHandler();
         this.syncHandler.start();
+        wastebin.setSyncHandler(this.syncHandler);
         indexer.setSyncHandler(syncHandler);
         startIndexerDonePromise = indexer.start();
         return startIndexerDonePromise;

@@ -105,7 +105,9 @@ public class BashTests {
         dir.mkdirs();
         Long t1 = dir.lastModified();
         Long tt1 = testDir.lastModified();
-        testDir.move(AFile.instance(dir.getAbsolutePath() + File.separator + "movedTest"));
+        File source = new File(testDir.getAbsolutePath());
+        File target = new File(source.getAbsolutePath(),"movedTest");
+        source.renameTo(target);
         Long t2 = dir.lastModified();
         Long tt2 = testDir.lastModified();
         Lok.debug("upper dir before: " + t1);
