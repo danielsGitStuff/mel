@@ -42,9 +42,6 @@ StageDao extends Dao.LockingDao {
      * @return relating Stage or null if f is not staged
      */
     public Stage getStageByPath(Long stageSetId, AFile f) throws SqlQueriesException {
-        //todo debug
-        if (f.getName().equals("samesub") && Thread.currentThread().getName().startsWith("StageIndexerRunnable for MeinDriveClient"))
-            Lok.debug("StageDao.getStageByPath.debug");
         RootDirectory rootDirectory = driveSettings.getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
@@ -73,10 +70,6 @@ StageDao extends Dao.LockingDao {
     }
 
     public void deleteStageById(Long id) throws SqlQueriesException {
-        //todo debug
-        Stage s = this.getStageById(id);
-        if (s.getName().equals("t"))
-            Lok.debug("StageDao.deleteStageById.debugj0j3f034hh");
         Stage dummy = new Stage();
         sqlQueries.delete(dummy, dummy.getIdPair().k() + "=?", ISQLQueries.whereArgs(id));
     }

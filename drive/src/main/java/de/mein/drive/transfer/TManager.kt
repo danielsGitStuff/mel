@@ -163,6 +163,11 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
         transferDao.insert(detailsDb)
     }
 
+    override fun stop() {
+        super.stop()
+        stopped = true
+    }
+
     fun start() {
         meinDriveService.execute(this)
         waitLock.unlockWrite()

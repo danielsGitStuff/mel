@@ -1,5 +1,7 @@
 package de.mein.auth.data;
 
+import de.mein.Lok;
+
 /**
  * Created by xor on 12/15/16.
  */

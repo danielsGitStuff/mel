@@ -169,7 +169,7 @@ public class ClientSyncHandler extends SyncHandler {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(clientSettings.getServerCertId());
                 connected.done(mvp -> transaction.run(() -> {
 // load to cached data structure
-                    Commit commit = new Commit(meinDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE, clientSettings.getServerServiceUuid());
+                    Commit commit = new Commit(meinDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE, meinDriveService.getUuid());
                     N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
                     commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
                     commit.setIntent(DriveStrings.INTENT_COMMIT);
