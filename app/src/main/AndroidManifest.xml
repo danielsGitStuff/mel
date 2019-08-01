@@ -66,6 +66,7 @@
             android:name="de.mein.android.service.AndroidService"
             android:exported="false" />
         <service android:name="de.mein.android.service.CopyService" />
+        <service android:name="de.mein.android.drive.nio.FileDistributorService" />
 
         <activity
             android:name="de.mein.android.CertActivity"
