@@ -24,7 +24,7 @@ public class DriveInjector {
         IndexWatchdogListener.setWatchDogRunner(watchDogRunner);
     }
 
-    public static void setFileDistributorImpl(Class<FileDistributorImpl> fileDistributorClass) {
+    public static void setFileDistributorImpl(Class<? extends FileDistributorImpl> fileDistributorClass) {
         FileDistributor.Companion.setFileDistributorImpl(fileDistributorClass);
     }
 

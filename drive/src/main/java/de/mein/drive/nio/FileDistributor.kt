@@ -19,12 +19,12 @@ class FileDistributor(syncHandler: SyncHandler) {
      * moves source file to target file and sets the target-fs-entry to synced (IF PROVIDED)
      */
     fun moveBlocking(source: AFile<*>, target: AFile<*>, fsId: Long?) {
-instance.moveBlocking(source,target,fsId)
+        instance.moveBlocking(source, target, fsId)
     }
 
     companion object {
-        private var FILE_DISTR_CLASS: Class<FileDistributorImpl>? = null
-        fun setFileDistributorImpl(fileDistributorClass: Class<FileDistributorImpl>) {
+        private var FILE_DISTR_CLASS: Class<out FileDistributorImpl>? = FileDistributorImplPC::class.java
+        fun setFileDistributorImpl(fileDistributorClass: Class<out FileDistributorImpl>) {
             FILE_DISTR_CLASS = fileDistributorClass
         }
     }
