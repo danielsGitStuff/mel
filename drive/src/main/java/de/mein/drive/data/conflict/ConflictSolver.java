@@ -265,7 +265,6 @@ public class ConflictSolver extends SyncStageMerger {
                     // apply delta
                     contentHashDummy.calcContentHash();
                     rightStage.setContentHash(contentHashDummy.getContentHash().v());
-                    Lok.debug();
                 }
                 saveRightStage(rightStage, targetStageSet.getId().v(), oldeIdNewIdMapForDirectories);
                 rightStage = stageSet.getNext();

@@ -369,6 +369,8 @@ public class AndroidSQLQueries extends ISQLQueries {
                     contentValues.put(pair.k(), (byte[]) pair.v());
                 else if (pair.getGenericClass().equals(String.class))
                     contentValues.put(pair.k(), (String) pair.v());
+                else if (pair.getGenericClass().isEnum())
+                    contentValues.put(pair.k(), (String) ((Enum) pair.v()).name());
                 else {
                     System.err.println("AndroidSQLQueries.createContentValues.UNKOWN TYPE");
                 }
