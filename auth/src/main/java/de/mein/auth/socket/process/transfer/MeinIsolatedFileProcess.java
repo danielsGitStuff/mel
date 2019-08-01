@@ -69,11 +69,11 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
     }
 
     public void addFilesReceiving(FileTransferDetail fileTransferDetail) throws InterruptedException {
-        Lok.debug("MeinIsolatedFileProcess.addFilesReceiving.ID: " + fileTransferDetail.getStreamId());
+//        Lok.debug("MeinIsolatedFileProcess.addFilesReceiving.ID: " + fileTransferDetail.getStreamId());
         receivingSemaphore.acquire();
         hashFTDReceivingMap.put(fileTransferDetail.getHash(), fileTransferDetail);
         streamIdFileMapReceiving.put(fileTransferDetail.getStreamId(), fileTransferDetail);
-        Lok.debug("MeinIsolatedFileProcess.addFilesReceiving.stored.hash: " + streamIdFileMapReceiving.get(fileTransferDetail.getStreamId()).getHash());
+//        Lok.debug("MeinIsolatedFileProcess.addFilesReceiving.stored.hash: " + streamIdFileMapReceiving.get(fileTransferDetail.getStreamId()).getHash());
         receivingSemaphore.release();
     }
 

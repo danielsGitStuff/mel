@@ -203,6 +203,9 @@ public abstract class SyncHandler {
         Transaction transaction = T.lockingTransaction(T.read());
         AFile target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
         transaction.end();
+        if (source == null)
+            Lok.debug();
+        Lok.debug("SyncHandler.copyFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
         indexer.ignorePath(target.getAbsolutePath(), 2);
         InputStream in = source.inputStream();
         try {
