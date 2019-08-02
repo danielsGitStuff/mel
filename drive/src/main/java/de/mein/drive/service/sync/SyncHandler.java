@@ -159,6 +159,8 @@ public abstract class SyncHandler {
             FileDistributionTask distributionTask = new FileDistributionTask();
             fileJob.setDistributionTask(distributionTask);
             distributionTask.setSourceFile(file);
+            distributionTask.setServiceUuid(meinDriveService.getUuid());
+
             // add additional info if file is found in the share folder but not in the transfer folder
             if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath())) {
                 FsBashDetails bashDetails = BashTools.getFsBashDetails(file);
@@ -172,25 +174,6 @@ public abstract class SyncHandler {
             N.forEach(fsFiles, fsFile -> distributionTask.addTargetFile(fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v()));
             // run
             fileDistributor.addJob(fileJob);
-
-//            if (fsFiles.size() > 0) {
-//                //TODO check if file is in transfer dir, then move, else copy
-//                if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getRootDirectory().getPath())) {
-//                    FsFile fsFile = fsFiles.get(0);
-//                    file = moveFile(file, fsFile);
-//                    fsFile.getSynced().v(true);
-//                    fsDao.setSynced(fsFile.getId().v(), true);
-//                } else {
-//                    Lok.error("NOT:IMPLEMENTED:YET");
-//                }
-//            }
-//            if (fsFiles.size() > 1) {
-//                for (int i = 1; i < fsFiles.size(); i++) {
-//                    FsFile fsFile = fsFiles.get(i);
-//                    copyFile(file, fsFile);
-//                    fsDao.setSynced(fsFile.getId().v(), true);
-//                }
-//            }
             return isNew;
         } catch (Exception e) {
             e.printStackTrace();

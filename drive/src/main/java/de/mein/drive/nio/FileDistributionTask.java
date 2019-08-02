@@ -20,6 +20,11 @@ public class FileDistributionTask implements SerializableEntity {
     private FsBashDetails sourceDetails;
     private Long size;
 
+    // uuid of the service that created the task.
+    // this is because you can have only one Service at a time on Android
+    // and you got to get the appropriate FsDao when moving files
+    private String serviceUuid;
+
 
     public List<Long> getTargetFsIds() {
         return targetFsIds;
@@ -51,11 +56,38 @@ public class FileDistributionTask implements SerializableEntity {
         return deleteSource;
     }
 
+    /**
+     * this recreates all Files from the stored paths
+     *
+     * @return
+     */
     public FileDistributionTask initFromPaths() {
         this.targetFiles = new ArrayList<>();
         N.forEach(targetPaths, AFile::instance);
         this.sourceFile = AFile.instance(sourcePath);
         return this;
+    }
+
+    /**
+     * sets the serviceuuid that is associated with the file.
+     * because the according FsDao is required to set the sync flag.
+     *
+     * @param serviceUuid
+     */
+    public void setServiceUuid(String serviceUuid) {
+        this.serviceUuid = serviceUuid;
+    }
+
+    public List<String> getTargetPaths() {
+        return targetPaths;
+    }
+
+    /**
+     * gets the serviceuuid that is associated with the file.
+     * because the according FsDao is required to set the sync flag.
+     */
+    public String getServiceUuid() {
+        return serviceUuid;
     }
 
     public FileDistributionTask setSourceFile(AFile sourceFile) {
