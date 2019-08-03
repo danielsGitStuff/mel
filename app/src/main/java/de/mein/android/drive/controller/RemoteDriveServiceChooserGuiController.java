@@ -141,13 +141,27 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
                     , R.string.permissionDriveWriteMessage
                     , () -> {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            if (!SAFAccessor.hasExternalSdCard() || SAFAccessor.canWriteExternal()) {
-                                launchDirChooser();
-                            } else {
-                                SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
-                                    launchDirChooser();
-                                }).fail(Throwable::printStackTrace);
-                            }
+
+//                            if (!SAFAccessor.canWriteInternal()){
+//                                SAFAccessor.askForInternalRootDirectory(activity).done(result -> {
+//                                    Lok.debug();
+//                                });
+//                                return;
+//                            }
+
+                            SAFAccessor.setupAllStorages(activity).done(result -> launchDirChooser());
+
+//                            if (!SAFAccessor.internalIsSetup()) {
+//                                SAFAccessor.askForInternalRootDirectory(activity);
+//                            }
+//
+//                            if (!SAFAccessor.hasExternalSdCard() || SAFAccessor.canWriteExternal()) {
+//                                launchDirChooser();
+//                            } else {
+//                                SAFAccessor.askForExternalRootDirectory(activity).done(nill -> {
+//                                    launchDirChooser();
+//                                }).fail(Throwable::printStackTrace);
+//                            }
                         } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
                             launchDirChooser();
                         }

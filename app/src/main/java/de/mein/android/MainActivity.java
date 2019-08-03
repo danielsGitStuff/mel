@@ -77,6 +77,9 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
+import de.mein.drive.nio.FileDistributionTask;
+import de.mein.drive.nio.FileJob;
+import de.mein.drive.service.MeinDriveService;
 
 
 public class MainActivity extends MeinActivity implements PowerManager.IPowerStateListener<AndroidPowerManager> {
@@ -157,6 +160,13 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         if (powerManager != null) {
             powerManager.addStateListener(this);
         }
+//        //todo debug
+//        MeinDriveService driveService = (MeinDriveService) androidService.getMeinAuthService().getMeinServices().iterator().next();
+//        FileDistributionTask distributionTask = new FileDistributionTask();
+//        distributionTask.setServiceUuid(driveService.getUuid());
+//        FileJob fileJob = new FileJob();
+//        fileJob.setDistributionTask(distributionTask);
+//        driveService.getSyncHandler().getFileDistributor().addJob(fileJob);
     }
 
     private void dev() {
@@ -204,6 +214,7 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         });
         AndroidLok.setupDbLok(this);
         SAFAccessor.setupExternalPath();
+//        SAFAccessor.setupInternalPath();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
         } else {

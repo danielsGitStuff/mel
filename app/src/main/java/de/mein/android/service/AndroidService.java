@@ -60,6 +60,11 @@ import de.mein.sql.SqlQueriesException;
  */
 public class AndroidService extends Service {
 
+    private static AndroidService instance;
+
+    public static AndroidService getInstance() {
+        return instance;
+    }
 
     private DeferredObject<MeinAuthService, Exception, Void> startedDeferred = new DeferredObject<>();
     private static final int PERMANENT_REQUEST_CODE = 876;
@@ -100,6 +105,7 @@ public class AndroidService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        AndroidService.instance = null;
         if (meinAuthService != null)
             meinAuthService.shutDown();
         if (networkChangeReceiver != null)
@@ -242,6 +248,7 @@ public class AndroidService extends Service {
             e.printStackTrace();
         }
         Lok.debug("AndroidService.onCreate");
+        AndroidService.instance = this;
     }
 
     /**

@@ -27,6 +27,8 @@ import de.mein.drive.index.Indexer;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.index.watchdog.StageIndexer;
 import de.mein.auth.file.AFile;
+import de.mein.drive.nio.FileDistributionTask;
+import de.mein.drive.nio.FileJob;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
@@ -157,14 +159,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             }
         }
     }
-
-//    protected boolean checkIntent(Request request, String expected) {
-//        String intent = request.getIntent();
-//        if (intent == null || expected == null)
-//            return false;
-//        return intent.equals(expected);
-//    }
-
 
     @Override
     public void addJob(Job job) {

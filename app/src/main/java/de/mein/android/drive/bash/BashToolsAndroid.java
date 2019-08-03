@@ -86,18 +86,25 @@ public class BashToolsAndroid extends BashToolsUnix {
 
     @Override
     public FsBashDetails getFsBashDetails(AFile file) throws IOException {
-        String[] args = new String[]{getBIN_PATH(), "-c", "ls -id " + escapeQuotedAbsoluteFilePath(file)};
-        Process proc = new ProcessBuilder(args).start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        String line = reader.readLine();
-        line = line.trim();
-        String[] parts = line.split(" ");
-        Long iNode = Long.parseLong(parts[0]);
-        /**
-         * Testing revealed that Android P (maybe even earlier) does not support creating symlinks via terminal.
-         * Thus supporting symlinks on Android is pointless.
-         */
-        return new FsBashDetails(file.lastModified(), iNode, false, null, file.getName());
+        final String cmd = "ls -id " + escapeQuotedAbsoluteFilePath(file);
+        String[] args = new String[]{getBIN_PATH(), "-c", cmd};
+        String line;
+        try {
+            Process proc = new ProcessBuilder(args).start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            line = reader.readLine();
+            line = line.trim();
+            String[] parts = line.split(" ");
+            Long iNode = Long.parseLong(parts[0]);
+            /**
+             * Testing revealed that Android P (maybe even earlier) does not support creating symlinks via terminal.
+             * Thus supporting symlinks on Android is pointless.
+             */
+            return new FsBashDetails(file.lastModified(), iNode, false, null, file.getName());
+        } catch (Exception e) {
+            Lok.error("could not execute:\n " + cmd);
+            throw new IOException(e);
+        }
     }
 
     @Override

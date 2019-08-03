@@ -135,7 +135,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
                                 if (fsFiles != null && fsFiles.size() > 0) {
                                     FsFile fsFile = fsFiles.get(0);
                                     AFile file = fsDao.getFileByFsFile(meinDriveService.getDriveSettings().getRootDirectory(), fsFile);
-                                    syncHandler.onFileTransferred(file, hash, transaction);
+                                    syncHandler.onFileTransferred(file, hash, transaction, fsFile);
                                     transferDao.deleteByHash(hash);
                                 }
                             }

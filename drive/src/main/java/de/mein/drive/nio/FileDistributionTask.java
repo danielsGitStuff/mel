@@ -63,7 +63,7 @@ public class FileDistributionTask implements SerializableEntity {
      */
     public FileDistributionTask initFromPaths() {
         this.targetFiles = new ArrayList<>();
-        N.forEach(targetPaths, AFile::instance);
+        N.forEach(targetPaths, path -> targetFiles.add(AFile.instance(path)));
         this.sourceFile = AFile.instance(sourcePath);
         return this;
     }

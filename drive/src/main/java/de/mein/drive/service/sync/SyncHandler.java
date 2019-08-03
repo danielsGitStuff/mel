@@ -13,7 +13,6 @@ import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.nio.FileDistributionTask;
 import de.mein.drive.nio.FileDistributor;
-import de.mein.drive.nio.FileDistributorImpl;
 import de.mein.drive.nio.FileJob;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.quota.QuotaManager;
@@ -150,7 +149,7 @@ public abstract class SyncHandler {
      * @return true if the file is new on the device (not a copy). so it can be transferred to other devices.
      * @throws SqlQueriesException
      */
-    public boolean onFileTransferred(AFile file, String hash, Transaction transaction) throws SqlQueriesException, IOException {
+    public boolean onFileTransferred(AFile file, String hash, Transaction transaction, FsFile sourceFsFile) throws SqlQueriesException, IOException {
         try {
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             boolean isNew = fsFiles.size() > 0;
@@ -159,16 +158,24 @@ public abstract class SyncHandler {
             FileDistributionTask distributionTask = new FileDistributionTask();
             fileJob.setDistributionTask(distributionTask);
             distributionTask.setSourceFile(file);
+            distributionTask.setDeleteSource(true);
             distributionTask.setServiceUuid(meinDriveService.getUuid());
 
             // add additional info if file is found in the share folder but not in the transfer folder
             if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath())) {
                 FsBashDetails bashDetails = BashTools.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
-                distributionTask.setDeleteSource(false);
-            } else {
-                // remove from transferdir
                 distributionTask.setDeleteSource(true);
+                if (fsFiles.isEmpty())
+                    return false;
+            } else {
+                // this is in CASE: file found in FS-Directory...
+                // and in this case sourceFsFile must not be null.
+                // set what the copy service is expected to find as a source file.
+                // in case it has changed it can abort
+                FsBashDetails bashDetails = new FsBashDetails(sourceFsFile.getModified().v(), sourceFsFile.getiNode().v(), sourceFsFile.isSymlink(), null, sourceFsFile.getName().v()); //BashTools.getFsBashDetails(file);
+                distributionTask.setOptionals(bashDetails, file.length());
+                distributionTask.setDeleteSource(false);
             }
             // add file targets
             N.forEach(fsFiles, fsFile -> distributionTask.addTargetFile(fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v()));
@@ -494,5 +501,9 @@ public abstract class SyncHandler {
 
     public void onShutDown() {
         transferManager.onShutDown();
+    }
+
+    public boolean onFileTransferred(AFile file, String hash, Transaction transaction) throws IOException, SqlQueriesException {
+        return this.onFileTransferred(file, hash, transaction, null);
     }
 }

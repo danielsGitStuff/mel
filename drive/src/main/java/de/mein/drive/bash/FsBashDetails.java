@@ -6,11 +6,17 @@ import de.mein.core.serialize.SerializableEntity;
  * Created by xor on 8/1/17.
  */
 public class FsBashDetails implements SerializableEntity {
-    private final Long modified;
-    private final Long iNode;
-    private final boolean isSymLink;
-    private final String symLinkTarget;
-    private final String name;
+    private Long modified;
+    private Long iNode;
+    private boolean isSymLink;
+    private String symLinkTarget;
+    private String name;
+
+    public FsBashDetails() {
+        //todo indifferent state
+        // removing this constructor causes an indifferent state after solving a conflict and transferring files.
+        // mel did not go on normally after crash and restart (Android)
+    }
 
 
     public FsBashDetails(Long modified, Long iNode, boolean isSymLink, String symLinkTarget, String name) {

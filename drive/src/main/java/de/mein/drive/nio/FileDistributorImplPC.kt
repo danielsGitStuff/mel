@@ -12,14 +12,15 @@ import java.io.File
 import java.util.*
 
 class FileDistributorImplPC : FileDistributorImpl, MeinWorker() {
-    override fun moveBlocking(source: AFile<*>, target: AFile<*>, fsId: Long?) {
+    override fun moveBlocking(source: AFile<*>, target: AFile<*>, fsId: Long?, fsDao: FsDao?) {
         if (target.exists())
             return
         val s = File(source.absolutePath)
         val t = File(target.absolutePath)
         val moved = s.renameTo(t)
-        if (fsId != null && moved)
-            fsDao.setSynced(fsId, true)
+        if (moved) {
+            fsDao?.setSynced(fsId, true)
+        }
     }
 
     override fun workWork(job: Job<*, *, *>?) {
@@ -52,6 +53,8 @@ class FileDistributorImplPC : FileDistributorImpl, MeinWorker() {
         }
         if (distributionTask.deleteSource) {
             // move file
+            if (lastFile.exists())
+                return
             sourceFile.renameTo(File(lastFile.absolutePath))
             // update synced flag
             val transaction = T.lockingTransaction(fsDao)

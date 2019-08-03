@@ -29,7 +29,7 @@ public class JFile extends AFile<JFile> {
 
 
     private void init() {
-        isExternal = SAFAccessor.hasExternalSdCard() && file.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath());
+        isExternal = SAFAccessor.isExternalFile(this);
     }
 
     public JFile(String path) {
@@ -336,10 +336,10 @@ public class JFile extends AFile<JFile> {
         if (!path.startsWith(storagePath))
             Lok.error("INVALID PATH! tried to find [" + path + "] in [" + storagePath + "]");
         // +1 to get rid of the leading slash
-        int start = 0;
-        if (path.startsWith("/"))
-            start = 1;
-        stripped = path.substring(storagePath.length());
+        int offset = 0;
+        if (!path.endsWith("/"))
+            offset = 1;
+        stripped = path.substring(storagePath.length() + offset);
         return stripped.split(File.separator);
     }
 
@@ -359,20 +359,35 @@ public class JFile extends AFile<JFile> {
     public DocumentFile createParentDocFile() throws SAFAccessor.SAFException {
         String[] parts = createRelativeFilePathParts(getStoragePath(), file);
         parts = Arrays.copyOf(parts, parts.length - 1);
-        return createExternalDoc(parts);
+        if (isExternal)
+            return createExternalDoc(parts);
+        else
+            return createInternalDoc(parts);
     }
 
     public DocumentFile createDocFile() throws SAFAccessor.SAFException {
-        if (!isExternal) {
-            DocumentFile documentFile = DocumentFile.fromFile(file);
-            return documentFile;
-        }
         String storagePath = getStoragePath();
         String[] parts;
         parts = createRelativeFilePathParts(storagePath, file);
+
+        if (!isExternal) {
+//            DocumentFile documentFile = DocumentFile.fromFile(file);
+//            return documentFile;
+            return createInternalDoc(parts);
+        }
+
         return createExternalDoc(parts);
 
     }
+
+    private DocumentFile createInternalDoc(String[] parts) throws SAFAccessor.SAFException {
+        DocumentFile doc = SAFAccessor.getInternalRootDocFile();
+        for (String part : parts) {
+            doc = doc.findFile(part);
+        }
+        return doc;
+    }
+
 
     private DocumentFile createExternalDoc(String[] parts) throws SAFAccessor.SAFException {
         DocumentFile doc = SAFAccessor.getExternalRootDocFile();

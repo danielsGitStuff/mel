@@ -1,7 +1,9 @@
 package de.mein.drive.nio
 
 import de.mein.auth.file.AFile
+import de.mein.auth.tools.lock.Transaction
 import de.mein.drive.service.sync.SyncHandler
+import de.mein.drive.sql.dao.FsDao
 
 class FileDistributor(syncHandler: SyncHandler) {
     val instance: FileDistributorImpl
@@ -16,10 +18,10 @@ class FileDistributor(syncHandler: SyncHandler) {
     }
 
     /**
-     * moves source file to target file and sets the target-fs-entry to synced (IF PROVIDED)
+     * moves source file to target file and sets the target-fs-entry to synced (IF PROVIDED).
      */
-    fun moveBlocking(source: AFile<*>, target: AFile<*>, fsId: Long?) {
-        instance.moveBlocking(source, target, fsId)
+    fun moveBlocking(source: AFile<*>, target: AFile<*>, fsId: Long?, fsDao: FsDao?) {
+        instance.moveBlocking(source, target, fsId, fsDao)
     }
 
     companion object {
