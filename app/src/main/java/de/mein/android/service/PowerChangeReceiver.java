@@ -26,8 +26,12 @@ public class PowerChangeReceiver extends BroadcastReceiver {
 //            boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
 //            int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
             int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-            boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                    status == BatteryManager.BATTERY_STATUS_FULL;
+            int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+            boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+                    || status == BatteryManager.BATTERY_STATUS_FULL
+                    || plugged == BatteryManager.BATTERY_PLUGGED_AC
+                    || plugged == BatteryManager.BATTERY_PLUGGED_USB
+                    || plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS;
             if (isCharging)
                 androidService.getMeinAuthService().getPowerManager().onPowerPlugged();
             else
