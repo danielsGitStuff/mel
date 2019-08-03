@@ -162,6 +162,18 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void addJob(Job job) {
+        if (!getReachedBootLevel().equals(getBootLevel())) {
+            // turn down all jobs that could possibly hurt if not bootedd up completely
+            if (!(job instanceof ServiceRequestHandlerJob)) {
+                Lok.error(job.getClass().getSimpleName() + " turnend down. required boot level not reached yet.");
+                return;
+            }
+            ServiceRequestHandlerJob requestHandlerJob = (ServiceRequestHandlerJob) job;
+            if (requestHandlerJob.getIntent() == null || !requestHandlerJob.getIntent().equals(DriveStrings.INTENT_REG_AS_CLIENT)) {
+                Lok.error(job.getClass().getSimpleName() + " turnend down. required boot level not reached yet.");
+                return;
+            }
+        }
         super.addJob(job);
     }
 
@@ -365,7 +377,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void onBootLevel2Finished() {
-        Lok.debug("BBBB");
+        Lok.debug("Resuming downloads");
+        syncHandler.resume();
     }
 
     @Override

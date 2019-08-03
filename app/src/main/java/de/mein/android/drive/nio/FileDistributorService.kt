@@ -56,6 +56,9 @@ class FileDistributorService : IntentService("FileDistributorService") {
 
         val sourceFile = JFile(distributionTask.sourceFile.absolutePath)// AFile.instance(distributionTask.sourceFile.absolutePath)
         // ...the last file is arbitrary
+        //todo debug
+        if (targetStack.empty())
+            Lok.debug()
         val lastFile = targetStack.pop()
         val lastId = if (targetIds.empty()) null else targetIds.pop()
         val lastPath = targetPathStack.pop()

@@ -1,5 +1,6 @@
 package de.mein.auth.service;
 
+import de.mein.Lok;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.tools.CountdownLock;
@@ -58,6 +59,10 @@ public abstract class MeinServiceWorker extends MeinService {
         queueLock.lockWrite();
         jobs.offer(job);
         queueLock.unlockWrite();
+        if (isStopped()) {
+            Lok.error("DEBUG: JOB ADDED BEFORE STARTED");
+            return;
+        }
         waitLock.unlock();
     }
 

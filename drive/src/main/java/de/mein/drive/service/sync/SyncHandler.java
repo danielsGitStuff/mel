@@ -161,13 +161,14 @@ public abstract class SyncHandler {
             distributionTask.setDeleteSource(true);
             distributionTask.setServiceUuid(meinDriveService.getUuid());
 
-            // add additional info if file is found in the share folder but not in the transfer folder
+            // file found in transfer dir
             if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath())) {
                 FsBashDetails bashDetails = BashTools.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
                 distributionTask.setDeleteSource(true);
                 if (fsFiles.isEmpty())
                     return false;
+                N.forEach(fsFiles, fsFile -> distributionTask.addTargetFile(fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v()));
             } else {
                 // this is in CASE: file found in FS-Directory...
                 // and in this case sourceFsFile must not be null.
@@ -176,10 +177,16 @@ public abstract class SyncHandler {
                 FsBashDetails bashDetails = new FsBashDetails(sourceFsFile.getModified().v(), sourceFsFile.getiNode().v(), sourceFsFile.isSymlink(), null, sourceFsFile.getName().v()); //BashTools.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
                 distributionTask.setDeleteSource(false);
+                N.forEach(fsFiles, fsFile -> {
+                    if (fsFile.getId().notEqualsValue(sourceFsFile.getId().v()))
+                        distributionTask.addTargetFile(fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v());
+                });
             }
-            // add file targets
-            N.forEach(fsFiles, fsFile -> distributionTask.addTargetFile(fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v()));
-            // run
+
+            // this might happen if ther is still a transfer that has not been canceled properly. just skip here
+            if (distributionTask.getTargetPaths().isEmpty())
+                return isNew;
+
             fileDistributor.addJob(fileJob);
             return isNew;
         } catch (Exception e) {
@@ -187,43 +194,6 @@ public abstract class SyncHandler {
         } finally {
         }
         return false;
-    }
-
-    private void copyFile(AFile source, FsFile fsTarget) throws SqlQueriesException, IOException {
-        Transaction transaction = T.lockingTransaction(T.read());
-        AFile target = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsTarget);
-        transaction.end();
-        if (source == null)
-            Lok.debug();
-        Lok.debug("SyncHandler.copyFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
-        indexer.ignorePath(target.getAbsolutePath(), 2);
-        InputStream in = source.inputStream();
-        try {
-            OutputStream out = target.outputStream();
-            try {
-                // Transfer bytes from in to out
-                byte[] buf = new byte[1024];
-                int len;
-                while ((len = in.read(buf)) > 0) {
-                    out.write(buf, 0, len);
-                }
-            } finally {
-                out.close();
-            }
-            //indexer.stopIgnore(target.getAbsolutePath());
-            RWLock waitLock = new RWLock();
-            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(target);
-            fsTarget.getiNode().v(fsBashDetails.getiNode());
-            fsTarget.getModified().v(fsBashDetails.getModified());
-            fsTarget.getSize().v(target.length());
-            driveDatabaseManager.getFsDao().update(fsTarget);
-            waitLock.lockWrite();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            in.close();
-        }
     }
 
 

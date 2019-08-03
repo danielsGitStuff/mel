@@ -156,7 +156,12 @@ public class AndroidSQLQueries extends ISQLQueries {
                 pair.setValueUnsecure(cursor.getBlob(index));
             else if (pair.getGenericClass().equals(String.class))
                 pair.setValueUnsecure(cursor.getString(index));
-            else {
+            else if (pair.getGenericClass().isEnum()) {
+                String value = cursor.getString(index);
+                Class<Enum> eType = (Class<Enum>) pair.getGenericClass();
+                Enum en = Enum.valueOf(eType, value);
+                pair.setValueUnsecure(en);
+            } else {
                 System.err.println("AndroidSQLQueries.readCursorToPair.UNKOWN TYPE");
             }
         }
