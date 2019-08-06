@@ -128,7 +128,6 @@ public class IndexHelper {
                             .setIsDirectory(true)
                             .setStageSet(stageSetId)
                             .setOrder(order.ord());
-//                            .setRelativePath(targetPath.substring(rootPathLength));
                 }
                 stageToAdd.setDeleted(!part.exists());
 

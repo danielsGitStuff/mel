@@ -2,6 +2,7 @@ package de.mein.drive.transfer
 
 import de.mein.DeferredRunnable
 import de.mein.Lok
+import de.mein.auth.MeinNotification
 import de.mein.auth.service.MeinAuthService
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess
@@ -96,6 +97,8 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             transaction.end()
         }
     }
+
+
 
     override fun runImpl() {
         val transferDirPath = meinDriveService.driveSettings.rootDirectory.path + File.separator + DriveStrings.TRANSFER_DIR

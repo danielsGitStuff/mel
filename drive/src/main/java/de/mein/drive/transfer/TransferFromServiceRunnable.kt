@@ -2,6 +2,7 @@ package de.mein.drive.transfer
 
 import de.mein.Lok
 import de.mein.MeinRunnable
+import de.mein.auth.MeinNotification
 import de.mein.auth.file.AFile
 import de.mein.auth.socket.process.transfer.FileTransferDetail
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet
@@ -28,8 +29,32 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
     private var fileCount: Long = 0L
     private var filesDoneCount: Long = 0
     private var stopped = false
+    private var notification: MeinNotification? = null
     var filesRemain = AtomicLong(0L)
     private val waitLock = RWLock().lockWrite()
+
+    fun showProgress() {
+
+        try {
+            val leftovers = transferDao.getLeftoversByService(partnerCertId, partnerServiceUuid)
+            if (leftovers == null) {
+                notification?.cancel()
+                return
+            }
+            val title = "Downloading Files: ${leftovers.filesTransferred}/${leftovers.filesTotal}"
+            val text = "${leftovers.bytesTransferred.v() / 1024 / 1024}/${leftovers.bytesTotal.v() / 1024 / 1024} mb"
+
+            if (notification == null) {
+                notification = MeinNotification(driveService.uuid, DriveStrings.Notifications.INTENTION_PROGRESS, title, text)
+            }
+            val maxInt: Int = (leftovers.bytesTotal.v() / 1024 / 1024).toInt()
+            val currentInt: Int = (leftovers.bytesTransferred.v() / 1024 / 1024).toInt()
+            notification!!.setProgress(maxInt, currentInt, false)
+            driveService.meinAuthService.onNotificationFromService(driveService, notification)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
 
     private fun count(): Long {
@@ -125,6 +150,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                     stopped = true
                 }
                 // todo check if any suspended transfers remain and try again
+                showProgress()
             }
         } catch (e: Exception) {
             Lok.error(e)

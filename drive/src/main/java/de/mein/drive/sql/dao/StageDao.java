@@ -3,6 +3,7 @@ package de.mein.drive.sql.dao;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.Eva;
+import de.mein.auth.tools.N;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.UnorderedStagePair;
@@ -568,4 +569,28 @@ StageDao extends Dao.LockingDao {
     }
 
 
+    /**
+     * mark children whose parents have been marked for removal.
+     *
+     * @param stageSetId
+     */
+    public void markOrphans(Long stageSetId) throws SqlQueriesException {
+        N.forEach(getOrphans(stageSetId), this::markRemoved);
+    }
+
+    private List<Long> getOrphans(Long stageSetId) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        // select * from stage where stageset=1 and parentid in (select id from stage where stageset=1 and rem=1);
+//        String query = "select count(*) from " + dummy.getTableName() + " where " + dummy.getStageSetPair().k() + "=? and "
+//                + dummy.getParentIdPair().k()
+//                + " in (select " + dummy.getIdPair().k() + " from " + dummy.getTableName()
+//                + " where " + dummy.getStageSetPair().k() + "=? and " + dummy.getRemovePair().k() + "+=?";
+        String where = dummy.getStageSetPair().k() + "=? and "
+                + dummy.getParentIdPair().k()
+                + " in (select " + dummy.getIdPair().k() + " from " + dummy.getTableName()
+                + " where " + dummy.getStageSetPair().k() + "=? and " + dummy.getRemovePair().k() + "=?)";
+        return sqlQueries.loadColumn(dummy.getIdPair(), Long.class, dummy, null, where, ISQLQueries.whereArgs(stageSetId, stageSetId, true), null);
+//        Long count = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(stageSetId, stageSetId, true));
+//        return count > 0;
+    }
 }

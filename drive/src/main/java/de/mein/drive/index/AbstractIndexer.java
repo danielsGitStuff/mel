@@ -94,12 +94,21 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 timer1.start();
                 String path = buildPathFromStage(stage);
                 AFile f = AFile.instance(path);
+
+                // check if file/dir has been deleted in the meantime
+                if (!f.exists()) {
+                    stageDao.markRemoved(stage.getId());
+                    continue;
+                }
+
                 timer1.stop();
-                if (stage.getIsDirectory()) {
+                if (f.isDirectory()) {
+                    stage.setIsDirectory(true);
                     timer2.start();
                     roamDirectoryStage(stage, f);
                     timer2.stop();
                 } else {
+                    stage.setIsDirectory(false);
                     timer3.start();
                     this.updateFileStage(stage, f, timerUpdate1, timerUpdate2, null);
                     timer3.stop();
@@ -107,6 +116,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage = stages.getNext();
             }
         });
+        stageDao.markOrphans(stageSetId);
         stageDao.deleteMarkedForRemoval(stageSet.getId().v());
         Lok.debug("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
@@ -178,7 +188,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             if (!f.exists() && fsEntry == null)
                 continue;
             // stage actual File
-            stage = new Stage().setName(f.getName()).setIsDirectory(f.isDirectory());
+            stage = new Stage().setName(f.getName());//.setIsDirectory(f.isDirectory());
             if (fsEntry != null) {
                 stage.setFsId(fsEntry.getId().v()).setFsParentId(fsEntry.getParentId().v());
                 //check for fastboot
@@ -205,7 +215,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             stage.setStageSet(stageSet.getId().v());
             stage.setDeleted(!f.exists());
-            if (stage.getIsDirectory()) {
+            if (f.isDirectory()) {
                 indexWatchdogListener.watchDirectory(f);
             }
             // relative path speeds up conflict lookup vastly
@@ -363,9 +373,12 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     stageDao.insert(subStage);
                     this.updateFileStage(subStage, subFile, null, null, subFsBashDetails);
 //                    subStage.setOrder(order.ord());
-                } else if (subStage != null && !subStage.getIsDirectory()) {
+                } else if (subStage != null && !subFile.isDirectory()) {
                     // do not forget to add this!
                     newFsDirectory.addFile(new FsFile(subFile));
+                    //update stage
+                    subStage.setIsDirectory(false);
+                    stageDao.update(subStage);
                 }
             }
         }

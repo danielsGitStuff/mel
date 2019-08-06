@@ -41,7 +41,7 @@ CREATE TABLE stage
     rem         INTEGER,
     version     INTEGER,
     contenthash TEXT,
-    dir         INTEGER NOT NULL,
+    dir         INTEGER,
     sym         text,
     inode       INTEGER,
     modified    INTEGER,

@@ -1,15 +1,12 @@
 package de.mein.drive.sql.dao;
 
-import de.mein.drive.sql.DbTransferDetails;
-import de.mein.drive.sql.TransferState;
+import de.mein.drive.sql.*;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
 import de.mein.auth.data.db.MissingHash;
 import de.mein.auth.tools.N;
-import de.mein.drive.sql.FsFile;
-import de.mein.drive.sql.SqliteConverter;
 import de.mein.drive.tasks.AvailHashEntry;
 import de.mein.sql.*;
 
@@ -28,6 +25,19 @@ public class TransferDao extends Dao {
 
     public TransferDao(ISQLQueries ISQLQueries, boolean lock) {
         super(ISQLQueries, lock);
+    }
+
+    public TransferLeftovers getLeftoversByService(Long partnerCertId, String partnerServiceUuid) throws SqlQueriesException {
+        DbTransferDetails t = new DbTransferDetails();
+        TransferLeftovers leftovers = new TransferLeftovers();
+        String query = "select sum(" + t.getSize() + ")-sum(" + t.getTransferred() + ") as " + leftovers.getBytesLeft().k()
+                + ", count(1) as " + leftovers.getFilesLeft().k()
+                + " from " + t.getTableName() + " where " + t.getCertId().k() + "=? and " + t.getServiceUuid().k() + "=?";
+        // select sum(size)
+        List<TransferLeftovers> result = sqlQueries.loadString(leftovers.getAllAttributes(), leftovers, query, ISQLQueries.whereArgs(partnerCertId, partnerServiceUuid));
+        if (!result.isEmpty())
+            return result.get(0);
+        return null;
     }
 
     public void insert(DbTransferDetails dbTransferDetails) throws SqlQueriesException {
