@@ -3,6 +3,7 @@ package de.mein.sql;
 
 import de.mein.sql.conn.JDBCConnection;
 import de.mein.sql.conn.SQLConnection;
+import de.mein.sql.transform.NumberTransformer;
 import de.mein.sql.transform.SqlResultTransformer;
 
 import java.sql.*;
@@ -182,7 +183,12 @@ public class SQLQueries extends ISQLQueries {
                 while (!resultSet.isAfterLast()) {
                     try {
                         Object res = resultSet.getObject(column.k());
-                        result.add((T) res);
+                        // cast numbers because that does not happen automagically
+                        if (Number.class.isAssignableFrom(clazz) && res instanceof Number) {
+                            Number casted = NumberTransformer.forType((Class<? extends Number>) clazz).cast((Number) res);
+                            result.add((T) casted);
+                        } else
+                            result.add((T) res);
                     } catch (Exception e) {
                         if (!e.getClass().equals(SQLException.class)) {
                             out("load().exception." + e.getClass().toString() + " " + e.getMessage());
