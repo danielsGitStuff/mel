@@ -56,8 +56,13 @@ class FileDistributorAndroidImpl : FileDistributorImpl {
                     if (target.exists())
                         return
                     //todo debug
-                    if (target.name.contains("?"))
+                    if (target.name.contains("?")) {
                         Lok.debug()
+                        copyFile(fsDao,sourceFile,target,targetPath,fsId)
+                        sourceFile.delete()
+                        return
+
+                    }
                     var movedUri = DocumentsContract.moveDocument(androidService!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
                     val oldeUri = movedUri
                     if (!sourceFile.name.equals(target.name)) {

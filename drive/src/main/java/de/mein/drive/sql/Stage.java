@@ -152,6 +152,9 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     }
 
     public Stage setName(String name) {
+        //todo debug
+        if (name.equals("11. Glasklar _ Herzgl_ht feat. Yasha & Miss Platnum.mp3"))
+            Lok.debug();
         this.name.v(name);
         return this;
     }

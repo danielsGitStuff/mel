@@ -42,7 +42,6 @@ class FileDistributorService : IntentService("FileDistributorService") {
 
         val driveService = androidService!!.meinAuthService.getMeinService(distributionTask.serviceUuid) as MeinDriveService<*>
         fsDao = driveService.driveDatabaseManager.fsDao
-//        Lok.debug("la")
 
 //        // do the actual work
         val targetStack = Stack<JFile>()
@@ -54,11 +53,14 @@ class FileDistributorService : IntentService("FileDistributorService") {
         val targetIds = Stack<Long>()
         targetIds.addAll(distributionTask.targetFsIds)
 
-        val sourceFile = JFile(distributionTask.sourceFile.absolutePath)// AFile.instance(distributionTask.sourceFile.absolutePath)
+        val sourceFile = JFile(distributionTask.sourceFile.absolutePath)
         // ...the last file is arbitrary
         //todo debug
         if (targetStack.empty())
             Lok.debug()
+        if (distributionTask.targetFiles.stream().anyMatch { it.name.startsWith("11. Glasklar") })
+            Lok.debug()
+
         val lastFile = targetStack.pop()
         val lastId = if (targetIds.empty()) null else targetIds.pop()
         val lastPath = targetPathStack.pop()

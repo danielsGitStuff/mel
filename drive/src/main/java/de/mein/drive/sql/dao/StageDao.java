@@ -251,6 +251,9 @@ StageDao extends Dao.LockingDao {
         //todo debug
         if (stage.getName().equals("sub2") && stage.getContentHashPair().equalsValue("0671d3070be781ede67de7e22c22a130"))
             Lok.debug("debug");
+        //todo debug
+        if (stage.getName().startsWith("11. Glasklar"))
+            Lok.debug();
         try {
             Long id = sqlQueries.insert(stage);
             return stage.setId(id);

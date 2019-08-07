@@ -357,7 +357,7 @@ public class ClientSyncHandler extends SyncHandler {
         if (conflictSolverMap.containsKey(identifier)) {
             conflictSolver = conflictSolverMap.get(identifier);
             if (conflictSolver.isSolved()) {
-                                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
+                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
                 conflictSolver.setSolving(false);
             } else {
                 System.err.println(getClass().getSimpleName() + ".handleConflict(): conflict " + identifier + " was not resolved");
@@ -709,6 +709,9 @@ public class ClientSyncHandler extends SyncHandler {
         // stage first
         while (iterator.hasNext()) {
             GenericFSEntry genericFSEntry = iterator.next();
+            //todo debug
+            if (genericFSEntry.getName().v().startsWith("11. Glasklar"))
+                Lok.debug();
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
