@@ -41,16 +41,19 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                 notification?.cancel()
                 return
             }
-            val title = "Downloading Files: ${leftovers.filesTransferred}/${leftovers.filesTotal}"
+            val title = "Downloading Files: ${leftovers.filesTransferred.v()}/${leftovers.filesTotal.v()}"
             val text = "${leftovers.bytesTransferred.v() / 1024 / 1024}/${leftovers.bytesTotal.v() / 1024 / 1024} mb"
 
             if (notification == null) {
                 notification = MeinNotification(driveService.uuid, DriveStrings.Notifications.INTENTION_PROGRESS, title, text)
+                driveService.meinAuthService.onNotificationFromService(driveService, notification)
             }
+
             val maxInt: Int = (leftovers.bytesTotal.v() / 1024 / 1024).toInt()
             val currentInt: Int = (leftovers.bytesTransferred.v() / 1024 / 1024).toInt()
+            notification!!.text = text
+            notification!!.title = title
             notification!!.setProgress(maxInt, currentInt, false)
-            driveService.meinAuthService.onNotificationFromService(driveService, notification)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -96,6 +99,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                         if (count == 0) {
                             waitLock.unlockWrite()
                         }
+                        showProgress()
                     }
                     if (dbTransfers.size > 0) {
                         dbTransfers.forEach { dbDetail ->
@@ -111,6 +115,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                                 // update states
                                 dbDetail.state.v(TransferState.DONE)
                                 transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
+                                transferDao.updateTransferredBytes(dbDetail.id.v(), it.position)
                                 // tell the sync handler we got a file
                                 val transaction = T.lockingTransaction(fsDao)
                                 try {
@@ -129,6 +134,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                             transferDetail.setTransferProgressListener {
                                 // store what we currently got
                                 currentDBSet[it]?.transferred?.v(it.position)
+                                transferDao.updateTransferredBytes(dbDetail.id.v(), it.position)
                             }
                             currentDetailSet.add(transferDetail)
                             currentDBSet.put(transferDetail, dbDetail)
@@ -150,7 +156,6 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                     stopped = true
                 }
                 // todo check if any suspended transfers remain and try again
-                showProgress()
             }
         } catch (e: Exception) {
             Lok.error(e)
