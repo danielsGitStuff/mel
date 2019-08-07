@@ -7,9 +7,11 @@ import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQuery;
 
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import de.mein.Lok;
 import de.mein.sql.ISQLQueries;
@@ -161,6 +163,10 @@ public class AndroidSQLQueries extends ISQLQueries {
                 Class<Enum> eType = (Class<Enum>) pair.getGenericClass();
                 Enum en = Enum.valueOf(eType, value);
                 pair.setValueUnsecure(en);
+            } else if (pair.getGenericClass().equals(Date.class)) {
+                Long value = cursor.getLong(index);
+                Date date = new Date(TimeUnit.MILLISECONDS.toMillis(value));
+                pair.setValueUnsecure(date);
             } else {
                 System.err.println("AndroidSQLQueries.readCursorToPair.UNKOWN TYPE");
             }
@@ -378,7 +384,10 @@ public class AndroidSQLQueries extends ISQLQueries {
                     contentValues.put(pair.k(), (String) pair.v());
                 else if (pair.getGenericClass().isEnum())
                     contentValues.put(pair.k(), (String) ((Enum) pair.v()).name());
-                else {
+                else if (pair.getGenericClass().equals(Date.class)) {
+                    Long value = pair.isNull() ? null : ((Date) pair.v()).getTime();
+                    contentValues.put(pair.k(), value);
+                } else {
                     System.err.println("AndroidSQLQueries.createContentValues.UNKOWN TYPE");
                 }
             } catch (ClassCastException e) {
