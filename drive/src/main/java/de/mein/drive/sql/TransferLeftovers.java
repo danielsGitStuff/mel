@@ -9,6 +9,10 @@ public class TransferLeftovers extends SQLTableObject {
     private Pair<Long> bytesTotal = new Pair<>(Long.class, "bytestotal");
     private Pair<Long> filesTotal = new Pair<>(Long.class, "filestotal");
 
+    public TransferLeftovers(){
+        init();
+    }
+
     @Override
     public String getTableName() {
         return new DbTransferDetails().getTableName();
