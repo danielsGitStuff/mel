@@ -25,6 +25,7 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.lang.Exception
 
 class FileDistributorAndroidImpl : FileDistributorImpl {
     private lateinit var syncHandler: SyncHandler
@@ -47,36 +48,43 @@ class FileDistributorAndroidImpl : FileDistributorImpl {
 
     companion object {
         fun moveFile(androidService: AndroidService, fsDao: FsDao?, sourceFile: JFile, target: JFile, targetPath: String, fsId: Long?) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-
-                val srcParentDoc = sourceFile.parentFile.createDocFile()
-                val srcDoc = sourceFile.createDocFile()
-                val targetParentDoc = target.parentFile.createDocFile()
-                if (target.exists())
-                    return
-                val movedUri = DocumentsContract.moveDocument(androidService!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
-                if (!sourceFile.name.equals(target.name)) {
-                    DocumentsContract.renameDocument(androidService!!.contentResolver, movedUri, target.name)
-                }
-                if (fsId != null) {
-                    val transaction = T.lockingTransaction(fsDao)
-                    try {
-                        val fsBashDetails = BashTools.getFsBashDetails(target)
-                        val fsTarget = fsDao!!.getFile(fsId)
-                        fsTarget.getiNode().v(fsBashDetails.getiNode())
-                        fsTarget.modified.v(fsBashDetails.modified)
-                        fsTarget.size.v(target.length())
-                        fsTarget.synced.v(true)
-                        fsDao.update(fsTarget)
-                    } catch (e: java.lang.Exception) {
-                        e.printStackTrace()
-                    } finally {
-                        transaction.end()
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    val srcParentDoc = sourceFile.parentFile.createDocFile()
+                    val srcDoc = sourceFile.createDocFile()
+                    val targetParentDoc = target.parentFile.createDocFile()
+                    if (target.exists())
+                        return
+                    //todo debug
+                    if (target.name.contains("?"))
+                        Lok.debug()
+                    var movedUri = DocumentsContract.moveDocument(androidService!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
+                    val oldeUri = movedUri
+                    if (!sourceFile.name.equals(target.name)) {
+                        movedUri = DocumentsContract.renameDocument(androidService!!.contentResolver, movedUri, target.name)
                     }
+                    if (fsId != null) {
+                        val transaction = T.lockingTransaction(fsDao)
+                        try {
+                            val fsBashDetails = BashTools.getFsBashDetails(target)
+                            val fsTarget = fsDao!!.getFile(fsId)
+                            fsTarget.getiNode().v(fsBashDetails.getiNode())
+                            fsTarget.modified.v(fsBashDetails.modified)
+                            fsTarget.size.v(target.length())
+                            fsTarget.synced.v(true)
+                            fsDao.update(fsTarget)
+                        } catch (e: java.lang.Exception) {
+                            e.printStackTrace()
+                        } finally {
+                            transaction.end()
+                        }
+                    }
+                } else {
+                    copyFile(fsDao, sourceFile, target, targetPath, fsId)
+                    sourceFile.delete()
                 }
-            } else {
-                copyFile(fsDao, sourceFile, target, targetPath, fsId)
-                sourceFile.delete()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
 

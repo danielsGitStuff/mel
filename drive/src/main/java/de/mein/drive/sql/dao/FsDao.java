@@ -101,6 +101,13 @@ public class FsDao extends Dao {
         return fsFiles;
     }
 
+    public List<FsFile> getSyncedFilesByHash(String hash) throws SqlQueriesException {
+        FsFile dummy = new FsFile();
+        String where = dummy.getContentHash().k() + "=? and " + dummy.getSynced().k() + "=?";
+        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(hash, true));
+        return fsFiles;
+    }
+
     public List<FsFile> getFilesByFsDirectory(Long id) throws SqlQueriesException {
         FsFile file = new FsFile();
 

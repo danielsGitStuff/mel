@@ -1,5 +1,6 @@
 package de.mein.drive.nio;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
@@ -91,6 +92,9 @@ public class FileDistributionTask implements SerializableEntity {
     }
 
     public FileDistributionTask setSourceFile(AFile sourceFile) {
+        // todo debug
+        if (!sourceFile.exists())
+            Lok.debug();
         this.sourceFile = sourceFile;
         this.sourcePath = sourceFile.getAbsolutePath();
         return this;

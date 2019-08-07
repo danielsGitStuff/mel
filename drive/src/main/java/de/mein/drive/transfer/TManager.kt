@@ -116,7 +116,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                 val fsTransaction = T.lockingTransaction(fsDao)
                 try {
                     fsDao.searchTransfer().forEach { hash ->
-                        val fsFiles = fsDao.getFilesByHash(hash)
+                        val fsFiles = fsDao.getSyncedFilesByHash(hash)
                         if (fsFiles?.size!! > 0) {
                             val fsFile = fsFiles[0]
                             val aFile = fsDao.getFileByFsFile(meinDriveService.driveSettings.rootDirectory, fsFile)
