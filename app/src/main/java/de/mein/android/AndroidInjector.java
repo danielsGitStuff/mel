@@ -74,6 +74,7 @@ public class AndroidInjector {
                 public void onConfigure(SQLiteDatabase db) {
                     Lok.debug("configure sqlite for meinauth");
                     super.onConfigure(db);
+                    // WAL does not work with multiple threads
                     db.disableWriteAheadLogging();
                     db.setForeignKeyConstraintsEnabled(true);
                 }
