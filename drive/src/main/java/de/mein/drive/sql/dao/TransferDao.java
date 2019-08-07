@@ -30,7 +30,7 @@ public class TransferDao extends Dao {
     public TransferLeftovers getLeftoversByService(Long partnerCertId, String partnerServiceUuid) throws SqlQueriesException {
         DbTransferDetails t = new DbTransferDetails();
         TransferLeftovers lo = new TransferLeftovers();
-        String query = "select count(1) as " + lo.getFilesTotal()
+        String query = "select count(1) as " + lo.getFilesTotal().k()
                 + ", (select count(1) from " + t.getTableName() + " where " + t.getCertId().k() + "=? and " + t.getServiceUuid().k() + "=? and " + t.getState().k() + "=? ) as " + lo.getFilesTransferred().k()
                 + ", sum(" + t.getSize().k() + ") as " + lo.getBytesTotal().k()
                 + ", (select sum(" + t.getTransferred().k() + ") from " + t.getTableName() + " where " + t.getCertId().k() + "=? and " + t.getServiceUuid().k() + "=? and " + t.getState().k() + " != ?) as " + lo.getBytesTransferred().k()

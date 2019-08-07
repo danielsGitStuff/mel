@@ -22,17 +22,23 @@ public class PowerChangeReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (androidService != null) {
-//            boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
-//            boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
-//            int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+
             int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
             int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-            boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+            /*
+             * this does not ensure the device is actually charging.
+             * though it is plugged it might drain battery.
+             * I think this will work for the most devices most of the time.
+             * the commented code below checks whether the device is really charging
+             */
+            boolean isPlugged = status == BatteryManager.BATTERY_STATUS_CHARGING
                     || status == BatteryManager.BATTERY_STATUS_FULL
                     || plugged == BatteryManager.BATTERY_PLUGGED_AC
                     || plugged == BatteryManager.BATTERY_PLUGGED_USB
                     || plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS;
-            if (isCharging)
+//            boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+//                    status == BatteryManager.BATTERY_STATUS_FULL;
+            if (isPlugged)
                 androidService.getMeinAuthService().getPowerManager().onPowerPlugged();
             else
                 androidService.getMeinAuthService().getPowerManager().onPowerUnplugged();
