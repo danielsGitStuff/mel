@@ -91,7 +91,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                     currentDetailSet.serviceUuid = driveService.uuid
                     payload.fileTransferDetailSet = currentDetailSet;
                     // prepare for retrieving the files and fill the payload so the partner can send us what we want
-                    val dbTransfers: MutableList<DbTransferDetails> = transferDao.getNotStartedTransfers(partnerCertId, partnerServiceUuid, 30)
+                    val dbTransfers: MutableList<DbTransferDetails> = transferDao.getNotStartedTransfers(partnerCertId, partnerServiceUuid, 66)
                     // countdown: when reaching zero we got to load a new batch
                     val batchCountDown = AtomicInteger(dbTransfers.size)
                     fun decreaseBatchCounter() {
