@@ -21,6 +21,7 @@ import java.util.List;
  */
 public class TransferDao extends Dao {
     private DbTransferDetails dummy = new DbTransferDetails();
+
     public TransferDao(ISQLQueries ISQLQueries) {
         super(ISQLQueries);
     }
@@ -68,7 +69,7 @@ public class TransferDao extends Dao {
     }
 
     public DbTransferDetails getOneTransfer() throws SqlQueriesException {
-        
+
         List<DbTransferDetails> res = sqlQueries.load(dummy.getAllAttributes(), dummy, null, null, " order by " + dummy.getId().k() + " limit 1");
         if (res.size() == 1)
             return res.get(0);
@@ -76,7 +77,7 @@ public class TransferDao extends Dao {
     }
 
     public void delete(Long id) throws SqlQueriesException {
-        
+
         sqlQueries.delete(dummy, dummy.getId().k() + "=?", ISQLQueries.whereArgs(id));
     }
 
@@ -236,5 +237,11 @@ public class TransferDao extends Dao {
                 + dummy.getServiceUuid().k() + "=? and "
                 + dummy.getState().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(partnerCertificateId, partnerServiceUuid, TransferState.DONE));
+    }
+
+    public void flagStateForRemainingTransfers(long certId, @NotNull String serviceuuid, TransferState state) throws SqlQueriesException {
+        String stmt = "update " + dummy.getTableName() + " set " + dummy.getState().k() + "=?"
+                + " where " + dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=? and " + dummy.getState().k() + "!=? and " + dummy.getState().k() + "!=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(state, certId, serviceuuid, TransferState.DONE, TransferState.RUNNING));
     }
 }

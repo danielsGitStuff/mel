@@ -19,6 +19,7 @@ import de.mein.drive.data.SyncAnswer;
 import de.mein.drive.index.IndexListener;
 import de.mein.drive.service.sync.ServerSyncHandler;
 import de.mein.drive.sql.GenericFSEntry;
+import de.mein.drive.sql.TransferState;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.tasks.SyncRequest;
@@ -54,7 +55,7 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     protected void onSyncReceived(Request request) {
         Lok.debug("MeinDriveServerService.onSyncReceived");
         SyncRequest task = (SyncRequest) request.getPayload();
-        SyncAnswer answer = new SyncAnswer(cacheDirectory,CachedInitializer.randomId(),DriveSettings.CACHE_LIST_SIZE);
+        SyncAnswer answer = new SyncAnswer(cacheDirectory, CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE);
         Transaction transaction = T.lockingTransaction(T.read(driveDatabaseManager.getFsDao()));
         try {
             ISQLResource<GenericFSEntry> delta = driveDatabaseManager.getDeltaResource(task.getOldVersion());
@@ -106,16 +107,12 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 if (driveSettings.getServerSettings().hasClient(authenticatedJob.getPartnerCertificate().getId().v())) {
                     this.syncHandler.resume();
                 }
+            } else if (unknownJob instanceof Job.CertificateSpottedJob) {
+                // reset the remaining transfers so we can try again
+                T.lockingTransaction(driveDatabaseManager.getTransferDao())
+                        .run(() -> N.forEach(driveSettings.getServerSettings().getClients(), clientData -> driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED)))
+                        .end();
             }
-//            else if (unknownJob instanceof FsSyncJob) {
-//                Lok.debug("MeinDriveServerService.workWorkWork.SYNC");
-//                FsSyncJob syncJob = (FsSyncJob) unknownJob;
-//                Promise<Long, Exception, Void> indexedPromise = doFsSyncJob(syncJob);
-//                indexedPromise.done(stageSetId -> {
-//                    syncHandler.commitStage(stageSetId);
-//                });
-//                return true;
-//            }
         } catch (Exception e) {
             e.printStackTrace();
         }

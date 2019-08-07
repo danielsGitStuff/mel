@@ -8,6 +8,7 @@ import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.drive.data.AvailableHashes;
 import de.mein.drive.data.DriveDetails;
@@ -21,6 +22,7 @@ import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.service.sync.ClientSyncHandler;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.StageSet;
+import de.mein.drive.sql.TransferState;
 import de.mein.sql.SqlQueriesException;
 
 import org.jdeferred.impl.DeferredObject;
@@ -96,6 +98,10 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             //check if connected certificate is the server. if so: sync()
             if (driveSettings.getClientSettings().getServerCertId().equals(spottedJob.getPartnerCertificate().getId().v())) {
                 try {
+                    // reset the remaining transfers so we can start again
+                    T.lockingTransaction(driveDatabaseManager.getTransferDao())
+                            .run(() -> driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(driveSettings.getClientSettings().getServerCertId(), driveSettings.getClientSettings().getServerServiceUuid(), TransferState.NOT_STARTED))
+                            .end();
                     addJob(new SyncClientJob());
                 } catch (Exception e) {
                     e.printStackTrace();

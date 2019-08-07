@@ -2,7 +2,6 @@ package de.mein.drive.transfer
 
 import de.mein.DeferredRunnable
 import de.mein.Lok
-import de.mein.auth.MeinNotification
 import de.mein.auth.service.MeinAuthService
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess
@@ -82,13 +81,19 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
         if (atomicInt.get() > 0) {
             val transferSets = transferDao.twoTransferSets
             if (transferSets.size > 0) {
-                transferSets.forEach {
-                    val isolatedPromise = meinDriveService.getIsolatedProcess(MeinIsolatedFileProcess::class.java, it.certId.v(), it.serviceUuid.v())
+                transferSets.forEach { transferDetails ->
+                    val isolatedPromise = meinDriveService.getIsolatedProcess(MeinIsolatedFileProcess::class.java, transferDetails.certId.v(), transferDetails.serviceUuid.v())
                     isolatedPromise.done { isolatedFileProcess ->
                         isolatedProcessesMap[isolatedFileProcess.partnerCertificateId] = isolatedFileProcess
                         checkAtom()
                         isolatedFileProcess.addIsolatedProcessListener(this)
-                    }.fail { checkAtom() }
+                    }.fail {
+                        val c = transferDetails
+                        T.lockingTransaction(transferDao).run {
+                            transferDao.flagStateForRemainingTransfers(transferDetails.certId.v(), transferDetails.serviceUuid.v(), TransferState.SUSPENDED)
+                        }.end()
+                        checkAtom()
+                    }
                 }
             } else {
                 transaction.end()
@@ -97,7 +102,6 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             transaction.end()
         }
     }
-
 
 
     override fun runImpl() {

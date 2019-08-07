@@ -52,6 +52,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
                     transaction.end();
                     Lok.debug("StageIndexerRunnable[" + stageSetId + "].runImpl.unlocked");
                 }
+                transaction.end();
             }
         } else {
             Lok.debug("StageIndexerRunnable.runImpl.got.empty.pathcollection");
