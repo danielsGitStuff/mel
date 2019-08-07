@@ -282,7 +282,7 @@ constructor(val config: ServerConfig) {
                     .optional("-ft", "port the file transfer listens on. defaults to ${ServerConfig.DEFAULT_TRANSFER}.") { result, args -> result.transferPort = args[0].toInt() }
                     .optional("-http", "switches on http. optionally specifies the port. defaults to ${ServerConfig.DEFAULT_HTTP}") { result, args -> result.httpPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTP }
                     .optional("-https", "switches on https. optionally specifies the port. defaults to ${ServerConfig.DEFAULT_HTTPS}") { result, args -> result.httpsPort = if (args.isNotEmpty()) args[0].toInt() else ServerConfig.DEFAULT_HTTPS }
-                    .optional("-pipes-off", "disables pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = false }
+                    .optional("-pipes-on", "disables pipes using mkfifo that can restart/stop the server when you write into them.") { result, _ -> result.pipes = true }
                     .optional("-keysize", "key length for certificate creation. defaults to 2048") { result, args -> result.keySize = args[0].toInt() }
                     .optional("-restart-command", "command that restarts the miniserver application. see readme for more information") { result, args -> if (args.size == 1) result.restartCommand.addAll(Konsole.tokenizeQuotedCommand(args[0])) else throw Konsole.KonsoleWrongArgumentsException("restard comman invalid") }
                     .optional("-keep-binaries", "keep binary files when rebuilding") { result, _ -> result.keepBinaries = true }
