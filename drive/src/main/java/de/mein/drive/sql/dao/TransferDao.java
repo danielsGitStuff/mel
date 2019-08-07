@@ -29,14 +29,24 @@ public class TransferDao extends Dao {
 
     public TransferLeftovers getLeftoversByService(Long partnerCertId, String partnerServiceUuid) throws SqlQueriesException {
         DbTransferDetails t = new DbTransferDetails();
-        TransferLeftovers leftovers = new TransferLeftovers();
-        String query = "select sum(" + t.getSize() + ")-sum(" + t.getTransferred() + ") as " + leftovers.getBytesLeft().k()
-                + ", count(1) as " + leftovers.getFilesLeft().k()
-                + " from " + t.getTableName() + " where " + t.getCertId().k() + "=? and " + t.getServiceUuid().k() + "=?";
-        // select sum(size)
-        List<TransferLeftovers> result = sqlQueries.loadString(leftovers.getAllAttributes(), leftovers, query, ISQLQueries.whereArgs(partnerCertId, partnerServiceUuid));
-        if (!result.isEmpty())
-            return result.get(0);
+        TransferLeftovers lo = new TransferLeftovers();
+        String query = "select count(1) as " + lo.getFilesTotal()
+                + ", (select count(1) from " + t.getTableName() + " where " + t.getCertId().k() + "=? and " + t.getServiceUuid().k() + "=? and " + t.getState().k() + "=? ) as " + lo.getFilesTransferred().k()
+                + ", sum(" + t.getSize().k() + ") as " + lo.getBytesTotal().k()
+                + ", (select sum(" + t.getTransferred().k() + ") from " + t.getTableName() + " where " + t.getCertId().k() + "=? and " + t.getServiceUuid().k() + "=? and " + t.getState().k() + " != ?) as " + lo.getBytesTransferred().k()
+                + " from " + t.getTableName() + " where " + t.getCertId().k() + "=? and " + t.getServiceUuid().k() + "=? and " + t.getState().k() + " !=?";
+        List<TransferLeftovers> list = sqlQueries.loadString(lo.getAllAttributes(), lo, query, ISQLQueries.whereArgs(partnerCertId, partnerServiceUuid, TransferState.DONE,
+                partnerCertId, partnerServiceUuid, TransferState.SUSPENDED,
+                partnerCertId, partnerServiceUuid, TransferState.SUSPENDED));
+        if (!list.isEmpty()) {
+            // summed bytes are null if no transfer exists
+            TransferLeftovers result = list.get(0);
+            if (result.getBytesTransferred().equalsValue(null))
+                result.getBytesTransferred().v(0L);
+            if (result.getBytesTotal().equalsValue(null))
+                result.getBytesTotal().v(0L);
+            return result;
+        }
         return null;
     }
 
