@@ -25,11 +25,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     private static final String SYMLINK = "sym";
 
     protected Pair<Long> id = new Pair<>(Long.class, ID);
-    protected Pair<String> name = new Pair<>(String.class, NAME).setSetListener(value -> {
-        if (value.equals("11. Glasklar _ Herzgl_ht feat. Yasha & Miss Platnum.mp3"))
-            Lok.debug();
-        return value;
-    });
+    protected Pair<String> name = new Pair<>(String.class, NAME);
     protected Pair<Long> parentId = new Pair<>(Long.class, PARENT_ID);
     protected Pair<Long> version = new Pair<>(Long.class, VERSION);
     protected Pair<String> contentHash = new Pair<>(String.class, CONTENT_HASH, "0");

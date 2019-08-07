@@ -55,13 +55,14 @@ class FileDistributorAndroidImpl : FileDistributorImpl {
                     val targetParentDoc = target.parentFile.createDocFile()
                     if (target.exists())
                         return
-                    //todo debug
                     if (target.name.contains("?")) {
-                        Lok.debug()
-                        copyFile(fsDao,sourceFile,target,targetPath,fsId)
+                        // if the target files name contains a "?" "DocumentsContract.renameDocument()" will change that to "_".
+                        // as a workaround, the file is copied and then deleted. SAF likely stands for "Stpecial Acces Framewörk"
+                        // rather than "Storage Access Framework". Because it is really bad at the latter.
+                        Lok.debug("Here is a reminder that Android's SAF sucks!")
+                        copyFile(fsDao, sourceFile, target, targetPath, fsId)
                         sourceFile.delete()
                         return
-
                     }
                     var movedUri = DocumentsContract.moveDocument(androidService!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
                     val oldeUri = movedUri

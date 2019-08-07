@@ -709,9 +709,6 @@ public class ClientSyncHandler extends SyncHandler {
         // stage first
         while (iterator.hasNext()) {
             GenericFSEntry genericFSEntry = iterator.next();
-            //todo debug
-            if (genericFSEntry.getName().v().startsWith("11. Glasklar"))
-                Lok.debug();
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);

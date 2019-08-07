@@ -98,8 +98,10 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                         val count = batchCountDown.decrementAndGet()
                         if (count == 0) {
                             waitLock.unlockWrite()
-                        }
-                        showProgress()
+                            notification?.cancel()
+                            notification = null
+                        } else
+                            showProgress()
                     }
                     if (dbTransfers.size > 0) {
                         dbTransfers.forEach { dbDetail ->
@@ -135,6 +137,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                                 // store what we currently got
                                 currentDBSet[it]?.transferred?.v(it.position)
                                 transferDao.updateTransferredBytes(dbDetail.id.v(), it.position)
+                                showProgress()
                             }
                             currentDetailSet.add(transferDetail)
                             currentDBSet.put(transferDetail, dbDetail)

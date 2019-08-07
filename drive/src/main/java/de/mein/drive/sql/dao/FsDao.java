@@ -146,9 +146,6 @@ public class FsDao extends Dao {
 
 
     public FsEntry insert(FsEntry fsEntry) throws SqlQueriesException {
-        //todo debug
-        if (fsEntry.getName().v().equals("11. Glasklar _ Herzgl_ht feat. Yasha & Miss Platnum.mp3"))
-            Lok.debug();
         Long id;
         if (fsEntry.getId().notNull())
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
