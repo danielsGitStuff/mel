@@ -32,7 +32,7 @@ Two devices:
 *If you have a decently recent linux distro installed the requirements should be met.
 Exemptions may be server or cloud versions of those distros that do not come with a graphical user interface.
 You would therefore use a Command Line Interface (CLI) that currently does not exist for Mel.
-To be more exact: it will run without a GUI but you won't be able to pair or handle file conflicts then.
+To be more precisely: it will run without a GUI but you won't be able to pair or handle file conflicts then.
 </sub>
 
 ## Privacy & Security

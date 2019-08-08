@@ -50,9 +50,13 @@ public abstract class SQLTableObject {
      * @param pairs
      */
     protected void populateAll(Pair... pairs) {
-        allAttributes = new ArrayList<>(insertAttributes);
-        if (pairs != null && pairs.length > 0)
-            addToList(allAttributes, pairs);
+        try {
+            allAttributes = new ArrayList<>(insertAttributes);
+            if (pairs != null && pairs.length > 0)
+                addToList(allAttributes, pairs);
+        } catch (NullPointerException e) {
+            System.err.println("NullPointerException when calling: " + getClass().getSimpleName() + ".populateAll(). Did you forgot to call populateInsert() in advance?");
+        }
     }
 
     @Override

@@ -13,7 +13,7 @@ public class FileDistTaskDao extends Dao {
     private FileDistTaskWrapper dummy = new FileDistTaskWrapper();
 
     public FileDistTaskDao(ISQLQueries sqlQueries) {
-        super(sqlQueries);
+        super(sqlQueries,false);
     }
 
 

@@ -30,8 +30,8 @@ public class FileDistTaskWrapper extends SQLTableObject {
 
     @Override
     protected void init() {
-        populateAll(json, done);
-        populateInsert(id);
+        populateInsert(json, done);
+        populateAll(id);
         json.setGetListener(() -> {
             if (task != null) {
                 json.v(N.result(() -> SerializableEntitySerializer.serialize(task), "serialization failed"));
