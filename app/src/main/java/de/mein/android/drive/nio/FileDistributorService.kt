@@ -34,49 +34,54 @@ class FileDistributorService : IntentService("FileDistributorService") {
         // first setup all the nice things we need
 
         androidService = AndroidService.getInstance()
+        androidService?.androidPowerManager?.wakeLock(this)
+        try {
 
 
-        val json = intent!!.getStringExtra(TASK)
-        distributionTask = (SerializableEntityDeserializer.deserialize(json) as FileDistributionTask?)!!
-        distributionTask.initFromPaths()
+            val json = intent!!.getStringExtra(TASK)
+            distributionTask = (SerializableEntityDeserializer.deserialize(json) as FileDistributionTask?)!!
+            distributionTask.initFromPaths()
 
-        val driveService = androidService!!.meinAuthService.getMeinService(distributionTask.serviceUuid) as MeinDriveService<*>
-        fsDao = driveService.driveDatabaseManager.fsDao
+            val driveService = androidService!!.meinAuthService.getMeinService(distributionTask.serviceUuid) as MeinDriveService<*>
+            fsDao = driveService.driveDatabaseManager.fsDao
 
 //        // do the actual work
-        val targetStack = Stack<JFile>()
-        distributionTask.targetFiles.forEach { targetStack.push(it as JFile) }
+            val targetStack = Stack<JFile>()
+            distributionTask.targetFiles.forEach { targetStack.push(it as JFile) }
 
-        val targetPathStack = Stack<String>()
-        targetPathStack.addAll(distributionTask.targetPaths)
+            val targetPathStack = Stack<String>()
+            targetPathStack.addAll(distributionTask.targetPaths)
 
-        val targetIds = Stack<Long>()
-        targetIds.addAll(distributionTask.targetFsIds)
+            val targetIds = Stack<Long>()
+            targetIds.addAll(distributionTask.targetFsIds)
 
-        val sourceFile = JFile(distributionTask.sourceFile.absolutePath)
-        // ...the last file is arbitrary
+            val sourceFile = JFile(distributionTask.sourceFile.absolutePath)
+            // ...the last file is arbitrary
 
-        val lastFile = targetStack.pop()
-        val lastId = if (targetIds.empty()) null else targetIds.pop()
-        val lastPath = targetPathStack.pop()
+            val lastFile = targetStack.pop()
+            val lastId = if (targetIds.empty()) null else targetIds.pop()
+            val lastPath = targetPathStack.pop()
 
-        while (!targetStack.empty()) {
-            FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, targetStack.pop(), targetPathStack.pop(), targetIds.pop())
-        }
-        if (distributionTask.deleteSource) {
-            // move file
-            FileDistributorAndroidImpl.moveFile(androidService!!, fsDao, sourceFile, lastFile, lastPath, lastId)
-            // update synced flag
-            val transaction = T.lockingTransaction(fsDao)
-            try {
-                fsDao.setSynced(lastId, true)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                transaction.end()
+            while (!targetStack.empty()) {
+                FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, targetStack.pop(), targetPathStack.pop(), targetIds.pop())
             }
-        } else {
-            FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, lastFile, lastPath, lastId)
+            if (distributionTask.deleteSource) {
+                // move file
+                FileDistributorAndroidImpl.moveFile(androidService!!, fsDao, sourceFile, lastFile, lastPath, lastId)
+                // update synced flag
+                val transaction = T.lockingTransaction(fsDao)
+                try {
+                    fsDao.setSynced(lastId, true)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    transaction.end()
+                }
+            } else {
+                FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, lastFile, lastPath, lastId)
+            }
+        } finally {
+            androidService?.androidPowerManager?.releaseWakeLock(this)
         }
     }
 
