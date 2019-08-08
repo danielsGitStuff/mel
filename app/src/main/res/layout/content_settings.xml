@@ -219,6 +219,15 @@
 
             <Button
                 android:layout_below="@id/btnExportLok"
+                android:id="@+id/btnExportDBs"
+                android:text="@string/btnExportDBs"
+                android:layout_width="match_parent"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentEnd="true"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:layout_below="@id/btnExportDBs"
                 android:id="@+id/btnUpdate"
                 android:text="@string/btnUpdate"
                 android:layout_width="match_parent"

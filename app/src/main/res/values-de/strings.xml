@@ -165,5 +165,6 @@
     <string name="settingsPermissionText">Schreibberechtigung benötigt um ins Downloadverzeichnis zu schreiben. Für Android braucht man das.</string>
     <string name="settingsPermToastFail">Schreibberechtigung verweigert. Log nicht exportiert.</string>
     <string name="settingsLokExportToast">Gepseichert unter: </string>
+    <string name="btnExportDBs">Export DBs</string>
 
 </resources>

@@ -52,7 +52,7 @@ import de.mein.update.VersionAnswer;
 
 public class SettingsController extends GuiController {
     private AndroidPowerManager powerManager;
-    private Button btnStartStop, btnApply, btnShow, btnPowerMobile, btnPowerServer, btnAbout, btnUpdate, btnExportLok;
+    private Button btnStartStop, btnApply, btnShow, btnPowerMobile, btnPowerServer, btnAbout, btnUpdate, btnExportLok, btnExportDBs;
     private EditText txtPort, txtCertPort, txtName;
     private CheckBox cbShowFirstStartDialog, cbRedirectSysOut, cbLokToDb;
     private PowerView powerView;
@@ -75,6 +75,7 @@ public class SettingsController extends GuiController {
         btnUpdate = rootView.findViewById(R.id.btnUpdate);
         powerView = rootView.findViewById(R.id.powerView);
         btnAbout = rootView.findViewById(R.id.btnAbout);
+        btnExportDBs = rootView.findViewById(R.id.btnExportDBs);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
         btnStartStop.setOnClickListener(v1 -> {
             //service
@@ -220,6 +221,19 @@ public class SettingsController extends GuiController {
                 exportLok();
             }
         }));
+        btnExportDBs.setOnClickListener(view -> {
+//            if (!activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            activity.askUserForPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                    , () -> {
+                        Lok.debug("listener called");
+                    }, R.string.permissionRequiredTitle,
+                    R.string.permissionDriveWriteMessage
+                    , () -> {
+                        Lok.debug("success");
+                        N.r(this::exportDBs);
+                    }, result -> Lok.debug("failed"));
+//            }
+        });
     }
 
     private void exportLok() throws IOException {
@@ -229,6 +243,19 @@ public class SettingsController extends GuiController {
         CopyService.copyStream(new FileInputStream(dbFile), new FileOutputStream(targetFile));
         String msg = activity.getString(R.string.settingsLokExportToast) + targetFile.getAbsolutePath();
         Notifier.toast(activity, msg);
+    }
+
+    private void exportDBs() throws IOException {
+        File dbFolder = Tools.getApplicationContext().getDatabasePath("log").getParentFile();
+        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        N.forEach(dbFolder.listFiles(), file -> {
+            String exportName = file.getName();
+            if (!exportName.endsWith(".db"))
+                exportName += ".db";
+            File target = new File(downloadDir, exportName);
+            CopyService.copyStream(new FileInputStream(file), new FileOutputStream(target));
+        });
+        Notifier.toast(activity, "databases exported to download folder");
     }
 
     private UpdateHandler updateHandler;
