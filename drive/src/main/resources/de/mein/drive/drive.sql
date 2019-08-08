@@ -3,7 +3,13 @@ DROP TABLE IF EXISTS fsentry;
 DROP TABLE IF EXISTS stage;
 DROP TABLE IF EXISTS stageset;
 DROP TABLE IF EXISTS transfer;
-drop table if exists missinghash;
+drop table if exists filedist;
+create table filedist
+(
+  id integer not null primary key autoincrement,
+  json text not null,
+  done integer
+);
 CREATE TABLE fsentry
 (
     id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

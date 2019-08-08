@@ -17,7 +17,6 @@ import java.util.Collection;
 public class PrimitiveCollectionDeserializer implements FieldDeserializer {
     @Override
     public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object jsonFieldValue) throws IllegalAccessException, JsonDeserializationException {
-        System.out.println("PrimitiveCollectionDeserializer.deserialize");
         JSONArray jsonArray = (JSONArray) jsonFieldValue;
         if (jsonFieldValue != null) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();

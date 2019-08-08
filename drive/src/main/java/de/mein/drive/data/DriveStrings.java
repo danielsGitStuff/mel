@@ -1,5 +1,7 @@
 package de.mein.drive.data;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Created by xor on 10/26/16.
  */
@@ -40,5 +42,6 @@ public abstract class DriveStrings {
         public static final String INTENTION_PROGRESS = "drive.progress";
         public static final String INTENTION_BOOT = "drive.spawn";
         public static final String INTENTION_OUT_OF_SPACE = "drive.oos";
+        public static final String INTENTION_FILES_SERVICE = "drive.filesservice";
     }
 }

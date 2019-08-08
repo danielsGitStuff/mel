@@ -5,88 +5,109 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Build
 import android.os.IBinder
-import android.provider.DocumentsContract
-import androidx.documentfile.provider.DocumentFile
-import de.mein.Lok
-import de.mein.android.Tools
 import de.mein.android.file.JFile
-import de.mein.android.file.SAFAccessor
 import de.mein.android.service.AndroidService
-import de.mein.auth.file.AFile
+import de.mein.auth.MeinNotification
 import de.mein.auth.tools.N
-import de.mein.auth.tools.NWrap
 import de.mein.auth.tools.lock.T
-import de.mein.auth.tools.lock.Transaction
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer
-import de.mein.drive.bash.BashTools
+import de.mein.drive.data.DriveStrings
+import de.mein.drive.data.FileDistTaskWrapper
 import de.mein.drive.nio.FileDistributionTask
 import de.mein.drive.service.MeinDriveService
+import de.mein.drive.sql.dao.FileDistTaskDao
 import de.mein.drive.sql.dao.FsDao
 import de.mein.drive.sql.dao.TransferDao
 import java.io.*
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.*
 
 class FileDistributorService : IntentService("FileDistributorService") {
+    private lateinit var uuid: String
+    var notification: MeinNotification? = null
     override fun onHandleIntent(intent: Intent?) {
         // first setup all the nice things we need
 
         androidService = AndroidService.getInstance()
         androidService?.androidPowerManager?.wakeLock(this)
         try {
-
-
-            val json = intent!!.getStringExtra(TASK)
-            distributionTask = (SerializableEntityDeserializer.deserialize(json) as FileDistributionTask?)!!
-            distributionTask.initFromPaths()
-
-            val driveService = androidService!!.meinAuthService.getMeinService(distributionTask.serviceUuid) as MeinDriveService<*>
+            uuid = intent!!.getStringExtra(SERVICEUUID)
+            driveService = androidService!!.meinAuthService.getMeinService(uuid) as MeinDriveService<*>
             fsDao = driveService.driveDatabaseManager.fsDao
             transferDao = driveService.driveDatabaseManager.transferDao
+            fileDistTaskDao = driveService.driveDatabaseManager.fileDistTaskDao
 
-//        // do the actual work
-            val targetStack = Stack<JFile>()
-            distributionTask.targetFiles.forEach { targetStack.push(it as JFile) }
+            while (fileDistTaskDao.hasContent()) {
+                showNotification()
 
-            val targetPathStack = Stack<String>()
-            targetPathStack.addAll(distributionTask.targetPaths)
-
-            val targetIds = Stack<Long>()
-            targetIds.addAll(distributionTask.targetFsIds)
-
-            val sourceFile = JFile(distributionTask.sourceFile.absolutePath)
-            // ...the last file is arbitrary
-
-            val lastFile = targetStack.pop()
-            val lastId = if (targetIds.empty()) null else targetIds.pop()
-            val lastPath = targetPathStack.pop()
-
-            while (!targetStack.empty()) {
-                FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, targetStack.pop(), targetPathStack.pop(), targetIds.pop())
-            }
-            if (distributionTask.deleteSource) {
-                // move file
-                FileDistributorAndroidImpl.moveFile(androidService!!, fsDao, sourceFile, lastFile, lastPath, lastId)
-                // update synced flag
-                T.lockingTransaction(fsDao).run { fsDao.setSynced(lastId, true) }.end()
-
-                // delete from transfer
-                T.lockingTransaction(transferDao!!)
-                        .run { transferDao!!.deleteByHash(distributionTask.sourceHash) }
-                        .end()
-
-            } else {
-                FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, lastFile, lastPath, lastId)
+                N.sqlResource(fileDistTaskDao.resource()) { sqlResource ->
+                    run {
+                        var wrapper: FileDistTaskWrapper = sqlResource.next
+                        while (wrapper != null) {
+                            workOnDistTask(wrapper.task)
+                            fileDistTaskDao.markDone(wrapper.id.v())
+                            wrapper = sqlResource.next
+                        }
+                    }
+                }
+                fileDistTaskDao.deleteMarkedDone()
             }
         } finally {
             androidService?.androidPowerManager?.releaseWakeLock(this)
+            notification?.cancel()
+        }
+    }
+
+    private fun showNotification() {
+        val title = "Moving files"
+        val text = "I am slow but working!"
+        if (notification == null) {
+            notification = MeinNotification(uuid, DriveStrings.Notifications.INTENTION_FILES_SERVICE, title, text)
+            driveService.meinAuthService.onNotificationFromService(driveService, notification)
+        }
+    }
+
+    private fun workOnDistTask(distributionTask: FileDistributionTask) {
+        distributionTask.initFromPaths()
+
+        // do the actual work
+        val targetStack = Stack<JFile>()
+        distributionTask.targetFiles.forEach { targetStack.push(it as JFile) }
+
+        val targetPathStack = Stack<String>()
+        targetPathStack.addAll(distributionTask.targetPaths)
+
+        val targetIds = Stack<Long>()
+        targetIds.addAll(distributionTask.targetFsIds)
+
+        val sourceFile = JFile(distributionTask.sourceFile.absolutePath)
+        // ...the last file is arbitrary
+
+        val lastFile = targetStack.pop()
+        val lastId = if (targetIds.empty()) null else targetIds.pop()
+        val lastPath = targetPathStack.pop()
+
+        while (!targetStack.empty()) {
+            FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, targetStack.pop(), targetPathStack.pop(), targetIds.pop())
+        }
+        if (distributionTask.deleteSource) {
+            // move file
+            FileDistributorAndroidImpl.moveFile(androidService!!, fsDao, sourceFile, lastFile, lastPath, lastId)
+            // update synced flag
+            T.lockingTransaction(fsDao).run { fsDao.setSynced(lastId, true) }.end()
+
+            // delete from transfer
+            T.lockingTransaction(transferDao!!)
+                    .run { transferDao!!.deleteByHash(distributionTask.sourceHash) }
+                    .end()
+
+        } else {
+            FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, lastFile, lastPath, lastId)
         }
     }
 
     companion object {
+        val SERVICEUUID: String = "uuid"
         val TASK = "task"
         val BUFFER_SIZE = 1024 * 64
 
@@ -103,6 +124,8 @@ class FileDistributorService : IntentService("FileDistributorService") {
         }
     }
 
+    private lateinit var fileDistTaskDao: FileDistTaskDao
+    private lateinit var driveService: MeinDriveService<*>
     private var transferDao: TransferDao? = null
     private var androidService: AndroidService? = null
     private var serviceConnection: ServiceConnection = object : ServiceConnection {

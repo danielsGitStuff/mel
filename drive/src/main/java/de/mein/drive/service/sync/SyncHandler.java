@@ -19,6 +19,7 @@ import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.Wastebin;
 import de.mein.drive.sql.*;
+import de.mein.drive.sql.dao.FileDistTaskDao;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
@@ -45,6 +46,7 @@ public abstract class SyncHandler {
     protected final TManager transferManager;
     protected final MeinAuthService meinAuthService;
     private final FileDistributor fileDistributor;
+    private final FileDistTaskDao fileDistTaskDao;
     protected FsDao fsDao;
     protected StageDao stageDao;
     protected N runner = new N(Throwable::printStackTrace);
@@ -65,6 +67,7 @@ public abstract class SyncHandler {
         this.meinAuthService = meinAuthService;
         this.fsDao = meinDriveService.getDriveDatabaseManager().getFsDao();
         this.stageDao = meinDriveService.getDriveDatabaseManager().getStageDao();
+        this.fileDistTaskDao = meinDriveService.getDriveDatabaseManager().getFileDistTaskDao();
         this.driveSettings = meinDriveService.getDriveSettings();
         this.meinDriveService = meinDriveService;
         this.driveDatabaseManager = meinDriveService.getDriveDatabaseManager();
@@ -75,6 +78,10 @@ public abstract class SyncHandler {
 //                , wastebin, this);
         this.quotaManager = new QuotaManager(meinDriveService);
         this.fileDistributor = new FileDistributor(this);
+    }
+
+    public FileDistTaskDao getFileDistTaskDao() {
+        return fileDistTaskDao;
     }
 
     public FileDistributor getFileDistributor() {

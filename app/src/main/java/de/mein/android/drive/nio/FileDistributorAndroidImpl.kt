@@ -20,6 +20,7 @@ import de.mein.drive.bash.BashTools
 import de.mein.drive.nio.FileDistributorImpl
 import de.mein.drive.nio.FileJob
 import de.mein.drive.service.sync.SyncHandler
+import de.mein.drive.sql.dao.FileDistTaskDao
 import de.mein.drive.sql.dao.FsDao
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -28,16 +29,21 @@ import java.io.OutputStream
 import java.lang.Exception
 
 class FileDistributorAndroidImpl : FileDistributorImpl {
+    private lateinit var fileDistTaskDao: FileDistTaskDao
     private lateinit var syncHandler: SyncHandler
 
     override fun init(syncHandler: SyncHandler) {
         this.syncHandler = syncHandler;
+        this.fileDistTaskDao = syncHandler.fileDistTaskDao
     }
 
     override fun workOnTask(fileJob: FileJob) {
+        // unpack and store in database
+        fileDistTaskDao.insert(fileJob.distributionTask)
         val serviceIntent = Intent(Tools.getApplicationContext(), FileDistributorService::class.java)
-        val json = SerializableEntitySerializer.serialize(fileJob.distributionTask)
-        serviceIntent.putExtra(FileDistributorService.TASK, json)
+//        val json = SerializableEntitySerializer.serialize(fileJob.distributionTask)
+//        serviceIntent.putExtra(FileDistributorService.TASK, json)
+        serviceIntent.putExtra(FileDistributorService.SERVICEUUID,fileJob.distributionTask.serviceUuid)
         Tools.getApplicationContext().startService(serviceIntent)
     }
 

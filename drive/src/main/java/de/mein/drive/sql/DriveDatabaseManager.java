@@ -8,6 +8,7 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveService;
+import de.mein.drive.sql.dao.FileDistTaskDao;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
@@ -32,6 +33,7 @@ import java.util.List;
 public class DriveDatabaseManager extends FileRelatedManager {
     private final MeinDriveService meinDriveService;
     private final ISQLQueries sqlQueries;
+    private final FileDistTaskDao fileDistTaskDao;
     private FsDao fsDao;
     private StageDao stageDao;
     private final DriveSettings driveSettings;
@@ -49,6 +51,10 @@ public class DriveDatabaseManager extends FileRelatedManager {
         String stmt2 = "delete from " + stageSet.getTableName();
         stageDao.getSqlQueries().execute(stmt1, null);
         stageDao.getSqlQueries().execute(stmt2, null);
+    }
+
+    public FileDistTaskDao getFileDistTaskDao() {
+        return fileDistTaskDao;
     }
 
     public interface SQLConnectionCreator {
@@ -116,18 +122,20 @@ public class DriveDatabaseManager extends FileRelatedManager {
 //        sqlQueries.enableWAL();
 
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
-        if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
+        if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste", "filedist")) {
             //find sql file in workingdir
             sqliteExecutor.executeStream(driveSqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
-this.driveSettings.getRootDirectory().backup();
+        this.driveSettings.getRootDirectory().backup();
 
 
-               fsDao = new FsDao(this, sqlQueries);
+        fsDao = new FsDao(this, sqlQueries);
         stageDao = new StageDao(driveSettings, sqlQueries, fsDao);
         transferDao = new TransferDao(sqlQueries);
         wasteDao = new WasteDao(sqlQueries);
+        fileDistTaskDao = new FileDistTaskDao(sqlQueries);
+
 
         fsDao.setDriveSettings(this.driveSettings);
         transferDao.resetStarted();
