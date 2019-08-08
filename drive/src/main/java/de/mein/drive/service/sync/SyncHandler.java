@@ -21,6 +21,7 @@ import de.mein.drive.service.Wastebin;
 import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
+import de.mein.drive.sql.dao.TransferDao;
 import de.mein.drive.transfer.TManager;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
@@ -54,6 +55,10 @@ public abstract class SyncHandler {
 
     public FsDao getFsDao() {
         return fsDao;
+    }
+
+    public TransferDao getTransferDao() {
+        return meinDriveService.getDriveDatabaseManager().getTransferDao();
     }
 
     public SyncHandler(MeinAuthService meinAuthService, MeinDriveService meinDriveService) {
@@ -163,8 +168,10 @@ public abstract class SyncHandler {
 
             // file found in transfer dir
             if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath())) {
+                // assuming that noone moves or copies files in this directory at runtime. some day someone will do it any, things will break and he will complain.
                 FsBashDetails bashDetails = BashTools.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
+                distributionTask.setSourceHash(hash);
                 distributionTask.setDeleteSource(true);
                 if (fsFiles.isEmpty())
                     return false;

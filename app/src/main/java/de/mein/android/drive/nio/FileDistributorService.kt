@@ -24,6 +24,7 @@ import de.mein.drive.bash.BashTools
 import de.mein.drive.nio.FileDistributionTask
 import de.mein.drive.service.MeinDriveService
 import de.mein.drive.sql.dao.FsDao
+import de.mein.drive.sql.dao.TransferDao
 import java.io.*
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -44,6 +45,7 @@ class FileDistributorService : IntentService("FileDistributorService") {
 
             val driveService = androidService!!.meinAuthService.getMeinService(distributionTask.serviceUuid) as MeinDriveService<*>
             fsDao = driveService.driveDatabaseManager.fsDao
+            transferDao = driveService.driveDatabaseManager.transferDao
 
 //        // do the actual work
             val targetStack = Stack<JFile>()
@@ -69,14 +71,13 @@ class FileDistributorService : IntentService("FileDistributorService") {
                 // move file
                 FileDistributorAndroidImpl.moveFile(androidService!!, fsDao, sourceFile, lastFile, lastPath, lastId)
                 // update synced flag
-                val transaction = T.lockingTransaction(fsDao)
-                try {
-                    fsDao.setSynced(lastId, true)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                } finally {
-                    transaction.end()
-                }
+                T.lockingTransaction(fsDao).run { fsDao.setSynced(lastId, true) }.end()
+
+                // delete from transfer
+                T.lockingTransaction(transferDao!!)
+                        .run { transferDao!!.deleteByHash(distributionTask.sourceHash) }
+                        .end()
+
             } else {
                 FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, lastFile, lastPath, lastId)
             }
@@ -102,8 +103,9 @@ class FileDistributorService : IntentService("FileDistributorService") {
         }
     }
 
-    var androidService: AndroidService? = null
-    var serviceConnection: ServiceConnection = object : ServiceConnection {
+    private var transferDao: TransferDao? = null
+    private var androidService: AndroidService? = null
+    private var serviceConnection: ServiceConnection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName,
                                         binder: IBinder) {

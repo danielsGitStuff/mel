@@ -5,6 +5,7 @@ import de.mein.Lok
 import de.mein.auth.service.MeinAuthService
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess
+import de.mein.auth.tools.N
 import de.mein.auth.tools.lock.T
 import de.mein.drive.data.DriveStrings
 import de.mein.drive.service.MeinDriveService
@@ -15,6 +16,7 @@ import de.mein.drive.sql.TransferState
 import de.mein.drive.sql.dao.FsDao
 import de.mein.drive.sql.dao.TransferDao
 import de.mein.sql.RWLock
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -31,7 +33,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
     val waitLock = RWLock()
 
     init {
-
+        maintenance()
     }
 
     /**
@@ -41,6 +43,32 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
      */
     fun research() {
         waitLock.unlockWrite()
+    }
+
+    /**
+     * do some housekeeping: delete transfers that are no longer required by FS and other useless files.
+     * blocks!!! call this when booting!
+     */
+    fun maintenance() {
+        Lok.debug("doing transfer housekeeping")
+        // first delete things that are no longer required by FS
+        N.sqlResource(transferDao.unnecessaryTransfers) { sqlResource ->
+            runBlocking {
+                while (!sqlResource.isClosed) {
+                    val transfer = sqlResource.next
+                    if (transfer != null) {
+                        transferDao.delete(transfer.id.v())
+                    }
+                }
+            }
+        }
+        // remove every file that has no transfer entry
+        meinDriveService.driveSettings.transferDirectory.listFiles().forEach { file ->
+            if (!transferDao.hasHash(file.name))
+                file.delete()
+        }
+        // todo resume downloads
+        // open hash objects here and check whether the size on disk matches the files size
     }
 
 
@@ -190,7 +218,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
         try {
             with(retrieveRunnable.fileProcess) {
                 activeTFSRunnables.remove(this)
-                transferDao.removeDone(partnerCertificateId, partnerServiceUuid)
+//                transferDao.deleteDone(partnerCertificateId, partnerServiceUuid)
                 if (transferDao.count(partnerCertificateId, partnerServiceUuid) == 0L)
                     meinDriveService.onTransfersDone()
             }

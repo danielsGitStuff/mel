@@ -8,6 +8,7 @@ import de.mein.auth.tools.lock.Transaction
 import de.mein.drive.bash.BashTools
 import de.mein.drive.service.sync.SyncHandler
 import de.mein.drive.sql.dao.FsDao
+import de.mein.drive.sql.dao.TransferDao
 import java.io.File
 import java.util.*
 
@@ -57,14 +58,14 @@ class FileDistributorImplPC : FileDistributorImpl, MeinWorker() {
                 return
             sourceFile.renameTo(File(lastFile.absolutePath))
             // update synced flag
-            val transaction = T.lockingTransaction(fsDao)
-            try {
-                fsDao.setSynced(lastId, true)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                transaction.end()
-            }
+            T.lockingTransaction(fsDao)
+                    .run { fsDao.setSynced(lastId, true) }
+                    .end()
+            // delete from transfer
+            T.lockingTransaction(transferDao)
+                    .run {
+                        transferDao.deleteByHash(distributionTask.sourceHash)
+                    }
         } else {
             copyFile(sourceFile, lastFile, lastId)
         }
@@ -109,9 +110,11 @@ class FileDistributorImplPC : FileDistributorImpl, MeinWorker() {
 
     lateinit var syncHandler: SyncHandler
     lateinit var fsDao: FsDao
+    lateinit var transferDao: TransferDao
     override fun init(syncHandler: SyncHandler) {
         this.syncHandler = syncHandler
         this.fsDao = syncHandler.fsDao
+        this.transferDao = syncHandler.transferDao
     }
 
 

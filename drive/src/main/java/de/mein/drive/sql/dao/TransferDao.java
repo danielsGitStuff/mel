@@ -1,7 +1,9 @@
 package de.mein.drive.sql.dao;
 
 import de.mein.drive.sql.*;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
@@ -9,6 +11,7 @@ import de.mein.auth.data.db.MissingHash;
 import de.mein.auth.tools.N;
 import de.mein.drive.tasks.AvailHashEntry;
 import de.mein.sql.*;
+
 import org.sqlite.core.DB;
 
 import java.util.ArrayList;
@@ -111,6 +114,8 @@ public class TransferDao extends Dao {
     }
 
     public void deleteByHash(String hash) throws SqlQueriesException {
+        if (hash == null)
+            return;
         sqlQueries.delete(dummy, dummy.getHash().k() + "=?", ISQLQueries.whereArgs(hash));
     }
 
@@ -231,7 +236,7 @@ public class TransferDao extends Dao {
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(state, hash));
     }
 
-    public void removeDone(@NotNull Long partnerCertificateId, @NotNull String partnerServiceUuid) throws SqlQueriesException {
+    public void deleteDone(@NotNull Long partnerCertificateId, @NotNull String partnerServiceUuid) throws SqlQueriesException {
         String stmt = "delete from " + dummy.getTableName() + " where "
                 + dummy.getCertId().k() + "=? and "
                 + dummy.getServiceUuid().k() + "=? and "
@@ -243,5 +248,12 @@ public class TransferDao extends Dao {
         String stmt = "update " + dummy.getTableName() + " set " + dummy.getState().k() + "=?"
                 + " where " + dummy.getCertId().k() + "=? and " + dummy.getServiceUuid().k() + "=? and " + dummy.getState().k() + "!=? and " + dummy.getState().k() + "!=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(state, certId, serviceuuid, TransferState.DONE, TransferState.RUNNING));
+    }
+
+
+    public boolean hasHash(String hash) throws SqlQueriesException {
+        String query = "select count(1) from " + dummy.getTableName() + " where " + dummy.getHash().k() + "=?";
+        Long count = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(hash));
+        return count > 0;
     }
 }

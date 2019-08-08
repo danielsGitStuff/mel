@@ -126,6 +126,8 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                                     transaction.end()
                                 }
                                 decreaseBatchCounter()
+                                //todo resume downloads
+                                // check whether the received has the right hash
                             }
                             transferDetail.setTransferFailedListener {
                                 filesRemain.decrementAndGet()
@@ -138,6 +140,8 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                                 currentDBSet[it]?.transferred?.v(it.position)
                                 transferDao.updateTransferredBytes(dbDetail.id.v(), it.position)
                                 showProgress()
+                                //todo resume downloads
+                                // hash get the created hash objects and feed them with the new blocks
                             }
                             currentDetailSet.add(transferDetail)
                             currentDBSet.put(transferDetail, dbDetail)

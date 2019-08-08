@@ -13,6 +13,7 @@ public class FileDistributionTask implements SerializableEntity {
 
     private String sourcePath;
     private AFile sourceFile;
+    private String sourceHash;
     private List<String> targetPaths = new ArrayList<>();
     private List<AFile> targetFiles = new ArrayList<>();
     private List<Long> targetFsIds = new ArrayList<>();
@@ -26,6 +27,14 @@ public class FileDistributionTask implements SerializableEntity {
     // and you got to get the appropriate FsDao when moving files
     private String serviceUuid;
 
+    public FileDistributionTask setSourceHash(String sourceHash) {
+        this.sourceHash = sourceHash;
+        return this;
+    }
+
+    public String getSourceHash() {
+        return sourceHash;
+    }
 
     public List<Long> getTargetFsIds() {
         return targetFsIds;

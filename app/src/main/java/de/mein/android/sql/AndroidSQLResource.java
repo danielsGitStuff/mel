@@ -33,11 +33,6 @@ public class AndroidSQLResource<T extends SQLTableObject> implements ISQLResourc
         T sqlTable = null;
         try {
             count++;
-            if (count == 2553) {
-                Lok.debug("LALALA");
-            } else if (count > 2553) {
-                Lok.getImpl();
-            }
             if (cursor.getWindow() != null) {
                 countdown--;
                 cursor.getWindow().freeLastRow();
