@@ -54,11 +54,10 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
         // first delete things that are no longer required by FS
         N.sqlResource(transferDao.unnecessaryTransfers) { sqlResource ->
             runBlocking {
-                while (!sqlResource.isClosed) {
-                    val transfer = sqlResource.next
-                    if (transfer != null) {
-                        transferDao.delete(transfer.id.v())
-                    }
+                var transfer = sqlResource.next
+                while (transfer != null) {
+                    transferDao.delete(transfer.id.v())
+                    transfer = sqlResource.next
                 }
             }
         }
