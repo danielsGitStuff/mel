@@ -178,6 +178,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                 } else {
                     Lok.debug("nothing more to do")
                     stopped = true
+                    tManager.maintenance()
                 }
                 // todo check if any suspended transfers remain and try again
             }
