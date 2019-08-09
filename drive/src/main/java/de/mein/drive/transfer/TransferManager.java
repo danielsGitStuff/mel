@@ -42,6 +42,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by xor on 12/16/16.
  */
+@Deprecated
 public class TransferManager extends DeferredRunnable implements MeinIsolatedProcess.IsolatedProcessListener {
     private static final int FILE_REQUEST_LIMIT_PER_CONNECTION = 30;
     private final TransferDao transferDao;
@@ -351,7 +352,7 @@ public class TransferManager extends DeferredRunnable implements MeinIsolatedPro
 
     public void research() {
         N.r(() -> N.readSqlResourceIgnorantly(transferDao.getUnnecessaryTransfers(), (sqlResource, transferDetails) -> {
-            transferDao.flagDeleted(transferDetails.getId().v(), true);
+            transferDao.flagForDeletion(transferDetails.getId().v(), true);
             Promise<MeinIsolatedFileProcess, Exception, Void> connected = meinDriveService.getIsolatedProcess(MeinIsolatedFileProcess.class, transferDetails.getCertId().v(), transferDetails.getServiceUuid().v());
             connected.done(result -> N.oneLine(() -> result.cancelByHash(transferDetails.getHash().v())));
             cancelActiveTransfer(transferDetails);

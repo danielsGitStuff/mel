@@ -173,7 +173,7 @@ public class TransferDao extends Dao {
         return sqlQueries.loadQueryResource(query, dummy.getAllAttributes(), DbTransferDetails.class, ISQLQueries.whereArgs(false));
     }
 
-    public void flagDeleted(Long transferId, boolean flag) throws SqlQueriesException {
+    public void flagForDeletion(Long transferId, boolean flag) throws SqlQueriesException {
         String stmt = "update " + dummy.getTableName() + " set " + dummy.getDeleted().k() + "=? where " + dummy.getId().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.whereArgs(flag, transferId));
     }
@@ -255,5 +255,10 @@ public class TransferDao extends Dao {
         String query = "select count(1) from " + dummy.getTableName() + " where " + dummy.getHash().k() + "=?";
         Long count = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(hash));
         return count > 0;
+    }
+
+    public void deleteFlaggedForDeletion() throws SqlQueriesException {
+        String stmt = "delete from " + dummy.getTableName() + " where " + dummy.getDeleted().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true));
     }
 }

@@ -56,11 +56,12 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             runBlocking {
                 var transfer = sqlResource.next
                 while (transfer != null) {
-                    transferDao.delete(transfer.id.v())
+                    transferDao.flagForDeletion(transfer.id.v(),true)
                     transfer = sqlResource.next
                 }
             }
         }
+        transferDao.deleteFlaggedForDeletion()
         // clean all copy jobs
         meinDriveService.driveDatabaseManager.fileDistTaskDao.deleteAll()
 

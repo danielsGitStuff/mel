@@ -87,6 +87,7 @@ public class Waste extends SQLTableObject {
         waste.getName().v(file.getName());
         waste.getSize().v(file.getSize());
         waste.getModified().v(file.getModified());
+        waste.getFlagDelete().v(false);
         return waste;
     }
 }

@@ -4,9 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
+import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
+import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.drive.bash.FsBashDetails;
 import de.mein.drive.data.FileDistTaskWrapper;
 import de.mein.drive.nio.FileDistributionTask;
@@ -27,6 +30,7 @@ public class FileDistTaskDao extends Dao {
 
 
     public void insert(FileDistributionTask task) throws SqlQueriesException {
+        N.r(() -> Lok.debug("INSERT COPY: " + SerializableEntitySerializer.serialize(task)));
         FileDistTaskWrapper wrapper = FileDistTaskWrapper.fromTask(task);
         Long id = sqlQueries.insert(wrapper);
         wrapper.getId().v(id);
