@@ -62,10 +62,10 @@ class FileDistributorImplPC : FileDistributorImpl, MeinWorker() {
                     .run { fsDao.setSynced(lastId, true) }
                     .end()
             // delete from transfer
-            T.lockingTransaction(transferDao)
-                    .run {
-                        transferDao.deleteByHash(distributionTask.sourceHash)
-                    }
+//            T.lockingTransaction(transferDao)
+//                    .run {
+//                        transferDao.deleteByHash(distributionTask.sourceHash)
+//                    }.end()
         } else {
             copyFile(sourceFile, lastFile, lastId)
         }

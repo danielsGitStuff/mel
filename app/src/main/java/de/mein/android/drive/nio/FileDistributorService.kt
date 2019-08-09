@@ -132,9 +132,9 @@ class FileDistributorService : IntentService("FileDistributorService") {
             T.lockingTransaction(fsDao).run { fsDao.setSynced(lastId, true) }.end()
 
             // delete from transfer
-            T.lockingTransaction(transferDao!!)
-                    .run { transferDao!!.deleteByHash(distributionTask.sourceHash) }
-                    .end()
+//            T.lockingTransaction(transferDao!!)
+//                    .run { transferDao!!.deleteByHash(distributionTask.sourceHash) }
+//                    .end()
 
         } else {
             FileDistributorAndroidImpl.copyFile(fsDao, sourceFile, lastFile, lastPath, lastId)
