@@ -9,6 +9,9 @@ import de.mein.auth.tools.WaitLock
 import java.io.File
 
 class CalendarBootloader : Bootloader<CalendarService>() {
+    override fun cleanUpDeletedService(meinService: CalendarService?, uuid: String?) {
+        File(bootLoaderDir, uuid).delete()
+    }
 
     override fun getName(): String = "calendar"
 
@@ -21,7 +24,7 @@ class CalendarBootloader : Bootloader<CalendarService>() {
     }
 
     private fun boot(meinAuthService: MeinAuthService, service: Service, calendarSettings: CalendarSettings<*>): CalendarService {
-        val workingDirectory = File(bootLoaderDir.getAbsolutePath() + File.separator + service.uuid.v())
+        val workingDirectory = File(bootLoaderDir.getAbsolutePath(), service.uuid.v())
         val calendarService = if (calendarSettings.isServer()) {
             CalendarServerService(meinAuthService, workingDirectory, service.typeId.v(), service.uuid.v(), calendarSettings)
         } else {
@@ -43,7 +46,7 @@ class CalendarBootloader : Bootloader<CalendarService>() {
             val waitLock = WaitLock().lock()
             val runner = N {
                 meinAuthService.unregisterMeinService(service.uuid.v())
-                meinAuthService.databaseManager.deleteService(service.id.v())
+                meinAuthService.deleteService(service.uuid.v())
                 Lok.debug("creating calendar service failed")
                 waitLock.unlock()
             }

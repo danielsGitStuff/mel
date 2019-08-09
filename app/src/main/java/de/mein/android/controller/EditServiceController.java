@@ -81,9 +81,9 @@ public class EditServiceController extends GuiController {
                 MeinService service = androidService.getMeinAuthService().getMeinService(EditServiceController.this.service.getUuid().v());
                 if (service != null)
                     service.shutDown();
-                androidService.getMeinAuthService().getDatabaseManager().deleteService(EditServiceController.this.service.getServiceId().v());
+                androidService.getMeinAuthService().deleteService(EditServiceController.this.service.getUuid().v());
                 activity.showInfo();
-            } catch (SqlQueriesException e) {
+            } catch (SqlQueriesException | IllegalAccessException | InstantiationException e) {
                 e.printStackTrace();
             }
         });

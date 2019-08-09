@@ -101,6 +101,8 @@ public abstract class Bootloader<T extends MeinService> {
         return null;
     }
 
+    public abstract void cleanUpDeletedService(T meinService, String uuid);
+
 
     public enum BootLevel {
 //        NONE(0), SHORT(1), LONG(2);

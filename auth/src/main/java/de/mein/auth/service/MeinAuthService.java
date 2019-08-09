@@ -15,8 +15,9 @@ import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.data.access.DatabaseManager;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.jobs.AConnectJob;
+import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.jobs.IsolatedConnectJob;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.service.power.PowerManager;
@@ -26,7 +27,6 @@ import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.socket.ShamefulSelfConnectException;
 import de.mein.auth.socket.process.reg.IRegisterHandler;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
-import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.MeinValidationProcess;
@@ -571,6 +571,16 @@ public class MeinAuthService {
             notification.addProgressListener(admin);
             admin.onNotificationFromService(meinService, notification);
         }
+    }
+
+    public void deleteService(String uuid) throws SqlQueriesException, InstantiationException, IllegalAccessException {
+        Service service = databaseManager.getServiceByUuid(uuid);
+        ServiceType serviceType = databaseManager.getServiceTypeByName(service.getName().v());
+        MeinService meinService = getMeinService(uuid);
+        N.r(meinService::stop);
+        Bootloader bootloader = meinBoot.getBootLoader(serviceType.getType().v());
+        N.r(() -> bootloader.cleanUpDeletedService(meinService, uuid));
+        databaseManager.deleteService(service.getId().v());
     }
 
     public PowerManager getPowerManager() {

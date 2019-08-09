@@ -41,7 +41,7 @@ class FileDistributorAndroidImpl : FileDistributorImpl {
         //todo debug
         if (fileJob.distributionTask.serviceUuid == null)
             Lok.debug()
-        if(fileJob.distributionTask.sourceHash == null)
+        if (fileJob.distributionTask.sourceHash == null)
             Lok.debug()
         // unpack and store in database
         fileDistTaskDao.insert(fileJob.distributionTask)
@@ -80,6 +80,8 @@ class FileDistributorAndroidImpl : FileDistributorImpl {
                     if (!sourceFile.name.equals(target.name)) {
                         movedUri = DocumentsContract.renameDocument(androidService!!.contentResolver, movedUri, target.name)
                     }
+                    if (!target.exists())
+                        Lok.debug()
                     if (fsId != null) {
                         val transaction = T.lockingTransaction(fsDao)
                         try {

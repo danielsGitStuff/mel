@@ -29,6 +29,9 @@ import de.mein.sql.SqlQueriesException
  */
 
 open class ContactsBootloader : Bootloader<ContactsService>() {
+    override fun cleanUpDeletedService(meinService: ContactsService?, uuid: String?) {
+        File(bootLoaderDir, uuid).delete()
+    }
 
     @Throws(BootException::class)
     fun createService(name: String, contactsSettings: ContactsSettings<*>): ContactsService? {
@@ -97,7 +100,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
                         contactsService.shutDown()
                         with(meinAuthService.databaseManager) {
                             revoke(service.id.v(), serverCert)
-                            deleteService(service.id.v())
+                            meinAuthService.deleteService(service.uuid.v())
                         }
                         lock.unlock()
                     }

@@ -116,6 +116,11 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
         }
     }
 
+    @Override
+    public void cleanUpDeletedService(MeinDriveService meinService, String uuid) {
+        new File(bootLoaderDir, uuid).delete();
+    }
+
     /**
      * boots one instance
      *
@@ -179,7 +184,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
                     result.printStackTrace();
                     meinDriveClientService.shutDown();
                     meinAuthService.getDatabaseManager().revoke(service.getId().v(), certId);
-                    meinAuthService.getDatabaseManager().deleteService(service.getId().v());
+                    meinAuthService.deleteService(service.getUuid().v());
                     lock.unlock();
                 }));
                 lock.lock();
