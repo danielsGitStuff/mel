@@ -6,14 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import de.mein.Lok
 import de.mein.android.file.JFile
 import de.mein.android.service.AndroidService
 import de.mein.auth.MeinNotification
 import de.mein.auth.tools.N
 import de.mein.auth.tools.lock.T
-import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer
 import de.mein.drive.data.DriveStrings
-import de.mein.drive.data.FileDistTaskWrapper
+import de.mein.drive.data.OldeFileDistTaskWrapper
 import de.mein.drive.nio.FileDistributionTask
 import de.mein.drive.service.MeinDriveService
 import de.mein.drive.sql.dao.FileDistTaskDao
@@ -21,10 +21,35 @@ import de.mein.drive.sql.dao.FsDao
 import de.mein.drive.sql.dao.TransferDao
 import java.io.*
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 class FileDistributorService : IntentService("FileDistributorService") {
     private lateinit var uuid: String
-    var notification: MeinNotification? = null
+
+
+//    override fun onCreate() {
+//        super.onCreate()
+//        Lok.debug("CREATED")
+//        Lok.debug("CREATED")
+//        Lok.debug("CREATED")
+//        Lok.debug("CREATED")
+//        Lok.debug("CREATED")
+//        existingServicesSet.add(this)
+//        if(existingServicesSet.size>1){
+//            Lok.debug("SIZE IS: ${existingServicesSet.size}")
+//            Lok.debug("SIZE IS: ${existingServicesSet.size}")
+//            Lok.debug("SIZE IS: ${existingServicesSet.size}")
+//            Lok.debug("SIZE IS: ${existingServicesSet.size}")
+//            Lok.debug("SIZE IS: ${existingServicesSet.size}")
+//        }
+//    }
+//
+//    override fun onDestroy() {
+//        super.onDestroy()
+//        existingServicesSet.remove(this)
+//
+//    }
+
     override fun onHandleIntent(intent: Intent?) {
         // first setup all the nice things we need
 
@@ -37,34 +62,44 @@ class FileDistributorService : IntentService("FileDistributorService") {
             transferDao = driveService.driveDatabaseManager.transferDao
             fileDistTaskDao = driveService.driveDatabaseManager.fileDistTaskDao
 
-            while (fileDistTaskDao.hasContent()) {
-                showNotification()
+            if (!fileDistTaskDao.hasContent())
+                return
 
-                N.sqlResource(fileDistTaskDao.resource()) { sqlResource ->
-                    run {
-                        var wrapper: FileDistTaskWrapper = sqlResource.next
-                        while (wrapper != null) {
-                            workOnDistTask(wrapper.task)
-                            fileDistTaskDao.markDone(wrapper.id.v())
-                            wrapper = sqlResource.next
-                        }
-                    }
+            val countDown = AtomicInteger()
+
+
+            while (fileDistTaskDao.hasContent()) {
+
+                val max = fileDistTaskDao.countAll()
+                val done = fileDistTaskDao.countDone()
+                val countDone = AtomicInteger(done)
+                showNotification(done, max)
+
+                N.forEachAdv(fileDistTaskDao.loadChunk()) { stoppable, index, wrapperId, fileDistributionTask ->
+                    workOnDistTask(fileDistributionTask)
+                    fileDistTaskDao.markDone(wrapperId)
+                    showNotification(countDone.incrementAndGet(), max)
                 }
-                fileDistTaskDao.deleteMarkedDone()
             }
         } finally {
+            fileDistTaskDao.deleteMarkedDone()
             androidService?.androidPowerManager?.releaseWakeLock(this)
-            notification?.cancel()
+//            if (notification != null) {
+//                Lok.error("DEBUG: CANCEL NOTIFICATION")
+//                notification?.cancel()
+//                notification = null
+//            }
         }
     }
 
-    private fun showNotification() {
+    private fun showNotification(current: Int, max: Int) {
         val title = "Moving files"
-        val text = "I am slow but working!"
+        val text = "$current/$max files moved or copied"
         if (notification == null) {
             notification = MeinNotification(uuid, DriveStrings.Notifications.INTENTION_FILES_SERVICE, title, text)
             driveService.meinAuthService.onNotificationFromService(driveService, notification)
         }
+        notification?.setProgress(max, current, true)
     }
 
     private fun workOnDistTask(distributionTask: FileDistributionTask) {
@@ -107,6 +142,10 @@ class FileDistributorService : IntentService("FileDistributorService") {
     }
 
     companion object {
+        private var notification: MeinNotification? = null
+
+//        val existingServicesSet = mutableSetOf<FileDistributorService>()
+
         val SERVICEUUID: String = "uuid"
         val TASK = "task"
         val BUFFER_SIZE = 1024 * 64
@@ -151,122 +190,4 @@ class FileDistributorService : IntentService("FileDistributorService") {
     lateinit var distributionTask: FileDistributionTask
     lateinit var fsDao: FsDao
 
-
-//    private fun moveFile(sourceFile: JFile, target: JFile, targetPath: String, fsId: Long?) {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//
-//            val srcParentDoc = sourceFile.parentFile.createDocFile()
-//            val srcDoc = sourceFile.createDocFile()
-//            val targetParentDoc = target.parentFile.createDocFile()
-//            if (target.exists())
-//                return
-//            val movedUri = DocumentsContract.moveDocument(androidService!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
-//            if (!sourceFile.name.equals(target.name)) {
-//                DocumentsContract.renameDocument(androidService!!.contentResolver, movedUri, target.name)
-//            }
-//            if (fsId != null) {
-//                val transaction = T.lockingTransaction(fsDao)
-//                try {
-//                    val fsBashDetails = BashTools.getFsBashDetails(target)
-//                    val fsTarget = fsDao.getFile(fsId)
-//                    fsTarget.getiNode().v(fsBashDetails.getiNode())
-//                    fsTarget.modified.v(fsBashDetails.modified)
-//                    fsTarget.size.v(target.length())
-//                    fsTarget.synced.v(true)
-//                    fsDao.update(fsTarget)
-//                } catch (e: java.lang.Exception) {
-//                    e.printStackTrace()
-//                } finally {
-//                    transaction.end()
-//                }
-//            }
-//        } else {
-//            copyFile(sourceFile, target, targetPath, fsId)
-//            sourceFile.delete()
-//        }
-//    }
-//
-//    private fun copyFile(sourceFile: JFile, target: JFile, targetPath: String, fsId: Long?) {
-//        val fis = NWrap<InputStream>(null)
-//        val fos = NWrap<OutputStream>(null)
-//        var transaction: Transaction<*>? = null
-//        try {
-//            val srcDoc = sourceFile.createDocFile()
-//            var targetDoc: DocumentFile? = target.createDocFile()
-//            if (targetDoc == null) {
-//                val targetParentDoc = target.createParentDocFile()
-//                        ?: throw FileNotFoundException("directory does not exist: $targetPath")
-//                val jtarget = JFile(target)
-//                jtarget.createNewFile()
-//                targetDoc = target.createDocFile()
-//            }
-//            val resolver = Tools.getApplicationContext().contentResolver
-//            fis.v = resolver.openInputStream(srcDoc.getUri())
-//            fos.v = resolver.openOutputStream(targetDoc!!.uri)
-//            copyStream(fis.v, fos.v)
-//            // update DB
-//            if (fsId != null) {
-//                transaction = T.lockingTransaction(fsDao)
-//                val fsBashDetails = BashTools.getFsBashDetails(target)
-//                val fsTarget = fsDao.getFile(fsId)
-//                fsTarget.getiNode().v(fsBashDetails.getiNode())
-//                fsTarget.modified.v(fsBashDetails.modified)
-//                fsTarget.size.v(target.length())
-//                fsTarget.synced.v(true)
-//                fsDao.update(fsTarget)
-//            }
-//        } catch (e: SAFAccessor.SAFException) {
-//            e.printStackTrace()
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//        } finally {
-//            N.s { fis.v.close() }
-//            N.s { fos.v.close() }
-//            transaction?.end()
-//        }
-//    }
-
-
 }
-
-//    fun bla(): Unit {
-//        val move = intent!!.getBooleanExtra(MOVE, false)
-//        val srcPath = intent!!.getStringExtra(SRC_PATH)
-//        val targetPath = intent!!.getStringExtra(TRGT_PATH)
-//        val src = JFile(srcPath)
-//        val target = JFile(targetPath)
-//        val msg = (if (move) "moving" else "copying") + " '" + srcPath + "' -> '" + targetPath + "'"
-//        Log.d(javaClass.simpleName, msg)
-//        val fis = NWrap<InputStream>(null)
-//        val fos = NWrap<OutputStream>(null)
-//        try {
-//            val srcDoc = src.createDocFile()
-//            var targetDoc: DocumentFile? = target.createDocFile()
-//            if (targetDoc == null) {
-//                val targetParentDoc = target.createParentDocFile()
-//                        ?: throw FileNotFoundException("directory does not exist: $targetPath")
-//                val jtarget = JFile(target)
-//                jtarget.createNewFile()
-//                targetDoc = target.createDocFile()
-//            }
-//            val resolver = Tools.getApplicationContext().contentResolver
-//            fis.v = resolver.openInputStream(srcDoc.getUri())
-//            fos.v = resolver.openOutputStream(targetDoc.uri)
-//
-//            copyStream(fis.v, fos.v)
-//            if (move) {
-//                srcDoc.delete()
-//            }
-//        } catch (e: SAFAccessor.SAFException) {
-//            e.printStackTrace()
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//        } finally {
-//            N.s { fis.v.close() }
-//            N.s { fos.v.close() }
-//        }
-//        Lok.debug("CopyService.onHandleIntent")
-//    }
-
-
-

@@ -172,13 +172,13 @@ public abstract class SyncHandler {
             distributionTask.setSourceFile(file);
             distributionTask.setDeleteSource(true);
             distributionTask.setServiceUuid(meinDriveService.getUuid());
+            distributionTask.setSourceHash(hash);
 
             // file found in transfer dir
             if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath())) {
                 // assuming that noone moves or copies files in this directory at runtime. some day someone will do it any, things will break and he will complain.
                 FsBashDetails bashDetails = BashTools.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
-                distributionTask.setSourceHash(hash);
                 distributionTask.setDeleteSource(true);
                 if (fsFiles.isEmpty())
                     return false;

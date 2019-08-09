@@ -1,7 +1,6 @@
 package de.mein.android.file;
 
 import android.annotation.TargetApi;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Environment;
 
@@ -17,7 +16,6 @@ import java.util.Arrays;
 
 import de.mein.Lok;
 import de.mein.android.Tools;
-import de.mein.android.service.CopyService;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 
@@ -380,7 +378,30 @@ public class JFile extends AFile<JFile> {
 
     }
 
+    private DocFileCache internalCache;
+
     private DocumentFile createInternalDoc(String[] parts) throws SAFAccessor.SAFException {
+        if (internalCache == null)
+            internalCache = new DocFileCache(SAFAccessor.getInternalRootDocFile(), 30);
+        return internalCache.findDoc(parts);
+//        DocumentFile doc = SAFAccessor.getInternalRootDocFile();
+//        for (String part : parts) {
+//            doc = doc.findFile(part);
+//        }
+//        return doc;
+    }
+
+
+    public DocumentFile DEBUG_OLDE_STYLE() throws SAFAccessor.SAFException {
+        String storagePath = getStoragePath();
+        String[] parts;
+        parts = createRelativeFilePathParts(storagePath, file);
+
+       return DEBUG_OLDE_STYLE_2(parts);
+
+    }
+
+    private DocumentFile DEBUG_OLDE_STYLE_2(String[] parts) throws SAFAccessor.SAFException {
         DocumentFile doc = SAFAccessor.getInternalRootDocFile();
         for (String part : parts) {
             doc = doc.findFile(part);

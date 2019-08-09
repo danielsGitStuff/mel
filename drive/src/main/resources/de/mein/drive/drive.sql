@@ -1,4 +1,4 @@
-BEGIN TRANSACTION;
+begin TRANSACTION;
 DROP TABLE IF EXISTS fsentry;
 DROP TABLE IF EXISTS stage;
 DROP TABLE IF EXISTS stageset;
@@ -7,10 +7,23 @@ drop table if exists filedist;
 create table filedist
 (
   id integer not null primary key autoincrement,
-  json text not null,
+  uuid text not null,
+  sourcepath text not null,
+  sourcehash text not null,
+  sourcedetails text not null,
+  deletesource integer,
+  fsize integer,
   done integer
 );
-CREATE TABLE fsentry
+create table filedisttargets
+(
+  id integer not null primary key autoincrement,
+    taskid integer not null,
+    tpath text not null,
+    tfsid integer,
+    foreign key (taskid) references filedist (id) on delete cascade
+);
+create TABLE fsentry
 (
     id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name        TEXT    NOT NULL,
@@ -25,18 +38,18 @@ CREATE TABLE fsentry
     sym         text,
     FOREIGN KEY (parentid) REFERENCES fsentry (id)
 );
-CREATE INDEX eversion
+create INDEX eversion
     ON fsentry (version);
-CREATE INDEX edir
+create INDEX edir
     ON fsentry (parentid, dir);
-CREATE INDEX eparent
+create INDEX eparent
     ON fsentry (parentid);
-CREATE INDEX ehash
+create INDEX ehash
     ON fsentry (contenthash);
-CREATE INDEX enode
+create INDEX enode
     ON fsentry (inode);
 /*staging*/
-CREATE TABLE stage
+create TABLE stage
 (
     stageset    INTEGER NOT NULL,
     id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -61,7 +74,7 @@ CREATE TABLE stage
     FOREIGN KEY (stageset) REFERENCES stageset (id)
         ON DELETE CASCADE
 );
-CREATE TABLE stageset
+create TABLE stageset
 (
     id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     source        TEXT,
@@ -71,29 +84,29 @@ CREATE TABLE stageset
     created       DATETIME DEFAULT (strftime('%s', 'now')),
     version       INTEGER
 );
-CREATE INDEX sid
+create INDEX sid
     ON stage (id);
-CREATE INDEX sversion
+create INDEX sversion
     ON stage (version);
-CREATE INDEX sdir
+create INDEX sdir
     ON stage (parentid, dir);
-CREATE INDEX sparent
+create INDEX sparent
     ON stage (parentid);
-CREATE INDEX shash
+create INDEX shash
     ON stage (contentHash);
-CREATE INDEX snode
+create INDEX snode
     ON stage (inode);
-CREATE INDEX sstageid
+create INDEX sstageid
     ON stage (fsparentid);
-CREATE INDEX sstageparent
+create INDEX sstageparent
     ON stage (fsid);
-CREATE INDEX sstagestack
+create INDEX sstagestack
     ON stage (stageset, fsid);
-CREATE INDEX sstagelookup1
+create INDEX sstagelookup1
     ON stage (stageset, parentid);
-CREATE INDEX sssssesion
+create INDEX sssssesion
     ON stage (stageSet);
-CREATE TABLE transfer
+create TABLE transfer
 (
     id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     hash        TEXT    NOT NULL,
@@ -106,12 +119,12 @@ CREATE TABLE transfer
     f_delete    integer,
     UNIQUE (certid, serviceuuid, hash)
 );
-CREATE TABLE missinghash
+create TABLE missinghash
 (
     `hash` TEXT NOT NULL,
     PRIMARY KEY (`hash`)
 );
-CREATE TABLE waste
+create TABLE waste
 (
     id       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name     TEXT    NOT NULL,
@@ -123,24 +136,24 @@ CREATE TABLE waste
     inplace  INTEGER NOT NULL,
     f_delete INTEGER NOT NULL
 );
-CREATE TRIGGER IF NOT EXISTS stamp1
-    AFTER
-        INSERT
-    ON waste
-BEGIN
-    UPDATE waste
-    SET deleted = current_timestamp
-    WHERE hash = NEW.hash;
-END;
-CREATE TRIGGER IF NOT EXISTS stamp2
-    AFTER
-        UPDATE
-    ON waste
-BEGIN
-    UPDATE waste
-    SET deleted = current_timestamp
-    WHERE hash = NEW.hash;
-END;
-CREATE INDEX inodeIndex
+create trigger IF NOT EXISTS stamp1
+    after
+        insert
+    on waste
+begin
+    update waste
+    set deleted = current_timestamp
+    where hash = NEW.hash;
+end;
+create trigger IF NOT EXISTS stamp2
+    after
+        update
+    on waste
+begin
+    update waste
+    set deleted = current_timestamp
+    where hash = NEW.hash;
+end;
+create INDEX inodeIndex
     ON waste (inode);
-COMMIT;
+commit;

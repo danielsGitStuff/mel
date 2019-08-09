@@ -103,21 +103,28 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                         } else
                             showProgress()
                     }
+
+
+
                     if (dbTransfers.size > 0) {
                         dbTransfers.forEach { dbDetail ->
                             //update state first
                             dbDetail.state.v(TransferState.RUNNING)
                             transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
+
+
                             // find out where to store
                             val target = AFile.instance(driveService.getDriveSettings().getTransferDirectory(), dbDetail.hash.v())
                             val transferDetail = FileTransferDetail(target, Random.nextInt(), 0L, dbDetail.size.v())
                             transferDetail.hash = dbDetail.hash.v()
-                            transferDetail.setTransferDoneListener {
+
+                            // clean up the mess after transfer
+                            fun onComplete(ftd: FileTransferDetail) {
                                 filesRemain.decrementAndGet()
                                 // update states
                                 dbDetail.state.v(TransferState.DONE)
                                 transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
-                                transferDao.updateTransferredBytes(dbDetail.id.v(), it.position)
+                                transferDao.updateTransferredBytes(dbDetail.id.v(), ftd.position)
                                 // tell the sync handler we got a file
                                 val transaction = T.lockingTransaction(fsDao)
                                 try {
@@ -128,6 +135,16 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinI
                                 decreaseBatchCounter()
                                 //todo resume downloads
                                 // check whether the received has the right hash
+                            }
+
+                            // check if complete
+                            if (dbDetail.size.equalsValue(dbDetail.transferred)) {
+                                onComplete(transferDetail)
+                                return@forEach
+                            }
+
+                            transferDetail.setTransferDoneListener {
+                                onComplete(it)
                             }
                             transferDetail.setTransferFailedListener {
                                 filesRemain.decrementAndGet()

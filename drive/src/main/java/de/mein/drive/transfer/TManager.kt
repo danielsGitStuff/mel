@@ -61,6 +61,9 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                 }
             }
         }
+        // clean all copy jobs
+        meinDriveService.driveDatabaseManager.fileDistTaskDao.deleteAll()
+
         // remove every file that has no transfer entry
         meinDriveService.driveSettings.transferDirectory.listFiles().forEach { file ->
             if (!transferDao.hasHash(file.name))

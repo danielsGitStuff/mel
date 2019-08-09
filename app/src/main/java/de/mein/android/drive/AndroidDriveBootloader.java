@@ -3,6 +3,7 @@ package de.mein.android.drive;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+
 import androidx.core.app.NotificationCompat;
 
 import android.view.ViewGroup;
@@ -63,7 +64,7 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
 
     @Override
     public String[] getPermissions() {
-        return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE};
+        return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
     }
 
     @Override
@@ -74,7 +75,9 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
     @Override
     public NotificationCompat.Builder createNotificationBuilder(Context context, IMeinService meinService, MeinNotification meinNotification) {
         String intention = meinNotification.getIntention();
-        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS) || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
+        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)
+                || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)
+                || intention.equals(DriveStrings.Notifications.INTENTION_FILES_SERVICE)) {
             return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SILENT);
         }
         return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
@@ -83,7 +86,9 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
     @Override
     public Class createNotificationActivityClass(IMeinService meinService, MeinNotification meinNotification) {
         String intention = meinNotification.getIntention();
-        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS) || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
+        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)
+                || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)
+                || intention.equals(DriveStrings.Notifications.INTENTION_FILES_SERVICE)) {
             return MainActivity.class;
         } else if (intention.equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED))
             return DriveConflictsPopupActivity.class;
