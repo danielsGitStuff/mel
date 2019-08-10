@@ -37,5 +37,10 @@ public class MeinTestBootloader extends Bootloader<MeinTestService> {
         return testService;
     }
 
+    @Override
+    public void cleanUpDeletedService(MeinTestService meinService, String uuid) {
+
+    }
+
 
 }

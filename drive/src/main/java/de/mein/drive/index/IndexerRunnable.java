@@ -97,7 +97,6 @@ public class IndexerRunnable extends AbstractIndexer {
 //                Lok.error("TRANSACTION DISABLED!!!!!");
                 sqlQueries.beginTransaction();
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
-//                ensureCompleteness(stageSet);
                 timerInit.stop().print().reset();
                 OTimer timerExamine = new OTimer("examine stageset").start();
                 examineStage();

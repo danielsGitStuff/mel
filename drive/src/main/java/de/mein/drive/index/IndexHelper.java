@@ -151,12 +151,16 @@ public class IndexHelper {
             }
         }
         // if nothing is on the stage stack here, you are working on the root dir.
-        // and that has not been created yet (as a stage).
+        // when booting the root dir comes first and is always staged.
+        // but this method is also called while running. so we look whether it exists and create one if it doesn't.
         if (stageStack.empty()) {
+            FsEntry fsRoot = fsDao.getRootDirectory();
+            Stage stageRoot = stageDao.getStageByFsId(fsRoot.getId().v(), stageSetId);
+            if (stageRoot != null)
+                return stageRoot;
             Stage stageToAdd = new Stage()
                     .setStageSet(stageSetId);
             N.oneLine(() -> {
-                FsEntry fsRoot = fsDao.getRootDirectory();
                 stageToAdd.setFsId(fsRoot.getId().v())
                         .setName(fsRoot.getName().v())
                         .setIsDirectory(true)
