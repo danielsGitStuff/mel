@@ -1,6 +1,7 @@
 package de.mein.drive.sql;
 
 import de.mein.Lok;
+import de.mein.auth.tools.Eva;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.sql.Pair;
@@ -173,6 +174,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         //todo debug
         if (contentHash.equals("09e1ca5eb1a6d3fe91dff9f2456d6f13"))
             Lok.debug();
+        if (name.equalsValue("sub"))
+            Eva.flagAndRun("iii",2,() -> Lok.debug());
         this.contentHash.v(contentHash);
         return this;
     }

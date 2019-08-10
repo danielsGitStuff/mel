@@ -3,6 +3,7 @@ package de.mein.drive.service.sync;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
@@ -223,7 +224,7 @@ public abstract class SyncHandler {
         /**
          * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
          */
-
+        Eva.flagAndRun("lala",2,() -> Lok.debug());
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         transaction.run(() -> {

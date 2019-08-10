@@ -38,7 +38,7 @@ public class IndexerTest {
         BashTools.init();
         Eva.enable();
         RWLock bootLock = new RWLock().lockWrite();
-        rootFile = AFile.instance("indextest");
+        rootFile = AFile.instance(AFile.instance("indextest").getAbsolutePath());
         rootDirectory = new RootDirectory().setOriginalFile(rootFile).setPath(rootFile.getPath());
 
         BashTools.rmRf(rootFile);

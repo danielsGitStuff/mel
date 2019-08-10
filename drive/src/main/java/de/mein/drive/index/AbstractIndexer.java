@@ -3,6 +3,7 @@ package de.mein.drive.index;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.core.serialize.serialize.tools.OTimer;
@@ -148,6 +149,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         while (iterator.hasNext()) {
             AFile f = iterator.next();
             AFile parent = f.getParentFile();
+
             FsDirectory fsParent = null;
             FsEntry fsEntry = null;
             Stage stage;
@@ -162,7 +164,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
+            //todo debug
+            if (f.getName().equals("sub"))
+                Eva.flagAndRun("?", 2, () -> Lok.debug());
             // find the actual relating FsEntry of the parent directory
             // android does not recognize --mindepth when calling find. if we find the root directory here we must skip it.
             if (parent == null || parent.getAbsolutePath().length() < rootPathLength)
@@ -218,8 +222,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             if (f.isDirectory()) {
                 indexWatchdogListener.watchDirectory(f);
             }
-            // relative path speeds up conflict lookup vastly
-//            stage.setRelativePath(f.getCanonicalPath().substring(rootPathLength));
+
             stage.setOrder(order.ord());
             stageDao.insert(stage);
             timerInternal2.stop();
@@ -241,6 +244,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
 
+        if (stage.getNamePair().equalsValue("sub"))
+            Eva.flagAndRun("ssuubb", 2, () -> Lok.debug());
 
         //todo weiter hier"
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
@@ -514,6 +519,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         // skip hashing if information is complete & fastBoot is enabled-> speeds up booting
         if (stageFile.exists()) {
 
+            //todo debug
+            if (stage.getNamePair().equalsValue("synced1.txt"))
+                Eva.flagAndRun("klo",2,() -> Lok.debug());
+
             if (timer1 != null)
                 timer1.start();
             // might have been set before. obey
@@ -560,7 +569,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             // stage can be deleted if nothing changed
             if (fsEntry != null) {
                 if (fsEntry.getContentHash().v().equals(stage.getContentHash())
-                        && fsEntry.getiNode().equalsValue(stage.getContentHash())
+                        && fsEntry.getiNode().equalsValue(stage.getiNode())
                         && fsEntry.getModified().equalsValue(stage.getModified())
                         && fsEntry.getSize().equalsValue(stage.getSize()))
                     stageDao.markRemoved(stage.getId());
