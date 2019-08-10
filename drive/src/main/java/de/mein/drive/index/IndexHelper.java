@@ -9,6 +9,7 @@ import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.FsBashDetails;
 import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.FsEntry;
 import de.mein.drive.sql.Stage;
 import de.mein.drive.sql.dao.FsDao;
@@ -41,13 +42,21 @@ public class IndexHelper {
         this.fsDao = databaseManager.getFsDao();
         this.stageDao = databaseManager.getStageDao();
         this.order = order;
-        N.oneLine(() -> {
-            fileStack.push(databaseManager.getDriveSettings().getRootDirectory().getOriginalFile());
-            fsEntryStack.push(fsDao.getRootDirectory());
-        });
+//        N.oneLine(() -> {
+//            fileStack.push(databaseManager.getDriveSettings().getRootDirectory().getOriginalFile());
+//            fsEntryStack.push(fsDao.getRootDirectory());
+//        });
     }
 
-
+    /**
+     * here we build a path to the directory.
+     * we build the path on two stacks: one for everything that already exists in FS
+     * and one filled with Stages. they always stay equal in size and are filled with null if no db entry is present
+     *
+     * @param directory
+     * @return
+     * @throws SqlQueriesException
+     */
     Stage connectToFs(AFile directory) throws SqlQueriesException {
         // remember: we always deal with directories here. that means that we can ask all DAOs for
         // directories and don't have to deal with files :)
@@ -55,7 +64,10 @@ public class IndexHelper {
         String targetPath = directory.getAbsolutePath();
         if (targetPath.length() < rootPathLength)
             return null;
-        String stackPath = fileStack.peek().getAbsolutePath();
+        // find out where the stacks point to
+        String stackPath = databaseManager.getDriveSettings().getRootDirectory().getOriginalFile().getAbsolutePath();
+        if (!fileStack.empty())
+            stackPath = fileStack.peek().getAbsolutePath();
 
         // remove everything from the stacks that does not lead to the directory
         while (fileStack.size() > 1 && (stackPath.length() > targetPath.length() || !targetPath.startsWith(stackPath))) {
@@ -74,103 +86,50 @@ public class IndexHelper {
         // calculate the parts that go onto the stacks
         Stack<AFile> remainingParts = new Stack<>();
         {
-            AFile currentDir = directory;
-            while (currentDir.getAbsolutePath().length() >= fileStack.peek().getAbsolutePath().length()
-                    && !currentDir.getAbsolutePath().equals(fileStack.peek().getAbsolutePath())) {
-                remainingParts.push(currentDir);
-                currentDir = currentDir.getParentFile();
+            if (!fileStack.empty()) {
+                AFile currentDir = directory;
+                while (currentDir.getAbsolutePath().length() >= fileStack.peek().getAbsolutePath().length()
+                        && !currentDir.getAbsolutePath().equals(fileStack.peek().getAbsolutePath())) {
+                    remainingParts.push(currentDir);
+                    currentDir = currentDir.getParentFile();
+                }
             }
         }
-
+        // one of those must be not null!!! otherwise we produce orphans!
+        Stage stageParent = stageStack.empty() ? null : stageStack.peek();
+        FsEntry parentFs = fsEntryStack.empty() ? null : fsEntryStack.peek();
+        if (fileStack.empty()) {
+            parentFs = fsDao.getRootDirectory();
+            stageParent = stageDao.getStageByFsId(parentFs.getId().v(), stageSetId);
+            fileStack.push(databaseManager.getDriveSettings().getRootDirectory().getOriginalFile());
+            fsEntryStack.push(parentFs);
+            stageStack.push(stageParent);
+        }
         while (!remainingParts.empty()) {
             final AFile part = remainingParts.pop();
+
+            if (parentFs != null) {
+                parentFs = fsDao.getSubDirectoryByName(parentFs.getId().v(), part.getName());
+            }
+            if (stageParent == null && parentFs != null) {
+                stageParent = stageDao.getStageParentByFsId(stageSetId, parentFs.getId().v());
+            } else if (stageParent != null) {
+                Stage newStageParent = stageDao.getSubStageByName(stageParent.getId(), part.getName());
+                if (newStageParent == null) {
+                    //this should not happen
+                    newStageParent = new Stage();
+                    stageDao.insert(newStageParent);
+//                    stageMap.put(newStageParent.getId(), newStageParent);
+                }
+                stageParent = newStageParent;
+            }
             fileStack.push(part);
+            fsEntryStack.push(parentFs);
+            stageStack.push(stageParent);
 
-            // fs comes first. if the peek element on stack is null all of the (fs) successors are null as well.
-            // otherwise not every fs entry was connected to the root directory.
-            FsEntry peekFsEntry = null;
-            final FsEntry previousFsPeek = fsEntryStack.peek();
-            {
-                FsEntry partToAdd = null;
-                if (previousFsPeek != null) {
-                    partToAdd = fsDao.getSubDirectoryByName(previousFsPeek.getId().v(), part.getName());
-                }
-                fsEntryStack.push(partToAdd);
-                peekFsEntry = partToAdd;
-            }
-            {
-                // push to stage stack, respect probably added fs entry.
-                // at this point either the fs stack or stage stack must have a non null peek element.
-                // otherwise the connection to the root element is lost.
-                Stage peekStage = null;
-                if (!stageStack.empty())
-                    peekStage = stageStack.peek();
-
-                // check for disconnection
-                if (peekFsEntry == null && peekStage == null) {
-                    Lok.error("connection to the root directory has been lost.");
-                }
-
-                Stage alreadyStaged = null;
-                if (peekFsEntry != null) {
-                    alreadyStaged = stageDao.getStageByFsId(peekFsEntry.getId().v(), stageSetId);
-                }
-                if (alreadyStaged == null && peekStage != null) {
-                    alreadyStaged = stageDao.getStageByStageSetParentName(stageSetId, peekStage.getId(), part.getName());
-                }
-
-                Stage stageToAdd;
-                if (alreadyStaged != null)
-                    stageToAdd = alreadyStaged;
-                else {
-                    stageToAdd = new Stage()
-                            .setName(part.getName())
-                            .setIsDirectory(true)
-                            .setStageSet(stageSetId)
-                            .setOrder(order.ord());
-                }
-                stageToAdd.setDeleted(!part.exists());
-
-                if (peekFsEntry != null) {
-                    stageToAdd.setFsId(peekFsEntry.getId().v());
-                }
-                // set parent ids
-                if (peekStage != null) {
-                    stageToAdd.setParentId(peekStage.getParentId())
-                            .setFsParentId(peekStage.getFsId());
-                }
-                if (previousFsPeek != null) {
-                    stageToAdd.setFsParentId(previousFsPeek.getId().v());
-                }
-                // update database
-                if (stageToAdd.getIdPair().isNull()) {
-                    stageDao.insert(stageToAdd);
-                }
-                stageStack.push(stageToAdd);
-                stageMap.put(stageToAdd.getId(), stageToAdd);
-            }
         }
-        // if nothing is on the stage stack here, you are working on the root dir.
-        // when booting the root dir comes first and is always staged.
-        // but this method is also called while running. so we look whether it exists and create one if it doesn't.
-        if (stageStack.empty()) {
-            FsEntry fsRoot = fsDao.getRootDirectory();
-            Stage stageRoot = stageDao.getStageByFsId(fsRoot.getId().v(), stageSetId);
-            if (stageRoot != null)
-                return stageRoot;
-            Stage stageToAdd = new Stage()
-                    .setStageSet(stageSetId);
-            N.oneLine(() -> {
-                stageToAdd.setFsId(fsRoot.getId().v())
-                        .setName(fsRoot.getName().v())
-                        .setIsDirectory(true)
-                        .setOrder(order.ord())
-                        .setDeleted(false);
-            });
-            stageDao.insert(stageToAdd);
-            stageStack.push(stageToAdd);
-            stageMap.put(stageToAdd.getId(), stageToAdd);
-        }
+        if (stageStack.empty())
+            return null;
         return stageStack.peek();
     }
 

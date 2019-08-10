@@ -202,7 +202,7 @@ open class BashToolsUnix : BashToolsImpl {
         //                + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print";
         val cmd = ("find " + escapeQuotedAbsoluteFilePath(directory)
                 + " -path " + escapeQuotedAbsoluteFilePath(pruneDir) + " -prune"
-                + " -o -newer " + escapeQuotedAbsoluteFilePath(referenceFile) + " -print")
+                + " -o -newercc " + escapeQuotedAbsoluteFilePath(referenceFile) + " -print")
         Lok.debug("BashTools.stuffModifiedAfter.cmd: $cmd")
         val args = arrayOf(BIN_PATH, "-c", cmd)
         val processBuilder = ProcessBuilder(*args)

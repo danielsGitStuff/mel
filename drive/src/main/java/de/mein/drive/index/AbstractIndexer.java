@@ -199,6 +199,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
             timer.start();
             Stage stageParent = indexHelper.connectToFs(parent);
+            if (stageParent!=null){
+                stage.setParentId(stageParent.getId());
+            }
             timer.stop();
             timerInternal2.start();
             if (stageParent != null)

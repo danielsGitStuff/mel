@@ -536,6 +536,6 @@ public class FsDao extends Dao {
 
     public ISQLResource<GenericFSEntry> all() throws SqlQueriesException {
         FsEntry f = new FsFile();
-        return sqlQueries.loadResource(f.getAllAttributes(),GenericFSEntry.class,null,null);
+        return sqlQueries.loadResource(f.getAllAttributes(), GenericFSEntry.class, null, null);
     }
 }
