@@ -3,6 +3,7 @@ package de.mein.drive.serialization;
 
 import de.mein.auth.TestFileCreator;
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.N;
 import de.mein.drive.bash.BashTools;
 
 import java.io.File;
@@ -151,5 +152,22 @@ public class TestDirCreator {
         paths.add(sub22txt.getAbsolutePath());
 
         return paths;
+    }
+
+    public static void createTestDirSimple(AFile rootDir) throws IOException {
+        rootDir.mkdirs();
+        AFile sub = AFile.instance(rootDir, "sub");
+        sub.mkdirs();
+
+        AFile synced1 = AFile.instance(sub, "synced1.txt");
+        AFile synced2 = AFile.instance(sub, "synced2.txt");
+        AFile unsynced3 = AFile.instance(sub, "unsynced3.txt");
+        AFile synced4 = AFile.instance(sub, "synced4.txt");
+
+
+        synced1.outputStream().write(1);
+        synced2.outputStream().write(2);
+        unsynced3.outputStream().write(3);
+        synced4.outputStream().write(4);
     }
 }

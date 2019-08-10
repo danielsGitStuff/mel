@@ -38,6 +38,11 @@ public class IndexTest {
     private MeinDriveService mds;
     private boolean index = true;
 
+    @Test
+    public void withNonSyncedFiles(){
+
+    }
+
     @Before
     public void before() throws Exception {
         AFile.configure(new DefaultFileConfiguration());
@@ -55,8 +60,8 @@ public class IndexTest {
                 mas = result;
                 RootDirectory rootDirectory = DriveSettings.buildRootDirectory(testRoot);
                 AFile transferDir = AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR);
-                ServiceType type = mas.getDatabaseManager().getServiceTypeByName(new DriveBootloader().getName());
-                Service service = mas.getDatabaseManager().createService(type.getId().v(), "lel");
+//                ServiceType type = mas.getDatabaseManager().getServiceTypeByName(new DriveBootloader().getName());
+//                Service service = mas.getDatabaseManager().createService(type.getId().v(), "lel");
                 DriveBootloader bl = (DriveBootloader) mas.getMeinBoot().getBootLoader(new DriveBootloader().getName());
                 DriveSettings driveSettings = new DriveSettings()
                         .setRole(DriveStrings.ROLE_SERVER)
@@ -71,6 +76,7 @@ public class IndexTest {
                     mds.getStartedDeferred().done(result1 -> lock.unlock());
                 };
                 new DriveCreateController(mas).createDriveService(driveSettings,"server");
+                lock.unlock();
                 //mas.registerMeinService(mds);
             }));
             lock.lock();

@@ -449,6 +449,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
         // save to stage
         newFsDirectory.calcContentHash();
+        //todo debug
+        if (stage.getNamePair().equalsValue("sub"))
+            Lok.debug();
         stage.setContentHash(newFsDirectory.getContentHash().
 
                 v());

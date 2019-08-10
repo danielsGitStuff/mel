@@ -37,6 +37,17 @@ public class Eva {
         return -1;
     }
 
+    public static void flagAndRun(String flag, int triggerCount, N.INoTryRunnable run) {
+        int count = flag(flag);
+        if (count == triggerCount) {
+            try {
+                run.run();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     public void print() {
         print(null);
@@ -88,8 +99,9 @@ public class Eva {
      * You can get the results by calling hasFlag() and getFlagCount().
      *
      * @param flag a unique String
+     * @return
      */
-    public static void flag(String flag) {
+    public static int flag(String flag) {
         if (ENABLED) {
             try {
                 semaphore.acquire();
@@ -98,11 +110,14 @@ public class Eva {
                 final int count = flagMap.get(flag) + 1;
                 flagMap.put(flag, count);
                 semaphore.release();
+                Lok.debug("eva flag '" + flag + "' called " + count);
+                return count;
             } catch (Exception ee) {
                 Lok.error(Eva.class.getSimpleName() + ".flag(): Exception!!!");
                 ee.printStackTrace();
             }
         }
+        return -1;
     }
 
     /**

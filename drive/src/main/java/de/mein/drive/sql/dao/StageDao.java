@@ -248,6 +248,9 @@ StageDao extends Dao.LockingDao {
     }
 
     public Stage insert(Stage stage) throws SqlQueriesException {
+        //todo debug
+        if (stage.getName().equals("synced1.txt") && stage.getParentIdPair().isNull())
+            Lok.debug();
         try {
             Long id = sqlQueries.insert(stage);
             return stage.setId(id);
@@ -362,6 +365,10 @@ StageDao extends Dao.LockingDao {
     }
 
     public void markRemoved(Long id) throws SqlQueriesException {
+        //todo debug
+        Stage s = getStageById(id);
+        if (s.getName().equals("sub"))
+            Lok.debug();
         Stage stage = new Stage();
         String statement = "update " + stage.getTableName() + " set " + stage.getRemovePair().k() + "=? where " + stage.getIdPair().k() + "=?";
         sqlQueries.execute(statement, ISQLQueries.whereArgs(true, id));
@@ -573,7 +580,26 @@ StageDao extends Dao.LockingDao {
      * @param stageSetId
      */
     public void markOrphans(Long stageSetId) throws SqlQueriesException {
-        N.forEach(getOrphans(stageSetId), this::markRemoved);
+        Eva.flagAndRun("orphan",2,() -> Lok.debug() );
+        List<Long> orphanIds = getOrphaned(stageSetId);
+        while (orphanIds.size() > 0) {
+            N.forEach(getOrphans(stageSetId), this::markRemoved);
+            orphanIds = getOrphaned(stageSetId);
+        }
+    }
+
+    private List<Long> getOrphaned(Long stageSetId) throws SqlQueriesException {
+        Stage s = new Stage();
+        // select id from stage where stageset=2 and id in (select id from stage where stageset=2 and parentid is null and fsparentid is null and fsid is null)
+        //or id in (select id from stage where stageset=2 and rem=1)
+        String where = s.getStageSetPair().k() + "=? and " + s.getIdPair().k()
+                + " in (select " + s.getIdPair().k() + " from " + s.getTableName() + " where " + s.getStageSetPair().k() + "=? and "
+                + s.getParentIdPair().k() + " is null and "
+                + s.getFsParentIdPair().k() + " is null and "
+                + s.getFsIdPair().k() + " is null) "
+                + "or " + s.getIdPair().k() + " in (select " + s.getIdPair().k() + " from " + s.getTableName()
+                + " where " + s.getStageSetPair().k() + "=? and " + s.getRemovePair().k() + "=?)";
+        return sqlQueries.loadColumn(s.getIdPair(), Long.class, s, null, where, ISQLQueries.whereArgs(stageSetId, stageSetId, stageSetId, true), null);
     }
 
     private List<Long> getOrphans(Long stageSetId) throws SqlQueriesException {
