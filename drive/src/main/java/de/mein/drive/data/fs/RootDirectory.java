@@ -46,8 +46,9 @@ public class RootDirectory implements SerializableEntity {
         return this;
     }
 
-    public void setOriginalFile(AFile originalFile) {
+    public RootDirectory setOriginalFile(AFile originalFile) {
         this.originalFile = originalFile;
+        return this;
     }
 
     public Long getId() {

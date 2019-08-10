@@ -113,8 +113,10 @@ public class MeinSocket extends DeferredRunnable {
     public void send(String json) {
         try {
             Lok.debug("   " + (meinAuthService == null ? "no service" : meinAuthService.getName()) + ".MeinSocket(v=" + v + ").send to " + socket.getInetAddress().toString() + ": " + json);
-            if (socket.isClosed())
+            if (socket.isClosed()) {
                 Lok.error(getClass().getSimpleName() + ".send(): Socket closed!");
+                this.stop();
+            }
 //            Lok.debug("send(v=" + v + "): " + json);
             while (json.length() > MAX_CHARS) {
                 String s = json.substring(0, MAX_CHARS) + TOO_LONG_APPENDIX;
