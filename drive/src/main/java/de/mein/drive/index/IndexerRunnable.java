@@ -2,6 +2,7 @@ package de.mein.drive.index;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
@@ -11,8 +12,7 @@ import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.service.sync.SyncHandler;
-import de.mein.drive.sql.DriveDatabaseManager;
-import de.mein.drive.sql.FsDirectory;
+import de.mein.drive.sql.*;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
 
@@ -90,17 +90,18 @@ public class IndexerRunnable extends AbstractIndexer {
                 timerFind.stop().print();
                 Lok.debug("starting stageset initialization");
                 OTimer timerInit = new OTimer("init stageset").start();
-                Lok.error("TRANSACTION DISABLED!!!!!");
-                Lok.error("TRANSACTION DISABLED!!!!!");
-                Lok.error("TRANSACTION DISABLED!!!!!");
-                Lok.error("TRANSACTION DISABLED!!!!!");
-                Lok.error("TRANSACTION DISABLED!!!!!");
-//                sqlQueries.beginTransaction();
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+                sqlQueries.beginTransaction();
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
+//                ensureCompleteness(stageSet);
                 timerInit.stop().print().reset();
                 OTimer timerExamine = new OTimer("examine stageset").start();
                 examineStage();
-//                sqlQueries.commit();
+                sqlQueries.commit();
                 timerExamine.stop().print();
                 fastBooting = false;
             } catch (Exception e) {

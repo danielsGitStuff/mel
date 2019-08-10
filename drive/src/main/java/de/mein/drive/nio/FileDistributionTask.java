@@ -115,11 +115,6 @@ public class FileDistributionTask implements SerializableEntity {
     }
 
     public FileDistributionTask setSourceFile(AFile sourceFile) {
-        // todo debug
-        if (!sourceFile.exists())
-            Lok.debug();
-        if (sourceFile.getName().equals("wastebin"))
-            Lok.debug();
         this.sourceFile = sourceFile;
         this.sourcePath = sourceFile.getAbsolutePath();
         return this;

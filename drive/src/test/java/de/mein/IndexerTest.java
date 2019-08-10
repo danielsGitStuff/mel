@@ -26,6 +26,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+/**
+ * check whether a mix of not-yet-synced files and sync files produces the correct directory contenthash.
+ * a test dir is created and indexed, afterwards the service is shut down and a file in FS is set to non-synced.
+ * the according file is removed. the contenthash of the parent directory is expected to stay the same.
+ */
 public class IndexerTest {
     private static AFile rootFile;
     private static MeinAuthService mas;
@@ -81,19 +86,22 @@ public class IndexerTest {
         }
 
         // reboot
+
         RWLock lock = new RWLock().lockWrite();
         MeinAuthSettings meinAuthSettings = MeinAuthSettings.createDefaultSettings();
         MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class);
+        final FsDirectory[] subDir = new FsDirectory[1];
         meinBoot.boot().done(mas -> N.r(() -> {
             Thread.sleep(2000);
             mds = (MeinDriveServerService) mas.getMeinServices().iterator().next();
-            final String expectedHash = "b940363a274a2fe0a756d13ce368fafd";
             FsDao fsDao = mds.getDriveDatabaseManager().getFsDao();
-            FsDirectory subDir = fsDao.getDirectoryById(2L);
-            assertEquals(expectedHash, subDir.getContentHash().v());
+            subDir[0] = fsDao.getDirectoryById(2L);
             lock.unlockWrite();
         }));
         lock.lockWrite();
+        final String expectedHash = "680c63798b5a1295b1317dab64523c64";
+        assertEquals(expectedHash, subDir[0].getContentHash().v());
+
     }
 
     @After

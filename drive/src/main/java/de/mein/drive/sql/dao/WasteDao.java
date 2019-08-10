@@ -61,9 +61,6 @@ public class WasteDao extends Dao.LockingDao {
     }
 
     public Waste insert(Waste waste) throws SqlQueriesException {
-        //todo debug
-        if (!waste.getInplace().v() && waste.getName().v().equals("same1.txt"))
-            Lok.debug("WasteDao.insert.debug0fj3ß4u");
         Long id = sqlQueries.insert(waste);
         waste.getId().v(id);
         return waste;

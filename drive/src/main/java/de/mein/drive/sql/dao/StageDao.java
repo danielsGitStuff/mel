@@ -130,8 +130,6 @@ StageDao extends Dao.LockingDao {
 
     @Deprecated
     public AFile getFileByStage(Stage stage) throws SqlQueriesException {
-        if (stage.getName().equals("samesub1.txt")) // todo debug
-            System.err.println("StageDao.getFileByStage.debug 34234234");
         RootDirectory rootDirectory = driveSettings.getRootDirectory();
         final Long stageSetId = stage.getStageSet();
         Stack<Stage> stageStack = new Stack<>();
@@ -248,11 +246,6 @@ StageDao extends Dao.LockingDao {
     }
 
     public Stage insert(Stage stage) throws SqlQueriesException {
-        //todo debug
-        if (stage.getName().equals("synced1.txt") && stage.getParentIdPair().isNull())
-            Lok.debug();
-        if (stage.getNamePair().equalsValue("sub") && stage.getFsIdPair().isNull())
-            Eva.flagAndRun("fsidnull", 2, () -> Lok.debug());
         try {
             Long id = sqlQueries.insert(stage);
             return stage.setId(id);
@@ -344,9 +337,6 @@ StageDao extends Dao.LockingDao {
     }
 
     public void deleteStageSet(Long id) throws SqlQueriesException {
-        //todo debug
-        if (id >= 3)
-            Lok.debug();
         StageSet stageSet = new StageSet();
         List<Object> args = new ArrayList<>();
         args.add(id);
@@ -367,19 +357,12 @@ StageDao extends Dao.LockingDao {
     }
 
     public void markRemoved(Long id) throws SqlQueriesException {
-        //todo debug
-        Stage s = getStageById(id);
-        if (s.getName().equals("sub"))
-            Lok.debug();
         Stage stage = new Stage();
         String statement = "update " + stage.getTableName() + " set " + stage.getRemovePair().k() + "=? where " + stage.getIdPair().k() + "=?";
         sqlQueries.execute(statement, ISQLQueries.whereArgs(true, id));
     }
 
     public void update(Stage stage) throws SqlQueriesException {
-        //todo debug
-        if (stage.getName().equals("sub2") && stage.getContentHashPair().equalsValue("0671d3070be781ede67de7e22c22a130"))
-            Lok.debug("debug");
         StageSet stageSet = this.getStageSetById(stage.getStageSet());
         String where = stage.getIdPair().k() + "=?";
         List<Object> args = new ArrayList<>();
@@ -588,7 +571,9 @@ StageDao extends Dao.LockingDao {
 //            N.forEach(orphanIds, this::markRemoved);
 //            orphanIds = getOrphaned(stageSetId);
 //        }
-        N.forEach(getOrphans(stageSetId),this::markOrphans);
+//        N.forEach(getOrphans(stageSetId),this::markOrphans);
+        if (getOrphans(stageSetId).size() > 0)
+            Lok.debug();
     }
 
     private List<Long> getOrphaned(Long stageSetId) throws SqlQueriesException {
@@ -620,5 +605,11 @@ StageDao extends Dao.LockingDao {
         return sqlQueries.loadColumn(dummy.getIdPair(), Long.class, dummy, null, where, ISQLQueries.whereArgs(stageSetId, stageSetId, true), null);
 //        Long count = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(stageSetId, stageSetId, true));
 //        return count > 0;
+    }
+
+    public Stage getStageParentByFsId(StageSet stageSet, Long fsId) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        String where = dummy.getFsIdPair().k() + "=? and " + dummy.getStageSetPair().k() + "=?";
+        return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(fsId, stageSet), Stage.class);
     }
 }

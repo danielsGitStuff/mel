@@ -50,6 +50,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
      * blocks!!! call this when booting!
      */
     fun maintenance() {
+        //todo call this after first index
         Lok.debug("doing transfer housekeeping")
         // first delete things that are no longer required by FS
         N.sqlResource(transferDao.unnecessaryTransfers) { sqlResource ->

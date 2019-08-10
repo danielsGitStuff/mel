@@ -146,9 +146,6 @@ public class FsDao extends Dao {
 
 
     public FsEntry insert(FsEntry fsEntry) throws SqlQueriesException {
-        //todo debug
-        if (fsEntry.getName().equalsValue("synced1.txt") && fsEntry.getParentId().isNull())
-            Lok.debug();
         Long id;
         if (fsEntry.getId().notNull())
             id = sqlQueries.insertWithAttributes(fsEntry, fsEntry.getAllAttributes());
@@ -535,5 +532,10 @@ public class FsDao extends Dao {
         return N.result(() -> sqlQueries.queryValue("select count(*) from " + dummy.getTableName()
                         + " where " + dummy.getIsDirectory().k() + "=?", Long.class, ISQLQueries.whereArgs(true))
                 , 0L);
+    }
+
+    public ISQLResource<GenericFSEntry> all() throws SqlQueriesException {
+        FsEntry f = new FsFile();
+        return sqlQueries.loadResource(f.getAllAttributes(),GenericFSEntry.class,null,null);
     }
 }

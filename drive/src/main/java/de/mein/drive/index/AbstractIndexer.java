@@ -96,7 +96,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 String path = buildPathFromStage(stage);
                 AFile f = AFile.instance(path);
 
-                // check if file/dir has been deleted in the meantime
                 if (!f.exists()) {
                     stageDao.markRemoved(stage.getId());
                     continue;
@@ -164,15 +163,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            //todo debug
-            if (f.getName().equals("sub"))
-                Eva.flagAndRun("?", 2, () -> Lok.debug());
             // find the actual relating FsEntry of the parent directory
-            // android does not recognize --mindepth when calling find. if we find the root directory here we must skip it.
-            if (parent == null || parent.getAbsolutePath().length() < rootPathLength)
-                Lok.debug("AbstractIndexer.initStage. find ignored --mindepth. fixed it");
-            else
+            if (parent != null && parent.getAbsolutePath().length() >= rootPathLength) {
                 fsParent = fsDao.getFsDirectoryByPath(parent);
+            }
             // find its relating FsEntry
             if (fsParent != null) {
                 GenericFSEntry genParentDummy = new GenericFSEntry();
@@ -243,9 +237,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     private void roamDirectoryStage(Stage stage, AFile stageFile) throws SqlQueriesException, IOException, InterruptedException {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
-
-        if (stage.getNamePair().equalsValue("sub"))
-            Eva.flagAndRun("ssuubb", 2, () -> Lok.debug());
 
         //todo weiter hier"
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
@@ -454,9 +445,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
         // save to stage
         newFsDirectory.calcContentHash();
-        //todo debug
-        if (stage.getNamePair().equalsValue("sub"))
-            Lok.debug();
         stage.setContentHash(newFsDirectory.getContentHash().
 
                 v());
@@ -518,11 +506,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     private void updateFileStage(Stage stage, AFile stageFile, OTimer timer1, OTimer timer2, FsBashDetails fsBashDetails) throws IOException, SqlQueriesException, InterruptedException {
         // skip hashing if information is complete & fastBoot is enabled-> speeds up booting
         if (stageFile.exists()) {
-
-            //todo debug
-            if (stage.getNamePair().equalsValue("synced1.txt"))
-                Eva.flagAndRun("klo",2,() -> Lok.debug());
-
             if (timer1 != null)
                 timer1.start();
             // might have been set before. obey
