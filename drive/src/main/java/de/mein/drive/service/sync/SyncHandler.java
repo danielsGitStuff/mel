@@ -224,7 +224,6 @@ public abstract class SyncHandler {
         /**
          * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
          */
-        Eva.flagAndRun("lala",2,() -> Lok.debug());
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         transaction.run(() -> {

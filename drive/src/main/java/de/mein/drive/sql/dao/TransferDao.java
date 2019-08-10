@@ -168,7 +168,7 @@ public class TransferDao extends Dao {
 
     public ISQLResource<DbTransferDetails> getUnnecessaryTransfers() throws SqlQueriesException {
         FsFile f = new FsFile();
-        String query = "select * from " + dummy.getTableName() + " t where not exists (select * from " + f.getTableName()
+        String query = "select * from " + dummy.getTableName() + " t where exists (select * from " + f.getTableName()
                 + " f where f." + f.getContentHash().k() + "=t." + dummy.getHash().k() + " and " + f.getSynced().k() + "=?)";
         return sqlQueries.loadQueryResource(query, dummy.getAllAttributes(), DbTransferDetails.class, ISQLQueries.whereArgs(false));
     }
