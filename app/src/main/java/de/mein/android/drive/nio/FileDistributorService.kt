@@ -27,7 +27,7 @@ class FileDistributorService : IntentService("FileDistributorService") {
     private lateinit var uuid: String
 
 
-//    override fun onCreate() {
+    //    override fun onCreate() {
 //        super.onCreate()
 //        Lok.debug("CREATED")
 //        Lok.debug("CREATED")
@@ -49,6 +49,7 @@ class FileDistributorService : IntentService("FileDistributorService") {
 //        existingServicesSet.remove(this)
 //
 //    }
+    private var notification: MeinNotification? = null
 
     override fun onHandleIntent(intent: Intent?) {
         // first setup all the nice things we need
@@ -99,7 +100,7 @@ class FileDistributorService : IntentService("FileDistributorService") {
             notification = MeinNotification(uuid, DriveStrings.Notifications.INTENTION_FILES_SERVICE, title, text)
             driveService.meinAuthService.onNotificationFromService(driveService, notification)
         }
-        notification?.setProgress(max, current, true)
+        notification!!.setProgress(max, current, false)
     }
 
     private fun workOnDistTask(distributionTask: FileDistributionTask) {
@@ -142,7 +143,6 @@ class FileDistributorService : IntentService("FileDistributorService") {
     }
 
     companion object {
-        private var notification: MeinNotification? = null
 
 //        val existingServicesSet = mutableSetOf<FileDistributorService>()
 

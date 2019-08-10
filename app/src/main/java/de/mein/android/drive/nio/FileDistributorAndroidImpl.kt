@@ -75,6 +75,8 @@ class FileDistributorAndroidImpl : FileDistributorImpl {
                         sourceFile.delete()
                         return
                     }
+                    if (srcDoc == null)
+                        Lok.debug()
                     var movedUri = DocumentsContract.moveDocument(androidService!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
                     val oldeUri = movedUri
                     if (!sourceFile.name.equals(target.name)) {

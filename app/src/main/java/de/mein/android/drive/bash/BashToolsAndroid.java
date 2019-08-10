@@ -55,6 +55,14 @@ public class BashToolsAndroid extends BashToolsUnix {
             }
             while (streams.stderr.hasNext())
                 Lok.error("testCommands(): " + streams.stderr.next());
+            cmd = "find \"" + cacheDir.getAbsolutePath() + "\" -newercc " + escapeAbsoluteFilePath(dir) + " -o -print";
+            streams = testCommand(cmd);
+            iterator = streams.stdout;
+            while (iterator.hasNext()) {
+                AFile line = iterator.next();
+                if (line.equals(""))
+                    Lok.debug();
+            }
         } catch (Exception e) {
             Lok.error("did not work as expected: " + cmd);
             Lok.error("using.fallback.for 'find'");

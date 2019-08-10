@@ -78,6 +78,9 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public String getAbsolutePath() {
+        //todo debug
+        if (file== null)
+            Lok.debug();
         return file.getAbsolutePath();
     }
 
