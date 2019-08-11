@@ -101,7 +101,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
                     responseBody.write(page.bytes)
                 }
                 responseBody.close()
-                ex.close()
+                close()
             }
         }
     }
@@ -143,14 +143,17 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     abstract fun configureContext(server: HttpsServer)
 
     fun respondPage(ex: HttpExchange, page: Page?) {
-        with(ex) {
-            Lok.debug("sending '${page?.path}' to $remoteAddress")
-            responseHeaders.add("Content-Type", "text/html; charset=UTF-8")
-            sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
-            responseBody.write(page?.bytes ?: "404".toByteArray())
-            responseBody.close()
-            responseHeaders
-            close()
+        try {
+            with(ex) {
+                Lok.debug("sending '${page?.path}' to $remoteAddress")
+                responseHeaders.add("Content-Type", "text/html; charset=UTF-8")
+                sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
+                responseBody.write(page?.bytes ?: "404".toByteArray())
+                responseBody.close()
+                responseHeaders
+            }
+        } finally {
+            ex.close()
         }
     }
 

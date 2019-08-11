@@ -111,6 +111,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 }
             else
                 Lok.info("build denied")
+            it.close()
         }
         server.createContext("/css.css") {
             respondText(it, "/de/miniserver/css.css")
@@ -185,8 +186,9 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     responseBody.write(response)
                     responseBody.close()
                 }
+            }finally {
+                it.close()
             }
-
         }
     }
 
