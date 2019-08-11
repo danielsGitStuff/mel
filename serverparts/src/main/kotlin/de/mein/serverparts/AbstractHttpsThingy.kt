@@ -14,6 +14,7 @@ import java.net.URLDecoder
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
+import java.util.concurrent.ThreadFactory
 import javax.net.ssl.SSLContext
 
 object ContentType {
@@ -48,7 +49,13 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
         meinThread
     }
-    private val executor = Executors.newFixedThreadPool(2)
+    open val executor = Executors.newFixedThreadPool(2)
+
+//            = Executors.newCachedThreadPool(ThreadFactory {
+//        val thread = Thread(it)
+//        thread.name = "a HTTPS-Thread"
+//        thread
+//    })
 
     fun readPostValues(ex: HttpExchange, size: Int = 400): HashMap<String, String> {
         val map = hashMapOf<String, String>()
@@ -90,7 +97,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
                     responseBody.write(page.bytes)
                 }
                 responseBody.close()
-                responseHeaders
+                ex.close()
             }
         }
     }
@@ -113,7 +120,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
                     responseBody.write(page.bytes)
                 }
                 responseBody.close()
-                responseHeaders
+                ex.close()
             }
 
         }
@@ -139,6 +146,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
             responseBody.write(page?.bytes ?: "404".toByteArray())
             responseBody.close()
             responseHeaders
+            close()
         }
     }
 
