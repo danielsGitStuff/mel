@@ -46,7 +46,7 @@
         android:strokeAlpha="1"
         android:strokeLineJoin="miter"
         android:strokeWidth="1"
-        android:fillColor="#000000"
+        android:fillColor="#ff2a2a"
         android:strokeColor="#00000000"
         android:fillAlpha="0"
         android:strokeLineCap="butt"/>
@@ -55,7 +55,7 @@
         android:strokeAlpha="1"
         android:strokeLineJoin="miter"
         android:strokeWidth="1"
-        android:fillColor="#57bf40"
+        android:fillColor="#ff2a2a"
         android:strokeColor="#00000000"
         android:fillAlpha="1"
         android:strokeLineCap="butt"/>
@@ -64,7 +64,7 @@
         android:strokeAlpha="1"
         android:strokeLineJoin="miter"
         android:strokeWidth="1"
-        android:fillColor="#000000"
+        android:fillColor="#ff2a2a"
         android:strokeColor="#00000000"
         android:fillAlpha="0"
         android:strokeLineCap="butt"/>
