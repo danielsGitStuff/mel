@@ -2,14 +2,17 @@ package de.mein.android;
 
 import android.Manifest;
 import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.ContentObserver;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -160,13 +163,6 @@ public class MainActivity extends MeinActivity implements PowerManager.IPowerSta
         if (powerManager != null) {
             powerManager.addStateListener(this);
         }
-//        //todo debug
-//        MeinDriveService driveService = (MeinDriveService) androidService.getMeinAuthService().getMeinServices().iterator().next();
-//        FileDistributionTask distributionTask = new FileDistributionTask();
-//        distributionTask.setServiceUuid(driveService.getUuid());
-//        FileJob fileJob = new FileJob();
-//        fileJob.setDistributionTask(distributionTask);
-//        driveService.getSyncHandler().getFileDistributor().addJob(fileJob);
     }
 
     private void dev() {

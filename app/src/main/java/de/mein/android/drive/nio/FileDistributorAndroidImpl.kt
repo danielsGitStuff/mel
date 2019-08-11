@@ -38,16 +38,9 @@ class FileDistributorAndroidImpl : FileDistributorImpl {
     }
 
     override fun workOnTask(fileJob: FileJob) {
-        //todo debug
-        if (fileJob.distributionTask.serviceUuid == null)
-            Lok.debug()
-        if (fileJob.distributionTask.sourceHash == null)
-            Lok.debug()
         // unpack and store in database
         fileDistTaskDao.insert(fileJob.distributionTask)
         val serviceIntent = Intent(Tools.getApplicationContext(), FileDistributorService::class.java)
-//        val json = SerializableEntitySerializer.serialize(fileJob.distributionTask)
-//        serviceIntent.putExtra(FileDistributorService.TASK, json)
         serviceIntent.putExtra(FileDistributorService.SERVICEUUID, fileJob.distributionTask.serviceUuid)
         Tools.getApplicationContext().startService(serviceIntent)
     }

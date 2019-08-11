@@ -165,10 +165,6 @@ public abstract class SyncHandler {
     public boolean onFileTransferred(AFile file, String hash, Transaction transaction, FsFile sourceFsFile) throws SqlQueriesException, IOException {
         try {
 
-            //todo debug
-            if (hash.equals("7c57f19c71275890f8af44fafa991728"))
-                Lok.debug();
-
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             boolean isNew = fsFiles.size() > 0;
 
