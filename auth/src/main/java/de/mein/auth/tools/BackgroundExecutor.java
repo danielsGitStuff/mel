@@ -3,6 +3,8 @@ package de.mein.auth.tools;
 import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
+import de.mein.auth.tools.lock.T;
+import de.mein.auth.tools.lock.Transaction;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
@@ -26,6 +28,7 @@ public abstract class BackgroundExecutor {
         @Override
         public void run() {
             thread = Thread.currentThread();
+            thread.setName(meinRunnable.getRunnableName());
             meinRunnable.run();
         }
     }
@@ -54,16 +57,14 @@ public abstract class BackgroundExecutor {
 
     public void execute(MeinRunnable runnable) {
         // noinspection Duplicates
-        try {
+        T.lockingTransaction(this).run(() -> {
             threadSemaphore.acquire();
             runnable.onStart();
             if (executorService == null || (executorService != null && (executorService.isShutdown() || executorService.isTerminated())))
                 executorService = createExecutorService(new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {
-                        Thread thread = new Thread(r);
-                        thread.setName(((MeinRunnable) r).getRunnableName());
-                        return thread;
+                        return new Thread(r);
                     }
                 });
 
@@ -71,9 +72,7 @@ public abstract class BackgroundExecutor {
             RunnableWrapper wrapper = new RunnableWrapper(runnable);
             startedCounter++;
             executorService.execute(wrapper);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        }).end();
     }
 
     private int startedCounter = 0;
