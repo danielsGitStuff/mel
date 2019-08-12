@@ -60,7 +60,7 @@ public abstract class BackgroundExecutor {
         T.lockingTransaction(this).run(() -> {
             threadSemaphore.acquire();
             runnable.onStart();
-            if (executorService == null || (executorService != null && (executorService.isShutdown() || executorService.isTerminated())))
+            if (executorService == null || executorService.isShutdown() || executorService.isTerminated())
                 executorService = createExecutorService(new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {
