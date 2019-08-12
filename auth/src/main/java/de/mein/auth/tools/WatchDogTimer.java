@@ -22,6 +22,7 @@ public class WatchDogTimer extends Timer {
     private boolean runs = false;
     private Semaphore lock = new Semaphore(1, true);
     private int waitCounter = 0;
+    private boolean active = true;
 
     /**
      * @param watchDogTimerFinished
@@ -46,30 +47,37 @@ public class WatchDogTimer extends Timer {
      * Starts the Timer if not running. Otherwise it will be reset.
      *
      * @return
-     * @throws InterruptedException
      */
     public WatchDogTimer start() throws InterruptedException {
 //        Lok.warn("started");
         lock.acquire();
-        if (task != null) {
-            task.reset();
-            task.resume();
-        }
-        if (!runs) {
-            //Lok.debug("WatchDogTimer.start.NEWTASK");
-            task = new WatchDogTimerTask(name, () -> {
+        try {
+            if (!active) {
+                if (task != null)
+                    task.cancel();
+                return this;
+            }
+            if (task != null) {
+                task.reset();
+                task.resume();
+            }
+            if (!runs) {
+                //Lok.debug("WatchDogTimer.start.NEWTASK");
+                task = new WatchDogTimerTask(name, () -> {
 //                Lok.warn(name + ".STOPPPPED");
-                lock.acquire();
-                WatchDogTimer.this.runs = false;
-                lock.release();
-                watchDogTimerFinished.onTimerStopped();
-            }, repetitions);
-            runs = true;
-            timer.purge();
-            timer.scheduleAtFixedRate(task, delay, period);
+                    lock.acquire();
+                    WatchDogTimer.this.runs = false;
+                    lock.release();
+                    watchDogTimerFinished.onTimerStopped();
+                }, repetitions);
+                runs = true;
+                timer.purge();
+                timer.scheduleAtFixedRate(task, delay, period);
+            }
+            return this;
+        } finally {
+            lock.release();
         }
-        lock.release();
-        return this;
     }
 
     /**
@@ -86,10 +94,13 @@ public class WatchDogTimer extends Timer {
 
     public void resume() throws InterruptedException {
         lock.acquire();
-        waitCounter--;
-        if (waitCounter == 0)
-            task.resume();
-        lock.release();
+        try {
+            waitCounter--;
+            if (waitCounter == 0)
+                task.resume();
+        } finally {
+            lock.release();
+        }
     }
 
     public void waite() throws InterruptedException {
@@ -106,7 +117,17 @@ public class WatchDogTimer extends Timer {
         watchDogTimerFinished.onTimerStopped();
     }
 
+    public void deactivate() throws InterruptedException {
+        lock.acquire();
+        active = false;
+        lock.release();
+    }
 
+    public void activate() throws InterruptedException {
+        lock.acquire();
+        active = true;
+        lock.release();
+    }
 
 
     public interface WatchDogTimerFinished {

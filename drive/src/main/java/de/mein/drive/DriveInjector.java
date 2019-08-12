@@ -2,8 +2,7 @@ package de.mein.drive;
 
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.nio.FileDistributor;
-import de.mein.drive.nio.FileDistributorImpl;
-import de.mein.drive.service.sync.SyncHandler;
+import de.mein.drive.nio.FileDistributorFactory;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 
@@ -24,8 +23,8 @@ public class DriveInjector {
         IndexWatchdogListener.setWatchDogRunner(watchDogRunner);
     }
 
-    public static void setFileDistributorImpl(Class<? extends FileDistributorImpl> fileDistributorClass) {
-        FileDistributor.Companion.setFileDistributorImpl(fileDistributorClass);
+    public static  <T extends FileDistributorFactory> void setFileDistributorFactory(T fileDistFactory) {
+        FileDistributor.Companion.setFactory(fileDistFactory);
     }
 
     public static void setBinPath(String path) {

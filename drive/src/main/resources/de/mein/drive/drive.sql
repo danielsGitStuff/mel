@@ -7,7 +7,6 @@ drop table if exists filedist;
 create table filedist
 (
   id integer not null primary key autoincrement,
-  uuid text not null,
   sourcepath text not null,
   sourcehash text not null,
   sourcedetails text not null,

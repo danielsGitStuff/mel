@@ -55,11 +55,15 @@ public abstract class BackgroundExecutor {
     public void execute(MeinRunnable runnable) {
         // noinspection Duplicates
         try {
+            threadSemaphore.acquire();
+            runnable.onStart();
             if (executorService == null || (executorService != null && (executorService.isShutdown() || executorService.isTerminated())))
                 executorService = createExecutorService(new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(r);
+                        Thread thread = new Thread(r);
+                        thread.setName(((MeinRunnable) r).getRunnableName());
+                        return thread;
                     }
                 });
 

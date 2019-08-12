@@ -1,19 +1,28 @@
 package de.mein.drive.service;
 
+import org.jdeferred.Deferred;
+import org.jdeferred.Promise;
+import org.jdeferred.impl.DeferredObject;
+
+import java.io.File;
+import java.util.List;
+import java.util.Set;
+
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.MeinNotification;
 import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
+import de.mein.auth.file.AFile;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinServiceWorker;
+import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
-import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.lock.T;
@@ -26,9 +35,6 @@ import de.mein.drive.index.IndexListener;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.index.watchdog.StageIndexer;
-import de.mein.auth.file.AFile;
-import de.mein.drive.nio.FileDistributionTask;
-import de.mein.drive.nio.FileJob;
 import de.mein.drive.service.sync.SyncHandler;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
@@ -38,14 +44,6 @@ import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.tasks.DirectoriesContentTask;
 import de.mein.drive.transfer.FileTransferDetailsPayload;
 import de.mein.sql.SqlQueriesException;
-
-import org.jdeferred.Deferred;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
-
-import java.io.File;
-import java.util.List;
-import java.util.Set;
 
 
 /**

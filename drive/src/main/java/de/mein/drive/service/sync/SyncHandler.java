@@ -1,9 +1,14 @@
 package de.mein.drive.service.sync;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
@@ -14,27 +19,23 @@ import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.Indexer;
 import de.mein.drive.nio.FileDistributionTask;
 import de.mein.drive.nio.FileDistributor;
-import de.mein.drive.nio.FileJob;
 import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.Wastebin;
-import de.mein.drive.sql.*;
+import de.mein.drive.sql.DbTransferDetails;
+import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.drive.sql.FsDirectory;
+import de.mein.drive.sql.FsEntry;
+import de.mein.drive.sql.FsFile;
+import de.mein.drive.sql.Stage;
+import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.dao.FileDistTaskDao;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.drive.transfer.TManager;
-import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
 
 
 /**
@@ -78,7 +79,7 @@ public abstract class SyncHandler {
 //        this.transferManager = new TransferManager(meinAuthService, meinDriveService, meinDriveService.getDriveDatabaseManager().getTransferDao()
 //                , wastebin, this);
         this.quotaManager = new QuotaManager(meinDriveService);
-        this.fileDistributor = new FileDistributor(this);
+        this.fileDistributor = new FileDistributor(meinDriveService);
     }
 
     public FileDistTaskDao getFileDistTaskDao() {
@@ -168,12 +169,9 @@ public abstract class SyncHandler {
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
             boolean isNew = fsFiles.size() > 0;
 
-            FileJob fileJob = new FileJob();
             FileDistributionTask distributionTask = new FileDistributionTask();
-            fileJob.setDistributionTask(distributionTask);
             distributionTask.setSourceFile(file);
             distributionTask.setDeleteSource(true);
-            distributionTask.setServiceUuid(meinDriveService.getUuid());
             distributionTask.setSourceHash(hash);
 
             // file found in transfer dir
@@ -202,8 +200,7 @@ public abstract class SyncHandler {
             // this might happen if ther is still a transfer that has not been canceled properly. just skip here
             if (distributionTask.getTargetPaths().isEmpty())
                 return isNew;
-
-            fileDistributor.addJob(fileJob);
+            fileDistributor.createJob(distributionTask);
             return isNew;
         } catch (Exception e) {
             e.printStackTrace();

@@ -13,7 +13,7 @@ import java.util.Scanner;
 import de.mein.Lok;
 import de.mein.MeinInjector;
 import de.mein.android.drive.bash.BashToolsAndroid;
-import de.mein.android.drive.nio.FileDistributorAndroidImpl;
+import de.mein.android.drive.nio.FileDistributorFactoryAndroid;
 import de.mein.android.drive.watchdog.RecursiveWatcher;
 import de.mein.auth.tools.N;
 import de.mein.contacts.ContactsInjector;
@@ -99,7 +99,7 @@ public class AndroidInjector {
         MeinInjector.setBase64Encoder(bytes -> Base64.encode(bytes, Base64.NO_WRAP));
         MeinInjector.setBase64Decoder(string -> Base64.decode(string, Base64.NO_WRAP));
         // drive
-        DriveInjector.setFileDistributorImpl(FileDistributorAndroidImpl.class);
+        DriveInjector.setFileDistributorFactory(new FileDistributorFactoryAndroid());
         DriveInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
             SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
                 @Override

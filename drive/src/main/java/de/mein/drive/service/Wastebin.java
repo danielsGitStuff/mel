@@ -143,7 +143,7 @@ public class Wastebin {
     public AFile moveToBin(Waste waste, AFile file) throws SqlQueriesException {
         try {
             AFile target = AFile.instance(wasteDir, waste.getHash().v() + "." + waste.getId().v());
-            syncHandler.getFileDistributor().moveBlocking(file, target, null, null);
+            syncHandler.getFileDistributor().moveBlocking(file, target, null);
             waste.getInplace().v(true);
             wasteDao.update(waste);
             return target;
@@ -272,7 +272,7 @@ public class Wastebin {
                         AFile wasteFile = AFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
                         wasteDao.delete(waste.getId().v());
                         fsDao.setSynced(fsFile.getId().v(), true);
-                        syncHandler.getFileDistributor().moveBlocking(wasteFile, fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v(), fsDao);
+                        syncHandler.getFileDistributor().moveBlocking(wasteFile, fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v());
                     } else {
                         Lok.error("Wastebin.restoreFsFiles");
                     }
@@ -307,7 +307,7 @@ public class Wastebin {
     public void deleteUnknown(AFile file) throws SqlQueriesException, IOException, InterruptedException {
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
         AFile target = AFile.instance(deferredDir, fsBashDetails.getiNode().toString());
-        syncHandler.getFileDistributor().moveBlocking(file, target, null, null);
+        syncHandler.getFileDistributor().moveBlocking(file, target, null);
         //if dir?!?!
         if (target.isDirectory()) {
             for (AFile f : target.listContent()) {

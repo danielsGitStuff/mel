@@ -117,6 +117,10 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         watchDogTimer = null;
     }
 
+    public WatchDogTimer getWatchDogTimer() {
+        return watchDogTimer;
+    }
+
     protected void surpressEvent() {
         surpressLock.lock();
         hasSupressedEvents = true;

@@ -2,17 +2,12 @@ package de.mein.android;
 
 import android.Manifest;
 import android.content.ContentProviderOperation;
-import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.database.ContentObserver;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -25,17 +20,15 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.google.android.material.navigation.NavigationView;
-
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
 import androidx.documentfile.provider.DocumentFile;
+import androidx.drawerlayout.widget.DrawerLayout;
 
-import de.mein.BuildConfig;
-
-import de.mein.android.controller.PermissionsGrantedListener;
-import de.mein.android.drive.AndroidDriveBootloader;
-import de.mein.android.sql.AndroidDBConnection;
-import de.mein.android.sql.AndroidSQLQueries;
-import de.mein.auth.service.NetworkDiscoveryController;
+import com.google.android.material.navigation.NavigationView;
 
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
@@ -44,13 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-
+import de.mein.BuildConfig;
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.Versioner;
@@ -62,6 +49,7 @@ import de.mein.android.controller.EditServiceController;
 import de.mein.android.controller.GuiController;
 import de.mein.android.controller.InfoController;
 import de.mein.android.controller.LogCatController;
+import de.mein.android.controller.PermissionsGrantedListener;
 import de.mein.android.controller.SettingsController;
 import de.mein.android.controller.intro.IntroWrapper;
 import de.mein.android.controller.intro.LoadingWrapper;
@@ -77,12 +65,9 @@ import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.service.NetworkDiscoveryController;
 import de.mein.auth.service.power.PowerManager;
-import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
-import de.mein.drive.nio.FileDistributionTask;
-import de.mein.drive.nio.FileJob;
-import de.mein.drive.service.MeinDriveService;
 
 
 public class MainActivity extends MeinActivity implements PowerManager.IPowerStateListener<AndroidPowerManager> {

@@ -6,7 +6,11 @@ package de.mein;
 public interface MeinRunnable extends Runnable {
     /**
      * will appear as the executing Thread name. Very helpful.
+     *
      * @return
      */
     String getRunnableName();
+
+    default void onStart() {
+    }
 }

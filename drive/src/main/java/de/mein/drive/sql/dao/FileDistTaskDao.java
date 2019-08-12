@@ -57,7 +57,6 @@ public class FileDistTaskDao extends Dao {
         N.forEach(taskWrappers, taskWrapper -> {
             FileDistributionTask task = new FileDistributionTask();
             task.setSourceHash(taskWrapper.getSourceHash().v());
-            task.setServiceUuid(taskWrapper.getServiceUuid().v());
             task.setDeleteSource(taskWrapper.getDeleteSource().v());
             task.setSourceFile(AFile.instance(taskWrapper.getSourcePath().v()));
             if (taskWrapper.getSize().notNull()) {

@@ -58,7 +58,6 @@ public class FileDistTaskWrapper extends SQLTableObject {
         }
     }
 
-    private Pair<String> serviceUuid = new Pair<>(String.class, "uuid");
     private Pair<Boolean> deleteSource = new Pair<>(Boolean.class, "deletesource");
 
     private Pair<String> sourcePath = new Pair<>(String.class, "sourcepath");
@@ -73,7 +72,6 @@ public class FileDistTaskWrapper extends SQLTableObject {
 
     public static FileDistTaskWrapper fromTask(FileDistributionTask task) {
         FileDistTaskWrapper wrapper = new FileDistTaskWrapper();
-        wrapper.serviceUuid.v(task.getServiceUuid());
         wrapper.sourcePath.v(task.getSourcePath());
         wrapper.sourceHash.v(task.getSourceHash());
         wrapper.sourceDetails.v(N.result(() -> SerializableEntitySerializer.serialize(task.getSourceDetails()), null));
@@ -93,10 +91,6 @@ public class FileDistTaskWrapper extends SQLTableObject {
 
     public FileDistTaskWrapper() {
         init();
-    }
-
-    public Pair<String> getServiceUuid() {
-        return serviceUuid;
     }
 
     public Pair<Boolean> getDeleteSource() {
@@ -138,7 +132,7 @@ public class FileDistTaskWrapper extends SQLTableObject {
 
     @Override
     protected void init() {
-        populateInsert(sourceHash, sourcePath, sourceDetails, serviceUuid, deleteSource, size, done);
+        populateInsert(sourceHash, sourcePath, sourceDetails, deleteSource, size, done);
         populateAll(id);
         id.setSetListener(value -> {
             N.forEach(targetWraps, fileWrapper -> fileWrapper.taskId.v(value));

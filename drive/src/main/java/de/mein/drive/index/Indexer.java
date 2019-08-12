@@ -21,6 +21,10 @@ public class Indexer {
     private final MeinDriveService meinDriveService;
     private IndexerRunnable indexerRunnable;
 
+    public IndexerRunnable getIndexerRunnable() {
+        return indexerRunnable;
+    }
+
     public Indexer(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, IndexListener... listeners) throws SqlQueriesException {
         meinDriveService = databaseManager.getMeinDriveService();
         indexerRunnable = new IndexerRunnable(databaseManager, indexWatchdogListener, listeners);
