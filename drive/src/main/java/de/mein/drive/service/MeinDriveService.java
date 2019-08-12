@@ -19,6 +19,7 @@ import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinServiceWorker;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.transfer.FileTransferDetail;
 import de.mein.auth.socket.process.transfer.FileTransferDetailSet;
@@ -50,7 +51,7 @@ import de.mein.sql.SqlQueriesException;
  * does everything file (on disk) related
  * Created by xor on 09.07.2016.
  */
-public abstract class MeinDriveService<S extends SyncHandler> extends MeinServiceWorker {
+public abstract class MeinDriveService<S extends SyncHandler> extends MeinServiceWorker implements PowerManager.IPowerStateListener {
     protected DriveDatabaseManager driveDatabaseManager;
     protected DriveSettings driveSettings;
     protected N runner = new N(Throwable::printStackTrace);
@@ -98,6 +99,12 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     public void handleRequest(Request request) throws Exception {
         Lok.debug(meinAuthService.getName() + ".MeinDriveService.handleRequest");
         addJob(new ServiceRequestHandlerJob().setRequest(request));
+    }
+
+    @Override
+    public void onStateChanged(PowerManager powerManager) {
+        if (isStopped() && powerManager.heavyWorkAllowed())
+            resume();
     }
 
     @Override
@@ -186,8 +193,10 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void resume() {
-        indexer.resume();
-        syncHandler.resume();
+        if (indexer != null)
+            indexer.resume();
+        if (syncHandler != null)
+            syncHandler.resume();
         super.resume();
     }
 
@@ -375,6 +384,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     @Override
     public void onBootLevel2Finished() {
+        meinAuthService.getPowerManager().addStateListener(this);
         Lok.debug("Resuming downloads");
         syncHandler.resume();
     }

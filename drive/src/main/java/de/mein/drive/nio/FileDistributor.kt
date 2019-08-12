@@ -35,15 +35,16 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
             set
 
         @Throws(IOException::class)
-        fun copyStream(`in`: InputStream, out: OutputStream) {
+        fun copyStream(inputStream: InputStream, out: OutputStream) {
             var read = 0
             do {
                 val bytes = ByteArray(BUFFER_SIZE)
-                read = `in`.read(bytes)
+                read = inputStream.read(bytes)
                 if (read > 0) {
                     out.write(bytes, 0, read)
                 }
             } while (read > 0)
+
         }
 
         fun createInstance(driveService: MeinDriveService<*>): FileDistributor<*> = factory!!.createInstance(driveService)
@@ -71,7 +72,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
             if (!fileDistTaskDao.hasContent())
                 return
 
-            while (fileDistTaskDao.hasContent() && !Thread.currentThread().isInterrupted) {
+            while (fileDistTaskDao.hasContent() && !Thread.currentThread().isInterrupted && running) {
 
                 val max = fileDistTaskDao.countAll()
                 val done = fileDistTaskDao.countDone()
@@ -110,7 +111,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
             notification = MeinNotification(driveService.uuid, DriveStrings.Notifications.INTENTION_FILES_SERVICE, title, text)
             driveService.meinAuthService.onNotificationFromService(driveService, notification)
         }
-        notification!!.setProgress(max, current, false)
+        notification?.setProgress(max, current, false)
     }
 
     private fun workOnDistTask(distributionTask: FileDistributionTask) {
@@ -187,7 +188,11 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
     }
 
     fun moveBlocking(source: T, target: T, fsId: Long?) {
-        moveBlocking(source, target, fsId)
+        moveFile(source, target, target.absolutePath, fsId)
+    }
+
+    fun stop() {
+        running = false
     }
 
 

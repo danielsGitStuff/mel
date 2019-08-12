@@ -41,7 +41,7 @@ class BashToolsAndroidJavaImpl : BashToolsImpl {
         val dir = File(directory.absolutePath)
         val list = mutableListOf<AFile<*>>()
         if (dir.exists())
-            dir.walkTopDown().filter { it.lastModified() >= time }.forEach {
+            dir.walkTopDown().onEnter { it.absolutePath != pruneDir.absolutePath }.filter { it.lastModified() >= time }.forEach {
                 list.add(AFile.instance(it))
             }
         return list

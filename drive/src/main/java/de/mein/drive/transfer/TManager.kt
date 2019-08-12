@@ -57,7 +57,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             runBlocking {
                 var transfer = sqlResource.next
                 while (transfer != null) {
-                    transferDao.flagForDeletion(transfer.id.v(),true)
+                    transferDao.flagForDeletion(transfer.id.v(), true)
                     transfer = sqlResource.next
                 }
             }
@@ -205,6 +205,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
     override fun stop() {
         super.stop()
         stopped = true
+        isolatedProcessesMap.values.forEach { it.stop() }
     }
 
     fun start() {
@@ -214,7 +215,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
 
 
     fun resume() {
-
+        start()
     }
 
     fun onTransferFromServiceFinished(retrieveRunnable: TransferFromServiceRunnable) {

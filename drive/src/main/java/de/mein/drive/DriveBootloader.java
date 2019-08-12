@@ -119,6 +119,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
     @Override
     public void cleanUpDeletedService(MeinDriveService meinService, String uuid) {
         new File(bootLoaderDir, uuid).delete();
+        meinAuthService.getPowerManager().removeListener(meinService);
     }
 
     /**

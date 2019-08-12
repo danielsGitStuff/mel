@@ -141,6 +141,8 @@ public abstract class SyncHandler {
     public void suspend() {
         if (transferManager != null)
             this.transferManager.stop();
+        if (fileDistributor!= null)
+            fileDistributor.stop();
     }
 
     public void onFileTransferFailed(String hash) {

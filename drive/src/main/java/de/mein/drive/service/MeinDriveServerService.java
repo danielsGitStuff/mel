@@ -7,6 +7,7 @@ import de.mein.auth.data.cached.CachedInitializer;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
+import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.lock.T;
@@ -37,7 +38,7 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Created by xor on 10/21/16.
  */
-public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> {
+public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler>  {
 
     public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
@@ -219,4 +220,6 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
         driveDetails.setDirectoryCount(driveDatabaseManager.getFsDao().countDirectories());
         return driveDetails;
     }
+
+
 }
