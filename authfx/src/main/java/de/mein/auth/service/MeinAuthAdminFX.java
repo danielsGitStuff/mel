@@ -102,10 +102,12 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
 
     @Override
     public void shutDown() {
-        stage.close();
-        if (trayIcon != null) {
-            SystemTray.getSystemTray().remove(trayIcon);
-        }
+        XCBFix.runLater(() -> {
+            stage.close();
+            if (trayIcon != null) {
+                SystemTray.getSystemTray().remove(trayIcon);
+            }
+        });
     }
 
     private void showServices() {

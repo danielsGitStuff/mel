@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
 open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) : MeinRunnable {
+    private var stopped: Boolean = false;
     private var notification: MeinNotification? = null
     private var running: Boolean = false
     val fileDistTaskDao = driveService.driveDatabaseManager.fileDistTaskDao
@@ -67,13 +68,15 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
         // first setup all the nice things we need
 
         meinAuthService.powerManager.wakeLock(this)
+        running = true
+        var hasTransferred = false
         try {
 
             if (!fileDistTaskDao.hasContent())
                 return
 
-            while (fileDistTaskDao.hasContent() && !Thread.currentThread().isInterrupted && running) {
-
+            while (fileDistTaskDao.hasContent() && !Thread.currentThread().isInterrupted && !stopped) {
+                hasTransferred = true
                 val max = fileDistTaskDao.countAll()
                 val done = fileDistTaskDao.countDone()
                 val countDone = AtomicInteger(done)
@@ -96,6 +99,8 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
                 notification?.cancel()
                 notification = null
             }
+            if (hasTransferred)
+                driveService.onSyncDone()
         }
     }
 
@@ -196,7 +201,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
     }
 
     fun stop() {
-        running = false
+        stopped = false
     }
 
 

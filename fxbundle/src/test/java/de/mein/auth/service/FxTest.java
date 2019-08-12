@@ -39,6 +39,7 @@ import de.mein.drive.service.MeinDriveServerService;
 import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.GenericFSEntry;
+import de.mein.drive.sql.dao.FsDao;
 import de.mein.sql.*;
 import org.jdeferred.Promise;
 import org.junit.After;
@@ -46,9 +47,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
 
@@ -548,31 +551,75 @@ public class FxTest {
         lock.lockWrite();
         AFile rootServer = AFile.instance("server");
         AFile rootClient = AFile.instance("client");
+        BashTools.rmRf(rootClient);
+        BashTools.rmRf(rootClient);
+        AFile alteredFile = AFile.instance("client" + File.separator + "samedir" + File.separator + "same1.txt");
+        TestDirCreator.createTestDir(rootServer);
         rootClient.mkdirs();
         rootServer.mkdirs();
         MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
         MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
-        boot2.addMeinAuthAdmin(new MeinAuthAdminFX());
         json1.setJsonFile(MeinAuthSettings.DEFAULT_FILE);
         json1.save();
         json2.setJsonFile(MeinAuthSettings.DEFAULT_FILE_2);
         json2.save();
-        boot1.boot().done(standAloneAuth1 -> {
+        AtomicReference<MeinDriveClientService> clientService = new AtomicReference<>();
+        AtomicReference<MeinAuthService> client = new AtomicReference<>();
+        DriveSyncListener syncListener = new DriveSyncListener() {
+            @Override
+            public void onSyncFailed() {
+                Lok.debug();
+            }
+
+            @Override
+            public void onTransfersDone() {
+                N.r(() -> {
+                    // wait for FileDistributor
+                    Thread.sleep(1000);
+                    // change fs table
+                    FsDao fsDao = clientService.get().getDriveDatabaseManager().getFsDao();
+                    FsFile alterFs = fsDao.getFsFileByFile(new File(alteredFile.getAbsolutePath()));
+                    alterFs.getSynced().v(false);
+                    fsDao.update(alterFs);
+                    client.get().shutDown();
+                    FileOutputStream out = alteredFile.outputStream();
+                    out.write("hurrdurr".getBytes());
+                    out.close();
+                    MeinBoot boot3 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+                    boot3.addMeinAuthAdmin(new MeinAuthFxLoader());
+                    boot3.boot();
+                });
+            }
+
+            @Override
+            public void onSyncDoneImpl() {
+                Lok.debug();
+            }
+        };
+        boot1.boot().done(mas1 -> {
             N.r(() -> {
-                standAloneAuth1.addRegisterHandler(allowRegisterHandler);
+                new DriveCreateController(mas1).createDriveServerService("server", rootServer, 0.4f, 200, false);
+                mas1.addRegisterHandler(allowRegisterHandler);
+                mas1.addRegisteredHandler((meinAuthService, registered) ->
+                        N.forEach(mas1.getDatabaseManager().getAllServices(),
+                                serviceJoinServiceType -> mas1.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v())));
                 // create drive server
 
-                new DriveCreateController(standAloneAuth1).createDriveServerService("server", rootServer, 0.4f, 200, false);
                 runner.r(() -> {
                     Lok.debug("FxTest.driveGui.1.booted");
 //                DriveBootloader.deVinjector = null;
-                    boot2.boot().done(standAloneAuth2 -> {
+                    boot2.boot().done(mas2 -> {
                         Lok.debug("FxTest.driveGui.2.booted");
-                        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
+                        mas2.addRegisterHandler(allowRegisterHandler);
                         runner.r(() -> {
-                            standAloneAuth2.connect("localhost", 8888, 8889, true).done(result -> {
-
-                            }).fail(Lok::error);
+                            client.set(mas2);
+                            mas2.addRegisteredHandler((meinAuthService, registered) -> N.r(() -> {
+                                String serverServiceUuid = mas1.getDatabaseManager().getAllServices().iterator().next().getUuid().v();
+                                new DriveCreateController(mas2).createDriveClientService("client", rootClient, 1L, serverServiceUuid, 0.5f, 300, false);
+                                clientService.set((MeinDriveClientService) mas2.getMeinServices().iterator().next());
+                                clientService.get().setSyncListener(syncListener);
+                            }));
+                            mas2.connect("localhost", 8888, 8889, true);
 //                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
 //                        connectPromise.done(integer -> {
 //                            runner.r(() -> {

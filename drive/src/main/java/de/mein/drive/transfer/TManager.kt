@@ -180,6 +180,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                 }
             }
         }
+        Lok.debug("TManager has done its job!")
 
     }
 
@@ -205,6 +206,10 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
     override fun stop() {
         super.stop()
         stopped = true
+        activeTFSRunnables.forEach {
+            it.value.stop()
+            it.key.stop()
+        }
         isolatedProcessesMap.values.forEach { it.stop() }
     }
 
@@ -224,7 +229,10 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             with(retrieveRunnable.fileProcess) {
                 activeTFSRunnables.remove(this)
 //                transferDao.deleteDone(partnerCertificateId, partnerServiceUuid)
-                if (transferDao.count(partnerCertificateId, partnerServiceUuid) == 0L)
+//                val count = transferDao.count(partnerCertificateId, partnerServiceUuid)
+//                val done = transferDao.countDone(partnerCertificateId, partnerServiceUuid)
+//                if (count == done)
+                // this does not have to be precise cause it is for dev purposes only
                     meinDriveService.onTransfersDone()
             }
         } finally {
