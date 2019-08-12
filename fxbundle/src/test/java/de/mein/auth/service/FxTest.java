@@ -31,6 +31,7 @@ import de.mein.contacts.service.ContactsService;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
 import de.mein.drive.DriveSyncListener;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.boot.DriveFXBootloader;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveClientService;
@@ -473,6 +474,123 @@ public class FxTest {
         lock.unlockWrite();
     }
 
+    /**
+     * sync files to client, then shut him down. alter a file and set it to non-synced in fs database.
+     * restart client.
+     * expectation: client detects conflict between fs and the altered file. conflict dialog pops up.
+     *
+     * @throws Exception
+     * @throws SqlQueriesException
+     */
+    @Test
+    public void startupConflict() throws Exception, SqlQueriesException {
+//        inject(true);
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
+        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
+        N runner = new N(e -> e.printStackTrace());
+        MeinAuthSettings json1 = MeinAuthSettings.createDefaultSettings();
+        json1.setPort(8888).setDeliveryPort(8889)
+                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+        MeinAuthSettings json2 = MeinAuthSettings.createDefaultSettings()
+                .setPort(8890).setDeliveryPort(8891)
+                .setBrotcastPort(9966) // does not listen! only one listener seems possible
+                .setBrotcastListenerPort(6699).setBrotcastPort(9966)
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+
+        IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
+            @Override
+            public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
+                listener.onCertificateAccepted(request, certificate);
+            }
+
+            @Override
+            public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyRejected(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onRemoteAccepted(Certificate partnerCertificate) {
+
+            }
+
+            @Override
+            public void onLocallyAccepted(Certificate partnerCertificate) {
+
+            }
+        };
+
+
+
+/*
+        IDBCreatedListener admin = databaseManager -> {
+            ServiceType serviceType = databaseManager.createServiceType("test type", "test type desc");
+            databaseManager.createService(serviceType.getId().v(), "service uuid");
+        };*/
+        //standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
+        //standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
+        /*standAloneAuth1.addRegisteredHandler((meinAuthService, registered) -> {
+            List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
+            for (ServiceJoinServiceType serviceJoinServiceType : services) {
+                meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
+            }
+        });*/
+        lock.lockWrite();
+        AFile rootServer = AFile.instance("server");
+        AFile rootClient = AFile.instance("client");
+        rootClient.mkdirs();
+        rootServer.mkdirs();
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
+        MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+        boot2.addMeinAuthAdmin(new MeinAuthAdminFX());
+        json1.setJsonFile(MeinAuthSettings.DEFAULT_FILE);
+        json1.save();
+        json2.setJsonFile(MeinAuthSettings.DEFAULT_FILE_2);
+        json2.save();
+        boot1.boot().done(standAloneAuth1 -> {
+            N.r(() -> {
+                standAloneAuth1.addRegisterHandler(allowRegisterHandler);
+                // create drive server
+
+                new DriveCreateController(standAloneAuth1).createDriveServerService("server", rootServer, 0.4f, 200, false);
+                runner.r(() -> {
+                    Lok.debug("FxTest.driveGui.1.booted");
+//                DriveBootloader.deVinjector = null;
+                    boot2.boot().done(standAloneAuth2 -> {
+                        Lok.debug("FxTest.driveGui.2.booted");
+                        standAloneAuth2.addRegisterHandler(allowRegisterHandler);
+                        runner.r(() -> {
+                            standAloneAuth2.connect("localhost", 8888, 8889, true).done(result -> {
+
+                            }).fail(Lok::error);
+//                        Promise<MeinValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+//                        connectPromise.done(integer -> {
+//                            runner.r(() -> {
+//                                Lok.debug("FxTest.driveGui.booted");
+//                                //standAloneAuth2.getBrotCaster().discover(9966);
+//                                //lock.unlockWrite();
+//                            });
+//                        });
+                        });
+                    });
+                });
+            });
+        });
+        lock.lockWrite();
+        lock.lockWrite();
+        lock.unlockWrite();
+    }
+
 
     @Test
     public void startBoth() throws Exception, SqlQueriesException {
@@ -480,10 +598,12 @@ public class FxTest {
         CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
         CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
         N runner = new N(e -> e.printStackTrace());
-        MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
+        MeinAuthSettings json1 = MeinAuthSettings.createDefaultSettings();
+        json1.setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
-        MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
+        MeinAuthSettings json2 = MeinAuthSettings.createDefaultSettings()
+                .setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                 .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
@@ -540,6 +660,11 @@ public class FxTest {
 
         MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
         MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+        boot2.addMeinAuthAdmin(new MeinAuthAdminFX());
+        json1.setJsonFile(MeinAuthSettings.DEFAULT_FILE);
+        json1.save();
+        json2.setJsonFile(MeinAuthSettings.DEFAULT_FILE_2);
+        json2.save();
         boot1.boot().done(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
@@ -876,6 +1001,7 @@ public class FxTest {
     public void before() {
         lock = new RWLock();
         AFile.configure(new DefaultFileConfiguration());
+        BashTools.init();
     }
 
 

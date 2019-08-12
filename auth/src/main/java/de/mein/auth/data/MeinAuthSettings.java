@@ -16,6 +16,7 @@ import java.security.SecureRandom;
  */
 public class MeinAuthSettings extends JsonSettings implements KResult {
     public static final File DEFAULT_FILE = new File("mel.settings.json");
+    public static final File DEFAULT_FILE_2 = new File("mel.settings.2.json");
     public static final int BROTCAST_PORT = 9966;
     public static final Integer UPDATE_MSG_PORT = 8448;
     public static final int UPDATE_BINARY_PORT = 8449;

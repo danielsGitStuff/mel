@@ -137,21 +137,25 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
         while (!targetStack.empty()) {
             val fsId = targetIds.pop()
             val target = targetStack.pop()
-            copyFile(sourceFile, target, targetPathStack.pop(), fsId)
-            de.mein.auth.tools.lock.T.lockingTransaction(fsId).run { updateFs(fsId, target) }.end()
+            if (!target.exists()) {
+                copyFile(sourceFile, target, targetPathStack.pop(), fsId)
+                de.mein.auth.tools.lock.T.lockingTransaction(fsId).run { updateFs(fsId, target) }.end()
+            }
         }
-        if (distributionTask.deleteSource) {
+        if (!lastFile.exists()) {
+            if (distributionTask.deleteSource) {
 
-            // move file
-            moveFile(sourceFile, lastFile, lastPath, lastId)
-            // update synced flag
-            if (lastId != null)
-                de.mein.auth.tools.lock.T.lockingTransaction(fsDao).run { updateFs(lastId, lastFile) }.end()
+                // move file
+                moveFile(sourceFile, lastFile, lastPath, lastId)
+                // update synced flag
+                if (lastId != null)
+                    de.mein.auth.tools.lock.T.lockingTransaction(fsDao).run { updateFs(lastId, lastFile) }.end()
 
-        } else {
-            copyFile(sourceFile, lastFile, lastPath, lastId)
-            if (lastId != null) {
-                de.mein.auth.tools.lock.T.lockingTransaction(fsDao).run { updateFs(lastId, lastFile) }.end()
+            } else {
+                copyFile(sourceFile, lastFile, lastPath, lastId)
+                if (lastId != null) {
+                    de.mein.auth.tools.lock.T.lockingTransaction(fsDao).run { updateFs(lastId, lastFile) }.end()
+                }
             }
         }
     }
