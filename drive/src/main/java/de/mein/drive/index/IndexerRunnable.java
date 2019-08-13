@@ -85,8 +85,7 @@ public class IndexerRunnable extends AbstractIndexer {
             }
             Transaction transaction = T.lockingTransaction(T.read(fsDao));
             try {
-                if (initialIndexConflictHelper != null)
-                    initialIndexConflictHelper.onStart();
+
                 indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
                 OTimer timerFind = new OTimer("bash.find").start();
@@ -108,7 +107,7 @@ public class IndexerRunnable extends AbstractIndexer {
 //                sqlQueries.commit();
                 timerExamine.stop().print();
                 if (initialIndexConflictHelper != null)
-                    initialIndexConflictHelper.onDone();
+                    initialIndexConflictHelper.onDone(transaction);
                 initialIndexConflictHelper = null;
                 fastBooting = false;
             } catch (Exception e) {

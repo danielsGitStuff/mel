@@ -150,6 +150,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
 
         stageSet = stageDao.createStageSet(stageSetType, null, null, null);
+        if (initialIndexConflictHelper != null)
+            initialIndexConflictHelper.onStart(stageSet);
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
         this.stageSetId = stageSet.getId().v();
 

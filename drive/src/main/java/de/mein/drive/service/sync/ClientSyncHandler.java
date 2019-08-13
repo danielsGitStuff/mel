@@ -350,7 +350,7 @@ public class ClientSyncHandler extends SyncHandler {
      * @param serverStageSet
      * @param stagedFromFs
      */
-    private void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction) throws SqlQueriesException {
+    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction) throws SqlQueriesException {
         String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
         ConflictSolver conflictSolver;
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
@@ -569,7 +569,7 @@ public class ClientSyncHandler extends SyncHandler {
      * @throws SqlQueriesException
      */
     @SuppressWarnings("Duplicates")
-    private void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStageMerger merger, ConflictSolver conflictSolver) throws SqlQueriesException {
+    public void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStageMerger merger, ConflictSolver conflictSolver) throws SqlQueriesException {
         OTimer timer1 = new OTimer("iter 1");
         OTimer timer2 = new OTimer("iter 2");
         OTimer timer3 = new OTimer("iter 3");
