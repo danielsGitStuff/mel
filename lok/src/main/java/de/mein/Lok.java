@@ -29,7 +29,6 @@ public class Lok {
     }
 
 
-
     public static void setLokListener(LokImpl.LokListener listener) {
         impl.setLokListener(listener);
     }
@@ -47,7 +46,7 @@ public class Lok {
     }
 
     public static void devOnLineMatches(String line, Runnable r) {
-        impl.devOnLineMatches(line,r);
+        impl.devOnLineMatches(line, r);
     }
 
     public static LokImpl getImpl() {
@@ -56,5 +55,9 @@ public class Lok {
 
     public static void debug() {
         impl.debug("");
+    }
+
+    public static void stacktTrace(StackTraceElement[] stackTrace) {
+        impl.stackTrace(stackTrace);
     }
 }

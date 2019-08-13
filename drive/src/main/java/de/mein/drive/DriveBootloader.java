@@ -99,6 +99,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
                             DEV_DRIVE_BOOT_LISTENER = null;
                             tmp.driveServiceBooted(meinDriveService);
                         }
+                        meinDriveService.onBootLevel2Finished();
 //                    if (!driveSettings.isServer()){
 //                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
 //                        meinDriveClientService.syncThisClient();

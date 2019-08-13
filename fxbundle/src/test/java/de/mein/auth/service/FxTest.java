@@ -492,9 +492,9 @@ public class FxTest {
                     .setBrotcastPort(9966) // does not listen! only one listener seems possible
                     .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                     .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
-            MeinBoot boot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
-            boot.addMeinAuthAdmin(new MeinAuthFxLoader());
-            boot.boot().done(result -> N.r(() -> {
+            MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+            boot2.addMeinAuthAdmin(new MeinAuthFxLoader());
+            boot2.boot().done(result -> N.r(() -> {
                 Lok.debug("NANANA");
                 Lok.debug("NANANA");
                 Lok.debug("NANANA");
@@ -608,7 +608,7 @@ public class FxTest {
                     FileOutputStream out = alteredFile.outputStream();
                     out.write("hurrdurr".getBytes());
                     out.close();
-//                    System.exit(0);
+                    System.exit(0);
 //                    MeinBoot boot3 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
 //                    boot3.addMeinAuthAdmin(new MeinAuthFxLoader());
 //                    boot3.boot();

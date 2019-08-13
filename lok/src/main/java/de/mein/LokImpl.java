@@ -47,6 +47,15 @@ public class LokImpl {
         devMatchRunnable = r;
     }
 
+    public void stackTrace(StackTraceElement[] stackTrace) {
+        if (stackTrace == null)
+            return;
+        for (int i = 0; i < stackTrace.length; i++) {
+            StackTraceElement s = stackTrace[i];
+            System.err.println("trace[" + i + "]: " + s.getClassName() + " / " + s.getMethodName() + " / " + s.getLineNumber());
+        }
+    }
+
     public interface LokListener {
         void onPrintLn(String line);
     }

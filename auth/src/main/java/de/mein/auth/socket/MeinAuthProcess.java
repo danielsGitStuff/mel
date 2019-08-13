@@ -110,6 +110,10 @@ public class MeinAuthProcess extends MeinProcess {
                                         Class<? extends MeinIsolatedProcess> isolatedClass = (Class<? extends MeinIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
                                         MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());
                                         isolatedProcess.setService(service);
+                                        // todo debug
+                                        if (service == null){
+                                            Lok.debug();
+                                        }
                                         service.onIsolatedConnectionEstablished(isolatedProcess);
                                         send(response);
                                     }
@@ -118,7 +122,7 @@ public class MeinAuthProcess extends MeinProcess {
                                     send(response);
                                 }
                             } catch (Exception e) {
-                                Lok.debug("leaving, because of exception: " + e.toString());
+                                Lok.error("leaving socket, because of EXCEPTION: " + e.toString());
                                 MeinAuthProcess.this.removeThyself();
                             }
                         });

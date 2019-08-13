@@ -366,6 +366,12 @@ public class SQLQueries extends ISQLQueries {
             pstmt.execute();
             pstmt.close();
         } catch (Exception e) {
+            System.err.println("SQLQueries.execute.stmt: " + statement);
+            StringBuilder attrs = new StringBuilder();
+            for (Object arg : whereArgs) {
+                attrs.append(arg == null ? "null" : arg.toString()).append(", ");
+            }
+            System.err.println("SQLQueries.execute.args : " + attrs.toString());
             throw new SqlQueriesException(e);
         } finally {
             unlockRead();

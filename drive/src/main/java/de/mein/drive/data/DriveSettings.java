@@ -1,5 +1,6 @@
 package de.mein.drive.data;
 
+import de.mein.Lok;
 import de.mein.auth.data.JsonSettings;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
@@ -80,7 +81,8 @@ public class DriveSettings extends JsonSettings {
 
     @Override
     protected void init() {
-        serverSettings.init();
+        if (serverSettings != null)
+            serverSettings.init();
     }
 
     public DriveSettings setFastBoot(boolean fastBoot) {

@@ -103,6 +103,9 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
     }
 
     private fun handleBootError(service: Service, e: BootException) {
+        Lok.error("Service ${service.typeId}/${service.name} failed to boot")
+        Lok.error("Exception: ${e.cause} ... ${e.message}")
+        Lok.stacktTrace(e.stackTrace)
         service.lastError = ServiceError(e)
         meinAuthService!!.databaseManager!!.updateService(service)
     }

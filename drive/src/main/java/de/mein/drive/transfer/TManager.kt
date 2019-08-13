@@ -119,6 +119,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                         isolatedProcessesMap[isolatedFileProcess.partnerCertificateId] = isolatedFileProcess
                         checkAtom()
                         isolatedFileProcess.addIsolatedProcessListener(this)
+                        startTransfersForIsoProcess(isolatedFileProcess)
                     }.fail {
                         val c = transferDetails
                         T.lockingTransaction(transferDao).run {
@@ -168,12 +169,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                 val isoTransaction = T.lockingTransaction(isolatedProcessesMap)
                 try {
                     isolatedProcessesMap.values.forEach { fileProcess ->
-                        val transfersRemain = transferDao.hasNotStartedTransfers(fileProcess.partnerCertificateId, fileProcess.partnerServiceUuid)
-                        if (transfersRemain) {
-                            retrieveFromService(fileProcess)
-                        } else {
-                            Lok.debug("isolated process has nothing to transfer anymore")
-                        }
+                        startTransfersForIsoProcess(fileProcess)
                     }
                 } finally {
                     isoTransaction.end()
@@ -181,7 +177,15 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             }
         }
         Lok.debug("TManager has done its job!")
+    }
 
+    private fun startTransfersForIsoProcess(isolatedProcess: MeinIsolatedProcess) {
+        val transfersRemain = transferDao.hasNotStartedTransfers(isolatedProcess.partnerCertificateId, isolatedProcess.partnerServiceUuid)
+        if (transfersRemain) {
+            retrieveFromService(isolatedProcess as MeinIsolatedFileProcess)
+        } else {
+            Lok.debug("isolated process has nothing to transfer anymore")
+        }
     }
 
 
@@ -233,7 +237,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
 //                val done = transferDao.countDone(partnerCertificateId, partnerServiceUuid)
 //                if (count == done)
                 // this does not have to be precise cause it is for dev purposes only
-                    meinDriveService.onTransfersDone()
+                meinDriveService.onTransfersDone()
             }
         } finally {
             transaction.end()
