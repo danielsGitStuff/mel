@@ -16,7 +16,6 @@ import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.*;
 import de.mein.drive.data.conflict.ConflictSolver;
-import de.mein.drive.index.InitialIndexConflictHelper;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.quota.OutOfSpaceException;
@@ -139,13 +138,7 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
 
-    /**
-     * call this if you are the receiver
-     */
-    @Deprecated
-    private void setupTransfer() {
-        transferManager.research();
-    }
+
 
     /**
      * Sends the StageSet to the server and updates it with the FsIds provided by the server.
@@ -191,7 +184,7 @@ public class ClientSyncHandler extends SyncHandler {
                         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
                         stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
                         commitStage(stageSetId, transaction);
-                        setupTransfer();
+                        researchTransfers();
                         transferManager.research();
                         transaction.end();
                     })).fail(result -> transaction.run(() -> {
@@ -304,7 +297,7 @@ public class ClientSyncHandler extends SyncHandler {
                 if (stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_SERVER)) {
                     Transaction finalTransaction = transaction;
                     N.r(() -> commitStage(stageSet.getId().v(), finalTransaction));
-                    setupTransfer();
+                    researchTransfers();
                     transferManager.research();
                 }
             } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
@@ -319,7 +312,7 @@ public class ClientSyncHandler extends SyncHandler {
                 if (stageDao.stageSetHasContent(stageSet.getId().v())) {
                     try {
                         commitStage(stageSet.getId().v(), transaction);
-                        setupTransfer();
+                        researchTransfers();
                         hasCommitted = true;
                     } catch (OutOfSpaceException e) {
                         e.printStackTrace();

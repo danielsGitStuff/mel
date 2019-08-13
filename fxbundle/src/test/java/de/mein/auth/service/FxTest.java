@@ -521,7 +521,7 @@ public class FxTest {
      * @throws SqlQueriesException
      */
     @Test
-    public void startupConflict() throws Exception, SqlQueriesException {
+    public void startupConflict1() throws Exception, SqlQueriesException {
 //        inject(true);
         CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir1());
         CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());

@@ -38,7 +38,7 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Created by xor on 10/21/16.
  */
-public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler>  {
+public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> {
 
     public MeinDriveServerService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
@@ -105,13 +105,22 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
                 }
             } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
                 Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
-                if (driveSettings.getServerSettings().hasClient(authenticatedJob.getPartnerCertificate().getId().v())) {
-                    this.syncHandler.resume();
-                }
+                T.lockingTransaction(driveDatabaseManager.getTransferDao())
+                        .run(() -> {
+                            ClientData clientData = driveSettings.getServerSettings().getClientData(authenticatedJob.getPartnerCertificate().getId().v());
+                            driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
+                            syncHandler.researchTransfers();
+                        })
+                        .end();
             } else if (unknownJob instanceof Job.CertificateSpottedJob) {
                 // reset the remaining transfers so we can try again
+                Job.CertificateSpottedJob spottedJob = (Job.CertificateSpottedJob) unknownJob;
                 T.lockingTransaction(driveDatabaseManager.getTransferDao())
-                        .run(() -> N.forEach(driveSettings.getServerSettings().getClients(), clientData -> driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED)))
+                        .run(() -> {
+                            ClientData clientData = driveSettings.getServerSettings().getClientData(spottedJob.getPartnerCertificate().getId().v());
+                            driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
+                            syncHandler.researchTransfers();
+                        })
                         .end();
             }
         } catch (Exception e) {

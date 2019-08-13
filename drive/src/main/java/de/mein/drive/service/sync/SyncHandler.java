@@ -86,6 +86,13 @@ public abstract class SyncHandler {
         return fileDistTaskDao;
     }
 
+    /**
+     * call this if you are the receiver
+     */
+    public void researchTransfers() {
+        transferManager.research();
+    }
+
     public FileDistributor getFileDistributor() {
         return fileDistributor;
     }

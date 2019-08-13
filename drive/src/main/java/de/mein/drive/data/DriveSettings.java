@@ -80,7 +80,7 @@ public class DriveSettings extends JsonSettings {
 
     @Override
     protected void init() {
-
+        serverSettings.init();
     }
 
     public DriveSettings setFastBoot(boolean fastBoot) {
