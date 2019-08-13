@@ -661,8 +661,8 @@ public class ConflictSolver extends SyncStageMerger {
         return conflictHelperUuid;
     }
 
-    public void finished() {
-        if (conflictHelperUuid != null)
+    public void probablyFinished() {
+        if (conflictHelperUuid != null && isSolved())
             InitialIndexConflictHelper.finished(conflictHelperUuid);
     }
 

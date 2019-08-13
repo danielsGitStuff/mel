@@ -30,7 +30,7 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
     public String onOkCLicked() {
         Lok.debug("DriveFXConflictSolverController.onOkCLicked");
         if (conflictSolver.isSolved()) {
-            conflictSolver.finished();
+            conflictSolver.probablyFinished();
             CommitJob commitJob = new CommitJob();
             meinDriveClientService.addJob(commitJob);
         } else {
