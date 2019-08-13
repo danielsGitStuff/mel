@@ -106,7 +106,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 Eva.condition(f.getName().equals("same1.txt"), 2, () -> Lok.debug());
 
                 if (!f.exists()) {
-                    stageDao.markRemoved(stage.getId());
                     continue;
                 }
 
@@ -125,10 +124,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage = stages.getNext();
             }
         });
-        stageDao.markOrphans(stageSetId);
-        stageDao.deleteMarkedForRemoval(stageSet.getId().v());
+        stageDao.deleteIdenticalToFs(stageSetId);
         Lok.debug("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+
         stageDao.updateStageSet(stageSet);
         if (!stageDao.stageSetHasContent(stageSetId)) {
             stageDao.deleteStageSet(stageSetId);
@@ -285,8 +284,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     return;
 
                 } else {
-                    stageDao.markRemoved(stage.getId());
-//                    stageDao.deleteStageById(stage.getId());
                     return;
                 }
             } else {
@@ -414,16 +411,14 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 // if symlink, remove everything further down in the db file tree and skip the rest
                 if (subDirDetails.isSymLink()) {
                     if (!databaseManager.getDriveSettings().getUseSymLinks()) {
-                        if (subStage != null)
-                            stageDao.markRemoved(subStage.getId());
+
 //                            stageDao.deleteStageById(subStage.getId());
                         continue;
                     }
                     if (isValidSymLink(subDir, subDirDetails)) {
                         Lok.debug("debug");
                     } else {
-                        if (subStage != null)
-                            stageDao.markRemoved(subStage.getId());
+
 //                            stageDao.deleteStageById(subStage.getId());
                     }
                     continue;
@@ -482,8 +477,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             stage.setSymLink(fsBashDetails.getSymLinkTarget());
         if (stage.getFsId() != null) {
             FsDirectory oldFsDirectory = fsDao.getFsDirectoryById(stage.getFsId());
-            if (oldFsDirectory.getContentHash().v().equals(newFsDirectory.getContentHash().v()))
-                stage.getRemovePair().v(true);
             stageDao.update(stage);
         } else
             stageDao.update(stage);
@@ -584,11 +577,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                         && fsEntry.getiNode().equalsValue(stage.getiNode())
                         && fsEntry.getModified().equalsValue(stage.getModified())
                         && fsEntry.getSize().equalsValue(stage.getSize()))
-                    stageDao.markRemoved(stage.getId());
+                    Lok.debug();
 //                    stageDao.deleteStageById(stage.getId());
                 else {
                     if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
-                        stageDao.markRemoved(stage.getId());
+                        Lok.debug();
 //                        stageDao.deleteStageById(stage.getId());
                     } else {
                         stageDao.update(stage);
@@ -596,7 +589,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 }
             } else {
                 if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
-                    stageDao.markRemoved(stage.getId());
+                    Lok.debug();
 //                    stageDao.deleteStageById(stage.getId());
                 } else {
                     stageDao.update(stage);

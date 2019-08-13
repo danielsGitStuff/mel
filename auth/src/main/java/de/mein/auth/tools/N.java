@@ -168,6 +168,8 @@ public class N {
      * @param <T>
      */
     public static <T extends SQLTableObject> void readSqlResource(ISQLResource<T> sqlResource, SqlTryReadRunnable<T> noTryRunnable) {
+        if (sqlResource == null)
+            return;
         try {
             T obj = sqlResource.getNext();
             try {

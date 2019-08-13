@@ -453,25 +453,7 @@ public class ClientSyncHandler extends SyncHandler {
     private void minimizeStage(Long stageSetId) throws SqlQueriesException {
         if (stageSetId == 9)
             Lok.warn("debug");
-        N.sqlResource(stageDao.getStagesResource(stageSetId), stages -> {
-            Stage stage = stages.getNext();
-            while (stage != null) {
-                Long fsId = stage.getFsId();
-                if (fsId != null) {
-                    FsEntry fsEntry = fsDao.getGenericById(fsId);
-                    boolean deleteStage = false;
-                    if (fsEntry != null) {
-                        if (!stage.getDeleted() && fsEntry.getContentHash().v().equals(stage.getContentHash()))
-                            deleteStage = true;
-                    }
-                    if (deleteStage)
-                        stageDao.markRemoved(stage.getId());
-//                        stageDao.deleteStageById(stage.getId());
-                }
-                stage = stages.getNext();
-            }
-        });
-        stageDao.deleteMarkedForRemoval(stageSetId);
+        stageDao.deleteIdenticalToFs(stageSetId);
     }
 
     /**

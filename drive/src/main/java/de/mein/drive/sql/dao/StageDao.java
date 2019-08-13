@@ -356,12 +356,6 @@ StageDao extends Dao.LockingDao {
         return null;
     }
 
-    public void markRemoved(Long id) throws SqlQueriesException {
-        Stage stage = new Stage();
-        String statement = "update " + stage.getTableName() + " set " + stage.getRemovePair().k() + "=? where " + stage.getIdPair().k() + "=?";
-        sqlQueries.execute(statement, ISQLQueries.whereArgs(true, id));
-    }
-
     public void update(Stage stage) throws SqlQueriesException {
         StageSet stageSet = this.getStageSetById(stage.getStageSet());
         String where = stage.getIdPair().k() + "=?";
@@ -447,10 +441,14 @@ StageDao extends Dao.LockingDao {
         sqlQueries.execute(statement, ISQLQueries.whereArgs(found, stageId));
     }
 
-    public void deleteMarkedForRemoval(Long stageSetId) throws SqlQueriesException {
-        Stage stage = new Stage();
-        String statement = "delete from " + stage.getTableName() + " where " + stage.getStageSetPair().k() + "=? and " + stage.getRemovePair().k() + "=?";
-        sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId, true));
+    public void deleteIdenticalToFs(long stageSetId) throws SqlQueriesException {
+        FsFile f = new FsFile();
+        Stage s = new Stage();
+        //DELETE FROM stage where  id in (select s.id from stage s left join fsentry f on s.fsid=f.id where s.stageset=244 and s.contenthash=f.contenthash)
+        String statement = "delete from " + s.getTableName() + " where id in (select s." + s.getIdPair().k() + " from " + s.getTableName() + " s left join " + f.getTableName()
+                + " f on f." + f.getId().k() + "=s." + s.getFsIdPair().k()
+                + " where s." + s.getStageSetPair().k() + "=? and s." + s.getContentHashPair().k() + "=f." + f.getContentHash().k() + ")";
+        sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId));
     }
 
     public void updateInodeAndModifiedAndSynced(Long id, Long iNode, Long modified, Boolean synced) throws SqlQueriesException {
@@ -558,54 +556,6 @@ StageDao extends Dao.LockingDao {
         sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId, stageSetId));
     }
 
-
-    /**
-     * mark children whose parents have been marked for removal.
-     *
-     * @param stageSetId
-     */
-    public void markOrphans(Long stageSetId) throws SqlQueriesException {
-        Eva.flagAndRun("orphan", 2, () -> Lok.debug());
-//        List<Long> orphanIds = getOrphaned(stageSetId);
-//        while (orphanIds.size() > 0) {
-//            N.forEach(orphanIds, this::markRemoved);
-//            orphanIds = getOrphaned(stageSetId);
-//        }
-//        N.forEach(getOrphans(stageSetId),this::markOrphans);
-        if (getOrphans(stageSetId).size() > 0)
-            Lok.debug();
-    }
-
-    private List<Long> getOrphaned(Long stageSetId) throws SqlQueriesException {
-        Stage s = new Stage();
-        // select * from stage where (rem is null or rem = 0) and stageset=2
-        // and id in (select id from stage where stageset=2 and parentid is null and fsparentid is null and fsid is null)
-        // or id in (select id from stage where stageset=2 and rem=1)
-        String where = "(" + s.getRemovePair().k() + " is null or " + s.getRemovePair().k() + "=?) and " + s.getStageSetPair().k() + "=? and " + s.getIdPair().k()
-                + " in (select " + s.getIdPair().k() + " from " + s.getTableName() + " where " + s.getStageSetPair().k() + "=? and "
-                + s.getParentIdPair().k() + " is null and "
-                + s.getFsParentIdPair().k() + " is null and "
-                + s.getFsIdPair().k() + " is null) "
-                + "or " + s.getIdPair().k() + " in (select " + s.getIdPair().k() + " from " + s.getTableName()
-                + " where " + s.getStageSetPair().k() + "=? and " + s.getRemovePair().k() + "=?)";
-        return sqlQueries.loadColumn(s.getIdPair(), Long.class, s, null, where, ISQLQueries.whereArgs(false, stageSetId, stageSetId, stageSetId, true), null);
-    }
-
-    private List<Long> getOrphans(Long stageSetId) throws SqlQueriesException {
-        Stage dummy = new Stage();
-        // select * from stage where stageset=1 and parentid in (select id from stage where stageset=1 and rem=1);
-//        String query = "select count(*) from " + dummy.getTableName() + " where " + dummy.getStageSetPair().k() + "=? and "
-//                + dummy.getParentIdPair().k()
-//                + " in (select " + dummy.getIdPair().k() + " from " + dummy.getTableName()
-//                + " where " + dummy.getStageSetPair().k() + "=? and " + dummy.getRemovePair().k() + "+=?";
-        String where = dummy.getStageSetPair().k() + "=? and "
-                + dummy.getParentIdPair().k()
-                + " in (select " + dummy.getIdPair().k() + " from " + dummy.getTableName()
-                + " where " + dummy.getStageSetPair().k() + "=? and " + dummy.getRemovePair().k() + "=?)";
-        return sqlQueries.loadColumn(dummy.getIdPair(), Long.class, dummy, null, where, ISQLQueries.whereArgs(stageSetId, stageSetId, true), null);
-//        Long count = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(stageSetId, stageSetId, true));
-//        return count > 0;
-    }
 
     public Stage getStageParentByFsId(StageSet stageSet, Long fsId) throws SqlQueriesException {
         Stage dummy = new Stage();

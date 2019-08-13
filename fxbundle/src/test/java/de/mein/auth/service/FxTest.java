@@ -600,13 +600,15 @@ public class FxTest {
                     FsDao fsDao = clientService.get().getDriveDatabaseManager().getFsDao();
                     FsFile alterFs = fsDao.getFsFileByFile(new File(alteredFile.getAbsolutePath()));
                     alterFs.getSynced().v(false);
+                    alterFs.getiNode().nul();
+                    alterFs.getModified().nul();
                     fsDao.update(alterFs);
                     client.get().shutDown();
                     Thread.sleep(2000);
                     FileOutputStream out = alteredFile.outputStream();
                     out.write("hurrdurr".getBytes());
                     out.close();
-                    System.exit(0);
+//                    System.exit(0);
 //                    MeinBoot boot3 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
 //                    boot3.addMeinAuthAdmin(new MeinAuthFxLoader());
 //                    boot3.boot();

@@ -30,7 +30,10 @@ public class FileDistTaskDao extends Dao {
 
 
     public void insert(FileDistributionTask task) throws SqlQueriesException {
-        N.r(() -> Lok.debug("INSERT COPY: " + SerializableEntitySerializer.serialize(task)));
+        N.r(() ->{
+            String json = SerializableEntitySerializer.serialize(task);
+            Lok.debug("INSERT COPY: " + json);
+        });
         FileDistTaskWrapper wrapper = FileDistTaskWrapper.fromTask(task);
         Long id = sqlQueries.insert(wrapper);
         wrapper.getId().v(id);
