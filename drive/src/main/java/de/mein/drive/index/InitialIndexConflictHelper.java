@@ -63,12 +63,22 @@ public class InitialIndexConflictHelper {
 
     public void check(FsEntry fsEntry, Stage stage) throws SqlQueriesException {
         if (fsEntry != null && !fsEntry.getSynced().v() && !stage.getDeleted() && !fsEntry.getContentHash().equalsValue(stage.getContentHash())) {
+            Stage stageParent = stage.getFsParentIdPair().notNull() ? stageDao.getStageParentByFsId(stage.getStageSet(), stage.getFsParentId()) : null;
+            Stage parentCopy = null;
+            if (stageParent != null) {
+                parentCopy = new Stage(serverStageSetId, stageParent);
+                stageParent.setOrder(ord.ord());
+                stageDao.insert(stageParent);
+            }
             GenericFSEntry genericFSEntry = fsDao.getGenericById(fsEntry.getId().v());
             Stage conflictStage = GenericFSEntry.generic2Stage(genericFSEntry, serverStageSetId);
             conflictStage.setOrder(ord.ord());
+            if (parentCopy != null)
+                conflictStage.setParentId(parentCopy.getId());
             stageDao.insert(conflictStage);
             Lok.debug();
-        }
+        } else
+            ord.ord();
     }
 
     /**

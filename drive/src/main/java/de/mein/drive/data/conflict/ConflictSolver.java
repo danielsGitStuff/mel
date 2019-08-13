@@ -208,6 +208,9 @@ public class ConflictSolver extends SyncStageMerger {
     private void mergeFsDirectoryWithSubStages(FsDirectory fsDirToMergeInto, Stage stageToMergeWith) throws SqlQueriesException {
         List<Stage> content = stageDao.getStageContent(stageToMergeWith.getId());
         for (Stage stage : content) {
+            //todo debug
+            if (stage == null)
+                Lok.debug();
             if (stage.getIsDirectory()) {
                 if (stage.getDeleted()) {
                     fsDirToMergeInto.removeSubFsDirecoryByName(stage.getName());

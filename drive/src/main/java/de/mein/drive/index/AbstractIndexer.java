@@ -256,6 +256,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
 
+        //todo debug
+        if (stageFile.getName().equals("samedir"))
+            Lok.debug();
         //todo weiter hier"
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
 
@@ -461,6 +464,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
         }
 
+        //todo debug
+        if (stageFile.getName().equals("samedir"))
+            Lok.debug();
+
         // save to stage
         newFsDirectory.calcContentHash();
         stage.setContentHash(newFsDirectory.getContentHash().
@@ -476,9 +483,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getFsId() != null) {
             FsDirectory oldFsDirectory = fsDao.getFsDirectoryById(stage.getFsId());
             if (oldFsDirectory.getContentHash().v().equals(newFsDirectory.getContentHash().v()))
-                stageDao.markRemoved(stage.getId());
-            else
-                stageDao.update(stage);
+                stage.getRemovePair().v(true);
+            stageDao.update(stage);
         } else
             stageDao.update(stage);
         waitLock.unlockWrite();

@@ -2,6 +2,7 @@ package de.mein.drive.sql;
 
 import de.mein.Lok;
 import de.mein.auth.tools.Eva;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.sql.Pair;
@@ -60,6 +61,17 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public Stage() {
         init();
+    }
+
+    public Stage(long stageSetId, Stage src) {
+        init();
+        for (int i = 0; i < src.insertAttributes.size(); i++) {
+            Pair srcPair = src.insertAttributes.get(i);
+            Pair pair = insertAttributes.get(i);
+            pair.v(srcPair);
+        }
+        stageSet.v(stageSetId);
+        order.nul();
     }
 
     @Override

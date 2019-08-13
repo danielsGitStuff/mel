@@ -618,4 +618,10 @@ StageDao extends Dao.LockingDao {
         String where = dummy.getFsIdPair().k() + "=? and " + dummy.getStageSetPair().k() + "=?";
         return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(fsId, stageSetId), Stage.class);
     }
+
+    public Stage getStageParentByParentFsId(long stageSetId, Long parentFsID) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        String where = dummy.getFsParentIdPair().k() + "=? and " + dummy.getStageSetPair().k() + "=?";
+        return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(parentFsID, stageSetId), Stage.class);
+    }
 }
