@@ -83,7 +83,7 @@ public class FileDistTaskWrapper extends SQLTableObject {
 
         for (int i = 0; i < task.getTargetPaths().size(); i++) {
             String path = task.getTargetPaths().get(i);
-            Long fsId = task.getTargetFsIds().get(0);
+            Long fsId = task.getTargetFsIds().get(i);
             wrapper.targetWraps.add(new FileWrapper(path, fsId));
         }
         return wrapper;
