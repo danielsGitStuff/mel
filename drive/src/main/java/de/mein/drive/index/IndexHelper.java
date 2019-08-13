@@ -136,6 +136,9 @@ public class IndexHelper {
     void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
         if (databaseManager.getDriveSettings().getFastBoot()) {
             try {
+                //todo debug
+                if (stage.getNamePair().equalsValue("same1.txt"))
+                    Eva.flagAndRun("looo", 2, () -> Lok.debug());
                 FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
                 if (fsEntry.getModified().equalsValue(fsBashDetails.getModified())
                         && fsEntry.getiNode().equalsValue(fsBashDetails.getiNode())

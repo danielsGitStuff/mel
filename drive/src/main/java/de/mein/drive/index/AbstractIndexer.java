@@ -37,6 +37,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     private Order order = new Order();
     protected Boolean fastBooting = true;
 
+    protected InitialIndexConflictHelper initialIndexConflictHelper;
+
+    public void setInitialIndexConflictHelper(InitialIndexConflictHelper initialIndexConflictHelper) {
+        this.initialIndexConflictHelper = initialIndexConflictHelper;
+    }
 
     protected AbstractIndexer(DriveDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
@@ -96,6 +101,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 String path = buildPathFromStage(stage);
                 AFile f = AFile.instance(path);
 
+                //todo debug
+                Eva.condition(f.getName().equals("sub22.txt"), 2, () -> Lok.debug());
+                Eva.condition(f.getName().equals("same1.txt"), 2, () -> Lok.debug());
+
                 if (!f.exists()) {
                     stageDao.markRemoved(stage.getId());
                     continue;
@@ -149,6 +158,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             AFile f = iterator.next();
             AFile parent = f.getParentFile();
 
+            //todo debug
+            if (f.getName().equals("same1.txt"))
+                Lok.debug();
+
             FsDirectory fsParent = null;
             FsEntry fsEntry = null;
             Stage stage;
@@ -199,7 +212,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
             timer.start();
             Stage stageParent = indexHelper.connectToFs(parent);
-            if (stageParent!=null){
+            if (stageParent != null) {
                 stage.setParentId(stageParent.getId());
             }
             timer.stop();
@@ -515,6 +528,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             if (stage.getDeletedPair().equalsValue(true))
                 return;
 
+
             FsEntry fsEntry = null;
             if (stage.getFsIdPair().notNull())
                 fsEntry = fsDao.getFile(stage.getFsId());
@@ -551,6 +565,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 timer1.stop();
             if (timer2 != null)
                 timer2.start();
+            //todo debug
+            if (stageFile.getName().equals("same1.txt"))
+                Lok.debug();
+//            Eva.condition(stageFile.getName().equals("same1.txt"),1,() -> Lok.debug());
 
             // stage can be deleted if nothing changed
             if (fsEntry != null) {
@@ -578,6 +596,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             if (timer2 != null)
                 timer2.stop();
+            if (initialIndexConflictHelper != null)
+                initialIndexConflictHelper.check(fsEntry, stage);
 
         } else {
             stage.setDeleted(true);

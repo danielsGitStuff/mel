@@ -1,5 +1,6 @@
 package de.mein.drive.service;
 
+import de.mein.drive.index.InitialIndexConflictHelper;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -61,6 +62,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     private Wastebin wastebin;
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
     private DriveSyncListener syncListener;
+    protected InitialIndexConflictHelper conflictHelper;
+
 
     public S getSyncHandler() {
         return syncHandler;
@@ -316,6 +319,8 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         wasteDir.mkdirs();
         this.stageIndexer = new StageIndexer(driveDatabaseManager);
         this.indexer = new Indexer(driveDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());
+        if (conflictHelper!=null)
+            indexer.setConflictHelper(conflictHelper);
         this.wastebin = new Wastebin(this);
         this.syncHandler = initSyncHandler();
         this.syncHandler.start();

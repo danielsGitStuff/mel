@@ -477,6 +477,41 @@ public class FxTest {
         lock.unlockWrite();
     }
 
+    @Test
+    public void startupConflict2() throws Exception {
+        Eva.enable();
+        MeinAuthSettings json1 = MeinAuthSettings.createDefaultSettings();
+        json1.setPort(8888).setDeliveryPort(8889)
+                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+        MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootloader.class);
+        boot1.boot().done(mas1 -> N.r(() -> {
+
+            MeinAuthSettings json2 = MeinAuthSettings.createDefaultSettings()
+                    .setPort(8890).setDeliveryPort(8891)
+                    .setBrotcastPort(9966) // does not listen! only one listener seems possible
+                    .setBrotcastListenerPort(6699).setBrotcastPort(9966)
+                    .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+            MeinBoot boot = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+            boot.addMeinAuthAdmin(new MeinAuthFxLoader());
+            boot.boot().done(result -> N.r(() -> {
+                Lok.debug("NANANA");
+                Lok.debug("NANANA");
+                Lok.debug("NANANA");
+                Lok.debug("NANANA");
+                Lok.debug("NANANA");
+                Lok.debug("NANANA");
+                Lok.debug("NANANA");
+                Lok.debug("NANANA");
+                Lok.debug("NANANA");
+                Lok.debug("NANANA");
+            }));
+        }));
+
+
+        lock.lockWrite().lockWrite();
+    }
+
     /**
      * sync files to client, then shut him down. alter a file and set it to non-synced in fs database.
      * restart client.
@@ -533,27 +568,12 @@ public class FxTest {
             }
         };
 
-
-
-/*
-        IDBCreatedListener admin = databaseManager -> {
-            ServiceType serviceType = databaseManager.createServiceType("test type", "test type desc");
-            databaseManager.createService(serviceType.getId().v(), "service uuid");
-        };*/
-        //standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
-        //standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
-        /*standAloneAuth1.addRegisteredHandler((meinAuthService, registered) -> {
-            List<ServiceJoinServiceType> services = meinAuthService.getDatabaseManager().getAllServices();
-            for (ServiceJoinServiceType serviceJoinServiceType : services) {
-                meinAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v());
-            }
-        });*/
         lock.lockWrite();
-        AFile rootServer = AFile.instance("server");
-        AFile rootClient = AFile.instance("client");
+        AFile rootServer = AFile.instance("t1");
+        AFile rootClient = AFile.instance("t2");
         BashTools.rmRf(rootClient);
         BashTools.rmRf(rootClient);
-        AFile alteredFile = AFile.instance("client" + File.separator + "samedir" + File.separator + "same1.txt");
+        AFile alteredFile = AFile.instance("t2" + File.separator + "samedir" + File.separator + "same1.txt");
         TestDirCreator.createTestDir(rootServer);
         rootClient.mkdirs();
         rootServer.mkdirs();
@@ -582,12 +602,14 @@ public class FxTest {
                     alterFs.getSynced().v(false);
                     fsDao.update(alterFs);
                     client.get().shutDown();
+                    Thread.sleep(2000);
                     FileOutputStream out = alteredFile.outputStream();
                     out.write("hurrdurr".getBytes());
                     out.close();
-                    MeinBoot boot3 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
-                    boot3.addMeinAuthAdmin(new MeinAuthFxLoader());
-                    boot3.boot();
+                    System.exit(0);
+//                    MeinBoot boot3 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+//                    boot3.addMeinAuthAdmin(new MeinAuthFxLoader());
+//                    boot3.boot();
                 });
             }
 
@@ -605,7 +627,7 @@ public class FxTest {
                                 serviceJoinServiceType -> mas1.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v())));
                 // create drive server
 
-                runner.r(() -> {
+                N.r(() -> {
                     Lok.debug("FxTest.driveGui.1.booted");
 //                DriveBootloader.deVinjector = null;
                     boot2.boot().done(mas2 -> {

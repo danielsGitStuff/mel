@@ -82,4 +82,8 @@ public class Indexer {
 //        indexerRunnable.getStartedDeferred().done(result -> N.r(meinDriveService::onIndexerDone));
         meinDriveService.execute(indexerRunnable);
     }
+
+    public void setConflictHelper(InitialIndexConflictHelper conflictHelper) {
+        indexerRunnable.setInitialIndexConflictHelper(conflictHelper);
+    }
 }

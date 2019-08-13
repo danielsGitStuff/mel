@@ -17,12 +17,14 @@ import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.index.IndexListener;
+import de.mein.drive.index.InitialIndexConflictHelper;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.service.sync.ClientSyncHandler;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.sql.StageSet;
 import de.mein.drive.sql.TransferState;
+import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.SqlQueriesException;
 
 import org.jdeferred.impl.DeferredObject;
@@ -44,6 +46,11 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     public MeinDriveClientService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
         super(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
+        try {
+            conflictHelper = new InitialIndexConflictHelper(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

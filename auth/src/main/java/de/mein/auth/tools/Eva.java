@@ -6,6 +6,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import de.mein.Lok;
+import de.mein.sql.Hash;
 
 /**
  * Currently used for testing. Does nothing if not explicitly turned on by calling enable().
@@ -45,6 +46,24 @@ public class Eva {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public static void condition(boolean condition, int triggerCount, N.INoTryRunnable run) {
+        try {
+            if (!condition)
+                return;
+            StackTraceElement caller = Thread.currentThread().getStackTrace()[1];
+            int count = flag(Hash.md5((caller.getClassName() + ".." + caller.getMethodName() + ".." + caller.getLineNumber() + "0").getBytes()));
+            if (count == triggerCount) {
+                try {
+                    run.run();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception ee) {
+            ee.printStackTrace();
         }
     }
 

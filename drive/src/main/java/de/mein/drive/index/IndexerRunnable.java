@@ -2,6 +2,7 @@ package de.mein.drive.index;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
+import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
@@ -30,6 +31,7 @@ public class IndexerRunnable extends AbstractIndexer {
     private List<IndexListener> listeners = new ArrayList<>();
     private RootDirectory rootDirectory;
     private Order ord = new Order();
+
 
     /**
      * the @IndexWatchdogListener is somewhat special. we need it elsewhere
@@ -83,6 +85,8 @@ public class IndexerRunnable extends AbstractIndexer {
             }
             Transaction transaction = T.lockingTransaction(T.read(fsDao));
             try {
+                if (initialIndexConflictHelper != null)
+                    initialIndexConflictHelper.onStart();
                 indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
                 OTimer timerFind = new OTimer("bash.find").start();
@@ -90,18 +94,22 @@ public class IndexerRunnable extends AbstractIndexer {
                 timerFind.stop().print();
                 Lok.debug("starting stageset initialization");
                 OTimer timerInit = new OTimer("init stageset").start();
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-                sqlQueries.beginTransaction();
+                Lok.error("TRANSACTION DISABLED!!!!!");
+                Lok.error("TRANSACTION DISABLED!!!!!");
+                Lok.error("TRANSACTION DISABLED!!!!!");
+                Lok.error("TRANSACTION DISABLED!!!!!");
+                Lok.error("TRANSACTION DISABLED!!!!!");
+//                sqlQueries.beginTransaction();
                 initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
                 timerInit.stop().print().reset();
                 OTimer timerExamine = new OTimer("examine stageset").start();
+                Eva.flagAndRun("ii!", 2, () -> Lok.debug());
                 examineStage();
-                sqlQueries.commit();
+//                sqlQueries.commit();
                 timerExamine.stop().print();
+                if (initialIndexConflictHelper != null)
+                    initialIndexConflictHelper.onDone();
+                initialIndexConflictHelper = null;
                 fastBooting = false;
             } catch (Exception e) {
                 e.printStackTrace();
