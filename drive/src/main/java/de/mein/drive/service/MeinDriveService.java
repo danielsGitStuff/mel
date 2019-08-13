@@ -319,7 +319,7 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         wasteDir.mkdirs();
         this.stageIndexer = new StageIndexer(driveDatabaseManager);
         this.indexer = new Indexer(driveDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());
-        if (conflictHelper!=null)
+        if (conflictHelper != null)
             indexer.setConflictHelper(conflictHelper);
         this.wastebin = new Wastebin(this);
         this.syncHandler = initSyncHandler();

@@ -16,6 +16,7 @@ import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.data.*;
 import de.mein.drive.data.conflict.ConflictSolver;
+import de.mein.drive.index.InitialIndexConflictHelper;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.jobs.SyncClientJob;
 import de.mein.drive.quota.OutOfSpaceException;
@@ -342,6 +343,10 @@ public class ClientSyncHandler extends SyncHandler {
 
     }
 
+    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction) throws SqlQueriesException {
+        handleConflict(serverStageSet, stagedFromFs, transaction, null);
+    }
+
 
     /**
      * check whether or not there are any conflicts between stuff that happened on this computer and stuff
@@ -350,7 +355,7 @@ public class ClientSyncHandler extends SyncHandler {
      * @param serverStageSet
      * @param stagedFromFs
      */
-    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction) throws SqlQueriesException {
+    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction, String conflictHelperUuid) throws SqlQueriesException {
         String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
         ConflictSolver conflictSolver;
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
@@ -371,6 +376,8 @@ public class ClientSyncHandler extends SyncHandler {
         if (!conflictSolver.isSolving()) {
             if (conflictSolver.hasConflicts()) {
                 System.err.println("conflicts!!!!1!");
+                if (conflictHelperUuid != null)
+                    conflictSolver.setConflictHelperUuid(conflictHelperUuid);
                 putConflictSolver(conflictSolver);
                 conflictSolver.setSolving(true);
                 meinDriveService.onConflicts();

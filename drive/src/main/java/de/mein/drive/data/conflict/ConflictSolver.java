@@ -6,6 +6,7 @@ import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
+import de.mein.drive.index.InitialIndexConflictHelper;
 import de.mein.drive.nio.FileTools;
 import de.mein.drive.service.sync.SyncStageMerger;
 import de.mein.drive.sql.*;
@@ -41,6 +42,7 @@ public class ConflictSolver extends SyncStageMerger {
     private Semaphore listenerSemaphore = new Semaphore(1, true);
     private boolean obsolete = false;
     private boolean solving = false;
+    private String conflictHelperUuid;
 
     public ConflictSolver(DriveDatabaseManager driveDatabaseManager, StageSet serverStageSet, StageSet localStageSet) throws SqlQueriesException {
         super(serverStageSet.getId().v(), localStageSet.getId().v());
@@ -646,6 +648,19 @@ public class ConflictSolver extends SyncStageMerger {
 
     public void setSolving(boolean solving) {
         this.solving = solving;
+    }
+
+    public void setConflictHelperUuid(String conflictHelperUuid) {
+        this.conflictHelperUuid = conflictHelperUuid;
+    }
+
+    public String getConflictHelperUuid() {
+        return conflictHelperUuid;
+    }
+
+    public void finished() {
+        if (conflictHelperUuid != null)
+            InitialIndexConflictHelper.finished(conflictHelperUuid);
     }
 
     public interface ConflictSolverListener {

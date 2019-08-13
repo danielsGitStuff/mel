@@ -9,7 +9,6 @@ import de.mein.drive.data.conflict.Conflict;
 import de.mein.drive.data.conflict.ConflictSolver;
 import de.mein.drive.jobs.CommitJob;
 import de.mein.drive.service.MeinDriveClientService;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
@@ -31,6 +30,7 @@ public class DriveFXConflictSolverControllerList extends PopupContentFX implemen
     public String onOkCLicked() {
         Lok.debug("DriveFXConflictSolverController.onOkCLicked");
         if (conflictSolver.isSolved()) {
+            conflictSolver.finished();
             CommitJob commitJob = new CommitJob();
             meinDriveClientService.addJob(commitJob);
         } else {

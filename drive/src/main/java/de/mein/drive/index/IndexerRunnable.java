@@ -106,9 +106,11 @@ public class IndexerRunnable extends AbstractIndexer {
                 examineStage();
 //                sqlQueries.commit();
                 timerExamine.stop().print();
-                if (initialIndexConflictHelper != null)
-                    initialIndexConflictHelper.onDone(transaction);
-                initialIndexConflictHelper = null;
+                if (initialIndexConflictHelper != null) {
+                    boolean conflicts = initialIndexConflictHelper.onDone(transaction, this);
+                    if (!conflicts)
+                        initialIndexConflictHelper = null;
+                }
                 fastBooting = false;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -125,7 +127,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 listener.done(stageSetId, transaction);
             transaction.end();
             Lok.debug("done");
-            if (!startedPromise.isResolved())
+            if (initialIndexConflictHelper == null && !startedPromise.isResolved())
                 startedPromise.resolve(this);
         } catch (Exception e) {
             e.printStackTrace();
