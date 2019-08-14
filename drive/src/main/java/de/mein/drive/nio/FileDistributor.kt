@@ -133,11 +133,8 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
         targetIds.addAll(distributionTask.targetFsIds)
 
         val sourceFile: T = AFile.instance(distributionTask.sourceFile.absolutePath) as T
-        //todo debug
-        if (sourceFile.name.equals("51037a4a37730f52c8732586d3aaa316"))
-            Lok.debug()
-        // ...the last file is arbitrary
 
+        // ...the last file is arbitrary
         val lastFile = targetStack.pop()
         val lastId = if (targetIds.empty()) null else targetIds.pop()
         val lastPath = targetPathStack.pop()

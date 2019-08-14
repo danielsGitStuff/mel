@@ -51,7 +51,7 @@ public class Eva {
 
     public static void condition(boolean condition, int triggerCount, N.INoTryRunnable run) {
         try {
-            if (!condition)
+            if (!condition || !ENABLED)
                 return;
             StackTraceElement caller = Thread.currentThread().getStackTrace()[1];
             int count = flag(Hash.md5((caller.getClassName() + ".." + caller.getMethodName() + ".." + caller.getLineNumber() + "0").getBytes()));

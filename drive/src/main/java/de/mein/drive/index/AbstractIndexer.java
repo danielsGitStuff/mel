@@ -101,10 +101,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 String path = buildPathFromStage(stage);
                 AFile f = AFile.instance(path);
 
-                //todo debug
-                Eva.condition(f.getName().equals("sub22.txt"), 2, () -> Lok.debug());
-                Eva.condition(f.getName().equals("same1.txt"), 2, () -> Lok.debug());
-
                 if (!f.exists()) {
                     continue;
                 }
@@ -158,10 +154,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         while (iterator.hasNext()) {
             AFile f = iterator.next();
             AFile parent = f.getParentFile();
-
-            //todo debug
-            if (f.getName().equals("same1.txt"))
-                Lok.debug();
 
             FsDirectory fsParent = null;
             FsEntry fsEntry = null;
@@ -459,10 +451,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
         }
 
-        //todo debug
-        if (stageFile.getName().equals("samedir"))
-            Lok.debug();
-
         // save to stage
         newFsDirectory.calcContentHash();
         stage.setContentHash(newFsDirectory.getContentHash().
@@ -566,10 +554,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 timer1.stop();
             if (timer2 != null)
                 timer2.start();
-            //todo debug
-            if (stageFile.getName().equals("same1.txt"))
-                Lok.debug();
-//            Eva.condition(stageFile.getName().equals("same1.txt"),1,() -> Lok.debug());
 
             // stage can be deleted if nothing changed
             if (fsEntry != null) {

@@ -110,10 +110,6 @@ public class MeinAuthProcess extends MeinProcess {
                                         Class<? extends MeinIsolatedProcess> isolatedClass = (Class<? extends MeinIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
                                         MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());
                                         isolatedProcess.setService(service);
-                                        // todo debug
-                                        if (service == null){
-                                            Lok.debug();
-                                        }
                                         service.onIsolatedConnectionEstablished(isolatedProcess);
                                         send(response);
                                     }
