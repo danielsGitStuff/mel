@@ -1,6 +1,5 @@
 package de.mein.auth;
 
-import de.mein.auth.service.MeinAuthService;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -18,6 +17,7 @@ public class MeinNotification {
     private Object content;
     private final String serviceUuid;
     private final String intention;
+    private boolean isUserCancelable = true;
     private Map<String, String> extras = new HashMap<>();
     // progress related stuff
     private Set<MeinProgressListener> progressListeners = new HashSet<>();
@@ -35,6 +35,15 @@ public class MeinNotification {
         for (MeinProgressListener listener : progressListeners) {
             listener.onCancel(this);
         }
+    }
+
+    public MeinNotification setUserCancelable(boolean userCancelable) {
+        isUserCancelable = userCancelable;
+        return this;
+    }
+
+    public boolean isUserCancelable() {
+        return isUserCancelable;
     }
 
     public MeinNotification setText(String text) {

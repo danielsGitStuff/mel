@@ -85,6 +85,8 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
             DeferredObject<Void, BootException, Void> done = new DeferredObject<>();
             //notify user
             MeinNotification notification = new MeinNotification(meinDriveService.getUuid(), DriveStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
+            //todo debug
+            //            notification.setUserCancelable(false);
             notification.setProgress(0, 0, true);
             meinAuthService.onNotificationFromService(meinDriveService, notification);
             DeferredObject<DeferredRunnable, Exception, Void> indexDonePromise = startIndexer(meinDriveService, meinDriveService.getDriveSettings());

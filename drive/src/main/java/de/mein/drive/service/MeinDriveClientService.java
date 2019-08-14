@@ -193,7 +193,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
         }
         latestConflictNotification = new MeinNotification(uuid, DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED
                 , "Conflict detected!"
-                , "Click to solve!");
+                , "Click to solve!").setUserCancelable(false);
         meinAuthService.onNotificationFromService(this, latestConflictNotification);
     }
 

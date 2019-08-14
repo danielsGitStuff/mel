@@ -72,6 +72,10 @@ public class NotificationListCell extends ListCell<MeinNotification> {
                         }
                     });
                 });
+                btnIgnore.setOnAction(event -> {
+                    if (notification.isUserCancelable())
+                        notification.cancel();
+                });
                 try {
                     String name = meinAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
                     Bootloader bootLoader = meinAuthService.getMeinBoot().getBootLoader(name);
