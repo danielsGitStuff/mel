@@ -136,6 +136,8 @@ public abstract class ISQLQueries {
 
     public abstract <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String tableReference, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException;
 
+    public abstract <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, String query , List<Object> whereArgs) throws SqlQueriesException;
+
 
     public abstract <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject,
                                                                   String selectString, List<Object> arguments) throws SqlQueriesException;

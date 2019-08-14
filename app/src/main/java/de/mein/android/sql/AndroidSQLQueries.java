@@ -101,6 +101,25 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     @Override
+    public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, String query, List<Object> whereArgs) throws SqlQueriesException {
+        List<T> result;
+        Cursor cursor = db.rawQuery(query, argsToStringArgs(whereArgs));
+        try {
+            result = new ArrayList<>(cursor.getCount());
+            while (cursor.moveToNext()) {
+                AndroidSQLQueries.readCursorIndexToPair(cursor, 0, column);
+                result.add(column.v());
+            }
+        } catch (Exception e) {
+            throw new SqlQueriesException(e);
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return result;
+    }
+
+    @Override
     public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> args, String whatElse) throws SqlQueriesException {
         String select = buildSelectQuery(columns, sqlTableObject.getTableName());
         if (where != null) {
@@ -136,6 +155,10 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     public static void readCursorToPair(Cursor cursor, Pair<?> pair) {
         int index = cursor.getColumnIndex(pair.k());
+        readCursorIndexToPair(cursor, index, pair);
+    }
+
+    public static void readCursorIndexToPair(Cursor cursor, int index, Pair<?> pair) {
         if (index > -1) {
             if (cursor.isNull(index))
                 pair.setValueUnsecure(null);

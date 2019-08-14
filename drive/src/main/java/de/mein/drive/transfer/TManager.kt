@@ -157,9 +157,10 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                         if (fsFiles?.size!! > 0) {
                             val fsFile = fsFiles[0]
                             val aFile = fsDao.getFileByFsFile(meinDriveService.driveSettings.rootDirectory, fsFile)
-                            syncHandler.onFileTransferred(aFile, hash, fsTransaction, fsFile)
-                            transferDao.updateStateByHash(hash, TransferState.DONE)
-//                            transferDao.deleteByHash(hash)
+                            // the syncHandler moves the file into its places if equired.
+                            // if not, the transfer entry is obsolete and can be deleted
+                            if (!syncHandler.onFileTransferred(aFile, hash, fsTransaction, fsFile))
+                                transferDao.deleteByHash(hash)
                         }
                     }
                 } finally {

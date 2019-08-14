@@ -176,7 +176,6 @@ public abstract class SyncHandler {
         try {
 
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
-            boolean isNew = fsFiles.size() > 0;
 
             FileDistributionTask distributionTask = new FileDistributionTask();
             distributionTask.setSourceFile(file);
@@ -206,11 +205,11 @@ public abstract class SyncHandler {
                 });
             }
 
-            // this might happen if ther is still a transfer that has not been canceled properly. just skip here
+            // this might happen if there is still a transfer that has not been flagged properly. just skip here
             if (distributionTask.getTargetPaths().isEmpty())
-                return isNew;
+                return false;
             fileDistributor.createJob(distributionTask);
-            return isNew;
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

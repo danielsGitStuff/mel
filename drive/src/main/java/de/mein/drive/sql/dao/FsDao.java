@@ -468,10 +468,11 @@ public class FsDao extends Dao {
      * @throws SqlQueriesException
      */
     public List<String> searchTransfer() throws SqlQueriesException {
-        FsFile fsFile = new FsFile();
-        DbTransferDetails transfer = new DbTransferDetails();
-        String where = fsFile.getSynced().k() + "=? and exists ( select * from " + transfer.getTableName() + " t where t." + transfer.getHash().k() + "=f." + fsFile.getContentHash().k() + ")";
-        return sqlQueries.loadColumn(fsFile.getContentHash(), String.class, fsFile, "f", where, ISQLQueries.whereArgs(true), null);
+        FsFile f = new FsFile();
+        DbTransferDetails t = new DbTransferDetails();
+        String query = "select f."+f.getContentHash().k()+" from "+t.getTableName()+" t left join "+f.getTableName()
+                +" f on f."+f.getContentHash().k()+"=t."+t.getHash().k()+" where f."+f.getSynced().k()+"=?";
+        return sqlQueries.loadColumn(f.getContentHash(),String.class, query,ISQLQueries.whereArgs(true));
     }
 
     public void setSynced(Long id, boolean synced) throws SqlQueriesException {

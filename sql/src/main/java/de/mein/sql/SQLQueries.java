@@ -207,6 +207,47 @@ public class SQLQueries extends ISQLQueries {
     }
 
     @Override
+    public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, String query, List<Object> whereArgs) throws SqlQueriesException {
+        List<T> list = new ArrayList<>();
+        if (connection == null) {
+            return null;
+        }
+        try {
+            PreparedStatement pstmt = connection.prepareStatement(query);
+            if (whereArgs != null) {
+                insertArguments(pstmt, whereArgs);
+            }
+            pstmt.execute();
+            ResultSet resultSet = pstmt.getResultSet();
+            boolean hasResult = resultSet.next();
+            if (hasResult && resultSet.getRow() > 0) {
+                while (!resultSet.isAfterLast()) {
+                    try {
+                        Object res = resultSet.getObject(1);
+                        // cast numbers because that does not happen automagically
+                        if (Number.class.isAssignableFrom(clazz) && res instanceof Number) {
+                            Number casted = NumberTransformer.forType((Class<? extends Number>) clazz).cast((Number) res);
+                            list.add((T) casted);
+                        } else
+                            list.add((T) res);
+                    } catch (Exception e) {
+                        if (!e.getClass().equals(SQLException.class)) {
+                            out("load().exception." + e.getClass().toString() + " " + e.getMessage());
+                        }
+                    }
+                    resultSet.next();
+                }
+            }
+            resultSet.close();
+            pstmt.close();
+        } catch (Exception e) {
+            System.err.println("SQLQueries.loadColumn.failed.query: " + query);
+            throw new SqlQueriesException(e);
+        }
+        return list;
+    }
+
+    @Override
     public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
         List<T> result = new ArrayList<>();
         out("load()");
