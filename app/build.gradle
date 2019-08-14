@@ -78,7 +78,7 @@ android {
     buildTypes {
         debug {
             println("BUILDTYPE: DEBUG")
-            manifestPlaceholders = [appName: "Mel DEBUG"]
+            manifestPlaceholders = [appName: "Mel DEBUG",icon: "ic_debug"]
             minifyEnabled false
             if (keystorePropertiesFile.exists())
                 signingConfig signingConfigs.release
@@ -91,7 +91,7 @@ android {
         }
         release {
             println("BUILDTYPE: RELEASE")
-            manifestPlaceholders = [appName: "Mel"]
+            manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
             minifyEnabled false
             if (keystorePropertiesFile.exists())
                 signingConfig signingConfigs.release
