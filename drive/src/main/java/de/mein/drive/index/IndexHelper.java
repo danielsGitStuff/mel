@@ -34,7 +34,6 @@ public class IndexHelper {
     private final OTimer timer1 = new OTimer("helper 1");
     private final OTimer timer2 = new OTimer("helper 2");
 
-    private final Map<Long, Stage> stageMap = new HashMap<>();
 
     public IndexHelper(DriveDatabaseManager databaseManager, long stageSetId, Order order) {
         this.databaseManager = databaseManager;
@@ -75,8 +74,6 @@ public class IndexHelper {
             stackPath = fileStack.peek().getAbsolutePath();
             if (stageStack.size() > 0) {
                 Stage stage = stageStack.pop();
-                if (stage != null)
-                    stageMap.remove(stage.getId());
             }
             if (fsEntryStack.size() > 0) {
                 fsEntryStack.pop();
@@ -116,10 +113,18 @@ public class IndexHelper {
             } else if (stageParent != null) {
                 Stage newStageParent = stageDao.getSubStageByName(stageParent.getId(), part.getName());
                 if (newStageParent == null) {
-                    //this should not happen
-                    newStageParent = new Stage();
+                    /*
+                     * this may happen if the output of find is not hierarchicly coherent:
+                     * /home
+                     * /home/user/subdir/file.txt
+                     */
+                    newStageParent = new Stage()
+                            .setName(part.getName())
+                            .setOrder(order.ord())
+                            .setStageSet(stageSetId);
+                    newStageParent.setParentId(stageParent.getId());
+                    newStageParent.setFsParentId(stageParent.getFsId());
                     stageDao.insert(newStageParent);
-//                    stageMap.put(newStageParent.getId(), newStageParent);
                 }
                 stageParent = newStageParent;
             }
