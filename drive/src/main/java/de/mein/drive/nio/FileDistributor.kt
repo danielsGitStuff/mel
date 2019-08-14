@@ -11,8 +11,6 @@ import de.mein.drive.data.DriveStrings
 import de.mein.drive.service.MeinDriveService
 import java.io.File
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -28,28 +26,48 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
     val watchDogTimer = driveService.indexer.indexerRunnable.indexWatchdogListener.watchDogTimer
 
     companion object {
-        //        var factory: FileDistributorFactory = FileDistributorFactory()
-//            set
+
         val BUFFER_SIZE = 1024 * 64
 
         var factory: FileDistributorFactory? = null
             set
 
-        @Throws(IOException::class)
-        fun copyStream(inputStream: InputStream, out: OutputStream) {
-            var read = 0
+
+        fun createInstance(driveService: MeinDriveService<*>): FileDistributor<*> = factory!!.createInstance(driveService)
+    }
+
+    /**
+     * this overwrites files and does not update databases!
+     */
+    @Throws(IOException::class)
+    fun rawCopyFile(srcFile: AFile<*>, targetFile: AFile<*>) {
+        var read: Int
+        val out = targetFile.outputStream()
+        val ins = srcFile.inputStream()
+        try {
             do {
+                if (stopped || Thread.currentThread().isInterrupted) {
+                    throw InterruptedException()
+                }
                 val bytes = ByteArray(BUFFER_SIZE)
-                read = inputStream.read(bytes)
+                read = ins.read(bytes)
                 if (read > 0) {
                     out.write(bytes, 0, read)
                 }
             } while (read > 0)
-
+        } catch (e: Exception) {
+            N.r {
+                out.close()
+                ins.close()
+            }
+            targetFile.delete()
+        } finally {
+            out.close()
+            ins.close()
         }
 
-        fun createInstance(driveService: MeinDriveService<*>): FileDistributor<*> = factory!!.createInstance(driveService)
     }
+
 
     fun isRunning() = running
 
@@ -144,7 +162,6 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
             val target = targetStack.pop()
             if (!target.exists()) {
                 copyFile(sourceFile, target, targetPathStack.pop(), fsId)
-                de.mein.auth.tools.lock.T.lockingTransaction(fsId).run { updateFs(fsId, target) }.end()
             }
         }
         if (!lastFile.exists()) {
@@ -158,14 +175,11 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
 
             } else {
                 copyFile(sourceFile, lastFile, lastPath, lastId)
-                if (lastId != null) {
-                    de.mein.auth.tools.lock.T.lockingTransaction(fsDao).run { updateFs(lastId, lastFile) }.end()
-                }
             }
         }
     }
 
-    private fun updateFs(fsId: Long?, target: T) {
+    protected fun updateFs(fsId: Long?, target: T) {
         val fsBashDetails = BashTools.getFsBashDetails(target)
         val fsTarget = fsDao.getFile(fsId)
         fsTarget.getiNode().v(fsBashDetails.getiNode())
@@ -182,17 +196,13 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
 
     }
 
-    open protected fun copyFile(source: T, target: T, targetPath: String, fsId: Long?) {
-        val input = source.inputStream()
+    @Throws(IOException::class)
+    protected fun copyFile(source: T, target: T, targetPath: String, fsId: Long?) {
         if (target.exists())
-            return
-        try {
-            val out = target.outputStream()
-            copyStream(input, out)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            input.close()
+            throw  IOException("file already exists")
+        rawCopyFile(source, target)
+        if(fsId!=null){
+            de.mein.auth.tools.lock.T.lockingTransaction(fsId).run { updateFs(fsId, target) }.end()
         }
     }
 
