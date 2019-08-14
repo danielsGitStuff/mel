@@ -121,7 +121,8 @@ public class IndexHelper {
                     newStageParent = new Stage()
                             .setName(part.getName())
                             .setOrder(order.ord())
-                            .setStageSet(stageSetId);
+                            .setStageSet(stageSetId)
+                            .setDeleted(false);
                     newStageParent.setParentId(stageParent.getId());
                     newStageParent.setFsParentId(stageParent.getFsId());
                     stageDao.insert(newStageParent);
