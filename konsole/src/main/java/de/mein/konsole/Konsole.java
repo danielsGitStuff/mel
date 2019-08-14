@@ -7,7 +7,7 @@ import java.io.File;
 import java.util.*;
 
 /**
- * This class digests the input arguments of the main()-method. Everything argument
+ * This class digests the input arguments of the main()-method. Everything
  * with a leading '-' is considered as an attribute you want to set (or a flag).
  * This can be fed with optional and mandatory argument definitions. The whole Konsole has fun with Lambdas and Stream API.
  * Created by xor on 3/12/17.
@@ -34,15 +34,13 @@ public class Konsole<T extends KResult> {
 
     public static String[] tokenizeArgument(String arguments) {
         Lok.debug(arguments);
-        Integer lastSplitIndex = 0;
         Integer splitIndex = arguments.indexOf('"');
         String rear = arguments;
         List<String> tokens = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
-        boolean afterEndQuote = false;
         while (splitIndex > -1) {
             String front = rear.substring(0, splitIndex);
-            rear = rear.substring(splitIndex + 1, rear.length());
+            rear = rear.substring(splitIndex + 1);
             builder.append(front);
 
             if (front.endsWith("\\")) {
@@ -51,7 +49,6 @@ public class Konsole<T extends KResult> {
                 tokens.add(builder.toString());
                 builder = new StringBuilder();
                 Lok.debug("lel");
-                afterEndQuote = true;
             }
 
             splitIndex = rear.indexOf('"');

@@ -51,11 +51,34 @@ You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.ht
 
 ## Current issues
 - does not work on Windows (will be addressed)
+- does not work on MacOS (won't be addressed: too expensive, no FileWatcher)
 - Downloads may abort. Restarting fixes this (will be addressed)
 - File transfer over Wifi may be slow
 - Notifications are ugly on PC
 
 ## Dev stuff
+### Modules
+- `app`: Android implementation of `auth`, `drive` and `contacts`
+- `auth`: handles pairing, key management, connections, sending/receiving data, service management
+- `authfx`: wraps `auth` into a GUI on PCs so you can click on things
+- `calendar`: just a stub atm
+- `contacts`: stores contacts
+- `contactsfx`: a bit of GUI
+- `drive`: file syncing, all the logical stuff
+- `drivefx`: adds GUI for creating/editing services and conflict solving
+- `fxbundle`: bundles `authfx`, `contactsfx` and `drivefx`
+- `icons`: icons 'stolen' from KDE Plasma 5 plus some own
+- `json`: json lib created by Douglas Crockford
+- `konsole`: make reading command line arguments a bit easier and stay simple
+- `lok`: Tells you where the log message came from
+- `messenger`: stub, sharing messages/events across your devices, probably won't happen
+- `minisevrer`: a small https server. because why not?
+- `serialize`: crafts lovely JSONs from you objects and vice versa
+- `serverparts`: part of `miniserver` that is required to run a server as a service in Mel
+- `sql`: reads and writes objects to SQL databases
+
+
+
 ### What language is it written in?
 Mostly Java and partially in Kotlin. If I had to do it again this would be a Kotlin only show.
 But back in the days when I started working on this it was in an early stage, especially regarding to Android.
@@ -74,6 +97,7 @@ For example:
   - many things do not work on a sufficient amount of Android versions
   - it is slow!
   - one cannot emphasize enough how slow it is!
+  - renaming a DocumentFile cannot handle `?` in the new name: it will escape to `_`
 - databasing is different
   - your API is similar to that of jdbc but different, so can manufacture an abstraction layer if you want your stuff to run with both
   - you only got a 4 data types: Long, Double, String, byte[]

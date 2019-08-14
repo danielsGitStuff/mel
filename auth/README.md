@@ -61,4 +61,4 @@ While some services are fully functional at this point, others might require the
 A Service might not be aware of all of its available resources before finishing level 2. Therefore asking for resources on level 1 might cause serious issues.
 For example: A File-Sync service cannot send a certain file if it has not indexed its directory and checked the required file actually exists.
 ### Booting a Service
-
+to be continued...
