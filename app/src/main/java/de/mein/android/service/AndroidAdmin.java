@@ -100,6 +100,9 @@ public class AndroidAdmin implements MeinAuthAdmin {
                 }
             });
         }
+        if (!meinNotification.isUserCancelable()){
+            builder.setOngoing(true);
+        }
         notificationManager.notify(requestCode, builder.build());
     }
 
