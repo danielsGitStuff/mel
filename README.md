@@ -77,7 +77,7 @@ For example:
 - databasing is different
   - your API is similar to that of jdbc but different, so can manufacture an abstraction layer if you want your stuff to run with both
   - you only got a 4 data types: Long, Double, String, byte[]
-  - you can insert big things into a column but then cannot read it because "Row too big to fit into CursorWindow" (WTF??)
+  - database black hole: you can insert big things into a column but then cannot read it because "Row too big to fit into CursorWindow" (WTF??)
 - file modification data is limited to seconds not milliseconds
 - different devices come with different command line tools though on the same Android version
 - your background service might get killed at any time
