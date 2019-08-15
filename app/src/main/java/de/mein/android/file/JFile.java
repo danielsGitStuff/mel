@@ -24,11 +24,8 @@ public class JFile extends AFile<JFile> {
     private File file;
     private JFile parentFile;
     private boolean isExternal;
-
-
-    private void init() {
-        isExternal = SAFAccessor.isExternalFile(this);
-    }
+    private DocFileCache internalCache;
+    private DocFileCache externalCache;
 
     public JFile(String path) {
         if (path == null)
@@ -53,6 +50,9 @@ public class JFile extends AFile<JFile> {
         init();
     }
 
+    private void init() {
+        isExternal = SAFAccessor.isExternalFile(this);
+    }
 
     @Override
     public String getSeparator() {
@@ -91,15 +91,6 @@ public class JFile extends AFile<JFile> {
         return file.isFile();
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj != null && obj instanceof JFile) {
-            JFile jFile = (JFile) obj;
-            return jFile.file.equals(file);
-        }
-        return false;
-    }
-
 //    @Override
 //    public boolean move(JFile target) {
 //        try {
@@ -113,6 +104,15 @@ public class JFile extends AFile<JFile> {
 //        }
 //        return false;
 //    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof JFile) {
+            JFile jFile = (JFile) obj;
+            return jFile.file.equals(file);
+        }
+        return false;
+    }
 
     @Override
     public boolean isDirectory() {
@@ -134,7 +134,6 @@ public class JFile extends AFile<JFile> {
         return list(File::isDirectory);
     }
 
-
     @Override
     public boolean delete() {
         if (requiresSAF()) {
@@ -150,7 +149,6 @@ public class JFile extends AFile<JFile> {
         }
         return true;
     }
-
 
     @Override
     public JFile getParentFile() {
@@ -176,7 +174,6 @@ public class JFile extends AFile<JFile> {
         }
         return false;
     }
-
 
     @Override
     public boolean mkdirs() {
@@ -262,59 +259,6 @@ public class JFile extends AFile<JFile> {
         return Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT;
     }
 
-    public static class DocFileCreator {
-
-        private static DocumentFile createExternalDoc(String[] parts) throws SAFAccessor.SAFException {
-            DocumentFile doc = SAFAccessor.getExternalRootDocFile();
-            for (String part : parts) {
-                doc = doc.findFile(part);
-            }
-            return doc;
-        }
-
-//        private static String[] createRelativeFilePathParts(File file) {
-//            String storagePath;
-//            if (SAFAccessor.hasExternalSdCard() && file.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath())) {
-//                storagePath = SAFAccessor.getExternalSDPath();
-//            } else {
-//                storagePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-//            }
-//            String path = file.getAbsolutePath();
-//            // if rootPath is null, there is no external sd card.
-//            // if it isn't the share still might be on the internal "sd card"
-//            // todo test, because it is untested cause I go to bed now
-//            String stripped;
-//            if (storagePath == null) {
-//                Lok.error("STORAGE PATH WAS NULL");
-//                throw new NullPointerException("storage path was null");
-//            }
-//            if (!path.startsWith(storagePath))
-//                Lok.error("INVALID PATH! tried to find [" + path + "] in [" + storagePath + "]");
-//            // +1 to get rid of the leading slash
-//            stripped = path.substring(0,storagePath.length()+1);
-//            return stripped.split(File.separator);
-//        }
-//
-//        public static DocumentFile createParentDocFile(File file) throws SAFAccessor.SAFException {
-//            String[] parts = createRelativeFilePathParts(file);
-//            parts = Arrays.copyOf(parts, parts.length - 1);
-//            return createExternalDoc(parts);
-//        }
-//
-//        public static DocumentFile createDocFile(File file) throws SAFAccessor.SAFException {
-//            String storagePath;
-//            String[] parts;
-//            final boolean external = SAFAccessor.hasExternalSdCard() && file.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath());
-//            if (external) {
-//                storagePath = SAFAccessor.getExternalSDPath();
-//            } else {
-//                storagePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-//            }
-//            parts = createRelativeFilePathParts(file);
-//            return createExternalDoc(parts);
-//        }
-    }
-
     private String[] createRelativeFilePathParts(String storagePath, File file) {
 //        String storagePath;
 //        if (isExternal) {
@@ -369,8 +313,6 @@ public class JFile extends AFile<JFile> {
         parts = createRelativeFilePathParts(storagePath, file);
 
         if (!isExternal) {
-//            DocumentFile documentFile = DocumentFile.fromFile(file);
-//            return documentFile;
             return createInternalDoc(parts);
         }
 
@@ -378,46 +320,19 @@ public class JFile extends AFile<JFile> {
 
     }
 
-    private DocFileCache internalCache;
-
     private DocumentFile createInternalDoc(String[] parts) throws SAFAccessor.SAFException {
         if (internalCache == null)
             internalCache = new DocFileCache(SAFAccessor.getInternalRootDocFile(), 30);
         return internalCache.findDoc(parts);
-//        DocumentFile doc = SAFAccessor.getInternalRootDocFile();
-//        for (String part : parts) {
-//            doc = doc.findFile(part);
-//        }
-//        return doc;
     }
 
-
-    public DocumentFile DEBUG_OLDE_STYLE() throws SAFAccessor.SAFException {
-        String storagePath = getStoragePath();
-        String[] parts;
-        parts = createRelativeFilePathParts(storagePath, file);
-
-       return DEBUG_OLDE_STYLE_2(parts);
-
-    }
-
-    private DocumentFile DEBUG_OLDE_STYLE_2(String[] parts) throws SAFAccessor.SAFException {
-        DocumentFile doc = SAFAccessor.getInternalRootDocFile();
-        for (String part : parts) {
-            doc = doc.findFile(part);
-        }
-        return doc;
-    }
 
 
     private DocumentFile createExternalDoc(String[] parts) throws SAFAccessor.SAFException {
-        DocumentFile doc = SAFAccessor.getExternalRootDocFile();
-        for (String part : parts) {
-            doc = doc.findFile(part);
-        }
-        return doc;
+        if (externalCache == null)
+            externalCache = new DocFileCache(SAFAccessor.getExternalRootDocFile(), 30);
+        return externalCache.findDoc(parts);
     }
-
 
     @Override
     public boolean createNewFile() throws IOException {
@@ -472,6 +387,59 @@ public class JFile extends AFile<JFile> {
     @Override
     public JFile[] listContent() {
         return list(null);
+    }
+
+    public static class DocFileCreator {
+
+        private static DocumentFile createExternalDoc(String[] parts) throws SAFAccessor.SAFException {
+            DocumentFile doc = SAFAccessor.getExternalRootDocFile();
+            for (String part : parts) {
+                doc = doc.findFile(part);
+            }
+            return doc;
+        }
+
+//        private static String[] createRelativeFilePathParts(File file) {
+//            String storagePath;
+//            if (SAFAccessor.hasExternalSdCard() && file.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath())) {
+//                storagePath = SAFAccessor.getExternalSDPath();
+//            } else {
+//                storagePath = Environment.getExternalStorageDirectory().getAbsolutePath();
+//            }
+//            String path = file.getAbsolutePath();
+//            // if rootPath is null, there is no external sd card.
+//            // if it isn't the share still might be on the internal "sd card"
+//            // todo test, because it is untested cause I go to bed now
+//            String stripped;
+//            if (storagePath == null) {
+//                Lok.error("STORAGE PATH WAS NULL");
+//                throw new NullPointerException("storage path was null");
+//            }
+//            if (!path.startsWith(storagePath))
+//                Lok.error("INVALID PATH! tried to find [" + path + "] in [" + storagePath + "]");
+//            // +1 to get rid of the leading slash
+//            stripped = path.substring(0,storagePath.length()+1);
+//            return stripped.split(File.separator);
+//        }
+//
+//        public static DocumentFile createParentDocFile(File file) throws SAFAccessor.SAFException {
+//            String[] parts = createRelativeFilePathParts(file);
+//            parts = Arrays.copyOf(parts, parts.length - 1);
+//            return createExternalDoc(parts);
+//        }
+//
+//        public static DocumentFile createDocFile(File file) throws SAFAccessor.SAFException {
+//            String storagePath;
+//            String[] parts;
+//            final boolean external = SAFAccessor.hasExternalSdCard() && file.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath());
+//            if (external) {
+//                storagePath = SAFAccessor.getExternalSDPath();
+//            } else {
+//                storagePath = Environment.getExternalStorageDirectory().getAbsolutePath();
+//            }
+//            parts = createRelativeFilePathParts(file);
+//            return createExternalDoc(parts);
+//        }
     }
 
 }

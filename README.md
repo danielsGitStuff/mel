@@ -32,7 +32,7 @@ Two devices:
 *If you have a decently recent linux distro installed the requirements should be met.
 Exemptions may be server or cloud versions of those distros that do not come with a graphical user interface.
 You would therefore use a Command Line Interface (CLI) that currently does not exist for Mel.
-To be more precisely: it will run without a GUI but you won't be able to pair or handle file conflicts then.
+To be more precise: it will run without a GUI but you won't be able to pair or handle file conflicts then.
 </sub>
 
 ## Privacy & Security
@@ -72,7 +72,7 @@ You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.ht
 - `konsole`: make reading command line arguments a bit easier and stay simple
 - `lok`: Tells you where the log message came from
 - `messenger`: stub, sharing messages/events across your devices, probably won't happen
-- `minisevrer`: a small https server. because why not?
+- `miniserver`: a small https server. because why not?
 - `serialize`: crafts lovely JSONs from you objects and vice versa
 - `serverparts`: part of `miniserver` that is required to run a server as a service in Mel
 - `sql`: reads and writes objects to SQL databases
