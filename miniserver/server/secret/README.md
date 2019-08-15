@@ -60,6 +60,26 @@ NOTE: the MiniServers process does not exit when the command is executed. System
 
 Look at the example below.
 
+### Create a systemd service
+Create a file in `~/.config/systemd/user/myservice.service` with the following content
+```editorconfig
+[Unit]
+Description=Mel build and web server
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env /path/to/startup/script.sh
+
+[Install]
+WantedBy=multi-user.target
+```
+in ` /path/to/startup/script.sh` put:
+```shell script
+cd /path/to/miniserver/directory # assume that miniserver.jar is within the 'server' subdir  
+java -Xmx200m -jar server/miniserver.jar -http -https 8443 -keep-binaries -restart-command "systemctl --user restart myservice.service"
+```
 ## Example secret.properties
 ```properties
 password=secure password
