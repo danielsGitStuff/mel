@@ -127,7 +127,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
     }
 
     @Throws(IOException::class)
-    override fun find(directory: AFile<*>, pruneDir: AFile<*>): Iterator<AFile<*>> {
+    override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
         return if (findFallBack != null) findFallBack!!.find(directory, pruneDir) else super.find(directory, pruneDir)
     }
 }

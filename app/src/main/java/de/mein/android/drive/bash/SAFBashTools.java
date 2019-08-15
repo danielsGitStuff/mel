@@ -13,6 +13,7 @@ import java.util.Set;
 
 import de.mein.android.file.AndroidFileConfiguration;
 import de.mein.auth.file.AFile;
+import de.mein.drive.bash.AutoKlausIterator;
 import de.mein.drive.bash.BashToolsException;
 import de.mein.drive.bash.BashToolsImpl;
 import de.mein.drive.bash.FsBashDetails;
@@ -67,14 +68,14 @@ public class SAFBashTools implements BashToolsImpl {
     }
 
     @Override
-    public Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
+    public AutoKlausIterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
         //testing needed which one is faster.
         return bashToolsAndroid.find(directory, pruneDir);
 //        return new DFileRecursiveIterator(context, directory, pruneDir);
     }
 
     @Override
-    public Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public AutoKlausIterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return null;
     }
 
