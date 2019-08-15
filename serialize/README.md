@@ -2,7 +2,7 @@
 A library that serializes Java objects to JSON and back.
 
 ## Why?
-Back when I started writing this I could not find a solution that can serialize and deserialize circular data structures.
+Back when I had to serialize graphs from a graph database and could not find a solution that can serialize and deserialize circular data structures.
 I tried various libraries and only got one direction going. That is useless and I started writing this.
 
 ## How does it work?
@@ -15,7 +15,10 @@ by calling `FieldSerializerFactoryRepository.addAvailableSerializerFactory()`. T
 implement `FieldDeserializer` and `FieldDeserializerFactory` and pass it to `FieldSerializerFactoryRepository.addAvailableDeserializerFactory()`.
 
 To serialize things call `SerializableEntitySerializer.serialize(entity)`.
+
 To deserialize a JSON call `SerializableEntityDeserializer.deserialize(json)`.
+
+In case you want a property to be excluded from (de)serialization you can annotate it with `@JsonIgnore`.
 
 ### Serialization
 The whole `SerializableEntity` is traversed field by field. If the framework finds a `FieldSerializerFactory` that can serialize the current Field, it will.
@@ -62,7 +65,7 @@ translates to:
 
 ### Deserialization
 Does the whole thing backwards. Note that every `SerializableEntity` must have a zero-parameter constructor.
-Otherwise the Deserializer cannot create a new instance of it and throw an Exception.
+Otherwise the Deserializer cannot create a new instance of it and throws an Exception.
 The deserialization process is as follows:
 - look at the class (that implements `SerializableEntity`) that is stored in the `_type` JSON-Field.
 - create an instance of that class
@@ -82,4 +85,4 @@ Call `SerializableEntitySerializer.serialize(entity,traceManager,depth)` where `
 new TraceManager().addForcedPath("[MyHorseEntity].HorseProperyIWant.Length");
 ```
 If the TraceManager finds `MyHorseEntity` it will include the `HorseProperyIWant`.
-`HorseProperyIWant` might be another `SerializableEntity` (like a leg) and that might have a property called `Length`. That will also be included.
+`HorseProperyIWant` might be another `SerializableEntity` (like a leg) and that might have a property called `Length`. This will also be included.
