@@ -5,7 +5,9 @@ import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.file.FFile;
+import de.mein.drive.bash.AutoKlausIterator;
 import de.mein.drive.bash.BashTools;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,10 +37,11 @@ public class BashCommandsTest {
 
     @Test
     public void bashFind() throws Exception {
-        Iterator<AFile<?>> iterator = BashTools.find(testDir, AFile.instance("blaaaa"));
-        while (iterator.hasNext())
-            Lok.debug(iterator.next());
-        Lok.debug("BashCommandsTest.bashtest.end");
+        try (AutoKlausIterator<AFile<?>> iterator = BashTools.find(testDir, AFile.instance("blaaaa"))) {
+            while (iterator.hasNext())
+                Lok.debug(iterator.next());
+            Lok.debug("BashCommandsTest.bashtest.end");
+        }
     }
 
     @Test
@@ -101,7 +104,7 @@ public class BashCommandsTest {
         Long tt1 = testDir.lastModified();
 
         File source = new File(testDir.getAbsolutePath());
-        File target = new File(source.getAbsolutePath(),"movedTest");
+        File target = new File(source.getAbsolutePath(), "movedTest");
         source.renameTo(target);
 
         Long t2 = dir.lastModified();

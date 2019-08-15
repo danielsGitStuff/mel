@@ -48,12 +48,16 @@ class BashToolsAndroidJavaImpl : BashToolsImpl {
     }
 
     @Throws(IOException::class)
-    override fun find(directory: AFile<*>, pruneDir: AFile<*>): Iterator<AFile<*>> {
+    override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
         val fileStack = Stack<Iterator<AFile<*>>>()
         val prunePath = pruneDir.absolutePath
         Lok.debug("BashToolsAndroidJavaImpl.find.prune: $prunePath")
         fileStack.push(Arrays.asList<AFile<*>>(*directory.listContent()).iterator())
-        return object : Iterator<AFile<*>> {
+        return object : AutoKlausIterator<AFile<*>> {
+            override fun close() {
+
+            }
+
             internal var nextLine: String? = null
 
             private fun fastForward() {
@@ -72,6 +76,10 @@ class BashToolsAndroidJavaImpl : BashToolsImpl {
                     } else
                         return
                 }
+            }
+
+            override fun remove() {
+
             }
 
             override fun hasNext(): Boolean {
@@ -135,7 +143,7 @@ class BashToolsAndroidJavaImpl : BashToolsImpl {
 
 
     @Throws(IOException::class, InterruptedException::class)
-    override fun stuffModifiedAfter(originalFile: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): Iterator<AFile<*>>? {
+    override fun stuffModifiedAfter(originalFile: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): AutoKlausIterator<AFile<*>>? {
         Lok.error("NOT:IMPLEMENTED")
         return null
     }

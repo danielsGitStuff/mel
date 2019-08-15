@@ -5,7 +5,6 @@ import de.mein.auth.file.AFile
 
 import java.io.*
 import java.nio.charset.StandardCharsets
-import java.util.stream.Stream
 
 /**
  * Created by xor on 13.07.2017.
@@ -130,16 +129,33 @@ class BashToolsWindows : BashToolsImpl {
     }
 
     @Throws(IOException::class)
-    override fun find(directory: AFile<*>, pruneDir: AFile<*>): Iterator<AFile<*>> {
+    override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
         val cmd = ("dir /b/s \"" + directory.absolutePath
                 + "\" | findstr /v \"" + pruneDir.absolutePath + "\"")
-        return execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")!!.lines()
-                .map { it: String -> AFile.instance(it) }.iterator()
+        return object : AutoKlausIterator<AFile<*>> {
+            val windowsBashReader = execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")
+            val iterator = windowsBashReader!!.lines()
+                    .map { it: String -> AFile.instance(it) }.iterator()
+
+            override fun hasNext(): Boolean = iterator.hasNext()
+
+            override fun next(): AFile<*> = iterator.next()
+
+            override fun remove() {
+
+            }
+
+            override fun close() {
+                windowsBashReader!!.close()
+            }
+
+        }
+
         //.map<AFile>(Function<String, AFile> { it:String -> AFile.instance(it) }).iterator()
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    private fun execPowerShell(command: String, prependLine: String?): Stream<AFile<*>> {
+    private fun execPowerShell(command: String, prependLine: String?): WindowsPowerReader {
         Lok.debug("BashToolsWindows.execPowerShell: $command")
         val args = arrayOf("powershell.exe")
         val process = ProcessBuilder(*args).start()
@@ -149,12 +165,12 @@ class BashToolsWindows : BashToolsImpl {
         val reader = WindowsPowerReader(InputStreamReader(process.inputStream))
         reader.prependLine(prependLine)
         //process.waitFor();
-        return reader.lines().map { it: String -> AFile.instance(it) }
+        return reader
 //        return reader.lines().map(Function<String, AFile<*>> { s: String -> AFile.instance(s) })
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    override fun stuffModifiedAfter(directory: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): Iterator<AFile<*>> {
+    override fun stuffModifiedAfter(directory: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): AutoKlausIterator<AFile<*>> {
         val winTimeStamp = timeStamp / 1000.0
         var prependLine: String? = null
         val lm = directory.lastModified()
@@ -164,7 +180,24 @@ class BashToolsWindows : BashToolsImpl {
         val command = "get-childitem \"" + directory.absolutePath + "\" -recurse | " +
                 "where {(Get-Date(\$_.LastWriteTime.ToUniversalTime()) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not \$_.FullName.StartsWith(\"" + pruneDir.absolutePath + "\")} " +
                 "| foreach {\$_.FullName}"
-        return execPowerShell(command, prependLine).iterator()
+        return object : AutoKlausIterator<AFile<*>> {
+            val windowsBashReader = execPowerShell(command, prependLine)
+            val iterator = windowsBashReader.lines().map { AFile.instance(it) }.iterator()
+
+            override fun hasNext(): Boolean = iterator.hasNext()
+
+
+            override fun next(): AFile<*> = iterator.next()
+
+            override fun remove() {
+
+            }
+
+            override fun close() {
+                windowsBashReader.close()
+            }
+
+        }
     }
 
     @Throws(IOException::class)

@@ -5,6 +5,7 @@ import com.sun.nio.file.ExtendedWatchEventModifier;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
+import de.mein.drive.bash.AutoKlausIterator;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.PathCollection;
@@ -38,11 +39,12 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
         PathCollection pathCollection = new PathCollection();
         N.r(() -> {
             DriveSettings driveSettings = meinDriveService.getDriveSettings();
-            Iterator<AFile> paths = BashTools.stuffModifiedAfter(driveSettings.getRootDirectory().getOriginalFile(), driveSettings.getTransferDirectoryFile(), timeStamp);
-            while (paths.hasNext()) {
-                AFile path = paths.next();
-                Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);
-                pathCollection.addPath(path);
+            try (AutoKlausIterator<AFile> paths = BashTools.stuffModifiedAfter(driveSettings.getRootDirectory().getOriginalFile(), driveSettings.getTransferDirectoryFile(), timeStamp)){
+                while (paths.hasNext()) {
+                    AFile path = paths.next();
+                    Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);
+                    pathCollection.addPath(path);
+                }
             }
         });
         stageIndexer.examinePaths(this, pathCollection);

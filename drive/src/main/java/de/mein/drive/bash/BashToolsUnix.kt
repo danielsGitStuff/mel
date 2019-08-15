@@ -221,7 +221,7 @@ open class BashToolsUnix : BashToolsImpl {
     }
 
     @Throws(IOException::class)
-    private fun exec(cmd: String): Iterator<AFile<*>> {
+    private fun exec(cmd: String): AutoKlausIterator<AFile<*>> {
         val args = arrayOf(BIN_PATH, "-c", cmd)
         Lok.debug("BashToolsUnix.exec: $cmd")
         val proc = ProcessBuilder(*args).start()
@@ -229,12 +229,12 @@ open class BashToolsUnix : BashToolsImpl {
     }
 
     @Throws(IOException::class)
-    override fun find(directory: AFile<*>, pruneDir: AFile<*>): Iterator<AFile<*>> {
+    override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
         return exec("find ${escapeQuotedAbsoluteFilePath(directory)} -path ${escapeQuotedAbsoluteFilePath(pruneDir)} -prune -o -print")
 //        return exec("find " + escapeQuotedAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeQuotedAbsoluteFilePath(pruneDir) + " -prune -o -print")
     }
 
-    override fun stuffModifiedAfter(directory: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): Iterator<AFile<*>>? {
+    override fun stuffModifiedAfter(directory: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): AutoKlausIterator<AFile<*>>? {
         System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(")
         return null
     }

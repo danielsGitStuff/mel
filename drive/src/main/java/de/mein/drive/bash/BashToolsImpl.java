@@ -32,9 +32,9 @@ public interface BashToolsImpl {
 
     List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException;
 
-    Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException;
+    AutoKlausIterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException;
 
-    Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException;
+    AutoKlausIterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException;
 
     void mkdir(AFile dir) throws IOException;
 

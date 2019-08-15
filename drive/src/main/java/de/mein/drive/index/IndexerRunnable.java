@@ -8,6 +8,7 @@ import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
 import de.mein.core.serialize.serialize.tools.OTimer;
+import de.mein.drive.bash.AutoKlausIterator;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
@@ -89,18 +90,26 @@ public class IndexerRunnable extends AbstractIndexer {
                 indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
                 OTimer timerFind = new OTimer("bash.find").start();
-                Iterator<AFile<?>> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory());
+                OTimer timerInit = new OTimer("init stageset");
+                try (AutoKlausIterator<AFile<?>> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory())) {
+                    Lok.debug("starting stageset initialization");
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+//                Lok.error("TRANSACTION DISABLED!!!!!");
+                    sqlQueries.beginTransaction();
+                    timerInit.start();
+                    initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
+                    sqlQueries.commit();
+                } catch (Exception e) {
+                    //todo abort transaction
+                } finally {
+                    timerInit.stop().print().reset();
+                }
+
                 timerFind.stop().print();
-                Lok.debug("starting stageset initialization");
-                OTimer timerInit = new OTimer("init stageset").start();
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-                sqlQueries.beginTransaction();
-                initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
-                timerInit.stop().print().reset();
+
                 OTimer timerExamine = new OTimer("examine stageset").start();
                 Eva.flagAndRun("ii!", 2, () -> Lok.debug());
                 examineStage();

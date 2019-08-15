@@ -60,22 +60,22 @@ public abstract class BashTools {
         return instance.stuffModifiedAfter(referenceFile, directory, pruneDir);
     }
 
-    public static Iterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
+    public static AutoKlausIterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
         return instance.find(directory, pruneDir);
     }
 
-    public static Iterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public static AutoKlausIterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return instance.stuffModifiedAfter(originalFile, pruneDir, timeStamp);
     }
 
-    public static Iterator<AFile> inputStreamToFileIterator(InputStream inputStream) {
+    public static AutoKlausIterator<AFile> inputStreamToFileIterator(InputStream inputStream) {
         BufferedIterator bufferedReader = new BufferedIterator.BufferedFileIterator(new InputStreamReader(inputStream));
-        return bufferedReader.iterator();
+        return bufferedReader;
     }
 
-    public static Iterator<String> inputStreamToIterator(InputStream inputStream) {
+    public static AutoKlausIterator<String> inputStreamToIterator(InputStream inputStream) {
         BufferedIterator bufferedReader = new BufferedIterator.BufferedStringIterator(new InputStreamReader(inputStream));
-        return bufferedReader.iterator();
+        return bufferedReader;
     }
 
     public static void mkdir(AFile dir) throws IOException {

@@ -10,7 +10,7 @@ import de.mein.auth.file.AFile;
 /**
  * Created by xor on 7/24/17.
  */
-public abstract class BufferedIterator<T> extends BufferedReader {
+public abstract class BufferedIterator<T> extends BufferedReader implements AutoKlausIterator<T> {
 
     public abstract T convert(String line);
 
@@ -19,37 +19,34 @@ public abstract class BufferedIterator<T> extends BufferedReader {
         super(in);
     }
 
-    public Iterator<T> iterator(){
-        return new Iterator<T>() {
-            String nextLine = null;
+    String nextLine = null;
 
-            @Override
-            public boolean hasNext() {
-                if (nextLine != null) {
-                    return true;
-                } else {
-                    try {
-                        nextLine = readLine();
-                        return (nextLine != null);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return false;
-                    }
-                }
+    @Override
+    public boolean hasNext() {
+        if (nextLine != null) {
+            return true;
+        } else {
+            try {
+                nextLine = readLine();
+                return (nextLine != null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
             }
-
-            @Override
-            public T next() {
-                if (nextLine != null || hasNext()) {
-                    String line = nextLine;
-                    nextLine = null;
-                    return convert(line);
-                } else {
-                    throw new NoSuchElementException();
-                }
-            }
-        };
+        }
     }
+
+    @Override
+    public T next() {
+        if (nextLine != null || hasNext()) {
+            String line = nextLine;
+            nextLine = null;
+            return convert(line);
+        } else {
+            throw new NoSuchElementException();
+        }
+    }
+
 
     public static class BufferedFileIterator extends BufferedIterator<AFile> {
         public BufferedFileIterator(Reader in) {
