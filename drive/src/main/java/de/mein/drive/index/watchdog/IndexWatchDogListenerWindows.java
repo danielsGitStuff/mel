@@ -1,6 +1,5 @@
 package de.mein.drive.index.watchdog;
 
-import com.sun.nio.file.ExtendedWatchEventModifier;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
@@ -50,18 +49,6 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
         stageIndexer.examinePaths(this, pathCollection);
     }
 
-    @Override
-    public void watchDirectory(AFile dir) {
-        if (!watchesRoot)
-            try {
-                watchesRoot = true;
-                Path path = Paths.get(dir.getAbsolutePath());
-                path.register(watchService, KINDS, ExtendedWatchEventModifier.FILE_TREE);
-                Lok.debug("IndexWatchDogListenerWindows.registerRoot: " + path.toString());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-    }
 
     @SuppressWarnings("Duplicates")
     @Override

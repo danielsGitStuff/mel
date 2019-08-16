@@ -71,22 +71,6 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
         }
     }
 
-
-    @Override
-    public void watchDirectory(AFile dir) throws IOException {
-        try {
-            Path path = Paths.get(dir.getAbsolutePath());
-            if (Files.isSymbolicLink(path))
-                return;
-            WatchKey key = path.register(watchService, KINDS);
-//            debugKeys.add(dir.getAbsolutePath());
-//            Lok.debug("watch: " + path.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
-
     @Override
     public void onTimerStopped() {
         Lok.debug("IndexWatchdogListener.onTimerStopped");

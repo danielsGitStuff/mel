@@ -21,7 +21,6 @@ class BashToolsWindows : BashToolsImpl() {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        System.exit(-1)
         return mutableMapOf()
     }
 

@@ -7,10 +7,9 @@ import de.mein.auth.tools.N;
 import de.mein.drive.service.MeinDriveService;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchService;
+import java.nio.file.*;
 
 /**
  * Created by xor on 2/6/17.
@@ -75,6 +74,16 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
         return getClass().getSimpleName() + " for " + meinDriveService.getRunnableName();
     }
 
-
-
+    @Override
+    public void watchDirectory(AFile dir) throws IOException {
+        try {
+            Path path = Paths.get(dir.getAbsolutePath());
+            if (Files.isSymbolicLink(path))
+                return;
+            path.register(watchService, KINDS);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
 }
