@@ -19,13 +19,12 @@ import java.util.concurrent.Executors
  */
 open class BashToolsUnix : BashToolsImpl() {
     override fun lnS(file: AFile<*>, target: String) {
-        val filePath = escapeQuotedAbsoluteFilePath(file)
-        val args = arrayOf(BIN_PATH, "-c", "ln -s ${filePath} ${target}")
+        val escapedFilePath = escapeQuotedAbsoluteFilePath(file)
+        val escapedTarget = escapeQuotedPath(target)
+        val args = arrayOf(BIN_PATH, "-c", "ln -s ${escapedTarget} ${escapedFilePath} ")
         val proc = ProcessBuilder(*args).start()
         proc.waitFor()
     }
-
-
 
 
     protected var BIN_PATH = "/bin/sh"
@@ -76,14 +75,20 @@ open class BashToolsUnix : BashToolsImpl() {
      * @return
      */
     protected fun escapeAbsoluteFilePath(file: AFile<*>): String {
-        return file.absolutePath
-                .replace("\"".toRegex(), "\\\\\"")
-                .replace("`".toRegex(), "\\\\`")
-                .replace("\\$".toRegex(), "\\\\\\$")
-                .replace(" ".toRegex(), "\\ ")
+        return escapePath(file.absolutePath)
 
     }
 
+    protected fun escapeQuotedPath(path: String): String {
+        return "\"${escapePath(path)}\""
+    }
+
+    protected fun escapePath(path: String): String {
+        return path.replace("\"".toRegex(), "\\\\\"")
+                .replace("`".toRegex(), "\\\\`")
+                .replace("\\$".toRegex(), "\\\\\\$")
+                .replace(" ".toRegex(), "\\ ")
+    }
 
 
     @Throws(IOException::class, InterruptedException::class)
@@ -230,7 +235,6 @@ open class BashToolsUnix : BashToolsImpl() {
         return exec("find ${escapeQuotedAbsoluteFilePath(directory)} -path ${escapeQuotedAbsoluteFilePath(pruneDir)} -prune -o -print")
 //        return exec("find " + escapeQuotedAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeQuotedAbsoluteFilePath(pruneDir) + " -prune -o -print")
     }
-
 
 
     @Throws(IOException::class)
