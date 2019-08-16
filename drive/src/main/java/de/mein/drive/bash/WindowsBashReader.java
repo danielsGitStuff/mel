@@ -11,7 +11,7 @@ import java.util.stream.StreamSupport;
 /**
  * Created by xor on 13.07.2017.
  */
-public class WindowsBashReader extends BufferedReader {
+public class WindowsBashReader extends BufferedReader implements  AutoCloseable {
 
 
     public WindowsBashReader(Reader in, int sz) {

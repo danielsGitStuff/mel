@@ -4,15 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
-import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.sql.FsEntry;
 
 /**
  * Created by xor on 10/28/16.
@@ -56,7 +53,7 @@ public abstract class BashTools {
         instance.rmRf(directory);
     }
 
-    public static List<AFile> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
+    public static List<AFile<?>> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         return instance.stuffModifiedAfter(referenceFile, directory, pruneDir);
     }
 
@@ -64,7 +61,7 @@ public abstract class BashTools {
         return instance.find(directory, pruneDir);
     }
 
-    public static AutoKlausIterator<AFile> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public static AutoKlausIterator<AFile<?>> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return instance.stuffModifiedAfter(originalFile, pruneDir, timeStamp);
     }
 

@@ -39,7 +39,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
         PathCollection pathCollection = new PathCollection();
         N.r(() -> {
             DriveSettings driveSettings = meinDriveService.getDriveSettings();
-            try (AutoKlausIterator<AFile> paths = BashTools.stuffModifiedAfter(driveSettings.getRootDirectory().getOriginalFile(), driveSettings.getTransferDirectoryFile(), timeStamp)){
+            try (AutoKlausIterator<AFile<?>> paths = BashTools.stuffModifiedAfter(driveSettings.getRootDirectory().getOriginalFile(), driveSettings.getTransferDirectoryFile(), timeStamp)){
                 while (paths.hasNext()) {
                     AFile path = paths.next();
                     Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);

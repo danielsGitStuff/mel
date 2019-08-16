@@ -12,7 +12,9 @@ import de.mein.auth.file.DefaultFileConfiguration
  * Created by xor on 7/24/17.
  */
 
-class BashToolsAndroidJavaImpl : BashToolsImpl {
+class BashToolsAndroidJavaImpl : BashToolsImpl() {
+
+
     override fun setBinPath(binPath: String) {
 
     }
@@ -34,18 +36,7 @@ class BashToolsAndroidJavaImpl : BashToolsImpl {
         Lok.error("NOT:IMPLEMENTED")
     }
 
-    @Throws(IOException::class, BashToolsException::class)
-    override fun stuffModifiedAfter(referenceFile: AFile<*>, directory: AFile<*>, pruneDir: AFile<*>): List<AFile<*>> {
-        val details = BashTools.getFsBashDetails(referenceFile)
-        val time = details.modified
-        val dir = File(directory.absolutePath)
-        val list = mutableListOf<AFile<*>>()
-        if (dir.exists())
-            dir.walkTopDown().onEnter { it.absolutePath != pruneDir.absolutePath }.filter { it.lastModified() >= time }.forEach {
-                list.add(AFile.instance(it))
-            }
-        return list
-    }
+
 
     @Throws(IOException::class)
     override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
@@ -142,11 +133,6 @@ class BashToolsAndroidJavaImpl : BashToolsImpl {
     }
 
 
-    @Throws(IOException::class, InterruptedException::class)
-    override fun stuffModifiedAfter(originalFile: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): AutoKlausIterator<AFile<*>>? {
-        Lok.error("NOT:IMPLEMENTED")
-        return null
-    }
 
     @Throws(IOException::class)
     override fun mkdir(dir: AFile<*>) {
@@ -167,7 +153,7 @@ class BashToolsAndroidJavaImpl : BashToolsImpl {
         return false
     }
 
-    override fun getContentFsBashDetails(file: AFile<*>): Map<String, FsBashDetails>? {
+    override fun getContentFsBashDetails(file: AFile<*>): Map<String, FsBashDetails> {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
@@ -175,7 +161,7 @@ class BashToolsAndroidJavaImpl : BashToolsImpl {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        return null
+        return mapOf()
     }
 
     override fun lnS(file: AFile<*>, target: String) {

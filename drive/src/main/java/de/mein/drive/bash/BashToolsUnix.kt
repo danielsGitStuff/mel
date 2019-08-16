@@ -17,14 +17,16 @@ import java.util.concurrent.Executors
 /**
  * Created by xor on 13.07.2017.
  */
-open class BashToolsUnix : BashToolsImpl {
-
-
-    override fun isSymLink(f: AFile<out AFile<*>>?): Boolean {
-        if (f == null)
-            return false
-        return Files.isSymbolicLink(Paths.get(f.absolutePath))
+open class BashToolsUnix : BashToolsImpl() {
+    override fun lnS(file: AFile<*>, target: String) {
+        val filePath = escapeQuotedAbsoluteFilePath(file)
+        val args = arrayOf(BIN_PATH, "-c", "ln -s ${filePath} ${target}")
+        val proc = ProcessBuilder(*args).start()
+        proc.waitFor()
     }
+
+
+
 
     protected var BIN_PATH = "/bin/sh"
     private val executorService = Executors.newCachedThreadPool()
@@ -82,12 +84,7 @@ open class BashToolsUnix : BashToolsImpl {
 
     }
 
-    override fun lnS(file: AFile<*>, target: String?) {
-        val filePath = escapeQuotedAbsoluteFilePath(file)
-        val args = arrayOf(BIN_PATH, "-c", "ln -s ${filePath} ${if (target != null) target else ""}")
-        val proc = ProcessBuilder(*args).start()
-        proc.waitFor()
-    }
+
 
     @Throws(IOException::class, InterruptedException::class)
     override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
@@ -234,9 +231,9 @@ open class BashToolsUnix : BashToolsImpl {
 //        return exec("find " + escapeQuotedAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeQuotedAbsoluteFilePath(pruneDir) + " -prune -o -print")
     }
 
-    override fun stuffModifiedAfter(directory: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): AutoKlausIterator<AFile<*>>? {
+    override fun stuffModifiedAfter(directory: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): AutoKlausIterator<AFile<*>> {
         System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(")
-        return null
+        return AutoKlausIterator.EmpyAutoKlausIterator()
     }
 
     @Throws(IOException::class)

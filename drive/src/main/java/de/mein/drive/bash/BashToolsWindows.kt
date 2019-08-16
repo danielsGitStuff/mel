@@ -1,27 +1,20 @@
 package de.mein.drive.bash
 
 import de.mein.Lok
+import de.mein.Processor
 import de.mein.auth.file.AFile
 
 import java.io.*
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.*
 
 /**
  * Created by xor on 13.07.2017.
  */
-class BashToolsWindows : BashToolsImpl {
-    override fun lnS(file: AFile<out AFile<*>>?, target: String?) {
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        System.exit(-1)
-    }
-
-    override fun getContentFsBashDetails(file: AFile<out AFile<*>>?): MutableMap<String, FsBashDetails> {
+class BashToolsWindows : BashToolsImpl() {
+    override fun getContentFsBashDetails(file: AFile<*>): Map<String, FsBashDetails> {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
@@ -33,14 +26,52 @@ class BashToolsWindows : BashToolsImpl {
         return mutableMapOf()
     }
 
-    override fun isSymLink(f: AFile<out AFile<*>>?): Boolean {
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+    override fun lnS(file: AFile<out AFile<*>>, targetString: String) {
+        // we are limited to two ways of using 'mklink' here.
+        // /J works for directories whereas /H works for linking files
+        val target = File(targetString)
+        val param = if (target.isDirectory) "/J" else "/H"
+        exec("mklink", param, file.absolutePath, targetString).waitFor()
+    }
+
+
+
+    override fun isSymLink(f: AFile<out AFile<*>>): Boolean {
+        if (Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI())))
+            return true
+        val path = f.absolutePath
+        if (f.isDirectory) {
+            // check if junction
+            var countDown = 5;
+            execReader("dir", "/al", f.parentFile.absolutePath)?.useLines {
+                it.iterator().forEach {
+                    if (countDown == 0) {
+                        var stripped = it.substringAfter("<JUNCTION>").trim()
+                        if (stripped.startsWith(f.name)) {
+                            return true
+//                            stripped = stripped.substringAfter(f.name).trim()
+//                            stripped = stripped.substring(1, stripped.length - 1)
+//                            if (path == stripped)
+//                                return true
+                        }
+                    }
+                    countDown--
+                }
+            }
+            return false
+        } else {
+            // check if hardlink
+
+            // first get drive letter, we need to add that later
+            val driveLetter = f.absolutePath.substring(0,2)
+            execReader("fsutil", "hardlink", "list", f.absolutePath)?.useLines {
+                it.iterator().forEach {
+                    val readPath = driveLetter + it
+                    if (path != readPath)
+                        return true
+                }
+            }
+        }
         return false
     }
 
@@ -50,6 +81,7 @@ class BashToolsWindows : BashToolsImpl {
 
     @Throws(IOException::class)
     override fun getINodesOfDirectory(file: AFile<*>): Set<Long>? {
+        val processor = Processor("")
         return null
     }
 
@@ -62,6 +94,7 @@ class BashToolsWindows : BashToolsImpl {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+
 
         //reads something like "File ID is 0x0000000000000000000200000000063a"
         val result = execLine("fsutil", "file", "queryfileid", file.absolutePath)
@@ -79,9 +112,9 @@ class BashToolsWindows : BashToolsImpl {
     }
 
     @Throws(IOException::class, BashToolsException::class)
-    override fun stuffModifiedAfter(referenceFile: AFile<*>, directory: AFile<*>, pruneDir: AFile<*>): List<AFile<*>>? {
+    override fun stuffModifiedAfter(referenceFile: AFile<*>, directory: AFile<*>, pruneDir: AFile<*>): List<AFile<*>> {
         System.err.println("BashToolsWindows.stuffModifiedAfter.I AM THE WINDOWS GUY!")
-        return null
+        return listOf()
     }
 
     private fun buildArgs(vararg commands: String): Array<String?> {
@@ -98,7 +131,7 @@ class BashToolsWindows : BashToolsImpl {
 
     @Throws(IOException::class)
     private fun exec(vararg commands: String): Process {
-        //Lok.debug("BashToolsWindows.exec: " + Arrays.toString(commands));
+        Lok.debug("BashToolsWindows.exec: " + Arrays.toString(commands));
         val args = buildArgs(*commands)
         return ProcessBuilder(*args).start()
     }
@@ -120,6 +153,7 @@ class BashToolsWindows : BashToolsImpl {
     private fun execReader(vararg commands: String): WindowsBashReader? {
         try {
             val process = exec(*commands)
+            process.waitFor()
             return WindowsBashReader(InputStreamReader(process.inputStream, CHARSET))
         } catch (e: Exception) {
             e.printStackTrace()
@@ -130,8 +164,6 @@ class BashToolsWindows : BashToolsImpl {
 
     @Throws(IOException::class)
     override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
-        val cmd = ("dir /b/s \"" + directory.absolutePath
-                + "\" | findstr /v \"" + pruneDir.absolutePath + "\"")
         return object : AutoKlausIterator<AFile<*>> {
             val windowsBashReader = execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")
             val iterator = windowsBashReader!!.lines()

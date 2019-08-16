@@ -1,8 +1,6 @@
 package de.mein.drive.index.watchdog;
 
 
-import com.sun.nio.file.ExtendedWatchEventModifier;
-
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
@@ -10,7 +8,9 @@ import de.mein.drive.service.MeinDriveService;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.nio.file.*;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchService;
 
 /**
  * Created by xor on 2/6/17.
@@ -58,9 +58,6 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
             }
             Lok.debug("IndexWatchdogListener[" + meinDriveService.getDriveSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.getAbsolutePath());
             pathCollection.addPath(file);
-            if (event.kind().equals(ExtendedWatchEventModifier.FILE_TREE)) {
-                Lok.debug("ALARM!");
-            }
         } catch (Exception e) {
             e.printStackTrace();
             // todo check for inotify exceeded. if so, stop the service
