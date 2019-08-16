@@ -59,8 +59,8 @@ public class BashToolsTest {
 
     @After
     public void after() {
-        if (root.exists())
-            F.rmRf(new File(root.getAbsolutePath()));
+//        if (root.exists())
+//            F.rmRf(new File(root.getAbsolutePath()));
     }
 
     private void write(AFile f, String str) throws IOException {

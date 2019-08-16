@@ -1,5 +1,7 @@
 package de.mein.drive.bash;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.*;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -11,8 +13,10 @@ import java.util.stream.StreamSupport;
 /**
  * Created by xor on 13.07.2017.
  */
-public class WindowsBashReader extends BufferedReader implements  AutoCloseable {
+public class WindowsBashReader extends BufferedReader implements AutoCloseable {
 
+
+    private String firstLine;
 
     public WindowsBashReader(Reader in, int sz) {
         super(in, sz);
@@ -40,7 +44,7 @@ public class WindowsBashReader extends BufferedReader implements  AutoCloseable 
                 } else {
                     try {
                         next = readLine();
-                        if (next == null || (next!= null && next.length() == 0))
+                        if (next == null || next.length() == 0)
                             return false;
                         after = readLine();
                         return (next != null);
@@ -64,5 +68,21 @@ public class WindowsBashReader extends BufferedReader implements  AutoCloseable 
         };
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
                 iter, Spliterator.ORDERED | Spliterator.NONNULL), false);
+    }
+
+    @Override
+    public String readLine() throws IOException {
+        if (firstLine != null) {
+            String result = firstLine;
+            firstLine = null;
+            return result;
+        }
+        return super.readLine();
+    }
+
+    @NotNull
+    public WindowsBashReader addFirstLine(@NotNull String firstLine) {
+        this.firstLine = firstLine;
+        return this;
     }
 }

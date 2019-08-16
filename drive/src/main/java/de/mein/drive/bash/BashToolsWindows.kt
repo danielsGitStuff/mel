@@ -2,12 +2,15 @@ package de.mein.drive.bash
 
 import de.mein.Lok
 import de.mein.auth.file.AFile
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
+
 
 /**
  * Created by xor on 13.07.2017.
@@ -31,7 +34,6 @@ class BashToolsWindows : BashToolsImpl() {
         val param = if (target.isDirectory) "/J" else "/H"
         exec("mklink", param, file.absolutePath, targetString).waitFor()
     }
-
 
 
     override fun isSymLink(f: AFile<out AFile<*>>): Boolean {
@@ -61,7 +63,7 @@ class BashToolsWindows : BashToolsImpl() {
             // check if hardlink
 
             // first get drive letter, we need to add that later
-            val driveLetter = f.absolutePath.substring(0,2)
+            val driveLetter = f.absolutePath.substring(0, 2)
             execReader("fsutil", "hardlink", "list", f.absolutePath)?.useLines {
                 it.iterator().forEach {
                     val readPath = driveLetter + it
@@ -77,24 +79,73 @@ class BashToolsWindows : BashToolsImpl() {
         Lok.debug("BashToolsWindows.setBinPath")
     }
 
+    private fun getSymLink(f: AFile<out AFile<*>>): String? {
+        if (Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI())))
+            return Files.readSymbolicLink(Paths.get(File(f.absolutePath).toURI())).toFile().absolutePath
+        val path = f.absolutePath
+        if (f.isDirectory) {
+            // check if junction
+            var countDown = 5;
+            execReader("dir", "/al", f.parentFile.absolutePath)?.useLines {
+                it.iterator().forEach {
+                    if (countDown == 0) {
+                        var stripped = it.substringAfter("<JUNCTION>").trim()
+                        if (stripped.startsWith(f.name)) {
+                            stripped = stripped.substringAfter(f.name).trim()
+                            stripped = stripped.substring(1, stripped.length - 1)
+                            if (path != stripped)
+                                return stripped
+                        }
+                    }
+                    countDown--
+                }
+            }
+            return null
+        } else {
+            // check if hardlink
+
+            // first get drive letter, we need to add that later
+            val driveLetter = f.absolutePath.substring(0, 2)
+            execReader("fsutil", "hardlink", "list", f.absolutePath)?.useLines {
+                it.iterator().forEach {
+                    val readPath = driveLetter + it
+                    if (path != readPath)
+                        return readPath
+                }
+            }
+        }
+        return null
+    }
+
     @Throws(IOException::class)
     override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        var iNode: Long? = null
+        val name = file.name
+        var isSymLink: Boolean = false
+        var symLinkTarget: String? = null
+        runBlocking {
+            val task1 = async {
+                //reads something like "File ID: 0x0000000000000000000200000000063a"
+                val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
+                val id = fsUtil!!.substringAfter(": ")
+                iNode = java.lang.Long.decode(id)
+            }
+
+            val task2 = async {
+                symLinkTarget = getSymLink(file)
+                if (symLinkTarget != null)
+                    isSymLink = true
+            }
+            task1.await()
+            task2.await()
+        }
 
 
-        //reads something like "File ID is 0x0000000000000000000200000000063a"
-        val result = execLine("fsutil", "file", "queryfileid", file.absolutePath)
-        val id = result!!.substring(11)
-        val iNode = java.lang.Long.decode(id)
-        val symLinkTarget = "not implemented yet"
-        val name = "NAME"
-        return FsBashDetails(file.lastModified(), iNode, false, symLinkTarget, name)
+//        //reads something like "File ID: 0x0000000000000000000200000000063a"
+//        val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
+//        val id = fsUtil!!.substringAfter(": ")
+//        val iNode = java.lang.Long.decode(id)
+        return FsBashDetails(file.lastModified(), iNode!!, isSymLink, symLinkTarget, name)
     }
 
     @Throws(IOException::class)
@@ -125,7 +176,9 @@ class BashToolsWindows : BashToolsImpl() {
     private fun exec(vararg commands: String): Process {
         Lok.debug("BashToolsWindows.exec: " + Arrays.toString(commands));
         val args = buildArgs(*commands)
-        return ProcessBuilder(*args).start()
+        val process = ProcessBuilder(*args).start()
+        process.waitFor()
+        return process
     }
 
     @Throws(IOException::class)
@@ -157,7 +210,8 @@ class BashToolsWindows : BashToolsImpl() {
     @Throws(IOException::class)
     override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
         return object : AutoKlausIterator<AFile<*>> {
-            val windowsBashReader = execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")
+            val windowsBashReader = execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")!!
+                    .addFirstLine(directory.absolutePath)
             val iterator = windowsBashReader!!.lines()
                     .map { it: String -> AFile.instance(it) }.iterator()
 
