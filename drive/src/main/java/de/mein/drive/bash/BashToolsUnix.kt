@@ -231,10 +231,7 @@ open class BashToolsUnix : BashToolsImpl() {
 //        return exec("find " + escapeQuotedAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeQuotedAbsoluteFilePath(pruneDir) + " -prune -o -print")
     }
 
-    override fun stuffModifiedAfter(directory: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): AutoKlausIterator<AFile<*>> {
-        System.err.println("BashToolsUnix.stuffModifiedAfter()... I AM THE UNIX GUY! >:(")
-        return AutoKlausIterator.EmpyAutoKlausIterator()
-    }
+
 
     @Throws(IOException::class)
     override fun mkdir(dir: AFile<*>) {

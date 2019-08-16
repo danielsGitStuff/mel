@@ -200,7 +200,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
              * and watching the directories as well
              */
             Lok.debug("stopped");
-            List<AFile> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            List<AFile<?>> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
             for (AFile f : paths) {
                 if (f.exists() && f.isDirectory()) {

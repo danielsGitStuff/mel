@@ -10,17 +10,17 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import de.mein.auth.data.access.CertificateManager;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.serialization.TestDirCreator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by xor on 7/29/17.
@@ -31,14 +31,15 @@ public class BashToolsStuffModifiedTest {
         AFile.configure(new DefaultFileConfiguration());
     }
     AFile testDir = AFile.instance("testdir1");
-    List<String> paths;
+    Set<String> paths;
 
     @Before
     public void before() throws IOException {
         BashTools.init();
         AFile.configure(new DefaultFileConfiguration());
         CertificateManager.deleteDirectory(testDir);
-        paths = TestDirCreator.createTestDir(testDir);
+        paths = new HashSet<>();
+        paths.addAll(TestDirCreator.createTestDir(testDir));
     }
 
     @Test
@@ -75,14 +76,11 @@ public class BashToolsStuffModifiedTest {
     public void bashFindModifiedAfter3() throws Exception {
         // expect whole testdir
         AutoKlausIterator<AFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AFile.instance("blaa"), 0L);
-        Iterator<String> expectedIterator = paths.iterator();
         while (iterator.hasNext()) {
             String path = iterator.next().getAbsolutePath();
-            String expected = expectedIterator.next();
-            Lok.debug(path + " vs " + expected);
-            assertEquals(expected, path);
+            assertNotNull(paths.remove(path));
         }
-        assertFalse(expectedIterator.hasNext());
+        assertTrue(paths.isEmpty());
         Lok.debug("BashCommandsTest.bashtest.end");
     }
 
