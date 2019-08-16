@@ -20,12 +20,6 @@ class BashToolsAndroidJavaImpl : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun getINodesOfDirectory(file: AFile<*>): Set<Long>? {
-        Lok.error("NOT:IMPLEMENTED")
-        return null
-    }
-
-    @Throws(IOException::class)
     override fun getFsBashDetails(file: AFile<*>): FsBashDetails? {
         Lok.error("NOT:IMPLEMENTED")
         return null
@@ -143,11 +137,6 @@ class BashToolsAndroidJavaImpl : BashToolsImpl() {
         }
     }
 
-    @Throws(IOException::class)
-    override fun mv(source: File, target: File): Boolean {
-        System.err.println("BashToolsAndroidJavaImpl.mv.NOT:IMPLEMENTED")
-        return false
-    }
 
     override fun isSymLink(f: AFile<*>): Boolean {
         return false

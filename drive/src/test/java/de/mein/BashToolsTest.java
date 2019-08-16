@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -61,23 +63,10 @@ public class BashToolsTest {
             F.rmRf(new File(root.getAbsolutePath()));
     }
 
-//    private void createSymlink(AFile flink, AFile ftarget) throws IOException {
-//        Path link = Paths.get(new File(flink.getAbsolutePath()).toURI());
-//        Path target = Paths.get(new File(ftarget.getAbsolutePath()).toURI());
-//        Files.createSymbolicLink(link, target);
-//    }
-
     private void write(AFile f, String str) throws IOException {
         try (FileOutputStream out = f.outputStream()) {
             out.write(str.getBytes());
         }
-    }
-
-
-    @Test
-    public void getINodesOfDirectory() throws IOException {
-        Set<Long> result = BashTools.getINodesOfDirectory(root);
-        Lok.debug();
     }
 
     @Test
@@ -93,33 +82,26 @@ public class BashToolsTest {
 
     @Test
     public void rmRf() throws IOException {
-
+        BashTools.rmRf(root);
+        assertFalse(root.exists());
     }
 
     @Test
-    public void stuffModifiedAfter() throws IOException, BashToolsException {
-
+    public void find() throws Exception {
+        Set<String> expectedPaths = new HashSet<>();
+        expectedPaths.add(root.getAbsolutePath());
+        expectedPaths.add(sub.getAbsolutePath());
+        expectedPaths.add(f1.getAbsolutePath());
+        expectedPaths.add(f2.getAbsolutePath());
+        expectedPaths.add(f3.getAbsolutePath());
+        try (AutoKlausIterator<AFile<?>> found = BashTools.find(root, subsub)) {
+            while (found.hasNext()) {
+                expectedPaths.remove(found.next().getAbsolutePath());
+            }
+        }
+        assertTrue(expectedPaths.isEmpty());
     }
 
-    @Test
-    public void find() throws IOException {
-
-    }
-
-    @Test
-    public void stuffModifiedAfter2() throws IOException, InterruptedException {
-
-    }
-
-    @Test
-    public void mkdir() throws IOException {
-
-    }
-
-    @Test
-    public void mv() throws IOException {
-
-    }
 
     @Test
     public void isSymLink() {
@@ -131,8 +113,34 @@ public class BashToolsTest {
     }
 
     @Test
-    public void getContentFsBashDetails() {
+    public void getContentFsBashDetails() throws IOException, InterruptedException {
+        // create symlinks first
+        lnS();
+        Map<String, FsBashDetails> details = BashTools.getContentFsBashDetails(root);
+        Set<String> expectedNames = new HashSet<>();
+        expectedNames.add(f1.getName());
+        expectedNames.add(f2.getName());
+        expectedNames.add(sub.getName());
+        expectedNames.add(symFile.getName());
+        expectedNames.add(symFolder.getName());
 
+        // we might get a few entries more than required. ("." and ".." may be in the result set)
+        details.forEach((name, fsBashDetails) -> {
+            expectedNames.remove(name);
+            assertNotNull(fsBashDetails.getModified());
+            assertNotNull(fsBashDetails.getiNode());
+            if (name.equals(symFile.getName())) {
+                assertTrue(fsBashDetails.isSymLink());
+                assertEquals(symFileTarget.getAbsolutePath(), fsBashDetails.getSymLinkTarget());
+            } else if (name.equals(symFolder.getName())) {
+                assertTrue(fsBashDetails.isSymLink());
+                assertEquals(symFolderTarget.getAbsolutePath(), fsBashDetails.getSymLinkTarget());
+            } else {
+                assertNull(fsBashDetails.getSymLinkTarget());
+                assertFalse(fsBashDetails.isSymLink());
+            }
+        });
+        assertTrue(expectedNames.isEmpty());
     }
 
     @Test

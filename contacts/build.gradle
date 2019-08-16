@@ -13,7 +13,7 @@ dependencies {
     compile project(path: ':auth')
     testCompile project(path: ':auth')
     testCompile 'junit:junit:4.12'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
 //    compile fileTree(dir: 'libs', include: ['*.jar'])
 }

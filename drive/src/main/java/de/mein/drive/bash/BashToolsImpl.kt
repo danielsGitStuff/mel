@@ -17,9 +17,6 @@ abstract class BashToolsImpl {
 
     abstract fun setBinPath(binPath: String)
 
-    @Throws(IOException::class)
-    abstract fun getINodesOfDirectory(file: AFile<*>): Set<Long>?
-
     @Throws(IOException::class, InterruptedException::class)
     abstract fun getFsBashDetails(file: AFile<*>): FsBashDetails?
 
@@ -49,7 +46,6 @@ abstract class BashToolsImpl {
 
     @Throws(IOException::class, InterruptedException::class)
     open fun stuffModifiedAfter(originalFile: AFile<*>, pruneDir: AFile<*>, time: Long): AutoKlausIterator<AFile<*>> {
-        val list = mutableListOf<AFile<*>>()
         val dir = File(originalFile.absolutePath)
         if (dir.exists())
             return object : AutoKlausIterator<AFile<*>> {
@@ -69,8 +65,6 @@ abstract class BashToolsImpl {
     @Throws(IOException::class)
     abstract fun mkdir(dir: AFile<*>)
 
-    @Throws(IOException::class)
-    abstract fun mv(source: File, target: File): Boolean
 
     open fun isSymLink(f: AFile<*>): Boolean = Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI()))
 

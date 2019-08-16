@@ -41,10 +41,6 @@ public abstract class BashTools {
         instance.setBinPath(binPath);
     }
 
-    public static Set<Long> getINodesOfDirectory(AFile file) throws IOException {
-        return instance.getINodesOfDirectory(file);
-    }
-
     public static FsBashDetails getFsBashDetails(AFile file) throws IOException, InterruptedException {
         return instance.getFsBashDetails(file);
     }
@@ -93,9 +89,6 @@ public abstract class BashTools {
         return new File[0];
     }
 
-    public static boolean mv(File source, File target) throws IOException {
-        return instance.mv(source, target);
-    }
 
     public static boolean isSymLink(AFile f) {
         return instance.isSymLink(f);

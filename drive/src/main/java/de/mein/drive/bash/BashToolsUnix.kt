@@ -44,20 +44,6 @@ open class BashToolsUnix : BashToolsImpl() {
         BIN_PATH = binPath
     }
 
-    @Throws(IOException::class)
-    override fun getINodesOfDirectory(file: AFile<*>): Set<Long> {
-        val args = arrayOf(BIN_PATH, "-c", "find share/ -printf \"%p\\n\" | tail -n +2 | xargs -d '\\n' stat -c %i")
-        val proc = ProcessBuilder(*args).start()
-        val reader = BufferedReader(InputStreamReader(proc.inputStream))
-        val iNodes = HashSet<Long>()
-        var line = reader.readLine()
-        while (line != null) {
-            iNodes.add(java.lang.Long.parseLong(line))
-            line = reader.readLine()
-        }
-        return iNodes
-    }
-
     /**
      * escapes this character: "
      *
@@ -144,15 +130,13 @@ open class BashToolsUnix : BashToolsImpl() {
     override fun getContentFsBashDetails(directory: AFile<*>): MutableMap<String, FsBashDetails> {
         val map = mutableMapOf<String, FsBashDetails>()
         val escaped = escapeAbsoluteFilePath(directory)
+        // the secont path below fixed something but I forgot what it is. it also returns "." and ".."
         val path = "\"$escaped${File.separator}\"* \"$escaped${File.separator}\".*"
-//        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %Y\\ '%F'\\ %N\\ %n " + path)
         val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ //\\ %Y\\ //\\ '%F'\\ //\\ %N\\ //\\ %n " + path)
 
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
-//        proc.waitFor()
-//        if (proc.exitValue() == 0) {
         reader.lines().forEach { line ->
             val parts = line.split("\\ //\\ ".toRegex()).toTypedArray()
 
@@ -171,16 +155,6 @@ open class BashToolsUnix : BashToolsImpl() {
             val details = FsBashDetails(modified, iNode, symLink, symLinkTarget, name)
             map[details.name] = details
         }
-//        }
-//        else {
-//            args.forEach {
-//                Lok.error("arg: $it")
-//            }
-//            val r = BufferedReader(InputStreamReader(proc.errorStream))
-//            r.lines().forEach {
-//                Lok.error(it)
-//            }
-//        }
         return map
     }
 
@@ -244,7 +218,7 @@ open class BashToolsUnix : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun mv(source: File, target: File): Boolean {
+    fun mv(source: File, target: File): Boolean {
         val src = source.absolutePath.replace("'".toRegex(), "\\'")
         val tgt = target.absolutePath.replace("'".toRegex(), "\\'")
         val cmd = "mv '$src' '$tgt'"

@@ -42,7 +42,7 @@ dependencies {
     testCompile project(path: ':serialize', configuration: 'serializeTestOutput')
 //    testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
 }
 

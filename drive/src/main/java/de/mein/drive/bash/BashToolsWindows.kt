@@ -79,11 +79,6 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun getINodesOfDirectory(file: AFile<*>): Set<Long>? {
-        return null
-    }
-
-    @Throws(IOException::class)
     override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
@@ -233,12 +228,6 @@ class BashToolsWindows : BashToolsImpl() {
     @Throws(IOException::class)
     override fun mkdir(dir: AFile<*>) {
         exec("mkdir", dir.absolutePath)
-    }
-
-    @Throws(IOException::class)
-    override fun mv(source: File, target: File): Boolean {
-        System.err.println("BashToolsWindows.mv.NOT:IMPLEMENTED")
-        return false
     }
 
     companion object {
