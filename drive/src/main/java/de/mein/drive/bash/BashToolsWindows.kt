@@ -1,7 +1,6 @@
 package de.mein.drive.bash
 
 import de.mein.Lok
-import de.mein.Processor
 import de.mein.auth.file.AFile
 
 import java.io.*
@@ -81,7 +80,6 @@ class BashToolsWindows : BashToolsImpl() {
 
     @Throws(IOException::class)
     override fun getINodesOfDirectory(file: AFile<*>): Set<Long>? {
-        val processor = Processor("")
         return null
     }
 

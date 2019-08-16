@@ -1,6 +1,5 @@
 package de.mein.drive.index.watchdog;
 
-import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsException;
@@ -42,7 +41,7 @@ public class UnixReferenceFileHandler {
         timeReferenceFile.mkdirs();
     }
 
-    public synchronized List<AFile> stuffModifiedAfter() throws IOException, BashToolsException {
+    public synchronized List<AFile<?>> stuffModifiedAfter() throws IOException, BashToolsException {
         // take the older one as reference. but to avoid data loss, we recreate the other file before.
         // so no stuff which happened while the BashTools work gets lost.
         File refFile = (refOnFile1) ? timeReferenceFile2 : timeReferenceFile1;

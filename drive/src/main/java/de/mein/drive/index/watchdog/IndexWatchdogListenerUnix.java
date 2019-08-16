@@ -97,7 +97,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
              */
-            List<AFile> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            List<AFile<?>> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
             for (AFile f : paths) {
                 if (f.exists() && f.isDirectory()) {

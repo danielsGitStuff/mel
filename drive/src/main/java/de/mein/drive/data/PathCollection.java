@@ -20,7 +20,7 @@ public class PathCollection {
         return paths;
     }
 
-    public PathCollection addPath(AFile file) {
+    public PathCollection addPath(AFile<?> file) {
         if (!pathSet.contains(file.getAbsolutePath())) {
             paths.add(file);
             pathSet.add(file.getAbsolutePath());
@@ -28,7 +28,7 @@ public class PathCollection {
         return this;
     }
 
-    public void addAll(List<AFile> paths) {
+    public void addAll(List<AFile<?>> paths) {
         for (AFile p : paths) {
             addPath(p);
         }

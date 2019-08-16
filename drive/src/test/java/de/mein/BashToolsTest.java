@@ -23,7 +23,6 @@ public class BashToolsTest {
     static {
         File f = new File("la");
         Lok.debug("running in: " + f.getAbsolutePath());
-        Processor.Companion.setPrint(true);
         AFile.configure(new DefaultFileConfiguration());
     }
 
