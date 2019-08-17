@@ -20,7 +20,7 @@ class EncSocketOpener(private val certificateManager: CertificateManager, privat
     }
 
     override fun onShutDown() {
-        N.s { serverSocket!!.close() }
+        N.s { serverSocket?.close() }
     }
 
 
