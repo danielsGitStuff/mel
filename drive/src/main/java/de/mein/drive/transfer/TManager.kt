@@ -49,11 +49,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
         waitLock.unlockWrite()
     }
 
-    /**
-     * do some housekeeping: delete transfers that are no longer required by FS and other useless files.
-     * blocks!!! call this when booting!
-     */
-    fun maintenance() {
+    fun removeUnnecessaryTransfers(){
         //todo call this after first index
         Lok.debug("doing transfer housekeeping")
         // first delete things that are no longer required by FS
@@ -67,14 +63,23 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             }
         }
         transferDao.deleteFlaggedForDeletion()
-        // clean all copy jobs
-        meinDriveService.driveDatabaseManager.fileDistTaskDao.deleteAll()
+
 
         // remove every file that has no transfer entry
         meinDriveService.driveSettings.transferDirectory.listFiles().forEach { file ->
             if (!transferDao.hasHash(file.name))
                 file.delete()
         }
+    }
+
+    /**
+     * do some housekeeping: delete transfers that are no longer required by FS and other useless files.
+     * blocks!!! call this when booting!
+     */
+    fun maintenance() {
+        removeUnnecessaryTransfers()
+        // clean all copy jobs
+        meinDriveService.driveDatabaseManager.fileDistTaskDao.deleteAll()
         // todo resume downloads
         // open hash objects here and check whether the size on disk matches the files size
     }
@@ -164,7 +169,8 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                             // the syncHandler moves the file into its places if equired.
                             // if not, the transfer entry is obsolete and can be deleted
                             if (!syncHandler.onFileTransferred(aFile, hash, fsTransaction, fsFile))
-                                transferDao.deleteByHash(hash)
+                                transferDao.flagForDeletionByHash(hash)
+//                                transferDao.deleteByHash(hash)
                         }
                     }
                 } finally {

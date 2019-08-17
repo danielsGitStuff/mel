@@ -243,7 +243,7 @@ public abstract class SyncHandler {
             fileDistributor.stop();
             StageSet stageSet = stageDao.getStageSetById(stageSetId);
             // if version not provided by the stageset we will increase the old one
-            long localVersion = driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
+            Long localVersion = stageSet.getVersion().notNull() ? stageSet.getVersion().v() : driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
             //check if sufficient space is available
             if (!stageSet.fromFs())
                 quotaManager.freeSpaceForStageSet(stageSetId);
@@ -421,7 +421,8 @@ public abstract class SyncHandler {
                 driveDatabaseManager.updateVersion();
                 stageDao.deleteStageSet(stageSetId);
                 transferManager.stop();
-                transferManager.maintenance();
+                transferManager.removeUnnecessaryTransfers();
+                transferManager.start();
                 transferManager.research();
             });
             wastebin.maintenance();

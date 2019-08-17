@@ -146,7 +146,6 @@ public class ClientSyncHandler extends SyncHandler {
      *
      * @param stageSetId
      * @throws SqlQueriesException
-     * @throws InterruptedException
      */
     @SuppressWarnings("unchecked")
     private void syncToServerLocked(Long stageSetId) throws SqlQueriesException, InterruptedException {

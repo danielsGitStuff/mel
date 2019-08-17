@@ -11,6 +11,7 @@ import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 
 import kotlin.internal.DynamicExtension;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -113,6 +114,7 @@ public abstract class MeinIsolatedProcess extends MeinProcess {
     @Override
     public void onSocketClosed(int code, String reason, boolean remote) {
         super.onSocketClosed(code, reason, remote);
-        N.forEachIgnorantly(isolatedProcessListeners, isolatedProcessListener -> isolatedProcessListener.onIsolatedProcessEnds(this));
+        Set<IsolatedProcessListener> listeners = isolatedProcessListeners;
+        N.forEachIgnorantly(listeners, isolatedProcessListener -> isolatedProcessListener.onIsolatedProcessEnds(this));
     }
 }
