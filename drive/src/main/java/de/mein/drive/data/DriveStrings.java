@@ -42,6 +42,5 @@ public abstract class DriveStrings {
         public static final String INTENTION_PROGRESS = "drive.progress";
         public static final String INTENTION_BOOT = "drive.spawn";
         public static final String INTENTION_OUT_OF_SPACE = "drive.oos";
-        public static final String INTENTION_FILES_SERVICE = "drive.filesservice";
     }
 }

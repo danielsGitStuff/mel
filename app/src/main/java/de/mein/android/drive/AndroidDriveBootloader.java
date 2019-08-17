@@ -76,8 +76,7 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
     public NotificationCompat.Builder createNotificationBuilder(Context context, IMeinService meinService, MeinNotification meinNotification) {
         String intention = meinNotification.getIntention();
         if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)
-                || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)
-                || intention.equals(DriveStrings.Notifications.INTENTION_FILES_SERVICE)) {
+                || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
             return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SILENT);
         }
         return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
@@ -87,8 +86,7 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
     public Class createNotificationActivityClass(IMeinService meinService, MeinNotification meinNotification) {
         String intention = meinNotification.getIntention();
         if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)
-                || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)
-                || intention.equals(DriveStrings.Notifications.INTENTION_FILES_SERVICE)) {
+                || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
             return MainActivity.class;
         } else if (intention.equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED))
             return DriveConflictsPopupActivity.class;

@@ -133,7 +133,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
         val title = "Moving files"
         val text = "$current/$max files moved or copied"
         if (notification == null) {
-            notification = MeinNotification(driveService.uuid, DriveStrings.Notifications.INTENTION_FILES_SERVICE, title, text)
+            notification = MeinNotification(driveService.uuid, DriveStrings.Notifications.INTENTION_PROGRESS, title, text)
             driveService.meinAuthService.onNotificationFromService(driveService, notification)
         }
         notification?.setProgress(max, current, false)
