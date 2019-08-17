@@ -5,7 +5,6 @@ import java.util.List;
 
 import de.mein.Lok;
 import de.mein.auth.tools.N;
-import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mein.drive.nio.FileDistributionTask;
 import de.mein.sql.Pair;
@@ -66,7 +65,8 @@ public class FileDistTaskWrapper extends SQLTableObject {
 
     private Pair<Long> size = new Pair<>(Long.class, "fsize");
     private Pair<Long> id = new Pair<>(Long.class, "id");
-    private Pair<Boolean> done = new Pair<>(Boolean.class, "done", false);
+    private Pair<FileDistributionTask.FileDistributionState> state = new Pair<>(FileDistributionTask.FileDistributionState.class, "state");
+    private Pair<Double> timeStamp = new Pair<>(Double.class, "t"); // do not use this in insert (otherwise the timestamp column will be null)
 
     private List<FileWrapper> targetWraps = new ArrayList<>();
 
@@ -74,7 +74,9 @@ public class FileDistTaskWrapper extends SQLTableObject {
         FileDistTaskWrapper wrapper = new FileDistTaskWrapper();
         wrapper.sourcePath.v(task.getSourcePath());
         wrapper.sourceHash.v(task.getSourceHash());
-        wrapper.sourceDetails.v(N.result(() -> SerializableEntitySerializer.serialize(task.getSourceDetails()), null));
+        wrapper.state.v(task.getState());
+        if (task.getSourceDetails() != null)
+            wrapper.sourceDetails.v(N.result(() -> SerializableEntitySerializer.serialize(task.getSourceDetails()), null));
         if (wrapper.sourceDetails.isNull()) {
             Lok.error("could not serialize source details");
         }
@@ -113,8 +115,8 @@ public class FileDistTaskWrapper extends SQLTableObject {
         return id;
     }
 
-    public Pair<Boolean> getDone() {
-        return done;
+    public Pair<FileDistributionTask.FileDistributionState> getState() {
+        return state;
     }
 
     public List<FileWrapper> getTargetWraps() {
@@ -132,7 +134,7 @@ public class FileDistTaskWrapper extends SQLTableObject {
 
     @Override
     protected void init() {
-        populateInsert(sourceHash, sourcePath, sourceDetails, deleteSource, size, done);
+        populateInsert(sourceHash, sourcePath, sourceDetails, deleteSource, size, state);
         populateAll(id);
         id.setSetListener(value -> {
             N.forEach(targetWraps, fileWrapper -> fileWrapper.taskId.v(value));

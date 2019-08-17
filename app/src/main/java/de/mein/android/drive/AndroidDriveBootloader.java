@@ -8,10 +8,13 @@ import androidx.core.app.NotificationCompat;
 
 import android.view.ViewGroup;
 
+import java.io.File;
+
 import de.mein.R;
 import de.mein.android.MainActivity;
 import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
+import de.mein.android.Tools;
 import de.mein.android.controller.AndroidServiceGuiController;
 import de.mein.android.Threadder;
 import de.mein.android.drive.controller.RemoteDriveServiceChooserGuiController;
@@ -21,9 +24,12 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
+import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.DriveCreateController;
+import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
+import de.mein.drive.service.MeinDriveService;
 
 /**
  * Created by xor on 2/25/17.
@@ -31,6 +37,14 @@ import de.mein.drive.data.DriveStrings;
 
 public class AndroidDriveBootloader extends DriveBootloader implements AndroidBootLoader {
     private static final int PERMISSION_WRITE = 666;
+
+    @Override
+    public void cleanUpDeletedService(MeinDriveService meinService, String uuid) {
+        super.cleanUpDeletedService(meinService, uuid);
+        Tools.getApplicationContext().deleteDatabase("service." + uuid + "." + DriveStrings.DB_FILENAME);
+        File instanceDir = new File(bootLoaderDir, meinService.getUuid());
+        N.r(() -> BashTools.rmRf(AFile.instance(instanceDir)));
+    }
 
     @Override
     public void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceGuiController currentController) {

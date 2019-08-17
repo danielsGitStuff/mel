@@ -78,11 +78,20 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
     fun createJob(distributionTask: FileDistributionTask) {
         // unpack and store in database
         fileDistTaskDao.insert(distributionTask)
-        if (!running) {
+        if (!running && distributionTask.canStart()) {
             stopped = false
             driveService.execute(this)
         }
     }
+
+    fun completeJob(distributionTask: FileDistributionTask) {
+        fileDistTaskDao.completeJob(distributionTask)
+        if (!running && distributionTask.canStart()) {
+            stopped = false
+            driveService.execute(this)
+        }
+    }
+
 
     override fun run() {
         // first setup all the nice things we need
@@ -92,10 +101,10 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
         var hasTransferred = false
         try {
 
-            if (!fileDistTaskDao.hasContent())
+            if (!fileDistTaskDao.hasWork())
                 return
 
-            while (fileDistTaskDao.hasContent() && !Thread.currentThread().isInterrupted && !stopped) {
+            while (fileDistTaskDao.hasWork() && !Thread.currentThread().isInterrupted && !stopped) {
                 hasTransferred = true
                 val max = fileDistTaskDao.countAll()
                 val done = fileDistTaskDao.countDone()
@@ -114,7 +123,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
             meinAuthService.powerManager.releaseWakeLock(this)
             watchDogTimer.activate()
             watchDogTimer.start()
-            if (notification != null) {
+            if (notification != null && fileDistTaskDao.isComplete()) {
                 Lok.error("DEBUG: CANCEL NOTIFICATION")
                 notification?.cancel()
                 notification = null
@@ -215,6 +224,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
     fun stop() {
         stopped = false
     }
+
 
 
 }

@@ -1,6 +1,5 @@
 package de.mein.drive.nio;
 
-import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
@@ -10,6 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileDistributionTask implements SerializableEntity {
+
+    public enum FileDistributionState {
+        NRY, // not ready yet
+        READY,
+        DONE
+    }
 
     private String sourcePath;
     private AFile sourceFile;
@@ -21,6 +26,17 @@ public class FileDistributionTask implements SerializableEntity {
     private boolean hasOptionals = false;
     private FsBashDetails sourceDetails;
     private Long size;
+    private Long id;
+    private FileDistributionState state;
+
+    public FileDistributionState getState() {
+        return state;
+    }
+
+    public FileDistributionTask setState(FileDistributionState state) {
+        this.state = state;
+        return this;
+    }
 
     public String getSourcePath() {
         return sourcePath;
@@ -43,6 +59,15 @@ public class FileDistributionTask implements SerializableEntity {
         this.size = size;
         this.sourceDetails = bashDetails;
         hasOptionals = true;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public FileDistributionTask setId(Long id) {
+        this.id = id;
+        return this;
     }
 
     public FsBashDetails getSourceDetails() {
@@ -73,7 +98,8 @@ public class FileDistributionTask implements SerializableEntity {
     public FileDistributionTask initFromPaths() {
         this.targetFiles = new ArrayList<>();
         N.forEach(targetPaths, path -> targetFiles.add(AFile.instance(path)));
-        this.sourceFile = AFile.instance(sourcePath);
+        if (sourcePath != null)
+            this.sourceFile = AFile.instance(sourcePath);
         return this;
     }
 
@@ -101,5 +127,9 @@ public class FileDistributionTask implements SerializableEntity {
 
     public List<AFile> getTargetFiles() {
         return targetFiles;
+    }
+
+    public boolean canStart() {
+        return targetFiles.size() > 0 && sourcePath != null;
     }
 }

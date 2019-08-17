@@ -13,7 +13,8 @@ create table filedist
   sourcedetails text,
   deletesource integer,
   fsize integer,
-  done integer
+  state text not null,
+  t  real default current_timestamp
 );
 create table filedisttargets
 (

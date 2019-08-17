@@ -148,7 +148,7 @@ public abstract class SyncHandler {
     public void suspend() {
         if (transferManager != null)
             this.transferManager.stop();
-        if (fileDistributor!= null)
+        if (fileDistributor != null)
             fileDistributor.stop();
     }
 
@@ -177,7 +177,12 @@ public abstract class SyncHandler {
 
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
 
-            FileDistributionTask distributionTask = new FileDistributionTask();
+            FileDistributionTask distributionTask = N.result(() -> {
+                FileDistributionTask task = fileDistTaskDao.getNotReadyYetByHash(hash);
+                if (task != null)
+                    return task;
+                return new FileDistributionTask();
+            });
             distributionTask.setSourceFile(file);
             distributionTask.setDeleteSource(true);
             distributionTask.setSourceHash(hash);
@@ -208,7 +213,8 @@ public abstract class SyncHandler {
             // this might happen if there is still a transfer that has not been flagged properly. just skip here
             if (distributionTask.getTargetPaths().isEmpty())
                 return false;
-            fileDistributor.createJob(distributionTask);
+            distributionTask.setState(FileDistributionTask.FileDistributionState.READY);
+            fileDistributor.completeJob(distributionTask);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -330,6 +336,7 @@ public abstract class SyncHandler {
                                 AFile f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
                                 BashTools.lnS(f, fsFile.getSymLink().v());
                             } else if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
+                                // this file porobably has to be transferred
                                 DbTransferDetails details = new DbTransferDetails();
                                 details.getAvailable().v(stage.getSynced());
                                 details.getCertId().v(stageSet.getOriginCertId());

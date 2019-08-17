@@ -8,6 +8,7 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedProcess
 import de.mein.auth.tools.N
 import de.mein.auth.tools.lock.T
 import de.mein.drive.data.DriveStrings
+import de.mein.drive.nio.FileDistributionTask
 import de.mein.drive.service.MeinDriveService
 import de.mein.drive.service.Wastebin
 import de.mein.drive.service.sync.SyncHandler
@@ -206,6 +207,11 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
     fun createTransfer(detailsDb: DbTransferDetails) {
         detailsDb.state.v(TransferState.NOT_STARTED)
         transferDao.insert(detailsDb)
+        // create a file distr job here
+        val distributionTask = FileDistributionTask()
+                .setSourceHash(detailsDb.hash.v())
+                .setState(FileDistributionTask.FileDistributionState.NRY)
+        syncHandler.fileDistributor.createJob(distributionTask)
     }
 
     override fun stop() {

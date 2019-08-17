@@ -218,18 +218,18 @@ public class AndroidSQLQueries extends ISQLQueries {
         if (cursor.moveToNext() && cursor.getCount() == 1 && cursor.getColumnCount() == 1) {
             int index = 0;
             Object res = null;
-            if (clazz.equals(Double.class))
+            if (clazz.equals(Double.class) || clazz.equals(double.class))
                 res = cursor.getDouble(index);
-            else if (clazz.equals(Float.class))
+            else if (clazz.equals(Float.class) || clazz.equals(float.class))
                 res = cursor.getFloat(index);
-            else if (clazz.equals(Integer.class))
+            else if (clazz.equals(Integer.class) || clazz.equals(int.class))
                 res = cursor.getInt(index);
-            else if (clazz.equals(Short.class))
+            else if (clazz.equals(Short.class) || clazz.equals(short.class))
                 res = cursor.getShort(index);
-            else if (clazz.equals(Boolean.class)) {
+            else if (clazz.equals(Boolean.class) || clazz.equals(boolean.class)) {
                 Integer v = cursor.getInt(index);
                 res = (v == index);
-            } else if (clazz.equals(Long.class))
+            } else if (clazz.equals(Long.class) || clazz.equals(long.class))
                 res = cursor.getLong(index);
             else if (clazz.equals(byte[].class))
                 res = cursor.getBlob(index);
