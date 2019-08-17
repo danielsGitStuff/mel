@@ -420,6 +420,8 @@ public abstract class SyncHandler {
                 }
                 driveDatabaseManager.updateVersion();
                 stageDao.deleteStageSet(stageSetId);
+                transferManager.stop();
+                transferManager.maintenance();
                 transferManager.research();
             });
             wastebin.maintenance();

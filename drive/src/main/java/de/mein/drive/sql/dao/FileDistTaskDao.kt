@@ -33,10 +33,6 @@ class FileDistTaskDao(sqlQueries: ISQLQueries) : Dao(sqlQueries, false) {
 
     @Throws(SqlQueriesException::class)
     fun insert(task: FileDistributionTask) {
-        N.r {
-            val json = SerializableEntitySerializer.serialize(task)
-            Lok.debug("INSERT COPY: $json")
-        }
         val wrapper = FileDistTaskWrapper.fromTask(task)
         val id = sqlQueries.insert(wrapper)
         wrapper.id.v(id)
@@ -76,10 +72,17 @@ class FileDistTaskDao(sqlQueries: ISQLQueries) : Dao(sqlQueries, false) {
     }
 
     fun completeJob(task: FileDistributionTask) {
+        if (task.id == null) {
+            insert(task)
+            return
+        }
         val wrapper = FileDistTaskWrapper.fromTask(task)
         wrapper.id.v(task.id)
         val where = "${dummy.id.k()}=?"
-        N.forEach(wrapper.targetWraps) { fileWrapper -> sqlQueries.insert(fileWrapper) }
+        N.forEach(wrapper.targetWraps) { fileWrapper ->
+            fileWrapper.taskId.v(wrapper.id)
+            sqlQueries.insert(fileWrapper)
+        }
         sqlQueries.update(wrapper, where, ISQLQueries.whereArgs(task.id))
     }
 

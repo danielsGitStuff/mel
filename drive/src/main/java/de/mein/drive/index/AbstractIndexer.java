@@ -560,12 +560,12 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 if (fsEntry.getContentHash().v().equals(stage.getContentHash())
                         && fsEntry.getiNode().equalsValue(stage.getiNode())
                         && fsEntry.getModified().equalsValue(stage.getModified())
-                        && fsEntry.getSize().equalsValue(stage.getSize()))
-                    Lok.debug();
+                        && fsEntry.getSize().equalsValue(stage.getSize())) {
+//                    Lok.debug();
 //                    stageDao.deleteStageById(stage.getId());
-                else {
+                } else {
                     if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
-                        Lok.debug();
+//                        Lok.debug();
 //                        stageDao.deleteStageById(stage.getId());
                     } else {
                         stageDao.update(stage);

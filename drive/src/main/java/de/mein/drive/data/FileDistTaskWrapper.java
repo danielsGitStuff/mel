@@ -77,9 +77,6 @@ public class FileDistTaskWrapper extends SQLTableObject {
         wrapper.state.v(task.getState());
         if (task.getSourceDetails() != null)
             wrapper.sourceDetails.v(N.result(() -> SerializableEntitySerializer.serialize(task.getSourceDetails()), null));
-        if (wrapper.sourceDetails.isNull()) {
-            Lok.error("could not serialize source details");
-        }
         wrapper.deleteSource.v(task.getDeleteSource());
         wrapper.size.v(task.getSize());
 
