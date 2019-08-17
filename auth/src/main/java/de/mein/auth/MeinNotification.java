@@ -136,7 +136,6 @@ public class MeinNotification {
      *
      * @param extra
      * @throws JsonSerializationException
-     * @throws IllegalAccessException
      */
     public void addSerializedExtra(String key, SerializableEntity extra) throws JsonSerializationException, IllegalAccessException {
         String json = SerializableEntitySerializer.serialize(extra);

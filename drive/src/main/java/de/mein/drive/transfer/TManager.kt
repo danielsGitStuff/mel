@@ -21,6 +21,9 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Creates a TransferFromServiceRunnable per partner that you want to receive files from and manages them.
+ */
 class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDao, val meinDriveService: MeinDriveService<out SyncHandler>
                , val syncHandler: SyncHandler, val wastebin: Wastebin, val fsDao: FsDao) : DeferredRunnable(), MeinIsolatedProcess.IsolatedProcessListener {
     companion object {

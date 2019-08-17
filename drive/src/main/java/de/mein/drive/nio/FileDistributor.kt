@@ -107,24 +107,22 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
             while (fileDistTaskDao.hasWork() && !Thread.currentThread().isInterrupted && !stopped) {
                 hasTransferred = true
                 val max = fileDistTaskDao.countAll()
-                val done = fileDistTaskDao.countDone()
-                val countDone = AtomicInteger(done)
-                showNotification(done, max)
+                var countDone = fileDistTaskDao.countDone()
 
                 N.forEachAdv(fileDistTaskDao.loadChunk()) { stoppable, index, wrapperId, fileDistributionTask ->
                     workOnDistTask(fileDistributionTask)
                     fileDistTaskDao.markDone(wrapperId)
-                    showNotification(countDone.incrementAndGet(), max)
+                    showNotification(++countDone, max)
                 }
             }
         } finally {
-            fileDistTaskDao.deleteMarkedDone()
             running = false
             meinAuthService.powerManager.releaseWakeLock(this)
             watchDogTimer.activate()
             watchDogTimer.start()
             if (notification != null && fileDistTaskDao.isComplete()) {
                 Lok.error("DEBUG: CANCEL NOTIFICATION")
+                fileDistTaskDao.deleteMarkedDone()
                 notification?.cancel()
                 notification = null
             }
@@ -143,9 +141,13 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
         val text = "$current/$max files moved or copied"
         if (notification == null) {
             notification = MeinNotification(driveService.uuid, DriveStrings.Notifications.INTENTION_PROGRESS, title, text)
+            notification?.setProgress(max, current, false)
             driveService.meinAuthService.onNotificationFromService(driveService, notification)
+        } else {
+            notification?.text = text
+            notification?.title = title
+            notification?.setProgress(max, current, false)
         }
-        notification?.setProgress(max, current, false)
     }
 
     private fun workOnDistTask(distributionTask: FileDistributionTask) {
@@ -224,7 +226,6 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
     fun stop() {
         stopped = false
     }
-
 
 
 }

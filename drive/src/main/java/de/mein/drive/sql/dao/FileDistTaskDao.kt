@@ -27,7 +27,7 @@ class FileDistTaskDao(sqlQueries: ISQLQueries) : Dao(sqlQueries, false) {
     fun isComplete(): Boolean {
         val queryDifference = "select ((select count(1) from ${dummy.tableName})-(select count(1) from ${dummy.tableName} where ${dummy.state.k()}=?))"
         val count: Long = sqlQueries.queryValue(queryDifference, Long::class.java, ISQLQueries.whereArgs(FileDistributionTask.FileDistributionState.DONE))
-        return count > 0
+        return count == 0L
     }
 
 
@@ -44,13 +44,16 @@ class FileDistTaskDao(sqlQueries: ISQLQueries) : Dao(sqlQueries, false) {
         N.forEach(wrapper.targetWraps) { fileWrapper -> sqlQueries.insert(fileWrapper) }
     }
 
-    fun getNotReadyYetByHash(hash: String): FileDistributionTask {
+    fun getNotReadyYetByHash(hash: String): FileDistributionTask? {
         val where = "${dummy.sourceHash.k()}=? and ${dummy.state.k()}=?"
         val wrapper = sqlQueries.loadFirstRow(dummy.allAttributes, dummy, where, ISQLQueries.whereArgs(hash, FileDistributionTask.FileDistributionState.NRY), FileDistTaskWrapper::class.java)
+
         return wrapperToTask(wrapper)
     }
 
-    private fun wrapperToTask(taskWrapper: FileDistTaskWrapper): FileDistributionTask {
+    private fun wrapperToTask(taskWrapper: FileDistTaskWrapper?): FileDistributionTask? {
+        if (taskWrapper == null)
+            return null
         val task = FileDistributionTask()
         task.id = taskWrapper.id.v()
         task.sourceHash = taskWrapper.sourceHash.v()
@@ -91,10 +94,10 @@ class FileDistTaskDao(sqlQueries: ISQLQueries) : Dao(sqlQueries, false) {
     fun loadChunk(): Map<Long, FileDistributionTask> {
         val where = dummy.state.k() + "=? limit 10"
         val tasks = HashMap<Long, FileDistributionTask>()
-        val taskWrappers = sqlQueries.load(dummy.allAttributes, dummy, where, ISQLQueries.whereArgs(FileDistributionTask.FileDistributionState.READY))
+        val taskWrappers = sqlQueries.load(dummy.allAttributes, dummy, where, ISQLQueries.whereArgs(FileDistributionTask.FileDistributionState.READY))!!
         N.forEach(taskWrappers) { taskWrapper ->
             val task = wrapperToTask(taskWrapper)
-            tasks[taskWrapper.id.v()] = task
+            tasks[taskWrapper.id.v()] = task!!
         }
         return tasks
     }

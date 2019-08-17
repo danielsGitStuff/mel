@@ -3,9 +3,11 @@ package de.mein.android.service;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import de.mein.Lok;
 import de.mein.R;
 import de.mein.android.Notifier;
 import de.mein.android.Tools;
@@ -75,32 +77,30 @@ public class AndroidAdmin implements MeinAuthAdmin {
                 .setContentTitle(meinNotification.getTitle())
                 .setContentText(meinAuthService.getCompleteNotificationText(meinNotification))
                 .setContentIntent(pendingIntent);
-        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS) || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
-            NotificationCompat.Builder finalBuilder = builder;
-            meinNotification.addProgressListener(new MeinNotification.MeinProgressListener() {
-                @Override
-                public void onProgress(MeinNotification notification, int max, int current, boolean indeterminate) {
-                    finalBuilder.setProgress(max, current, indeterminate);
-                    finalBuilder.setContentTitle(meinNotification.getTitle())
-                            .setContentText(meinNotification.getText());
-                    notificationManager.notify(requestCode, finalBuilder.build());
-                }
+        NotificationCompat.Builder finalBuilder = builder;
+        meinNotification.addProgressListener(new MeinNotification.MeinProgressListener() {
+            @Override
+            public void onProgress(MeinNotification notification, int max, int current, boolean indeterminate) {
+                finalBuilder.setProgress(max, current, indeterminate);
+                finalBuilder.setContentTitle(meinNotification.getTitle())
+                        .setContentText(meinNotification.getText());
+                notificationManager.notify(requestCode, finalBuilder.build());
+            }
 
-                @Override
-                public void onCancel(MeinNotification notification) {
-                    Notifier.cancel(intent, requestCode);
-                }
+            @Override
+            public void onCancel(MeinNotification notification) {
+                Notifier.cancel(intent, requestCode);
+            }
 
-                @Override
-                public void onFinish(MeinNotification notification) {
-                    finalBuilder.setProgress(1, 1, false);
-                    finalBuilder.setContentTitle(meinNotification.getTitle())
-                            .setContentText(meinNotification.getText());
-                    notificationManager.notify(requestCode, finalBuilder.build());
-                }
-            });
-        }
-        if (!meinNotification.isUserCancelable()){
+            @Override
+            public void onFinish(MeinNotification notification) {
+                finalBuilder.setProgress(1, 1, false);
+                finalBuilder.setContentTitle(meinNotification.getTitle())
+                        .setContentText(meinNotification.getText());
+                notificationManager.notify(requestCode, finalBuilder.build());
+            }
+        });
+        if (!meinNotification.isUserCancelable()) {
             builder.setOngoing(true);
         }
         notificationManager.notify(requestCode, builder.build());
@@ -108,7 +108,7 @@ public class AndroidAdmin implements MeinAuthAdmin {
 
     @Override
     public void onChanged() {
-
+        Lok.debug();
     }
 
     @Override
@@ -118,16 +118,16 @@ public class AndroidAdmin implements MeinAuthAdmin {
 
     @Override
     public void onProgress(MeinNotification notification, int max, int current, boolean indeterminate) {
-
+        // nothing to do here. work is done in onNotificationFromService()
     }
 
     @Override
     public void onCancel(MeinNotification notification) {
-
+        // nothing to do here. work is done in onNotificationFromService()
     }
 
     @Override
     public void onFinish(MeinNotification notification) {
-
+        // nothing to do here. work is done in onNotificationFromService()
     }
 }

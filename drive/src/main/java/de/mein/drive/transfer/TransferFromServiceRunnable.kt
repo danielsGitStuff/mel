@@ -19,6 +19,9 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
 
+/**
+ * retrieves files from one partner service
+ */
 class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MeinIsolatedFileProcess) : MeinRunnable {
     private lateinit var currentDBSet: MutableMap<FileTransferDetail, DbTransferDetails>
     val driveService: MeinDriveService<out SyncHandler> = fileProcess.service as MeinDriveService<out SyncHandler>
