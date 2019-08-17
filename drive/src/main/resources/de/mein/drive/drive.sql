@@ -4,12 +4,13 @@ DROP TABLE IF EXISTS stage;
 DROP TABLE IF EXISTS stageset;
 DROP TABLE IF EXISTS transfer;
 drop table if exists filedist;
+drop table if exists filedisttargets;
 create table filedist
 (
   id integer not null primary key autoincrement,
-  sourcepath text not null,
+  sourcepath text,
   sourcehash text not null,
-  sourcedetails text not null,
+  sourcedetails text,
   deletesource integer,
   fsize integer,
   done integer

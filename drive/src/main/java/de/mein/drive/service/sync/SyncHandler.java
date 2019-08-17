@@ -233,9 +233,10 @@ public abstract class SyncHandler {
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         transaction.run(() -> {
+            // sop files being moved around
+            fileDistributor.stop();
             StageSet stageSet = stageDao.getStageSetById(stageSetId);
             // if version not provided by the stageset we will increase the old one
-//            long version = stageSet.getVersion().isNull() ? driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1 : stageSet.getVersion().v();
             long localVersion = driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
             //check if sufficient space is available
             if (!stageSet.fromFs())

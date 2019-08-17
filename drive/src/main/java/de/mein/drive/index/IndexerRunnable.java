@@ -118,7 +118,7 @@ public class IndexerRunnable extends AbstractIndexer {
                     if (!conflicts)
                         initialIndexConflictHelper = null;
                 }
-                fastBooting = false;
+                fastBooting = true;
             } catch (Exception e) {
                 e.printStackTrace();
                 startedPromise.reject(e);

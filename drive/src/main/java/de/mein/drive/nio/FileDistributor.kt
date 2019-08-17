@@ -78,8 +78,10 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
     fun createJob(distributionTask: FileDistributionTask) {
         // unpack and store in database
         fileDistTaskDao.insert(distributionTask)
-        if (!running)
+        if (!running) {
+            stopped = false
             driveService.execute(this)
+        }
     }
 
     override fun run() {
@@ -201,7 +203,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
         if (target.exists())
             throw  IOException("file already exists")
         rawCopyFile(source, target)
-        if(fsId!=null){
+        if (fsId != null) {
             de.mein.auth.tools.lock.T.lockingTransaction(fsId).run { updateFs(fsId, target) }.end()
         }
     }
