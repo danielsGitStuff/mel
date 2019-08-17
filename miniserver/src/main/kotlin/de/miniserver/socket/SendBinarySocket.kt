@@ -3,10 +3,9 @@ package de.miniserver.socket
 import de.mein.Lok
 import de.mein.auth.MeinStrings
 import de.mein.auth.socket.MeinSocket
+import de.mein.auth.tools.N
 import de.mein.update.SimpleSocket
 import de.miniserver.data.FileRepository
-
-import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.net.Socket
@@ -39,11 +38,8 @@ constructor(socket: Socket, private val fileRepository: FileRepository) : Simple
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
-            try {
-                fin!!.close()
-            } catch (e: Exception) {
-            }
-
+            N.s { fin?.close() }
+            N.s { out.close() }
         }
     }
 

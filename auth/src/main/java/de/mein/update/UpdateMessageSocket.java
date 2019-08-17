@@ -2,17 +2,16 @@ package de.mein.update;
 
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
+import de.mein.auth.tools.N;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.sql.Hash;
 
+import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.SSLSocket;
 
 public class UpdateMessageSocket extends SimpleSocket {
     private final Updater updater;
@@ -46,6 +45,9 @@ public class UpdateMessageSocket extends SimpleSocket {
             }
         } catch (IOException | JsonDeserializationException | CertificateEncodingException e) {
             e.printStackTrace();
+        } finally {
+            N.s(out::close);
+            N.s(in::close);
         }
     }
 }

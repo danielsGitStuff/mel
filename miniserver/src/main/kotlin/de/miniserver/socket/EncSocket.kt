@@ -2,6 +2,7 @@ package de.miniserver.socket
 
 import de.mein.Lok
 import de.mein.auth.MeinStrings
+import de.mein.auth.tools.N
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer
 import de.mein.update.SimpleSocket
 import de.mein.update.VersionAnswer
@@ -28,6 +29,9 @@ constructor(socket: Socket, private val versionAnswer: VersionAnswer) : SimpleSo
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            N.s { out.close() }
+            N.s { `in`.close() }
         }
 
     }

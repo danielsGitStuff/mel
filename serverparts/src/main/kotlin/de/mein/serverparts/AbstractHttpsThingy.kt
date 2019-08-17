@@ -126,7 +126,6 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
                 responseBody.close()
                 ex.close()
             }
-
         }
     }
 
