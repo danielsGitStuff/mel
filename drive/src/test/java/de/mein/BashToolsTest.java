@@ -3,7 +3,10 @@ package de.mein;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.tools.F;
-import de.mein.drive.bash.*;
+import de.mein.auth.tools.N;
+import de.mein.drive.bash.AutoKlausIterator;
+import de.mein.drive.bash.BashTools;
+import de.mein.drive.bash.FsBashDetails;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,8 +85,8 @@ public class BashToolsTest {
 
     @Test
     public void rmRf() throws IOException {
-        BashTools.rmRf(root);
-        assertFalse(root.exists());
+        BashTools.rmRf(subsub);
+        assertFalse(subsub.exists());
     }
 
     @Test

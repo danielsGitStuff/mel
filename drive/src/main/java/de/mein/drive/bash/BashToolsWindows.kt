@@ -2,9 +2,9 @@ package de.mein.drive.bash
 
 import de.mein.Lok
 import de.mein.auth.file.AFile
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -13,18 +13,99 @@ import java.util.*
 
 
 /**
+ * Symlinks are realised using hardlinks for files and junctions for directories.
+ * Reason: Windoof permits creating symlinks without higher privileges in out of the box configuration
  * Created by xor on 13.07.2017.
  */
 class BashToolsWindows : BashToolsImpl() {
     override fun getContentFsBashDetails(file: AFile<*>): Map<String, FsBashDetails> {
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        return mutableMapOf()
+        val content: Array<out AFile<AFile<*>>>? = file.listContent()
+
+        val symLinkMap: MutableMap<String, String> = mutableMapOf()
+        val iNodeMap: MutableMap<String, Long> = mutableMapOf()
+
+        runBlocking(Dispatchers.IO) {
+
+            // get inodes
+            content?.forEach {
+                launch {
+                    val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
+                    val id = fsUtil!!.substringAfter(": ")
+                    val iNode = java.lang.Long.decode(id)
+                    iNodeMap[it.name] = iNode
+                    Lok.debug(" AAA")
+                }
+            }
+
+            // get junctions
+            launch {
+                var countDown = 5;
+                execReader("dir", "/al", file.absolutePath)?.useLines {
+                    it.iterator().forEach {
+                        if (countDown == 0) {
+                            // parse something like this: 17.08.2019  01:56    <JUNCTION>     bla bla [C:\Users\user\testdir.root\sub]
+                            val stripped = it.substringAfter("<JUNCTION>").substring(5)
+                            // extract name by using the colon after drive letter
+                            val name = stripped.substring(0, stripped.indexOf(':') - 3)
+                            // extract target by subtracting name
+                            val target = stripped.substring(name.length + 2, stripped.length - 1)
+                            symLinkMap[name] = target
+                        }
+                        countDown--
+                    }
+                }
+                Lok.debug("BBB")
+            }
+
+            // get hard links
+            val driveLetter = file.absolutePath.substring(0, 2)
+            content?.filter { !it.isDirectory }?.forEach { f ->
+                launch {
+                    val path = f.absolutePath
+                    execReader("fsutil", "hardlink", "list", f.absolutePath)?.useLines {
+                        it.iterator().forEach {
+                            val readPath = driveLetter + it
+                            if (path != readPath)
+                                symLinkMap[f.name] = readPath
+                        }
+                    }
+                }
+            }
+
+        }
+        Lok.debug("JOIN")
+        val map: MutableMap<String, FsBashDetails> = mutableMapOf()
+        content?.forEach {
+            val name = it.name
+            val isSymLink = symLinkMap.containsKey(name)
+            val details = FsBashDetails(it.lastModified(), iNodeMap[name], isSymLink, symLinkMap[name], name)
+            map[name] = details
+        }
+        return map
+    }
+
+    @Throws(IOException::class)
+    override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
+        var iNode: Long? = null
+        val name = file.name
+        var isSymLink: Boolean = false
+        var symLinkTarget: String? = null
+        runBlocking {
+
+            launch {
+                //reads something like "File ID: 0x0000000000000000000200000000063a"
+                val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
+                val id = fsUtil!!.substringAfter(": ")
+                iNode = java.lang.Long.decode(id)
+            }
+
+            launch {
+                symLinkTarget = getSymLink(file)
+                if (symLinkTarget != null)
+                    isSymLink = true
+            }
+        }
+        return FsBashDetails(file.lastModified(), iNode!!, isSymLink, symLinkTarget, name)
     }
 
     override fun lnS(file: AFile<out AFile<*>>, targetString: String) {
@@ -46,13 +127,9 @@ class BashToolsWindows : BashToolsImpl() {
             execReader("dir", "/al", f.parentFile.absolutePath)?.useLines {
                 it.iterator().forEach {
                     if (countDown == 0) {
-                        var stripped = it.substringAfter("<JUNCTION>").trim()
+                        var stripped = it.substringAfter("<JUNCTION>").substring(5)
                         if (stripped.startsWith(f.name)) {
                             return true
-//                            stripped = stripped.substringAfter(f.name).trim()
-//                            stripped = stripped.substring(1, stripped.length - 1)
-//                            if (path == stripped)
-//                                return true
                         }
                     }
                     countDown--
@@ -61,7 +138,6 @@ class BashToolsWindows : BashToolsImpl() {
             return false
         } else {
             // check if hardlink
-
             // first get drive letter, we need to add that later
             val driveLetter = f.absolutePath.substring(0, 2)
             execReader("fsutil", "hardlink", "list", f.absolutePath)?.useLines {
@@ -89,7 +165,7 @@ class BashToolsWindows : BashToolsImpl() {
             execReader("dir", "/al", f.parentFile.absolutePath)?.useLines {
                 it.iterator().forEach {
                     if (countDown == 0) {
-                        var stripped = it.substringAfter("<JUNCTION>").trim()
+                        var stripped = it.substringAfter("<JUNCTION>").substring(5)
                         if (stripped.startsWith(f.name)) {
                             stripped = stripped.substringAfter(f.name).trim()
                             stripped = stripped.substring(1, stripped.length - 1)
@@ -118,40 +194,11 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
-        var iNode: Long? = null
-        val name = file.name
-        var isSymLink: Boolean = false
-        var symLinkTarget: String? = null
-        runBlocking {
-            val task1 = async {
-                //reads something like "File ID: 0x0000000000000000000200000000063a"
-                val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
-                val id = fsUtil!!.substringAfter(": ")
-                iNode = java.lang.Long.decode(id)
-            }
-
-            val task2 = async {
-                symLinkTarget = getSymLink(file)
-                if (symLinkTarget != null)
-                    isSymLink = true
-            }
-            task1.await()
-            task2.await()
-        }
-
-
-//        //reads something like "File ID: 0x0000000000000000000200000000063a"
-//        val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
-//        val id = fsUtil!!.substringAfter(": ")
-//        val iNode = java.lang.Long.decode(id)
-        return FsBashDetails(file.lastModified(), iNode!!, isSymLink, symLinkTarget, name)
-    }
-
-    @Throws(IOException::class)
     override fun rmRf(directory: AFile<*>) {
         //        exec("rd /s /q \"" + directory.getAbsolutePath() + "\"");
-        exec("rd", "/s", "/q", directory.absolutePath)
+        exec("rd", "/s", "/q", directory.absolutePath).waitFor()
+//        Files.delete(Paths.get(File(directory.absolutePath).toURI()))
+
     }
 
     @Throws(IOException::class, BashToolsException::class)
@@ -177,7 +224,6 @@ class BashToolsWindows : BashToolsImpl() {
         Lok.debug("BashToolsWindows.exec: " + Arrays.toString(commands));
         val args = buildArgs(*commands)
         val process = ProcessBuilder(*args).start()
-        process.waitFor()
         return process
     }
 
@@ -198,7 +244,7 @@ class BashToolsWindows : BashToolsImpl() {
     private fun execReader(vararg commands: String): WindowsBashReader? {
         try {
             val process = exec(*commands)
-            process.waitFor()
+//            process.waitFor()
             return WindowsBashReader(InputStreamReader(process.inputStream, CHARSET))
         } catch (e: Exception) {
             e.printStackTrace()

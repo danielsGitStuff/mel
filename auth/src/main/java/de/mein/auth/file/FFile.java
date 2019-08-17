@@ -10,6 +10,10 @@ import java.io.*;
 public class FFile extends AFile<FFile> {
     private File file;
 
+    public File getFile() {
+        return file;
+    }
+
     public FFile() {
 
     }
@@ -105,7 +109,7 @@ public class FFile extends AFile<FFile> {
 
     @Override
     public FFile getParentFile() {
-        return new FFile(file.getParentFile());
+        return new FFile(new File(file.getAbsolutePath()).getParentFile());
     }
 
     @Override
