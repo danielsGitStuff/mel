@@ -33,7 +33,6 @@ class BashToolsWindows : BashToolsImpl() {
                     val id = fsUtil!!.substringAfter(": ")
                     val iNode = java.lang.Long.decode(id)
                     iNodeMap[it.name] = iNode
-                    Lok.debug(" AAA")
                 }
             }
 
@@ -54,7 +53,6 @@ class BashToolsWindows : BashToolsImpl() {
                         countDown--
                     }
                 }
-                Lok.debug("BBB")
             }
 
             // get hard links
@@ -73,7 +71,6 @@ class BashToolsWindows : BashToolsImpl() {
             }
 
         }
-        Lok.debug("JOIN")
         val map: MutableMap<String, FsBashDetails> = mutableMapOf()
         content?.forEach {
             val name = it.name
@@ -201,12 +198,6 @@ class BashToolsWindows : BashToolsImpl() {
 
     }
 
-    @Throws(IOException::class, BashToolsException::class)
-    override fun stuffModifiedAfter(referenceFile: AFile<*>, directory: AFile<*>, pruneDir: AFile<*>): List<AFile<*>> {
-        System.err.println("BashToolsWindows.stuffModifiedAfter.I AM THE WINDOWS GUY!")
-        return listOf()
-    }
-
     private fun buildArgs(vararg commands: String): Array<String?> {
         val result = arrayOfNulls<String>(commands.size + 2)
         result[0] = BIN_PATH
@@ -221,7 +212,7 @@ class BashToolsWindows : BashToolsImpl() {
 
     @Throws(IOException::class)
     private fun exec(vararg commands: String): Process {
-        Lok.debug("BashToolsWindows.exec: " + Arrays.toString(commands));
+//        Lok.debug("BashToolsWindows.exec: " + Arrays.toString(commands));
         val args = buildArgs(*commands)
         val process = ProcessBuilder(*args).start()
         return process

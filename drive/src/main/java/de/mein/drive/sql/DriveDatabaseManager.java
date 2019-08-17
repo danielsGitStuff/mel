@@ -2,17 +2,12 @@ package de.mein.drive.sql;
 
 import de.mein.Lok;
 import de.mein.auth.data.access.FileRelatedManager;
-import de.mein.auth.file.AFile;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.sql.dao.FileDistTaskDao;
-import de.mein.drive.sql.dao.FsDao;
-import de.mein.drive.sql.dao.StageDao;
-import de.mein.drive.sql.dao.TransferDao;
-import de.mein.drive.sql.dao.WasteDao;
+import de.mein.drive.sql.dao.*;
 import de.mein.execute.SqliteExecutor;
 import de.mein.sql.*;
 import de.mein.sql.conn.SQLConnector;
@@ -111,7 +106,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
          */
         sqlQueries = sqlqueriesCreator.createConnection(this, meinDriveService.getUuid());
         {
-            Lok.error("synchronous PRAGMA is turned on!");
+            Lok.error("synchronous PRAGMA is turned off!");
             SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
             st.execute();
         }
@@ -119,6 +114,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
             SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA foreign_keys=ON");
             st.execute();
         }
+        sqlQueries.getSQLConnection().setAutoCommit(false);
 //        sqlQueries.enableWAL();
 
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());

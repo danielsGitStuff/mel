@@ -3,7 +3,6 @@ package de.mein.drive.index;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.Eva;
-import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
@@ -14,12 +13,12 @@ import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.service.sync.SyncHandler;
-import de.mein.drive.sql.*;
+import de.mein.drive.sql.DriveDatabaseManager;
+import de.mein.drive.sql.FsDirectory;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -101,7 +100,6 @@ public class IndexerRunnable extends AbstractIndexer {
                     sqlQueries.beginTransaction();
                     timerInit.start();
                     initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
-                    sqlQueries.commit();
                 } catch (Exception e) {
                     //todo abort transaction
                 } finally {
