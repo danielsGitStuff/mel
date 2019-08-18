@@ -1,6 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 project.ext {
-    javaFxVersion = "11.0.2"
+    javaFxVersion = "12.0.1"
 //    javaFxModules = ['javafx.controls', 'javafx.fxml','javafx.swing']
     javaFxModules = ['javafx.controls', 'javafx.fxml' , 'javafx.swing', 'javafx.web']
 }
