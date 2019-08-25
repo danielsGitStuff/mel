@@ -14,9 +14,9 @@ sourceSets{
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
     compile project(path: ':auth')
     testCompile project(path: ':auth')
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
