@@ -12,31 +12,31 @@ public enum NumberTransformer {
     P_DOUBLE(double.class) {
         @Override
         public Number cast(Number n) {
-            return n == null ? null : Double.valueOf(n.doubleValue());
+            return n == null ? null : (double) Double.valueOf(n.doubleValue());
         }
     },
     P_FLOAT(float.class) {
         @Override
         public Number cast(Number n) {
-            return n == null ? null : Float.valueOf(n.floatValue());
+            return n == null ? null : (float) Float.valueOf(n.floatValue());
         }
     },
     P_LONG(long.class) {
         @Override
         public Number cast(Number n) {
-            return n == null ? null : Long.valueOf(n.longValue());
+            return n == null ? null : (long) Long.valueOf(n.longValue());
         }
     },
     P_SHORT(short.class) {
         @Override
         public Number cast(Number n) {
-            return n == null ? null : Short.valueOf(n.shortValue());
+            return n == null ? null : (short) Short.valueOf(n.shortValue());
         }
     },
     P_INT(int.class) {
         @Override
         public Number cast(Number n) {
-            return n == null ? null : Integer.valueOf(n.intValue());
+            return n == null ? null : (int) Integer.valueOf(n.intValue());
         }
     },
     INT(Integer.class) {

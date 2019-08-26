@@ -266,7 +266,7 @@ class TransferDao : Dao {
     fun hasHash(hash: String): Boolean {
         val query = "select count(1) from " + dummy.tableName + " where " + dummy.hash.k() + "=?"
         val count = sqlQueries.queryValue(query, Long::class.java, ISQLQueries.whereArgs(hash))
-        return count > 0
+        return count > 0L
     }
 
     @Throws(SqlQueriesException::class)

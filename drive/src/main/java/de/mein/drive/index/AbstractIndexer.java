@@ -246,10 +246,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     private void roamDirectoryStage(Stage stage, AFile stageFile) throws SqlQueriesException, IOException, InterruptedException {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
-
-        //todo debug
-        if (stageFile.getName().equals("samedir"))
-            Lok.debug();
         //todo weiter hier"
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
 
