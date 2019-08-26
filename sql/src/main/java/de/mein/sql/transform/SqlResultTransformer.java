@@ -3,15 +3,6 @@ package de.mein.sql.transform;
 public abstract class SqlResultTransformer {
     public abstract <T> T convert(Class<T> resultClass, Object value);
 
-    public static SqlResultTransformer defaultTransformer() {
-        return new SqlResultTransformer() {
-            @Override
-            public <T> T convert(Class<T> resultClass, Object value) {
-                return (T) value;
-            }
-        };
-    }
-
     public static SqlResultTransformer sqliteResultSetTransformer() {
         return new SqlResultTransformer() {
             @Override
@@ -24,6 +15,9 @@ public abstract class SqlResultTransformer {
                 }
                 if (!resultClass.equals(value.getClass())){
                     System.out.println("SqlResultTransformer.convert.error");
+                    NumberTransformer nt = NumberTransformer.forType((Class<? extends Number>) resultClass);
+                    T casted = (T) nt.cast((Number) value);
+                    return casted;
                 }
                 return (T) value;
             }

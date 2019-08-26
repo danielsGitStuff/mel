@@ -7,6 +7,38 @@ import java.util.Map;
  * Created by xor on 30.10.2015.
  */
 public enum NumberTransformer {
+    // IDEs might tell you to remove boxing (like: "return Long.valueOf(n.longValue())").
+    // don't do that: it happened that the return values had wrong types (eg: Long instead of int)
+    P_DOUBLE(double.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : Double.valueOf(n.doubleValue());
+        }
+    },
+    P_FLOAT(float.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : Float.valueOf(n.floatValue());
+        }
+    },
+    P_LONG(long.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : Long.valueOf(n.longValue());
+        }
+    },
+    P_SHORT(short.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : Short.valueOf(n.shortValue());
+        }
+    },
+    P_INT(int.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : Integer.valueOf(n.intValue());
+        }
+    },
     INT(Integer.class) {
         @Override
         public Number cast(Number n) {
