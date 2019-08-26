@@ -539,9 +539,13 @@ public class SQLQueries extends ISQLQueries {
     }
 
 
-    public void rollback() throws SQLException {
-        connection.rollback();
-        connection.setAutoCommit(true);
+    public void rollback() throws SqlQueriesException {
+        try {
+            connection.rollback();
+            connection.setAutoCommit(true);
+        } catch (Exception e) {
+            throw new SqlQueriesException(e);
+        }
     }
 
 

@@ -271,7 +271,9 @@ public abstract class SyncHandler {
             N.sqlResource(stageDao.getNotDeletedStagesByStageSet(stageSetId), stages -> {
                 Stage stage = stages.getNext();
                 while (stage != null) {
-
+                    //todo debug
+                    if (stage.getNamePair().equalsValue("[root]"))
+                        Lok.debug();
                     if (stage.getFsId() == null) {
                         if (stage.getIsDirectory()) {
 //                            if (stage.getFsId() != null) {
@@ -370,7 +372,8 @@ public abstract class SyncHandler {
                             }
                             // TODO inode & co
                             FsEntry oldeEntry = fsDao.getGenericById(fsEntry.getId().v());
-                            if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v()) {
+                            // only copy modified & inode if it is not present in the new entry (it came from remote then)
+                            if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v() && fsEntry.getModified().isNull()) {
                                 fsEntry.getiNode().v(oldeEntry.getiNode());
                                 fsEntry.getModified().v(oldeEntry.getModified());
                             }

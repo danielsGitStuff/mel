@@ -126,7 +126,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
             return true;
         } else if (unknownJob instanceof SyncClientJob) {
             syncJobCount.decrementAndGet();
-            N.r(() -> syncHandler.syncFromServer(((SyncClientJob) unknownJob).getNewVersion()));
+            N.r(() -> syncHandler.syncFromServer());
         }
         return false;
     }

@@ -92,16 +92,18 @@ public class IndexerRunnable extends AbstractIndexer {
                 OTimer timerInit = new OTimer("init stageset");
                 try (AutoKlausIterator<AFile<?>> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMeinDriveService().getDriveSettings().getTransferDirectory())) {
                     Lok.debug("starting stageset initialization");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-//                Lok.error("TRANSACTION DISABLED!!!!!");
-                    sqlQueries.beginTransaction();
+                    Lok.error("TRANSACTION DISABLED!!!!!");
+                    Lok.error("TRANSACTION DISABLED!!!!!");
+                    Lok.error("TRANSACTION DISABLED!!!!!");
+                    Lok.error("TRANSACTION DISABLED!!!!!");
+                    Lok.error("TRANSACTION DISABLED!!!!!");
+//                    sqlQueries.beginTransaction();
                     timerInit.start();
                     initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener, databaseManager.getDriveSettings().getLastSyncedVersion());
                 } catch (Exception e) {
                     //todo abort transaction
+                    e.printStackTrace();
+//                    sqlQueries.rollback();
                 } finally {
                     timerInit.stop().print().reset();
                 }
@@ -111,7 +113,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 OTimer timerExamine = new OTimer("examine stageset").start();
                 Eva.flagAndRun("ii!", 2, () -> Lok.debug());
                 examineStage();
-                sqlQueries.commit();
+//                sqlQueries.commit();
                 timerExamine.stop().print();
                 if (initialIndexConflictHelper != null) {
                     boolean conflicts = initialIndexConflictHelper.onDone(transaction, this);

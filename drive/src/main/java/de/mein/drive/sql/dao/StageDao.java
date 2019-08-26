@@ -246,14 +246,11 @@ StageDao extends Dao.LockingDao {
     }
 
     public Stage insert(Stage stage) throws SqlQueriesException {
-        try {
-            Long id = sqlQueries.insert(stage);
-            return stage.setId(id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-
+        // todo debug
+        if (stage.getNamePair().equalsValue("[root]"))
+            Lok.debug();
+        Long id = sqlQueries.insert(stage);
+        return stage.setId(id);
     }
 
     public ISQLResource<Stage> getStagesByStageSet(Long stageSetId) throws SqlQueriesException {

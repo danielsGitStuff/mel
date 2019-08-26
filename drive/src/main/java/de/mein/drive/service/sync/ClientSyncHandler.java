@@ -287,7 +287,7 @@ public class ClientSyncHandler extends SyncHandler {
 //pr0gramm.com/tope.addJob(new CommitJob());
                 return;
             } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
-                syncFromServer(null);
+                syncFromServer();
                 return;
             } else if (updateSets.size() == 1) {
                 StageSet stageSet = updateSets.get(0);
@@ -298,7 +298,7 @@ public class ClientSyncHandler extends SyncHandler {
                     transferManager.research();
                 }
             } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
-                syncFromServer(null);
+                syncFromServer();
                 return;
             }
 
@@ -596,10 +596,9 @@ public class ClientSyncHandler extends SyncHandler {
     /**
      * pulls StageSet from the Server. locks.
      *
-     * @param newVersion
      * @throws SqlQueriesException
      */
-    public void syncFromServer(Long newVersion) throws SqlQueriesException, InterruptedException {
+    public void syncFromServer() throws SqlQueriesException, InterruptedException {
         Lok.debug();
         WaitLock waitLock = new WaitLock();
         runner.runTry(() -> {
@@ -611,7 +610,7 @@ public class ClientSyncHandler extends SyncHandler {
         connected.done(mvp -> runner.runTry(() -> {
             long oldeSyncedVersion = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
             //todo version, what calls this?
-            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), newVersion, oldeSyncedVersion);
+            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null, oldeSyncedVersion);
             //prepare cached answer
             SyncRequest sentSyncRequest = new SyncRequest()
                     .setOldVersion(oldeSyncedVersion);
@@ -623,7 +622,6 @@ public class ClientSyncHandler extends SyncHandler {
                     syncAnswer.setStageSet(stageSet);
                     //server might have gotten a new version in the mean time and sent us that
                     stageSet.setVersion(syncAnswer.getNewVersion());
-                    //todo version
                     stageSet.setBasedOnVersion(syncAnswer.getOldVersion());
                     stageDao.updateStageSet(stageSet);
                     Promise<Long, Void, Void> promise = this.sync2Stage(syncAnswer);

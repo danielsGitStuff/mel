@@ -298,6 +298,11 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     @Override
+    public void rollback() throws SqlQueriesException {
+
+    }
+
+    @Override
     public void commit() throws SQLException {
 
     }

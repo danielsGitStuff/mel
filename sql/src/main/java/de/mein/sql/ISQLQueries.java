@@ -178,6 +178,8 @@ public abstract class ISQLQueries {
 
     public abstract void beginTransaction() throws SQLException;
 
+    public abstract void rollback() throws SqlQueriesException;
+
     public abstract void commit() throws SQLException;
 
     public abstract void onShutDown();

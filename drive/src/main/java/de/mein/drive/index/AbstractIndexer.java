@@ -217,7 +217,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             if (fsEntry != null) {
                 stage.setFsId(fsEntry.getId().v());
-                stage.setVersion(fsEntry.getVersion().v());
+//                stage.setVersion(fsEntry.getVersion().v());
                 stage.setName(fsEntry.getName().v());
             }
             stage.setStageSet(stageSet.getId().v());
@@ -323,7 +323,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 Stage delStage = GenericFSEntry.generic2Stage(gen, stageSetId)
                         .setDeleted(true)
                         .setOrder(order.ord())
-                        .setVersion(gen.getVersion().v())
+//                        .setVersion(gen.getVersion().v())
                         .setiNode(gen.getiNode().v())
                         .setModified(gen.getModified().v())
 //                        .setSynced(gen.getSynced().v())
