@@ -32,7 +32,6 @@ import java.util.concurrent.Future;
 public class SqliteThreadingTest {
 
 
-
     @Test
     public void thread() throws Exception {
         AFile.configure(new DefaultFileConfiguration());
@@ -167,7 +166,7 @@ public class SqliteThreadingTest {
     }
 
     private StageSet fillNewStageSet(StageDao stageDao, int from, int to) throws SqlQueriesException {
-        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_STARTUP_INDEX, null, null,null);
+        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_STARTUP_INDEX, null, null, null, 666L);
         for (Integer i = from; i < to; i++) {
             Stage stage = new Stage()
                     .setStageSet(stageSet.getId().v())

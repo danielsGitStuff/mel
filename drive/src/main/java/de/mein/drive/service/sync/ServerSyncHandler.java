@@ -57,7 +57,7 @@ public class ServerSyncHandler extends SyncHandler {
                 return;
             }
             // stage everything
-            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null);
+            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null, commit.getBasedOnVersion());
             Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
             Iterator<Stage> iterator = commit.iterator();
             while (iterator.hasNext()) {
@@ -135,7 +135,7 @@ public class ServerSyncHandler extends SyncHandler {
         Lok.error("NOT:IMPLEMENTED:YET.");
         try {
             ISQLResource<FsFile> availableHashes = driveDatabaseManager.getTransferDao().getAvailableTransfersFromHashes(availableHashesContainer.iterator());
-            AvailableHashesContainer result = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), availableHashesContainer.getCacheId(),DriveSettings.CACHE_LIST_SIZE);
+            AvailableHashesContainer result = new AvailableHashesContainer(meinDriveService.getCacheDirectory(), availableHashesContainer.getCacheId(), DriveSettings.CACHE_LIST_SIZE);
 //            N.sqlResource(availableHashes,sqlResource -> {
 //                FsFile fsFile = sqlResource.getNext();
 //                while (fsFile!= null){
@@ -151,8 +151,7 @@ public class ServerSyncHandler extends SyncHandler {
         } catch (SqlQueriesException | IOException | MeinJsonException e) {
             e.printStackTrace();
             request.reject(e);
-        }
-        finally {
+        } finally {
             availableHashesContainer.cleanUp();
         }
     }

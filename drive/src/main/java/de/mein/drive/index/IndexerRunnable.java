@@ -99,7 +99,7 @@ public class IndexerRunnable extends AbstractIndexer {
 //                Lok.error("TRANSACTION DISABLED!!!!!");
                     sqlQueries.beginTransaction();
                     timerInit.start();
-                    initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener);
+                    initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener, databaseManager.getDriveSettings().getLastSyncedVersion());
                 } catch (Exception e) {
                     //todo abort transaction
                 } finally {

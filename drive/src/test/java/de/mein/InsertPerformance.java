@@ -121,7 +121,7 @@ public class InsertPerformance {
     @Test
     public void insert() throws Exception {
         // create N entries then dive down the lsat one
-        StageSet stageSet = stageDao.createStageSet("test", 1L, null, 3L);
+        StageSet stageSet = stageDao.createStageSet("test", 1L, null, 3L,2L);
         Stage root = new Stage().setContentHash(UUID.randomUUID().toString())
                 .setDeleted(false)
                 .setiNode(random.nextLong())

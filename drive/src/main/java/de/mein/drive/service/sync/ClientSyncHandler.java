@@ -138,8 +138,6 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
 
-
-
     /**
      * Sends the StageSet to the server and updates it with the FsIds provided by the server.
      * blocks until server has answered or the attempt failed.
@@ -162,9 +160,10 @@ public class ClientSyncHandler extends SyncHandler {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(clientSettings.getServerCertId());
                 connected.done(mvp -> transaction.run(() -> {
 // load to cached data structure
+                    StageSet stageSet = stageDao.getStageSetById(stageSetId);
                     Commit commit = new Commit(meinDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE, meinDriveService.getUuid());
                     N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
-                    commit.setBasedOnVersion(driveDatabaseManager.getLatestVersion());
+                    commit.setBasedOnVersion(stageSet.getBasedOnVersion().v());
                     commit.setIntent(DriveStrings.INTENT_COMMIT);
                     Request committed = mvp.request(clientSettings.getServerServiceUuid(), commit);
                     committed.done(res -> transaction.run(() -> {
@@ -179,7 +178,6 @@ public class ClientSyncHandler extends SyncHandler {
                             }
                             stageDao.update(stage);
                         }
-                        StageSet stageSet = stageDao.getStageSetById(stageSetId);
                         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
                         stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
                         commitStage(stageSetId, transaction);
@@ -461,8 +459,10 @@ public class ClientSyncHandler extends SyncHandler {
             return;
         StageSet lStageSet = stageSets.get(0);
         StageSet rStageSet = stageSets.get(1);
+        long basedOnVersion = lStageSet.getBasedOnVersion().v() >= rStageSet.getBasedOnVersion().v() ? lStageSet.getBasedOnVersion().v() : rStageSet.getBasedOnVersion().v();
         Lok.debug("ClientSyncHandler.mergeStageSets L: " + lStageSet.getId().v() + " R: " + rStageSet.getId().v());
         StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, lStageSet.getOriginCertId().v(), lStageSet.getOriginServiceUuid().v()
+                , basedOnVersion
                 , lStageSet.getVersion().v());
         final Long mStageSetId = mStageSet.getId().v();
         SyncStageMerger merger = new SyncStageMerger(lStageSet.getId().v(), rStageSet.getId().v()) {
@@ -609,11 +609,12 @@ public class ClientSyncHandler extends SyncHandler {
         Certificate serverCert = meinAuthService.getCertificateManager().getTrustedCertificateById(clientSettings.getServerCertId());
         Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect(serverCert.getId().v());
         connected.done(mvp -> runner.runTry(() -> {
-            long version = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
-            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), newVersion);
+            long oldeSyncedVersion = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
+            //todo version, what calls this?
+            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), newVersion, oldeSyncedVersion);
             //prepare cached answer
             SyncRequest sentSyncRequest = new SyncRequest()
-                    .setOldVersion(version);
+                    .setOldVersion(oldeSyncedVersion);
 //            sentSyncRequest.setServiceUuid(this.clientSettings.getServerServiceUuid());
             sentSyncRequest.setIntent(DriveStrings.INTENT_SYNC);
             Request<SyncAnswer> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncRequest);
@@ -622,6 +623,8 @@ public class ClientSyncHandler extends SyncHandler {
                     syncAnswer.setStageSet(stageSet);
                     //server might have gotten a new version in the mean time and sent us that
                     stageSet.setVersion(syncAnswer.getNewVersion());
+                    //todo version
+                    stageSet.setBasedOnVersion(syncAnswer.getOldVersion());
                     stageDao.updateStageSet(stageSet);
                     Promise<Long, Void, Void> promise = this.sync2Stage(syncAnswer);
                     promise.done(nil -> runner.runTry(() -> {

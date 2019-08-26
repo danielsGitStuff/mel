@@ -56,7 +56,7 @@ public class InitialIndexConflictHelper {
         stageDao = driveClientService.getDriveDatabaseManager().getStageDao();
         fsDao = driveClientService.getDriveDatabaseManager().getFsDao();
         DriveClientSettingsDetails clientSettings = driveClientService.getDriveSettings().getClientSettings();
-        serverStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_STAGING, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), driveClientService.getDriveSettings().getLastSyncedVersion() + 1);
+        serverStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_STAGING, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null,driveClientService.getDriveSettings().getLastSyncedVersion() + 1);
         serverStageSetId = serverStageSet.getId().v();
         ord = new Order();
     }

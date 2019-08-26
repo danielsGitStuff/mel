@@ -37,7 +37,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
         if (pathCollection.getPaths().size() > 0) {
             Transaction transaction = T.lockingTransaction(T.read(fsDao));
             try {
-                initStage(DriveStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener);
+                initStage(DriveStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener, databaseManager.getDriveSettings().getLastSyncedVersion());
                 examineStage();
                 transaction.end();
                 unlocked = true;

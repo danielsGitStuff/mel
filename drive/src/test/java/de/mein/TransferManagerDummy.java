@@ -1,12 +1,6 @@
 package de.mein;
 
-import de.mein.auth.file.AFile;
-import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.sql.FsEntry;
-import de.mein.drive.sql.FsFile;
-import de.mein.drive.sql.Stage;
-import de.mein.drive.transfer.TransferManager;
 import org.junit.Test;
 
 /**

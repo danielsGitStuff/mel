@@ -138,13 +138,13 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Iterator<AFile<?>> iterator, IndexWatchdogListener indexWatchdogListener) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<AFile<?>> iterator, IndexWatchdogListener indexWatchdogListener, long basedOnVersion) throws IOException, SqlQueriesException {
         OTimer timer = new OTimer("initStage().connect2fs");
         OTimer timerInternal1 = new OTimer("initStage.internal.1");
         OTimer timerInternal2 = new OTimer("initStage.internal.2");
 
 
-        stageSet = stageDao.createStageSet(stageSetType, null, null, null);
+        stageSet = stageDao.createStageSet(stageSetType, null, null, null, basedOnVersion);
         if (initialIndexConflictHelper != null)
             initialIndexConflictHelper.onStart(stageSet);
         final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();

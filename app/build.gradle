@@ -23,7 +23,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.android.tools.build:gradle:3.5.0'
 //        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
         // NOTE: Do not place your a
         // pplication dependencies here; they belong

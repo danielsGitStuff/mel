@@ -312,13 +312,14 @@ StageDao extends Dao.LockingDao {
         return null;
     }
 
-    public StageSet createStageSet(String type, Long originCertId, String originServiceUuid, Long version) throws SqlQueriesException {
-        return createStageSet(type, DriveStrings.STAGESET_STATUS_STAGING, originCertId, originServiceUuid, version);
+    public StageSet createStageSet(String type, Long originCertId, String originServiceUuid, Long version, long basedOnVersion) throws SqlQueriesException {
+        return createStageSet(type, DriveStrings.STAGESET_STATUS_STAGING, originCertId, originServiceUuid, version, basedOnVersion);
     }
 
-    public StageSet createStageSet(String type, String status, Long originCertId, String originServiceUuid, Long version) throws SqlQueriesException {
+    public StageSet createStageSet(String type, String status, Long originCertId, String originServiceUuid, Long version, long basedOnVersion) throws SqlQueriesException {
         StageSet stageSet = new StageSet().setSource(type).setOriginCertId(originCertId)
-                .setOriginServiceUuid(originServiceUuid).setStatus(status).setVersion(version);
+                .setOriginServiceUuid(originServiceUuid).setStatus(status).setVersion(version)
+                .setBasedOnVersion(basedOnVersion);
         Long id = sqlQueries.insert(stageSet);
 
         if (id == 3) {

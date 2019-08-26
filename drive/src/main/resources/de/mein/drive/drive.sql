@@ -7,21 +7,21 @@ drop table if exists filedist;
 drop table if exists filedisttargets;
 create table filedist
 (
-  id integer not null primary key autoincrement,
-  sourcepath text,
-  sourcehash text not null,
-  sourcedetails text,
-  deletesource integer,
-  fsize integer,
-  state text not null,
-  t  real default current_timestamp
+    id            integer not null primary key autoincrement,
+    sourcepath    text,
+    sourcehash    text    not null,
+    sourcedetails text,
+    deletesource  integer,
+    fsize         integer,
+    state         text    not null,
+    t             real default current_timestamp
 );
 create table filedisttargets
 (
-  id integer not null primary key autoincrement,
+    id     integer not null primary key autoincrement,
     taskid integer not null,
-    tpath text not null,
-    tfsid integer,
+    tpath  text    not null,
+    tfsid  integer,
     foreign key (taskid) references filedist (id) on delete cascade
 );
 create TABLE fsentry
@@ -82,7 +82,8 @@ create TABLE stageset
     originservice TEXT,
     status        TEXT,
     created       DATETIME DEFAULT (strftime('%s', 'now')),
-    version       INTEGER
+    version       INTEGER,
+    bv            INTEGER not null
 );
 create INDEX sid
     ON stage (id);
@@ -113,7 +114,7 @@ create TABLE transfer
     certid      INTEGER NOT NULL,
     serviceuuid TEXT    NOT NULL,
     size        INTEGER NOT NULL,
-    state     TEXT NOT NULL,
+    state       TEXT    NOT NULL,
     transferred INTEGER NOT NULL DEFAULT 0,
     avail       INTEGER,
     f_delete    integer,

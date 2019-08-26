@@ -25,6 +25,7 @@ public class ConflictSolver extends SyncStageMerger {
     private final String identifier;
     private final StageSet serverStageSet, localStageSet;
     private final RootDirectory rootDirectory;
+    private final Long basedOnVersion;
     protected Map<String, Conflict> deletedParents = new HashMap<>();
     private Map<String, Conflict> conflicts = new HashMap<>();
     private Order order;
@@ -52,7 +53,8 @@ public class ConflictSolver extends SyncStageMerger {
         stageDao = driveDatabaseManager.getStageDao();
         fsDao = driveDatabaseManager.getFsDao();
         identifier = createIdentifier(serverStageSet.getId().v(), localStageSet.getId().v());
-        obsoleteStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_DELETE, serverStageSet.getOriginCertId().v(), serverStageSet.getOriginServiceUuid().v(), serverStageSet.getVersion().v());
+        basedOnVersion = localStageSet.getBasedOnVersion().v() >= serverStageSet.getBasedOnVersion().v() ? localStageSet.getBasedOnVersion().v() : serverStageSet.getBasedOnVersion().v();
+        obsoleteStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_DELETE, serverStageSet.getOriginCertId().v(), serverStageSet.getOriginServiceUuid().v(), serverStageSet.getVersion().v(), basedOnVersion);
         obsoleteOrder = new Order();
     }
 
@@ -186,7 +188,7 @@ public class ConflictSolver extends SyncStageMerger {
         oldeObsoleteMap = new HashMap<>();
         this.fsDao = fsDao;
         N.r(() -> {
-            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v(), remoteStageSet.getVersion().v());
+            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v(), remoteStageSet.getVersion().v(), basedOnVersion);
         });
         // now lets find directories that have been deleted. so we can build nice dependencies between conflicts
         List<Stage> leftDirs = stageDao.getDeletedDirectories(lStageSetId);
@@ -237,7 +239,7 @@ public class ConflictSolver extends SyncStageMerger {
         final long oldeMergedSetId = mergeStageSet.getId().v();
         Map<Long, Long> oldeIdNewIdMapForDirectories = new HashMap<>();
         order = new Order();
-        StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v(), mergeStageSet.getVersion().v());
+        StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v(), mergeStageSet.getVersion().v(), basedOnVersion);
         N.sqlResource(stageDao.getStagesResource(oldeMergedSetId), stageSet -> {
             Stage rightStage = stageSet.getNext();
             while (rightStage != null) {
@@ -395,157 +397,6 @@ public class ConflictSolver extends SyncStageMerger {
 
     }
 
-    /**
-     * @param left  from server
-     * @param right from fs
-     * @throws SqlQueriesException
-     */
-    public void solveOlde(Stage left, Stage right) throws SqlQueriesException {
-        Stage solvedStage = null;
-        final String key = Conflict.createKey(left, right);
-
-
-        if (conflicts.containsKey(key)) {
-            Conflict conflict = conflicts.remove(key);
-            if (conflict.isRight() && conflict.hasRight()) {
-                solvedStage = right;
-                if (left != null) {
-                    solvedStage.setFsParentId(left.getFsParentId());
-                    solvedStage.setFsId(left.getFsId());
-                    solvedStage.setVersion(left.getVersion());
-                    Long parentId = left.getParentId();
-                    if (parentId != null) {
-                        if (oldeNewIdMap.containsKey(parentId)) {
-                            solvedStage.setParentId(oldeNewIdMap.get(parentId));
-                        }
-                    }
-                    if (left.getIsDirectory() ^ right.getIsDirectory() || !left.getContentHash().equals(right.getContentHash())) {
-                        right.setSynced(false);
-                        stageDao.flagSynced(right.getId(), false);
-                    }
-                } else {
-                    right.setSynced(false);
-                    stageDao.flagSynced(right.getId(), false);
-                }
-            } else if (conflict.isLeft() && conflict.hasLeft()) {
-                solvedStage = left;
-                // left is server side, so it comes with the appropriate FsIds
-            } else {
-                System.err.println(getClass().getSimpleName() + ".solve()... strange things happened. but it is probably ok");
-                // if stuff exists on the right but not on the left, it has to be deleted first.
-                // it must be deleted here, so it is guaranteed to be indexed.
-                // -> copy it to the left side
-                if (conflict.isLeft() && conflict.hasRight() && !conflict.hasLeft() && !conflict.getRight().getDeleted()) {
-                    AFile parentFile = stageDao.getFileByStage(conflict.getRight());
-                    Stack<AFile> fileStack = FileTools.getFileStack(rootDirectory, parentFile);
-                    FsEntry bottomFs = fsDao.getBottomFsEntry(fileStack);
-                    Stage bridgeStage = stageDao.getStageByFsId(bottomFs.getId().v(), obsoleteStageSet.getId().v());
-                    if (bridgeStage == null) {
-                        bridgeStage = new Stage();
-                        bridgeStage.setName(bottomFs.getName().v());
-                        bridgeStage.setFsId(bottomFs.getId().v());
-                        bridgeStage.setDeleted(false);
-                        bridgeStage.setFsParentId(bottomFs.getParentId().v());
-                        bridgeStage.setOrder(obsoleteOrder.ord());
-                        bridgeStage.setIsDirectory(bottomFs.getIsDirectory().v());
-                        bridgeStage.setStageSet(obsoleteStageSet.getId().v());
-                        stageDao.insert(bridgeStage);
-                    }
-                    Long lastBridgeId = bridgeStage.getId();
-                    // last one is our stage, so skip here
-                    while (!fileStack.empty() && fileStack.size() > 1) {
-                        AFile f = fileStack.pop();
-                        bridgeStage = stageDao.getSubStageByName(lastBridgeId, f.getName());
-                        if (bridgeStage == null) {
-                            bridgeStage = new Stage();
-                            bridgeStage.setName(f.getName());
-                            bridgeStage.setDeleted(false);
-                            bridgeStage.setOrder(obsoleteOrder.ord());
-                            bridgeStage.setIsDirectory(f.isDirectory());
-                            bridgeStage.setStageSet(obsoleteStageSet.getId().v());
-                            bridgeStage.setParentId(lastBridgeId);
-                            stageDao.insert(bridgeStage);
-                            lastBridgeId = bridgeStage.getId();
-                        }
-                    }
-
-                    Stage stage = conflict.getRight();
-                    stage.setParentId(lastBridgeId);
-                    stage.setStageSet(obsoleteStageSet.getId().v());
-                    stage.setId(null);
-                    stage.setOrder(obsoleteOrder.ord());
-                    stage.setDeleted(true);
-                    stageDao.insert(stage);
-//                    idToObsoleteMap.put(oldeId, stage.getId());
-                    solvedStage = null;
-                }
-            }
-        } else if (left != null) {
-            solvedStage = left;
-            if (right != null) {
-                if (left.getiNode() == null && left.getModified() == null && left.getContentHash().equals(right.getContentHash())) {
-                    solvedStage.setModified(right.getModified());
-                    solvedStage.setiNode(right.getiNode());
-                    if (solvedStage.getContentHashPair().equalsValue("51037a4a37730f52c8732586d3aaa316"))
-                        Lok.warn("debug");
-                    solvedStage.setSynced(right.getSynced());
-                    stageDao.updateInodeAndModifiedAndSynced(solvedStage.getId(), right.getiNode(), right.getModified(), right.getSynced());
-                }
-                if (solvedStage.getFsId() == null) {
-                    solvedStage.setFsId(left.getFsId());
-                }
-            }
-        } else if (right != null) {
-            solvedStage = right;
-        }
-        if (solvedStage != null) {
-            solvedStage.setOrder(order.ord());
-            solvedStage.setStageSet(mergeStageSet.getId().v());
-
-            AFile solvedFile = stageDao.getFileByStage(solvedStage);
-            AFile solvedParent = solvedFile.getParentFile();
-            Stage solvedParentStage = stageDao.getStageByPath(solvedStage.getStageSet(), solvedParent);
-            if (solvedParentStage != null) {
-                if (right != null && right.getFsParentId() == null) {
-                    solvedStage.setFsParentId(solvedParentStage.getFsId());
-                }
-                solvedStage.setParentId(solvedParentStage.getId());
-            }
-            if (deletedParents.containsKey(solvedParent.getAbsolutePath()) || deletedParents.containsKey(solvedFile.getAbsolutePath())) {
-                if (!solvedStage.getIsDirectory()) {
-                    if (solvedStage.getContentHashPair().equalsValue("51037a4a37730f52c8732586d3aaa316"))
-                        Lok.warn("debug");
-                    solvedStage.setSynced(false);
-                }
-            }
-            // adjust ids
-            Long oldeId = solvedStage.getId();
-            solvedStage.setMerged(false);
-            solvedStage.setId(null);
-            if (oldeNewIdMap.containsKey(solvedStage.getParentId())) {
-                solvedStage.setParentId(oldeNewIdMap.get(solvedStage.getParentId()));
-            }
-            try {
-                stageDao.insert(solvedStage);
-                oldeNewIdMap.put(oldeId, solvedStage.getId());
-                // map new id
-            } catch (SqlQueriesException e) {
-                e.printStackTrace();
-            }
-            if (solvedStage == right) {
-
-            } else {
-
-            }
-
-        }
-
-        if (solvedStage != null && solvedStage == right) {
-
-        } else if (solvedStage != null) {
-            solvedStage.setId(null);
-        }
-    }
 
     public String getIdentifier() {
         return identifier;

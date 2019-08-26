@@ -10,10 +10,10 @@ javafx {
     modules = project.javaFxModules
 }
 
-compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-}
+//compileJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}
 sourceSets {
     main {
         resources {
@@ -29,7 +29,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     //compile 'org.jdeferred:jdeferred-core:1.2.4'
 }
-compileTestJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-}
+//compileTestJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}

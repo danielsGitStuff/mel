@@ -5,10 +5,10 @@ apply plugin: 'java'
 //apply plugin: 'me.tatarka.retrolambda'
 
 
-compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-}
+//compileJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}
 
 repositories {
     mavenCentral()
@@ -26,10 +26,10 @@ dependencies {
 compileJava.options.encoding = 'UTF-8'
 compileTestJava.options.encoding = 'UTF-8'
 
-compileTestJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-}
+//compileTestJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}
 //compileKotlin {
 //    kotlinOptions {
 //        jvmTarget = "1.8"
