@@ -136,10 +136,12 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
     @Override
     public void addJob(Job job) {
         if (job instanceof SyncClientJob) {
-            Lok.debug("MeinDriveClientService.addJob: SyncJob already in progress. skipping.");
             int count = syncJobCount.incrementAndGet();
-            if (count > 1)
+            if (count > 1) {
+                Lok.debug("MeinDriveClientService.addJob: SyncJob already in progress. skipping.");
+                syncJobCount.decrementAndGet();
                 return;
+            }
         }
         super.addJob(job);
     }
