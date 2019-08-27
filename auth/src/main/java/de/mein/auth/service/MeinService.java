@@ -80,6 +80,10 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     @Override
     public void onIsolatedConnectionClosed(MeinIsolatedProcess isolatedProcess) {
         Lok.debug("isolated connection closed");
+        final String key = isolatedProcess.getPartnerCertificateId() + "." + isolatedProcess.getPartnerServiceUuid() + "." + isolatedProcess.getClass().getSimpleName();
+        isolatedLock.lock();
+        isolatedDeferredMap.remove(key);
+        isolatedLock.unlock();
     }
 
     public synchronized <T extends MeinIsolatedProcess> Promise<T, Exception, Void> getIsolatedProcess(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {
