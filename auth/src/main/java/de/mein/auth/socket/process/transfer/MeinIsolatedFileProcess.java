@@ -199,6 +199,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
         } catch (Exception e) {
             e.printStackTrace();
         }
+        stop();
     }
 
     /**

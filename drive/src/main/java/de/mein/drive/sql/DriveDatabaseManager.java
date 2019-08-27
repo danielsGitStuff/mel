@@ -157,6 +157,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
 
     public void updateVersion() throws IllegalAccessException, IOException, JsonSerializationException, SqlQueriesException {
         long version = getLatestVersion();
+        Lok.debug("updating settings, set version from " + driveSettings.getLastSyncedVersion() + " to " + version);
         driveSettings.setLastSyncedVersion(version);
         driveSettings.save();
     }

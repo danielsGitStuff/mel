@@ -12,6 +12,7 @@ import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.N;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.SSLException;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -241,6 +242,10 @@ public class MeinSocket extends DeferredRunnable {
             }
 //            Lok.debug("MeinSocket.runTry.CLOSING");
             listener.onClose(42, "don't know shit", true);
+        } catch (SSLException e) {
+            String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
+            Lok.error(line);
+            Lok.error("SSLException: " + e.toString() + " v=" + v);
         } catch (Exception e) {
             if (!isStopped()) {
                 String line = (meinAuthService == null ? "no service" : meinAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
