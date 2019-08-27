@@ -416,8 +416,8 @@ StageDao extends Dao.LockingDao {
 
     public List<Stage> getStageContent(Long stageId) throws SqlQueriesException {
         Stage dummy = new Stage();
-        String where = dummy.getParentIdPair().k() + "=? order by " + dummy.getOrderPair().k() + " asc";
-        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(stageId));
+        String where = dummy.getParentIdPair().k() + "=? and " + dummy.getDeletedPair().k() + "=? order by " + dummy.getOrderPair().k() + " asc";
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(stageId, false));
     }
 
     public ISQLResource<de.mein.drive.sql.Stage> getFilesAsResource(Long stageSetId) throws IllegalAccessException, SqlQueriesException, InstantiationException {
@@ -439,11 +439,11 @@ StageDao extends Dao.LockingDao {
     public void deleteIdenticalToFs(long stageSetId) throws SqlQueriesException {
         FsFile f = new FsFile();
         Stage s = new Stage();
-        //DELETE FROM stage where  id in (select s.id from stage s left join fsentry f on s.fsid=f.id where s.stageset=244 and s.contenthash=f.contenthash)
+        //DELETE FROM stage where  id in (select s.id from stage s left join fsentry f on s.fsid=f.id where s.stageset=244 and s.contenthash=f.contenthash and s.deleted=false)
         String statement = "delete from " + s.getTableName() + " where id in (select s." + s.getIdPair().k() + " from " + s.getTableName() + " s left join " + f.getTableName()
                 + " f on f." + f.getId().k() + "=s." + s.getFsIdPair().k()
-                + " where s." + s.getStageSetPair().k() + "=? and s." + s.getContentHashPair().k() + "=f." + f.getContentHash().k() + ")";
-        sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId));
+                + " where s." + s.getStageSetPair().k() + "=? and s." + s.getContentHashPair().k() + "=f." + f.getContentHash().k() + " and s." + s.getDeletedPair().k() + "=?)";
+        sqlQueries.execute(statement, ISQLQueries.whereArgs(stageSetId, false));
     }
 
     public void updateInodeAndModifiedAndSynced(Long id, Long iNode, Long modified, Boolean synced) throws SqlQueriesException {
