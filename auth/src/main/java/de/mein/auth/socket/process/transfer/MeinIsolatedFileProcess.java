@@ -205,7 +205,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
     /**
      * sends one block of bytes over the socket. so it does not block until the file is transferred.<br>
      * format first/standard block: [T][4 bytes, stream id][8 bytes, offset of PAYLOAD][4 bytes, length of PAYLOAD][PAYLOAD]<br>
-     * format last block: [t][4 bytes, stream id][8bytes, offset of PAYLOAD][8 bytes, length of PAYLOAD]
+     * format last block: [t][4 bytes, stream id][8bytes, offset of PAYLOAD][8 bytes, length of PAYLOAD][PAYLOAD]
      *
      * @throws IOException
      */

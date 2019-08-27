@@ -59,22 +59,27 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     protected Indexer indexer;
     protected StageIndexer stageIndexer;
     protected S syncHandler;
-    private Wastebin wastebin;
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
-    private DriveSyncListener syncListener;
     protected InitialIndexConflictHelper conflictHelper;
+    private Wastebin wastebin;
+    private DriveSyncListener syncListener;
 
+
+    public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
+        super(meinAuthService, workingDirectory, serviceTypeId, uuid, Bootloader.BootLevel.LONG);
+        this.driveSettings = driveSettings;
+    }
 
     public S getSyncHandler() {
         return syncHandler;
     }
 
-    public void setSyncListener(DriveSyncListener syncListener) {
-        this.syncListener = syncListener;
-    }
-
     private DriveSyncListener getSyncListener() {
         return syncListener;
+    }
+
+    public void setSyncListener(DriveSyncListener syncListener) {
+        this.syncListener = syncListener;
     }
 
     public void onSyncFailed() {
@@ -87,15 +92,9 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
             syncListener.onSyncDone();
     }
 
-
     public void onTransfersDone() {
         if (syncListener != null)
             syncListener.onTransfersDone();
-    }
-
-    public MeinDriveService(MeinAuthService meinAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
-        super(meinAuthService, workingDirectory, serviceTypeId, uuid, Bootloader.BootLevel.LONG);
-        this.driveSettings = driveSettings;
     }
 
     @Override
@@ -299,10 +298,6 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
         request.resolve(task);
     }
 
-    public void setDriveDatabaseManager(DriveDatabaseManager driveDatabaseManager) {
-        this.driveDatabaseManager = driveDatabaseManager;
-    }
-
     protected abstract void onSyncReceived(Request request);
 
     /**
@@ -336,6 +331,10 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
 
     public DriveDatabaseManager getDriveDatabaseManager() {
         return driveDatabaseManager;
+    }
+
+    public void setDriveDatabaseManager(DriveDatabaseManager driveDatabaseManager) {
+        this.driveDatabaseManager = driveDatabaseManager;
     }
 
     public Promise<List<FsDirectory>, Exception, Void> requestDirectoriesByIds(Set<Long> fsDirIdsToRetrieve, Long certId, String serviceUuid) throws SqlQueriesException, InterruptedException {
