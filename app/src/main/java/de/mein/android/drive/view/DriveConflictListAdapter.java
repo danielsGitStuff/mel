@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import de.mein.Lok;
 import de.mein.R;
 import de.mein.drive.data.conflict.Conflict;
@@ -142,7 +143,10 @@ public class DriveConflictListAdapter extends BaseAdapter {
                 imageLeft.setImageResource(imageDirectoryId);
             else
                 imageLeft.setImageResource(imageFileId);
-            txtAddLeft.setText(leftStage.getContentHash());
+            if (leftStage.getDeleted())
+                txtAddLeft.setText("---deleted---");
+            else
+                txtAddLeft.setText(leftStage.getContentHash());
 
         } else {
             txtLeft.setText("-- not available--");
@@ -191,8 +195,6 @@ public class DriveConflictListAdapter extends BaseAdapter {
             layoutRight.setBackgroundColor(green);
             rdLeft.setChecked(false);
             rdRight.setChecked(true);
-        } else {
-            Lok.debug("debug333");
         }
     }
 
