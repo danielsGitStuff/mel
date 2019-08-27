@@ -49,7 +49,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
         meinThread
     }
-    open val executor = Executors.newFixedThreadPool(3) {
+    open val executor = Executors.newCachedThreadPool {
         val thread = Thread(it)
         thread.name = "a HTTPS-Thread"
         thread
