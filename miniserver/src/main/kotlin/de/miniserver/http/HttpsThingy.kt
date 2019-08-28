@@ -39,7 +39,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     }
 
     fun pageBuild(pw: String): Page {
-        return Page("/de/miniserver/build.html",
+        return Page("/de/miniserver/private/build.html",
                 Replacer("pw", pw),
                 Replacer("time", miniServer.startTime.toString()),
                 Replacer("lok") {
@@ -78,8 +78,8 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         server.createContext("/logpc.html") {
             respondText(it, "/de/miniserver/logpc.html")
         }
-        server.createContext("/private/impressum.html") {
-            respondText(it, "/de/miniserver/private/impressum.html")
+        server.createContext("/impressum.html") {
+            respondText(it, "/de/miniserver/impressum.html")
         }
         server.createContext("/svg/") {
             val uri = it.requestURI
@@ -93,7 +93,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             val uri = it.requestURI
             val fileName = uri.path.substring("/webp/".length, uri.path.length)
             if (fileName.endsWith(".webp"))
-                respondBinary(it,"/de/miniserver/webp/$fileName",contentType = ContentType.WEBP)
+                respondBinary(it, "/de/miniserver/webp/$fileName", contentType = ContentType.WEBP)
             else
                 respondPage(it, pageHello())
         }
@@ -133,8 +133,10 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                         respondPage(it, pageBuild(pw))
                     }
                     else -> {
-//                        Lok.info("## password did not match")
-                        respondPage(it, pageHello())
+                        //todo debug
+                        Lok.info("## password did not match")
+                        respondText(it, "/de/miniserver/private/loginz.html")
+//                        respondPage(it, pageHello())
                     }
                 }
             } else
@@ -186,7 +188,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     responseBody.write(response)
                     responseBody.close()
                 }
-            }finally {
+            } finally {
                 it.close()
             }
         }

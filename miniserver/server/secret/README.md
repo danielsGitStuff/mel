@@ -83,7 +83,7 @@ java -Xmx200m -jar server/miniserver.jar -http -https 8443 -keep-binaries -resta
 ## Example secret.properties
 ```properties
 password=secure password
-buildpassword=another secure password
+buildPassword=another secure password
 projectRootDir=/home/myuser/Documents/drive/
 #signing keys
 storePassword=secure store password
