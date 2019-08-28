@@ -49,7 +49,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
         waitLock.unlockWrite()
     }
 
-    fun removeUnnecessaryTransfers(){
+    fun removeUnnecessaryTransfers() {
         //todo call this after first index
         Lok.debug("doing transfer housekeeping")
         // first delete things that are no longer required by FS
@@ -179,7 +179,9 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                 connect2RemainingInstances(groupedTransferSets)
                 val isoTransaction = T.lockingTransaction(isolatedProcessesMap)
                 try {
-                    isolatedProcessesMap.values.forEach { fileProcess ->
+                    val values = mutableListOf<MeinIsolatedFileProcess>()
+                    values.addAll(isolatedProcessesMap.values)
+                    values.forEach { fileProcess ->
                         startTransfersForIsoProcess(fileProcess)
                     }
                 } finally {
@@ -250,7 +252,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
                 activeTFSRunnables.remove(this)
 //                transferDao.deleteDone(partnerCertificateId, partnerServiceUuid)
 //                val count = transferDao.count(partnerCertificateId, partnerServiceUuid)
-//                val done = transferDao.countDone(partnerCertificateId, partnerServiceUuid)
+//                val done = transferDao.countRemaining(partnerCertificateId, partnerServiceUuid)
 //                if (count == done)
                 // this does not have to be precise cause it is for dev purposes only
                 meinDriveService.onTransfersDone()
