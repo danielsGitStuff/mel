@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-version 'unspecified'
+version '1'
 
 //sourceCompatibility = 1.8
 
