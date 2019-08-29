@@ -32,7 +32,7 @@ public class ServiceTypeDao extends Dao {
 
     public ServiceType getServiceTypeById(Long id) throws SqlQueriesException {
         ServiceType dummy = new ServiceType();
-        ISQLResource<ServiceType> resource = sqlQueries.loadResource(dummy.getAllAttributes(), ServiceType.class, dummy.getId().k() + "=?", ISQLQueries.whereArgs(id));
+        ISQLResource<ServiceType> resource = sqlQueries.loadResource(dummy.getAllAttributes(), ServiceType.class, dummy.getId().k() + "=?", ISQLQueries.args(id));
         ServiceType result = resource.getNext();
         resource.close();
         return result;

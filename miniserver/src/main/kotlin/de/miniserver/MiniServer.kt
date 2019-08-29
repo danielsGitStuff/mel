@@ -308,7 +308,8 @@ constructor(val config: ServerConfig) {
                 if (konsole.result.preserveLogLinesInDb > 0L) {
                     println("STORING LOG IN DATABASE!")
                     DBLokImpl.setupDBLockImpl(File(workingDirectory, "log.db"), konsole.result.preserveLogLinesInDb)
-                    Lok.getImpl().setPrintDebug(false).setup(30, true)
+                    // todo debug - debug can be disabled here
+                    Lok.getImpl().setPrintDebug(true).setup(30, true)
                 }
                 Lok.info("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")
                 if (outFile.exists())

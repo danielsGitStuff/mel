@@ -1,0 +1,31 @@
+.entryDiv {
+    /*text-align: center;*/
+    padding-left: 3em;
+    padding-right: 3em;
+    padding-top: 1em;
+    /*background-color: deeppink;*/
+}
+
+.title{
+    font-size: 1.4em;
+    padding: .6em .2em .6em .6em;
+}
+
+.entry {
+    background-color:#545454;
+    margin-left: 2em;
+    font-size: 1em;
+    padding: .3em;
+    /*text-align: start;*/
+}
+.entry a {
+    margin-left: .5em;
+}
+
+.entrytext{
+    padding: .5em .5em .5em 2.6em;
+}
+
+div {
+    /*background-color: red;*/
+}

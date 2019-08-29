@@ -58,7 +58,7 @@ public class ApprovalDao extends Dao {
                 " from (" + c.getTableName() +
                 " c inner join " + a.getTableName() + "  a on c." + c.getId().k() + "=a." + a.getCertificateId().k() +
                 ") left join " + s.getTableName() + " s on a." + a.getServiceId().k() + "=s." + s.getId().k() + " where c." + c.getId().k() + "=? and " + s.getActivePair().k() + "=?";
-        List<SQLTableObject> result = sqlQueries.loadString(s.getAllAttributes(), s, query, ISQLQueries.whereArgs(certificateId, true));
+        List<SQLTableObject> result = sqlQueries.loadString(s.getAllAttributes(), s, query, ISQLQueries.args(certificateId, true));
         List<Service> services = new ArrayList<>();
         for (SQLTableObject sqlTableObject : result) {
             services.add((Service) sqlTableObject);

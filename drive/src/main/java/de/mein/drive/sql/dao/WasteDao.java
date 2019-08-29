@@ -1,6 +1,5 @@
 package de.mein.drive.sql.dao;
 
-import de.mein.Lok;
 import de.mein.drive.sql.FsFile;
 import de.mein.drive.sql.DbTransferDetails;
 import de.mein.drive.sql.Waste;
@@ -40,14 +39,14 @@ public class WasteDao extends Dao.LockingDao {
     public Waste getWasteByInode(Long inode) throws SqlQueriesException {
         Waste dummy = new Waste();
         String where = dummy.getInode().k() + "=?";
-        List<Waste> wastes = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(inode));
+        List<Waste> wastes = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(inode));
         if (wastes.size() > 0)
             return wastes.get(0);
         return null;
     }
 
     public void update(Waste waste) throws SqlQueriesException {
-        sqlQueries.update(waste, waste.getId().k() + "=?", ISQLQueries.whereArgs(waste.getId().v()));
+        sqlQueries.update(waste, waste.getId().k() + "=?", ISQLQueries.args(waste.getId().v()));
     }
 
     /**
@@ -69,7 +68,7 @@ public class WasteDao extends Dao.LockingDao {
     public Waste getWasteByHash(String hash) throws SqlQueriesException {
         Waste waste = new Waste();
         String where = waste.getHash().k() + "=? and " + waste.getInplace().k() + "=? limit 1";
-        List<Waste> wastes = sqlQueries.load(waste.getAllAttributes(), waste, where, ISQLQueries.whereArgs(hash, true));
+        List<Waste> wastes = sqlQueries.load(waste.getAllAttributes(), waste, where, ISQLQueries.args(hash, true));
         if (wastes.size() > 0)
             return wastes.get(0);
         return null;
@@ -77,12 +76,12 @@ public class WasteDao extends Dao.LockingDao {
 
     public void delete(Long id) throws SqlQueriesException {
         Waste waste = new Waste();
-        sqlQueries.delete(waste, waste.getId().k() + "=?", ISQLQueries.whereArgs(id));
+        sqlQueries.delete(waste, waste.getId().k() + "=?", ISQLQueries.args(id));
     }
 
     public Waste getWasteById(Long id) throws SqlQueriesException {
         Waste waste = new Waste();
-        return sqlQueries.loadFirstRow(waste.getAllAttributes(), waste, waste.getId().k() + "=?", ISQLQueries.whereArgs(id), Waste.class);
+        return sqlQueries.loadFirstRow(waste.getAllAttributes(), waste, waste.getId().k() + "=?", ISQLQueries.args(id), Waste.class);
     }
 
     public ISQLResource<Waste> getAgeSortedResource() throws SqlQueriesException {
@@ -101,19 +100,19 @@ public class WasteDao extends Dao.LockingDao {
     public void flagDeleted(Long id, boolean flag) throws SqlQueriesException {
         Waste waste = new Waste();
         String stmt = "update " + waste.getTableName() + " set " + waste.getFlagDelete().k() + "=? where " + waste.getId().k() + "=?";
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(flag, id));
+        sqlQueries.execute(stmt, ISQLQueries.args(flag, id));
     }
 
     public void deleteFlagged() throws SqlQueriesException {
         Waste waste = new Waste();
         String stmt = "delete from " + waste.getTableName() + " where " + waste.getFlagDelete().k() + "=?";
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true));
+        sqlQueries.execute(stmt, ISQLQueries.args(true));
     }
 
     public Long getSize() throws SqlQueriesException {
         Waste waste = new Waste();
         String query = "select coalesce(sum(" + waste.getSize().k() + "),0) from " + waste.getTableName() + " where " + waste.getInplace().k() + "=?";
-        Long size = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(true));
+        Long size = sqlQueries.queryValue(query, Long.class, ISQLQueries.args(true));
         return size == null ? 0L : size;
     }
 }

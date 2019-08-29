@@ -70,8 +70,8 @@ public class AndroidSQLQueries extends ISQLQueries {
 
 
     @Override
-    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
-        return load(columns, sqlTableObject, where, whereArgs, null);
+    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> arguments) throws SqlQueriesException {
+        return load(columns, sqlTableObject, where, arguments, null);
     }
 
 
@@ -120,7 +120,7 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     @Override
-    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> args, String whatElse) throws SqlQueriesException {
+    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> arguments, String whatElse) throws SqlQueriesException {
         String select = buildSelectQuery(columns, sqlTableObject.getTableName());
         if (where != null) {
             select += " where " + where;
@@ -128,7 +128,7 @@ public class AndroidSQLQueries extends ISQLQueries {
         if (whatElse != null) {
             select += " " + whatElse;
         }
-        return loadString(columns, sqlTableObject, select, args);
+        return loadString(columns, sqlTableObject, select, arguments);
     }
 
     @Override

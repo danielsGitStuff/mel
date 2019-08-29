@@ -1,6 +1,7 @@
 package de.mein.serverparts
 
 import de.mein.Lok
+import de.mein.auth.tools.N
 
 
 class Page {
@@ -13,9 +14,9 @@ class Page {
     var bytes: ByteArray
         private set
 
-    private val replaceTagRegex = "<\\\$=[a-zA-Z]+[\\w]*\\/>".toRegex()
+    private val replaceTagRegex = "<§=[a-zA-Z]+[\\w]*\\/>".toRegex()
 
-    constructor(path: String, bytes: ByteArray, cache:Boolean = false) {
+    constructor(path: String, bytes: ByteArray, cache: Boolean = false) {
         this.path = path
         this.bytes = bytes
         if (cache)
@@ -32,11 +33,12 @@ class Page {
         Lok.debug("loading $path")
         val resourceBytes = javaClass.getResourceAsStream(path).readBytes()
         var html = String(resourceBytes)
-        val tags = replaceTagRegex.findAll(html)
-        tags.forEach { matchResult ->
+        val tags = replaceTagRegex.findAll(html).toList()
+        N.forEach(tags) { matchResult ->
             val stripped = matchResult.value.substring(3, matchResult.value.length - 2)
             replacers.firstOrNull { replacer -> replacer.test(stripped) }?.let {
-                val replacementRegex = "<\\\$=$stripped\\/>".toRegex()
+                val replacementRegex = "<§=$stripped\\/>".toRegex()
+//                Lok.debug("$stripped ... $replacementRegex")
                 html = html.replace(replacementRegex, it.replace(""))
             }
         }

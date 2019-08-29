@@ -9,8 +9,6 @@ import de.mein.auth.tools.N
 import de.mein.drive.tasks.AvailHashEntry
 import de.mein.sql.*
 
-import org.sqlite.core.DB
-
 import java.util.ArrayList
 
 /**
@@ -40,7 +38,7 @@ class TransferDao : Dao {
             val f = FsFile()
             val query = ("select * from " + dummy.tableName + " t where not exists (select * from " + f.tableName
                     + " f where f." + f.contentHash.k() + "=t." + dummy.hash.k() + " and " + f.synced.k() + "=?)")
-            return sqlQueries.loadQueryResource(query, dummy.allAttributes, DbTransferDetails::class.java, ISQLQueries.whereArgs(false))
+            return sqlQueries.loadQueryResource(query, dummy.allAttributes, DbTransferDetails::class.java, ISQLQueries.args(false))
         }
 
     constructor(ISQLQueries: ISQLQueries) : super(ISQLQueries) {}
@@ -61,7 +59,7 @@ class TransferDao : Dao {
                 ", sum(${dummy.size.k()}) as ${lo.bytesTotal.k()}" +
                 ", sum(${dummy.transferred.k()}) as ${lo.bytesTransferred.k()}" +
                 " from ${dummy.tableName} where ${dummy.certId.k()}=? and ${dummy.serviceUuid.k()}=?"
-        val list = sqlQueries.loadString(lo.allAttributes, lo, query, ISQLQueries.whereArgs(certId, serviceUuid, TransferState.DONE, certId, serviceUuid))
+        val list = sqlQueries.loadString(lo.allAttributes, lo, query, ISQLQueries.args(certId, serviceUuid, TransferState.DONE, certId, serviceUuid))
         if (!list.isEmpty()) {
             // summed bytes are null if no transfer exists
             val result = list[0]
@@ -94,7 +92,7 @@ class TransferDao : Dao {
     @Throws(SqlQueriesException::class)
     fun delete(id: Long?) {
 
-        sqlQueries.delete(dummy, dummy.id.k() + "=?", ISQLQueries.whereArgs(id))
+        sqlQueries.delete(dummy, dummy.id.k() + "=?", ISQLQueries.args(id))
     }
 
     /**
@@ -107,7 +105,7 @@ class TransferDao : Dao {
         var whatElse = "group by " + dummy.certId.k() + "," + dummy.serviceUuid.k()
         if (limit != null)
             whatElse += " limit $limit"
-        return sqlQueries.load(ISQLQueries.columns(dummy.certId, dummy.serviceUuid), dummy, where, ISQLQueries.whereArgs(TransferState.NOT_STARTED), whatElse)
+        return sqlQueries.load(ISQLQueries.columns(dummy.certId, dummy.serviceUuid), dummy, where, ISQLQueries.args(TransferState.NOT_STARTED), whatElse)
     }
 
 
@@ -115,20 +113,20 @@ class TransferDao : Dao {
     fun getNotStartedTransfers(certId: Long?, serviceUuid: String, limit: Int): MutableList<DbTransferDetails> {
         val where = dummy.certId.k() + "=? and " + dummy.serviceUuid.k() + "=? and " + dummy.state.k() + "=? and " + dummy.deleted.k() + "=? and " + dummy.available.k() + "=? "
         val whatElse = " limit ?"
-        return sqlQueries.load(dummy.allAttributes, dummy, where, ISQLQueries.whereArgs(certId, serviceUuid, TransferState.NOT_STARTED, false, true, limit), whatElse)
+        return sqlQueries.load(dummy.allAttributes, dummy, where, ISQLQueries.args(certId, serviceUuid, TransferState.NOT_STARTED, false, true, limit), whatElse)
     }
 
     @Throws(SqlQueriesException::class)
     fun deleteByHash(hash: String?) {
         if (hash == null)
             return
-        sqlQueries.delete(dummy, dummy.hash.k() + "=?", ISQLQueries.whereArgs(hash))
+        sqlQueries.delete(dummy, dummy.hash.k() + "=?", ISQLQueries.args(hash))
     }
 
     @Throws(SqlQueriesException::class)
     fun updateState(id: Long?, state: TransferState) {
         val stmt = "update " + dummy.tableName + " set " + dummy.state.k() + "=? where " + dummy.id.k() + "=?"
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(state, id))
+        sqlQueries.execute(stmt, ISQLQueries.args(state, id))
     }
 
     //    private void setStarted(Long id, boolean started) throws SqlQueriesException {
@@ -140,27 +138,27 @@ class TransferDao : Dao {
     @Throws(SqlQueriesException::class)
     fun hasNotStartedTransfers(certId: Long?, serviceUuid: String): Boolean {
         val query = "select count(*)>0 from " + dummy.tableName + " where " + dummy.certId.k() + "=? and " + dummy.serviceUuid.k() + "=?"
-        val result = sqlQueries.queryValue(query, Int::class.java, ISQLQueries.whereArgs(certId, serviceUuid))
+        val result = sqlQueries.queryValue(query, Int::class.java, ISQLQueries.args(certId, serviceUuid))
         return SqliteConverter.intToBoolean(result)!!
     }
 
     @Throws(SqlQueriesException::class)
     fun resetStarted() {
         val stmt = "update " + dummy.tableName + " set " + dummy.state.k() + "=?"
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(TransferState.NOT_STARTED))
+        sqlQueries.execute(stmt, ISQLQueries.args(TransferState.NOT_STARTED))
     }
 
     @Throws(SqlQueriesException::class)
     fun count(certId: Long?, serviceUuid: String): Long {
         val query = "select count (*) from " + dummy.tableName + " where " + dummy.certId.k() + "=? and " + dummy.serviceUuid.k() + "=?"
-        return sqlQueries.queryValue(query, Long::class.java, ISQLQueries.whereArgs(certId, serviceUuid))
+        return sqlQueries.queryValue(query, Long::class.java, ISQLQueries.args(certId, serviceUuid))
     }
 
     @Throws(SqlQueriesException::class)
     fun countRemaining(certId: Long?, serviceUuid: String): Long {
         val query = "select count (*) from ${dummy.tableName} where ${dummy.certId.k()}=? and ${dummy.serviceUuid.k()}=? " +
                 "and ${dummy.state.k()}=?"
-        return sqlQueries.queryValue(query, Long::class.java, ISQLQueries.whereArgs(certId, serviceUuid, TransferState.NOT_STARTED))
+        return sqlQueries.queryValue(query, Long::class.java, ISQLQueries.args(certId, serviceUuid, TransferState.NOT_STARTED))
     }
 
     @Throws(SqlQueriesException::class)
@@ -168,19 +166,19 @@ class TransferDao : Dao {
         val query = ("select count (*) from " + dummy.tableName + " where " + dummy.state.k() + "=? and "
                 + dummy.certId.k() + "=? and "
                 + dummy.serviceUuid.k() + "=?")
-        return sqlQueries.queryValue(query, Int::class.java, ISQLQueries.whereArgs(true, certId, serviceUuid))
+        return sqlQueries.queryValue(query, Int::class.java, ISQLQueries.args(true, certId, serviceUuid))
     }
 
     @Throws(SqlQueriesException::class)
     fun updateTransferredBytes(id: Long?, transferred: Long?) {
         val stmt = "update " + dummy.tableName + " set " + dummy.transferred.k() + "=? where " + dummy.id.k() + "=?"
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(transferred, id))
+        sqlQueries.execute(stmt, ISQLQueries.args(transferred, id))
     }
 
     @Throws(SqlQueriesException::class)
     fun flagForDeletion(transferId: Long?, flag: Boolean) {
         val stmt = "update " + dummy.tableName + " set " + dummy.deleted.k() + "=? where " + dummy.id.k() + "=?"
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(flag, transferId))
+        sqlQueries.execute(stmt, ISQLQueries.args(flag, transferId))
     }
 
     @Throws(SqlQueriesException::class)
@@ -188,7 +186,7 @@ class TransferDao : Dao {
         var statement = ("update " + dummy.tableName + " set " + dummy.available.k() + "=? where " + dummy.certId.k() + "=? and " + dummy.serviceUuid.k() + "=? and "
                 + dummy.hash.k() + " in ")
         statement += ISQLQueries.buildPartIn(hashes)
-        val whereArgs = ISQLQueries.whereArgs(true, certId, serviceUUID)
+        val whereArgs = ISQLQueries.args(true, certId, serviceUUID)
         whereArgs.addAll(hashes)
         sqlQueries.execute(statement, whereArgs)
     }
@@ -200,7 +198,7 @@ class TransferDao : Dao {
         attributes.add(dummy.hash)
         val query = "select t." + dummy.hash.k() + " from " + dummy.tableName + " t left join " + f.tableName + " f on f." + f.contentHash.k() + " = t." + dummy.hash.k() + " " +
                 "where t." + dummy.state.k() + "=? and t." + dummy.available.k() + "=? and t." + dummy.certId.k() + "=? group by t." + dummy.hash.k()
-        return sqlQueries.loadQueryResource(query, attributes, DbTransferDetails::class.java, ISQLQueries.whereArgs(false, false, certId))
+        return sqlQueries.loadQueryResource(query, attributes, DbTransferDetails::class.java, ISQLQueries.args(false, false, certId))
     }
 
 
@@ -218,7 +216,7 @@ class TransferDao : Dao {
         attributes.add(f.contentHash)
         val query = ("select f." + f.contentHash.k() + " from " + m.tableName + " m left join " + f.tableName + " f on m." + m.hash.k() + "=" + f.contentHash.k()
                 + " where f." + f.synced.k() + "=? and f." + f.isDirectory.k() + "=?")
-        return sqlQueries.loadQueryResource(query, attributes, FsFile::class.java, ISQLQueries.whereArgs(true, false))
+        return sqlQueries.loadQueryResource(query, attributes, FsFile::class.java, ISQLQueries.args(true, false))
     }
 
     /**
@@ -234,14 +232,14 @@ class TransferDao : Dao {
     @Throws(SqlQueriesException::class)
     fun flagNotStartedHashAvailable(hash: String) {
         val stmt = "update " + dummy.tableName + " set " + dummy.available.k() + "=? where " + dummy.state.k() + "=? and " + dummy.hash.k() + "=?"
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true, false, hash))
+        sqlQueries.execute(stmt, ISQLQueries.args(true, false, hash))
     }
 
     @Throws(SqlQueriesException::class)
     fun updateStateByHash(hash: String, state: TransferState) {
         val stmt = ("update " + dummy.tableName
                 + " set " + dummy.state.k() + "=? where " + dummy.hash.k() + "=?")
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(state, hash))
+        sqlQueries.execute(stmt, ISQLQueries.args(state, hash))
     }
 
     //    public void deleteDone(@NotNull Long partnerCertificateId, @NotNull String partnerServiceUuid) throws SqlQueriesException {
@@ -256,25 +254,25 @@ class TransferDao : Dao {
     fun flagStateForRemainingTransfers(certId: Long, serviceuuid: String, state: TransferState) {
         val stmt = ("update " + dummy.tableName + " set " + dummy.state.k() + "=?"
                 + " where " + dummy.certId.k() + "=? and " + dummy.serviceUuid.k() + "=? and " + dummy.state.k() + "!=? and " + dummy.state.k() + "!=?")
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(state, certId, serviceuuid, TransferState.DONE, TransferState.RUNNING))
+        sqlQueries.execute(stmt, ISQLQueries.args(state, certId, serviceuuid, TransferState.DONE, TransferState.RUNNING))
     }
 
 
     @Throws(SqlQueriesException::class)
     fun hasHash(hash: String): Boolean {
         val query = "select count(1) from " + dummy.tableName + " where " + dummy.hash.k() + "=?"
-        val count = sqlQueries.queryValue(query, Long::class.java, ISQLQueries.whereArgs(hash))
+        val count = sqlQueries.queryValue(query, Long::class.java, ISQLQueries.args(hash))
         return count > 0L
     }
 
     @Throws(SqlQueriesException::class)
     fun deleteFlaggedForDeletion() {
         val stmt = "delete from " + dummy.tableName + " where " + dummy.deleted.k() + "=?"
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true))
+        sqlQueries.execute(stmt, ISQLQueries.args(true))
     }
 
     fun flagForDeletionByHash(hash: String) {
         val stmt = "update ${dummy.tableName} set ${dummy.deleted.k()}=?, ${dummy.state.k()}=? where ${dummy.hash.k()}=?"
-        sqlQueries.execute(stmt, ISQLQueries.whereArgs(true, TransferState.DONE, hash))
+        sqlQueries.execute(stmt, ISQLQueries.args(true, TransferState.DONE, hash))
     }
 }

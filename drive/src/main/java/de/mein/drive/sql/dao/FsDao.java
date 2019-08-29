@@ -97,14 +97,14 @@ public class FsDao extends Dao {
     public List<FsFile> getFilesByHash(String hash) throws SqlQueriesException {
         FsFile dummy = new FsFile();
         String where = dummy.getContentHash().k() + "=?";
-        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(hash));
+        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(hash));
         return fsFiles;
     }
 
     public List<FsFile> getSyncedFilesByHash(String hash) throws SqlQueriesException {
         FsFile dummy = new FsFile();
         String where = dummy.getContentHash().k() + "=? and " + dummy.getSynced().k() + "=?";
-        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(hash, true));
+        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(hash, true));
         return fsFiles;
     }
 
@@ -227,7 +227,7 @@ public class FsDao extends Dao {
     public List<FsDirectory> getSubDirectoriesVersion(Long id, Long version) throws SqlQueriesException {
         FsDirectory dir = new FsDirectory();
         String where = dir.getParentId().k() + "=? and " + dir.getVersion().k() + ">?";
-        List<Object> whereArgs = ISQLQueries.whereArgs(id, version);
+        List<Object> whereArgs = ISQLQueries.args(id, version);
         List<SQLTableObject> result = sqlQueries.load(dir.getAllAttributes(), dir, where, whereArgs);
         List<FsDirectory> dirs = result.stream().map(s -> (FsDirectory) s).collect(Collectors.toList());
         return dirs;
@@ -431,7 +431,7 @@ public class FsDao extends Dao {
     public FsDirectory getFsDirectoryById(Long fsId) throws SqlQueriesException {
         FsDirectory dummy = new FsDirectory();
         String where = dummy.getId().k() + "=?";
-        List<FsDirectory> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(fsId));
+        List<FsDirectory> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(fsId));
         if (directories.size() == 1)
             return directories.get(0);
         return null;
@@ -440,7 +440,7 @@ public class FsDao extends Dao {
     public GenericFSEntry getGenericById(Long fsId) throws SqlQueriesException {
         GenericFSEntry dummy = new GenericFSEntry();
         String where = dummy.getId().k() + "=?";
-        List<GenericFSEntry> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(fsId));
+        List<GenericFSEntry> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(fsId));
         if (directories.size() == 1)
             return directories.get(0);
         return null;
@@ -449,7 +449,7 @@ public class FsDao extends Dao {
     public List<FsFile> getNonSyncedFilesByHash(String hash) throws SqlQueriesException {
         FsFile dummy = new FsFile();
         String where = dummy.getContentHash().k() + "=? and " + dummy.getSynced().k() + "=?";
-        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(hash, false));
+        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(hash, false));
         //return new HashSet<>(fsFiles);
         return fsFiles;
     }
@@ -457,7 +457,7 @@ public class FsDao extends Dao {
     public List<FsFile> getNonSyncedFilesByFsDirectory(Long fsId) throws SqlQueriesException {
         FsFile dummy = new FsFile();
         String where = dummy.getParentId().k() + "=? and " + dummy.getSynced().k() + "=? and " + dummy.getIsDirectory().k() + "=?";
-        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(fsId, false, false));
+        List<FsFile> fsFiles = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(fsId, false, false));
         return fsFiles;
     }
 
@@ -472,26 +472,26 @@ public class FsDao extends Dao {
         DbTransferDetails t = new DbTransferDetails();
         String query = "select f."+f.getContentHash().k()+" from "+t.getTableName()+" t left join "+f.getTableName()
                 +" f on f."+f.getContentHash().k()+"=t."+t.getHash().k()+" where f."+f.getSynced().k()+"=?";
-        return sqlQueries.loadColumn(f.getContentHash(),String.class, query,ISQLQueries.whereArgs(true));
+        return sqlQueries.loadColumn(f.getContentHash(),String.class, query,ISQLQueries.args(true));
     }
 
     public void setSynced(Long id, boolean synced) throws SqlQueriesException {
         assert id != null;
         FsFile dummy = new FsFile();
         String statement = "update " + dummy.getTableName() + " set " + dummy.getSynced().k() + "=? where " + dummy.getId().k() + "=?";
-        sqlQueries.execute(statement, ISQLQueries.whereArgs(synced, id));
+        sqlQueries.execute(statement, ISQLQueries.args(synced, id));
     }
 
     public ISQLResource<FsFile> getNonSyncedFilesResource() throws SqlQueriesException {
         FsFile fsFile = new FsFile();
         String where = fsFile.getSynced().k() + "=?";
-        return sqlQueries.loadResource(fsFile.getAllAttributes(), FsFile.class, where, ISQLQueries.whereArgs(false));
+        return sqlQueries.loadResource(fsFile.getAllAttributes(), FsFile.class, where, ISQLQueries.args(false));
     }
 
     public GenericFSEntry getGenericSubByName(Long parentId, String name) throws SqlQueriesException {
         GenericFSEntry genericFSEntry = new GenericFSEntry();
         String where = genericFSEntry.getParentId().k() + " =? and " + genericFSEntry.getName().k() + "=?";
-        List<GenericFSEntry> gens = sqlQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, ISQLQueries.whereArgs(parentId, name));
+        List<GenericFSEntry> gens = sqlQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, ISQLQueries.args(parentId, name));
         if (gens.size() == 1)
             return gens.get(0);
         return null;
@@ -524,14 +524,14 @@ public class FsDao extends Dao {
     public boolean desiresHash(String hash) throws SqlQueriesException {
         FsFile fsFile = new FsFile();
         String query = "select count(*)>0 from " + fsFile.getTableName() + " where " + fsFile.getSynced().k() + "=? and " + fsFile.getContentHash().k() + "=?";
-        Integer result = sqlQueries.queryValue(query, Integer.class, ISQLQueries.whereArgs(false, hash));
+        Integer result = sqlQueries.queryValue(query, Integer.class, ISQLQueries.args(false, hash));
         return SqliteConverter.intToBoolean(result);
     }
 
     public Long countDirectories() {
         FsEntry dummy = new FsDirectory();
         return N.result(() -> sqlQueries.queryValue("select count(*) from " + dummy.getTableName()
-                        + " where " + dummy.getIsDirectory().k() + "=?", Long.class, ISQLQueries.whereArgs(true))
+                        + " where " + dummy.getIsDirectory().k() + "=?", Long.class, ISQLQueries.args(true))
                 , 0L);
     }
 

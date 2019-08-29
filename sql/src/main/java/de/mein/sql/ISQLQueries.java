@@ -42,7 +42,7 @@ public abstract class ISQLQueries {
         }
     }
 
-    public static List<Object> whereArgs(Object... values) {
+    public static List<Object> args(Object... values) {
         List<Object> args = new ArrayList<>();
         if (values != null)
             for (Object v : values) {
@@ -126,9 +126,9 @@ public abstract class ISQLQueries {
                                                                             List<Object> whereArgs) throws SqlQueriesException;
 
 
-    public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException;
+    public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> arguments) throws SqlQueriesException;
 
-    public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException;
+    public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> arguments, String whatElse) throws SqlQueriesException;
 
     public abstract <T extends SQLTableObject> T loadFirstRow(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, Class<T> castClass) throws SqlQueriesException;
 

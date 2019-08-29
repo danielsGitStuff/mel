@@ -46,28 +46,28 @@
 <body>
 
 <form method="post" action="/build.html">
-    <input name="pw" id="pw" value="<$=pw/>" hidden>
+    <input name="pw" id="pw" value="<§=pw/>" hidden>
     <button type="submit">Refresh</button>
 </form>
 <!--<form method="post" action="/build.html build">-->
-<input name="pw" value="<$=pw/>" hidden>
+<input name="pw" value="<§=pw/>" hidden>
 <button onclick="build()">Build</button>
 <!--</form>-->
 <form method="post" action="/build.html reboot">
-    <input name="pw" value="<$=pw/>" hidden>
+    <input name="pw" value="<§=pw/>" hidden>
     <button onclick="return warning()" type="submit">Reboot</button>
 </form>
 <form method="post" action="/build.html shutDown">
-    <input name="pw" value="<$=pw/>" hidden>
+    <input name="pw" value="<§=pw/>" hidden>
     <button onclick="return warning()" type="submit">Shut Down</button>
 </form>
 <br>
-<input type="checkbox" id="cbKeep" <$=keep/>><label for="cbKeep">Keep binaries</label>
+<input type="checkbox" id="cbKeep" <§=keep/>><label for="cbKeep">Keep binaries</label>
 <input type="checkbox" id="cbServer" checked> <label for="cbServer">miniserver</label>
 <input type="checkbox" id="cbApk"><label for="cbApk">apk</label>
 <input type="checkbox" id="cbJar"><label for="cbJar">jar</label><br>
-Start Time: <$=time/><br>
+Start Time: <§=time/><br>
 last log messages:<br>
-<$=lok/>
+<§=lok/>
 </body>
 </html>

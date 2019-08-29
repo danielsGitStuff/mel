@@ -64,7 +64,7 @@ public class QuotaManager {
                         "   where s." + nStage.getStageSetPair().k() + "=?" +
                         "   group by " + nStage.getContentHashPair().k() + "\n" +
                         ")";
-        Long requiredSpace = sqlQueries.queryValue(query, Long.class, ISQLQueries.whereArgs(
+        Long requiredSpace = sqlQueries.queryValue(query, Long.class, ISQLQueries.args(
                 0,//synced
                 0,//exis
                 0,//synced
@@ -101,7 +101,7 @@ public class QuotaManager {
         String query = "select w." + nWaste.getId().k() + ", w." + nWaste.getSize().k() + " from " + nWaste.getTableName() + " w left join (select ss." + nStage.getStageSetPair().k() + ", ss." + nStage.getIdPair().k() + ", ss." + nStage.getContentHashPair().k() + " from " + nStage.getTableName() + " ss " +
                 "where ss." + nStage.getStageSetPair().k() + "=? ) s on w." + nWaste.getHash().k() + "=s." + nStage.getContentHashPair().k() + " where s." + nStage.getIdPair().k() + " is null " +
                 "order by w." + nWaste.getDeleted().k();
-        N.readSqlResource(sqlQueries.loadQueryResource(query, wasteDummy.getAllAttributes(), WasteDummy.class, ISQLQueries.whereArgs(stageSetId)), (sqlResource, wasteDum) -> {
+        N.readSqlResource(sqlQueries.loadQueryResource(query, wasteDummy.getAllAttributes(), WasteDummy.class, ISQLQueries.args(stageSetId)), (sqlResource, wasteDum) -> {
             //delete until the required space is freed
             freed[0] += wasteDum.getSize().v();
             wastebin.rm(wasteDum.getId().v());

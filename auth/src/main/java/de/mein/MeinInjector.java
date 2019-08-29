@@ -37,7 +37,4 @@ public class MeinInjector {
         SqliteExecutor.setExecutorImpl(injectedImpl);
     }
 
-    public static void setPairTypeConverter(PairTypeConverter typeConverter) {
-        Pair.setTypeConverter(typeConverter);
-    }
 }
