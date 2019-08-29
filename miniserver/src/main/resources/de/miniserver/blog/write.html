@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Write stuff</title>
+    <link rel="stylesheet" type="text/css" href="../css.css" media="screen"/>
+    <script>
+
+
+        function save() {
+            if (confirm("really?")) {
+                var cbServer = document.getElementById("cbServer");
+                var cbApk = document.getElementById("cbApk");
+                var cbJar = document.getElementById("cbJar");
+                var cbKeep = document.getElementById("cbKeep");
+                var req = {
+                    $id: 1,
+                    __type: "de.miniserver.http.BuildRequest",
+                    server: cbServer.checked,
+                    apk: cbApk.checked,
+                    jar: cbJar.checked,
+                    pw: document.getElementById("pw").value,
+                    keepBinaries: cbKeep.checked
+                };
+                fetch("/api/build", {
+                    method: 'POST', // or 'PUT'
+                    body: JSON.stringify(req), // data can be `string` or {object}!
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(function (res) {
+                    alert(JSON.stringify(res));
+                }).alert(JSON.stringify(req))
+            }
+        }
+    </script>
+</head>
+<body>
+<form method="post" action="/write.html save">
+    <label>Title</label>
+    <input id="txtTitle" value="<§=title/>" name="title">
+    <label>Text</label>
+    <textarea id="txtText" name="text"><§=text/></textarea>
+
+    <input name="pw" value="<§=pw/>" hidden>
+    <input name="id" value="<§=id/>" hidden>
+    <button onclick="return warning()" type="submit">Save</button>
+</form>
+<form method="post" action="/write.html delete">
+    <input name="pw" value="<§=pw/>" hidden>
+    <input name="id" value="<§=id/>" hidden>
+    <button onclick="return warning()" type="submit">Delete</button>
+</form>
+</body>
+</html>

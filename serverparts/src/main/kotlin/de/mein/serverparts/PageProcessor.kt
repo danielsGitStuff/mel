@@ -39,7 +39,11 @@ class Page {
             replacers.firstOrNull { replacer -> replacer.test(stripped) }?.let {
                 val replacementRegex = "<§=$stripped\\/>".toRegex()
 //                Lok.debug("$stripped ... $replacementRegex")
-                html = html.replace(replacementRegex, it.replace(""))
+                val replacement = it.replace("")
+                if (replacement == null)
+                    html = html.replace(replacementRegex, "")
+                else
+                    html = html.replace(replacementRegex, replacement)
             }
         }
         this.path = path
@@ -50,7 +54,7 @@ class Page {
     }
 }
 
-class Replacer(val test: (String) -> Boolean, val replace: (String) -> String) {
-    constructor(matchString: String, replace: (String) -> String) : this({ s: String -> matchString == s }, replace)
-    constructor(matchString: String, replace: String) : this({ s: String -> matchString == s }, { replace })
+class Replacer(val test: (String) -> Boolean, val replace: (String) -> String?) {
+    constructor(matchString: String, replace: (String) -> String?) : this({ s: String -> matchString == s }, replace)
+    constructor(matchString: String, replace: String?) : this({ s: String -> matchString == s }, { replace })
 }

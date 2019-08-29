@@ -22,7 +22,7 @@ object ContentType {
 }
 
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port, miniServer.httpCertificateManager.sslContext) {
-    val blogThingy : BlogThingy = BlogThingy(miniServer)
+    val blogThingy: BlogThingy = BlogThingy(miniServer)
 
     fun pageHello(): Page {
         return Page("/de/miniserver/index.html",
@@ -117,10 +117,15 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             it.close()
         }
         server.createContext("/css.css") {
+
             respondText(it, "/de/miniserver/css.css")
         }
-        server.createContext("/blog.css") {
-            respondText(it, "/de/miniserver/blog/blog.css")
+        server.createContext("/blog/") {
+            val path = it.requestURI.path
+            if (path.endsWith("blog.css"))
+                respondText(it, "/de/miniserver/blog/blog.css")
+//            else if (path.endsWith("index.html"))
+//                respondText(it, "lel")
         }
         server.createContext("/private/loggedIn") {
             if (it.requestMethod == "POST") {
@@ -169,7 +174,6 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 respondText(it, "/de/miniserver/private/loginz.html")
             }
         }
-
 
         // add files context
         server.createContext("/files/") {

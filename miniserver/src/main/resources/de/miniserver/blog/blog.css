@@ -6,23 +6,25 @@
     /*background-color: deeppink;*/
 }
 
-.title{
+.title {
     font-size: 1.4em;
     padding: .6em .2em .6em .6em;
 }
 
 .entry {
-    background-color:#545454;
+    background-color: #545454;
     margin-left: 2em;
     font-size: 1em;
-    padding: .3em;
+    padding: .6em .6em 0 .6em;
+    border-radius: .5em;
     /*text-align: start;*/
 }
+
 .entry a {
     margin-left: .5em;
 }
 
-.entrytext{
+.entrytext {
     padding: .5em .5em .5em 2.6em;
 }
 
