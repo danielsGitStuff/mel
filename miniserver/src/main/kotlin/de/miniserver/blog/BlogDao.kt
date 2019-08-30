@@ -63,4 +63,9 @@ class BlogDao(sqlQueries: SQLQueries) : Dao(sqlQueries) {
         sqlQueries.update(entry, where, ISQLQueries.args(entry.id.v()))
     }
 
+    fun deleteById(id: Long) {
+        val where = "${dummy.id.k()}=?"
+        sqlQueries.delete(dummy, where, ISQLQueries.args(id))
+    }
+
 }

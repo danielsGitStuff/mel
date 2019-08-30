@@ -10,6 +10,8 @@ import de.mein.serverparts.Replacer
 import de.miniserver.MiniServer
 import java.io.File
 import java.lang.Exception
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 /**
@@ -36,17 +38,19 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
 
     companion object {
         val ACTION_SAVE = "save"
+        val ACTION_DELETE = "delete"
+
         val PARAM_ID = "id"
         val PARAM_USER = "user"
         val PARAM_PW = "pw"
         val PARAM_TITLE = "title"
         val PARAM_TEXT = "text"
+        val PARAM_PUBLISH = "publish"
     }
 
     override fun configureContext(server: HttpsServer) {
         server.createContext("/blog/index.html") {
             respondPage(it, defaultPage())
-//            respondText(it, "/de/miniserver/blog/blog.html")
         }
         server.createContext("/blog/login.html") {
             respondPage(it, loginPage())
@@ -65,20 +69,44 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
                         val user = attr[PARAM_USER]
                         val pw = attr[PARAM_PW]
                         blogAuthenticator.check(it, user, pw, N.INoTryRunnable {
-                            val id = queryMap[PARAM_ID]!!.toLong()
-                            val entry = blogDao.getById(id)
-                            entry.title.v(attr[PARAM_TITLE])
-                            entry.text.v(attr[PARAM_TEXT])
-                            blogDao.update(entry)
-                            respondPage(it, writePage(user, pw, id))
+                            val id = N.result({ queryMap[PARAM_ID]!!.toLong() }, null)
+                            //edit
+                            if (id != null) {
+                                val entry = blogDao.getById(id)
+                                entry.title.v(attr[PARAM_TITLE])
+                                entry.text.v(attr[PARAM_TEXT])
+                                blogDao.update(entry)
+                                respondPage(it, writePage(user, pw, id))
+                            } else {
+                                //create
+                                val publish = attr[PARAM_PUBLISH] == "on"
+                                val entry = BlogEntry()
+                                entry.title.v(attr[PARAM_TITLE])
+                                entry.text.v(attr[PARAM_TEXT])
+                                entry.timestamp.v(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+                                entry.published.v(publish)
+                                blogDao.insert(entry)
+                                respondPage(it, writePage(user, pw, entry.id.v()))
+                            }
+                            //show what is new
+                            rebuildDefaultPage()
                         }, null)
+                    } else if (queryMap["a"] == ACTION_DELETE) {
+                        val id = N.result({ queryMap[PARAM_ID]!!.toLong() }, null)
+                        if (id == null)
+                            respondPage(it, loginPage(null))
+                        else{
+                            blogDao.deleteById(id)
+                            respondPage(it,loginPage(null))
+                        }
                     }
                 } else {
                     //login here, show write page
                     val attr = readPostValues(it)
                     val user = attr["user"]
                     val pw = attr["pw"]
-                    val id = attr["id"]?.toLong()
+
+                    val id = N.result(N.ResultExceptionRunnable { attr[PARAM_ID]?.toLong() }, null)
                     blogAuthenticator.authenticate(it, user, pw, N.INoTryRunnable {
                         respondPage(it, writePage(user, pw, id))
                     }, N.INoTryRunnable {
@@ -92,19 +120,41 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
                         val idString = query.substring("id=".length, query.length)
                         val id = idString.toLong()
                         val entry = blogDao.getById(id)
-                        blogAuthenticator.check(it, N.INoTryRunnable { respondPage(it, writePage(null, null, id)) }, N.INoTryRunnable { respondPage(it, loginPage(id)) })
                         respondPage(it, loginPage(id))
+//                        blogAuthenticator.check(it, N.INoTryRunnable { respondPage(it, writePage(null, null, id)) }, N.INoTryRunnable { respondPage(it, loginPage(id)) })
                     } catch (e: Exception) {
                         it.close()
                     }
                 } else
-                    it.close()
+                    respondPage(it, loginPage(null))
             }
 
         }
 //        ctx.authenticator = blogAuthenticator
 
         Lok.warn("test address: https://localhost:8443/blog/index.html")
+    }
+
+    private fun rebuildDefaultPage() {
+        //load template page, with head line and so on
+        defaultPage = Page("/de/miniserver/blog/index.html", Replacer("entryDiv") {
+            // fill blog entries here
+            val b = StringBuilder()
+            var dateString: String? = null
+            val entries = blogDao.getLastNentries(5)
+            entries?.forEach { entry ->
+                val entryDateString = entry.dateString
+                // if another day: display date
+                if (dateString == null || dateString != entryDateString)
+                    b.append(embedDate(entry))
+                dateString = entryDateString
+                b.append("${embedEntry(entry)}\n")
+            }
+            b.toString()
+        }, Replacer("name", blogSettings.name!!),
+                Replacer("motto", blogSettings.motto!!)
+
+        )
     }
 
     private fun readHeader(requestHeaders: Headers): MutableMap<String, List<String>> {
@@ -117,12 +167,13 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
         var entry: BlogEntry? = null
         if (id != null)
             entry = blogDao.getById(id)
-
+        val mode = if (id == null) "Write new Entry" else "Edit Entry"
         return Page("/de/miniserver/blog/write.html", Replacer("pw", pw),
                 Replacer("user", user),
                 Replacer("id", id?.toString()),
                 Replacer("title", entry?.title?.v()),
-                Replacer("text", entry?.text?.v())
+                Replacer("text", entry?.text?.v()),
+                Replacer("mode", mode)
         )
     }
 
@@ -150,32 +201,14 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
 
     private fun defaultPage(): Page {
         if (defaultPage == null)
-        //load template page, with head line and so on
-            defaultPage = Page("/de/miniserver/blog/index.html", Replacer("entryDiv") {
-                // fill blog entries here
-                val b = StringBuilder()
-                var dateString: String? = null
-                val entries = blogDao.getLastNentries(5)
-                entries?.forEach { entry ->
-                    val entryDateString = entry.dateString
-                    // if another day: display date
-                    if (dateString == null || dateString != entryDateString)
-                        b.append(embedDate(entry))
-                    dateString = entryDateString
-                    b.append("${embedEntry(entry)}\n")
-                }
-                b.toString()
-            }, Replacer("name", blogSettings.name!!),
-                    Replacer("motto", blogSettings.motto!!)
-
-            )
+            rebuildDefaultPage()
         return defaultPage!!
     }
 
     private fun loginPage(id: Long? = null): Page {
         if (id == null)
-            return Page("/de/miniserver/blog/login.html")
-        return Page("/de/miniserver/blog/login.html", Replacer("id", id.toString()))
+            return Page("/de/miniserver/blog/login.html", Replacer(PARAM_ID, null))
+        return Page("/de/miniserver/blog/login.html", Replacer(PARAM_ID, id.toString()))
     }
 
     private fun embedDate(entry: BlogEntry): String {

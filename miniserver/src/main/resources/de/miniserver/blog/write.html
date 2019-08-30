@@ -4,43 +4,53 @@
     <meta charset="UTF-8">
     <title>Write stuff</title>
     <link rel="stylesheet" type="text/css" href="../css.css" media="screen"/>
-    <script>
-
-
-        function save() {
-            if (confirm("really?")) {
-                var cbServer = document.getElementById("cbServer");
-                var cbApk = document.getElementById("cbApk");
-                var cbJar = document.getElementById("cbJar");
-                var cbKeep = document.getElementById("cbKeep");
-                var req = {
-                    $id: 1,
-                    __type: "de.miniserver.http.BuildRequest",
-                    server: cbServer.checked,
-                    apk: cbApk.checked,
-                    jar: cbJar.checked,
-                    pw: document.getElementById("pw").value,
-                    keepBinaries: cbKeep.checked
-                };
-                fetch("/api/build", {
-                    method: 'POST', // or 'PUT'
-                    body: JSON.stringify(req), // data can be `string` or {object}!
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }).then(function (res) {
-                    alert(JSON.stringify(res));
-                }).alert(JSON.stringify(req))
-            }
+    <link rel="stylesheet" type="text/css" href="blog.css" media="screen"/>
+    <style>
+        #txtTitle {
+            display: block;
+            width: 94%;
+            margin-left: 3em;
+            margin-right: 3em;
         }
-    </script>
+
+        #txtText {
+            alignment-baseline: top;
+            display: block;
+            background: #545454;
+            border: none;
+            color: white;
+            width: 94%;
+            border-radius: .5em;
+            margin-left: 3em;
+            margin-right: 3em;
+        }
+
+        label {
+            margin-left: 3em;
+            display: block;
+            margin-bottom: .5em;
+        }
+
+        .round {
+            border-radius: .5em;
+        }
+
+        button {
+            margin-left: 3em;
+            margin-right: 3em;
+            margin-bottom: .2em;
+            width: 94%;
+        }
+    </style>
 </head>
 <body>
-<form method="post" action="write.html?a=save&id=<§=id/>">
-    <label>Title</label>
-    <input id="txtTitle" value="<§=title/>" name="title">
-    <label>Text</label>
-    <textarea id="txtText" name="text"><§=text/></textarea>
+<h2><§=mode/></h2>
+<form method="post" action="write.html?a=save&id=<§=id/>" style="display: block">
+    <label for="txtTitle">Title</label>
+    <input id="txtTitle" value="<§=title/>" name="title" class="round"><br>
+    <label for="txtText">Text</label>
+    <textarea id="txtText" name="text"><§=text/></textarea><br>
+     <label><input type="checkbox" name="publish" id="publish"> publish</label><br>
 
     <input name="user" value="<§=user/>" hidden>
     <input name="pw" value="<§=pw/>" hidden>

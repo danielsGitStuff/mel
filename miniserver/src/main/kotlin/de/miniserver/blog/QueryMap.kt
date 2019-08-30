@@ -4,6 +4,9 @@ import de.mein.Lok
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
+/**
+ * parses URL query arguments
+ */
 class QueryMap {
     val map = mutableMapOf<String, String>()
 
