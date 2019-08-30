@@ -49,6 +49,12 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
     }
 
     override fun configureContext(server: HttpsServer) {
+        server.createContext("/blog") {
+            respondPage(it, defaultPage())
+        }
+        server.createContext("/blog/") {
+            respondPage(it, defaultPage())
+        }
         server.createContext("/blog/index.html") {
             respondPage(it, defaultPage())
         }
