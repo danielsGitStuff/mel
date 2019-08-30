@@ -17,12 +17,22 @@
     }
 
     #btn {
-        border-radius: 0em .5em .5em 0em;
+        border-radius: .5em;
+        position: relative;
+        width: 100%;
     }
 
-    #pw {
-        border-radius: .5em 0em 0em .5em;
-        outline-width: 0;
+    .head input {
+        border-radius: .5em;
+    }
+
+    .txt {
+        border-radius: .5em;
+        margin-bottom: .1em;
+    }
+
+    .txt:focus {
+        background: #57bf40;
     }
     </style>
 </head>
@@ -30,7 +40,9 @@
 
 <form method="post" action="write.html" class="centered" id="ff">
     <span class="head">Blog.Me<span style="color:#57bf40;">l</span></span><br>
-    <input id="pw" name="pw" type="password"><button type="submit" id="btn">ok</button>
+    <input id="user" name="user" type="text" class="txt" placeholder="usr"><br>
+    <input id="pw" name="pw" type="password" class="txt" placeholder="pwd"><br>
+    <button type="submit" id="btn">ok</button>
     <input id="id" name="id" value="<§=id/>" hidden>
 </form>
 </body>

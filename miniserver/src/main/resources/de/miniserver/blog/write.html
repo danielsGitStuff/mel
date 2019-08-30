@@ -36,17 +36,19 @@
     </script>
 </head>
 <body>
-<form method="post" action="/write.html save">
+<form method="post" action="write.html?a=save&id=<§=id/>">
     <label>Title</label>
     <input id="txtTitle" value="<§=title/>" name="title">
     <label>Text</label>
     <textarea id="txtText" name="text"><§=text/></textarea>
 
+    <input name="user" value="<§=user/>" hidden>
     <input name="pw" value="<§=pw/>" hidden>
     <input name="id" value="<§=id/>" hidden>
     <button onclick="return warning()" type="submit">Save</button>
 </form>
-<form method="post" action="/write.html delete">
+<form method="post" action="/blog/write.html delete">
+    <input name="user" value="<§=user/>" hidden>
     <input name="pw" value="<§=pw/>" hidden>
     <input name="id" value="<§=id/>" hidden>
     <button onclick="return warning()" type="submit">Delete</button>

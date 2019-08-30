@@ -1,7 +1,9 @@
 package de.miniserver.blog
 
+import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
+import de.mein.auth.tools.N
 import de.mein.serverparts.AbstractHttpsThingy
 import de.mein.serverparts.Page
 import de.mein.serverparts.Replacer
@@ -11,7 +13,9 @@ import java.lang.Exception
 import java.time.format.DateTimeFormatter
 
 /**
- * this is more an extension of the regular HttpsThingy
+ * this is more an extension of the regular HttpsThingy.
+ * currently this mixes both POST and GET simultaneously to deal with authentication and parameters the user sends you.
+ * I wanted to plant the authentication info in the response header but the browser somehow does not send it back.
  */
 class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer.httpCertificateManager.sslContext) {
     val blogDir = File(miniServer.workingDirectory, "blog")
@@ -19,6 +23,7 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
     val blogDao: BlogDao
     var defaultPage: Page? = null
     val blogSettings: BlogSettings
+    val blogAuthenticator = BlogAuthenticator(this)
 
     init {
         blogDir.mkdirs()
@@ -29,6 +34,15 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
         Lok.debug("blog loaded")
     }
 
+    companion object {
+        val ACTION_SAVE = "save"
+        val PARAM_ID = "id"
+        val PARAM_USER = "user"
+        val PARAM_PW = "pw"
+        val PARAM_TITLE = "title"
+        val PARAM_TEXT = "text"
+    }
+
     override fun configureContext(server: HttpsServer) {
         server.createContext("/blog/index.html") {
             respondPage(it, defaultPage())
@@ -37,32 +51,48 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
         server.createContext("/blog/login.html") {
             respondPage(it, loginPage())
         }
-        server.createContext("/blog/write.html") {
+        val ctx = server.createContext("/blog/write.html") {
             Lok.debug("write")
+
+            val uri = it.requestURI
+            val query = uri.query
             if (it.requestMethod == "POST") {
-                val attr = readPostValues(it)
-                val pw = attr["pw"]
-                val id = attr["id"]?.toLong()
-                when (pw) {
-                    null -> {
-                        respondPage(it, loginPage(id))
+                if (query != null) {
+                    //update entry here
+                    val queryMap = QueryMap().parse(query)
+                    if (queryMap["a"] == ACTION_SAVE && queryMap[PARAM_ID] != null) {
+                        val attr = readPostValues(it)
+                        val user = attr[PARAM_USER]
+                        val pw = attr[PARAM_PW]
+                        blogAuthenticator.check(it, user, pw, N.INoTryRunnable {
+                            val id = queryMap[PARAM_ID]!!.toLong()
+                            val entry = blogDao.getById(id)
+                            entry.title.v(attr[PARAM_TITLE])
+                            entry.text.v(attr[PARAM_TEXT])
+                            blogDao.update(entry)
+                            respondPage(it, writePage(user, pw, id))
+                        }, null)
                     }
-                    blogSettings.password -> {
-                        respondPage(it, writePage(pw, id))
-                    }
-                    else -> {
-                        //todo debug
-                        Lok.info("## password did not match")
+                } else {
+                    //login here, show write page
+                    val attr = readPostValues(it)
+                    val user = attr["user"]
+                    val pw = attr["pw"]
+                    val id = attr["id"]?.toLong()
+                    blogAuthenticator.authenticate(it, user, pw, N.INoTryRunnable {
+                        respondPage(it, writePage(user, pw, id))
+                    }, N.INoTryRunnable {
                         respondPage(it, loginPage())
-                    }
+                    })
                 }
             } else {
                 val query = it.requestURI.query
-                if (query.startsWith("id=")) {
+                if (query != null && query.startsWith("id=")) {
                     try {
                         val idString = query.substring("id=".length, query.length)
                         val id = idString.toLong()
                         val entry = blogDao.getById(id)
+                        blogAuthenticator.check(it, N.INoTryRunnable { respondPage(it, writePage(null, null, id)) }, N.INoTryRunnable { respondPage(it, loginPage(id)) })
                         respondPage(it, loginPage(id))
                     } catch (e: Exception) {
                         it.close()
@@ -70,16 +100,26 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
                 } else
                     it.close()
             }
+
         }
+//        ctx.authenticator = blogAuthenticator
+
         Lok.warn("test address: https://localhost:8443/blog/index.html")
     }
 
-    private fun writePage(pw: String, id: Long?): Page {
+    private fun readHeader(requestHeaders: Headers): MutableMap<String, List<String>> {
+        val map = mutableMapOf<String, List<String>>()
+        requestHeaders.forEach { map[it.key] = it.value }
+        return map
+    }
+
+    private fun writePage(user: String?, pw: String?, id: Long?): Page {
         var entry: BlogEntry? = null
         if (id != null)
             entry = blogDao.getById(id)
 
         return Page("/de/miniserver/blog/write.html", Replacer("pw", pw),
+                Replacer("user", user),
                 Replacer("id", id?.toString()),
                 Replacer("title", entry?.title?.v()),
                 Replacer("text", entry?.text?.v())

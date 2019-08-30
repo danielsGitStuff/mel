@@ -8,6 +8,7 @@ class BlogSettings : JsonSettings() {
 
     var name: String? = "Penis!"
     var motto = "Kein Mensch braucht noch eine neue Blogsoftware, aber hier ist sie! TADAAA!"
+    var user : String? = "user"
     var password : String? = "no"
     override fun init() {
 

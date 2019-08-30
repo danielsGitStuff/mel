@@ -58,4 +58,9 @@ class BlogDao(sqlQueries: SQLQueries) : Dao(sqlQueries) {
         return sqlQueries.load(dummy.allAttributes, dummy, where, ISQLQueries.args(true, n), whatElse)
     }
 
+    fun update(entry: BlogEntry) {
+        val where = "${entry.id.k()}=?"
+        sqlQueries.update(entry, where, ISQLQueries.args(entry.id.v()))
+    }
+
 }
