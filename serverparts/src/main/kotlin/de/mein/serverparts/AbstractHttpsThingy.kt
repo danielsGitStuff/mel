@@ -1,9 +1,6 @@
 package de.mein.serverparts
 
-import com.sun.net.httpserver.HttpExchange
-import com.sun.net.httpserver.HttpsConfigurator
-import com.sun.net.httpserver.HttpsParameters
-import com.sun.net.httpserver.HttpsServer
+import com.sun.net.httpserver.*
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
@@ -140,6 +137,19 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     }
 
     abstract fun configureContext(server: HttpsServer)
+
+    fun redirect(httpExchange: HttpExchange, targetUrl: String): Unit {
+        try {
+
+            with(httpExchange) {
+                Lok.debug("redirect to $targetUrl")
+                responseHeaders.add("Location",targetUrl)
+                sendResponseHeaders(302,0)
+            }
+        } finally {
+            httpExchange.close()
+        }
+    }
 
     fun respondPage(ex: HttpExchange, page: Page?) {
         try {

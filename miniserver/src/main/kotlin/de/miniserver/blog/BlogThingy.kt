@@ -49,11 +49,13 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
     }
 
     override fun configureContext(server: HttpsServer) {
-        server.createContext("/blog") {
-            respondPage(it, defaultPage())
-        }
         server.createContext("/blog/") {
-            respondPage(it, defaultPage())
+            Lok.error("/blog/")
+            redirect(it,"/blog/index.html")
+        }
+        server.createContext("/c2/") {
+            Lok.error("/c2/")
+            redirect(it,"/blog/index.html")
         }
         server.createContext("/blog/index.html") {
             respondPage(it, defaultPage())
@@ -101,9 +103,9 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
                         val id = N.result({ queryMap[PARAM_ID]!!.toLong() }, null)
                         if (id == null)
                             respondPage(it, loginPage(null))
-                        else{
+                        else {
                             blogDao.deleteById(id)
-                            respondPage(it,loginPage(null))
+                            respondPage(it, loginPage(null))
                         }
                     }
                 } else {
