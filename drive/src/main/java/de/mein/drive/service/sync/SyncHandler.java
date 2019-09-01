@@ -290,6 +290,7 @@ public abstract class SyncHandler {
                                 dir.getContentHash().v(stage.getContentHash());
                                 dir.getName().v(stage.getName());
                                 dir.getModified().v(stage.getModified());
+                                dir.getCreated().v(stage.getCreated());
                                 dir.getiNode().v(stage.getiNode());
                                 dir.getSymLink().v(stage.getSymLink());
                                 Long fsParentId = null;
@@ -325,6 +326,7 @@ public abstract class SyncHandler {
                             fsFile.getContentHash().v(stage.getContentHash());
                             fsFile.getVersion().v(localVersion);
                             fsFile.getModified().v(stage.getModified());
+                            fsFile.getCreated().v(stage.getCreated());
                             fsFile.getiNode().v(stage.getiNode());
                             fsFile.getSize().v(stage.getSize());
                             fsFile.getSymLink().v(stage.getSymLink());
@@ -376,6 +378,7 @@ public abstract class SyncHandler {
                             if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v() && fsEntry.getModified().isNull()) {
                                 fsEntry.getiNode().v(oldeEntry.getiNode());
                                 fsEntry.getModified().v(oldeEntry.getModified());
+                                fsEntry.getCreated().v(oldeEntry.getCreated());
                             }
                             if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
                                 FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());

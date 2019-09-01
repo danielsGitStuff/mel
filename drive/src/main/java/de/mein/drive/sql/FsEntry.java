@@ -61,7 +61,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     @Override
     protected void init() {
-        populateInsert(name, parentId, version, contentHash, isDirectory, synced, iNode, modified, size, symLink);
+        populateInsert(name, parentId, version, contentHash, isDirectory, synced, iNode, modified, created, size, symLink);
         populateAll(id);
     }
 

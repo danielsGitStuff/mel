@@ -102,4 +102,8 @@ public abstract class BashTools {
         Lok.debug("creating symlink: '" + file.getAbsolutePath() + "' -> '" + target + "'");
         instance.lnS(file, target);
     }
+
+    public static <T> void setCreationDate(T target, long created) {
+        instance.setCreationDate(target, created):
+    }
 }

@@ -392,6 +392,7 @@ StageDao extends Dao.LockingDao {
         //todo rer5
         fsEntry.getiNode().v(stage.getiNode());
         fsEntry.getModified().v(stage.getModified());
+        fsEntry.getCreated().v(stage.getCreated());
         return fsEntry;
     }
 

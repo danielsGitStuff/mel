@@ -195,12 +195,15 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
     protected fun updateFs(fsId: Long?, target: T) {
         val fsBashDetails = BashTools.getFsBashDetails(target)
         val fsTarget = fsDao.getFile(fsId)
+        BashTools.setCreationDate(target,fsBashDetails.created)
         fsTarget.getiNode().v(fsBashDetails.getiNode())
         fsTarget.modified.v(fsBashDetails.modified)
-        fsTarget.created.v(fsBashDetails.created)
         fsTarget.size.v(target.length())
         fsTarget.synced.v(true)
         fsDao.update(fsTarget)
+    }
+
+    protected fun setCreationDate(file: T, timestamp: Long){
 
     }
 
@@ -216,7 +219,10 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
             throw  IOException("file already exists")
         rawCopyFile(source, target)
         if (fsId != null) {
-            de.mein.auth.tools.lock.T.lockingTransaction(fsId).run { updateFs(fsId, target) }.end()
+            de.mein.auth.tools.lock.T.lockingTransaction(fsId).run {
+                updateFs(fsId, target)
+                setCreationDate(target,)
+            }.end()
         }
     }
 

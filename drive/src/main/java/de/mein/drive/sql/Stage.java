@@ -78,7 +78,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, deleted, stageSet, size, synced, merged, order);
+        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, created, deleted, stageSet, size, synced, merged, order);
         populateAll(id);
     }
 
