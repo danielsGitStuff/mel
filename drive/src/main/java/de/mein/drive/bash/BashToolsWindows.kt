@@ -9,6 +9,7 @@ import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.attribute.BasicFileAttributeView
 import java.util.*
 
 
@@ -75,7 +76,8 @@ class BashToolsWindows : BashToolsImpl() {
         content?.forEach {
             val name = it.name
             val isSymLink = symLinkMap.containsKey(name)
-            val details = FsBashDetails(it.lastModified(), iNodeMap[name], isSymLink, symLinkMap[name], name)
+            val attr = Files.getFileAttributeView(Paths.get(File(it.absolutePath).toURI()), BasicFileAttributeView::class.java).readAttributes()
+            val details = FsBashDetails(attr.creationTime().toMillis(), attr.lastModifiedTime().toMillis(), iNodeMap[name], isSymLink, symLinkMap[name], name)
             map[name] = details
         }
         return map
@@ -87,6 +89,9 @@ class BashToolsWindows : BashToolsImpl() {
         val name = file.name
         var isSymLink: Boolean = false
         var symLinkTarget: String? = null
+        var created: Long? = null
+        var modified: Long? = null
+
         runBlocking {
 
             launch {
@@ -101,8 +106,13 @@ class BashToolsWindows : BashToolsImpl() {
                 if (symLinkTarget != null)
                     isSymLink = true
             }
+            launch {
+                val attr = Files.getFileAttributeView(Paths.get(File(file.absolutePath).toURI()), BasicFileAttributeView::class.java).readAttributes()
+                created = attr.creationTime().toMillis()
+                modified = attr.lastModifiedTime().toMillis()
+            }
         }
-        return FsBashDetails(file.lastModified(), iNode!!, isSymLink, symLinkTarget, name)
+        return FsBashDetails(created, modified, iNode!!, isSymLink, symLinkTarget, name)
     }
 
     override fun lnS(file: AFile<out AFile<*>>, targetString: String) {

@@ -21,6 +21,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     private static final String INODE = "inode";
     private static final String SYNCED = "synced";
     private static final String MODIFIED = "modified";
+    private static final String CREATED = "created";
     private static final String SIZE = "size";
     private static final String SYMLINK = "sym";
 
@@ -34,6 +35,8 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     protected Pair<Long> iNode = new Pair<>(Long.class, INODE);
     @JsonIgnore
     protected Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
+    protected Pair<Long> created = new Pair<>(Long.class, CREATED);
+
     // tells whether or not the file was already put/seen in its logical place on FS
     protected Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);
     protected Pair<Long> size = new Pair<>(Long.class, SIZE);
@@ -121,5 +124,9 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     public boolean isSymlink() {
         return symLink.notNull();
+    }
+
+    public Pair<Long> getCreated() {
+        return created;
     }
 }

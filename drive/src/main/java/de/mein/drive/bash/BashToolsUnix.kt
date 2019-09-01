@@ -79,7 +79,7 @@ open class BashToolsUnix : BashToolsImpl() {
 
     @Throws(IOException::class, InterruptedException::class)
     override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
-        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %Y\\ '%F'\\ %N " + escapeQuotedAbsoluteFilePath(file))
+        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %W\\ '%F'\\ %N " + escapeQuotedAbsoluteFilePath(file))
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
@@ -99,14 +99,15 @@ open class BashToolsUnix : BashToolsImpl() {
         }
         val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val iNode = java.lang.Long.parseLong(parts[0])
-        val modified = java.lang.Long.parseLong(parts[1])
+        val created = java.lang.Long.parseLong(parts[1]) * 1000
         val symLink = parts[2].startsWith("sym")
         val name = file.name
+        val modified = file.lastModified()
         val symLinkTarget: String? = if (symLink)
             parseSymLink(file, parts[6])
         else
             null
-        return FsBashDetails(modified, iNode, symLink, symLinkTarget, name)
+        return FsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
     }
 
     /**
@@ -132,7 +133,7 @@ open class BashToolsUnix : BashToolsImpl() {
         val escaped = escapeAbsoluteFilePath(directory)
         // the secont path below fixed something but I forgot what it is. it also returns "." and ".."
         val path = "\"$escaped${File.separator}\"* \"$escaped${File.separator}\".*"
-        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ //\\ %Y\\ //\\ '%F'\\ //\\ %N\\ //\\ %n " + path)
+        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n " + path)
 
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
@@ -142,17 +143,19 @@ open class BashToolsUnix : BashToolsImpl() {
 
 //                val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             val iNode = java.lang.Long.parseLong(parts[0])
-            val modified = java.lang.Long.parseLong(parts[1])
+            val created = java.lang.Long.parseLong(parts[1]) * 1000
             val symLink = parts[2].startsWith("sym")
             val absolutePath = parts[4]
-            val name = File(absolutePath).name
+            val f = File(absolutePath)
+            val name = f.name
+            val modified = f.lastModified()
             var symLinkTarget: String? = null
             if (symLink) {
                 // parse something like: "'/a/b '-> '/c/d'"
                 // drop quotes, spaces etc
                 symLinkTarget = parts[3].drop(absolutePath.length + 7).dropLast(1)
             }
-            val details = FsBashDetails(modified, iNode, symLink, symLinkTarget, name)
+            val details = FsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
             map[details.name] = details
         }
         return map

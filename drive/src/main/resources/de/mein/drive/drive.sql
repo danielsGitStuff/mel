@@ -35,6 +35,7 @@ create TABLE fsentry
     synced      INTEGER NOT NULL,
     inode       INTEGER,
     modified    INTEGER,
+    created     INTEGER,
     size        INTEGER,
     sym         text,
     FOREIGN KEY (parentid) REFERENCES fsentry (id)
@@ -64,6 +65,7 @@ create TABLE stage
     sym         text,
     inode       INTEGER,
     modified    INTEGER,
+    created     INTEGER,
     deleted     INTEGER NOT NULL,
     size        INTEGER,
     synced      INTEGER,

@@ -102,29 +102,29 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
         return streams
     }
 
-    @Throws(IOException::class)
-    override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
-        val cmd = "ls -id " + escapeQuotedAbsoluteFilePath(file)
-        val args = arrayOf(BIN_PATH, "-c", cmd)
-        var line: String
-        try {
-            val proc = ProcessBuilder(*args).start()
-            val reader = BufferedReader(InputStreamReader(proc.inputStream))
-            line = reader.readLine()
-            line = line.trim { it <= ' ' }
-            val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            val iNode = java.lang.Long.parseLong(parts[0])
-            /**
-             * Testing revealed that Android P (maybe even earlier) does not support creating symlinks via terminal.
-             * Thus supporting symlinks on Android is pointless.
-             */
-            return FsBashDetails(file.lastModified(), iNode, false, null, file.name)
-        } catch (e: Exception) {
-            Lok.error("could not execute:\n $cmd")
-            throw IOException(e)
-        }
-
-    }
+//    @Throws(IOException::class)
+//    override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
+//        val cmd = "ls -id " + escapeQuotedAbsoluteFilePath(file)
+//        val args = arrayOf(BIN_PATH, "-c", cmd)
+//        var line: String
+//        try {
+//            val proc = ProcessBuilder(*args).start()
+//            val reader = BufferedReader(InputStreamReader(proc.inputStream))
+//            line = reader.readLine()
+//            line = line.trim { it <= ' ' }
+//            val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+//            val iNode = java.lang.Long.parseLong(parts[0])
+//            /**
+//             * Testing revealed that Android P (maybe even earlier) does not support creating symlinks via terminal.
+//             * Thus supporting symlinks on Android is pointless.
+//             */
+//            return FsBashDetails(file.lastModified(), iNode, false, null, file.name)
+//        } catch (e: Exception) {
+//            Lok.error("could not execute:\n $cmd")
+//            throw IOException(e)
+//        }
+//
+//    }
 
     @Throws(IOException::class)
     override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {

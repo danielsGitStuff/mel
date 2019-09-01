@@ -201,7 +201,7 @@ public abstract class SyncHandler {
                 // and in this case sourceFsFile must not be null.
                 // set what the copy service is expected to find as a source file.
                 // in case it has changed it can abort
-                FsBashDetails bashDetails = new FsBashDetails(sourceFsFile.getModified().v(), sourceFsFile.getiNode().v(), sourceFsFile.isSymlink(), null, sourceFsFile.getName().v()); //BashTools.getFsBashDetails(file);
+                FsBashDetails bashDetails = new FsBashDetails(sourceFsFile.getCreated().v(), sourceFsFile.getModified().v(), sourceFsFile.getiNode().v(), sourceFsFile.isSymlink(), null, sourceFsFile.getName().v()); //BashTools.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
                 distributionTask.setDeleteSource(false);
                 N.forEach(fsFiles, fsFile -> {
