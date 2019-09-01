@@ -259,18 +259,4 @@ open class BashToolsUnix : BashToolsImpl() {
         return ShareFolderProperties(count, containsSymLinks)
     }
 
-    companion object {
-
-        @Throws(Exception::class)
-        @JvmStatic
-        fun main(args: Array<String>) {
-            AFile.configure(DefaultFileConfiguration())
-            val f = AFile.instance("f")
-            f.mkdirs()
-            val bashToolsUnix = BashToolsUnix()
-            val modifiedAndInode = bashToolsUnix.getFsBashDetails(f)
-            Lok.debug("mod " + modifiedAndInode.modified + " ... inode " + modifiedAndInode.getiNode())
-            f.delete()
-        }
-    }
 }

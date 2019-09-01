@@ -30,8 +30,7 @@ abstract class BashToolsImpl {
 
     @Throws(IOException::class, BashToolsException::class)
     open fun stuffModifiedAfter(referenceFile: AFile<*>, directory: AFile<*>, pruneDir: AFile<*>): List<AFile<*>> {
-        val details = BashTools.getFsBashDetails(referenceFile)
-        val time = details.modified
+        val time = referenceFile.lastModified()
         val dir = File(directory.absolutePath)
         val list = mutableListOf<AFile<*>>()
         if (dir.exists())

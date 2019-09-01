@@ -489,6 +489,7 @@ public abstract class SyncHandler {
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f);
         entry.getiNode().v(fsBashDetails.getiNode());
         entry.getModified().v(fsBashDetails.getModified());
+        entry.getCreated().v(fsBashDetails.getCreated());
         fsDao.update(entry);
     }
 
