@@ -1,13 +1,14 @@
 package de.miniserver.blog
 
 import com.sun.net.httpserver.Headers
+import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
 import de.mein.auth.tools.N
 import de.mein.serverparts.AbstractHttpsThingy
 import de.mein.serverparts.Page
 import de.mein.serverparts.Replacer
-import java.io.File
+import de.mein.serverparts.UrlPageCache
 import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -22,9 +23,9 @@ import javax.net.ssl.SSLContext
 class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : AbstractHttpsThingy(blogSettings.port!!, sslContext) {
     val blogDatabaseManager: BlogDatabaseManager
     val blogDao: BlogDao
-    var defaultPage: Page? = null
     val blogAuthenticator = BlogAuthenticator(this)
     val subUrl = blogSettings.subUrl
+    val pageCache = UrlPageCache(this, 100)
 
     init {
         blogDatabaseManager = BlogDatabaseManager(blogSettings.blogDir!!)
@@ -45,19 +46,30 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         const val PARAM_PUBLISH = "publish"
     }
 
+//    override fun respondPage(ex: HttpExchange, page: Page?) {
+//        if (page != null) {
+//            val url = ex.requestURI.toString()
+//            pageCache[url] = page
+//            super.respondPage(ex, page)
+//        }
+//    }
+
+
     override fun configureContext(server: HttpsServer) {
-        server.createContext("/$subUrl"){
-            redirect(it,"/$subUrl/index.html")
+        server.createContext("/$subUrl") {
+            redirect(it, "/$subUrl/index.html")
         }
         server.createContext("/$subUrl/") {
             Lok.error("redirect")
             redirect(it, "/$subUrl/index.html")
         }
         server.createContext("/$subUrl/index.html") {
-            respondPage(it, defaultPage())
+            val a = it.requestURI
+            val c = a.toString()
+            respondPage(it, defaultPage(it.requestURI.toString()))
         }
         server.createContext("/$subUrl/login.html") {
-            respondPage(it, loginPage())
+            respondPage(it, loginPage(it))
         }
         server.createContext("/$subUrl/write.html") {
             Lok.debug("write")
@@ -93,15 +105,15 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                                 respondPage(it, writePage(user, pw, entry.id.v()))
                             }
                             //show what is new
-                            rebuildDefaultPage()
+                            pageCache.clear()
                         }, null)
                     } else if (queryMap["a"] == ACTION_DELETE) {
                         val id = N.result({ queryMap[PARAM_ID]!!.toLong() }, null)
                         if (id == null)
-                            respondPage(it, loginPage(null))
+                            respondPage(it, loginPage(it))
                         else {
                             blogDao.deleteById(id)
-                            respondPage(it, loginPage(null))
+                            respondPage(it, loginPage(it))
                         }
                     }
                 } else {
@@ -114,7 +126,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                     blogAuthenticator.authenticate(it, user, pw, N.INoTryRunnable {
                         respondPage(it, writePage(user, pw, id))
                     }, N.INoTryRunnable {
-                        respondPage(it, loginPage())
+                        respondPage(it, loginPage(it))
                     })
                 }
             } else {
@@ -124,42 +136,21 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                         val idString = query.substring("id=".length, query.length)
                         val id = idString.toLong()
                         val entry = blogDao.getById(id)
-                        respondPage(it, loginPage(id))
+                        respondPage(it, loginPage(it))
 //                        blogAuthenticator.check(it, N.INoTryRunnable { respondPage(it, writePage(null, null, id)) }, N.INoTryRunnable { respondPage(it, loginPage(id)) })
                     } catch (e: Exception) {
                         it.close()
                     }
                 } else
-                    respondPage(it, loginPage(null))
+                    respondPage(it, loginPage(it, null))
             }
 
         }
 
         server.createContext("/$subUrl/blog.css") {
-            respondText(it, "/de/miniserver/blog/blog.css")
+            respondPage(it, Page("/de/miniserver/blog/blog.css"), contentType = null)
+//            respondText(it, "/de/miniserver/blog/blog.css")
         }
-    }
-
-    private fun rebuildDefaultPage() {
-        //load template page, with head line and so on
-        defaultPage = Page("/de/miniserver/blog/index.html", Replacer("entryDiv") {
-            // fill blog entries here
-            val b = StringBuilder()
-            var dateString: String? = null
-            val entries = blogDao.getLastNentries(5)
-            entries?.forEach { entry ->
-                val entryDateString = entry.dateString
-                // if another day: display date
-                if (dateString == null || dateString != entryDateString)
-                    b.append(embedDate(entry))
-                dateString = entryDateString
-                b.append("${embedEntry(entry)}\n")
-            }
-            b.toString()
-        }, Replacer("name", blogSettings.name!!),
-                Replacer("motto", blogSettings.motto!!)
-
-        )
     }
 
     private fun readHeader(requestHeaders: Headers): MutableMap<String, List<String>> {
@@ -204,16 +195,33 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         return str
     }
 
-    private fun defaultPage(): Page {
-        if (defaultPage == null)
-            rebuildDefaultPage()
-        return defaultPage!!
+    private fun defaultPage(url: String): Page? {
+        //load template page, with head line and so on
+        val page = pageCache.constructOrGet(url, "/de/miniserver/blog/index.html", Replacer("entryDiv") {
+            // fill blog entries here
+            val b = StringBuilder()
+            var dateString: String? = null
+            val entries = blogDao.getLastNentries(5)
+            entries?.forEach { entry ->
+                val entryDateString = entry.dateString
+                // if another day: display date
+                if (dateString == null || dateString != entryDateString)
+                    b.append(embedDate(entry))
+                dateString = entryDateString
+                b.append("${embedEntry(entry)}\n")
+            }
+            b.toString()
+        }, Replacer("name", blogSettings.name!!),
+                Replacer("motto", blogSettings.motto!!)
+        )
+        return page
     }
 
-    private fun loginPage(id: Long? = null): Page {
+    private fun loginPage(ex: HttpExchange, id: Long? = null): Page? {
+        val url = ex.requestURI.toString()
         if (id == null)
-            return Page("/de/miniserver/blog/login.html", Replacer(PARAM_ID, null))
-        return Page("/de/miniserver/blog/login.html", Replacer(PARAM_ID, id.toString()))
+            return pageCache.constructOrGet(url, "/de/miniserver/blog/login.html", Replacer(PARAM_ID, null))
+        return pageCache.constructOrGet(url, "/de/miniserver/blog/login.html", Replacer(PARAM_ID, id.toString()))
     }
 
     private fun embedDate(entry: BlogEntry): String {

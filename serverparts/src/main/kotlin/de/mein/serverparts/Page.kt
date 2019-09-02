@@ -6,7 +6,7 @@ import de.mein.auth.tools.N
 
 class Page {
     companion object {
-        val pageRepo = PageRepo(100)
+        val staticPagesCache = hashMapOf<String, Page>()
     }
 
     var path: String
@@ -20,16 +20,14 @@ class Page {
         this.path = path
         this.bytes = bytes
         if (cache)
-            pageRepo[path] = this
+            staticPagesCache[path] = this
     }
 
 
-    constructor(path: String, cache: Boolean = false, vararg replacers: Replacer) {
-        // if replacers are absent the content is invariant and can be cached
-        val cached = pageRepo[path]
-        if (cached != null && (cache || replacers.isEmpty())) {
+    constructor(path: String, vararg replacers: Replacer) {
+        if (staticPagesCache.containsKey(path) && replacers.isEmpty()) {
             this.path = path
-            this.bytes = cached.bytes
+            this.bytes = staticPagesCache[path]!!.bytes
             return
         }
         Lok.debug("loading $path")
@@ -50,15 +48,9 @@ class Page {
         }
         this.path = path
         this.bytes = html.toByteArray()
-        if (cache || replacers.isEmpty()) {
-            pageRepo[path] = this
+        if (!staticPagesCache.containsKey(path) && replacers.isEmpty()) {
+            staticPagesCache[path] = this
         }
     }
-
-    constructor(path: String, vararg replacers: Replacer) : this(path, cache = false, replacers = *replacers)
-
-    class Replacer(val test: (String) -> Boolean, val replace: (String) -> String?) {
-        constructor(matchString: String, replace: (String) -> String?) : this({ s: String -> matchString == s }, replace)
-        constructor(matchString: String, replace: String?) : this({ s: String -> matchString == s }, { replace })
-    }
 }
+

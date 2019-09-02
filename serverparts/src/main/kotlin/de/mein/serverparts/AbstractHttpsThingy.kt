@@ -11,7 +11,6 @@ import java.net.URLDecoder
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
-import java.util.concurrent.ThreadFactory
 import javax.net.ssl.SSLContext
 
 object ContentType {
@@ -84,11 +83,11 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
             try {
                 if (contentType != null)
                     responseHeaders.add("Content-Type", contentType)
-                page = if (Page.pageRepo[path] == null) {
+                page = if (Page.staticPagesCache[path] == null) {
                     val bytes = this@AbstractHttpsThingy.javaClass.getResourceAsStream(path).readBytes()
                     Page(path, bytes, cache = cache)
                 } else {
-                    Page.pageRepo[path]!!
+                    Page.staticPagesCache[path]!!
                 }
             } catch (e: Exception) {
                 Lok.error("KKKKK")
@@ -104,7 +103,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     }
 
 
-    fun respondText(ex: HttpExchange, path: String, contentType: String? = null, vararg replacers: Page.Replacer) {
+    fun respondText(ex: HttpExchange, path: String, contentType: String? = null, vararg replacers: Replacer) {
         with(ex) {
             de.mein.Lok.debug("sending $path to $remoteAddress")
             var page: Page? = null
@@ -143,27 +142,28 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
             with(httpExchange) {
                 Lok.debug("redirect to $targetUrl")
-                responseHeaders.add("Location",targetUrl)
-                sendResponseHeaders(302,0)
+                responseHeaders.add("Location", targetUrl)
+                sendResponseHeaders(302, 0)
             }
         } finally {
             httpExchange.close()
         }
     }
 
-    fun respondPage(ex: HttpExchange, page: Page?) {
-        try {
-            with(ex) {
-                Lok.debug("sending '${page?.path}' to $remoteAddress")
-                responseHeaders.add("Content-Type", "text/html; charset=UTF-8")
-                sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
-                responseBody.write(page?.bytes ?: "404".toByteArray())
-                responseBody.close()
-                responseHeaders
+    open fun respondPage(ex: HttpExchange, page: Page?, contentType: String? = "text/html; charset=UTF-8") {
+        if (page != null)
+            try {
+                with(ex) {
+                    Lok.debug("sending '${page?.path}' to $remoteAddress")
+                    if (contentType != null)
+                        responseHeaders.add("Content-Type", contentType)
+                    sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
+                    responseBody.write(page?.bytes ?: "404".toByteArray())
+                    responseBody.close()
+                }
+            } finally {
+                ex.close()
             }
-        } finally {
-            ex.close()
-        }
     }
 
     private fun createServer(): HttpsServer {
