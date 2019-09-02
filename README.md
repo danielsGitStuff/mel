@@ -98,6 +98,7 @@ For example:
   - it is slow!
   - one cannot emphasize enough how slow it is!
   - renaming a DocumentFile cannot handle `?` in the new name: it will escape to `_`
+  - there is no creation time for files
 - databasing is different
   - your API is similar to that of jdbc but different, so can manufacture an abstraction layer if you want your stuff to run with both
   - you only got a 4 data types: Long, Double, String, byte[]

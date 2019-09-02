@@ -120,13 +120,6 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
             respondText(it, "/de/miniserver/css.css")
         }
-        server.createContext("/blog/") {
-            val path = it.requestURI.path
-            if (path.endsWith("blog.css"))
-                respondText(it, "/de/miniserver/blog/blog.css")
-//            else if (path.endsWith("index.html"))
-//                respondText(it, "lel")
-        }
         server.createContext("/private/loggedIn") {
             if (it.requestMethod == "POST") {
                 val values = readPostValues(it)

@@ -37,25 +37,21 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
     }
 
     companion object {
-        val ACTION_SAVE = "save"
-        val ACTION_DELETE = "delete"
+        const val ACTION_SAVE = "save"
+        const val ACTION_DELETE = "delete"
 
-        val PARAM_ID = "id"
-        val PARAM_USER = "user"
-        val PARAM_PW = "pw"
-        val PARAM_TITLE = "title"
-        val PARAM_TEXT = "text"
-        val PARAM_PUBLISH = "publish"
+        const val PARAM_ID = "id"
+        const val PARAM_USER = "user"
+        const val PARAM_PW = "pw"
+        const val PARAM_TITLE = "title"
+        const val PARAM_TEXT = "text"
+        const val PARAM_PUBLISH = "publish"
     }
 
     override fun configureContext(server: HttpsServer) {
         server.createContext("/blog/") {
-            Lok.error("/blog/")
-            redirect(it,"/blog/index.html")
-        }
-        server.createContext("/c2/") {
-            Lok.error("/c2/")
-            redirect(it,"/blog/index.html")
+            Lok.error("redirect")
+            redirect(it, "/blog/index.html")
         }
         server.createContext("/blog/index.html") {
             respondPage(it, defaultPage())
@@ -63,7 +59,7 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
         server.createContext("/blog/login.html") {
             respondPage(it, loginPage())
         }
-        val ctx = server.createContext("/blog/write.html") {
+        server.createContext("/blog/write.html") {
             Lok.debug("write")
 
             val uri = it.requestURI
@@ -138,9 +134,10 @@ class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer
             }
 
         }
-//        ctx.authenticator = blogAuthenticator
 
-        Lok.warn("test address: https://localhost:8443/blog/index.html")
+        server.createContext("/blog/blog.css") {
+            respondText(it, "/de/miniserver/blog/blog.css")
+        }
     }
 
     private fun rebuildDefaultPage() {
