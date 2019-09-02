@@ -66,32 +66,32 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     override fun configureContext(server: HttpsServer) {
 
 
-        server.createContext("/") {
+        createServerContext("/") {
             if (it.requestURI?.toString() == "/")
                 respondPage(it, pageHello())
             else {
                 it.close()
             }
         }
-        server.createContext("/licences.html") {
+        createServerContext("/licences.html") {
             respondText(it, "/de/mein/auth/licences.html")
         }
-        server.createContext("/robots.txt") {
+        createServerContext("/robots.txt") {
             respondText(it, "/de/miniserver/robots.txt", contentType = "text/plain; charset=utf-8")
         }
-        server.createContext("/private/loginz.html") {
+        createServerContext("/private/loginz.html") {
             respondText(it, "/de/miniserver/private/loginz.html")
         }
-        server.createContext("/logandroid.html") {
+        createServerContext("/logandroid.html") {
             respondText(it, "/de/miniserver/logandroid.html")
         }
-        server.createContext("/logpc.html") {
+        createServerContext("/logpc.html") {
             respondText(it, "/de/miniserver/logpc.html")
         }
-        server.createContext("/impressum.html") {
+        createServerContext("/impressum.html") {
             respondText(it, "/de/miniserver/impressum.html")
         }
-        server.createContext("/svg/") {
+        createServerContext("/svg/") {
             val uri = it.requestURI
             val fileName = uri.path.substring("/svg/".length, uri.path.length)
             if (fileName.endsWith(".svg"))
@@ -99,7 +99,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             else
                 respondPage(it, pageHello())
         }
-        server.createContext("/webp/") {
+        createServerContext("/webp/") {
             val uri = it.requestURI
             val fileName = uri.path.substring("/webp/".length, uri.path.length)
             if (fileName.endsWith(".webp"))
@@ -107,10 +107,10 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             else
                 respondPage(it, pageHello())
         }
-        server.createContext("/favicon.png") {
+        createServerContext("/favicon.png") {
             respondBinary(it, "/de/miniserver/favicon.png")
         }
-        server.createContext("/api/") {
+        createServerContext("/api/") {
             val json = String(it.requestBody.readBytes())
             val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
             Lok.info("launching build")
@@ -123,11 +123,11 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 Lok.info("build denied")
             it.close()
         }
-        server.createContext("/css.css") {
+        createServerContext("/css.css") {
 
             respondText(it, "/de/miniserver/css.css")
         }
-        server.createContext("/private/loggedIn") {
+        createServerContext("/private/loggedIn") {
             if (it.requestMethod == "POST") {
                 val values = readPostValues(it)
                 val pw = values["pw"]
@@ -153,7 +153,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             } else
                 respondText(it, "/de/miniserver/private/loginz.html")
         }
-        server.createContext("/build.html") {
+        createServerContext("/build.html") {
             val pw = readPostValues(it)["pw"]
             if (pw != null && pw == miniServer.secretProperties["buildPassword"]) {
                 val uri = it.requestURI
@@ -176,7 +176,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         }
 
         // add files context
-        server.createContext("/files/") {
+        createServerContext("/files/") {
             val uri = it.requestURI
             val hash = uri.path.substring("/files/".length, uri.path.length)
             Lok.info("serving file: $hash")
