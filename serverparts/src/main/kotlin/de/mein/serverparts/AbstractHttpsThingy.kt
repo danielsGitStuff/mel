@@ -104,7 +104,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     }
 
 
-    fun respondText(ex: HttpExchange, path: String, contentType: String? = null, vararg replacers: Replacer) {
+    fun respondText(ex: HttpExchange, path: String, contentType: String? = null, vararg replacers: Page.Replacer) {
         with(ex) {
             de.mein.Lok.debug("sending $path to $remoteAddress")
             var page: Page? = null
