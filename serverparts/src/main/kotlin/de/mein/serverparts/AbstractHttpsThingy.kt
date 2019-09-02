@@ -4,6 +4,7 @@ import com.sun.net.httpserver.*
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
+import de.mein.auth.tools.N
 
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -24,6 +25,37 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
     override fun runImpl() {
         start()
+    }
+
+    fun readGetQuery(query: String?): Map<String, String> {
+        if (query == null)
+            return mutableMapOf()
+        val map = mutableMapOf<String, String>()
+        var isKey = true
+        var key: String? = null
+        query.split("&").forEach {
+            if (isKey)
+                key = it
+            else {
+                map[key!!] = it
+            }
+            isKey = !isKey
+        }
+        return map
+
+    }
+
+    /**
+     * closes HttpExchange when failing or done
+     */
+    fun createServerContext(context: String, runnable: (HttpExchange) -> Unit) {
+        server.createContext(context, HttpHandler {
+            try {
+                runnable.invoke(it)
+            } finally {
+                it.close()
+            }
+        })
     }
 
 
@@ -139,7 +171,6 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
     fun redirect(httpExchange: HttpExchange, targetUrl: String): Unit {
         try {
-
             with(httpExchange) {
                 Lok.debug("redirect to $targetUrl")
                 responseHeaders.add("Location", targetUrl)

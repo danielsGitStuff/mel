@@ -340,7 +340,7 @@ constructor(val config: ServerConfig) {
             try {
                 miniServer = MiniServer(config)
                 miniServer.start()
-                RWLock().lockWrite().lockWrite()
+                Thread.currentThread().join()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

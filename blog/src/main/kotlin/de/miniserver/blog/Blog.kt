@@ -27,13 +27,13 @@ class Blog(val settings: BlogSettings) {
             val konsole = Konsole(settings)
                     .optional("-port", "port of incoming ssl connections", { result, args -> result.port = args[0].toInt() })
 //            konsole.optional("-cert","path to cert",{ result, args -> result.certPath })
-
+            konsole.handle(arguments)
             var blog: Blog? = null
             try {
                 settings.save()
                 blog = Blog(settings)
                 blog.start()
-                RWLock().lockWrite().lockWrite()
+                Thread.currentThread().join()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

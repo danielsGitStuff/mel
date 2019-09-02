@@ -56,22 +56,33 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
 
 
     override fun configureContext(server: HttpsServer) {
-        server.createContext("/$subUrl") {
+        createServerContext("/$subUrl") {
             redirect(it, "/$subUrl/index.html")
         }
-        server.createContext("/$subUrl/") {
+        createServerContext("/$subUrl/") {
             Lok.error("redirect")
             redirect(it, "/$subUrl/index.html")
         }
-        server.createContext("/$subUrl/index.html") {
+        createServerContext("/$subUrl/index.html") {
+
             val a = it.requestURI
             val c = a.toString()
-            respondPage(it, defaultPage(it.requestURI.toString()))
+            val query = it.requestURI.query
+            if (query != null) {
+                val queryMap = readGetQuery(query)
+                // a certain entry is requested
+                val id = queryMap["id"]
+                if (id != null) {
+                    entryPage(it, id.toLong())
+                }
+                Lok.debug()
+            } else
+                respondPage(it, defaultPage(it.requestURI.toString()))
         }
-        server.createContext("/$subUrl/login.html") {
+        createServerContext("/$subUrl/login.html") {
             respondPage(it, loginPage(it))
         }
-        server.createContext("/$subUrl/write.html") {
+        createServerContext("/$subUrl/write.html") {
             Lok.debug("write")
 
             val uri = it.requestURI
@@ -147,11 +158,12 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
 
         }
 
-        server.createContext("/$subUrl/blog.css") {
+        createServerContext("/$subUrl/blog.css") {
             respondPage(it, Page("/de/miniserver/blog/blog.css"), contentType = null)
 //            respondText(it, "/de/miniserver/blog/blog.css")
         }
     }
+
 
     private fun readHeader(requestHeaders: Headers): MutableMap<String, List<String>> {
         val map = mutableMapOf<String, List<String>>()
@@ -169,6 +181,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 Replacer("id", id?.toString()),
                 Replacer("title", entry?.title?.v()),
                 Replacer("text", entry?.text?.v()),
+                Replacer("publish", if (entry!!.published?.v()) "checked" else ""),
                 Replacer("mode", mode)
         )
     }
@@ -193,6 +206,28 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
 
         val str = String(page.bytes)
         return str
+    }
+
+    private fun entryPage(ex: HttpExchange, id: Long): Page? {
+        val url = ex.requestURI.toURL().toString()
+        //load template page, with head line and so on
+        return pageCache.constructOrGet(url, "/de/miniserver/blog/index.html", Replacer("entryDiv") {
+            // fill blog entries here
+            val b = StringBuilder()
+            var dateString: String? = null
+            val entry = blogDao.getById(id)
+
+            val entryDateString = entry.dateString
+            // if another day: display date
+            if (dateString == null || dateString != entryDateString)
+                b.append(embedDate(entry))
+            dateString = entryDateString
+            b.append("${embedEntry(entry)}\n")
+
+            b.toString()
+        }, Replacer("name", blogSettings.name!!),
+                Replacer("motto", blogSettings.motto!!)
+        )
     }
 
     private fun defaultPage(url: String): Page? {
