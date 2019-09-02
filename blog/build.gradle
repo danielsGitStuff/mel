@@ -6,7 +6,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 
-version '1.88'
+version '1.0'
 
 //sourceCompatibility =        1.8
 //targetCompatibility = "1.8"
@@ -42,10 +42,10 @@ task copyLicenseHtml(type: Copy) {
 task buildBlogJar(type: Jar) {
     //dependsOn copyLicenseHtml
     group "meins"
-    description "build a fucking jar filled with candies!"
+    description "build a fucking blog jar filled with candies!"
     baseName = project.name// + '-all'
     manifest {
-        attributes "version": 1, "Main-Class": "de.miniserver.MiniServer"
+        attributes "version": 1, "Main-Class": "de.miniserver.blog.Blog"
     }
     dependsOn jar
 

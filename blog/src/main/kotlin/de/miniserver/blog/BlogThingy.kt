@@ -19,18 +19,16 @@ import javax.net.ssl.SSLContext
  * currently this mixes both POST and GET simultaneously to deal with authentication and parameters the user sends you.
  * I wanted to plant the authentication info in the response header but the browser somehow does not send it back.
  */
-class BlogThingy(val blogDir: File, sslContext: SSLContext) : AbstractHttpsThingy(0, sslContext) {
+class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : AbstractHttpsThingy(blogSettings.port!!, sslContext) {
     val blogDatabaseManager: BlogDatabaseManager
     val blogDao: BlogDao
     var defaultPage: Page? = null
-    val blogSettings: BlogSettings
     val blogAuthenticator = BlogAuthenticator(this)
+    val subUrl = blogSettings.subUrl
 
     init {
-        blogDir.mkdirs()
-        blogDatabaseManager = BlogDatabaseManager(blogDir)
+        blogDatabaseManager = BlogDatabaseManager(blogSettings.blogDir!!)
         blogDao = blogDatabaseManager.blogDao
-        blogSettings = BlogSettings.loadBlogSettings(blogDir)
         blogSettings.save()
         Lok.debug("blog loaded")
     }
@@ -48,17 +46,20 @@ class BlogThingy(val blogDir: File, sslContext: SSLContext) : AbstractHttpsThing
     }
 
     override fun configureContext(server: HttpsServer) {
-        server.createContext("/blog/") {
-            Lok.error("redirect")
-            redirect(it, "/blog/index.html")
+        server.createContext("/$subUrl"){
+            redirect(it,"/$subUrl/index.html")
         }
-        server.createContext("/blog/index.html") {
+        server.createContext("/$subUrl/") {
+            Lok.error("redirect")
+            redirect(it, "/$subUrl/index.html")
+        }
+        server.createContext("/$subUrl/index.html") {
             respondPage(it, defaultPage())
         }
-        server.createContext("/blog/login.html") {
+        server.createContext("/$subUrl/login.html") {
             respondPage(it, loginPage())
         }
-        server.createContext("/blog/write.html") {
+        server.createContext("/$subUrl/write.html") {
             Lok.debug("write")
 
             val uri = it.requestURI
@@ -134,7 +135,7 @@ class BlogThingy(val blogDir: File, sslContext: SSLContext) : AbstractHttpsThing
 
         }
 
-        server.createContext("/blog/blog.css") {
+        server.createContext("/$subUrl/blog.css") {
             respondText(it, "/de/miniserver/blog/blog.css")
         }
     }

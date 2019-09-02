@@ -8,6 +8,7 @@ import de.mein.serverparts.Page
 import de.mein.serverparts.Replacer
 import de.miniserver.Deploy
 import de.miniserver.MiniServer
+import de.miniserver.blog.BlogSettings
 import de.miniserver.blog.BlogThingy
 import de.miniserver.data.FileRepository
 import kotlinx.coroutines.GlobalScope
@@ -22,7 +23,13 @@ object ContentType {
 }
 
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port, miniServer.httpCertificateManager.sslContext) {
-    val blogThingy: BlogThingy = BlogThingy(File(miniServer.workingDirectory, "blog"), miniServer.httpCertificateManager.sslContext)
+    var blogThingy: BlogThingy
+
+    init {
+        val blogDir = File(miniServer.workingDirectory, "blog")
+        val blogSettings = BlogSettings.loadBlogSettings(blogDir)
+        blogThingy = BlogThingy(blogSettings, miniServer.httpCertificateManager.sslContext)
+    }
 
     fun pageHello(): Page {
         return Page("/de/miniserver/index.html",
