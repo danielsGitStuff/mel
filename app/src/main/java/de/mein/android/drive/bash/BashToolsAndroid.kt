@@ -1,6 +1,7 @@
 package de.mein.android.drive.bash
 
 import android.content.Context
+import android.provider.DocumentsContract
 
 import java.io.BufferedReader
 import java.io.IOException
@@ -21,7 +22,9 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
     private var findFallBack: BashToolsAndroidJavaImpl? = null
 
 
+
     init {
+        readCreated = false
         BIN_PATH = "/system/bin/sh"
         javaBashTools = BashToolsAndroidJavaImpl()
         testCommands()
@@ -129,5 +132,9 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
     @Throws(IOException::class)
     override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
         return if (findFallBack != null) findFallBack!!.find(directory, pruneDir) else super.find(directory, pruneDir)
+    }
+
+    override fun setCreationDate(target: AFile<*>, created: Long) {
+        // android does not store creation dates
     }
 }

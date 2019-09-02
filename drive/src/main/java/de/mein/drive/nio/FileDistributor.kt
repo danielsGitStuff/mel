@@ -9,6 +9,7 @@ import de.mein.auth.tools.N
 import de.mein.drive.bash.BashTools
 import de.mein.drive.data.DriveStrings
 import de.mein.drive.service.MeinDriveService
+import de.mein.drive.sql.FsFile
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -184,7 +185,10 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
                 moveFile(sourceFile, lastFile, lastPath, lastId)
                 // update synced flag
                 if (lastId != null)
-                    de.mein.auth.tools.lock.T.lockingTransaction(fsDao).run { updateFs(lastId, lastFile) }.end()
+                    de.mein.auth.tools.lock.T.lockingTransaction(fsDao).run {
+                        val fsFile = updateFs(lastId, lastFile)
+                        setCreationDate(lastFile, fsFile.created.v())
+                    }.end()
 
             } else {
                 copyFile(sourceFile, lastFile, lastPath, lastId)
@@ -192,19 +196,20 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
         }
     }
 
-    protected fun updateFs(fsId: Long?, target: T) {
+    protected fun updateFs(fsId: Long?, target: T): FsFile {
         val fsBashDetails = BashTools.getFsBashDetails(target)
         val fsTarget = fsDao.getFile(fsId)
-        BashTools.setCreationDate(target,fsBashDetails.created)
+        BashTools.setCreationDate(target, fsBashDetails.created)
         fsTarget.getiNode().v(fsBashDetails.getiNode())
         fsTarget.modified.v(fsBashDetails.modified)
         fsTarget.size.v(target.length())
         fsTarget.synced.v(true)
         fsDao.update(fsTarget)
+        return fsTarget
     }
 
-    protected fun setCreationDate(file: T, timestamp: Long){
-
+    protected fun setCreationDate(file: T, timestamp: Long) {
+        BashTools.setCreationDate(file, timestamp)
     }
 
     open protected fun moveFile(sourceFile: T, lastFile: T, lastPath: String, lastId: Long?) {
@@ -220,8 +225,8 @@ open class FileDistributor<T : AFile<*>>(val driveService: MeinDriveService<*>) 
         rawCopyFile(source, target)
         if (fsId != null) {
             de.mein.auth.tools.lock.T.lockingTransaction(fsId).run {
-                updateFs(fsId, target)
-                setCreationDate(target,)
+                val fsFile = updateFs(fsId, target)
+                setCreationDate(target, fsFile.created.v())
             }.end()
         }
     }

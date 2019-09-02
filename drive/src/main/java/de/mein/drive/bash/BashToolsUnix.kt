@@ -26,10 +26,9 @@ open class BashToolsUnix : BashToolsImpl() {
         proc.waitFor()
     }
 
-
+    protected var readCreated: Boolean = true
     protected var BIN_PATH = "/bin/sh"
     private val executorService = Executors.newCachedThreadPool()
-
 
     val inotifyLimit: Long?
         @Throws(IOException::class)
@@ -99,7 +98,7 @@ open class BashToolsUnix : BashToolsImpl() {
         }
         val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val iNode = java.lang.Long.parseLong(parts[0])
-        val created = java.lang.Long.parseLong(parts[1]) * 1000
+        val created = if (readCreated) java.lang.Long.parseLong(parts[1]) * 1000 else null
         val symLink = parts[2].startsWith("sym")
         val name = file.name
         val modified = file.lastModified()
@@ -143,7 +142,7 @@ open class BashToolsUnix : BashToolsImpl() {
 
 //                val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             val iNode = java.lang.Long.parseLong(parts[0])
-            val created = java.lang.Long.parseLong(parts[1]) * 1000
+            val created = if (readCreated) java.lang.Long.parseLong(parts[1]) * 1000 else null
             val symLink = parts[2].startsWith("sym")
             val absolutePath = parts[4]
             val f = File(absolutePath)

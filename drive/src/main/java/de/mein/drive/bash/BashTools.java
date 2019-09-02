@@ -103,7 +103,8 @@ public abstract class BashTools {
         instance.lnS(file, target);
     }
 
-    public static <T> void setCreationDate(T target, long created) {
-        instance.setCreationDate(target, created):
+    public static void setCreationDate(AFile target, Long created) {
+        if (created != null)
+            instance.setCreationDate(target, created);
     }
 }
