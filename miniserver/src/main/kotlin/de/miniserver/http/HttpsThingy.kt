@@ -22,7 +22,7 @@ object ContentType {
 }
 
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port, miniServer.httpCertificateManager.sslContext) {
-    val blogThingy: BlogThingy = BlogThingy(miniServer)
+    val blogThingy: BlogThingy = BlogThingy(File(miniServer.workingDirectory, "blog"), miniServer.httpCertificateManager.sslContext)
 
     fun pageHello(): Page {
         return Page("/de/miniserver/index.html",

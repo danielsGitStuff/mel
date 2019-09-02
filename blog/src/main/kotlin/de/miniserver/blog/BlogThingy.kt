@@ -7,20 +7,19 @@ import de.mein.auth.tools.N
 import de.mein.serverparts.AbstractHttpsThingy
 import de.mein.serverparts.Page
 import de.mein.serverparts.Replacer
-import de.miniserver.MiniServer
 import java.io.File
 import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import javax.net.ssl.SSLContext
 
 /**
  * this is more an extension of the regular HttpsThingy.
  * currently this mixes both POST and GET simultaneously to deal with authentication and parameters the user sends you.
  * I wanted to plant the authentication info in the response header but the browser somehow does not send it back.
  */
-class BlogThingy(val miniServer: MiniServer) : AbstractHttpsThingy(0, miniServer.httpCertificateManager.sslContext) {
-    val blogDir = File(miniServer.workingDirectory, "blog")
+class BlogThingy(val blogDir: File, sslContext: SSLContext) : AbstractHttpsThingy(0, sslContext) {
     val blogDatabaseManager: BlogDatabaseManager
     val blogDao: BlogDao
     var defaultPage: Page? = null

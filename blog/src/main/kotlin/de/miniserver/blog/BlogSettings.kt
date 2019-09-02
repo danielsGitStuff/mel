@@ -1,15 +1,16 @@
 package de.miniserver.blog
 
+import de.mein.KResult
 import de.mein.auth.data.JsonSettings
 import de.mein.auth.data.access.CertificateManager
 import java.io.File
 
-class BlogSettings : JsonSettings() {
+class BlogSettings : JsonSettings(), KResult{
 
     var name: String? = "Penis!"
     var motto = "Kein Mensch braucht noch eine neue Blogsoftware, aber hier ist sie! TADAAA!"
-    var user : String? = "user"
-    var password : String? = "no"
+    var user: String? = "user"
+    var password: String? = "no"
     override fun init() {
 
     }
