@@ -70,16 +70,17 @@ stuff for index.html
 }
 
 .bigIntro {
-    font-weight: bold;
+    /*font-weight: bold;*/
     font-size: 1.8em;
     margin-bottom: 1.3em;
     margin-top: 1em;
 }
 
 .smallIntro {
-    font-weight: bold;
+    /*font-weight: bold;*/
     font-size: 1.3em;
     margin-bottom: .5em;
+    margin-left: 1em;
     margin-top: .5em;
 }
 
