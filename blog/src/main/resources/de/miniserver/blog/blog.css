@@ -152,6 +152,7 @@ stuff for index.html
 
 .entrytext {
     padding: .5em .5em .5em 2.6em;
+    word-break: break-word;
 }
 
 div {
