@@ -65,13 +65,8 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
     override fun configureContext(server: HttpsServer) {
 
-
         createServerContext("/") {
-            if (it.requestURI?.toString() == "/")
-                respondPage(it, pageHello())
-            else {
-                it.close()
-            }
+            respondPage(it, pageHello())
         }
         createServerContext("/licences.html") {
             respondText(it, "/de/mein/auth/licences.html")

@@ -40,7 +40,7 @@ task copyLicenseHtml(type: Copy) {
 }
 ext {
     buildVersion = new Date().getTime().toString()
-    buildVariant = "fx"
+    buildVariant = "standalone"
 }
 task createProperties(dependsOn: processResources) {
     doLast {

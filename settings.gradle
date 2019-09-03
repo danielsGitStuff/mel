@@ -1,4 +1,4 @@
-include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':calendar', ':serverparts',':blog'
+include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts',':blog'
 //include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':contacts', ':icons', ':konsole', ':lok', ':calendar', ':serverparts', ':messenger'
 
 project(':json').projectDir = new File('json')
@@ -22,7 +22,6 @@ project(':blog').projectDir = new File('blog')
 
 project(':konsole').projectDir = new File('konsole')
 project(':lok').projectDir = new File('lok')
-project(':calendar').projectDir = new File('calendar')
 
 //include 'konsole'
 //include 'lok'
