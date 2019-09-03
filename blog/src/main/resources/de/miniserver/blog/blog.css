@@ -7,7 +7,8 @@ a {
     color: #57bf40;
 }
 
-.code{
+
+.code {
     /*display: block;*/
     background-color: darkgrey;
     color: black;
@@ -67,6 +68,7 @@ stuff for index.html
 .intro {
     font-size: 4em;
 }
+
 
 .smallIntro {
     font-size: 2em;

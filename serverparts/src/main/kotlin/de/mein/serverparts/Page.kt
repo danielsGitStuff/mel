@@ -7,6 +7,8 @@ import de.mein.auth.tools.N
 class Page {
     companion object {
         val staticPagesCache = hashMapOf<String, Page>()
+        val replaceTagRegex = "<§=[a-zA-Z]+[\\w]*\\/>".toRegex()
+
     }
 
     var path: String
@@ -14,7 +16,6 @@ class Page {
     var bytes: ByteArray
         private set
 
-    private val replaceTagRegex = "<§=[a-zA-Z]+[\\w]*\\/>".toRegex()
 
     constructor(path: String, bytes: ByteArray, cache: Boolean = false) {
         this.path = path

@@ -50,7 +50,7 @@ class BlogDao(sqlQueries: SQLQueries) : Dao(sqlQueries) {
         return sqlQueries.loadFirstRow(dummy.allAttributes, dummy, where, ISQLQueries.args(id), BlogEntry::class.java)
     }
 
-    fun getLastNentries(n: Int): MutableList<BlogEntry>? {
+    fun getLastNentries(n: Int): MutableList<BlogEntry> {
         val ldt = LocalDateTime.now()
         val epochNow = ldt.toEpochSecond(ZoneOffset.UTC)
         val where = "${dummy.published.k()}=?"
@@ -66,6 +66,11 @@ class BlogDao(sqlQueries: SQLQueries) : Dao(sqlQueries) {
     fun deleteById(id: Long) {
         val where = "${dummy.id.k()}=?"
         sqlQueries.delete(dummy, where, ISQLQueries.args(id))
+    }
+
+    fun getByDateRange(start: Long, end: Long): List<BlogEntry> {
+        val where = "${dummy.timestamp.k()}>? and ${dummy.timestamp.k()}<=? order by ${dummy.timestamp.k()} desc"
+        return sqlQueries.load(dummy.allAttributes, dummy, where, ISQLQueries.args(start, end))
     }
 
 }

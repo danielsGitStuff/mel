@@ -33,7 +33,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         val map = mutableMapOf<String, String>()
         var isKey = true
         var key: String? = null
-        query.split("&").forEach {
+        query.split("[=&]".toRegex()).forEach {
             if (isKey)
                 key = it
             else {
@@ -52,6 +52,8 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         server.createContext(context, HttpHandler {
             try {
                 runnable.invoke(it)
+            } catch (e: Exception) {
+                e.printStackTrace()
             } finally {
                 it.close()
             }
