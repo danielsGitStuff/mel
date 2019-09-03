@@ -30,6 +30,16 @@ class BlogEntry : SQLTableObject() {
     override fun getTableName() = "blogentry"
 
     override fun init() {
+        // set null if empty title
+        title.setSetListener(IPairSetListener { str ->
+            if (str != null) {
+                if (str.trim().isEmpty())
+                    null
+                else
+                    str
+            } else
+                null
+        })
         populateInsert(title, text, timestamp, published)
         populateAll(id)
     }
