@@ -134,24 +134,22 @@ stuff for index.html
 
 .title {
     font-size: 1.4em;
-    padding: .6em .2em .6em .6em;
+    padding: .6em .2em .6em .2em;
 }
 
 .entry {
     background-color: #545454;
-    margin-left: 2em;
     font-size: 1em;
-    padding: .6em .6em 0 .6em;
+    padding: .6em .2em;
     border-radius: .5em;
-    /*text-align: start;*/
 }
 
 .entry a {
-    margin-left: .5em;
+    margin-left: .2em;
 }
 
 .entrytext {
-    padding: .5em .5em .5em 2.6em;
+    padding: .2em 1.6em;
     word-break: break-word;
 }
 
