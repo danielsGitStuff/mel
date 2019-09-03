@@ -141,16 +141,17 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                         val pw = attr[PARAM_PW]
                         blogAuthenticator.check(it, user, pw, N.INoTryRunnable {
                             val id = N.result({ queryMap[PARAM_ID]!!.toLong() }, null)
+                            val publish = attr[PARAM_PUBLISH] == "on"
                             //edit
                             if (id != null) {
                                 val entry = blogDao.getById(id)
                                 entry.title.v(attr[PARAM_TITLE])
                                 entry.text.v(attr[PARAM_TEXT])
+                                entry.published.v(publish)
                                 blogDao.update(entry)
                                 respondPage(it, writePage(user, pw, id))
                             } else {
                                 //create
-                                val publish = attr[PARAM_PUBLISH] == "on"
                                 val entry = BlogEntry()
                                 entry.title.v(attr[PARAM_TITLE])
                                 entry.text.v(attr[PARAM_TEXT])
