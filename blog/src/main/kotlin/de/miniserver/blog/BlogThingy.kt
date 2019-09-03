@@ -76,14 +76,6 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         }
     }
 
-//    override fun respondPage(ex: HttpExchange, page: Page?) {
-//        if (page != null) {
-//            val url = ex.requestURI.toString()
-//            pageCache[url] = page
-//            super.respondPage(ex, page)
-//        }
-//    }
-
 
     override fun configureContext(server: HttpsServer) {
         this.server = server
@@ -117,7 +109,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                     }
                     val startDate = LocalDateTime.of(year, month, 1, 0, 0)
                     val endDate = startDate.with(TemporalAdjusters.lastDayOfMonth()).withHour(23).withSecond(59)
-                    val entries = blogDao.getByDateRange(startDate.toEpochSecond(ZoneOffset.UTC), endDate.toEpochSecond(ZoneOffset.UTC))
+                    val entries = blogDao.pubGetByDateRange(startDate.toEpochSecond(ZoneOffset.UTC), endDate.toEpochSecond(ZoneOffset.UTC))
                     respondPage(it, pageWithEntries(it.requestURI.toString(), entries))
                 }
             } else
@@ -145,11 +137,13 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                             //edit
                             if (id != null) {
                                 val entry = blogDao.getById(id)
-                                entry.title.v(attr[PARAM_TITLE])
-                                entry.text.v(attr[PARAM_TEXT])
-                                entry.published.v(publish)
-                                blogDao.update(entry)
-                                respondPage(it, writePage(user, pw, id))
+                                if (entry != null) {
+                                    entry.title.v(attr[PARAM_TITLE])
+                                    entry.text.v(attr[PARAM_TEXT])
+                                    entry.published.v(publish)
+                                    blogDao.update(entry)
+                                    respondPage(it, writePage(user, pw, id))
+                                }
                             } else {
                                 //create
                                 val entry = BlogEntry()
@@ -238,7 +232,9 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         val url = ex.requestURI.toString()
         //load template page, with head line and so on
         val entries: MutableList<BlogEntry> = mutableListOf()
-        entries.add(blogDao.getById(id))
+        val entry = blogDao.pubGetById(id)
+        if (entry != null)
+            entries.add(entry)
         return pageWithEntries(url, entries)
     }
 
@@ -277,7 +273,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
     }
 
     private fun pageDefault(url: String): Page? {
-        val entries = blogDao.getLastNentries(5)
+        val entries = blogDao.pubGetLastNentries(20)
         return pageWithEntries(url, entries)
     }
 

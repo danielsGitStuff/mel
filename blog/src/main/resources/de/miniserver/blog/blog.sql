@@ -6,3 +6,4 @@ create table  if not exists blogentry
     tstamp integer not null,
     published integer not null default 0
 );
+create index ttime on blogentry(tstamp);
