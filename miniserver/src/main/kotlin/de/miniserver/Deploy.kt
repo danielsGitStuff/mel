@@ -70,7 +70,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (buildRequest.server!!)
                     processList.add(Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
                 if (buildRequest.blog!!)
-                    processList.add(Processor(gradle.absolutePath, ":blog;buildBlogJar"))
+                    processList.add(Processor(gradle.absolutePath, ":blog:buildBlogJar"))
                 Processor.runProcesses("assemble/build", *processList.toTypedArray())
             } finally {
                 if (keyStorePropFile.exists())
