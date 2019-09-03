@@ -53,10 +53,26 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
                 runnable.invoke(it)
             } catch (e: Exception) {
                 e.printStackTrace()
+                respondError(it, e.cause?.toString())
             } finally {
                 it.close()
             }
         })
+    }
+
+    fun respondError(ex: HttpExchange, cause: String?) {
+        try {
+            with(ex) {
+                val page = Page("/de/miniserver/blog/error.html",
+                        Replacer("cause", if (cause != null) cause else "something went wrong"))
+                de.mein.Lok.debug("sending error to $remoteAddress")
+                sendResponseHeaders(400, page.bytes.size.toLong())
+                responseBody.write(page.bytes)
+                responseBody.close()
+            }
+        } finally {
+            ex.close()
+        }
     }
 
 
