@@ -86,6 +86,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
 
 
     override fun configureContext(server: HttpsServer) {
+        this.server = server
         createServerContext("/$subUrl") {
             redirect(it, "/$subUrl/index.html")
         }

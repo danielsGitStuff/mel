@@ -65,7 +65,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     private val threadSemaphore = Semaphore(1, true)
     private val threadQueue = LinkedList<MeinThread>()
 
-    private lateinit var server: HttpsServer
+    lateinit var server: HttpsServer
     private val threadFactory = { r: Runnable ->
         var meinThread: MeinThread? = null
 

@@ -38,6 +38,7 @@ class BlogSettings : JsonSettings(), KResult {
                 if (subUrl == null)
                     subUrl = "/blog"
             }
+            settings.blogDir = blogDir
             return settings
         }
     }
