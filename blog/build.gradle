@@ -6,7 +6,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 
-version '1.0'
+version 'current'
 
 //sourceCompatibility =        1.8
 //targetCompatibility = "1.8"
@@ -38,6 +38,28 @@ task copyLicenseHtml(type: Copy) {
     from(f)
     into(t)
 }
+ext {
+    buildVersion = new Date().getTime().toString()
+    buildVariant = "fx"
+}
+task createProperties(dependsOn: processResources) {
+    doLast {
+        Properties p = new Properties()
+        p['version'] = buildVersion
+        p['variant'] = buildVariant
+        //store in jar
+        new File("$buildDir/resources/main/version.properties").withWriter { w -> p.store(w, null) }
+        // store in build directory
+        new File("$buildDir/version.properties").withWriter { w -> p.store(w, null) }
+        //new File("src/main/resources/version.properties").withWriter {w -> p.store(w,null)}
+    }
+}
+build {
+    dependsOn createProperties
+}
+classes {
+    dependsOn createProperties
+}
 
 task buildBlogJar(type: Jar) {
     //dependsOn copyLicenseHtml
@@ -64,15 +86,13 @@ task buildBlogJar(type: Jar) {
         exclude 'META-INF/*.RSA'
     }
     with jar
-//    doLast {
-//        //write the version file in the output dir as well
-//        File moduleFolder = buildscript.sourceFile.getParentFile()
-//        File versionTxt = new File(moduleFolder, 'version.jar.txt')
-//        File t = new File(moduleFolder, "build")
-//        t = new File(t, "libs")
-//        File target = new File(t, baseName+".jar.version.txt")
-//        String version = versionTxt.getText('UTF-8')
-//        target.text = version
-//        println("printing version to: "+target.getAbsolutePath())
-//    }
+    doLast {
+        //write the version file in the output dir as well
+        File jarFile = new File(jar.outputs.files.getAsPath());
+        File versionTxt = new File("$buildDir/version.properties")
+        File target = new File("$buildDir" + File.separator + "libs" + File.separator + jarFile.getName() + ".properties")
+        String version = versionTxt.getText('UTF-8')
+        target.text = version
+        println("printing version to: " + target.getAbsolutePath())
+    }
 }

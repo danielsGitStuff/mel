@@ -14,12 +14,14 @@
                 var cbApk = document.getElementById("cbApk");
                 var cbJar = document.getElementById("cbJar");
                 var cbKeep = document.getElementById("cbKeep");
+                var cbBlog = document.getElementById("cbBlog");
                 var req = {
                     $id: 1,
                     __type: "de.miniserver.http.BuildRequest",
                     server: cbServer.checked,
                     apk: cbApk.checked,
                     jar: cbJar.checked,
+                    blog: cbBlog.checked,
                     pw: document.getElementById("pw").value,
                     keepBinaries: cbKeep.checked
                 };
@@ -65,7 +67,8 @@
 <input type="checkbox" id="cbKeep" <§=keep/>><label for="cbKeep">Keep binaries</label>
 <input type="checkbox" id="cbServer" checked> <label for="cbServer">miniserver</label>
 <input type="checkbox" id="cbApk"><label for="cbApk">apk</label>
-<input type="checkbox" id="cbJar"><label for="cbJar">jar</label><br>
+<input type="checkbox" id="cbJar"><label for="cbJar">jar</label>
+<input type="checkbox" id="cbBlog"><label for="cbBlog">blog</label><br>
 Start Time: <§=time/><br>
 last log messages:<br>
 <§=lok/>

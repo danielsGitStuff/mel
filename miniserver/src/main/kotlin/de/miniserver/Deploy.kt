@@ -27,8 +27,6 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
             Lok.info("working dir ${projectRootDir.absolutePath}")
 
             // pull
-//            Processor.runProcesses("test git", Processor("ssh", "-T", "git@github.com"))
-//            Processor.runProcesses("ssh keygen", Processor("eval", "\"$(ssh-agent -s)\""))
             Processor.runProcesses("pull from git", Processor("git", "pull", "-v"))
             // put keystore.properties in place
             val keyStoreFile = File(secretDir, "sign.jks")
@@ -71,6 +69,8 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     processList.add(Processor(gradle.absolutePath, ":app:assembleRelease"))
                 if (buildRequest.server!!)
                     processList.add(Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
+                if (buildRequest.blog!!)
+                    processList.add(Processor(gradle.absolutePath, ":blog;buildBlogJar"))
                 Processor.runProcesses("assemble/build", *processList.toTypedArray())
             } finally {
                 if (keyStorePropFile.exists())
@@ -124,6 +124,8 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""))
             if (buildRequest.jar!!)
                 processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
+            if (buildRequest.blog!!)
+                processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/blog/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
             processList.add(Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
             Processor.runProcesses("copying", *processList.toTypedArray())
             // delete stop pipe
