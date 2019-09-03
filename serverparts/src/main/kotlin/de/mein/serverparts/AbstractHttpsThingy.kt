@@ -4,7 +4,6 @@ import com.sun.net.httpserver.*
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
-import de.mein.auth.tools.N
 
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -85,28 +84,16 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         thread
     }
 
-//            = Executors.newCachedThreadPool(ThreadFactory {
-//        val thread = Thread(it)
-//        thread.name = "a HTTPS-Thread"
-//        thread
-//    })
 
     fun readPostValues(ex: HttpExchange, size: Int = 400): HashMap<String, String> {
         val map = hashMapOf<String, String>()
-        var bytes = ByteArray(size)
-        val read = ex.requestBody.read(bytes)
-        if (read < 0)
-            return map
-        bytes = ByteArray(read) { i -> bytes[i] }
-        val string = String(bytes)
-        var prev: String? = null
-        string.split("&").map { URLDecoder.decode(it) }.forEach {
+        val text = ex.requestBody.reader().readText()
+        text.split("&").map { URLDecoder.decode(it) }.forEach {
             val splitIndex = it.indexOf("=")
             val k = it.substring(0, splitIndex)
             val v = it.substring(splitIndex + 1, it.length)
             map[k] = v
         }
-
         return map
     }
 
