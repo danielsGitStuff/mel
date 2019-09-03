@@ -25,18 +25,20 @@ class BlogSettings : JsonSettings(), KResult {
 
         fun loadBlogSettings(blogDir: File): BlogSettings {
             val settingsFile = File(blogDir, "blog.json")
+            var settings: BlogSettings? = null
             if (!settingsFile.exists()) {
-                val settings = BlogSettings()
-                settings.setJsonFile(settingsFile)
-                settings.password = CertificateManager.randomUUID().toString()
-                return settings
-            }
-            val settings = JsonSettings.load(settingsFile) as BlogSettings
-            with(settings) {
-                if (port == null)
-                    port = DEFAULT_PORT
-                if (subUrl == null)
-                    subUrl = "blog"
+                val createdSettings = BlogSettings()
+                createdSettings.setJsonFile(settingsFile)
+                createdSettings.password = CertificateManager.randomUUID().toString()
+                settings = createdSettings
+            } else {
+                settings = JsonSettings.load(settingsFile) as BlogSettings
+                with(settings) {
+                    if (port == null)
+                        port = DEFAULT_PORT
+                    if (subUrl == null)
+                        subUrl = "blog"
+                }
             }
             settings.blogDir = blogDir
             return settings
