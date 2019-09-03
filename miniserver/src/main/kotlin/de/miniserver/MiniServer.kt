@@ -218,6 +218,7 @@ constructor(val config: ServerConfig) {
         try {
             executorService!!.awaitTermination(5, TimeUnit.SECONDS)
             Lok.info("is down: " + executorService!!.isShutdown)
+            exitProcess(0)
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }

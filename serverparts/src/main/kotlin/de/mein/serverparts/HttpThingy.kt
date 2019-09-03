@@ -61,7 +61,7 @@ class HttpThingy(private val port: Int, val redirectPort: Int?) : DeferredRunnab
             with(it) {
                 Lok.debug("sending https redirect to $remoteAddress")
 //                val content = "???"
-                sendResponseHeaders(301, -1)
+                sendResponseHeaders(302, 0)
 //                responseBody.write(content.toByteArray())
                 responseBody.close()
             }
