@@ -188,11 +188,12 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 val query = it.requestURI.query
                 if (query != null && query.startsWith("id=")) {
                     try {
-                        val idString = query.substring("id=".length, query.length)
-                        val id = idString.toLong()
-                        val entry = blogDao.getById(id)
-                        respondPage(it, pageLogin(it))
-//                        blogAuthenticator.check(it, N.INoTryRunnable { respondPage(it, writePage(null, null, id)) }, N.INoTryRunnable { respondPage(it, loginPage(id)) })
+                        val queryMap = readGetQuery(query)
+                        val idString = queryMap["id"]
+                        if (idString != null) {
+                            val id = idString.toLong()
+                            respondPage(it, pageLogin(it, id))
+                        }
                     } catch (e: Exception) {
                         it.close()
                     }
