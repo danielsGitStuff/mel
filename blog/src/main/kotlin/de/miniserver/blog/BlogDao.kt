@@ -32,13 +32,10 @@ class BlogEntry : SQLTableObject() {
     override fun init() {
         // set null if empty title
         title.setSetListener(IPairSetListener { str ->
-            if (str != null) {
-                if (str.trim().isEmpty())
-                    null
-                else
-                    str
-            } else
+            if (str == null || str.trim().isEmpty()) {
                 null
+            } else
+                str
         })
         populateInsert(title, text, timestamp, published)
         populateAll(id)
