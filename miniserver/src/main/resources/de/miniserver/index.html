@@ -6,7 +6,7 @@
     <link rel="stylesheet" type="text/css" href="css.css" media="screen"/>
 
     <style>
-        #btnToDownload {
+        .bigbutton {
             margin-top: 2em;
             font-size: 1.5em;
             outline-width: 0;
@@ -26,7 +26,10 @@
             <span class="smallIntro" style="color: red">Betaversion: Keine Garantie für korrekte Funktion. Java 12 benötigt.</span><br>
             <span class="smallIntro">...synchronisiert Dateien und Kontakte deines Telefons zu einem anderen. Oder zu einem Computer. Leise und im Hintergrund.</span><br>
             <a href="#linkDownload">
-                <button id="btnToDownload">Download</button>
+                <button id="btnToDownload" class="bigbutton">Download</button>
+            </a>
+            <a href="/blog/">
+                <button class="bigbutton">Zum Blog</button>
             </a>
         </div>
     </div>
@@ -152,7 +155,8 @@
         <div class="content" style="text-align: start">
             <h2 style="text-align: start">Was ist mit der Sicherheit?</h2>
             <span class="text">
-            Mel baut grundsätzlich nur verschlüsselte Verbindungen auf. Es nutzt SSL aus der Java-Runtime. Für die Schlüsselgenerierung kommt <a href="https://www.bouncycastle.org/">Bouncy Castle</a>.
+            Mel baut grundsätzlich nur verschlüsselte Verbindungen auf. Es nutzt SSL aus der Java-Runtime. Für die Schlüsselgenerierung kommt <a
+                    href="https://www.bouncycastle.org/">Bouncy Castle</a>.
             Denn eine alte Programmiererweisheit lautet: mach keine eigene Krypto!</span>
         </div>
     </div>
