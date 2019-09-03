@@ -227,7 +227,8 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 Replacer("title", entry?.title?.v()),
                 Replacer("text", entry?.text?.v()),
                 Replacer("publish", if (entry != null && entry.published.v()) "checked" else ""),
-                Replacer("mode", mode)
+                Replacer("mode", mode),
+                Replacer("preview", if (entry != null) embedEntry(entry) else null)
         )
     }
 
