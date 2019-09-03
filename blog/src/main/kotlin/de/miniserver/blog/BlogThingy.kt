@@ -225,7 +225,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 Replacer("id", id?.toString()),
                 Replacer("title", entry?.title?.v()),
                 Replacer("text", entry?.text?.v()),
-                Replacer("publish", if (entry!!.published?.v()) "checked" else ""),
+                Replacer("publish", if (entry != null && entry.published.v()) "checked" else ""),
                 Replacer("mode", mode)
         )
     }
