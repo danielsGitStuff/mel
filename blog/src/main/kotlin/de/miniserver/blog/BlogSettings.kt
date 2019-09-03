@@ -36,7 +36,7 @@ class BlogSettings : JsonSettings(), KResult {
                 if (port == null)
                     port = DEFAULT_PORT
                 if (subUrl == null)
-                    subUrl = "/blog"
+                    subUrl = "blog"
             }
             settings.blogDir = blogDir
             return settings

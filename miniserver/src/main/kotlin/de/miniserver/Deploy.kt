@@ -84,6 +84,11 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (secretDir.exists()) {
                     secretDir.renameTo(secretMovedDir)
                 }
+                // move blog dir
+                val blogDir = File(serverDir, "blog")
+                val blogMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
+                if (blogDir.exists())
+                    blogDir.renameTo(blogMovedDir)
                 // move server.jar
                 val miniServerBackup = File(miniServerDir, "server.backup.jar")
                 var miniBackup = false
@@ -98,6 +103,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     filesFolder.renameTo(filesBackupFolder)
                 }
                 serverDir.deleteRecursively()
+                serverDir.mkdirs()
                 // move back secret dir
                 if (secretMovedDir.exists()) {
                     serverDir.mkdirs()
@@ -107,6 +113,9 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (miniBackup) {
                     miniServerBackup.renameTo(miniServerTarget)
                 }
+                // move back blog dir
+                if (blogMovedDir.exists())
+                    blogMovedDir.renameTo(blogDir)
                 if (miniServer.config.keepBinaries) {
                     filesBackupFolder.renameTo(filesFolder)
                 }
