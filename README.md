@@ -61,7 +61,7 @@ You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.ht
 - `app`: Android implementation of `auth`, `drive` and `contacts`
 - `auth`: handles pairing, key management, connections, sending/receiving data, service management
 - `authfx`: wraps `auth` into a GUI on PCs so you can click on things
-- `calendar`: just a stub atm
+- `blog`: runs a web server with your blog. 
 - `contacts`: stores contacts
 - `contactsfx`: a bit of GUI
 - `drive`: file syncing, all the logical stuff
@@ -71,7 +71,6 @@ You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.ht
 - `json`: json lib created by Douglas Crockford
 - `konsole`: make reading command line arguments a bit easier and stay simple
 - `lok`: Tells you where the log message came from
-- `messenger`: stub, sharing messages/events across your devices, probably won't happen
 - `miniserver`: a small https server. because why not?
 - `serialize`: crafts lovely JSONs from you objects and vice versa
 - `serverparts`: part of `miniserver` that is required to run a server as a service in Mel
