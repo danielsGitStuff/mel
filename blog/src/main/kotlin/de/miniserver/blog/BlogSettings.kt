@@ -7,7 +7,6 @@ import java.io.File
 
 class BlogSettings : JsonSettings(), KResult {
 
-
     var name: String? = "Penis!"
     var motto = "Kein Mensch braucht noch eine neue Blogsoftware, aber hier ist sie! TADAAA!"
     var user: String? = "user"
@@ -15,6 +14,7 @@ class BlogSettings : JsonSettings(), KResult {
     var port: Int? = DEFAULT_PORT
     var blogDir: File? = null
     var subUrl: String? = "blog"
+    var countVisitors: Boolean? = false
     override fun init() {
 
     }
@@ -38,6 +38,8 @@ class BlogSettings : JsonSettings(), KResult {
                         port = DEFAULT_PORT
                     if (subUrl == null)
                         subUrl = "blog"
+                    if (countVisitors == null)
+                        countVisitors = false
                 }
             }
             settings.blogDir = blogDir

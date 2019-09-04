@@ -13,13 +13,14 @@ import java.time.ZoneOffset
 class BlogDatabaseManager(workingDirectory: File) : FileRelatedManager(workingDirectory) {
     private val sqlQueries: SQLQueries
     val blogDao: BlogDao
+    val visitsDao: VisitsDao
 
     init {
         val parent = File(createWorkingPath())
         val dbFile = File(parent, DB_FILE_NAME)
         sqlQueries = SQLQueries(SQLConnector.createSqliteConnection(dbFile), true, RWLock(), SqlResultTransformer.sqliteResultSetTransformer())
         blogDao = BlogDao(sqlQueries)
-
+        visitsDao = VisitsDao(sqlQueries)
 
         val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
         if (!sqliteExecutor.checkTablesExist("blogentry", "visits")) {

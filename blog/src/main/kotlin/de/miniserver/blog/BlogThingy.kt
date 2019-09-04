@@ -9,7 +9,6 @@ import de.mein.serverparts.AbstractHttpsThingy
 import de.mein.serverparts.Page
 import de.mein.serverparts.Replacer
 import de.mein.serverparts.UrlPageCache
-import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -26,12 +25,15 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
     val blogDao: BlogDao
     val blogAuthenticator = BlogAuthenticator(this)
     val subUrl = blogSettings.subUrl
+    var visitors: Visitors? = null
     val pageCache = UrlPageCache(this, 100)
 
     init {
         blogDatabaseManager = BlogDatabaseManager(blogSettings.blogDir!!)
         blogDao = blogDatabaseManager.blogDao
         blogSettings.save()
+        if (blogSettings.countVisitors!!)
+            visitors = Visitors(blogDatabaseManager.visitsDao)
         Lok.debug("blog loaded")
     }
 
@@ -76,6 +78,10 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         }
     }
 
+    override fun respondPage(ex: HttpExchange, page: Page?, contentType: String?) {
+        super.respondPage(ex, page, contentType)
+        visitors?.count(ex)
+    }
 
     override fun configureContext(server: HttpsServer) {
         this.server = server
@@ -88,8 +94,6 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         }
         createServerContext("/$subUrl/index.html") {
 
-            val a = it.requestURI
-            val c = a.toString()
             val query = it.requestURI.query
             if (query != null) {
                 val queryMap = readGetQuery(query)
@@ -112,8 +116,11 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                     val entries = blogDao.pubGetByDateRange(startDate.toEpochSecond(ZoneOffset.UTC), endDate.toEpochSecond(ZoneOffset.UTC))
                     respondPage(it, pageWithEntries(it.requestURI.toString(), entries))
                 }
-            } else
+            } else {
                 respondPage(it, pageDefault(it.requestURI.toString()))
+//                // this is the default page: count it
+//                visitors?.count(it)
+            }
         }
         createServerContext("/$subUrl/login.html") {
             respondPage(it, pageLogin(it))
