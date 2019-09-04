@@ -4,6 +4,8 @@ import de.mein.sql.*
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
+
+
 class BlogEntry : SQLTableObject() {
     val id = Pair(Long::class.java, "id")
     val title = Pair(String::class.java, "title")
@@ -43,8 +45,6 @@ class BlogEntry : SQLTableObject() {
         populateInsert(title, text, timestamp, published)
         populateAll(id)
     }
-
-
 }
 
 class BlogDao(sqlQueries: SQLQueries) : Dao(sqlQueries) {
