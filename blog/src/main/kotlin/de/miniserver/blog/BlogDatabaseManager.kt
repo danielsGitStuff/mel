@@ -22,7 +22,7 @@ class BlogDatabaseManager(workingDirectory: File) : FileRelatedManager(workingDi
 
 
         val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
-        if (!sqliteExecutor.checkTablesExist("blogentry")) {
+        if (!sqliteExecutor.checkTablesExist("blogentry", "visits")) {
             sqliteExecutor.executeStream(BlogDatabaseManager::class.java.getResourceAsStream("/de/miniserver/blog/blog.sql"))
             hadToInitialize = true
             val dummyEntry = BlogEntry()
