@@ -6,7 +6,6 @@ import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
 import de.mein.auth.tools.N
 import de.mein.serverparts.*
-import de.mein.serverparts.QueryMap
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -39,6 +38,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         const val ACTION_SAVE = "save"
         const val ACTION_DELETE = "delete"
 
+        const val PARAM_ACTION = "a"
         const val PARAM_ID = "id"
         const val PARAM_USER = "user"
         const val PARAM_PW = "pw"
@@ -84,7 +84,6 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
     override fun configureContext(server: HttpsServer) {
         this.server = server
         val httpContextCreator = HttpContextCreator(server)
-        httpContextCreator.createContext("/$subUrl/write.html").withGet(HttpContextCreator.Comp("",""))
         createServerContext("/$subUrl") {
             redirect(it, "/$subUrl/index.html")
         }
@@ -125,85 +124,57 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         createServerContext("/$subUrl/login.html") {
             respondPage(it, pageLogin(it))
         }
-        createServerContext("/$subUrl/write.html") {
-            Lok.debug("write")
-
-            val uri = it.requestURI
-            val query = uri.query
-            if (it.requestMethod == "POST") {
-                if (query != null) {
-                    //update entry here
-                    val queryMap = QueryMap().parseGet(query)
-                    if (queryMap["a"] == ACTION_SAVE && queryMap[PARAM_ID] != null) {
-                        val attr = readPostValues(it)
-                        val user = attr[PARAM_USER]
-                        val pw = attr[PARAM_PW]
-                        blogAuthenticator.check(it, user, pw, N.INoTryRunnable {
-                            val id = N.result({ queryMap[PARAM_ID]!!.toLong() }, null)
-                            val publish = attr[PARAM_PUBLISH] == "on"
-                            //edit
-                            if (id != null) {
-                                val entry = blogDao.getById(id)
-                                if (entry != null) {
-                                    entry.title.v(attr[PARAM_TITLE])
-                                    entry.text.v(attr[PARAM_TEXT])
-                                    entry.published.v(publish)
-                                    blogDao.update(entry)
-                                    respondPage(it, writePage(user, pw, id))
-                                }
-                            } else {
-                                //create
-                                val entry = BlogEntry()
-                                entry.title.v(attr[PARAM_TITLE])
-                                entry.text.v(attr[PARAM_TEXT])
-                                entry.timestamp.v(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
-                                entry.published.v(publish)
-                                blogDao.insert(entry)
-                                respondPage(it, writePage(user, pw, entry.id.v()))
-                            }
-                            //show what is new
-                            pageCache.clear()
-                        }, null)
-                    } else if (queryMap["a"] == ACTION_DELETE) {
+        httpContextCreator.createContext("/$subUrl/write.html")
+                .withPOST()
+                .expect(PARAM_ACTION, ACTION_SAVE).and(PARAM_ID) { a -> a != null }
+                .handle { httpExchange, queryMap ->
+                    val user = queryMap[PARAM_USER]
+                    val pw = queryMap[PARAM_PW]
+                    blogAuthenticator.check(httpExchange, user, pw, N.INoTryRunnable {
                         val id = N.result({ queryMap[PARAM_ID]!!.toLong() }, null)
-                        if (id == null)
-                            respondPage(it, pageLogin(it))
-                        else {
-                            blogDao.deleteById(id)
-                            respondPage(it, pageLogin(it))
+                        val publish = queryMap[PARAM_PUBLISH] == "on"
+                        //edit
+                        if (id != null) {
+                            val entry = blogDao.getById(id)
+                            if (entry != null) {
+                                entry.title.v(queryMap[PARAM_TITLE])
+                                entry.text.v(queryMap[PARAM_TEXT])
+                                entry.published.v(publish)
+                                blogDao.update(entry)
+                                respondPage(httpExchange, writePage(user, pw, id))
+                            }
+                        } else {
+                            //create
+                            val entry = BlogEntry()
+                            entry.title.v(queryMap[PARAM_TITLE])
+                            entry.text.v(queryMap[PARAM_TEXT])
+                            entry.timestamp.v(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+                            entry.published.v(publish)
+                            blogDao.insert(entry)
+                            respondPage(httpExchange, writePage(user, pw, entry.id.v()))
                         }
-                    }
-                } else {
-                    //login here, show write page
-                    val attr = readPostValues(it)
-                    val user = attr["user"]
-                    val pw = attr["pw"]
-
-                    val id = N.result(N.ResultExceptionRunnable { attr[PARAM_ID]?.toLong() }, null)
-                    blogAuthenticator.authenticate(it, user, pw, N.INoTryRunnable {
-                        respondPage(it, writePage(user, pw, id))
-                    }, N.INoTryRunnable {
-                        respondPage(it, pageLogin(it))
-                    })
+                        //show what is new
+                        pageCache.clear()
+                    }, null)
                 }
-            } else {
-                val query = it.requestURI.query
-                if (query != null && query.startsWith("id=")) {
+                .withPOST().expect(PARAM_ACTION, ACTION_DELETE).and(PARAM_ID) { it != null }
+                .handle { httpExchange, queryMap ->
+                    val id = queryMap[PARAM_ID]!!.toLong()
+                    blogDao.deleteById(id)
+                    respondPage(httpExchange, pageLogin(httpExchange))
+                }
+                .withGET().expect(PARAM_ID) { it != null }
+                .handle { httpExchange, queryMap ->
                     try {
-                        val queryMap = readGetQuery(query)
-                        val idString = queryMap["id"]
+                        val idString = queryMap[PARAM_ID]
                         if (idString != null) {
                             val id = idString.toLong()
-                            respondPage(it, pageLogin(it, id))
+                            respondPage(httpExchange, pageLogin(httpExchange, id))
                         }
                     } catch (e: Exception) {
-                        it.close()
+                        httpExchange.close()
                     }
-                } else
-                    respondPage(it, pageLogin(it, null))
-            }
-
-        }
+                }.onError { httpExchange, exception -> respondError(httpExchange, "Ebola?!") }
 
         createServerContext("/$subUrl/blog.css") {
             respondPage(it, Page("/de/miniserver/blog/blog.css"), contentType = null)
