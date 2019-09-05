@@ -5,10 +5,8 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
 import de.mein.auth.tools.N
-import de.mein.serverparts.AbstractHttpsThingy
-import de.mein.serverparts.Page
-import de.mein.serverparts.Replacer
-import de.mein.serverparts.UrlPageCache
+import de.mein.serverparts.*
+import de.mein.serverparts.QueryMap
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -85,6 +83,8 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
 
     override fun configureContext(server: HttpsServer) {
         this.server = server
+        val httpContextCreator = HttpContextCreator(server)
+        httpContextCreator.createContext("/$subUrl/write.html").withGet(HttpContextCreator.Comp("",""))
         createServerContext("/$subUrl") {
             redirect(it, "/$subUrl/index.html")
         }
@@ -133,7 +133,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
             if (it.requestMethod == "POST") {
                 if (query != null) {
                     //update entry here
-                    val queryMap = QueryMap().parse(query)
+                    val queryMap = QueryMap().parseGet(query)
                     if (queryMap["a"] == ACTION_SAVE && queryMap[PARAM_ID] != null) {
                         val attr = readPostValues(it)
                         val user = attr[PARAM_USER]
