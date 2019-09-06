@@ -7,9 +7,15 @@ import de.mein.Lok
 open class HttpContextCreator(val server: HttpsServer) {
 
 
-
+    /**
+     * checks if the requirements (request parameters) are met and executes code dealing with it.
+     * call expect to check parameters. if all Expectations are met, the cuntion you hand over to
+     * Expectation.handle() is executed. If no Expectations are present, the function handed over in RequestHandeler.handle()
+     * will allways be exectuted when the server context is matched.
+     */
     class RequestHandler(internal val contextInit: ContextInit) {
         var handleFunction: ((HttpExchange, QueryMap) -> Unit)? = null
+        var isGeneralHandler = true
 
         /**
          * checks whether parameters of the request matches a criterion
@@ -26,6 +32,7 @@ open class HttpContextCreator(val server: HttpsServer) {
          * @param expectFunction if you expect more sophisticated things
          */
         fun expect(key: String, expectFunction: (String?) -> Boolean): Expectation {
+            isGeneralHandler = false
             val expectation = Expectation(this, key, expectFunction)
             return expectation
         }
