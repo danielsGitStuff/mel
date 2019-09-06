@@ -13,7 +13,7 @@ import java.util.regex.Pattern
 class QueryMap {
 
     fun fillFromGet(httpExchange: HttpExchange): QueryMap {
-        val string = httpExchange.requestURI.toString()
+        val string = httpExchange.requestURI.query
         val pat: Pattern = Pattern.compile("([^&=]+)=([^&]*)")
         val matcher: Matcher = pat.matcher(string)
         while (matcher.find()) {

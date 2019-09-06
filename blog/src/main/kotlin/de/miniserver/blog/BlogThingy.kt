@@ -167,6 +167,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 .withGET().expect(PARAM_ID) { it != null }
                 .handle { httpExchange, queryMap ->
                     try {
+                        Lok.debug("AAAA")
                         val idString = queryMap[PARAM_ID]
                         if (idString != null) {
                             val id = idString.toLong()
