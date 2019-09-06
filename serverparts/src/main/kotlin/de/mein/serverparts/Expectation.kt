@@ -1,12 +1,10 @@
 package de.mein.serverparts
 
 import com.sun.net.httpserver.HttpExchange
-import java.lang.Exception
 
+class Expectation(val requestHandler: HttpContextCreator.RequestHandler, val key: String, val expectFunction: (String?) -> Boolean) {
 
-class Expectation(val contextInit: HttpContextCreator.ContextInit, val queryMap: QueryMap, val key: String, val expectFunction: (String?) -> Boolean) {
-
-    internal constructor(contextInit: HttpContextCreator.ContextInit, queryMap: QueryMap, key: String, expectFunction: (String?) -> Boolean, parent: Expectation) : this(contextInit, queryMap, key, expectFunction) {
+    internal constructor(requestHandler: HttpContextCreator.RequestHandler, key: String, expectFunction: (String?) -> Boolean, parent: Expectation) : this(requestHandler, key, expectFunction) {
         this.parent = parent
     }
 
@@ -18,31 +16,33 @@ class Expectation(val contextInit: HttpContextCreator.ContextInit, val queryMap:
     }
 
     fun and(key: String, expectFunction: (String?) -> Boolean): Expectation {
-        next = Expectation(contextInit, queryMap, key, expectFunction, this)
+        next = Expectation(requestHandler, key, expectFunction, this)
         return next!!
     }
 
 
-    internal fun isFulfilled(): Boolean {
+    internal fun isFulfilled(queryMap: QueryMap): Boolean {
         val value = queryMap[key]
         val thisExpectation = expectFunction.invoke(value)
         if (!thisExpectation)
             return false
         if (parent != null)
-            return parent!!.isFulfilled()
+            return parent!!.isFulfilled(queryMap)
         return true
     }
 
-    fun handle(thenDo: (HttpExchange, QueryMap) -> Unit): HttpContextCreator.ContextInit {
-        if (isFulfilled()) {
-            try {
-                thenDo.invoke(contextInit.httpExchange, queryMap)
-            } catch (e: Exception) {
-                contextInit.onExceptionThrown(e)
+    fun handle(handleFunction: (HttpExchange, QueryMap) -> Unit): HttpContextCreator.ContextInit {
+        // wrap the handle function so our expectations are checked before executing it
+        requestHandler.handleFunction = { httpExchange, queryMap ->
+            if (isFulfilled(queryMap)) {
+                try {
+                    handleFunction.invoke(httpExchange, queryMap)
+                } catch (e: Exception) {
+                    requestHandler.contextInit.onExceptionThrown(httpExchange, e)
+                }
             }
         }
-        return contextInit
+        return requestHandler.contextInit
     }
 
 }
-

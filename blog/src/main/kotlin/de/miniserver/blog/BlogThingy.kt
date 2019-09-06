@@ -124,6 +124,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         createServerContext("/$subUrl/login.html") {
             respondPage(it, pageLogin(it))
         }
+
         httpContextCreator.createContext("/$subUrl/write.html")
                 .withPOST()
                 .expect(PARAM_ACTION, ACTION_SAVE).and(PARAM_ID) { a -> a != null }
@@ -174,7 +175,11 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                     } catch (e: Exception) {
                         httpExchange.close()
                     }
-                }.onError { httpExchange, exception -> respondError(httpExchange, "Ebola?!") }
+                }
+                .withGET().handle { httpExchange, queryMap ->
+                    respondPage(httpExchange, pageLogin(httpExchange, null))
+                }
+                .onError { httpExchange, exception -> respondError(httpExchange, "Ebola?!") }
 
         createServerContext("/$subUrl/blog.css") {
             respondPage(it, Page("/de/miniserver/blog/blog.css"), contentType = null)

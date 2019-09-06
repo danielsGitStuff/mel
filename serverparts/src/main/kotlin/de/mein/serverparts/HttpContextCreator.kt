@@ -3,11 +3,14 @@ package de.mein.serverparts
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
-import java.lang.Exception
 
 open class HttpContextCreator(val server: HttpsServer) {
 
-    class RequestHandler(private val contextInit: ContextInit, private val queryMap: QueryMap) {
+
+
+    class RequestHandler(internal val contextInit: ContextInit) {
+        var handleFunction: ((HttpExchange, QueryMap) -> Unit)? = null
+
         /**
          * checks whether parameters of the request matches a criterion
          * @param key key in the parameter map
@@ -23,27 +26,31 @@ open class HttpContextCreator(val server: HttpsServer) {
          * @param expectFunction if you expect more sophisticated things
          */
         fun expect(key: String, expectFunction: (String?) -> Boolean): Expectation {
-            return queryMap.expect(key, expectFunction)
+            val expectation = Expectation(this, key, expectFunction)
+            return expectation
         }
 
-        fun handle(function: (HttpExchange) -> Unit): ContextInit {
-            try {
-                function.invoke(contextInit.httpExchange)
-            } catch (e: Exception) {
-                contextInit.onExceptionThrown(e)
-            }
+        fun handle(handleFunction: (HttpExchange, QueryMap) -> Unit): ContextInit {
+            this.handleFunction = handleFunction
+
             return contextInit
+        }
+
+        internal fun onContextCalled(httpExchange: HttpExchange, queryMap: QueryMap) {
+            try {
+                handleFunction?.invoke(httpExchange, queryMap)
+            } catch (e: Exception) {
+                contextInit.onExceptionThrown(httpExchange, e)
+            }
         }
     }
 
 
     open class ContextInit {
         private var errorFunction: ((HttpExchange, Exception) -> Unit)? = null
-        private var queryMapPost: QueryMap? = null
-        private var queryMapGet: QueryMap? = null
-        lateinit var httpExchange: HttpExchange
 
-        private val fallbackErrorFunction: ((Exception) -> Unit) = { exception ->
+
+        private val fallbackErrorFunction: ((HttpExchange, Exception) -> Unit) = { httpExchange, exception ->
             try {
                 with(httpExchange) {
                     val text = "something went wrong"
@@ -58,37 +65,40 @@ open class HttpContextCreator(val server: HttpsServer) {
         }
 
 
-        internal fun contextCalled(exchange: HttpExchange) {
-            this.httpExchange = exchange
+        internal fun contextCalled(httpExchange: HttpExchange) {
+            val queryMap = QueryMap()
+            if (httpExchange.requestMethod == "POST") {
+                queryMap.fillFomPost(httpExchange)
+                postHandlers.forEach { it.onContextCalled(httpExchange, queryMap) }
+            } else if (httpExchange.requestMethod == "GET") {
+                queryMap.fillFromGet(httpExchange)
+                getHandlers.forEach { it.onContextCalled(httpExchange, queryMap) }
+            } else
+                Lok.error("unknown request method; ${httpExchange.requestMethod}")
         }
 
-        fun onExceptionThrown(e: Exception) {
+
+        fun onExceptionThrown(httpExchange: HttpExchange, e: Exception) {
             Lok.debug("error happened")
             e.printStackTrace()
             if (errorFunction != null) {
                 try {
                     errorFunction!!.invoke(httpExchange, e)
                 } catch (ee: Exception) {
-                    onErrorFunctionNullorFailed(ee)
+                    onErrorFunctionNullorFailed(httpExchange, ee)
                 }
             }
         }
 
         fun withPOST(): RequestHandler {
-            if (queryMapPost == null) {
-                queryMapPost = QueryMap(this)
-            }
-            val handler = RequestHandler(this, queryMapPost!!)
+            val handler = RequestHandler(this)
             postHandlers.add(handler)
             return handler
         }
 
         fun withGET(): RequestHandler {
-            if (queryMapGet == null) {
-                queryMapGet = QueryMap(this)
-            }
-            val handler = RequestHandler(this, queryMapPost!!)
-            postHandlers.add(handler)
+            val handler = RequestHandler(this)
+            getHandlers.add(handler)
             return handler
         }
 
@@ -100,8 +110,8 @@ open class HttpContextCreator(val server: HttpsServer) {
             return this
         }
 
-        private fun onErrorFunctionNullorFailed(ee: Exception) {
-            fallbackErrorFunction.invoke(ee)
+        private fun onErrorFunctionNullorFailed(httpExchange: HttpExchange, ee: Exception) {
+            fallbackErrorFunction.invoke(httpExchange, ee)
         }
     }
 

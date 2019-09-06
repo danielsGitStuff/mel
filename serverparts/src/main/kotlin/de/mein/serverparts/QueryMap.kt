@@ -10,7 +10,7 @@ import java.util.regex.Pattern
 /**
  * parses URL query arguments
  */
-class QueryMap(val contextInit: HttpContextCreator.ContextInit) {
+class QueryMap {
 
     fun fillFromGet(httpExchange: HttpExchange): QueryMap {
         val string = httpExchange.requestURI.toString()
@@ -43,14 +43,6 @@ class QueryMap(val contextInit: HttpContextCreator.ContextInit) {
 
     operator fun get(key: String): String? {
         return map[key]
-    }
-
-    val expectations = mutableListOf<Expectation>()
-
-    fun expect(key: String, expectFunction: (String?) -> Boolean): Expectation {
-        val expectation = Expectation(contextInit, this, key, expectFunction)
-        expectations += expectation
-        return expectation
     }
 
 }
