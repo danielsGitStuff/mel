@@ -17,6 +17,8 @@ class Expectation(val requestHandler: HttpContextCreator.RequestHandler, val key
 
     fun and(key: String, expectFunction: (String?) -> Boolean): Expectation {
         next = Expectation(requestHandler, key, expectFunction, this)
+        // set the handle function on the RequestHandler, so it has something to execute even if no method is provided in Expectation.handle()
+        requestHandler.handleFunction = { httpExchange, queryMap -> isFulfilled(queryMap) }
         return next!!
     }
 
@@ -40,7 +42,9 @@ class Expectation(val requestHandler: HttpContextCreator.RequestHandler, val key
                 } catch (e: Exception) {
                     requestHandler.contextInit.onExceptionThrown(httpExchange, e)
                 }
-            }
+                true
+            } else
+                false
         }
         return requestHandler.contextInit
     }

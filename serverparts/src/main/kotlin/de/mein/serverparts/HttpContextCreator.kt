@@ -3,6 +3,7 @@ package de.mein.serverparts
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
+import de.mein.auth.tools.N
 
 open class HttpContextCreator(val server: HttpsServer) {
 
@@ -14,7 +15,7 @@ open class HttpContextCreator(val server: HttpsServer) {
      * will allways be exectuted when the server context is matched.
      */
     class RequestHandler(internal val contextInit: ContextInit) {
-        var handleFunction: ((HttpExchange, QueryMap) -> Unit)? = null
+        var handleFunction: ((HttpExchange, QueryMap) -> Boolean)? = null
         var isGeneralHandler = true
 
         /**
@@ -38,17 +39,19 @@ open class HttpContextCreator(val server: HttpsServer) {
         }
 
         fun handle(handleFunction: (HttpExchange, QueryMap) -> Unit): ContextInit {
-            this.handleFunction = handleFunction
+            // wrap and return true
+            this.handleFunction = { httpExchange, queryMap ->
+                handleFunction.invoke(httpExchange, queryMap)
+                true
+            }
 
             return contextInit
         }
 
-        internal fun onContextCalled(httpExchange: HttpExchange, queryMap: QueryMap) {
-            try {
-                handleFunction?.invoke(httpExchange, queryMap)
-            } catch (e: Exception) {
-                contextInit.onExceptionThrown(httpExchange, e)
-            }
+        internal fun onContextCalled(httpExchange: HttpExchange, queryMap: QueryMap): Boolean {
+            if (handleFunction == null)
+                return false
+            return handleFunction!!.invoke(httpExchange, queryMap)
         }
     }
 
@@ -76,12 +79,30 @@ open class HttpContextCreator(val server: HttpsServer) {
             val queryMap = QueryMap()
             if (httpExchange.requestMethod == "POST") {
                 queryMap.fillFomPost(httpExchange)
-                postHandlers.forEach { it.onContextCalled(httpExchange, queryMap) }
+                runRequestHandlers(postHandlers, queryMap, httpExchange)
             } else if (httpExchange.requestMethod == "GET") {
                 queryMap.fillFromGet(httpExchange)
-                getHandlers.forEach { it.onContextCalled(httpExchange, queryMap) }
+                runRequestHandlers(getHandlers, queryMap, httpExchange)
             } else
                 Lok.error("unknown request method; ${httpExchange.requestMethod}")
+        }
+
+        fun runRequestHandlers(requestHandlers: List<RequestHandler>, queryMap: QueryMap, httpExchange: HttpExchange) {
+            var result: Boolean? = null
+            try {
+                N.forEachAdv(requestHandlers) { stoppable, index, it ->
+                    if (it.onContextCalled(httpExchange, queryMap)) {
+                        stoppable.stop()
+                        result = true
+                    }
+                }
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+                onExceptionThrown(httpExchange, e)
+            }
+            // execution has failed
+            if (result == null)
+                onErrorFunctionNullorFailed(httpExchange, java.lang.Exception("did nothing"))
         }
 
 
