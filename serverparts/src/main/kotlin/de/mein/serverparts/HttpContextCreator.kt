@@ -3,9 +3,18 @@ package de.mein.serverparts
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
-import de.mein.auth.tools.N
 
-open class HttpContextCreator(val server: HttpsServer) {
+/**
+ *     Creates contexts for an HttpsServer and provides methods for easy access to the provided parameters for GET and POST requests.
+ *     Create an instance the usual way and call createContext(). The returned ContextInit object lets you specify handlers for the requests.
+ *     GET request handlers are created by calling withGET(). You can add expected values by calling [expect] (key,expectedValue) on the RequestHandler which returns Expectations.
+ *     You can daisy chain them by adding and(key,expectedValue). If a match occurs whatever you specify in expectation.handle() or requestHandler.handle() is executed.
+ *
+ *
+ *     **Keep in mind that if you call [RequestHandler handle] this one will match all requests. That means that all subsequent RequestHandlers are ignored.**
+ *     Only the first matching RequestHandler is invoked. **Requesthandlers are tried in the order you create them!**
+ */
+class HttpContextCreator(val server: HttpsServer) {
 
 
     /**
@@ -57,6 +66,7 @@ open class HttpContextCreator(val server: HttpsServer) {
 
 
     open class ContextInit {
+        private var noMatchFunction: ((HttpExchange, QueryMap) -> Unit)? = null
         private var errorFunction: ((HttpExchange, Exception) -> Unit)? = null
 
 
@@ -77,36 +87,58 @@ open class HttpContextCreator(val server: HttpsServer) {
 
         internal fun contextCalled(httpExchange: HttpExchange) {
             val queryMap = QueryMap()
-            if (httpExchange.requestMethod == "POST") {
-                queryMap.fillFomPost(httpExchange)
-                runRequestHandlers(postHandlers, queryMap, httpExchange)
-            } else if (httpExchange.requestMethod == "GET") {
-                queryMap.fillFromGet(httpExchange)
-                runRequestHandlers(getHandlers, queryMap, httpExchange)
-            } else
-                Lok.error("unknown request method; ${httpExchange.requestMethod}")
-        }
-
-        fun runRequestHandlers(requestHandlers: List<RequestHandler>, queryMap: QueryMap, httpExchange: HttpExchange) {
+            /**
+             * check if the request matches a handler. If no match occurs result is false.
+             * if an exception is thrown, result is null.
+             */
             var result: Boolean? = null
             try {
-                N.forEachAdv(requestHandlers) { stoppable, index, it ->
-                    if (it.onContextCalled(httpExchange, queryMap)) {
-                        stoppable.stop()
-                        result = true
-                    }
+                if (httpExchange.requestMethod == "POST") {
+                    queryMap.fillFomPost(httpExchange)
+                    result = runRequestHandlers(postHandlers, queryMap, httpExchange)
+                } else if (httpExchange.requestMethod == "GET") {
+                    queryMap.fillFromGet(httpExchange)
+                    result = runRequestHandlers(getHandlers, queryMap, httpExchange)
+                } else {
+                    Lok.error("unknown request method; ${httpExchange.requestMethod}")
+                    result = false
                 }
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
+            } catch (e: Exception) {
+                // exception, result stays null
                 onExceptionThrown(httpExchange, e)
             }
-            // execution has failed
-            if (result == null)
-                onErrorFunctionNullorFailed(httpExchange, java.lang.Exception("did nothing"))
+            // no match occured
+            if (result != null && !result) {
+                // no custum function available
+                if (noMatchFunction == null) {
+                    try {
+                        with(httpExchange) {
+                            val text = "I just don't know what to do with myself! DADADA!"
+                            de.mein.Lok.debug("sending error to $remoteAddress")
+                            sendResponseHeaders(400, text.toByteArray().size.toLong())
+                            responseBody.write(text.toByteArray())
+                            responseBody.close()
+                        }
+                    } finally {
+                        httpExchange.close()
+                    }
+                } else {
+                    // someone told me to do something, so I do it
+                    noMatchFunction!!.invoke(httpExchange, queryMap)
+                }
+            }
+        }
+
+        private fun runRequestHandlers(requestHandlers: List<RequestHandler>, queryMap: QueryMap, httpExchange: HttpExchange): Boolean {
+            for (requestHandler in requestHandlers) {
+                if (requestHandler.onContextCalled(httpExchange, queryMap))
+                    return true
+            }
+            return false
         }
 
 
-        fun onExceptionThrown(httpExchange: HttpExchange, e: Exception) {
+        internal fun onExceptionThrown(httpExchange: HttpExchange, e: Exception) {
             Lok.debug("error happened")
             e.printStackTrace()
             if (errorFunction != null) {
@@ -130,8 +162,8 @@ open class HttpContextCreator(val server: HttpsServer) {
             return handler
         }
 
-        val postHandlers = mutableListOf<RequestHandler>()
-        val getHandlers = mutableListOf<RequestHandler>()
+        internal val postHandlers = mutableListOf<RequestHandler>()
+        internal val getHandlers = mutableListOf<RequestHandler>()
 
         fun onError(onErrorFunction: (HttpExchange, Exception) -> Unit): ContextInit {
             this.errorFunction = onErrorFunction
@@ -140,6 +172,11 @@ open class HttpContextCreator(val server: HttpsServer) {
 
         private fun onErrorFunctionNullorFailed(httpExchange: HttpExchange, ee: Exception) {
             fallbackErrorFunction.invoke(httpExchange, ee)
+        }
+
+        fun onNoMatch(noMatchFunction: (HttpExchange, QueryMap) -> Unit): ContextInit {
+            this.noMatchFunction = noMatchFunction
+            return this
         }
     }
 

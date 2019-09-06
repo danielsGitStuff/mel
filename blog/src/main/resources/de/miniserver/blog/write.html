@@ -44,7 +44,7 @@
 </head>
 <body>
 <h2><§=mode/></h2>
-<form method="post" action="write.html?a=save&id=<§=id/>" style="display: block">
+<form method="post" action="write.html" style="display: block">
     <label for="txtTitle">Title</label>
     <input id="txtTitle" value="<§=title/>" name="title" class="round"><br>
     <label for="txtText">Text</label>
@@ -54,12 +54,14 @@
     <input name="user" value="<§=user/>" hidden>
     <input name="pw" value="<§=pw/>" hidden>
     <input name="id" value="<§=id/>" hidden>
+    <input name="action" value="save" hidden>
     <button onclick="return warning()" type="submit">Save</button>
 </form>
 <form method="post" action="/blog/write.html delete">
     <input name="user" value="<§=user/>" hidden>
     <input name="pw" value="<§=pw/>" hidden>
     <input name="id" value="<§=id/>" hidden>
+    <input name="action" value="delete" hidden>
     <button onclick="return warning()" type="submit">Delete</button>
 </form>
 <§=preview/>

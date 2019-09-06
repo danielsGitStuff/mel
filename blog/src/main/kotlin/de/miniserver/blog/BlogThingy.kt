@@ -38,7 +38,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         const val ACTION_SAVE = "save"
         const val ACTION_DELETE = "delete"
 
-        const val PARAM_ACTION = "a"
+        const val PARAM_ACTION = "action"
         const val PARAM_ID = "id"
         const val PARAM_USER = "user"
         const val PARAM_PW = "pw"
@@ -142,7 +142,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                                 entry.text.v(queryMap[PARAM_TEXT])
                                 entry.published.v(publish)
                                 blogDao.update(entry)
-                                respondPage(httpExchange, writePage(user, pw, id))
+                                respondPage(httpExchange, pageWrite(user, pw, id))
                             }
                         } else {
                             //create
@@ -152,7 +152,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                             entry.timestamp.v(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
                             entry.published.v(publish)
                             blogDao.insert(entry)
-                            respondPage(httpExchange, writePage(user, pw, entry.id.v()))
+                            respondPage(httpExchange, pageWrite(user, pw, entry.id.v()))
                         }
                         //show what is new
                         pageCache.clear()
@@ -162,22 +162,35 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 .handle { httpExchange, queryMap ->
                     val id = queryMap[PARAM_ID]!!.toLong()
                     blogDao.deleteById(id)
+                    pageCache.clear()
                     respondPage(httpExchange, pageLogin(httpExchange))
+                }
+                .withPOST().expect(PARAM_USER) { it != null }.and(PARAM_PW) { it != null }
+                .handle { httpExchange, queryMap ->
+                    val user = queryMap[PARAM_USER]
+                    val pw = queryMap[PARAM_PW]
+                    val id = N.result({ queryMap[PARAM_ID]?.toLong() }, null)
+                    blogAuthenticator.check(httpExchange, user, pw, N.INoTryRunnable {
+                        respondPage(httpExchange, pageWrite(user, pw, id))
+                    }, N.INoTryRunnable {
+                        respondPage(httpExchange, pageLogin(httpExchange, id))
+                    })
                 }
                 .withGET().expect(PARAM_ID) { it != null }
                 .handle { httpExchange, queryMap ->
-                        Lok.debug("AAAA")
-                        val idString = queryMap[PARAM_ID]
-                        if (idString != null) {
-                            val id = idString.toLong()
-                            respondPage(httpExchange, pageLogin(httpExchange, id))
-                        }
+                    Lok.debug("AAAA")
+                    val idString = queryMap[PARAM_ID]
+                    if (idString != null) {
+                        val id = idString.toLong()
+                        respondPage(httpExchange, pageLogin(httpExchange, id))
+                    }
                 }
                 .withGET().handle { httpExchange, queryMap ->
                     respondPage(httpExchange, pageLogin(httpExchange, null))
 
                 }
                 .onError { httpExchange, exception -> respondError(httpExchange, "Ebola?!") }
+                .onNoMatch { httpExchange, queryMap -> respondError(httpExchange, "I just don't know what to do<br> with myself! DADADA!") }
 
         createServerContext("/$subUrl/blog.css") {
             respondPage(it, Page("/de/miniserver/blog/blog.css"), contentType = null)
@@ -192,7 +205,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         return map
     }
 
-    private fun writePage(user: String?, pw: String?, id: Long?): Page {
+    private fun pageWrite(user: String?, pw: String?, id: Long?): Page {
         var entry: BlogEntry? = null
         if (id != null)
             entry = blogDao.getById(id)

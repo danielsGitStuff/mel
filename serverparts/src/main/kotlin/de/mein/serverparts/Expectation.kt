@@ -17,13 +17,13 @@ class Expectation(val requestHandler: HttpContextCreator.RequestHandler, val key
 
     fun and(key: String, expectFunction: (String?) -> Boolean): Expectation {
         next = Expectation(requestHandler, key, expectFunction, this)
-        // set the handle function on the RequestHandler, so it has something to execute even if no method is provided in Expectation.handle()
+        // set the handle function on the RequestHandler, so it has something to execute even if Expectation.handle() is not called
         requestHandler.handleFunction = { httpExchange, queryMap -> isFulfilled(queryMap) }
         return next!!
     }
 
 
-    internal fun isFulfilled(queryMap: QueryMap): Boolean {
+    private fun isFulfilled(queryMap: QueryMap): Boolean {
         val value = queryMap[key]
         val thisExpectation = expectFunction.invoke(value)
         if (!thisExpectation)

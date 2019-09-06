@@ -3,7 +3,6 @@ package de.mein.serverparts
 import com.sun.net.httpserver.HttpExchange
 import de.mein.Lok
 import java.net.URLDecoder
-import java.util.HashMap
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -13,7 +12,7 @@ import java.util.regex.Pattern
 class QueryMap {
 
     fun fillFromGet(httpExchange: HttpExchange): QueryMap {
-        val string = httpExchange.requestURI.query
+        val string = httpExchange.requestURI.query ?: return this
         val pat: Pattern = Pattern.compile("([^&=]+)=([^&]*)")
         val matcher: Matcher = pat.matcher(string)
         while (matcher.find()) {
