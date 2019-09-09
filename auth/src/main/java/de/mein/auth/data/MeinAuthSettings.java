@@ -3,7 +3,6 @@ package de.mein.auth.data;
 import de.mein.KResult;
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
-import de.mein.auth.service.IDBCreatedListener;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.core.serialize.JsonIgnore;
@@ -24,11 +23,9 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
     private int deliveryPort, port;
     private String workingdirectoryPath, name;
     private File workingDirectory;
-    private String greeting;
     private Integer brotcastListenerPort;
     private Integer brotcastPort;
     private Class<? extends MeinAuthService> meinAuthServiceClass;
-    private IDBCreatedListener idbCreatedListener;
     private PowerManagerSettings powerManagerSettings = new PowerManagerSettings();
     private Boolean redirectSysout = false;
     private int updateMessagePort, updateBinaryPort;
@@ -82,7 +79,6 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
                 .setBrotcastListenerPort(BROTCAST_PORT)
                 .setBrotcastPort(BROTCAST_PORT)
                 .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1())
-                .setGreeting(generateGreeting())
                 .setUpdateMessagePort(UPDATE_MSG_PORT)
                 .setUpdateBinaryPort(UPDATE_BINARY_PORT)
                 .setUpdateUrl(UPDATE_DEFAULT_URL)
@@ -96,13 +92,6 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
         return powerManagerSettings;
     }
 
-    public Boolean getRedirectSysout() {
-        //todo return redirectSysout only
-        if (redirectSysout == null)
-            return false;
-        return redirectSysout;
-    }
-
     /**
      * TODO: rename me properly
      *
@@ -114,38 +103,9 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
         return this;
     }
 
-    private static String generateGreeting() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw1234567890";
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[6];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = (byte) chars.charAt(random.nextInt(chars.length()));
-        }
-        return new String(bytes);
-    }
-
     public MeinAuthSettings setBrotcastListenerPort(Integer brotcastListenerPort) {
         this.brotcastListenerPort = brotcastListenerPort;
         return this;
-    }
-
-
-    public MeinAuthSettings setMeinAuthServiceClass(Class<? extends MeinAuthService> meinAuthServiceClass) {
-        this.meinAuthServiceClass = meinAuthServiceClass;
-        return this;
-    }
-
-    public MeinAuthSettings setIdbCreatedListener(IDBCreatedListener idbCreatedListener) {
-        this.idbCreatedListener = idbCreatedListener;
-        return this;
-    }
-
-    public IDBCreatedListener getIdbCreatedListener() {
-        return idbCreatedListener;
-    }
-
-    public Class<? extends MeinAuthService> getMeinAuthServiceClass() {
-        return meinAuthServiceClass;
     }
 
     public MeinAuthSettings setBrotcastPort(Integer brotcastPort) {
@@ -171,15 +131,6 @@ public class MeinAuthSettings extends JsonSettings implements KResult {
 
     public String getDiscoverAnswer() {
         return "meinauth.discover.answer(" + port + "," + deliveryPort + ")";
-    }
-
-    public String getGreeting() {
-        return greeting;
-    }
-
-    public MeinAuthSettings setGreeting(String greeting) {
-        this.greeting = greeting;
-        return this;
     }
 
     public Integer getDeliveryPort() {

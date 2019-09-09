@@ -107,7 +107,7 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -163,7 +163,7 @@ public class FxTest {
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -221,7 +221,7 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -293,7 +293,7 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -368,7 +368,7 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -483,7 +483,7 @@ public class FxTest {
         MeinAuthSettings json1 = MeinAuthSettings.createDefaultSettings();
         json1.setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootloader.class);
         boot1.boot().done(mas1 -> N.r(() -> {
 
@@ -491,7 +491,7 @@ public class FxTest {
                     .setPort(8890).setDeliveryPort(8891)
                     .setBrotcastPort(9966) // does not listen! only one listener seems possible
                     .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                    .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                    .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
             MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
             boot2.addMeinAuthAdmin(new MeinAuthFxLoader());
             boot2.boot().done(result -> N.r(() -> {
@@ -529,12 +529,12 @@ public class FxTest {
         MeinAuthSettings json1 = MeinAuthSettings.createDefaultSettings();
         json1.setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinAuthSettings json2 = MeinAuthSettings.createDefaultSettings()
                 .setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
 
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -672,12 +672,12 @@ public class FxTest {
         MeinAuthSettings json1 = MeinAuthSettings.createDefaultSettings();
         json1.setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinAuthSettings json2 = MeinAuthSettings.createDefaultSettings()
                 .setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
 
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -770,11 +770,11 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -868,11 +868,11 @@ public class FxTest {
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override

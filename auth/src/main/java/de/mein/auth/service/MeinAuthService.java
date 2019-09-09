@@ -73,7 +73,6 @@ public class MeinAuthService {
     private final Updater updater;
     private MeinAuthWorker meinAuthWorker;
     protected final CertificateManager certificateManager;
-    private final IDBCreatedListener dbCreatedListener;
     private List<MeinAuthAdmin> meinAuthAdmins = new ArrayList<>();
     private final DatabaseManager databaseManager;
     private final File workingDirectory;
@@ -91,7 +90,7 @@ public class MeinAuthService {
     private File cacheDir;
 
 
-    public MeinAuthService(MeinAuthSettings meinAuthSettings, PowerManager powerManager, IDBCreatedListener dbCreatedListener) throws Exception {
+    public MeinAuthService(MeinAuthSettings meinAuthSettings, PowerManager powerManager) throws Exception {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairCollectionSerializerFactory.getInstance());
@@ -114,9 +113,7 @@ public class MeinAuthService {
         this.settings = meinAuthSettings;
         this.settings.save();
         this.updater = new Updater(this);
-        this.dbCreatedListener = dbCreatedListener;
-        if (this.databaseManager.hadToInitialize() && this.dbCreatedListener != null)
-            this.dbCreatedListener.onDBcreated(this.databaseManager);
+
         addRegisteredHandler((meinAuthService, registered) -> notifyAdmins());
     }
 
@@ -144,10 +141,6 @@ public class MeinAuthService {
                 Lok.error(getName() + ".notifyAdmins.fail: " + e.getMessage());
             }
         }
-    }
-
-    MeinAuthService(MeinAuthSettings meinAuthSettings, PowerManager powerManager) throws Exception {
-        this(meinAuthSettings, powerManager, null);
     }
 
     public MeinAuthService addRegisteredHandler(IRegisteredHandler IRegisteredHandler) {

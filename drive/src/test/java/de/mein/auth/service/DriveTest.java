@@ -496,7 +496,7 @@ public class DriveTest {
         TestDirCreator.createTestDir(testdir1);
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinBoot boot = new MeinBoot(json1, new PowerManager(json1));
         WaitLock waitLock = new WaitLock().lock();
         Promise<MeinAuthService, Exception, Void> promise = boot.boot();
@@ -739,7 +739,7 @@ public class DriveTest {
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
 
@@ -938,7 +938,7 @@ public class DriveTest {
         MeinAuthSettings settings = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setVariant(MeinStrings.update.VARIANT_JAR);
         settings.setJsonFile(new File(MeinBoot.Companion.getDefaultWorkingDir2(), MeinBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
         return settings;
     }
@@ -946,7 +946,7 @@ public class DriveTest {
     public static MeinAuthSettings createJson1() {
         MeinAuthSettings settings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setVariant(MeinStrings.update.VARIANT_JAR);
         settings.setJsonFile(new File(MeinBoot.Companion.getDefaultWorkingDir1(), MeinBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
         return settings;
     }
