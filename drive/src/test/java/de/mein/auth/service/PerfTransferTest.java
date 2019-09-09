@@ -20,7 +20,7 @@ import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeseria
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
 import de.mein.drive.DriveBootloader;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.bash.BashTools;
 import de.mein.sql.RWLock;
 import de.mein.sql.deserialize.PairDeserializerFactory;
@@ -161,7 +161,7 @@ public class PerfTransferTest {
         RWLock lock = new RWLock();
         Promise<PerfTransferTest, Void, Void> promise = create();
         promise.done(test -> N.r(() -> {
-            DriveCreateController createController = new DriveCreateController(test.mas);
+            DriveCreateServiceHelper createController = new DriveCreateServiceHelper(test.mas);
             createController.createDriveServerService("server", AFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30, false);
             Lok.debug("PerfTransferTest.startSource.done");
         }));
@@ -183,7 +183,7 @@ public class PerfTransferTest {
                     N.r(() -> {
                         List<ServiceJoinServiceType> services = nve.getServices(mvp.getConnectedId());
                         if (services.size() > 0) {
-                            DriveCreateController createController = new DriveCreateController(test.mas);
+                            DriveCreateServiceHelper createController = new DriveCreateServiceHelper(test.mas);
                             DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                                 Lok.debug("PerfTransferTest.startTarget.done");
                             };

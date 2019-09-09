@@ -29,7 +29,7 @@ import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.service.ContactsService;
 import de.mein.drive.DriveBootloader;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.boot.DriveFXBootloader;
@@ -273,7 +273,7 @@ public class FxTest {
             N.r(() -> {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
-                    DriveCreateController createController = new DriveCreateController(meinAuthService);
+                    DriveCreateServiceHelper createController = new DriveCreateServiceHelper(meinAuthService);
                     createController.createDriveClientService("drive client", testdir, 1L, tmp, 0.1f, 30, false);
                     Lok.debug("FxTest.connectAcceptingClient");
                 }));
@@ -343,7 +343,7 @@ public class FxTest {
                 Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
-                DriveCreateController createController = new DriveCreateController(meinAuthService);
+                DriveCreateServiceHelper createController = new DriveCreateServiceHelper(meinAuthService);
                 DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> new Thread(() -> N.r(() -> {
                     FxTest.tmp = driveService.getUuid();
                     connectAcceptingClient();
@@ -422,7 +422,7 @@ public class FxTest {
                 Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
-                DriveCreateController createController = new DriveCreateController(meinAuthService);
+                DriveCreateServiceHelper createController = new DriveCreateServiceHelper(meinAuthService);
                 createController.createDriveServerService("testiServer", testdir, 0.1f, 30, false);
                 // create contacts server too
 
@@ -622,7 +622,7 @@ public class FxTest {
         };
         boot1.boot().done(mas1 -> {
             N.r(() -> {
-                new DriveCreateController(mas1).createDriveServerService("server", rootServer, 0.4f, 200, false);
+                new DriveCreateServiceHelper(mas1).createDriveServerService("server", rootServer, 0.4f, 200, false);
                 mas1.addRegisterHandler(allowRegisterHandler);
                 mas1.addRegisteredHandler((meinAuthService, registered) ->
                         N.forEach(mas1.getDatabaseManager().getAllServices(),
@@ -639,7 +639,7 @@ public class FxTest {
                             client.set(mas2);
                             mas2.addRegisteredHandler((meinAuthService, registered) -> N.r(() -> {
                                 String serverServiceUuid = mas1.getDatabaseManager().getAllServices().iterator().next().getUuid().v();
-                                new DriveCreateController(mas2).createDriveClientService("client", rootClient, 1L, serverServiceUuid, 0.5f, 300, false);
+                                new DriveCreateServiceHelper(mas2).createDriveClientService("client", rootClient, 1L, serverServiceUuid, 0.5f, 300, false);
                                 clientService.set((MeinDriveClientService) mas2.getMeinServices().iterator().next());
                                 clientService.get().setSyncListener(syncListener);
                             }));
@@ -944,13 +944,13 @@ public class FxTest {
                                         clientDriveService.setSyncListener(clientSyncListener);
                                         ((MeinDriveClientService) clientDriveService).syncThisClient();
                                     })).start();
-                                    new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30, false);
+                                    new DriveCreateServiceHelper(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30, false);
                                 });
                             });
                         });
                     });
                 })).start();
-                new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30, false);
+                new DriveCreateServiceHelper(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30, false);
             });
         });
         lock.lockWrite();

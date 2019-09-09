@@ -18,18 +18,18 @@ public class DriveSettings extends JsonSettings {
     public static final float DEFAULT_WASTEBIN_RATIO = 0.1f;
     public static final int DEFAULT_WASTEBIN_MAXDAYS = 30;
     public static final int CACHE_LIST_SIZE = 2000;
-    private RootDirectory rootDirectory;
-    private String role = ":(";
-    private Long lastSyncedVersion = 0l;
-    private DriveClientSettingsDetails clientSettings;
-    private DriveServerSettingsDetails serverSettings;
-    private String transferDirectoryPath;
-    private Long maxWastebinSize;
-    private Long maxAge = 30L;
-    private AFile transferDirectory;
-    private Boolean useSymLinks = true;
+    protected RootDirectory rootDirectory;
+    protected String role = ":(";
+    protected Long lastSyncedVersion = 0l;
+    protected DriveClientSettingsDetails clientSettings;
+    protected DriveServerSettingsDetails serverSettings;
+    protected String transferDirectoryPath;
+    protected Long maxWastebinSize;
+    protected Long maxAge = 30L;
+    protected AFile transferDirectory;
+    protected Boolean useSymLinks = true;
 
-    private boolean fastBoot = true;
+    protected boolean fastBoot = true;
 
     public static RootDirectory buildRootDirectory(AFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
         String path = rootFile.getCanonicalPath();

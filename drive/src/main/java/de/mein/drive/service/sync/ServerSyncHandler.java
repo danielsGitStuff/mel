@@ -46,74 +46,77 @@ public class ServerSyncHandler extends SyncHandler {
             details.getAvailable().v(true);
     }
 
+    private boolean canCommit(Request request, Commit commit) throws SqlQueriesException {
+        final long olderVersion = driveDatabaseManager.getLatestVersion();
+        if (commit.getBasedOnVersion() != olderVersion) {
+            request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion() + " vs " + driveDatabaseManager.getLatestVersion(), driveDatabaseManager.getLatestVersion()));
+            return false;
+        }
+        return true;
+    }
+
+    protected void executeCommit(Request request, Commit commit, Transaction transaction) throws SqlQueriesException {
+        // stage everything
+        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null, commit.getBasedOnVersion());
+        Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
+        Iterator<Stage> iterator = commit.iterator();
+        while (iterator.hasNext()) {
+            Stage stage = iterator.next();
+            stage.setStageSet(stageSet.getId().v());
+            if (stage.getParentId() != null && oldStageIdStageIdMap.containsKey(stage.getParentId())) {
+                stage.setParentId(oldStageIdStageIdMap.get(stage.getParentId()));
+            }
+            Long oldId = stage.getId();
+            stageDao.insert(stage);
+            oldStageIdStageIdMap.put(oldId, stage.getId());
+        }
+        commit.cleanUp();
+        //TODO check goes here
+
+        //map old stage ids with new fs ids
+        //fsDao.lockWrite();
+        Long oldVersion = fsDao.getLatestVersion();
+        Map<Long, Long> stageIdFsIdMap = new HashMap<>();
+        try {
+            this.commitStage(stageSet.getId().v(), transaction, stageIdFsIdMap);
+        } catch (OutOfSpaceException e) {
+            e.printStackTrace();
+            request.reject(e);
+            return;
+        }
+        Map<Long, Long> newIdMap = new HashMap<>();
+        for (Long oldeStageId : oldStageIdStageIdMap.keySet()) {
+            Long newFsId = stageIdFsIdMap.get(oldStageIdStageIdMap.get(oldeStageId));
+            if (newFsId != null) {
+                newIdMap.put(oldeStageId, newFsId);
+            }
+        }
+        CommitAnswer answer = new CommitAnswer().setStageIdFsIdMap(newIdMap);
+        request.resolve(answer);
+        // TODO setup transfers
+        List<GenericFSEntry> delta = fsDao.getDelta(oldVersion);
+        for (GenericFSEntry genericFSEntry : delta) {
+            if (!genericFSEntry.getIsDirectory().v() && !genericFSEntry.isSymlink()) {
+                DbTransferDetails details = new DbTransferDetails();
+                details.getCertId().v(request.getPartnerCertificate().getId().v());
+                details.getHash().v(genericFSEntry.getContentHash().v());
+                details.getSize().v(genericFSEntry.getSize().v());
+                details.getServiceUuid().v(commit.getServiceUuid());
+                details.getAvailable().v(true);// client must have that file
+                //insert fails if there already is a transfer with that hash
+                N.r(() -> transferManager.createTransfer(details));
+            }
+        }
+    }
+
     public void handleCommit(Request request) throws SqlQueriesException {
         // todo threading issues? check for unlocking DAOs after the connection/socket died.
         Commit commit = (Commit) request.getPayload();
         Transaction transaction = T.lockingTransaction(fsDao);
         try {
-            final long olderVersion = driveDatabaseManager.getLatestVersion();
-            if (commit.getBasedOnVersion() != olderVersion) {
-                request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion() + " vs " + driveDatabaseManager.getLatestVersion(), driveDatabaseManager.getLatestVersion()));
+            if (!canCommit(request, commit))
                 return;
-            }
-            // stage everything
-            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null, commit.getBasedOnVersion());
-            Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
-            Iterator<Stage> iterator = commit.iterator();
-            while (iterator.hasNext()) {
-                Stage stage = iterator.next();
-                stage.setStageSet(stageSet.getId().v());
-//                if (!stage.getIsDirectory()) {
-//                    if (stage.getDeleted())
-//                        stage.setSynced(true);
-//                    else
-//                        stage.setSynced(false);
-//                }
-                // set "new" parent id
-                if (stage.getParentId() != null && oldStageIdStageIdMap.containsKey(stage.getParentId())) {
-                    stage.setParentId(oldStageIdStageIdMap.get(stage.getParentId()));
-                }
-                Long oldId = stage.getId();
-                stageDao.insert(stage);
-                oldStageIdStageIdMap.put(oldId, stage.getId());
-            }
-            commit.cleanUp();
-            //TODO check goes here
-
-            //map old stage ids with new fs ids
-            //fsDao.lockWrite();
-            Long oldVersion = fsDao.getLatestVersion();
-            Map<Long, Long> stageIdFsIdMap = new HashMap<>();
-            try {
-                this.commitStage(stageSet.getId().v(), transaction, stageIdFsIdMap);
-            } catch (OutOfSpaceException e) {
-                e.printStackTrace();
-                request.reject(e);
-                return;
-            }
-            Map<Long, Long> newIdMap = new HashMap<>();
-            for (Long oldeStageId : oldStageIdStageIdMap.keySet()) {
-                Long newFsId = stageIdFsIdMap.get(oldStageIdStageIdMap.get(oldeStageId));
-                if (newFsId != null) {
-                    newIdMap.put(oldeStageId, newFsId);
-                }
-            }
-            CommitAnswer answer = new CommitAnswer().setStageIdFsIdMap(newIdMap);
-            request.resolve(answer);
-            // TODO setup transfers
-            List<GenericFSEntry> delta = fsDao.getDelta(oldVersion);
-            for (GenericFSEntry genericFSEntry : delta) {
-                if (!genericFSEntry.getIsDirectory().v() && !genericFSEntry.isSymlink()) {
-                    DbTransferDetails details = new DbTransferDetails();
-                    details.getCertId().v(request.getPartnerCertificate().getId().v());
-                    details.getHash().v(genericFSEntry.getContentHash().v());
-                    details.getSize().v(genericFSEntry.getSize().v());
-                    details.getServiceUuid().v(commit.getServiceUuid());
-                    details.getAvailable().v(true);// client must have that file
-                    //insert fails if there already is a transfer with that hash
-                    N.r(() -> transferManager.createTransfer(details));
-                }
-            }
+            executeCommit(request, commit, transaction);
         } finally {
             transaction.end();
         }

@@ -1,7 +1,6 @@
 package de.mein.drive.gui;
 
 import de.mein.MeinRunnable;
-import de.mein.auth.data.EmptyPayload;
 import de.mein.auth.data.NetworkEnvironment;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.ServiceJoinServiceType;
@@ -9,11 +8,9 @@ import de.mein.auth.file.AFile;
 import de.mein.auth.gui.EmbeddedServiceSettingsFX;
 import de.mein.auth.gui.XCBFix;
 import de.mein.auth.service.MeinAuthAdminFX;
-import de.mein.auth.socket.MeinValidationProcess;
-import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootloader;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.bash.BashToolsUnix;
 import de.mein.drive.data.DriveDetails;
@@ -22,7 +19,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
-import org.jdeferred.Promise;
 
 import java.io.File;
 
@@ -43,7 +39,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     @FXML
     private TextField txtName, txtPath;
 
-    private DriveCreateController driveCreateController;
+    private DriveCreateServiceHelper driveCreateServiceHelper;
     private MeinAuthAdminFX meinAuthAdminFX;
 
     private void checkShare() {
@@ -119,11 +115,11 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             final String path = txtPath.getText();
             final boolean useSymLinks = !cbIgnoreSymLinks.isSelected();
             if (isServer)
-                driveCreateController.createDriveServerService(name, AFile.instance(path), 0.1f, 30, useSymLinks);
+                driveCreateServiceHelper.createDriveServerService(name, AFile.instance(path), 0.1f, 30, useSymLinks);
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                driveCreateController.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
+                driveCreateServiceHelper.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
             }
             return true;
         }, false);
@@ -162,7 +158,7 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
 
     @Override
     public void init() {
-        driveCreateController = new DriveCreateController(meinAuthService);
+        driveCreateServiceHelper = new DriveCreateServiceHelper(meinAuthService);
         btnPath.setOnAction(event -> {
             shareWasChecked = false;
             DirectoryChooser directoryChooser = new DirectoryChooser();

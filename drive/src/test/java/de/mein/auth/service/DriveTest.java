@@ -18,13 +18,12 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.MeinValidationProcess;
-import de.mein.auth.tools.Eva;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.sql.Hash;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
@@ -504,7 +503,7 @@ public class DriveTest {
         final MeinAuthService[] mas = new MeinAuthService[1];
         promise.done(result -> N.r(() -> {
             mas[0] = result;
-            Promise<MeinDriveServerService, Exception, Void> driveBootedPromise = new DriveCreateController(result)
+            Promise<MeinDriveServerService, Exception, Void> driveBootedPromise = new DriveCreateServiceHelper(result)
                     .createDriveServerServiceDeferred("server test", testdir1, 0.01f, 30);
             driveBootedPromise.done(result1 -> N.r(() -> {
                 result1.getIndexer().getIndexerStartedDeferred().done(result2 -> N.r(() -> {
@@ -800,7 +799,7 @@ public class DriveTest {
                 DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                     lock.lockWrite();
                 };
-                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, false);
+                new DriveCreateServiceHelper(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, false);
                 lock.lockWrite();
                 Lok.debug("DriveTest.startServer.booted");
             });
@@ -917,7 +916,7 @@ public class DriveTest {
                                                         .setTestdir2(testdir2);
                                                 clientDriveService.setSyncListener(clientSyncListener);
                                             };
-                                            new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, false);
+                                            new DriveCreateServiceHelper(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, false);
                                         });
                                     }).start()
                             );
@@ -928,7 +927,7 @@ public class DriveTest {
                         });
                     });
                 });
-                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, false);
+                new DriveCreateServiceHelper(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, false);
             });
         });
         //lock.lockWrite();

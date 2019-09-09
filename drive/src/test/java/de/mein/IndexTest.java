@@ -1,8 +1,6 @@
 package de.mein;
 
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.data.db.Service;
-import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.service.Bootloader;
@@ -13,7 +11,7 @@ import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootloader;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -75,7 +73,7 @@ public class IndexTest {
                     mds.start();
                     mds.getStartedDeferred().done(result1 -> lock.unlock());
                 };
-                new DriveCreateController(mas).createDriveService(driveSettings,"server");
+                new DriveCreateServiceHelper(mas).createDriveService(driveSettings,"server");
                 lock.unlock();
                 //mas.registerMeinService(mds);
             }));

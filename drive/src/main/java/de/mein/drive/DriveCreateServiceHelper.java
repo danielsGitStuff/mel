@@ -5,7 +5,6 @@ import de.mein.auth.data.db.Service;
 import de.mein.auth.data.db.ServiceType;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.tools.N;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.drive.data.*;
@@ -21,26 +20,26 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 /**
+ * Creates settings files and database entries so that {@link DriveBootloader} can boot the service
  * Created by xor on 10/26/16.
  */
 @SuppressWarnings("Duplicates")
-public class DriveCreateController {
+public class DriveCreateServiceHelper {
     private final MeinAuthService meinAuthService;
-    private N runner = new N(Throwable::printStackTrace);
 
-    public DriveCreateController(MeinAuthService meinAuthService) {
+    public DriveCreateServiceHelper(MeinAuthService meinAuthService) {
         this.meinAuthService = meinAuthService;
     }
 
 
-    private Service createService(String name) throws SqlQueriesException {
+    private Service createDbService(String name) throws SqlQueriesException {
         ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeByName(new DriveBootloader().getName());
         Service service = meinAuthService.getDatabaseManager().createService(type.getId().v(), name);
         return service;
     }
 
     public void createDriveService(DriveSettings driveSettings, String name) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
-        Service service = createService(name);
+        Service service = createDbService(name);
         AFile transferDir = AFile.instance(driveSettings.getRootDirectory().getOriginalFile(), DriveStrings.TRANSFER_DIR);
         transferDir.mkdirs();
         driveSettings.setTransferDirectory(transferDir);

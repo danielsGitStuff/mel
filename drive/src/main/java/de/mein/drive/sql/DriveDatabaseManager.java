@@ -86,24 +86,9 @@ public class DriveDatabaseManager extends FileRelatedManager {
 
     public DriveDatabaseManager(MeinDriveService meinDriveService, File workingDirectory, DriveSettings driveSettings) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
         super(workingDirectory);
-
         this.meinDriveService = meinDriveService;
         this.driveSettings = driveSettings;
-//        this.dbConnection = sqlConnection; //sqlqueriesCreator.createConnection(this);//
-        //SQLConnector.createSqliteConnection(new File(createWorkingPath() + DriveStrings.DB_FILENAME));
-        //this.dbConnection = createSqliteConnection();
-        /**
-         * todo improve sqlite pragma suff
-         *  org.sqlite.SQLiteConfig config = new org.sqlite.SQLiteConfig();
-         config.enforceForeignKeys(true);
-         config.setSynchronous(SynchronousMode.OFF);
 
-         String url = "jdbc:sqlite:C:/temp/foo.db";
-
-
-         java.sql.Driver driver = (java.sql.Driver) Class.forName("org.sqlite.JDBC").newInstance();
-         java.sql.Connection conn = driver.connect(url, config.toProperties());
-         */
         sqlQueries = sqlqueriesCreator.createConnection(this, meinDriveService.getUuid());
         {
             Lok.error("synchronous PRAGMA is turned off!");

@@ -12,7 +12,6 @@ import java.io.File;
 
 import de.mein.R;
 import de.mein.android.MainActivity;
-import de.mein.android.MeinActivity;
 import de.mein.android.Notifier;
 import de.mein.android.Tools;
 import de.mein.android.controller.AndroidServiceGuiController;
@@ -26,7 +25,7 @@ import de.mein.auth.service.MeinAuthService;
 import de.mein.android.boot.AndroidBootLoader;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootloader;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.service.MeinDriveService;
@@ -51,17 +50,17 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
         RemoteDriveServiceChooserGuiController driveCreateGuiController = (RemoteDriveServiceChooserGuiController) currentController;
 
         // create the actual MeinDrive service
-        DriveCreateController driveCreateController = new DriveCreateController(meinAuthService);
+        DriveCreateServiceHelper driveCreateServiceHelper = new DriveCreateServiceHelper(meinAuthService);
         if (driveCreateGuiController.isValid())
             Threadder.runNoTryThread(() -> {
                 String name = driveCreateGuiController.getName();
                 AFile rootFile = driveCreateGuiController.getRootFile();
                 if (driveCreateGuiController.isServer()) {
-                    driveCreateController.createDriveServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
+                    driveCreateServiceHelper.createDriveServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                 } else {
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedService().getUuid().v();
-                    driveCreateController.createDriveClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
+                    driveCreateServiceHelper.createDriveClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                     //promise.done(meinDriveClientService -> N.r(() -> meinDriveClientService.syncThisClient()));
                 }
             });

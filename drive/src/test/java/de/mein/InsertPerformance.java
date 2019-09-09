@@ -13,7 +13,7 @@ import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRe
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
 import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.DriveBootloader;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.drive.service.MeinDriveServerService;
@@ -75,7 +75,7 @@ public class InsertPerformance {
         settings.setWorkingDirectory(new File(WORKING_DIR.getAbsolutePath()));
         meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
         meinBoot.boot().done(mas -> N.r(() -> {
-            DriveCreateController dcc = new DriveCreateController(mas);
+            DriveCreateServiceHelper dcc = new DriveCreateServiceHelper(mas);
             DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                 mds.v = (MeinDriveServerService) driveService;
                 lock.unlockWrite();
@@ -105,7 +105,7 @@ public class InsertPerformance {
         settings.setWorkingDirectory(new File(WORKING_DIR.getAbsolutePath()));
         meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
         meinBoot.boot().done(mas -> N.r(() -> {
-            DriveCreateController dcc = new DriveCreateController(mas);
+            DriveCreateServiceHelper dcc = new DriveCreateServiceHelper(mas);
             DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                 mds.v = (MeinDriveServerService) driveService;
                 lock.unlockWrite();

@@ -19,7 +19,7 @@ import de.mein.core.serialize.deserialize.collections.PrimitiveCollectionDeseria
 import de.mein.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
 import de.mein.drive.DriveBootloader;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
@@ -169,7 +169,7 @@ public class TransferTest {
                 SERVER_SERVICE_UUID = serverService.get().getUuid();
                 bootLock.unlock();
             };
-            DriveCreateController createController = new DriveCreateController(meinAuthService);
+            DriveCreateServiceHelper createController = new DriveCreateServiceHelper(meinAuthService);
             createController.createDriveServerService("server", root, .5f, 666, false);
         });
         bootLock.lock();
@@ -187,7 +187,7 @@ public class TransferTest {
                     clientService.set((MeinDriveClientService) driveService);
                     bootLock.unlock();
                 });
-                new DriveCreateController(meinAuthService).createDriveClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666, false);
+                new DriveCreateServiceHelper(meinAuthService).createDriveClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666, false);
             })
             ).start());
         });
