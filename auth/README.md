@@ -61,7 +61,7 @@ While some services are fully functional at this point, others might require the
 A Service might not be aware of all of its available resources before finishing level 2. Therefore asking for resources on level 1 might cause serious issues.
 For example: A File-Sync service cannot send a certain file if it has not indexed its directory and checked the required file actually exists.
 
-##The Boot procedure
+## The Boot procedure
 Everything starts with an instance of `MeinAuthSettings` and a list of `Bootloader` classes which are fed to and instance of `MeinBoot`.
 Calling `boot` on the `MeinBoot` instance returns a callback which lets you execute code once the system has started.
 The Auth-database is created (or loaded) which contains information about services which can be created and actual service instances.
