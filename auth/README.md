@@ -47,18 +47,18 @@ To prevent your phone to drain all of its battery because it is indexing and has
 I have decided that power management is something that we want. 
 As you have just read excessive indexing eats too much battery, especially if you just started the app.
 So the idea is:
-- do everything that can be done quickly on service boot level 1
+- do everything that can be done quickly on service boot level `SHORT`
   - this is executed by the BootLoader. Always!
 - check if PowerManager allows to use a lot of power now
   - this depends on whether your phone is plugged in or has WiFi
-  - if allowed: do long lasting work on service boot level 2
+  - if allowed: do long lasting work on service boot level `LONG`
   - if not: delay until power criteria are fulfilled
-- when all services reached level 1, MeinAuth starts its Sockets and the services can communicate.
+- when all services reached level `SHORT`, MeinAuth starts its Sockets and the services can communicate.
 
 ### Different boot levels
-Every service is reachable after they have finished boot level 1. 
+Every service is reachable after they have finished boot level `SHORT`. 
 While some services are fully functional at this point, others might require the second boot level to finish or can only fulfill a subset of all of their tasks.
-A Service might not be aware of all of its available resources before finishing level 2. Therefore asking for resources on level 1 might cause serious issues.
+A Service might not be aware of all of its available resources before finishing level `LONG`. Therefore asking for resources on level `SHORT` might cause serious issues.
 For example: A File-Sync service cannot send a certain file if it has not indexed its directory and checked the required file actually exists.
 
 ## The Boot procedure
@@ -67,10 +67,10 @@ Calling `boot` on the `MeinBoot` instance returns a callback which lets you exec
 The Auth-database is created (or loaded) which contains information about services which can be created and actual service instances.
 `MeinBoot` reads the database, finds the according `Bootloader` class. The `Bootloader` creates an instance of it and kindly asks it to boot the services.
 The `Bootloader` returns an instance of `MeinService` which runs the services logic. The `MeinService` instance is equipped with a `BootLevel`, which can be either `LONG` or `SHORT`.
-When all services have reached Bootlevel 1, MeinAuth can start to communicate.
+When all services have reached `BootLevel.SHORT`, MeinAuth can start to communicate.
 
 ### Booting a Service
 A custom Bootloader must extend `Bootloader`. `Foo` has to be known to the `MeinBoot` instance which boots up `MeinAuthService`
-It must implement `bootLevel1Impl` which returns an instance of the service. 
+It must implement `bootLevelShortImpl` which returns an instance of the service. 
 The bootloader has the `bootloaderDir` property which points to a folder that is unique for each `Bootloader`. 
 A custom bootloader can organise the files and databases of the various instances therein if necessary.

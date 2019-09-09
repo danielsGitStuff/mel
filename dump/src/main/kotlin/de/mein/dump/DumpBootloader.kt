@@ -22,7 +22,7 @@ import java.sql.SQLException
 class DumpBootloader : Bootloader<MeinService>() {
     private var dumpService: MeinService? = null
     private var dumpSettings: DumpSettings? = null
-    override fun bootLevel1Impl(meinAuthService: MeinAuthService, serviceDescription: Service): MeinService {
+    override fun bootLevelShortImpl(meinAuthService: MeinAuthService, serviceDescription: Service): MeinService {
         try {
             val jsonFile = File(bootLoaderDir.absolutePath + File.separator + serviceDescription.uuid.v().toString() + File.separator + DumpStrings.SETTINGS_FILE_NAME)
             dumpSettings = DumpSettings.load(jsonFile)

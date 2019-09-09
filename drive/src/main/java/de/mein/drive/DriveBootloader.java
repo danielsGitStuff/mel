@@ -60,7 +60,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
     }
 
     @Override
-    public MeinDriveService bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+    public MeinDriveService bootLevelShortImpl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         try {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + DriveStrings.SETTINGS_FILE_NAME);
             driveSettings = DriveSettings.load(jsonFile);
@@ -79,7 +79,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
     }
 
     @Override
-    public Promise<Void, BootException, Void> bootLevel2Impl() throws BootException {
+    public Promise<Void, BootException, Void> bootLevelLongImpl() throws BootException {
         try {
             Lok.debug(meinDriveService.getMeinAuthService().getName() + ", booting to level 2: " + meinDriveService.getClass().getSimpleName());
             DeferredObject<Void, BootException, Void> done = new DeferredObject<>();
