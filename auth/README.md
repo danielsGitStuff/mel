@@ -20,12 +20,12 @@ There also is syncThing which is python based (that means dependencies) but offe
 Plus I wanted the Android version to offer the same capabilities as the PC version.
 Plus I wanted the Android version to use the same code.
 So having in mind to get rid of all of that dependencies to have one clean single file that you can start and a simple android version of it, I stated this thing.
-
 ### Questions
 - have you written encryption code yourself?
   - Beware, no! 
   - Communication uses Javas HTTPSSocket implementation
   - Certificate generation is delegated to Bouncy Castle
+  
 # Offering Services within MeinAuth
 First things first: a service (subclasses MeinService) can offer some sort of resources over the MeinAuth framework.
 Features of a service:
@@ -60,5 +60,17 @@ Every service is reachable after they have finished boot level 1.
 While some services are fully functional at this point, others might require the second boot level to finish or can only fulfill a subset of all of their tasks.
 A Service might not be aware of all of its available resources before finishing level 2. Therefore asking for resources on level 1 might cause serious issues.
 For example: A File-Sync service cannot send a certain file if it has not indexed its directory and checked the required file actually exists.
+
+##The Boot procedure
+Everything starts with an instance of `MeinAuthSettings` and a list of `Bootloader` classes which are fed to and instance of `MeinBoot`.
+Calling `boot` on the `MeinBoot` instance returns a callback which lets you execute code once the system has started.
+The Auth-database is created (or loaded) which contains information about services which can be created and actual service instances.
+`MeinBoot` reads the database, finds the according `Bootloader` class. The `Bootloader` creates an instance of it and kindly asks it to boot the services.
+The `Bootloader` returns an instance of `MeinService` which runs the services logic. The `MeinService` instance is equipped with a `BootLevel`, which can be either `LONG` or `SHORT`.
+When all services have reached Bootlevel 1, MeinAuth can start to communicate.
+
 ### Booting a Service
-to be continued...
+A custom Bootloader must extend `Bootloader`. `Foo` has to be known to the `MeinBoot` instance which boots up `MeinAuthService`
+It must implement `bootLevel1Impl` which returns an instance of the service. 
+The bootloader has the `bootloaderDir` property which points to a folder that is unique for each `Bootloader`. 
+A custom bootloader can organise the files and databases of the various instances therein if necessary.

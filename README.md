@@ -58,7 +58,7 @@ You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.ht
 
 ## Dev stuff
 ### Modules
-- `app`: Android implementation of `auth`, `drive` and `contacts`
+- `app`: Android implementation of `auth`, `drive` and `contacts`. `dump` will follow
 - `auth`: handles pairing, key management, connections, sending/receiving data, service management
 - `authfx`: wraps `auth` into a GUI on PCs so you can click on things
 - `blog`: runs a web server with your blog. 
@@ -66,6 +66,8 @@ You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.ht
 - `contactsfx`: a bit of GUI
 - `drive`: file syncing, all the logical stuff
 - `drivefx`: adds GUI for creating/editing services and conflict solving
+- `dump`: file syncing, in one direction only
+- `dumpfx`: -not yet-
 - `fxbundle`: bundles `authfx`, `contactsfx` and `drivefx`
 - `icons`: icons 'stolen' from KDE Plasma 5 plus some own
 - `json`: json lib created by Douglas Crockford
@@ -73,7 +75,7 @@ You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.ht
 - `lok`: Tells you where the log message came from
 - `miniserver`: a small https server. because why not?
 - `serialize`: crafts lovely JSONs from you objects and vice versa
-- `serverparts`: part of `miniserver` that is required to run a server as a service in Mel
+- `serverparts`: part of `miniserver`/`blog` that is required to run a server as a service in Mel
 - `sql`: reads and writes objects to SQL databases
 
 
@@ -99,7 +101,7 @@ For example:
   - renaming a DocumentFile cannot handle `?` in the new name: it will escape to `_`
   - there is no creation time for files
 - databasing is different
-  - your API is similar to that of jdbc but different, so can manufacture an abstraction layer if you want your stuff to run with both
+  - your API is similar to that of jdbc but different, so your must manufacture an abstraction layer if you want your stuff to run with both
   - you only got a 4 data types: Long, Double, String, byte[]
   - database black hole: you can insert big things into a column but then cannot read it because "Row too big to fit into CursorWindow" (WTF??)
 - file modification data is limited to seconds not milliseconds
