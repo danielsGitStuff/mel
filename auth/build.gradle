@@ -27,6 +27,8 @@ apply plugin: 'kotlin'
 dependencies {
     //compile project(path: ':konsole')
     compile project(':lok')
+    compile project(':konsole')
+
     compile project(path: ':sql')
     compile project(path: ':serialize')
     testCompile project(path: ':sql')

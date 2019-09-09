@@ -1,4 +1,4 @@
-# MeinAuth
+# Mel.auth
 Note: words that do not start with a capital letter in English but are written with one refer to classes or interfaces
 ## What is it?
 MeinAuth is a framework which allows secure communication between multiple nodes on a network.

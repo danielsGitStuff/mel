@@ -1,4 +1,4 @@
-# Miniserver
+# Mel.miniserver
 This is a very simple web and build server for Mel running in the JVM. 
 ## Why?
 Security! Apache web servers and colleagues are very complex pieces of software. 
