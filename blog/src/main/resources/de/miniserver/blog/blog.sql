@@ -7,15 +7,3 @@ create table if not exists blogentry
     published integer not null default 0
 );
 create index ttime on blogentry (tstamp);
-drop table if exists visits;
-create table visits
-(
-    dayid  integer not null,
-    src    text    not null,
-    target text    not null,
-    visits integer not null default 1,
-    constraint pk primary key (dayid, src, target)
-);
-create index dd on visits (dayid);
-create index ddd on visits (src);
-create index dddd on visits (target);

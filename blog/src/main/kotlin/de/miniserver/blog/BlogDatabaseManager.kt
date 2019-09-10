@@ -2,6 +2,7 @@ package de.miniserver.blog
 
 import de.mein.auth.data.access.FileRelatedManager
 import de.mein.execute.SqliteExecutor
+import de.mein.serverparts.visits.VisitsDao
 import de.mein.sql.RWLock
 import de.mein.sql.SQLQueries
 import de.mein.sql.conn.SQLConnector
@@ -32,6 +33,7 @@ class BlogDatabaseManager(workingDirectory: File) : FileRelatedManager(workingDi
             dummyEntry.published.v(true)
             dummyEntry.timestamp.v(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
             blogDao.insert(dummyEntry)
+            visitsDao.createTable()
         }
     }
 
