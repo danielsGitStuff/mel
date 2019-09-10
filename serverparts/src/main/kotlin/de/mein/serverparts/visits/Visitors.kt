@@ -23,7 +23,7 @@ class Visitors(val dao: VisitsDao) {
     }
 
     companion object {
-        fun fromDbFile(file: File): Unit {
+        fun fromDbFile(file: File): Visitors {
             val sqlQueries = SQLQueries(SQLConnector.createSqliteConnection(file), true, RWLock(), SqlResultTransformer.sqliteResultSetTransformer())
             val dao = VisitsDao(sqlQueries)
 
@@ -31,6 +31,7 @@ class Visitors(val dao: VisitsDao) {
             if (!sqliteExecutor.checkTablesExist("blogentry", "visits")) {
                 dao.createTable()
             }
+            return Visitors(dao)
         }
     }
 

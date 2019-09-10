@@ -92,7 +92,7 @@ constructor(val config: ServerConfig) {
             secretProperties["keyAlias"] = "build key name goes here"
             secretProperties["storeFile"] = "path to the jks store used for signing your apk"
             secretProperties["restartCommand"] = "command that restarts the miniserver application. see readme for more information"
-            val comments = "this is a generated example. please change to values to make your setup secure.\n" +
+            val comments = "this is a generated example. please change the values to make your setup secure.\n" +
                     ""
             secretProperties.store(secretPropFile.bufferedWriter(), comments)
             error("secret properties file not found at: ${secretPropFile.absolutePath}.\n" +

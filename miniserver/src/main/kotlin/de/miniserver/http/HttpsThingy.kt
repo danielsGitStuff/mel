@@ -6,6 +6,7 @@ import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer
 import de.mein.serverparts.AbstractHttpsThingy
 import de.mein.serverparts.Page
 import de.mein.serverparts.Replacer
+import de.mein.serverparts.visits.Visitors
 import de.miniserver.Deploy
 import de.miniserver.MiniServer
 import de.miniserver.blog.BlogSettings
@@ -15,6 +16,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 object ContentType {
     const val SVG = "image/svg+xml"
@@ -24,11 +26,13 @@ object ContentType {
 
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port, miniServer.httpCertificateManager.sslContext) {
     var blogThingy: BlogThingy
+    var visitors: Visitors
 
     init {
         val blogDir = File(miniServer.workingDirectory, "blog")
         val blogSettings = BlogSettings.loadBlogSettings(blogDir)
         blogThingy = BlogThingy(blogSettings, miniServer.httpCertificateManager.sslContext)
+        visitors = Visitors.fromDbFile(File(miniServer.workingDirectory, "visitors.db"))
     }
 
     fun pageHello(): Page {
@@ -66,6 +70,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     override fun configureContext(server: HttpsServer) {
 
         createServerContext("/") {
+            visitors.count(it)
             respondPage(it, pageHello())
         }
         createServerContext("/licences.html") {
@@ -175,26 +180,29 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             val uri = it.requestURI
             val hash = uri.path.substring("/files/".length, uri.path.length)
             Lok.info("serving file: $hash")
-            try {
-                val bytes = miniServer.fileRepository[hash].bytes
-                with(it) {
-                    sendResponseHeaders(200, bytes!!.size.toLong())
-                    responseBody.write(bytes)
-                    responseBody.close()
+            visitors.count(it)
+            GlobalScope.launch {
+                try {
+                    val bytes = miniServer.fileRepository[hash].bytes
+                    with(it) {
+                        sendResponseHeaders(200, bytes!!.size.toLong())
+                        responseBody.write(bytes)
+                        responseBody.close()
+                    }
+                } catch (e: Exception) {
+                    Lok.error("did not find a file for ${hash}")
+                    /**
+                     * does not work yet
+                     */
+                    with(it) {
+                        val response = "file not found".toByteArray()
+                        sendResponseHeaders(404, response.size.toLong())
+                        responseBody.write(response)
+                        responseBody.close()
+                    }
+                } finally {
+                    it.close()
                 }
-            } catch (e: Exception) {
-                Lok.error("did not find a file for ${hash}")
-                /**
-                 * does not work yet
-                 */
-                with(it) {
-                    val response = "file not found".toByteArray()
-                    sendResponseHeaders(404, response.size.toLong())
-                    responseBody.write(response)
-                    responseBody.close()
-                }
-            } finally {
-                it.close()
             }
         }
         blogThingy.configureContext(server)
