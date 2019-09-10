@@ -7,6 +7,7 @@ import de.mein.auth.service.MeinAuthService
 import de.mein.core.serialize.exceptions.JsonDeserializationException
 import de.mein.core.serialize.exceptions.JsonSerializationException
 import de.mein.drive.data.DriveSettings
+import de.mein.drive.data.DriveStrings
 import de.mein.drive.data.fs.RootDirectory
 import de.mein.sql.SqlQueriesException
 import java.io.File
@@ -22,9 +23,9 @@ class DumpCreateServiceHelper(val meinAuthService: MeinAuthService) {
     }
 
     @Throws(SqlQueriesException::class, IllegalAccessException::class, JsonSerializationException::class, JsonDeserializationException::class, InstantiationException::class, SQLException::class, IOException::class, ClassNotFoundException::class)
-    fun createDumpService(dumpSettings: DumpSettings, name: String) {
+    fun createDumpService(dumpSettings: DriveSettings, name: String) {
         val service = createDbService(name)
-        val transferDir: AFile<*>? = AFile.instance(dumpSettings!!.rootDirectory.originalFile, DumpStrings.TRANSFER_DIR)
+        val transferDir: AFile<*>? = AFile.instance(dumpSettings!!.rootDirectory.originalFile, DriveStrings.TRANSFER_DIR)
         transferDir!!.mkdirs()
         dumpSettings.transferDirectory = transferDir
         val instanceWorkingDir = meinAuthService.meinBoot.createServiceInstanceWorkingDir(service)
@@ -38,8 +39,8 @@ class DumpCreateServiceHelper(val meinAuthService: MeinAuthService) {
     @Throws(SqlQueriesException::class, IllegalAccessException::class, JsonSerializationException::class, JsonDeserializationException::class, ClassNotFoundException::class, SQLException::class, InstantiationException::class, IOException::class, InterruptedException::class)
     fun createDumpSourceService(name: String, rootFile: AFile<*>, certId: Long, serviceUuid: String, wastebinRatio: Float, maxDays: Long, useSymLinks: Boolean) {
         val rootDirectory: RootDirectory? = DriveSettings.buildRootDirectory(rootFile)
-        val dumpSettings = DumpSettings().setRole(DumpStrings.ROLE_CLIENT).setRootDirectory(rootDirectory) as DumpSettings
-        dumpSettings!!.transferDirectory = AFile.instance(rootDirectory!!.originalFile, DumpStrings.TRANSFER_DIR)
+        val dumpSettings = DriveSettings().setRole(DriveStrings.ROLE_CLIENT).setRootDirectory(rootDirectory)
+        dumpSettings!!.transferDirectory = AFile.instance(rootDirectory!!.originalFile, DriveStrings.TRANSFER_DIR)
         dumpSettings.maxWastebinSize = (dumpSettings.rootDirectory.originalFile.usableSpace * wastebinRatio).toLong()
         dumpSettings.maxAge = maxDays
         dumpSettings.useSymLinks = useSymLinks
@@ -52,12 +53,12 @@ class DumpCreateServiceHelper(val meinAuthService: MeinAuthService) {
     @Throws(SqlQueriesException::class, IllegalAccessException::class, JsonSerializationException::class, JsonDeserializationException::class, InstantiationException::class, SQLException::class, IOException::class, ClassNotFoundException::class)
     fun createDumpTargetService(name: String, rootFile: AFile<*>, wastebinRatio: Float, maxDays: Long, useSymLinks: Boolean) {
         val rootDirectory: RootDirectory? = DriveSettings.buildRootDirectory(rootFile)
-        val driveSettings = DumpSettings()
-                .setRole(DumpStrings.ROLE_SERVER)
+        val driveSettings = DriveSettings()
+                .setRole(DriveStrings.ROLE_SERVER)
                 .setRootDirectory(rootDirectory)
                 .setMaxAge(maxDays)
-                .setUseSymLinks(useSymLinks) as DumpSettings
-        val transferDir: AFile<*>? = AFile.instance(rootDirectory!!.originalFile, DumpStrings.TRANSFER_DIR)
+                .setUseSymLinks(useSymLinks)
+        val transferDir: AFile<*>? = AFile.instance(rootDirectory!!.originalFile, DriveStrings.TRANSFER_DIR)
         transferDir!!.mkdirs()
         driveSettings!!.transferDirectory = transferDir
         driveSettings.maxWastebinSize = (driveSettings.rootDirectory.originalFile.usableSpace * wastebinRatio).toLong()

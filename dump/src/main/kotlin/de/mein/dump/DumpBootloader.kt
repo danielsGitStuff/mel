@@ -12,6 +12,8 @@ import de.mein.auth.tools.N
 import de.mein.core.serialize.exceptions.JsonDeserializationException
 import de.mein.core.serialize.exceptions.JsonSerializationException
 import de.mein.drive.data.DriveClientSettingsDetails
+import de.mein.drive.data.DriveSettings
+import de.mein.drive.data.DriveStrings
 import de.mein.drive.sql.DriveDatabaseManager
 import de.mein.sql.SqlQueriesException
 import org.jdeferred.Promise
@@ -21,11 +23,11 @@ import java.sql.SQLException
 
 class DumpBootloader : Bootloader<MeinService>() {
     private var dumpService: MeinService? = null
-    private var dumpSettings: DumpSettings? = null
+    private var dumpSettings: DriveSettings? = null
     override fun bootLevelShortImpl(meinAuthService: MeinAuthService, serviceDescription: Service): MeinService {
         try {
             val jsonFile = File(bootLoaderDir.absolutePath + File.separator + serviceDescription.uuid.v().toString() + File.separator + DumpStrings.SETTINGS_FILE_NAME)
-            dumpSettings = DumpSettings.load(jsonFile)
+            dumpSettings = DriveSettings.load(jsonFile)
             dumpService = spawn(meinAuthService, serviceDescription, dumpSettings!!)
             if (dumpService == null) {
                 Lok.error("Dump did not spawn!!!")
@@ -49,7 +51,7 @@ class DumpBootloader : Bootloader<MeinService>() {
     override fun getName(): String = DumpStrings.NAME
 
     override fun getDescription(): String {
-        return DumpStrings.DESCRTIPTION
+        return ""
     }
 
     /**
@@ -66,7 +68,7 @@ class DumpBootloader : Bootloader<MeinService>() {
      * @throws JsonSerializationException
      */
     @Throws(SqlQueriesException::class, SQLException::class, IOException::class, ClassNotFoundException::class, JsonDeserializationException::class, JsonSerializationException::class, IllegalAccessException::class)
-    private fun spawn(meinAuthService: MeinAuthService, service: Service, dumpSettings: DumpSettings): MeinService {
+    private fun spawn(meinAuthService: MeinAuthService, service: Service, dumpSettings: DriveSettings): MeinService {
         this.dumpSettings = dumpSettings
         val workingDirectory = File(bootLoaderDir, service.uuid.v())
         workingDirectory.mkdirs()
@@ -101,9 +103,9 @@ class DumpBootloader : Bootloader<MeinService>() {
 
             meinAuthService.databaseManager.grant(service.id.v(), certId)
             val connected: Promise<MeinValidationProcess, java.lang.Exception, Void> = meinAuthService.connect(certId)
-            val driveDetails: DumpDetails = DumpDetails().setRole(DumpStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.uuid.v())
+            val driveDetails: DumpDetails = DumpDetails().setRole(DriveStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.uuid.v())
                     .setUsesSymLinks(dumpSettings.useSymLinks) as DumpDetails
-            driveDetails.intent = DumpStrings.INTENT_REG_AS_CLIENT
+            driveDetails.intent = DriveStrings.INTENT_REG_AS_CLIENT
             connected.done { validationProcess: MeinValidationProcess ->
                 N.r {
                     validationProcess.request(serviceUuid, driveDetails).done { result: Any? ->
