@@ -8,7 +8,7 @@ class DumpSettings : JsonSettings() {
 
     }
 
-    var eleminateDoubleHashes: Boolean? = false
+    var eliminateDoubleHashes: Boolean? = false
 
     companion object {
         fun load(jsonFile: File): DumpSettings {

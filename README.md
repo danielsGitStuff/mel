@@ -36,23 +36,20 @@ To be more precise: it will run without a GUI but you won't be able to pair or h
 </sub>
 
 ## Privacy & Security
-Though Mel only communicates via Wifi or ethernet it still does not trust your network and therefore encrypts pretty much everything.
-Because you still may have Alexa around who always listens carefully or use public wifi.
+Though Mel only communicates via Wifi or ethernet it still does not trust your network and therefore encrypts pretty much everything, because you still may have Alexa around who always listens carefully or use a public wifi.
 But because writing your own crypto often goes horribly wrong Mel makes use of Javas SSL implementation.
 That still requires creating public and private keys where also tons of thing may go wrong, right?
-For this very reason [Bouncy Castle](https://www.bouncycastle.org/java.html) is employed. BC is quite old and made by prople who know their stuff.
+For this very reason [Bouncy Castle](https://www.bouncycastle.org/java.html) is employed. BC is quite old and made by people who know their stuff.
 So no own crypto is used in this program.
 
 
 ## License
 Until I have chosen a proper license (BSD/GNU/Apache...) neither republishing/altering the code nor the binaries is permitted.
-There are parts of this program which are made by others. These may alter or republish these files according to their respective licsenses.
+There are parts of this program which are made by others. You may alter or republish these files according to their respective licsenses.
 You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.html.
 
 ## Current issues
-- does not work on Windows (will be addressed)
 - does not work on MacOS (won't be addressed: too expensive, no FileWatcher)
-- Downloads may abort. Restarting fixes this (will be addressed)
 - File transfer over Wifi may be slow
 - Notifications are ugly on PC
 
@@ -102,12 +99,13 @@ For example:
   - there is no creation time for files
 - databasing is different
   - your API is similar to that of jdbc but different, so your must manufacture an abstraction layer if you want your stuff to run with both
-  - you only got a 4 data types: Long, Double, String, byte[]
+  - you only got 4 data types: Long, Double, String, byte[]
   - database black hole: you can insert big things into a column but then cannot read it because "Row too big to fit into CursorWindow" (WTF??)
 - file modification data is limited to seconds not milliseconds
 - different devices come with different command line tools though on the same Android version
+  - some programs like `find` may accept your parameters but silently ignore them: `mindepth` for example
 - your background service might get killed at any time
 
 In Java I only found one thing that is broken:
 the file watch service that watches folders for changes:
-It neither delivers complete nor correct results on an Platform. All you can rely on is that something has happened.
+It neither delivers complete nor correct results on any Platform. All you can rely on is that something had happened.
