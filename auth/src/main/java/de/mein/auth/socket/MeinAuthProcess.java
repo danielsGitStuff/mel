@@ -171,7 +171,7 @@ public class MeinAuthProcess extends MeinProcess {
                 this.partnerCertificate = meinAuthSocket.getTrustedPartnerCertificate();
             N runner = new N(e -> {
                 e.printStackTrace();
-                job.getPromise().reject(e);
+                job.reject(e);
             });
             this.mySecret = CertificateManager.randomUUID().toString();
             byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
@@ -207,7 +207,7 @@ public class MeinAuthProcess extends MeinProcess {
                                         // done here, set up validationprocess
                                         Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
                                         // tell MAS we are connected & authenticated
-                                        job.getPromise().resolve(validationProcess);
+                                        job.resolve(validationProcess);
                                         //
                                         final Long[] actualRemoteCertId = new Long[1];
                                         runner.runTry(() -> {
@@ -216,7 +216,7 @@ public class MeinAuthProcess extends MeinProcess {
                                         });
                                     } else {
                                         Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v=" + meinAuthSocket.getV());
-                                        job.getPromise().resolve(validationProcess);
+                                        job.resolve(validationProcess);
                                         return;
                                     }
 
@@ -224,7 +224,7 @@ public class MeinAuthProcess extends MeinProcess {
                                 } else if (job instanceof IsolatedConnectJob) {
                                     IsolatedConnectJob isolatedConnectJob = (IsolatedConnectJob) job;
                                     if (partnerCertificate.getId().v() != job.getCertificateId()) {
-                                        job.getPromise().reject(new Exception("not the partner I expected"));
+                                        job.reject(new Exception("not the partner I expected"));
                                     } else {
                                         Lok.debug("MeinAuthProcess.authenticate465");
                                         IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(isolatedConnectJob.getOwnServiceUuid());
@@ -234,8 +234,8 @@ public class MeinAuthProcess extends MeinProcess {
                                         isolated.done(nil -> {
                                             service.onIsolatedConnectionEstablished(meinIsolatedProcess);
                                             meinIsolatedProcess.setService(service);
-                                            job.getPromise().resolve(meinIsolatedProcess);
-                                        }).fail(excc -> job.getPromise().reject(excc));
+                                            job.resolve(meinIsolatedProcess);
+                                        }).fail(excc -> job.reject(excc));
                                     }
                                 }
 
@@ -247,13 +247,13 @@ public class MeinAuthProcess extends MeinProcess {
                     //error stuff
                     Lok.debug("MeinAuthProcess.authenticate.error.decrypted.secret: " + r.getDecryptedSecret());
                     Lok.debug("MeinAuthProcess.authenticate.error.should.be: " + mySecret);
-                    job.getPromise().reject(new Exception("find aok39ka"));
+                    job.reject(new Exception("find aok39ka"));
                 }
             });
             send(request);
         } catch (Exception e) {
             Lok.error("Exception occured: " + e.toString() + " v=" + meinAuthSocket.getV());
-            job.getPromise().reject(e);
+            job.reject(e);
         }
     }
 

@@ -80,7 +80,7 @@ public class InsertPerformance {
                 mds.v = (MeinDriveServerService) driveService;
                 lock.unlockWrite();
             };
-            dcc.createDriveServerService("test", ROOT_DIR, .5f, 300, false);
+            dcc.createServerService("test", ROOT_DIR, .5f, 300, false);
         }));
         lock.lockWrite();
         stageDao = mds.v.getDriveDatabaseManager().getStageDao();
@@ -110,7 +110,7 @@ public class InsertPerformance {
                 mds.v = (MeinDriveServerService) driveService;
                 lock.unlockWrite();
             };
-            dcc.createDriveServerService("test", ROOT_DIR, .5f, 300, false);
+            dcc.createServerService("test", ROOT_DIR, .5f, 300, false);
         }));
         lock.lockWrite();
         stageDao = mds.v.getDriveDatabaseManager().getStageDao();

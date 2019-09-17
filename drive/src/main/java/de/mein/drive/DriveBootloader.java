@@ -145,8 +145,7 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
         driveSettings.save();
         Long serviceTypeId = service.getTypeId().v();
         String uuid = service.getUuid().v();
-        MeinDriveService meinDriveService = (driveSettings.isServer()) ?
-                new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
+        MeinDriveService meinDriveService = createInstance(driveSettings, workingDirectory, serviceTypeId, uuid);
         //exec
         meinAuthService.execute(meinDriveService);
         File workingDir = new File(bootLoaderDir, meinDriveService.getUuid());
@@ -188,6 +187,12 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
                 }));
                 lock.lock();
             });
+        return meinDriveService;
+    }
+
+    protected MeinDriveService createInstance(DriveSettings driveSettings, File workingDirectory, Long serviceTypeId, String uuid) {
+        MeinDriveService meinDriveService = (driveSettings.isServer()) ?
+                new MeinDriveServerService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings) : new MeinDriveClientService(meinAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
         return meinDriveService;
     }
 

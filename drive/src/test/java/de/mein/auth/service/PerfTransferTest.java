@@ -162,7 +162,7 @@ public class PerfTransferTest {
         Promise<PerfTransferTest, Void, Void> promise = create();
         promise.done(test -> N.r(() -> {
             DriveCreateServiceHelper createController = new DriveCreateServiceHelper(test.mas);
-            createController.createDriveServerService("server", AFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30, false);
+            createController.createServerService("server", AFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30, false);
             Lok.debug("PerfTransferTest.startSource.done");
         }));
         lock.lockWrite().lockWrite();
@@ -187,7 +187,7 @@ public class PerfTransferTest {
                             DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                                 Lok.debug("PerfTransferTest.startTarget.done");
                             };
-                            createController.createDriveClientService("client", AFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30, false);
+                            createController.createClientService("client", AFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30, false);
                         }
                     });
                 });

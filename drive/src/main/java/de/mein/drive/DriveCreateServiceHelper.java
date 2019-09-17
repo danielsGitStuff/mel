@@ -32,13 +32,13 @@ public class DriveCreateServiceHelper {
     }
 
 
-    private Service createDbService(String name) throws SqlQueriesException {
+    protected Service createDbService(String name) throws SqlQueriesException {
         ServiceType type = meinAuthService.getDatabaseManager().getServiceTypeByName(new DriveBootloader().getName());
         Service service = meinAuthService.getDatabaseManager().createService(type.getId().v(), name);
         return service;
     }
 
-    public void createDriveService(DriveSettings driveSettings, String name) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+    public void createService(DriveSettings driveSettings, String name) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         Service service = createDbService(name);
         AFile transferDir = AFile.instance(driveSettings.getRootDirectory().getOriginalFile(), DriveStrings.TRANSFER_DIR);
         transferDir.mkdirs();
@@ -51,7 +51,7 @@ public class DriveCreateServiceHelper {
         meinAuthService.getMeinBoot().bootServices();
     }
 
-    public void createDriveServerService(String name, AFile rootFile, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+    public void createServerService(String name, AFile rootFile, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         RootDirectory rootDirectory = DriveSettings.buildRootDirectory(rootFile);
         de.mein.drive.data.DriveSettings driveSettings = new de.mein.drive.data.DriveSettings()
                 .setRole(DriveStrings.ROLE_SERVER)
@@ -62,7 +62,7 @@ public class DriveCreateServiceHelper {
         transferDir.mkdirs();
         driveSettings.setTransferDirectory(transferDir);
         driveSettings.setMaxWastebinSize((long) (driveSettings.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
-        createDriveService(driveSettings, name);
+        createService(driveSettings, name);
     }
 
     public Promise<MeinDriveServerService, Exception, Void> createDriveServerServiceDeferred(String name, AFile rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
@@ -71,7 +71,7 @@ public class DriveCreateServiceHelper {
         return deferred;
     }
 
-    public void createDriveClientService(String name, AFile rootFile, Long certId, String serviceUuid, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
+    public void createClientService(String name, AFile rootFile, Long certId, String serviceUuid, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
 //        //create Service
         RootDirectory rootDirectory = DriveSettings.buildRootDirectory(rootFile);
         de.mein.drive.data.DriveSettings driveSettingsCfg = new de.mein.drive.data.DriveSettings().setRole(DriveStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
@@ -82,7 +82,7 @@ public class DriveCreateServiceHelper {
         driveSettingsCfg.getClientSettings().setInitFinished(false);
         driveSettingsCfg.getClientSettings().setServerCertId(certId);
         driveSettingsCfg.getClientSettings().setServerServiceUuid(serviceUuid);
-        createDriveService(driveSettingsCfg, name);
+        createService(driveSettingsCfg, name);
     }
 
 }

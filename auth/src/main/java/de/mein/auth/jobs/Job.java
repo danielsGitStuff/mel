@@ -8,17 +8,7 @@ import org.jdeferred.impl.DeferredObject;
 /**
  * When a message/request requires (probably long) work to do you may use Jobs so the Socket thread does not block for all that time.
  */
-public abstract class Job<R,F,P> {
-    private DeferredObject<R, F, Void> promise = new DeferredObject<>();
-
-    public DeferredObject<R, F, Void> getPromise() {
-        return promise;
-    }
-
-    public Job setPromise(DeferredObject<R, F, Void> promise) {
-        this.promise = promise;
-        return this;
-    }
+public abstract class Job<R,F,P> extends DeferredObject<R,F,Void>{
 
     private static class Base extends Job{
         protected Certificate partnerCertificate;

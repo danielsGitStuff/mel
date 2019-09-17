@@ -309,7 +309,7 @@ public class MeinAuthService {
             portCert = certificate.getCertDeliveryPort().v();
         IsolatedConnectJob<T> job = new IsolatedConnectJob<>(certId, address, port, portCert, remoteServiceUuid, ownServiceUuid, isolatedServiceClass);
         execute(new ConnectWorker(this, job));
-        return job.getPromise();
+        return job;
     }
 
     public synchronized Promise<MeinValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {

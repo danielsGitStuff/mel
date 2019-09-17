@@ -91,8 +91,10 @@ class MeinBoot(private val meinAuthSettings: MeinAuthSettings, private val power
         if (meinAuthService!!.powerManager.heavyWorkAllowed()) {
             outstandingBootloaders.forEach { bootloader ->
                 try {
-                    bootloader.bootLevelLong()
-                            .fail({ handleBootError(bootloader, it) })
+                        bootloader.bootLevelLong()
+                            .fail {
+                                handleBootError(bootloader, it)
+                            }
                 } catch (e: BootException) {
                     handleBootError(bootloader, e)
                 }

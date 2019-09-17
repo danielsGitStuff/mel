@@ -56,11 +56,11 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
                 String name = driveCreateGuiController.getName();
                 AFile rootFile = driveCreateGuiController.getRootFile();
                 if (driveCreateGuiController.isServer()) {
-                    driveCreateServiceHelper.createDriveServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
+                    driveCreateServiceHelper.createServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                 } else {
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedService().getUuid().v();
-                    driveCreateServiceHelper.createDriveClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
+                    driveCreateServiceHelper.createClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                     //promise.done(meinDriveClientService -> N.r(() -> meinDriveClientService.syncThisClient()));
                 }
             });
