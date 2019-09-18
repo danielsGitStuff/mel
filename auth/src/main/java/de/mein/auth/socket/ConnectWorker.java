@@ -154,7 +154,7 @@ public class ConnectWorker extends MeinWorker {
                                         result.resolve(result1);
                                         shutDown();
                                     }).fail(result1 -> {
-                                        result.resolve(result1);
+                                        result.reject(result1);
                                         shutDown();
                                     });
                                     this.addJob(secondJob);

@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir "${project(':drive').projectDir}/src/main/resources"
+        }
+    }
+}
+dependencies {
+    compile project(path: ':drive')
+    testCompile project(path: ':drive',configuration :'driveTestOutput')
+    testCompile 'junit:junit:4.12'
+}
