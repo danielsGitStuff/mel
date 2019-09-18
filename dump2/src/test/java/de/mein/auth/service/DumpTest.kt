@@ -10,6 +10,8 @@ import de.mein.auth.service.power.PowerManager
 import de.mein.auth.socket.process.reg.IRegisterHandler
 import de.mein.auth.socket.process.reg.IRegisterHandlerListener
 import de.mein.auth.socket.process.reg.IRegisteredHandler
+import de.mein.auth.tools.N
+import de.mein.drive.DriveBootloader
 import de.mein.drive.bash.BashTools
 import de.mein.drive.data.DriveSettings
 import de.mein.drive.data.fs.RootDirectory
@@ -20,6 +22,7 @@ import org.junit.Before
 
 import org.junit.Test
 import java.io.File
+import kotlin.concurrent.thread
 
 class DumpTest {
 
@@ -56,21 +59,35 @@ class DumpTest {
             val help1 = DumpCreateServiceHelper(mas1)
             mas1.addRegisterHandler(createRegisterHandler())
             mas1.addRegisteredHandler(createRegisteredHandler())
+
+            DriveBootloader.DEV_DRIVE_BOOT_LISTENER = DriveBootloader.DEV_DriveBootListener {
+                N.r {
+                    val targetUUID = mas1.databaseManager.allServices.first().uuid.v()
+
+                    mb2!!.boot().done { mas2: MeinAuthService ->
+                        mas2.addRegisterHandler(createRegisterHandler())
+                        mas2.addRegisteredHandler { _, registered ->
+                            mas2.connect("localhost", s1!!.port, s1!!.deliveryPort, false).done { mvp ->
+                                Thread {
+                                    Lok.debug("ok23")
+                                    val help2 = DumpCreateServiceHelper(mas2)
+                                    help2.createClientService("source", rSource, 1L, targetUUID, 0.5f, 30, false)
+                                }.start()
+                            }.fail {
+                                Lok.error("FAIL")
+                            }
+                        }
+
+                        Lok.debug("con23")
+                        N.r { mas2.connect("localhost", s1!!.port, s1!!.deliveryPort, true) }
+
+                    }
+                }
+            }
+
             help1.createServerService("target service", rTarget, .5f, 30L, false)
 
-            val targetUUID = mas1.databaseManager.allServices.first().uuid.v()
 
-            mb2!!.boot().done { mas2: MeinAuthService ->
-                mas2.addRegisteredHandler(createRegisteredHandler())
-                mas2.addRegisterHandler(createRegisterHandler())
-
-                mas2.connect("localhost", s1!!.port, s1!!.deliveryPort, false).done {
-                    Lok.debug("ok23")
-                    val help2 = DumpCreateServiceHelper(mas2)
-                    help2.createClientService("source", rSource, 1L, targetUUID, 0.5f, 30, false)
-                }
-
-            }
         }
     }
 
