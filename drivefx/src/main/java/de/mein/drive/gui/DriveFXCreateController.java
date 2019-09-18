@@ -115,11 +115,11 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             final String path = txtPath.getText();
             final boolean useSymLinks = !cbIgnoreSymLinks.isSelected();
             if (isServer)
-                driveCreateServiceHelper.createDriveServerService(name, AFile.instance(path), 0.1f, 30, useSymLinks);
+                driveCreateServiceHelper.createServerService(name, AFile.instance(path), 0.1f, 30, useSymLinks);
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                driveCreateServiceHelper.createDriveClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
+                driveCreateServiceHelper.createClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
             }
             return true;
         }, false);

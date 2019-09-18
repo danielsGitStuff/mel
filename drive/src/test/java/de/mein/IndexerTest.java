@@ -61,7 +61,7 @@ public class IndexerTest {
                     .setTransferDirectory(AFile.instance(rootFile, "transfer"))
                     .setMaxWastebinSize(999999L)
                     .setFastBoot(true);
-            new DriveCreateServiceHelper(mas).createDriveService(driveSettings, "server");
+            new DriveCreateServiceHelper(mas).createService(driveSettings, "server");
             Thread.sleep(2000);
             mds = (MeinDriveServerService) mas.getMeinServices().iterator().next();
             bootLock.unlockWrite();

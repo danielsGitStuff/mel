@@ -73,7 +73,7 @@ public class IndexTest {
                     mds.start();
                     mds.getStartedDeferred().done(result1 -> lock.unlock());
                 };
-                new DriveCreateServiceHelper(mas).createDriveService(driveSettings,"server");
+                new DriveCreateServiceHelper(mas).createService(driveSettings,"server");
                 lock.unlock();
                 //mas.registerMeinService(mds);
             }));
