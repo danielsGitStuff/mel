@@ -1,225 +1,187 @@
-package de.mein.auth.socket;
+package de.mein.auth.socket
 
-import de.mein.Lok;
-import de.mein.auth.MeinStrings;
-import de.mein.auth.data.MeinRequest;
-import de.mein.auth.data.db.Certificate;
-import de.mein.auth.jobs.AConnectJob;
-import de.mein.auth.jobs.BlockReceivedJob;
-import de.mein.auth.jobs.ConnectJob;
-import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.process.imprt.MeinCertRetriever;
-import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
-import de.mein.auth.tools.N;
-import de.mein.core.serialize.SerializableEntity;
-import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.sql.Hash;
-import de.mein.sql.SqlQueriesException;
-
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.net.ssl.SSLSocket;
-
-import java.io.IOException;
-import java.net.*;
-import java.security.*;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-
+import de.mein.Lok
+import de.mein.auth.MeinStrings
+import de.mein.auth.data.MeinRequest
+import de.mein.auth.data.db.Certificate
+import de.mein.auth.jobs.AConnectJob
+import de.mein.auth.jobs.BlockReceivedJob
+import de.mein.auth.service.IncomingConnectionJob
+import de.mein.auth.service.MeinAuthService
+import de.mein.auth.socket.MeinSocket.MeinSocketListener
+import de.mein.auth.socket.process.transfer.MeinIsolatedProcess
+import de.mein.auth.tools.N.result
+import de.mein.core.serialize.SerializableEntity
+import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer
+import de.mein.sql.Hash
+import de.mein.sql.SqlQueriesException
+import java.io.IOException
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.security.KeyManagementException
+import java.security.KeyStoreException
+import java.security.NoSuchAlgorithmException
+import java.security.UnrecoverableKeyException
+import java.security.cert.CertificateEncodingException
+import java.util.*
+import javax.net.ssl.SSLSocket
 
 /**
  * Created by xor on 10.08.2016.
  */
-@SuppressWarnings("Duplicates")
-public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketListener {
+class MeinAuthSocket : MeinSocket, MeinSocketListener {
+    private lateinit var connectWorker: ConnectWorker
+    var process: MeinProcess? = null
+        protected set
+    var partnerCertificate: Certificate? = null
+        protected set
 
-    protected MeinProcess process;
-    protected Certificate partnerCertificate;
-    private AConnectJob connectJob;
 
-    public MeinAuthSocket(MeinAuthService meinAuthService) {
-        super(meinAuthService, null);
-        setListener(this);
+    constructor(meinAuthService: MeinAuthService, connectWorker: ConnectWorker) : super(meinAuthService, null) {
+        setListener(this)
+        this.connectWorker = connectWorker
     }
 
-    public MeinAuthSocket(MeinAuthService meinAuthService, Socket socket) {
-        super(meinAuthService, socket);
-        setListener(this);
+    constructor(meinAuthService: MeinAuthService, socket: Socket) : super(meinAuthService, socket) {
+        setListener(this)
+        connectWorker = ConnectWorker(meinAuthService, IncomingConnectionJob(this))
     }
 
-    public MeinAuthSocket(MeinAuthService meinAuthService, AConnectJob connectJob) {
-        super(meinAuthService, null);
-        this.connectJob = connectJob;
-        setListener(this);
+    val addressString: String
+        get() {
+            val port: Int = result {
+                if (connectJob == null) return@result socket.getLocalPort()
+                connectJob!!.port
+            }
+            return getAddressString(socket.getInetAddress(), port)
+        }
+
+    override fun allowIsolation(): MeinAuthSocket {
+        this.allowIsolation = true
+        return this
     }
 
-
-    public static String getAddressString(InetAddress address, int port) {
-        return address.getHostAddress() + ":" + port;
+    override fun onIsolated() {
+        (process as MeinIsolatedProcess?)!!.onIsolated()
     }
 
-
-    public AConnectJob getConnectJob() {
-        return connectJob;
-    }
-
-    public Certificate getPartnerCertificate() {
-        return partnerCertificate;
-    }
-
-    public String getAddressString() {
-        int port = N.result(() -> {
-            if (connectJob == null)
-                return socket.getLocalPort();
-            return connectJob.getPort();
-        });
-        return MeinAuthSocket.getAddressString(socket.getInetAddress(), port);
-    }
-
-    public MeinAuthSocket allowIsolation() {
-        this.allowIsolation = true;
-        return this;
-    }
-
-    @Override
-    public void onIsolated() {
-        ((MeinIsolatedProcess) process).onIsolated();
-    }
-
-    @Override
-    public void onMessage(MeinSocket meinSocket, String msg) {
+    override fun onMessage(meinSocket: MeinSocket, msg: String) {
         try {
-            meinAuthService.getPowerManager().wakeLock(this);
-            SerializableEntity deserialized = SerializableEntityDeserializer.deserialize(msg);
+            meinAuthService.powerManager.wakeLock(this)
+            val deserialized: SerializableEntity? = SerializableEntityDeserializer.deserialize(msg)
             if (process != null) {
-                process.onMessageReceived(deserialized, this);
-            } else if (deserialized instanceof MeinRequest) {
-                MeinRequest request = (MeinRequest) deserialized;
-                if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME) &&
-                        request.getIntent().equals(MeinStrings.msg.INTENT_REGISTER)) {
-                    MeinRegisterProcess meinRegisterProcess = new MeinRegisterProcess(this);
-                    process = meinRegisterProcess;
-                    meinRegisterProcess.onMessageReceived(deserialized, this);
-                } else if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME) &&
-                        request.getIntent().equals(MeinStrings.msg.INTENT_AUTH)) {
-                    MeinAuthProcess meinAuthProcess = new MeinAuthProcess(this);
-                    process = meinAuthProcess;
-                    meinAuthProcess.onMessageReceived(deserialized, this);
+                process!!.onMessageReceived(deserialized, this)
+            } else if (deserialized is MeinRequest) {
+                val request = deserialized
+                if (request.serviceUuid == MeinStrings.SERVICE_NAME && request.intent == MeinStrings.msg.INTENT_REGISTER) {
+                    val meinRegisterProcess = MeinRegisterProcess(this)
+                    process = meinRegisterProcess
+                    meinRegisterProcess.onMessageReceived(deserialized, this)
+                } else if (request.serviceUuid == MeinStrings.SERVICE_NAME && request.intent == MeinStrings.msg.INTENT_AUTH) {
+                    val meinAuthProcess = MeinAuthProcess(this)
+                    process = meinAuthProcess
+                    meinAuthProcess.onMessageReceived(deserialized, this)
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (e: Exception) {
+            e.printStackTrace()
         } finally {
-            meinAuthService.getPowerManager().releaseWakeLock(this);
-
+            meinAuthService.powerManager.releaseWakeLock(this)
         }
     }
 
-    @Override
-    public void onOpen() {
-
-    }
-
-    @Override
-    public void onError(Exception ex) {
-
-    }
-
-    @Override
-    public void onClose(int code, String reason, boolean remote) {
+    override fun onOpen() {}
+    override fun onError(ex: Exception) {}
+    override fun onClose(code: Int, reason: String, remote: Boolean) {
 //        Lok.debug(meinAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
-        if (process != null)
-            process.onSocketClosed(code, reason, remote);
-        meinAuthService.onSocketClosed(this);
+
+        if (process != null) process!!.onSocketClosed(code, reason, remote)
+        meinAuthService.onSocketClosed(this)
     }
 
-    @Override
-    public void onBlockReceived(BlockReceivedJob block) {
+    override fun onBlockReceived(block: BlockReceivedJob) {
         // this shall only work with isolated processes
-        ((MeinIsolatedProcess) process).onBlockReceived(block);
+
+        (process as MeinIsolatedProcess?)!!.onBlockReceived(block)
     }
 
-    void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
-        if (certId != null)
-            partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateById(certId);
-        Socket socket = meinAuthService.getCertificateManager().createSocket();
-        Lok.debug("MeinAuthSocket.connectSSL: " + address + ":" + port);
-        socket.connect(new InetSocketAddress(address, port));
+    @Throws(SqlQueriesException::class, UnrecoverableKeyException::class, NoSuchAlgorithmException::class, KeyStoreException::class, KeyManagementException::class, IOException::class)
+    internal fun connectSSL(certId: Long?, address: String, port: Int) {
+        if (certId != null) partnerCertificate = meinAuthService.certificateManager.getTrustedCertificateById(certId)
+        val socket: Socket = meinAuthService.certificateManager.createSocket()
+        Lok.debug("MeinAuthSocket.connectSSL: $address:$port")
+        socket.connect(InetSocketAddress(address, port))
         //stop();
-        setSocket(socket);
-        start();
+
+
+        setSocket(socket)
+        start()
     }
 
-    Certificate getTrustedPartnerCertificate() throws IOException, CertificateEncodingException, SqlQueriesException, ShamefulSelfConnectException {
-        if (partnerCertificate == null) {
-            SSLSocket sslSocket = (SSLSocket) socket;
-            java.security.cert.Certificate cert = sslSocket.getSession().getPeerCertificates()[0];
-            byte[] certBytes = cert.getEncoded();
-            String hash = Hash.sha256(certBytes);
-            partnerCertificate = meinAuthService.getCertificateManager().getTrustedCertificateByHash(hash);
+    @get:Throws(IOException::class, CertificateEncodingException::class, SqlQueriesException::class, ShamefulSelfConnectException::class)
+    internal val trustedPartnerCertificate: Certificate?
+        internal get() {
             if (partnerCertificate == null) {
-                if (Arrays.equals(meinAuthService.getCertificateManager().getPublicKey().getEncoded(), cert.getPublicKey().getEncoded())) {
-                    throw new ShamefulSelfConnectException();
+                val sslSocket = socket as SSLSocket
+                val cert: java.security.cert.Certificate = sslSocket.session.peerCertificates[0]
+                val certBytes: ByteArray? = cert.encoded
+                val hash: String? = Hash.sha256(certBytes)
+                partnerCertificate = meinAuthService.certificateManager.getTrustedCertificateByHash(hash)
+                if (partnerCertificate == null) {
+                    if (Arrays.equals(meinAuthService.certificateManager.publicKey.encoded, cert.publicKey.encoded)) {
+                        throw ShamefulSelfConnectException()
+                    }
                 }
             }
+            return partnerCertificate
         }
-        return partnerCertificate;
+
+    @Throws(IOException::class)
+    fun sendBlock(block: ByteArray) {
+        assert(block.size == BLOCK_SIZE)
+        out.write(block)
+        out.flush()
     }
 
-    public void sendBlock(byte[] block) throws IOException {
-        assert block.length == MeinSocket.BLOCK_SIZE;
-        out.write(block);
-        out.flush();
+    @Throws(IOException::class)
+    fun disconnect() {
+        socket.close()
     }
 
-    public void disconnect() throws IOException {
-        socket.close();
+    val isValidated: Boolean
+        get() = process != null && process is MeinValidationProcess
+
+    override fun onSocketClosed() {
+        meinAuthService.onSocketClosed(this)
     }
 
-    public boolean isValidated() {
-        return (process != null && process instanceof MeinValidationProcess);
+    internal fun setProcess(process: MeinProcess?): MeinAuthSocket {
+        this.process = process
+        return this
     }
 
-    @Override
-    protected void onSocketClosed() {
-        meinAuthService.onSocketClosed(this);
+    override fun onShutDown() {
+        super.onShutDown()
     }
 
-    public MeinProcess getProcess() {
-        return process;
+    override fun start() {
+        super.start()
     }
 
-    MeinAuthSocket setProcess(MeinProcess process) {
-        this.process = process;
-        return this;
+    override fun stop() {
+        super.stop()
     }
 
-    @Override
-    public void onShutDown() {
-        super.onShutDown();
-    }
+    //todo make package private
+    var socket: Socket
+        set(socket) {
+            super.socket = socket
+        }
 
-
-    @Override
-    public void start() {
-        super.start();
-    }
-
-    @Override
-    public void stop() {
-        super.stop();
-    }
-
-    public Socket getSocket() {
-        //todo make package private
-        return socket;
+    companion object {
+        fun getAddressString(address: InetAddress, port: Int): String {
+            return address.hostAddress + ":" + port
+        }
     }
 }

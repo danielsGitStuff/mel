@@ -1,198 +1,175 @@
-package de.mein.auth.service;
+package de.mein.auth.service
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
-
-import de.mein.Lok;
-import de.mein.auth.data.db.Certificate;
-import de.mein.auth.jobs.AConnectJob;
-import de.mein.auth.jobs.ConnectJob;
-import de.mein.auth.socket.ConnectWorker;
-import de.mein.auth.socket.MeinAuthSocket;
-import de.mein.auth.socket.MeinValidationProcess;
-import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
-import de.mein.auth.tools.N;
-import de.mein.auth.tools.lock.T;
-import de.mein.auth.tools.lock.Transaction;
-import de.mein.sql.SqlQueriesException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import de.mein.Lok
+import de.mein.auth.data.db.Certificate
+import de.mein.auth.jobs.AConnectJob
+import de.mein.auth.jobs.ConnectJob
+import de.mein.auth.socket.ConnectWorker
+import de.mein.auth.socket.MeinAuthSocket
+import de.mein.auth.socket.MeinValidationProcess
+import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess
+import de.mein.auth.tools.N.*
+import de.mein.auth.tools.lock.T
+import de.mein.auth.tools.lock.Transaction
+import de.mein.sql.SqlQueriesException
+import org.jdeferred.Promise
+import org.jdeferred.impl.DeferredObject
+import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Created by xor on 13.10.2016.
  */
-public class ConnectedEnvironment {
-    private Map<Long, MeinValidationProcess> idValidateProcessMap = new HashMap<>();
-    private Map<String, MeinValidationProcess> addressValidateProcessMap = new HashMap<>();
-    private Map<Long, MeinAuthSocket> currentlyConnectingCertIds = new HashMap<>();
-    private Map<String, MeinAuthSocket> currentlyConnectingAddresses = new HashMap<>();
-
-    private final MeinAuthService meinAuthService;
-
-    ConnectedEnvironment(MeinAuthService meinAuthService) {
-        this.meinAuthService = meinAuthService;
-    }
-
-
-    synchronized Promise<MeinValidationProcess, Exception, Void> connect(Certificate certificate) throws SqlQueriesException, InterruptedException {
-        Lok.debug("connect to cert: " + certificate.getId().v() + " , addr: " + certificate.getAddress().v());
-        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
-        long certificateId = certificate.getId().v();
+class ConnectedEnvironment internal constructor(private val meinAuthService: MeinAuthService) {
+    private val idValidateProcessMap: MutableMap<Long, MeinValidationProcess> = HashMap()
+    private val addressValidateProcessMap: MutableMap<String, MeinValidationProcess> = HashMap()
+    private val currentlyConnectingCertIds: MutableMap<Long, MeinAuthSocket> = HashMap()
+    private val currentlyConnectingAddresses: MutableMap<String, MeinAuthSocket> = HashMap()
+    @Synchronized
+    @Throws(SqlQueriesException::class, InterruptedException::class)
+    internal fun connect(certificate: Certificate): Promise<MeinValidationProcess?, Exception, Void> {
+        Lok.debug("connect to cert: " + certificate.id.v().toString() + " , addr: " + certificate.address.v())
+        val deferred = DeferredObject<MeinValidationProcess?, Exception, Void>()
+        val certificateId: Long = certificate.id.v()
         // check if already connected via id and address
-        Transaction transaction = null;
+
+
+        var transaction: Transaction<*>? = null
         try {
-            transaction = T.lockingTransaction(T.read(this));
-            MeinAuthSocket def = isCurrentlyConnecting(certificateId);
+            transaction = T.lockingTransaction(T.read(this))
+            val def = isCurrentlyConnecting(certificateId)
             if (def != null) {
-                return def.getConnectJob();
+                return def.connectJob
             }
-            {
-                MeinValidationProcess mvp = getValidationProcess(certificateId);
+            run {
+                var mvp: MeinValidationProcess? = getValidationProcess(certificateId)
                 if (mvp != null) {
-                    return deferred.resolve(mvp);
-                } else if ((mvp = getValidationProcess(certificate.getAddress().v(), certificate.getPort().v())) != null) {
-                    return deferred.resolve(mvp);
+                    return deferred.resolve(mvp)
+                } else if (getValidationProcess(certificate.address.v(), certificate.port.v()).also { mvp = it } != null) {
+                    return deferred.resolve(mvp)
                 }
             }
-            {
-                ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-                job.done(result -> {
+            run {
+                val job = ConnectJob(certificateId, certificate.address.v(), certificate.port.v(), certificate.certDeliveryPort.v(), false)
+                job.done { result: MeinValidationProcess ->
                     // use a new transaction, because we want connect in parallel.
                     T.lockingTransaction(this)
-                            .run(() -> {
-                                removeCurrentlyConnecting(certificateId);
-                                removeCurrentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v());
-                            })
-                            .end();
-                    deferred.resolve(result);
-                }).fail(result -> {
+                            .run {
+                                removeCurrentlyConnecting(certificateId)
+                                removeCurrentlyConnecting(certificate.address.v(), certificate.port.v(), certificate.certDeliveryPort.v())
+                            }
+                            .end()
+                    deferred.resolve(result)
+                }.fail { result: Exception ->
                     T.lockingTransaction(this)
-                            .run(() -> {
-                                removeCurrentlyConnecting(certificateId);
-                                removeCurrentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v());
-                            })
-                            .end();
-                    deferred.reject(result);
-                });
-                MeinAuthSocket meinAuthSocket = new MeinAuthSocket(meinAuthService, job);
-                currentlyConnecting(certificateId, meinAuthSocket);
-                currentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), meinAuthSocket);
-                meinAuthService.execute(new ConnectWorker(meinAuthService, job));
+                            .run {
+                                removeCurrentlyConnecting(certificateId)
+                                removeCurrentlyConnecting(certificate.address.v(), certificate.port.v(), certificate.certDeliveryPort.v())
+                            }
+                            .end()
+                    deferred.reject(result)
+                }
+                val meinAuthSocket = MeinAuthSocket(meinAuthService, job)
+                currentlyConnecting(certificateId, meinAuthSocket)
+                currentlyConnecting(certificate.address.v(), certificate.port.v(), certificate.certDeliveryPort.v(), meinAuthSocket)
+                meinAuthService.execute(ConnectWorker(meinAuthService, job))
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (e: Exception) {
+            e.printStackTrace()
         } finally {
-            if (transaction != null) {
-                transaction.end();
-            }
+            transaction?.end()
         }
-        return deferred;
+        return deferred
     }
 
-    private static AtomicInteger debug_count = new AtomicInteger(0);
-
-    Promise<MeinValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
-
-        DeferredObject<MeinValidationProcess, Exception, Void> deferred = new DeferredObject<>();
-        MeinValidationProcess mvp;
-        Transaction transaction = null;
+    @Throws(InterruptedException::class)
+    internal fun connect(address: String, port: Int, portCert: Int, regOnUnkown: Boolean): Promise<MeinValidationProcess, Exception, Void> {
+        val deferred = DeferredObject<MeinValidationProcess, Exception, Void>()
+        var mvp: MeinValidationProcess
+        var transaction: Transaction<*>? = null
         // there are two try catch blocks because the connection code might be interrupted and needs to end the transaction under any circumstances
-        try {
-            transaction = T.lockingTransaction(this);
-            Lok.debug("connect to: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
-            MeinAuthSocket def = isCurrentlyConnecting(address, port, portCert);
-            if (def != null) {
-                return def.getConnectJob();
-            }
-            if ((mvp = getValidationProcess(address, port)) != null) {
-                deferred.resolve(mvp);
-            } else {
-                ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
-                job.done(result -> {
-                    removeCurrentlyConnecting(address, port, portCert);
-                    registerValidationProcess(result);
-                    deferred.resolve(result);
-                }).fail(result -> {
-                    removeCurrentlyConnecting(address, port, portCert);
-                    deferred.reject(result);
-                });
-                MeinAuthSocket meinAuthSocket = new MeinAuthSocket(meinAuthService, job);
-                currentlyConnecting(address, port, portCert, meinAuthSocket);
 
-                meinAuthService.execute(new ConnectWorker(meinAuthService, meinAuthSocket));
+
+        try {
+            transaction = T.lockingTransaction(this)
+            Lok.debug("connect to: $address,$port,$portCert,reg=$regOnUnkown")
+            val def = isCurrentlyConnecting(address, port, portCert)
+            if (def != null) {
+                return def.connectJob
+            }
+            if (getValidationProcess(address, port).also { mvp = it } != null) {
+                deferred.resolve(mvp)
+            } else {
+                val job = ConnectJob(null, address, port, portCert, regOnUnkown)
+                job.done { result: MeinValidationProcess ->
+                    removeCurrentlyConnecting(address, port, portCert)
+                    registerValidationProcess(result)
+                    deferred.resolve(result)
+                }.fail { result: Exception ->
+                    removeCurrentlyConnecting(address, port, portCert)
+                    deferred.reject(result)
+                }
+                val meinAuthSocket = MeinAuthSocket(meinAuthService, job)
+                currentlyConnecting(address, port, portCert, meinAuthSocket)
+                meinAuthService.execute(ConnectWorker(meinAuthService, meinAuthSocket))
             }
         } finally {
-            transaction.end();
+            transaction!!.end()
         }
-        return deferred;
+        return deferred
     }
 
     /**
      * @param validationProcess
-     * @return true if {@link MeinValidationProcess} has been registered as the only one connected with its {@link Certificate}
+     * @return true if [MeinValidationProcess] has been registered as the only one connected with its [Certificate]
      */
-    boolean registerValidationProcess(MeinValidationProcess validationProcess) {
-        if (validationProcess.isClosed())
-            return false;
-        Transaction transaction = T.lockingTransaction(this);
+    internal fun registerValidationProcess(validationProcess: MeinValidationProcess): Boolean {
+        if (validationProcess.isClosed) return false
+        val transaction: Transaction<*> = T.lockingTransaction(this)
         try {
-            MeinValidationProcess existingProcess = idValidateProcessMap.get(validationProcess.getConnectedId());
+            val existingProcess = idValidateProcessMap[validationProcess.connectedId]
             if (existingProcess != null) {
-                if (existingProcess.isClosed())
-                    Lok.error("an old socket was closed and somehow was not thrown away!");
-                else
-                    Lok.error("an old socket is already present for id: " + validationProcess.getConnectedId());
-                return false;
+                if (existingProcess.isClosed) Lok.error("an old socket was closed and somehow was not thrown away!") else Lok.error("an old socket is already present for id: " + validationProcess.connectedId)
+                return false
             }
-            idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
-            addressValidateProcessMap.put(validationProcess.getAddressString(), validationProcess);
-            return true;
-        } catch (Exception e) {
-            return false;
+            idValidateProcessMap[validationProcess.connectedId] = validationProcess
+            addressValidateProcessMap[validationProcess.addressString] = validationProcess
+            return true
+        } catch (e: Exception) {
+            return false
         } finally {
-            transaction.end();
+            transaction.end()
         }
     }
 
-    public Collection<MeinValidationProcess> getValidationProcesses() {
-        return idValidateProcessMap.values();
+    val validationProcesses: Collection<MeinValidationProcess>?
+        get() = idValidateProcessMap.values
+
+    fun getValidationProcess(certificateId: Long): MeinValidationProcess {
+        return idValidateProcessMap[certificateId]!!
     }
 
-    public MeinValidationProcess getValidationProcess(Long certificateId) {
-        return idValidateProcessMap.get(certificateId);
+    fun getValidationProcess(address: String, port: Int): MeinValidationProcess {
+        val completeAddress = "$address:$port"
+        return addressValidateProcessMap[completeAddress]!!
     }
 
-    public MeinValidationProcess getValidationProcess(String address, int port) {
-        String completeAddress = address + ":" + port;
-        return addressValidateProcessMap.get(completeAddress);
-    }
+    val connectedIds: List<Long>
+        get() {
+            val result: MutableList<Long> = ArrayList()
+            for (mvp in idValidateProcessMap.values) result.add(mvp.connectedId)
+            return result
+        }
 
-    public List<Long> getConnectedIds() {
-        List<Long> result = new ArrayList<>();
-        for (MeinValidationProcess mvp : idValidateProcessMap.values())
-            result.add(mvp.getConnectedId());
-        return result;
-    }
-
-    public void removeValidationProcess(MeinAuthSocket meinAuthSocket) {
-        if (meinAuthSocket.getProcess() == null || !(meinAuthSocket.getProcess() instanceof MeinValidationProcess))
-            return;
-        MeinValidationProcess process = (MeinValidationProcess) meinAuthSocket.getProcess();
-        if (addressValidateProcessMap.get(process.getAddressString()) == process)
-            addressValidateProcessMap.remove(process.getAddressString());
-        if (idValidateProcessMap.get(process.getConnectedId()) == process)
-            idValidateProcessMap.remove(process.getConnectedId());
-        if (currentlyConnectingAddresses.containsKey(process.getAddressString())
-                && currentlyConnectingAddresses.get(process.getAddressString()) == meinAuthSocket)
-            currentlyConnectingAddresses.remove(meinAuthSocket);
-        if (currentlyConnectingCertIds.containsKey(process.getConnectedId())
-                && currentlyConnectingCertIds.get(meinAuthSocket) == meinAuthSocket)
-            currentlyConnectingCertIds.remove(process.getConnectedId());
+    fun removeValidationProcess(meinAuthSocket: MeinAuthSocket) {
+        if (meinAuthSocket.process == null || meinAuthSocket.process !is MeinValidationProcess) return
+        val process = meinAuthSocket.process as MeinValidationProcess
+        if (addressValidateProcessMap[process.addressString] === process) addressValidateProcessMap.remove(process.addressString)
+        if (idValidateProcessMap[process.connectedId] === process) idValidateProcessMap.remove(process.connectedId)
+        if (currentlyConnectingAddresses.containsKey(process.addressString)
+                && currentlyConnectingAddresses[process.addressString] === meinAuthSocket) currentlyConnectingAddresses.remove(meinAuthSocket)
+        if (currentlyConnectingCertIds.containsKey(process.connectedId)
+                && currentlyConnectingCertIds.get(meinAuthSocket) === meinAuthSocket) currentlyConnectingCertIds.remove(process.connectedId)
     }
 
     /**
@@ -201,12 +178,12 @@ public class ConnectedEnvironment {
      * @param certificateId
      * @return null if you don't
      */
-    public MeinAuthSocket isCurrentlyConnecting(Long certificateId) {
-        return currentlyConnectingCertIds.get(certificateId);
+    fun isCurrentlyConnecting(certificateId: Long): MeinAuthSocket {
+        return currentlyConnectingCertIds[certificateId]!!
     }
 
-    private String uniqueAddress(String address, int port, int portCert) {
-        return address + ";" + port + ";" + portCert;
+    private fun uniqueAddress(address: String, port: Int, portCert: Int): String {
+        return "$address;$port;$portCert"
     }
 
     /**
@@ -217,17 +194,17 @@ public class ConnectedEnvironment {
      * @param portCert
      * @return
      */
-    public MeinAuthSocket isCurrentlyConnecting(String address, int port, int portCert) {
-        String id = uniqueAddress(address, port, portCert);
-        return currentlyConnectingAddresses.get(id);
+    fun isCurrentlyConnecting(address: String, port: Int, portCert: Int): MeinAuthSocket {
+        val id = uniqueAddress(address, port, portCert)
+        return currentlyConnectingAddresses[id]!!
     }
 
-    public void removeCurrentlyConnecting(Long certificateId) {
-        currentlyConnectingCertIds.remove(certificateId);
+    fun removeCurrentlyConnecting(certificateId: Long) {
+        currentlyConnectingCertIds.remove(certificateId)
     }
 
-    public void removeCurrentlyConnecting(String address, int port, int portCert) {
-        currentlyConnectingAddresses.remove(uniqueAddress(address, port, portCert));
+    fun removeCurrentlyConnecting(address: String, port: Int, portCert: Int) {
+        currentlyConnectingAddresses.remove(uniqueAddress(address, port, portCert))
     }
 
     /**
@@ -236,8 +213,8 @@ public class ConnectedEnvironment {
      * @param certificateId
      * @param meinAuthSocket
      */
-    public void currentlyConnecting(Long certificateId, MeinAuthSocket meinAuthSocket) {
-        currentlyConnectingCertIds.put(certificateId, meinAuthSocket);
+    fun currentlyConnecting(certificateId: Long, meinAuthSocket: MeinAuthSocket) {
+        currentlyConnectingCertIds[certificateId] = meinAuthSocket
     }
 
     /**
@@ -248,55 +225,51 @@ public class ConnectedEnvironment {
      * @param portCert
      * @return
      */
-    private void currentlyConnecting(String address, int port, int portCert, MeinAuthSocket meinAuthSocket) {
-        currentlyConnectingAddresses.put(uniqueAddress(address, port, portCert), meinAuthSocket);
+    private fun currentlyConnecting(address: String, port: Int, portCert: Int, meinAuthSocket: MeinAuthSocket) {
+        currentlyConnectingAddresses[uniqueAddress(address, port, portCert)] = meinAuthSocket
     }
 
-    public void shutDown() {
-        Lok.debug("attempting shutdown");
-        Transaction transaction = T.lockingTransaction(this);
-        N.forEachAdvIgnorantly(currentlyConnectingAddresses, (stoppable, index, s, meinAuthSocket) -> {
-            if (meinAuthSocket.getConnectJob() != null)
-                meinAuthSocket.getConnectJob().reject(new Exception("shutting down"));
-        });
-        N.forEachAdvIgnorantly(currentlyConnectingCertIds, (stoppable, index, aLong, meinAuthSocket) -> {
-            if (meinAuthSocket.getConnectJob() != null)
-                meinAuthSocket.getConnectJob().reject(new Exception("shutting down"));
-        });
-        currentlyConnectingAddresses.clear();
-        currentlyConnectingCertIds.clear();
-        transaction.end();
-        Lok.debug("success");
+    fun shutDown() {
+        Lok.debug("attempting shutdown")
+        val transaction: Transaction<*> = T.lockingTransaction(this)
+        forEachAdvIgnorantly(currentlyConnectingAddresses) { stoppable: Stoppable?, index: Int?, s: String, meinAuthSocket: MeinAuthSocket -> if (meinAuthSocket.connectJob != null) meinAuthSocket.connectJob.reject(Exception("shutting down")) }
+        forEachAdvIgnorantly(currentlyConnectingCertIds) { stoppable: Stoppable?, index: Int?, aLong: Long, meinAuthSocket: MeinAuthSocket -> if (meinAuthSocket.connectJob != null) meinAuthSocket.connectJob.reject(Exception("shutting down")) }
+        currentlyConnectingAddresses.clear()
+        currentlyConnectingCertIds.clear()
+        transaction.end()
+        Lok.debug("success")
     }
 
-    public void onSocketClosed(MeinAuthSocket meinAuthSocket) {
-        Transaction transaction = null;
+    fun onSocketClosed(meinAuthSocket: MeinAuthSocket) {
+        var transaction: Transaction<*>? = null
         try {
-            transaction = T.lockingTransaction(this);
-            // find the socket in the connected environment and remove it
-            AConnectJob connectJob = meinAuthSocket.getConnectJob();
-            if (meinAuthSocket.isValidated() && meinAuthSocket.getProcess() instanceof MeinValidationProcess) {
-                removeValidationProcess(meinAuthSocket);
-            } else if (meinAuthSocket.getProcess() instanceof MeinIsolatedFileProcess) {
-                Lok.debug("continue here");
+            transaction = T.lockingTransaction(this)
+// find the socket in the connected environment and remove it
+            val connectJob: AConnectJob<*, *>? = meinAuthSocket.connectJob
+            if (meinAuthSocket.isValidated && meinAuthSocket.process is MeinValidationProcess) {
+                removeValidationProcess(meinAuthSocket)
+            } else if (meinAuthSocket.process is MeinIsolatedFileProcess) {
+                Lok.debug("continue here")
             } else if (connectJob != null) {
-                if (connectJob.getCertificateId() != null) {
-                    N.r(() -> removeCurrentlyConnecting(meinAuthSocket.getConnectJob().getCertificateId()));
-                } else if (connectJob.getAddress() != null) {
-                    N.r(() -> removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
+                if (connectJob.certificateId != null) {
+                    r { removeCurrentlyConnecting(meinAuthSocket.connectJob.certificateId) }
+                } else if (connectJob.address != null) {
+                    r { removeCurrentlyConnecting(connectJob.address, connectJob.port, connectJob.portCert) }
                 }
-                transaction.end();
-                N.oneLine(() -> {
-                    if (connectJob.isPending()) {
-                        connectJob.reject(new Exception("connection closed"));
+                transaction.end()
+                oneLine {
+                    if (connectJob.isPending) {
+                        connectJob.reject(Exception("connection closed"))
                     }
-                });
+                }
             }
         } finally {
-
-            if (transaction != null) {
-                transaction.end();
-            }
+            transaction?.end()
         }
     }
+
+    companion object {
+        private val debug_count = AtomicInteger(0)
+    }
+
 }

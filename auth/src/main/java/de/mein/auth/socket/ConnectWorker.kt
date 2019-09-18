@@ -1,96 +1,99 @@
-package de.mein.auth.socket;
+package de.mein.auth.socket
 
-import de.mein.Lok;
-import de.mein.auth.data.db.Certificate;
-import de.mein.auth.jobs.AConnectJob;
-import de.mein.auth.jobs.ConnectJob;
-import de.mein.auth.jobs.IsolatedConnectJob;
-import de.mein.auth.jobs.Job;
-import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.service.MeinWorker;
-import de.mein.auth.socket.process.imprt.MeinCertRetriever;
-import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
-import de.mein.auth.tools.CountdownLock;
-import de.mein.auth.tools.N;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.sql.SqlQueriesException;
-
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
-import java.io.IOException;
-import java.net.ConnectException;
-import java.net.URISyntaxException;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.util.Objects;
+import de.mein.Lok
+import de.mein.auth.data.db.Certificate
+import de.mein.auth.jobs.AConnectJob
+import de.mein.auth.jobs.ConnectJob
+import de.mein.auth.jobs.IsolatedConnectJob
+import de.mein.auth.jobs.Job
+import de.mein.auth.service.ConnectResult
+import de.mein.auth.service.IncomingConnectionJob
+import de.mein.auth.service.MeinAuthService
+import de.mein.auth.service.MeinWorker
+import de.mein.auth.socket.process.imprt.MeinCertRetriever
+import de.mein.auth.socket.process.transfer.MeinIsolatedProcess
+import de.mein.auth.tools.CountdownLock
+import de.mein.auth.tools.N
+import de.mein.auth.tools.N.NoTryExceptionConsumer
+import de.mein.auth.tools.N.result
+import de.mein.core.serialize.exceptions.JsonSerializationException
+import de.mein.sql.SqlQueriesException
+import org.jdeferred.Promise
+import org.jdeferred.Promise.State
+import org.jdeferred.impl.DeferredObject
+import java.io.IOException
+import java.net.ConnectException
+import java.net.URISyntaxException
+import java.security.*
+import java.security.cert.CertificateException
+import java.util.*
+import javax.crypto.BadPaddingException
+import javax.crypto.IllegalBlockSizeException
+import javax.crypto.NoSuchPaddingException
 
 /**
  * Connects to other instances on the network.
  */
-@SuppressWarnings("Duplicates")
-public class ConnectWorker extends MeinWorker {
+open class ConnectWorker(private val meinAuthService: MeinAuthService) : MeinWorker() {
+    private lateinit var meinAuthSocket: MeinAuthSocket
+     lateinit var authenticateJob: AConnectJob<MeinValidationProcess, Void>
 
-    private final AConnectJob connectJob;
-    private final MeinAuthService meinAuthService;
-    private MeinAuthSocket meinAuthSocket;
-
-    public ConnectWorker(MeinAuthService meinAuthService, AConnectJob connectJob) {
-        Objects.requireNonNull(connectJob);
-        this.meinAuthService = meinAuthService;
-        this.connectJob = connectJob;
-        connectJob.always((state, resolved, rejected) -> super.shutDown());
-        addJob(connectJob);
+    constructor(meinAuthService: MeinAuthService, incomingConnectionJob: IncomingConnectionJob) : this(meinAuthService) {
+        meinAuthSocket = incomingConnectionJob.meinAuthSocket
+        this.authenticateJob = incomingConnectionJob
     }
 
-    public ConnectWorker(MeinAuthService meinAuthService, MeinAuthSocket meinAuthSocket) {
-        this(meinAuthService, meinAuthSocket.getConnectJob());
-        this.meinAuthSocket = meinAuthSocket;
+    constructor(meinAuthService: MeinAuthService, connectionJob: ConnectJob) : this(meinAuthService) {
+        this.authenticateJob = connectionJob
     }
 
-
-    @Override
-    public String getRunnableName() {
-        String line = "Connecting to: " + connectJob.getAddress() + ":" + connectJob.getPort() + "/" + connectJob.getPortCert();
-        return line;
+    val connectResult: ConnectResult
+    init {
+        Objects.requireNonNull(authenticateJob)
+        authenticateJob.always { state: State?, resolved: Any?, rejected: Any? -> super.shutDown() }
+        addJob(authenticateJob)
+        connectResult = ConnectResult(this)
     }
 
 
-    private <T extends MeinIsolatedProcess> DeferredObject<T, Exception, Void> isolate(IsolatedConnectJob<T> originalJob) {
-        N runner = new N(e -> {
-            e.printStackTrace();
-            originalJob.reject(e);
-        });
-        runner.runTry(() -> {
-            meinAuthSocket = new MeinAuthSocket(meinAuthService, originalJob);
-            meinAuthSocket.setRunnableName("-> " + originalJob.getAddress() + ":" + connectJob.getPort());
-            MeinAuthProcess meinAuthProcess = new MeinAuthProcess(meinAuthSocket);
-            meinAuthProcess.authenticate(originalJob);
-        });
-        return originalJob;
+    override fun getRunnableName(): String {
+        return "Connecting to: " + authenticateJob.address + ":" + authenticateJob.port.toString() + "/" + authenticateJob.portCert
     }
 
-    private DeferredObject<MeinValidationProcess, Exception, Void> auth(AConnectJob originalJob) {
-        ConnectJob dummyJob = new ConnectJob(originalJob.getCertificateId(), originalJob.getAddress(), originalJob.getPort(), originalJob.getPortCert(), false);
+    private fun <T : MeinIsolatedProcess?> isolate(originalJob: IsolatedConnectJob<T>): DeferredObject<T, Exception?, Void?> {
+        val runner = N(NoTryExceptionConsumer { e: Exception ->
+            e.printStackTrace()
+            originalJob.reject(e)
+        })
+        runner.runTry {
+            meinAuthSocket = MeinAuthSocket(meinAuthService, this)
+            meinAuthSocket!!.setRunnableName("-> " + originalJob.address + ":" + authenticateJob.port)
+            val meinAuthProcess = MeinAuthProcess(meinAuthSocket)
+            meinAuthProcess.authenticate(originalJob)
+        }
+        return originalJob
+    }
+
+    private fun auth(originalJob: AConnectJob<*, *>): DeferredObject<MeinValidationProcess, Exception, Void> {
+        val dummyJob = ConnectJob(originalJob.certificateId, originalJob.address, originalJob.port, originalJob.portCert, false)
 //        DeferredObject<MeinValidationProcess, Exception, Void> deferred = dummyJob;
-        N runner = new N(e -> {
-            e.printStackTrace();
-            dummyJob.reject(e);
-        });
-        runner.runTry(() -> {
-            if (meinAuthSocket == null)
-                meinAuthSocket = new MeinAuthSocket(meinAuthService, dummyJob);
-            meinAuthSocket.setRunnableName("-> " + originalJob.getAddress() + ":" + connectJob.getPort());
+
+
+        val runner = N(NoTryExceptionConsumer { e: Exception ->
+            e.printStackTrace()
+            dummyJob.reject(e)
+        })
+        runner.runTry {
+            if (meinAuthSocket == null) meinAuthSocket = MeinAuthSocket(meinAuthService, this)
+            meinAuthSocket!!.setRunnableName("-> " + originalJob.address + ":" + authenticateJob.port)
 //            Socket socket = meinAuthService.getCertificateManager().createSocket();
 //            socket.connect(new InetSocketAddress(job.getAddress(), job.getPort()));
-            MeinAuthProcess meinAuthProcess = new MeinAuthProcess(meinAuthSocket);
-            meinAuthProcess.authenticate(dummyJob);
-        });
-        return dummyJob;
+
+
+            val meinAuthProcess = MeinAuthProcess(meinAuthSocket)
+            meinAuthProcess.authenticate(dummyJob)
+        }
+        return dummyJob
     }
 
     /**
@@ -99,139 +102,139 @@ public class ConnectWorker extends MeinWorker {
      * @param job
      * @return
      */
-    void connect(AConnectJob job) {
-        final CountdownLock lock = new CountdownLock(1);
-        final Long remoteCertId = job.getCertificateId();
-        final String address = job.getAddress();
-        final Integer port = job.getPort();
-        final Integer portCert = job.getPortCert();
-        final boolean regOnUnknown = N.result(() -> {
-            if (job instanceof ConnectJob)
-                return ((ConnectJob) job).getRegOnUnknown();
-            return false;
-        });
+    internal fun connect(job: AConnectJob<*, *>) {
+        val lock = CountdownLock(1)
+        val remoteCertId: Long? = job.certificateId
+        val address: String = job.address
+        val port: Int = job.port
+        val portCert: Int = job.portCert
+        val regOnUnknown: Boolean = result {
+            if (job is ConnectJob) return@result job.regOnUnknown
+            false
+        }
 
 //        Lok.debug("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
-        meinAuthService.getPowerManager().wakeLock(this);
-        if (job instanceof ConnectJob) {
-            DeferredObject result = job;
-            N runner = new N(e -> {
-                if (result.isPending())
-                    result.reject(e);
-                meinAuthService.getPowerManager().releaseWakeLock(this);
-                stopConnecting();
-                lock.unlock();
-            });
-            DeferredObject<MeinValidationProcess, Exception, Void> firstAuth = this.auth(job);
-            firstAuth.done(result1 -> {
-                result.resolve(result1);
-                meinAuthService.getPowerManager().releaseWakeLock(this);
-            }).fail(except -> runner.runTry(() -> {
-                if (except instanceof ShamefulSelfConnectException) {
-                    result.reject(except);
-                    meinAuthService.getPowerManager().releaseWakeLock(this);
-                    shutDown();
-                } else if (except instanceof ConnectException) {
-                    Lok.error(getClass().getSimpleName() + " for " + meinAuthService.getName() + ".connect.HOST:NOT:REACHABLE");
-                    result.reject(except);
-                    meinAuthService.getPowerManager().releaseWakeLock(this);
-                    stopConnecting();
-                } else if (regOnUnknown && remoteCertId == null) {
-                    // try to register
-                    DeferredObject<Certificate, Exception, Object> importPromise = new DeferredObject<>();
-                    DeferredObject<Certificate, Exception, Void> registered = new DeferredObject<>();
-                    this.importCertificate(importPromise, address, port, portCert);
-                    importPromise.done(importedCert -> {
-                        runner.runTry(() -> {
-                            job.setCertificateId(importedCert.getId().v());
-                            this.register(registered, importedCert, address, port);
-                            registered.done(registeredCert -> {
-                                runner.runTry(() -> {
-                                    //connection is no more -> need new socket
-                                    // create a new job that is not allowed to register.
-                                    ConnectJob secondJob = new ConnectJob(connectJob.getCertificateId(), connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert(), false);
-                                    secondJob.done(result1 -> {
-                                        result.resolve(result1);
-                                        shutDown();
-                                    }).fail(result1 -> {
-                                        result.resolve(result1);
-                                        shutDown();
-                                    });
-                                    this.addJob(secondJob);
-                                });
 
-                            }).fail(exception -> {
-                                        // it won't compile otherwise. don't know why.
-                                        // compiler thinks exception is an Object instead of Exception
-                                        ((Exception) exception).printStackTrace();
-                                        result.reject(exception);
-                                        meinAuthService.getPowerManager().releaseWakeLock(this);
-                                        stopConnecting();
+
+        meinAuthService.powerManager.wakeLock(this)
+        if (job is ConnectJob) {
+            val result: DeferredObject<MeinValidationProcess, java.lang.Exception, Void> = job
+            val runner = N(NoTryExceptionConsumer { e: Exception? ->
+                if (result.isPending) result.reject(e)
+                meinAuthService.powerManager.releaseWakeLock(this)
+                stopConnecting()
+                lock.unlock()
+            })
+            val firstAuth = auth(job)
+            firstAuth.done { result1: MeinValidationProcess ->
+                result.resolve(result1)
+                meinAuthService.powerManager.releaseWakeLock(this)
+            }.fail { except: Exception ->
+                runner.runTry {
+                    if (except is ShamefulSelfConnectException) {
+                        result.reject(except)
+                        meinAuthService.powerManager.releaseWakeLock(this)
+                        shutDown()
+                    } else if (except is ConnectException) {
+                        Lok.error(javaClass.simpleName + " for " + meinAuthService.name + ".connect.HOST:NOT:REACHABLE")
+                        result.reject(except)
+                        meinAuthService.powerManager.releaseWakeLock(this)
+                        stopConnecting()
+                    } else if (regOnUnknown && remoteCertId == null) {
+                        // try to register
+
+                        val importPromise = DeferredObject<Certificate, Exception, Any>()
+                        val registered = DeferredObject<Certificate, Exception, Void>()
+                        importCertificate(importPromise, address, port, portCert)
+                        importPromise.done { importedCert: Certificate ->
+                            runner.runTry {
+                                job.setCertificateId(importedCert.id.v())
+                                register(registered, importedCert, address, port)
+                                registered.done { registeredCert: Certificate ->
+                                    runner.runTry {
+                                        //connection is no more -> need new socket
+                                        // create a new job that is not allowed to register.
+                                        val secondJob = ConnectJob(authenticateJob.certificateId, authenticateJob.address, authenticateJob.port, authenticateJob.portCert, false)
+                                        secondJob.done { result1: MeinValidationProcess ->
+                                            result.resolve(result1)
+                                            shutDown()
+                                        }.fail { result1: Exception ->
+                                            result.reject(result1)
+                                            shutDown()
+                                        }
+                                        addJob(secondJob)
                                     }
-                            );
-                        });
-                    }).fail(ee -> {
-                        ee.printStackTrace();
-                        result.reject(ee);
-                        meinAuthService.getPowerManager().releaseWakeLock(this);
-                        stopConnecting();
-                    });
-                } else {
-                    if (!(except instanceof ShamefulSelfConnectException)) {
-                        result.reject(new CannotConnectException(except, address, port));
+                                }.fail { exception: Exception ->
+                                    // it won't compile otherwise. don't know why.
+                                    // compiler thinks exception is an Object instead of Exception
+                                    exception.printStackTrace()
+                                    result.reject(exception)
+                                    meinAuthService.powerManager.releaseWakeLock(this)
+                                    stopConnecting()
+                                }
+                            }
+                        }.fail { ee: Exception ->
+                            ee.printStackTrace()
+                            result.reject(ee)
+                            meinAuthService.powerManager.releaseWakeLock(this)
+                            stopConnecting()
+                        }
                     } else {
-                        result.reject(except);
+                        if (except !is ShamefulSelfConnectException) {
+                            result.reject(CannotConnectException(except, address, port))
+                        } else {
+                            result.reject(except)
+                        }
+                        meinAuthService.powerManager.releaseWakeLock(this)
+                        stopConnecting()
                     }
-                    meinAuthService.getPowerManager().releaseWakeLock(this);
-                    stopConnecting();
                 }
-            }));
-        } else if (job instanceof IsolatedConnectJob) {
-            this.isolate((IsolatedConnectJob<? extends MeinIsolatedProcess>) job)
-                    .fail(result -> stopConnecting())
-                    .always((state, resolved, rejected) -> {
-                        meinAuthService.getPowerManager().releaseWakeLock(ConnectWorker.this);
-                    });
+            }
+        } else if (job is IsolatedConnectJob<*>) {
+            isolate(job as IsolatedConnectJob<out MeinIsolatedProcess>)
+                    .fail({ result: Exception? -> stopConnecting() })
+                    .always { state: State?, resolved: MeinIsolatedProcess?, rejected: Exception? -> meinAuthService.powerManager.releaseWakeLock(this@ConnectWorker) }
         }
     }
 
-    private void stopConnecting() {
-        shutDown();
+    private fun stopConnecting() {
+        shutDown()
     }
 
-    public void importCertificate(DeferredObject<de.mein.auth.data.db.Certificate, Exception, Object> deferred, String address, int port, int portCert) throws URISyntaxException, InterruptedException {
-        MeinCertRetriever retriever = new MeinCertRetriever(meinAuthService);
-        retriever.retrieveCertificate(deferred, address, port, portCert);
+    @Throws(URISyntaxException::class, InterruptedException::class)
+    fun importCertificate(deferred: DeferredObject<Certificate, Exception, Any>, address: String, port: Int, portCert: Int) {
+        val retriever = MeinCertRetriever(meinAuthService)
+        retriever.retrieveCertificate(deferred, address, port, portCert)
     }
 
-    private Promise<Certificate, Exception, Void> register(DeferredObject<Certificate, Exception, Void> result, Certificate certificate, String address, Integer port) throws IllegalAccessException, SqlQueriesException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, JsonSerializationException, CertificateException, KeyStoreException, ClassNotFoundException, KeyManagementException, BadPaddingException, UnrecoverableKeyException, NoSuchPaddingException, IOException, IllegalBlockSizeException, InterruptedException {
-        meinAuthSocket = new MeinAuthSocket(meinAuthService);
+    @Throws(IllegalAccessException::class, SqlQueriesException::class, URISyntaxException::class, InvalidKeyException::class, NoSuchAlgorithmException::class, JsonSerializationException::class, CertificateException::class, KeyStoreException::class, ClassNotFoundException::class, KeyManagementException::class, BadPaddingException::class, UnrecoverableKeyException::class, NoSuchPaddingException::class, IOException::class, IllegalBlockSizeException::class, InterruptedException::class)
+    private fun register(result: DeferredObject<Certificate, Exception, Void>, certificate: Certificate, address: String, port: Int): Promise<Certificate, Exception, Void> {
+        meinAuthSocket = MeinAuthSocket(meinAuthService, this)
 //        Socket socket = meinAuthService.getCertificateManager().createSocket();
 //        socket.connect(new InetSocketAddress(address,port));
-        MeinRegisterProcess meinRegisterProcess = new MeinRegisterProcess(meinAuthSocket);
-        return meinRegisterProcess.register(result, certificate.getId().v(), address, port);
+        val meinRegisterProcess = MeinRegisterProcess(meinAuthSocket)
+        return meinRegisterProcess.register(result, certificate.id.v(), address, port)
     }
 
-    @Override
-    protected void workWork(Job job) throws Exception {
-        if (job instanceof ConnectJob) {
+    @Throws(Exception::class)
+    override fun workWork(job: Job<*, *, *>?) {
+        if (job is ConnectJob) {
 //            Lok.debug("Connecting to: " + connectJob.getAddress() + ":" + connectJob.getPort() + "/" + connectJob.getPortCert());
 //        MeinAuthSocket meinAuthSocket = new MeinAuthSocket(meinAuthService);
 //        Socket socket = createSocket();
 //        N.oneLine(() -> meinAuthSocket.connect(connectJob));
-            connect(connectJob);
-        } else if (job instanceof IsolatedConnectJob) {
-            connect((IsolatedConnectJob) job);
+
+            connect(authenticateJob)
+        } else if (job is IsolatedConnectJob<*>) {
+            connect(job)
         }
-        if (this.connectJob.isResolved())
-            shutDown();
-
+        if (authenticateJob.isResolved) shutDown()
     }
 
-    @Override
-    public void shutDown() {
-        if (meinAuthSocket != null)
-            meinAuthSocket.stop();
-        super.shutDown();
+    override fun shutDown() {
+        if (meinAuthSocket != null) meinAuthSocket!!.stop()
+        super.shutDown()
     }
+
+
 }

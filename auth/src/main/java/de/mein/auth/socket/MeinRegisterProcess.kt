@@ -1,231 +1,213 @@
-package de.mein.auth.socket;
+package de.mein.auth.socket
 
-import de.mein.Lok;
-import de.mein.auth.MeinStrings;
-import de.mein.auth.data.*;
-import de.mein.auth.data.access.CertificateManager;
-import de.mein.auth.data.db.Certificate;
-import de.mein.auth.socket.process.reg.IRegisterHandler;
-import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mein.auth.socket.process.reg.IRegisteredHandler;
-import de.mein.auth.tools.N;
-import de.mein.core.serialize.SerializableEntity;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-import de.mein.sql.SqlQueriesException;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DefaultDeferredManager;
-import org.jdeferred.impl.DeferredObject;
-import org.jdeferred.multiple.OneReject;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.UUID;
+import de.mein.Lok
+import de.mein.auth.MeinStrings
+import de.mein.auth.MeinStrings.msg
+import de.mein.auth.data.*
+import de.mein.auth.data.access.CertificateManager
+import de.mein.auth.data.db.Certificate
+import de.mein.auth.socket.process.reg.IRegisterHandlerListener
+import de.mein.auth.tools.N
+import de.mein.auth.tools.N.NoTryExceptionConsumer
+import de.mein.core.serialize.SerializableEntity
+import de.mein.core.serialize.exceptions.JsonSerializationException
+import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer
+import de.mein.sql.SqlQueriesException
+import org.jdeferred.Promise
+import org.jdeferred.impl.DefaultDeferredManager
+import org.jdeferred.impl.DeferredObject
+import org.jdeferred.multiple.MultipleResults
+import org.jdeferred.multiple.OneReject
+import java.io.IOException
+import java.net.URISyntaxException
+import java.security.*
+import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
+import java.util.*
+import javax.crypto.BadPaddingException
+import javax.crypto.IllegalBlockSizeException
+import javax.crypto.NoSuchPaddingException
 
 /**
  * handles registration of incoming and outgoing connections
  * Created by xor on 4/20/16.
  */
-public class MeinRegisterProcess extends MeinProcess {
-    private CertificateManager certificateManager = null;
-
-
-    private N runner = new N(Throwable::printStackTrace);
-    private DeferredObject<MeinRegisterConfirm, Exception, Void> confirmedPromise = new DeferredObject<>();
-    private DeferredObject<Certificate, Exception, Void> acceptedPromise = new DeferredObject<>();
-
-    public MeinRegisterProcess(MeinAuthSocket meinAuthSocket) {
-        super(meinAuthSocket);
-        this.certificateManager = meinAuthSocket.getMeinAuthService().getCertificateManager();
-        confirmedPromise.done(result -> {
-            for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
-                registerHandler.onRemoteAccepted(partnerCertificate);
-        });
-        acceptedPromise.done(result -> {
-            for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
-                registerHandler.onLocallyAccepted(partnerCertificate);
-        });
-        new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(results -> runner.runTry(() -> {
-                    Lok.debug(meinAuthSocket.getMeinAuthService().getName() + ".MeinRegisterProcess.MeinRegisterProcess");
-                    MeinRegisterConfirm confirm = (MeinRegisterConfirm) results.get(0).getResult();
-                    Certificate certificate = (Certificate) results.get(1).getResult();
-                    //check if is UUID
-                    UUID answerUuid = UUID.fromString(confirm.getAnswerUuid());
-                    certificate.getAnswerUuid().v(answerUuid.toString());
-                    certificateManager.updateCertificate(certificate);
-                    certificateManager.trustCertificate(certificate.getId().v(), true);
-                    for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
-                        registerHandler.onRegistrationCompleted(partnerCertificate);
-                    for (IRegisteredHandler handler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()) {
-                        handler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), certificate);
-                    }
-                    //todo send done, so the other side can connect!
-                })
-        ).fail(results -> runner.runTry(() -> {
-            if (results instanceof OneReject) {
-                if (results.getReject() instanceof PartnerDidNotTrustException) {
-                    Lok.debug("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.getReject().toString());
-                    for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
-                        registerHandler.onRemoteRejected(partnerCertificate);
-                } else if (results.getReject() instanceof UserDidNotTrustException) {
-                    Lok.debug("MeinRegisterProcess.MeinRegisterProcess.user.did.not.trust");
-                    for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers())
-                        registerHandler.onLocallyRejected(partnerCertificate);
-                }
-                certificateManager.deleteCertificate(partnerCertificate);
-            } else {
-                Lok.error("MeinRegisterProcess.MeinRegisterProcess.reject.UNKNOWN.2");
-                certificateManager.deleteCertificate(partnerCertificate);
-            }
-
-            stop();
-        }));
-    }
-
-    public Promise<Certificate, Exception, Void> register(DeferredObject<Certificate, Exception, Void> deferred, Long id, String address, int port) throws InterruptedException, SqlQueriesException, CertificateException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, JsonSerializationException, IllegalAccessException, URISyntaxException, UnrecoverableKeyException, KeyStoreException, KeyManagementException {
-        Lok.debug(meinAuthSocket.getMeinAuthService().getName() + ".MeinRegisterProcessImpl.register.id=" + id);
-        meinAuthSocket.connectSSL(id, address, port);
-        partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getCertificateById(id);
-        Certificate myCert = new Certificate();
-        myCert.setName(meinAuthSocket.getMeinAuthService().getName());
-        myCert.setAnswerUuid(partnerCertificate.getUuid().v());
-        myCert.setCertificate(meinAuthSocket.getMeinAuthService().getCertificateManager().getMyX509Certificate().getEncoded());
-        MeinAuthSettings settings = meinAuthSocket.getMeinAuthService().getSettings();
-        myCert.setPort(settings.getPort())
-                .setCertDeliveryPort(settings.getDeliveryPort());
-        MeinRequest request = new MeinRequest(MeinStrings.SERVICE_NAME, MeinStrings.msg.INTENT_REGISTER)
+class MeinRegisterProcess(meinAuthSocket: MeinAuthSocket) : MeinProcess(meinAuthSocket) {
+    private var certificateManager: CertificateManager? = null
+    private val runner = N(NoTryExceptionConsumer { obj: Exception -> obj.printStackTrace() })
+    private val confirmedPromise = DeferredObject<MeinRegisterConfirm, Exception, Void>()
+    private val acceptedPromise = DeferredObject<Certificate, Exception, Void>()
+    @Throws(InterruptedException::class, SqlQueriesException::class, CertificateException::class, NoSuchPaddingException::class, NoSuchAlgorithmException::class, IOException::class, BadPaddingException::class, IllegalBlockSizeException::class, InvalidKeyException::class, ClassNotFoundException::class, JsonSerializationException::class, IllegalAccessException::class, URISyntaxException::class, UnrecoverableKeyException::class, KeyStoreException::class, KeyManagementException::class)
+    fun register(deferred: DeferredObject<Certificate, Exception, Void>, id: Long, address: String?, port: Int): Promise<Certificate, Exception, Void> {
+        Lok.debug(meinAuthSocket.getMeinAuthService().name + ".MeinRegisterProcessImpl.register.id=" + id)
+        meinAuthSocket.connectSSL(id, address, port)
+        partnerCertificate = meinAuthSocket.getMeinAuthService().certificateManager.getCertificateById(id)
+        val myCert = Certificate()
+        myCert.setName(meinAuthSocket.getMeinAuthService().name)
+        myCert.setAnswerUuid(partnerCertificate.uuid.v())
+        myCert.setCertificate(meinAuthSocket.getMeinAuthService().certificateManager.myX509Certificate.encoded)
+        val settings: MeinAuthSettings = meinAuthSocket.getMeinAuthService().settings
+        myCert.setPort(settings.port)
+                .setCertDeliveryPort(settings.deliveryPort)
+        val request: MeinRequest = MeinRequest(MeinStrings.SERVICE_NAME, msg.INTENT_REGISTER)
                 .setCertificate(myCert)
-                .setRequestHandler(this).queue();
-        for (IRegisterHandler regHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers()) {
-            regHandler.acceptCertificate(new IRegisterHandlerListener() {
-                @Override
-                public void onCertificateAccepted(MeinRequest request, Certificate certificate) {
-                    runner.runTry(() -> {
+                .setRequestHandler(this).queue()
+        for (regHandler in meinAuthSocket.getMeinAuthService().registerHandlers) {
+            regHandler.acceptCertificate(object : IRegisterHandlerListener {
+                override fun onCertificateAccepted(request: MeinRequest?, certificate: Certificate) {
+                    runner.runTry {
                         // tell your partner that you trust him
-                        MeinRegisterProcess.this.sendConfirmation(true);
-                        partnerCertificate = certificate;
-                        acceptedPromise.resolve(certificate);
-                    });
-
+                        sendConfirmation(true)
+                        partnerCertificate = certificate
+                        acceptedPromise.resolve(certificate)
+                    }
                 }
 
-                @Override
-                public void onCertificateRejected(MeinRequest request, Certificate certificate) {
-                    runner.runTry(() -> {
-                        MeinRegisterProcess.this.sendConfirmation(false);
-                        acceptedPromise.reject(new UserDidNotTrustException());
-                    });
+                override fun onCertificateRejected(request: MeinRequest?, certificate: Certificate?) {
+                    runner.runTry {
+                        sendConfirmation(false)
+                        acceptedPromise.reject(UserDidNotTrustException())
+                    }
                 }
-            }, request, meinAuthSocket.getMeinAuthService().getMyCertificate(), partnerCertificate);
-
+            }, request, meinAuthSocket.getMeinAuthService().myCertificate, partnerCertificate)
         }
-        request.getAnswerDeferred().done(result -> {
-            MeinRequest r = (MeinRequest) result;
-            Certificate certificate = r.getCertificate();
+        request.answerDeferred.done { result: SerializableEntity ->
+            val r = result as MeinRequest
+            val certificate: Certificate = r.certificate
             try {
-                partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().addAnswerUuid(partnerCertificate.getId().v(), certificate.getAnswerUuid().v());
-                MeinResponse response = r.reponse();
-                response.setState(MeinStrings.msg.STATE_OK);
-                send(response);
-                MeinRegisterProcess.this.removeThyself();
-                for (IRegisteredHandler registeredHandler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()) {
+                partnerCertificate = meinAuthSocket.getMeinAuthService().certificateManager.addAnswerUuid(partnerCertificate.id.v(), certificate.answerUuid.v())
+                val response: MeinResponse = r.reponse()
+                response.state = msg.STATE_OK
+                send(response)
+                removeThyself()
+                for (registeredHandler in meinAuthSocket.getMeinAuthService().registeredHandlers) {
                     try {
-                        registeredHandler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), partnerCertificate);
-                    } catch (SqlQueriesException e) {
-                        e.printStackTrace();
+                        registeredHandler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), partnerCertificate)
+                    } catch (e: SqlQueriesException) {
+                        e.printStackTrace()
                     }
                 }
-                deferred.resolve(partnerCertificate);
-            } catch (Exception e) {
-                e.printStackTrace();
-                deferred.reject(e);
+                deferred.resolve(partnerCertificate)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                deferred.reject(e)
             }
-        }).fail(result -> {
-            Lok.debug("MeinRegisterProcess.onFail!!!!!!!!");
-            deferred.reject(result);
-        });
-        new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(result -> {
-            Lok.debug("MeinRegisterProcess.register");
-            deferred.resolve(partnerCertificate);
-        });
-        String json = SerializableEntitySerializer.serialize(request);
-        this.meinAuthSocket.send(json);
-        return deferred;
+        }.fail { result: ResponseException ->
+            Lok.debug("MeinRegisterProcess.onFail!!!!!!!!")
+            deferred.reject(result)
+        }
+        DefaultDeferredManager().`when`(confirmedPromise, acceptedPromise).done { result: MultipleResults ->
+            Lok.debug("MeinRegisterProcess.register")
+            deferred.resolve(partnerCertificate)
+        }
+        val json: String? = SerializableEntitySerializer.serialize(request)
+        meinAuthSocket.send(json)
+        return deferred
     }
 
-    public void sendConfirmation(boolean trusted) throws JsonSerializationException, IllegalAccessException {
-        MeinMessage message = new MeinMessage(MeinStrings.SERVICE_NAME, null);
-        if (trusted)
-            message.setPayLoad(new MeinRegisterConfirm().setConfirmed(trusted).setAnswerUuid(partnerCertificate.getUuid().v()));
-        else
-            message.setPayLoad(new MeinRegisterConfirm().setConfirmed(false));
-        send(message);
+    @Throws(JsonSerializationException::class, IllegalAccessException::class)
+    fun sendConfirmation(trusted: Boolean) {
+        val message = MeinMessage(MeinStrings.SERVICE_NAME, null)
+        if (trusted) message.setPayLoad(MeinRegisterConfirm().setConfirmed(trusted).setAnswerUuid(partnerCertificate.uuid.v())) else message.setPayLoad(MeinRegisterConfirm().setConfirmed(false))
+        send(message)
     }
 
-    @Override
-    public void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) {
-        if (this.meinAuthSocket == null)
-            this.meinAuthSocket = webSocket;
-        if (!handleAnswer(deserialized))
-            if (deserialized instanceof MeinRequest) {
-                MeinRequest request = (MeinRequest) deserialized;
-                try {
-                    Certificate certificate = request.getCertificate();
-                    if (meinAuthSocket.getMeinAuthService().getRegisterHandlers().size() == 0) {
-                        Lok.debug("MeinRegisterProcess.onMessageReceived.NO.HANDLER.FOR.REGISTRATION.AVAILABLE");
-                    }
-                    for (IRegisterHandler registerHandler : meinAuthSocket.getMeinAuthService().getRegisterHandlers()) {
-                        registerHandler.acceptCertificate(new IRegisterHandlerListener() {
-                            @Override
-                            public void onCertificateAccepted(MeinRequest request, Certificate certificate) {
-                                runner.runTry(() -> {
-                                    // tell your partner that you appreciate her actions!
-                                    X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(certificate.getCertificate().v());
-                                    String address = meinAuthSocket.getAddress();
-                                    int port = certificate.getPort().v();
-                                    int portCert = certificate.getCertDeliveryPort().v();
-                                    partnerCertificate = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), certificate.getAnswerUuid().v(), address, port, portCert);
-                                    certificateManager.trustCertificate(partnerCertificate.getId().v(), true);
-                                    MeinRegisterProcess.this.sendConfirmation(true);
-                                    for (IRegisteredHandler handler : meinAuthSocket.getMeinAuthService().getRegisteredHandlers()) {
-                                        handler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), partnerCertificate);
-                                    }
-                                    acceptedPromise.resolve(partnerCertificate);
-                                });
+    override fun onMessageReceived(deserialized: SerializableEntity, webSocket: MeinAuthSocket) {
+        if (meinAuthSocket == null) meinAuthSocket = webSocket
+        if (!handleAnswer(deserialized)) if (deserialized is MeinRequest) {
+            val request = deserialized
+            try {
+                val certificate: Certificate? = request.certificate
+                if (meinAuthSocket.getMeinAuthService().registerHandlers.size == 0) {
+                    Lok.debug("MeinRegisterProcess.onMessageReceived.NO.HANDLER.FOR.REGISTRATION.AVAILABLE")
+                }
+                for (registerHandler in meinAuthSocket.getMeinAuthService().registerHandlers) {
+                    registerHandler.acceptCertificate(object : IRegisterHandlerListener {
+                        override fun onCertificateAccepted(request: MeinRequest?, certificate: Certificate) {
+                            runner.runTry {
+                                // tell your partner that you appreciate her actions!
+                                val x509Certificate: X509Certificate? = CertificateManager.loadX509CertificateFromBytes(certificate.certificate.v())
+                                val address: String? = meinAuthSocket.address
+                                val port: Int = certificate.port.v()
+                                val portCert: Int = certificate.certDeliveryPort.v()
+                                partnerCertificate = certificateManager!!.importCertificate(x509Certificate, certificate.name.v(), certificate.answerUuid.v(), address, port, portCert)
+                                certificateManager.trustCertificate(partnerCertificate.id.v(), true)
+                                sendConfirmation(true)
+                                for (handler in meinAuthSocket.getMeinAuthService().registeredHandlers) {
+                                    handler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), partnerCertificate)
+                                }
+                                acceptedPromise.resolve(partnerCertificate)
                             }
+                        }
 
-                            @Override
-                            public void onCertificateRejected(MeinRequest request, Certificate certificate) {
-                                runner.runTry(() -> {
-                                    MeinRegisterProcess.this.sendConfirmation(false);
-                                    acceptedPromise.reject(new PartnerDidNotTrustException());
-                                });
+                        override fun onCertificateRejected(request: MeinRequest?, certificate: Certificate?) {
+                            runner.runTry {
+                                sendConfirmation(false)
+                                acceptedPromise.reject(PartnerDidNotTrustException())
                             }
-                        }, request, meinAuthSocket.getMeinAuthService().getMyCertificate(), certificate);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                        }
+                    }, request, meinAuthSocket.getMeinAuthService().myCertificate, certificate)
                 }
-            } else if (deserialized instanceof MeinResponse) {
-                //should not be called
-                Lok.debug("MeinRegisterProcess.onMessageReceived.WRONG");
-            } else if (deserialized instanceof MeinMessage) {
-                MeinMessage message = (MeinMessage) deserialized;
-                if (message.getPayload() != null && message.getPayload() instanceof MeinRegisterConfirm) {
-                    MeinRegisterConfirm confirm = (MeinRegisterConfirm) message.getPayload();
-                    if (confirm.isConfirmed()) {
-                        confirmedPromise.resolve(confirm);
-                    } else {
-                        confirmedPromise.reject(new PartnerDidNotTrustException());
-                    }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else if (deserialized is MeinResponse) {
+            //should not be called
+
+            Lok.debug("MeinRegisterProcess.onMessageReceived.WRONG")
+        } else if (deserialized is MeinMessage) {
+            val message = deserialized
+            if (message.payload != null && message.payload is MeinRegisterConfirm) {
+                val confirm = message.payload as MeinRegisterConfirm
+                if (confirm.isConfirmed) {
+                    confirmedPromise.resolve(confirm)
+                } else {
+                    confirmedPromise.reject(PartnerDidNotTrustException())
                 }
-            } else
-                Lok.debug("MeinRegisterProcess.onMessageReceived.VERY.WRONG");
+            }
+        } else Lok.debug("MeinRegisterProcess.onMessageReceived.VERY.WRONG")
+    }
+
+    init {
+        certificateManager = meinAuthSocket.getMeinAuthService().certificateManager
+        confirmedPromise.done { result: MeinRegisterConfirm -> for (registerHandler in meinAuthSocket.getMeinAuthService().registerHandlers) registerHandler.onRemoteAccepted(partnerCertificate) }
+        acceptedPromise.done { result: Certificate -> for (registerHandler in meinAuthSocket.getMeinAuthService().registerHandlers) registerHandler.onLocallyAccepted(partnerCertificate) }
+        DefaultDeferredManager().`when`(confirmedPromise, acceptedPromise).done { results: MultipleResults ->
+            runner.runTry {
+                Lok.debug(meinAuthSocket.getMeinAuthService().name + ".MeinRegisterProcess.MeinRegisterProcess")
+                val confirm = results.get(0).result as MeinRegisterConfirm
+                val certificate = results.get(1).result as Certificate
+                //check if is UUID
+
+
+                val answerUuid: UUID = UUID.fromString(confirm.answerUuid)
+                certificate.answerUuid.v(answerUuid.toString())
+                certificateManager.updateCertificate(certificate)
+                certificateManager.trustCertificate(certificate.id.v(), true)
+                for (registerHandler in meinAuthSocket.getMeinAuthService().registerHandlers) registerHandler.onRegistrationCompleted(partnerCertificate)
+                for (handler in meinAuthSocket.getMeinAuthService().registeredHandlers) {
+                    handler.onCertificateRegistered(meinAuthSocket.getMeinAuthService(), certificate)
+                }
+                //todo send done, so the other side can connect!
+
+            }
+        }.fail { results: OneReject ->
+            runner.runTry {
+                if (results is OneReject) {
+                    if (results.reject is PartnerDidNotTrustException) {
+                        Lok.debug("MeinRegisterProcess.MeinRegisterProcess.rejected: " + results.reject.toString())
+                        for (registerHandler in meinAuthSocket.getMeinAuthService().registerHandlers) registerHandler.onRemoteRejected(partnerCertificate)
+                    } else if (results.reject is UserDidNotTrustException) {
+                        Lok.debug("MeinRegisterProcess.MeinRegisterProcess.user.did.not.trust")
+                        for (registerHandler in meinAuthSocket.getMeinAuthService().registerHandlers) registerHandler.onLocallyRejected(partnerCertificate)
+                    }
+                    certificateManager.deleteCertificate(partnerCertificate)
+                } else {
+                    Lok.error("MeinRegisterProcess.MeinRegisterProcess.reject.UNKNOWN.2")
+                    certificateManager.deleteCertificate(partnerCertificate)
+                }
+                stop()
+            }
+        }
     }
 }

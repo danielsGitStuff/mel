@@ -1,275 +1,280 @@
-package de.mein.auth.socket;
+package de.mein.auth.socket
 
-import de.mein.auth.data.access.CertificateManager;
-import de.mein.auth.service.MeinService;
-
-import org.jdeferred.Promise;
-
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.util.List;
-import java.util.UUID;
-
-import de.mein.Lok;
-import de.mein.auth.MeinStrings;
-import de.mein.auth.data.IsolationDetails;
-import de.mein.auth.data.MeinRequest;
-import de.mein.auth.data.MeinResponse;
-import de.mein.auth.data.db.Certificate;
-import de.mein.auth.data.db.Service;
-import de.mein.auth.data.db.ServiceJoinServiceType;
-import de.mein.auth.jobs.AConnectJob;
-import de.mein.auth.jobs.ConnectJob;
-import de.mein.auth.jobs.IsolatedConnectJob;
-import de.mein.auth.service.IMeinService;
-import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
-import de.mein.auth.socket.process.val.MeinServicesPayload;
-import de.mein.auth.tools.Cryptor;
-import de.mein.auth.tools.N;
-import de.mein.core.serialize.SerializableEntity;
-import de.mein.sql.SqlQueriesException;
+import de.mein.Lok
+import de.mein.auth.MeinStrings
+import de.mein.auth.MeinStrings.msg
+import de.mein.auth.data.IsolationDetails
+import de.mein.auth.data.MeinRequest
+import de.mein.auth.data.MeinResponse
+import de.mein.auth.data.access.CertificateManager
+import de.mein.auth.data.db.Certificate
+import de.mein.auth.data.db.Service
+import de.mein.auth.data.db.ServiceJoinServiceType
+import de.mein.auth.jobs.AConnectJob
+import de.mein.auth.jobs.ConnectJob
+import de.mein.auth.jobs.IsolatedConnectJob
+import de.mein.auth.service.IMeinService
+import de.mein.auth.service.MeinAuthService
+import de.mein.auth.service.MeinService
+import de.mein.auth.socket.process.`val`.MeinServicesPayload
+import de.mein.auth.socket.process.transfer.MeinIsolatedProcess
+import de.mein.auth.tools.Cryptor
+import de.mein.auth.tools.N
+import de.mein.auth.tools.N.NoTryExceptionConsumer
+import de.mein.core.serialize.SerializableEntity
+import de.mein.sql.SqlQueriesException
+import org.jdeferred.Promise
+import java.io.IOException
 
 /**
  * handles authentication of incoming and outgoing connections
  * Created by xor on 4/21/16.
  */
-@SuppressWarnings("Duplicates")
-public class MeinAuthProcess extends MeinProcess {
-    private String mySecret;
+class MeinAuthProcess(meinAuthSocket: MeinAuthSocket?) : MeinProcess(meinAuthSocket) {
+    private var mySecret: String? = null
     // this is not mine
-    private String decryptedSecret;
-    private boolean partnerAuthenticated = false;
-    private MeinValidationProcess validationProcess;
-
-    public MeinAuthProcess(MeinAuthSocket meinAuthSocket) {
-        super(meinAuthSocket);
-    }
-
-    /**
-     * adds the currently available services to the Response
-     *
-     * @param meinAuthService
-     * @param partnerCertificate
-     * @param response
-     * @throws SqlQueriesException
-     */
-    public static void addAllowedServices(MeinAuthService meinAuthService, Certificate partnerCertificate, MeinResponse response) throws SqlQueriesException {
-        MeinServicesPayload payload = meinAuthService.getAllowedServicesFor(partnerCertificate.getId().v());
-        response.setPayLoad(payload);
-    }
-
-    @Override
-    public void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket socket) {
+    private var decryptedSecret: String? = null
+    private var partnerAuthenticated = false
+    private val validationProcess: MeinValidationProcess? = null
+    override fun onMessageReceived(deserialized: SerializableEntity, socket: MeinAuthSocket) {
         try {
-            if (!handleAnswer(deserialized))
-                if (deserialized instanceof MeinRequest) {
-                    MeinRequest request = (MeinRequest) deserialized;
-                    try {
-                        this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateByUuid(request.getUserUuid());
-                        assert partnerCertificate != null;
-                        this.decryptedSecret = meinAuthSocket.getMeinAuthService().getCertificateManager().decrypt(request.getSecret());
-                        this.mySecret = CertificateManager.randomUUID().toString();
-                        IsolationDetails isolationDetails = null;
-                        if (request.getPayload() != null && request.getPayload() instanceof IsolationDetails) {
-                            isolationDetails = (IsolationDetails) request.getPayload();
-                        }
-                        byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
-                        MeinRequest answer = request.request().setRequestHandler(this).queue()
-                                .setDecryptedSecret(decryptedSecret)
-                                .setSecret(secret);
-                        IsolationDetails finalIsolationDetails = isolationDetails;
-                        answer.getAnswerDeferred().done(result -> {
-                            MeinRequest r = (MeinRequest) result;
-                            MeinResponse response = r.reponse();
-                            try {
-                                if (r.getDecryptedSecret().equals(mySecret)) {
-                                    if (finalIsolationDetails == null) {
-                                        partnerAuthenticated = true;
-                                        MeinValidationProcess validationProcess = new MeinValidationProcess(socket, partnerCertificate, true);
-                                        if (meinAuthSocket.getMeinAuthService().registerValidationProcess(validationProcess)) {
-                                            // get all allowed Services
-                                            MeinAuthProcess.addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
-                                            send(response);
-                                            // done here, set up validationprocess
-                                            Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
-                                            // propagate that we are connected!
-                                            // note: if the connection is incoming, we cannot use the ports from the socket here.
-                                            // whenever an outgoing connection is set up a random high port is used to do so (port 50k+)
-                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), partnerCertificate.getPort().v());
+            if (!handleAnswer(deserialized)) if (deserialized is MeinRequest) {
+                val request = deserialized
+                try {
+                    partnerCertificate = meinAuthSocket.getMeinAuthService().certificateManager.getTrustedCertificateByUuid(request.userUuid)
+                    assert(partnerCertificate != null)
+                    decryptedSecret = meinAuthSocket.getMeinAuthService().certificateManager.decrypt(request.secret)
+                    mySecret = CertificateManager.randomUUID().toString()
+                    var isolationDetails: IsolationDetails? = null
+                    if (request.payload != null && request.payload is IsolationDetails) {
+                        isolationDetails = request.payload as IsolationDetails
+                    }
+                    val secret: ByteArray? = Cryptor.encrypt(partnerCertificate, mySecret)
+                    val answer: MeinRequest = request.request().setRequestHandler(this).queue()
+                            .setDecryptedSecret(decryptedSecret)
+                            .setSecret(secret)
+                    val finalIsolationDetails = isolationDetails
+                    answer.answerDeferred.done { result: SerializableEntity ->
+                        val r = result as MeinRequest
+                        val response: MeinResponse = r.reponse()
+                        try {
+                            if (r.decryptedSecret == mySecret) {
+                                if (finalIsolationDetails == null) {
+                                    partnerAuthenticated = true
+                                    val validationProcess = MeinValidationProcess(socket, partnerCertificate, true)
+                                    if (meinAuthSocket.getMeinAuthService().registerValidationProcess(validationProcess)) {
+                                        // get all allowed Services
+
+                                        addAllowedServices(meinAuthSocket.getMeinAuthService(), partnerCertificate, response)
+                                        send(response)
+                                        // done here, set up validationprocess
+
+
+                                        Lok.debug(meinAuthSocket.getMeinAuthService().name + " AuthProcess leaves socket")
+                                        // propagate that we are connected!
+                                        // note: if the connection is incoming, we cannot use the ports from the socket here.
+                                        // whenever an outgoing connection is set up a random high port is used to do so (port 50k+)
+
+
+                                        propagateAuthentication(partnerCertificate, socket.getSocket().inetAddress.hostAddress, partnerCertificate.port.v())
 //                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getLocalPort());
-                                        } else {
-//                                            Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
-                                            Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists. waiting for the other side to close connection.");
-//                                            this.stop();
-                                        }
 
                                     } else {
-                                        Lok.debug("leaving for IsolationProcess");
-                                        IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.getTargetService());
-                                        Class<? extends MeinIsolatedProcess> isolatedClass = (Class<? extends MeinIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
-                                        MeinIsolatedProcess isolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());
-                                        isolatedProcess.setService(service);
-                                        service.onIsolatedConnectionEstablished(isolatedProcess);
-                                        send(response);
+//                                            Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
+
+                                        Lok.debug("connection to cert " + partnerCertificate.id.v().toString() + " already exists. waiting for the other side to close connection.")
+//                                            this.stop();
+
                                     }
                                 } else {
-                                    response.setState(MeinStrings.msg.STATE_ERR);
-                                    send(response);
+                                    Lok.debug("leaving for IsolationProcess")
+                                    val service: IMeinService = meinAuthSocket.getMeinAuthService().getMeinService(finalIsolationDetails.targetService)
+                                    val isolatedClass = javaClass.forName(finalIsolationDetails.processClass) as Class<out MeinIsolatedProcess>
+                                    val isolatedProcess: MeinIsolatedProcess = MeinIsolatedProcess.instance(isolatedClass, meinAuthSocket, service, partnerCertificate.id.v(), finalIsolationDetails.sourceService, finalIsolationDetails.isolationUuid)
+                                    isolatedProcess.service = service
+                                    service.onIsolatedConnectionEstablished(isolatedProcess)
+                                    send(response)
                                 }
-                            } catch (Exception e) {
-                                Lok.error("leaving socket, because of EXCEPTION: " + e.toString());
-                                MeinAuthProcess.this.removeThyself();
+                            } else {
+                                response.state = msg.STATE_ERR
+                                send(response)
                             }
-                        });
-                        send(answer);
-                    } catch (Exception e) {
-                        Lok.debug("leaving, because of exception: " + e.toString());
-                        e.printStackTrace();
+                        } catch (e: Exception) {
+                            Lok.error("leaving socket, because of EXCEPTION: $e")
+                            removeThyself()
+                        }
                     }
-                } else
-                    Lok.debug("MeinAuthProcess.onMessageReceived.ELSE1");
-        } catch (Exception e) {
+                    send(answer)
+                } catch (e: Exception) {
+                    Lok.debug("leaving, because of exception: $e")
+                    e.printStackTrace()
+                }
+            } else Lok.debug("MeinAuthProcess.onMessageReceived.ELSE1")
+        } catch (e: Exception) {
             try {
-                Lok.debug("leaving, because of exception: " + e.toString());
-                socket.disconnect();
-            } catch (IOException e1) {
-                e1.printStackTrace();
+                Lok.debug("leaving, because of exception: $e")
+                socket.disconnect()
+            } catch (e1: IOException) {
+                e1.printStackTrace()
             }
         }
     }
 
-
-    private void propagateAuthentication(Certificate partnerCertificate, String address, int port) throws SqlQueriesException {
+    @Throws(SqlQueriesException::class)
+    private fun propagateAuthentication(partnerCertificate: Certificate, address: String?, port: Int) {
         // propagate to database first
-        partnerCertificate.setAddress(address);
-        partnerCertificate.setPort(port);
-        meinAuthSocket.getMeinAuthService().getCertificateManager().updateCertificate(partnerCertificate);
+
+        partnerCertificate.setAddress(address)
+        partnerCertificate.setPort(port)
+        meinAuthSocket.getMeinAuthService().certificateManager.updateCertificate(partnerCertificate)
         // propagate to allowed services
-        List<Service> services = meinAuthSocket.getMeinAuthService().getDatabaseManager().getAllowedServices(partnerCertificate.getId().v());
-        for (Service service : services) {
-            IMeinService ins = meinAuthSocket.getMeinAuthService().getMeinService(service.getUuid().v());
-            if (ins != null) {
-                ins.connectionAuthenticated(partnerCertificate);
-            }
+
+
+        val services: List<Service> = meinAuthSocket.getMeinAuthService().databaseManager.getAllowedServices(partnerCertificate.id.v())
+        for (service in services) {
+            val ins: IMeinService? = meinAuthSocket.getMeinAuthService().getMeinService(service.uuid.v())
+            ins?.connectionAuthenticated(partnerCertificate)
         }
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "." + meinAuthSocket.getMeinAuthService().getName();
+    override fun toString(): String {
+        return javaClass.simpleName + "." + meinAuthSocket.getMeinAuthService().name
     }
 
-    void authenticate(AConnectJob job) {
-        final Long id = job.getCertificateId();
-        final String address = job.getAddress();
-        final Integer port = job.getPort();
+    internal fun authenticate(job: AConnectJob<*, *>) {
+        val id: Long? = job.certificateId
+        val address: String? = job.address
+        val port: Int? = job.port
         try {
-            meinAuthSocket.connectSSL(id, address, port);
-            mySecret = CertificateManager.randomUUID().toString();
-            if (partnerCertificate == null)
-                this.partnerCertificate = meinAuthSocket.getTrustedPartnerCertificate();
-            N runner = new N(e -> {
-                e.printStackTrace();
-                job.reject(e);
-            });
-            this.mySecret = CertificateManager.randomUUID().toString();
-            byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
-            MeinRequest request = new MeinRequest(MeinStrings.SERVICE_NAME, MeinStrings.msg.INTENT_AUTH)
+            meinAuthSocket.connectSSL(id, address, port!!)
+            mySecret = CertificateManager.randomUUID().toString()
+            if (partnerCertificate == null) partnerCertificate = meinAuthSocket.trustedPartnerCertificate
+            val runner = N(NoTryExceptionConsumer { e: Exception ->
+                e.printStackTrace()
+                job.reject(e)
+            })
+            mySecret = CertificateManager.randomUUID().toString()
+            val secret: ByteArray? = Cryptor.encrypt(partnerCertificate, mySecret)
+            val request: MeinRequest = MeinRequest(MeinStrings.SERVICE_NAME, msg.INTENT_AUTH)
                     .setRequestHandler(this).queue().setSecret(secret)
-                    .setUserUuid(partnerCertificate.getAnswerUuid().v());
-            if (job instanceof IsolatedConnectJob) {
-                IsolatedConnectJob isolatedConnectJob = (IsolatedConnectJob) job;
-                IsolationDetails isolationDetails = new IsolationDetails()
-                        .setTargetService(isolatedConnectJob.getRemoteServiceUuid())
-                        .setSourceService(isolatedConnectJob.getOwnServiceUuid())
-                        .setIsolationUuid(((IsolatedConnectJob) job).getIsolatedUuid())
-                        .setProcessClass(((IsolatedConnectJob) job).getProcessClass().getCanonicalName());
-                request.setPayLoad(isolationDetails);
+                    .setUserUuid(partnerCertificate.answerUuid.v())
+            if (job is IsolatedConnectJob<*>) {
+                val isolatedConnectJob = job
+                val isolationDetails: IsolationDetails? = IsolationDetails()
+                        .setTargetService(isolatedConnectJob.remoteServiceUuid)
+                        .setSourceService(isolatedConnectJob.ownServiceUuid)
+                        .setIsolationUuid(job.isolatedUuid)
+                        .setProcessClass(job.processClass.canonicalName)
+                request.setPayLoad(isolationDetails)
             }
-            request.getAnswerDeferred().done(result -> {
-                MeinRequest r = (MeinRequest) result;
-                if (r.getDecryptedSecret().equals(this.mySecret)) {
-                    runner.runTry(() -> {
-                        decryptedSecret = meinAuthSocket.getMeinAuthService().getCertificateManager().decrypt(r.getSecret());
-                        MeinRequest answer = r.request()
+            request.answerDeferred.done { result: SerializableEntity ->
+                val r = result as MeinRequest
+                if (r.decryptedSecret == mySecret) {
+                    runner.runTry {
+                        decryptedSecret = meinAuthSocket.getMeinAuthService().certificateManager.decrypt(r.secret)
+                        val answer: MeinRequest = r.request()
                                 .setDecryptedSecret(decryptedSecret)
                                 .setAuthenticated(true)
-                                .setRequestHandler(this).queue();
-                        answer.getAnswerDeferred().done(result1 -> {
-                            runner.runTry(() -> {
-                                if (job instanceof ConnectJob) {
+                                .setRequestHandler(this).queue()
+                        answer.answerDeferred.done { result1: SerializableEntity ->
+                            runner.runTry {
+                                if (job is ConnectJob) {
                                     // check if already connected to that cert
-                                    MeinValidationProcess validationProcess = new MeinValidationProcess(meinAuthSocket, partnerCertificate, false);
+
+                                    val validationProcess = MeinValidationProcess(meinAuthSocket, partnerCertificate, false)
                                     if (meinAuthSocket.getMeinAuthService().registerValidationProcess(validationProcess)) {
                                         // propagate that we are connected!
-                                        propagateAuthentication(partnerCertificate, meinAuthSocket.getSocket().getInetAddress().getHostAddress(), meinAuthSocket.getSocket().getPort());
+
+                                        propagateAuthentication(partnerCertificate, meinAuthSocket.getSocket().inetAddress.hostAddress, meinAuthSocket.getSocket().port)
                                         // done here, set up validationprocess
-                                        Lok.debug(meinAuthSocket.getMeinAuthService().getName() + " AuthProcess leaves socket");
+
+
+                                        Lok.debug(meinAuthSocket.getMeinAuthService().name + " AuthProcess leaves socket")
                                         // tell MAS we are connected & authenticated
-                                        job.resolve(validationProcess);
+
+
+                                        job.resolve(validationProcess)
                                         //
-                                        final Long[] actualRemoteCertId = new Long[1];
-                                        runner.runTry(() -> {
-                                            actualRemoteCertId[0] = (job.getCertificateId() == null) ? partnerCertificate.getId().v() : job.getCertificateId();
-                                            meinAuthSocket.getMeinAuthService().updateCertAddresses(actualRemoteCertId[0], address, port, job.getPortCert());
-                                        });
+
+
+                                        val actualRemoteCertId = arrayOfNulls<Long?>(1)
+                                        runner.runTry {
+                                            actualRemoteCertId[0] = if (job.getCertificateId() == null) partnerCertificate.id.v() else job.getCertificateId()
+                                            meinAuthSocket.getMeinAuthService().updateCertAddresses(actualRemoteCertId[0], address, port, job.getPortCert())
+                                        }
                                     } else {
-                                        Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v=" + meinAuthSocket.getV());
-                                        job.resolve(validationProcess);
-                                        return;
+                                        Lok.debug("connection to cert " + partnerCertificate.id.v().toString() + " already existing. closing... v=" + meinAuthSocket.v)
+                                        job.resolve(validationProcess)
+                                        return@runTry
                                     }
-
-
-                                } else if (job instanceof IsolatedConnectJob) {
-                                    IsolatedConnectJob isolatedConnectJob = (IsolatedConnectJob) job;
-                                    if (partnerCertificate.getId().v() != job.getCertificateId()) {
-                                        job.reject(new Exception("not the partner I expected"));
+                                } else if (job is IsolatedConnectJob<*>) {
+                                    val isolatedConnectJob = job
+                                    if (partnerCertificate.id.v() !== job.getCertificateId()) {
+                                        job.reject(Exception("not the partner I expected"))
                                     } else {
-                                        Lok.debug("MeinAuthProcess.authenticate465");
-                                        IMeinService service = meinAuthSocket.getMeinAuthService().getMeinService(isolatedConnectJob.getOwnServiceUuid());
-                                        Class isolatedProcessClass = isolatedConnectJob.getProcessClass();
-                                        MeinIsolatedProcess meinIsolatedProcess = MeinIsolatedProcess.instance(isolatedProcessClass, meinAuthSocket, service, partnerCertificate.getId().v(), isolatedConnectJob.getRemoteServiceUuid(), isolatedConnectJob.getIsolatedUuid());
-                                        Promise<Void, Exception, Void> isolated = meinIsolatedProcess.sendIsolate();
-                                        isolated.done(nil -> {
-                                            service.onIsolatedConnectionEstablished(meinIsolatedProcess);
-                                            meinIsolatedProcess.setService(service);
-                                            job.resolve(meinIsolatedProcess);
-                                        }).fail(excc -> job.reject(excc));
+                                        Lok.debug("MeinAuthProcess.authenticate465")
+                                        val service: IMeinService = meinAuthSocket.getMeinAuthService().getMeinService(isolatedConnectJob.ownServiceUuid)
+                                        val isolatedProcessClass: Class<*>? = isolatedConnectJob.processClass
+                                        val meinIsolatedProcess: MeinIsolatedProcess = MeinIsolatedProcess.instance(isolatedProcessClass, meinAuthSocket, service, partnerCertificate.id.v(), isolatedConnectJob.remoteServiceUuid, isolatedConnectJob.isolatedUuid)
+                                        val isolated: Promise<Void, Exception, Void> = meinIsolatedProcess.sendIsolate()
+                                        isolated.done { nil: Void ->
+                                            service.onIsolatedConnectionEstablished(meinIsolatedProcess)
+                                            meinIsolatedProcess.service = service
+                                            job.resolve(meinIsolatedProcess)
+                                        }.fail { excc: Exception -> job.reject(excc) }
                                     }
                                 }
-
-                            });
-                        });
-                        send(answer);
-                    });
+                            }
+                        }
+                        send(answer)
+                    }
                 } else {
                     //error stuff
-                    Lok.debug("MeinAuthProcess.authenticate.error.decrypted.secret: " + r.getDecryptedSecret());
-                    Lok.debug("MeinAuthProcess.authenticate.error.should.be: " + mySecret);
-                    job.reject(new Exception("find aok39ka"));
+
+                    Lok.debug("MeinAuthProcess.authenticate.error.decrypted.secret: " + r.decryptedSecret)
+                    Lok.debug("MeinAuthProcess.authenticate.error.should.be: $mySecret")
+                    job.reject(Exception("find aok39ka"))
                 }
-            });
-            send(request);
-        } catch (Exception e) {
-            Lok.error("Exception occured: " + e.toString() + " v=" + meinAuthSocket.getV());
-            job.reject(e);
+            }
+            send(request)
+        } catch (e: Exception) {
+            Lok.error("Exception occured: " + e.toString() + " v=" + meinAuthSocket.v)
+            job.reject(e)
         }
     }
 
-    public static void addAllowedServicesJoinTypes(MeinAuthService meinAuthService, Certificate partnerCertificate, MeinResponse response) throws SqlQueriesException {
-        MeinServicesPayload payload = new MeinServicesPayload();
-        response.setPayLoad(payload);
-        List<ServiceJoinServiceType> servicesJoinTypes = meinAuthService.getDatabaseManager().getAllowedServicesJoinTypes(partnerCertificate.getId().v());
-        //set flag for running Services, then add to result
-        for (ServiceJoinServiceType service : servicesJoinTypes) {
-            MeinService meinService = meinAuthService.getMeinService(service.getUuid().v());
-            service.setRunning(meinService != null);
-            if (meinService != null) {
-                service.setAdditionalServicePayload(meinService.addAdditionalServiceInfo());
-            }
-            payload.addService(service);
+    companion object {
+        /**
+         * adds the currently available services to the Response
+         *
+         * @param meinAuthService
+         * @param partnerCertificate
+         * @param response
+         * @throws SqlQueriesException
+         */
+        @Throws(SqlQueriesException::class)
+        fun addAllowedServices(meinAuthService: MeinAuthService, partnerCertificate: Certificate, response: MeinResponse) {
+            val payload: MeinServicesPayload? = meinAuthService.getAllowedServicesFor(partnerCertificate.id.v())
+            response.setPayLoad(payload)
         }
-        response.setPayLoad(payload);
+
+        @Throws(SqlQueriesException::class)
+        fun addAllowedServicesJoinTypes(meinAuthService: MeinAuthService, partnerCertificate: Certificate, response: MeinResponse) {
+            val payload = MeinServicesPayload()
+            response.setPayLoad(payload)
+            val servicesJoinTypes: List<ServiceJoinServiceType> = meinAuthService.databaseManager.getAllowedServicesJoinTypes(partnerCertificate.id.v())
+            //set flag for running Services, then add to result
+
+
+            for (service in servicesJoinTypes) {
+                val meinService: MeinService? = meinAuthService.getMeinService(service.uuid.v())
+                service.isRunning = meinService != null
+                if (meinService != null) {
+                    service.additionalServicePayload = meinService.addAdditionalServiceInfo()
+                }
+                payload.addService(service)
+            }
+            response.setPayLoad(payload)
+        }
     }
 }

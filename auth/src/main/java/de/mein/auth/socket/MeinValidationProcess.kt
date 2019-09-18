@@ -1,268 +1,248 @@
-package de.mein.auth.socket;
+package de.mein.auth.socket
 
-import de.mein.Lok;
-import de.mein.auth.InsufficientBootLevelException;
-import de.mein.auth.MeinStrings;
-import de.mein.auth.data.*;
-import de.mein.auth.data.cached.CachedData;
-import de.mein.auth.data.cached.CachedInitializer;
-import de.mein.auth.data.cached.CachedPart;
-import de.mein.auth.data.cached.CachedPartOlde;
-import de.mein.auth.data.db.Certificate;
-import de.mein.auth.data.db.Service;
-import de.mein.auth.service.MeinService;
-import de.mein.auth.socket.process.val.Request;
-import de.mein.auth.tools.N;
-import de.mein.core.serialize.SerializableEntity;
-import de.mein.core.serialize.exceptions.JsonDeserializationException;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
-import de.mein.core.serialize.exceptions.MeinJsonException;
-import de.mein.sql.SqlQueriesException;
-
-import org.jdeferred.impl.DeferredObject;
-
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
+import de.mein.Lok
+import de.mein.auth.InsufficientBootLevelException
+import de.mein.auth.MeinStrings
+import de.mein.auth.MeinStrings.msg
+import de.mein.auth.data.*
+import de.mein.auth.data.cached.CachedData
+import de.mein.auth.data.cached.CachedInitializer
+import de.mein.auth.data.cached.CachedPart
+import de.mein.auth.data.db.Certificate
+import de.mein.auth.data.db.Service
+import de.mein.auth.service.MeinService
+import de.mein.auth.socket.process.`val`.Request
+import de.mein.auth.tools.N.oneLine
+import de.mein.core.serialize.SerializableEntity
+import de.mein.core.serialize.exceptions.JsonSerializationException
+import de.mein.core.serialize.exceptions.MeinJsonException
+import de.mein.sql.SqlQueriesException
+import java.io.IOException
+import java.lang.reflect.Constructor
+import java.lang.reflect.InvocationTargetException
+import java.util.*
 
 /**
  * Created by xor on 4/27/16.
  */
-@SuppressWarnings("Duplicates")
-public class MeinValidationProcess extends MeinProcess {
-    private final Long connectedId;
+class MeinValidationProcess(meinAuthSocket: MeinAuthSocket, partnercertificate: Certificate, private val incoming: Boolean) : MeinProcess(meinAuthSocket) {
+    val connectedId: Long
     //    private final Map<Long, CachedData> cachedForRetrieving = new HashMap<>();
 //    private final Map<Long, StateMsg> cachedStateMessages = new HashMap<>();
 //    private final Map<Long, CachedData> cachedForSending = new HashMap<>();
-    private final Map<Long, CachedInitializer> cachedForSending = new HashMap<>();
-    private final Map<Long, CachedInitializer> cachedForRequesting = new HashMap<>();
-    private final Map<Long, StateMsg> cachedStateMessages = new HashMap<>();
-    private final boolean incoming;
-
-    @Override
-    public String toString() {
-        if (meinAuthSocket != null) {
-            return (incoming ? "incoming " : "outgoing ") + meinAuthSocket.getAddressString() + (meinAuthSocket.isStopped() ? " stopped" : " running");
-        }
-        return super.toString();
+    private val cachedForSending: MutableMap<Long, CachedInitializer<*>> = HashMap()
+    private val cachedForRequesting: MutableMap<Long, CachedInitializer<*>> = HashMap()
+    private val cachedStateMessages: MutableMap<Long, StateMsg> = HashMap()
+    override fun toString(): String {
+        return if (meinAuthSocket != null) {
+            (if (incoming) "incoming " else "outgoing ") + meinAuthSocket.getAddressString() + if (meinAuthSocket.isStopped()) " stopped" else " running"
+        } else super.toString()
     }
 
-    public boolean isClosed() {
-        return meinAuthSocket.isStopped();
+    val isClosed: Boolean
+        get() = meinAuthSocket.isStopped()
+
+
+    class SendException(msg: String?) : Exception(msg)
+
+    override fun stop() {
+        super.stop()
     }
 
-    public MeinAuthSocket getMeinAuthSocket() {
-        return meinAuthSocket;
-    }
-
-    public static class SendException extends Exception {
-        public SendException(String msg) {
-            super(msg);
-        }
-    }
-
-    public MeinValidationProcess(MeinAuthSocket meinAuthSocket, Certificate partnercertificate, boolean incoming) {
-        super(meinAuthSocket);
-        this.incoming = incoming;
-        this.meinAuthSocket = meinAuthSocket;
-        this.connectedId = partnercertificate.getId().v();
-        try {
-            this.partnerCertificate = meinAuthSocket.getMeinAuthService().getCertificateManager().getTrustedCertificateById(connectedId);
-        } catch (SqlQueriesException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void stop() {
-        super.stop();
-    }
-
-    public Long getConnectedId() {
-        return connectedId;
-    }
-
-
-    @Override
-    public synchronized void onMessageReceived(SerializableEntity deserialized, MeinAuthSocket webSocket) throws IOException, MeinJsonException {
+    @Synchronized
+    @Throws(IOException::class, MeinJsonException::class)
+    override fun onMessageReceived(deserialized: SerializableEntity, webSocket: MeinAuthSocket) {
         if (!handleCached(deserialized) && !handleAnswer(deserialized)) {
             try {
                 if (!handleGetServices(deserialized)) {
                     if (!handleServiceInteraction(deserialized)) {
-                        Lok.debug("MeinValidationProcess.onMessageReceived.something exploded here :/");
+                        Lok.debug("MeinValidationProcess.onMessageReceived.something exploded here :/")
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
     /**
      * If deserialized is some kind of cached data we care about it here.
-     * Except: the {@link CachedInitializer} is already complete. In this case we return false and let the subsequent methods deal with it.
-     * A cached data transfer always starts with a {@link CachedInitializer} which might be followed by several {@link CachedPart}s.
-     * In order to get all of these parts {@link CachedRequest}s are sent to the partner and answered with {@link CachedPart}s.
-     * When the {@link CachedInitializer} is complete a {@link CachedDoneMessage} is sent to the partner, so he can clean up.
+     * Except: the [CachedInitializer] is already complete. In this case we return false and let the subsequent methods deal with it.
+     * A cached data transfer always starts with a [CachedInitializer] which might be followed by several [CachedPart]s.
+     * In order to get all of these parts [CachedRequest]s are sent to the partner and answered with [CachedPart]s.
+     * When the [CachedInitializer] is complete a [CachedDoneMessage] is sent to the partner, so he can clean up.
      * Note: this method deals with caching on both sides.
      */
-    private boolean handleCached(SerializableEntity deserialized) throws MeinJsonException, IOException {
+    @Throws(MeinJsonException::class, IOException::class)
+    private fun handleCached(deserialized: SerializableEntity): Boolean {
 
         // if chached stuff starts then as a StateMsg
-        if (deserialized instanceof StateMsg) {
-            StateMsg stateMsg = (StateMsg) deserialized;
-            if (stateMsg.getPayload() instanceof CachedInitializer) {
+
+        if (deserialized is StateMsg) {
+            val stateMsg = deserialized
+            if (stateMsg.payload is CachedInitializer<*>) {
                 // cached data incoming.
-                CachedInitializer initializer = (CachedInitializer) stateMsg.getPayload();
-                cachedForRequesting.put(initializer.getCacheId(), initializer);
+
+                val initializer = stateMsg.payload as CachedInitializer<*>
+                cachedForRequesting[initializer.cacheId] = initializer
                 //store the StateMsg
-                cachedStateMessages.put(initializer.getCacheId(), stateMsg);
+
+
+                cachedStateMessages[initializer.cacheId] = stateMsg
                 // set it up correctly
-                initializer.setCacheDir(meinAuthSocket.getMeinAuthService().getCacheDir());
-                if (!initializer.isComplete()) {
-                    initializer.initPartsMissed();
-                    if (initializer.getPart() != null) {
-                        initializer.onReceivedPart(initializer.getPart());
+
+
+                initializer.cacheDir = meinAuthSocket.getMeinAuthService().getCacheDir()
+                if (!initializer.isComplete) {
+                    initializer.initPartsMissed()
+                    if (initializer.part != null) {
+                        initializer.onReceivedPart(initializer.part)
                     }
                 }
-                if (initializer.isComplete()) {
+                return if (initializer.isComplete) {
                     // clean up and deal with the message
-                    cachedForRequesting.remove(initializer.getCacheId());
-                    cachedStateMessages.remove(initializer.getCacheId());
-                    send(new CachedDoneMessage().setCacheId(initializer.getCacheId()));
+
+                    cachedForRequesting.remove(initializer.cacheId)
+                    cachedStateMessages.remove(initializer.cacheId)
+                    send(CachedDoneMessage().setCacheId(initializer.cacheId))
 //                    onMessageReceived(deserialized, meinAuthSocket);
 //                    initializer.cleanUp();
-                    return false;
+
+
+                    false
                 } else {
                     // ask for more
-                    send(new CachedRequest().setPartNumber(initializer.getNextPartNumber()).setCacheId(initializer.getCacheId()));
-                    return true;
+
+                    send(CachedRequest().setPartNumber(initializer.nextPartNumber).setCacheId(initializer.cacheId))
+                    true
                 }
             }
-        } else if (deserialized instanceof AbstractCachedMessage) {
-            AbstractCachedMessage cachedMessage = (AbstractCachedMessage) deserialized;
-            Long cacheId = cachedMessage.getCacheId();
-            if (cachedMessage instanceof CachedRequest) {
+        } else if (deserialized is AbstractCachedMessage<*>) {
+            val cachedMessage = deserialized
+            val cacheId: Long = cachedMessage.cacheId
+            if (cachedMessage is CachedRequest) {
                 // partner asks for a cached part
+
                 if (cachedForSending.containsKey(cacheId)) {
-                    CachedRequest cachedRequest = (CachedRequest) cachedMessage;
-                    send(cachedForSending.get(cacheId).getPart(cachedRequest.getPartNumber()));
+                    send(cachedForSending[cacheId]!!.getPart(cachedMessage.partNumber))
                 } else {
-                    Lok.error("INVALID CACHE ID REQUESTED: " + cacheId);
+                    Lok.error("INVALID CACHE ID REQUESTED: $cacheId")
                 }
-            } else if (cachedMessage instanceof CachedDoneMessage) {
+            } else if (cachedMessage is CachedDoneMessage) {
                 // partner has got everything he needs. we can free up our space here.
-                CachedDoneMessage cachedDoneMessage = (CachedDoneMessage) cachedMessage;
+
+                val cachedDoneMessage = cachedMessage
                 if (cachedForSending.containsKey(cacheId)) {
-                    CachedInitializer initializer = cachedForSending.remove(cacheId);
-                    initializer.cleanUp();
+                    val initializer = cachedForSending.remove(cacheId)!!
+                    initializer.cleanUp()
                 } else {
-                    Lok.error("INVALID CACHE ID REQUESTED: " + cacheId);
+                    Lok.error("INVALID CACHE ID REQUESTED: $cacheId")
                 }
-            } else if (cachedMessage instanceof CachedPart) {
-                CachedPart cachedPart = (CachedPart) cachedMessage;
+            } else if (cachedMessage is CachedPart) {
                 if (cachedForRequesting.containsKey(cacheId)) {
-                    CachedInitializer initializer = cachedForRequesting.get(cacheId);
-                    initializer.onReceivedPart(cachedPart);
-                    if (initializer.isComplete()) {
-                        cachedForRequesting.remove(cacheId);
-                        StateMsg stateMsg = cachedStateMessages.get(cacheId);
-                        send(new CachedDoneMessage().setCacheId(cacheId));
-                        onMessageReceived(stateMsg, meinAuthSocket);
-                        return false;
+                    val initializer = cachedForRequesting[cacheId]!!
+                    initializer.onReceivedPart(cachedMessage)
+                    if (initializer.isComplete) {
+                        cachedForRequesting.remove(cacheId)
+                        val stateMsg = cachedStateMessages[cacheId]!!
+                        send(CachedDoneMessage().setCacheId(cacheId))
+                        onMessageReceived(stateMsg, meinAuthSocket)
+                        return false
                     } else {
-                        send(new CachedRequest().setCacheId(cacheId).setPartNumber(initializer.getNextPartNumber()));
+                        send(CachedRequest().setCacheId(cacheId).setPartNumber(initializer.nextPartNumber))
                     }
                 } else {
-                    Lok.error("INVALID CACHE ID REQUESTED: " + cacheId);
+                    Lok.error("INVALID CACHE ID REQUESTED: $cacheId")
                 }
             }
-            return true;
+            return true
         }
-        return false;
+        return false
     }
 
-    private boolean handleServiceInteraction(SerializableEntity deserialized) throws SqlQueriesException {
-        if (deserialized instanceof MeinMessage) {
-            MeinMessage message = (MeinMessage) deserialized;
-            ServicePayload payload = message.getPayload();
-            String serviceUuid = message.getServiceUuid();
+    @Throws(SqlQueriesException::class)
+    private fun handleServiceInteraction(deserialized: SerializableEntity): Boolean {
+        if (deserialized is MeinMessage) {
+            val message = deserialized
+            val payload: ServicePayload? = message.payload
+            val serviceUuid = message.serviceUuid ?: return handleAnswer(deserialized)
             // no serviceuuid could be an answer to a request
-            if (serviceUuid == null) {
-                return handleAnswer(deserialized);
-            }
-            MeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
+
+
+            val meinService: MeinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid)
             if (meinService == null) {
-                if (message instanceof MeinRequest) {
-                    MeinRequest request = (MeinRequest) message;
-                    request.getAnswerDeferred().reject(new ResponseException("service not available"));
+                if (message is MeinRequest) {
+                    message.answerDeferred.reject(ResponseException("service not available"))
                 } else {
-                    Lok.debug("msg rejected");
+                    Lok.debug("msg rejected")
                 }
-                return true;
+                return true
             }
             if (!bootLevelSatisfied(serviceUuid, payload)) {
-                Lok.error("NOT ALLOWED, LEVEL INSUFFICIENT");
+                Lok.error("NOT ALLOWED, LEVEL INSUFFICIENT")
                 // if a request comes along that requires a higher boot level that the service has not reached yet,
                 // this is the place to respond exactly that.
-                if (message instanceof MeinRequest) {
-                    MeinRequest meinRequest = (MeinRequest) message;
-                    meinRequest.getAnswerDeferred().reject(new InsufficientBootLevelException());
+
+
+                if (message is MeinRequest) {
+                    message.answerDeferred.reject(InsufficientBootLevelException())
                 }
-                return true;
+                return true
             }
             if (isServiceAllowed(serviceUuid)) {
-                if (deserialized instanceof MeinRequest) {
-                    MeinRequest meinRequest = (MeinRequest) deserialized;
+                if (deserialized is MeinRequest) {
+                    val meinRequest = deserialized
                     // wrap it, hand it over to the service and send results back
-                    Request<ServicePayload> request4Service = new Request<>().setPayload(meinRequest.getPayload()).setPartnerCertificate(this.partnerCertificate).setServiceUuid(serviceUuid);
-                    if (payload instanceof CachedData) {
-                        Lok.debug("MeinValidationProcess.handleServiceInteraction");
+
+
+                    val request4Service: Request<ServicePayload> = Request<ServicePayload>().setPayload(meinRequest.payload).setPartnerCertificate(this.partnerCertificate).setServiceUuid(serviceUuid)
+                    if (payload is CachedData) {
+                        Lok.debug("MeinValidationProcess.handleServiceInteraction")
                     }
                     //wrap the answer and send it back
-                    request4Service.done(newPayload -> {
-                        MeinResponse response = meinRequest.reponse().setPayLoad(newPayload);
-                        if (newPayload instanceof CachedInitializer) {
-                            CachedInitializer cachedData = (CachedInitializer) newPayload;
-                            cachedForSending.put(cachedData.getCacheId(), cachedData);
+
+
+                    request4Service.done { newPayload: ServicePayload ->
+                        val response: MeinResponse = meinRequest.reponse().setPayLoad(newPayload)
+                        if (newPayload is CachedInitializer<*>) {
+                            val cachedData = newPayload
+                            cachedForSending[cachedData.cacheId] = cachedData
                         }
                         try {
-                            send(response);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            handleError(meinRequest, e);
+                            send(response)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            handleError(meinRequest, e)
                         }
-                    }).fail(result -> {
-                        handleError(meinRequest, result);
-                    });
+                    }.fail { result: Exception -> handleError(meinRequest, result) }
                     try {
-                        meinService.handleRequest(request4Service);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        handleError(meinRequest, e);
+                        meinService.handleRequest(request4Service)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        handleError(meinRequest, e)
                     }
-                    return true;
-                } else if (deserialized instanceof MeinMessage) {
-                    //delegate message to service
-                    MeinMessage meinMessage = (MeinMessage) deserialized;
-                    meinService.handleMessage(meinMessage.getPayload(), this.partnerCertificate);
-                    return true;
+                    return true
                 }
                 // clean up if it was cached
-                if (deserialized instanceof StateMsg) {
-                    StateMsg stateMsg = (StateMsg) deserialized;
-                    if (stateMsg.getPayload() instanceof CachedInitializer) {
-                        CachedInitializer initializer = (CachedInitializer) stateMsg.getPayload();
-                        initializer.cleanUp();
+                else if (deserialized is MeinMessage) {
+                    //delegate message to service
+
+                    meinService.handleMessage(deserialized.payload, this.partnerCertificate)
+                    return true
+                }
+
+                if (deserialized is StateMsg) {
+                    val stateMsg = deserialized as StateMsg
+                    if (stateMsg.payload is CachedInitializer<*>) {
+                        val initializer = stateMsg.payload as CachedInitializer<*>
+                        initializer.cleanUp()
                     }
                 }
             }
-        } else if (deserialized instanceof MeinResponse) {
-            return handleAnswer(deserialized);
+        } else if (deserialized is MeinResponse) {
+            return handleAnswer(deserialized)
         }
-        return false;
+        return false
     }
 
     /**
@@ -270,53 +250,63 @@ public class MeinValidationProcess extends MeinProcess {
      * The level is determined by creating a new instance of the payload that you got here and reading that.
      *
      * @param serviceUuid uuid of the service
-     * @param payload     {@link ServicePayload} that has a required boot level
+     * @param payload     [ServicePayload] that has a required boot level
      * @return
      */
-    private boolean bootLevelSatisfied(String serviceUuid, ServicePayload payload) {
-        MeinService meinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid);
-        if (payload != null) {
+    private fun bootLevelSatisfied(serviceUuid: String, payload: ServicePayload?): Boolean {
+        val meinService: MeinService = meinAuthSocket.getMeinAuthService().getMeinService(serviceUuid)
+        return if (payload != null) {
             try {
-                Class<? extends ServicePayload> payloadClass = payload.getClass();
-                Constructor<? extends ServicePayload> constructor = payloadClass.getDeclaredConstructor();
-                ServicePayload newInstance = constructor.newInstance();
-                return meinService.getBootLevel().greaterOrEqual(newInstance.getLevel());
-            } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-                e.printStackTrace();
-                return false;
+                val payloadClass: Class<out ServicePayload> = payload.javaClass
+                val constructor: Constructor<out ServicePayload> = payloadClass.getDeclaredConstructor()
+                val newInstance: ServicePayload = constructor.newInstance()
+                meinService.bootLevel.greaterOrEqual(newInstance.level)
+            } catch (e: InstantiationException) {
+                e.printStackTrace()
+                false
+            } catch (e: InvocationTargetException) {
+                e.printStackTrace()
+                false
+            } catch (e: NoSuchMethodException) {
+                e.printStackTrace()
+                false
+            } catch (e: IllegalAccessException) {
+                e.printStackTrace()
+                false
             }
-        }
-        return true;
+        } else true
     }
 
-    private void handleError(MeinRequest request, Exception e) {
-        Lok.debug("handling error on " + meinAuthSocket.getMeinAuthService().getName());
-        MeinResponse response = request.respondError(e);
-        N.oneLine(() -> send(response));
+    private fun handleError(request: MeinRequest, e: Exception) {
+        Lok.debug("handling error on " + meinAuthSocket.getMeinAuthService().getName())
+        val response: MeinResponse = request.respondError(e)
+        oneLine { send(response) }
     }
 
-    private boolean isServiceAllowed(String serviceUuid) throws SqlQueriesException {
-        Service service = meinAuthSocket.getMeinAuthService().getDatabaseManager().getServiceByUuid(serviceUuid);
+    @Throws(SqlQueriesException::class)
+    private fun isServiceAllowed(serviceUuid: String): Boolean {
+        val service: Service = meinAuthSocket.getMeinAuthService().getDatabaseManager().getServiceByUuid(serviceUuid)
         if (service == null) {
             //todo debug
-            Lok.debug("MeinValidationProcess.isServiceAllowed.debug");
+
+            Lok.debug("MeinValidationProcess.isServiceAllowed.debug")
         }
-        return meinAuthSocket.getMeinAuthService().getDatabaseManager().isApproved(partnerCertificate.getId().v(), service.getId().v());
+        return meinAuthSocket.getMeinAuthService().getDatabaseManager().isApproved(partnerCertificate.getId().v(), service.id.v())
     }
 
-    private boolean handleGetServices(SerializableEntity deserialized) throws
-            JsonSerializationException, IllegalAccessException, SqlQueriesException {
-        if (deserialized instanceof MeinRequest) {
-            MeinRequest request = (MeinRequest) deserialized;
-            ServicePayload payload = request.getPayload();
-            if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME) && payload != null && payload.hasIntent(MeinStrings.msg.INTENT_GET_SERVICES)) {
-                MeinResponse response = request.reponse();
-                MeinAuthProcess.addAllowedServicesJoinTypes(meinAuthSocket.getMeinAuthService(), partnerCertificate, response);
-                send(response);
-                return true;
+    @Throws(JsonSerializationException::class, IllegalAccessException::class, SqlQueriesException::class)
+    private fun handleGetServices(deserialized: SerializableEntity): Boolean {
+        if (deserialized is MeinRequest) {
+            val request = deserialized
+            val payload: ServicePayload? = request.payload
+            if (request.serviceUuid == MeinStrings.SERVICE_NAME && payload != null && payload.hasIntent(msg.INTENT_GET_SERVICES)) {
+                val response: MeinResponse = request.reponse()
+                MeinAuthProcess.addAllowedServicesJoinTypes(meinAuthSocket.getMeinAuthService(), partnerCertificate, response)
+                send(response)
+                return true
             }
         }
-        return false;
+        return false
     }
 
 //    private void registerCached(MeinRequest request) {
@@ -330,55 +320,56 @@ public class MeinValidationProcess extends MeinProcess {
 //    }
 
 
-    protected void send(SerializableEntity serializableEntity) throws
-            JsonSerializationException {
-        if (serializableEntity instanceof MeinMessage) {
-            ServicePayload payload = ((MeinMessage) serializableEntity).getPayload();
-            if (payload instanceof CachedInitializer) {
-                CachedInitializer initializer = (CachedInitializer) payload;
-                cachedForSending.put(initializer.getCacheId(), initializer);
+    @Throws(JsonSerializationException::class)
+    override fun send(serializableEntity: SerializableEntity) {
+        if (serializableEntity is MeinMessage) {
+            val payload: ServicePayload? = serializableEntity.payload
+            if (payload is CachedInitializer<*>) {
+                val initializer = payload
+                cachedForSending[initializer.cacheId] = initializer
             }
         }
-        super.send(serializableEntity);
+        super.send(serializableEntity)
     }
 
-    public Request request(String serviceUuid, ServicePayload payload) throws
-            JsonSerializationException {
-        meinAuthSocket.getMeinAuthService().getPowerManager().wakeLock(MeinValidationProcess.this);
-        Request promise = new Request().setServiceUuid(serviceUuid);
-        MeinRequest request = new MeinRequest(serviceUuid, null);
+    @Throws(JsonSerializationException::class)
+    fun request(serviceUuid: String, payload: ServicePayload): Request<ServicePayload> {
+        meinAuthSocket.meinAuthService.powerManager.wakeLock(this@MeinValidationProcess)
+        val promise: Request<ServicePayload> = Request<ServicePayload>().setServiceUuid(serviceUuid)
+        val request = MeinRequest(serviceUuid, null)
         if (payload != null) {
-            request.setPayLoad(payload);
+            request.setPayLoad(payload)
         }
-        request.setRequestHandler(this).queue();
-        request.getAnswerDeferred().done(result -> {
-            StateMsg response = (StateMsg) result;
-            promise.resolve(response.getPayload());
-            meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
-        }).fail(result -> {
+        request.setRequestHandler(this).queue()
+        request.answerDeferred.done { result: SerializableEntity ->
+            val response = result as StateMsg
+            promise.resolve(response.payload)
+            meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this@MeinValidationProcess)
+        }.fail { result: ResponseException ->
             if (validateFail(result)) {
                 try {
-                    if (!promise.isRejected()) {
-                        promise.reject(result);
+                    if (!promise.isRejected) {
+                        promise.reject(result)
                     }
                 } finally {
-                    meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
+                    meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this@MeinValidationProcess)
                 }
             } else {
                 try {
-
-                    if (!promise.isRejected()) {
-                        promise.reject(result);
+                    if (!promise.isRejected) {
+                        promise.reject(result)
                     }
                 } finally {
-                    meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(MeinValidationProcess.this);
+                    meinAuthSocket.getMeinAuthService().getPowerManager().releaseWakeLock(this@MeinValidationProcess)
                 }
             }
-        });
+        }
         // todo this line should be redundant, see "request.setRequestHandler(this).queue();" above
-        queueForResponse(request);
-        send(request);
-        return promise;
+
+
+        queueForResponse(request)
+        send(request)
+        return promise
     }
 
 
@@ -390,30 +381,38 @@ public class MeinValidationProcess extends MeinProcess {
 //
 //    }
 
-    private boolean validateFail(Exception result) {
-        return false;
+
+    private fun validateFail(result: Exception): Boolean {
+        return false
     }
 
-    private boolean validateThingy(SerializableEntity result) {
-        return false;
+    private fun validateThingy(result: SerializableEntity?): Boolean {
+        return false
     }
 
-    public void message(String serviceUuid, ServicePayload payload) throws
-            JsonSerializationException, IllegalAccessException {
-        MeinMessage message = new MeinMessage(serviceUuid, null).setPayLoad(payload);
-        send(message);
+    @Throws(JsonSerializationException::class, IllegalAccessException::class)
+    fun message(serviceUuid: String?, payload: ServicePayload?) {
+        val message: MeinMessage = MeinMessage(serviceUuid, null).setPayLoad(payload)
+        send(message)
     }
 
-    public Certificate getPartnerCertificate() {
-        return partnerCertificate;
-    }
 
-    public String getAddressString() {
-        return meinAuthSocket.getAddressString();
-    }
+    val addressString: String?
+        get() = meinAuthSocket.getAddressString()
 
 
 //    public Request requestWithList(String serviceName, String intent) throws JsonSerializationException, IllegalAccessException {
 //        return requestWithList(serviceName, intent, new ArrayList<>());
 //    }
+
+
+    init {
+        this.meinAuthSocket = meinAuthSocket
+        connectedId = partnercertificate.id.v()
+        try {
+            this.partnerCertificate = meinAuthSocket.getMeinAuthService().certificateManager.getTrustedCertificateById(connectedId)
+        } catch (e: SqlQueriesException) {
+            e.printStackTrace()
+        }
+    }
 }
