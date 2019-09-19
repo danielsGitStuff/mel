@@ -17,7 +17,7 @@ When starting for the first time, the application creates a folder called "serve
 Stuff that lives in the secret folder must not (under any circumstances) be published or checked into your git.
 Content explained:
 - folder "files": contains binaries that the server offers. Compiled jars/apks go here
-- folder "secret": your secret stuff, passwords, signing keys etc
+- folder "secret": your secret stuff, passwords, signing keys etc - !!!YOU MUST NOT SHARE THIS FOLDER!!!
   - secret.properties: central config file, contains passwords
   - folder "http": certificates for the http server
   - folder "socket": certificates for sockets (the Mel apps use these)
