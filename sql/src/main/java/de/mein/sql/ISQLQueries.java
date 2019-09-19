@@ -60,14 +60,6 @@ public abstract class ISQLQueries {
         return cols;
     }
 
-
-    protected void out(String msg) {
-        if (SYSOUT) {
-            System.out.println("SqlQueries.out()." + msg);
-        }
-    }
-
-
     public static String buildSelectQuery(List<Pair<?>> what, String fromTable) {
         String result = "select ";
         for (int i = 0; i < what.size(); i++) {
@@ -82,27 +74,33 @@ public abstract class ISQLQueries {
         return result;
     }
 
-    protected String buildInsertModifyQuery(List<Pair<?>> what, String before, String after, String where,
+    protected void out(String msg) {
+        if (SYSOUT) {
+            System.out.println("SqlQueries.out()." + msg);
+        }
+    }
+
+    protected String buildInsertModifyQuery(List<Pair<?>> what, String where,
                                             String fromTable) throws SqlQueriesException {
-        String query;
+        StringBuilder query;
         try {
-            query = before + " " + fromTable + " " + after + " ";
+            query = new StringBuilder("update" + " " + fromTable + " " + "set" + " ");
             for (int i = 0; i < what.size(); i++) {
                 String key = what.get(i).k();
                 if (i < what.size() - 1) {
-                    query += key + "= ? , ";
+                    query.append(key).append("= ? , ");
                 } else {
-                    query += key + " = ?";
+                    query.append(key).append(" = ?");
                 }
             }
             if (where != null) {
-                query += " where " + where;
+                query.append(" where ").append(where);
             }
 
         } catch (Exception e) {
             throw new SqlQueriesException(e);
         }
-        return query;
+        return query.toString();
     }
 
     public abstract SQLConnection getSQLConnection();

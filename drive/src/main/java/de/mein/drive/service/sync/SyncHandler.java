@@ -353,7 +353,6 @@ public abstract class SyncHandler {
                                 Lok.debug("//pe, should not be called");
                                 fsEntry.getVersion().v(localVersion);
                             }
-                            // TODO inode & co
                             FsEntry oldeEntry = fsDao.getGenericById(fsEntry.getId().v());
                             // only copy modified & inode if it is not present in the new entry (it came from remote then)
                             if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v() && fsEntry.getModified().isNull()) {

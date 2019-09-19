@@ -61,7 +61,7 @@ public class SQLQueries extends ISQLQueries {
         String query;
         List<Pair<?>> what = sqlTableObject.getInsertAttributes();
         String fromTable = sqlTableObject.getTableName();
-        query = buildInsertModifyQuery(what, "update", "set", where, fromTable);
+        query = buildInsertModifyQuery(what, where, fromTable);
         out("update().query= " + query);
         try {
             PreparedStatement pstmt = connection.prepareStatement(query);

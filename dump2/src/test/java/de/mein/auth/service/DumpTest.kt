@@ -15,6 +15,7 @@ import de.mein.drive.DriveBootloader
 import de.mein.drive.bash.BashTools
 import de.mein.drive.data.DriveSettings
 import de.mein.drive.data.fs.RootDirectory
+import de.mein.drive.serialization.TestDirCreator
 import de.mein.dump.DumpBootloader
 import de.mein.dump.DumpCreateServiceHelper
 import org.junit.After
@@ -47,6 +48,7 @@ class DumpTest {
         testDir.mkdirs()
         testTarget.mkdirs()
         testSource.mkdirs()
+        TestDirCreator.createFilesTestDir(AFile.instance(testSource), 5)
         val rTarget = AFile.instance(testTarget)
         val rSource = AFile.instance(testSource)
         r1 = DriveSettings.buildRootDirectory(rTarget)

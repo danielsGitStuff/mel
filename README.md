@@ -90,7 +90,7 @@ For example:
   - it is slow!
   - it uses different [URIs](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier)
     - a URI is supposed to be a naming scheme. That means a plain String. 
-    On Android it is an Java-Object containing this string with permissions attached to it.
+    On Android it is an Object containing this string with permissions attached to it.
   - its lacks a lot of Documentation
   - many things do not work on a sufficient amount of Android versions
   - it is slow!
@@ -109,3 +109,15 @@ For example:
 In Java I only found one thing that is broken:
 the file watch service that watches folders for changes:
 It neither delivers complete nor correct results on any Platform. All you can rely on is that something had happened.
+
+
+### Intellij does not rebuild all changed Files when running or debugging (Linux)
+Also: you have to clean the project before your debug, because the code running and the code in the editor are not the same (after you made some changes).
+
+Your inotify limit might be too low. To fix that the value to something higher:
+`sudo nano /etc/sysctl.conf`, then add or set
+`fs.inotify.max_user_watches = 1000000`, then apply settings from this file:
+`sudo sysctl -p`. 
+
+Hint: This is permanent.
+
