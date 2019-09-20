@@ -39,7 +39,6 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     @FXML
     private TextField txtName, txtPath;
 
-    private DriveCreateServiceHelper driveCreateServiceHelper;
     private MeinAuthAdminFX meinAuthAdminFX;
 
     private void checkShare() {
@@ -114,6 +113,13 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
             final boolean isServer = this.isServerSelected();
             final String path = txtPath.getText();
             final boolean useSymLinks = !cbIgnoreSymLinks.isSelected();
+            return createInstance(name, isServer, path, useSymLinks);
+        }, false);
+    }
+
+    protected boolean createInstance(final String name, final boolean isServer, final String path, final boolean useSymLinks) {
+        return N.result(() -> {
+            DriveCreateServiceHelper driveCreateServiceHelper = new DriveCreateServiceHelper(meinAuthService);
             if (isServer)
                 driveCreateServiceHelper.createServerService(name, AFile.instance(path), 0.1f, 30, useSymLinks);
             else {
@@ -158,7 +164,6 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
 
     @Override
     public void init() {
-        driveCreateServiceHelper = new DriveCreateServiceHelper(meinAuthService);
         btnPath.setOnAction(event -> {
             shareWasChecked = false;
             DirectoryChooser directoryChooser = new DirectoryChooser();
