@@ -9,7 +9,7 @@ import de.mein.sql.transform.SqlResultTransformer
 import java.io.File
 import java.time.LocalDateTime
 
-class Visitors(val dao: VisitsDao) {
+class Visitors private constructor(private val dao: VisitsDao) {
 
     fun count(ex: HttpExchange) {
         if (ex.requestMethod == "GET") {

@@ -7,6 +7,7 @@ import de.mein.Lok
 import de.mein.auth.tools.N
 import de.mein.serverparts.*
 import de.mein.serverparts.visits.Visitors
+import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -31,7 +32,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         blogDao = blogDatabaseManager.blogDao
         blogSettings.save()
         if (blogSettings.countVisitors!!)
-            visitors = Visitors(blogDatabaseManager.visitsDao)
+            visitors = Visitors.fromDbFile(File(blogSettings.blogDir, "visitors.blog.db"))
         Lok.debug("blog loaded")
     }
 
