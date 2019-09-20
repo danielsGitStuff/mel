@@ -28,9 +28,13 @@ import java.io.File
 import java.io.IOException
 import java.sql.SQLException
 
-class DumpBootloader : DriveBootloader() {
+open class DumpBootloader : DriveBootloader() {
     override fun createInstance(driveSettings: DriveSettings, workingDirectory: File, serviceTypeId: Long, uuid: String): MeinDriveService<*> {
         val dumpService = if (driveSettings.isServer) TargetService(meinAuthService, workingDirectory, serviceTypeId!!, uuid!!, driveSettings) else SourceService(meinAuthService, workingDirectory, serviceTypeId!!, uuid!!, driveSettings)
         return dumpService
     }
+
+    override fun getName(): String = "File Dump"
+
+    override fun getDescription(): String = "One way file backup"
 }
