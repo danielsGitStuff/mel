@@ -92,31 +92,35 @@ class TargetSyncHandler(meinAuthService: MeinAuthService, targetService: TargetS
 
     /**
      * find an appropriate file name for the new file.
-     * new name be like: FILE_NAME[.CREATED][.FS_ID].FILE_EXT
+     * new name be like: FILE_NAME[.CREATED][.FS_ID][.RANDOM_UUID].FILE_EXT
      */
     private fun resolveConflict(stage: Stage, existing: GenericFSEntry, fsEntry: FsEntry, stageIdFsIdMap: MutableMap<Long, Long>?) {
-        val name = existing.name.v()
+        val baseName = existing.name.v()
 
-        if (name == stage.name && stage.isDirectory && existing.isDirectory.v())
+        if (baseName == stage.name && stage.isDirectory && existing.isDirectory.v())
             return
 
         // insert with tmp name. this gives us an fs id
-        val tmpName = "$name.${CertificateManager.randomUUID()}"
+        val tmpName = "$baseName.${CertificateManager.randomUUID()}"
         fsEntry.name.v(tmpName)
         fsDao.insert(fsEntry)
 
         val extension = N.result {
-            val lastDotIndex = name.lastIndexOf('.')
+            val lastDotIndex = baseName.lastIndexOf('.')
             if (lastDotIndex < 1)
                 ""
             else
-                "${name.drop(lastDotIndex)}"
+                baseName.drop(lastDotIndex)
         }
-        val ldt = LocalDateTime.ofEpochSecond(stage.created, 0, ZoneOffset.UTC)
+        val name = baseName.dropLast(extension.length)
+        val ldt = LocalDateTime.ofEpochSecond(stage.created/1000, 0, ZoneOffset.UTC)
         val created = "${ldt.year}.${ldt.monthValue}.${ldt.dayOfMonth}.${ldt.hour}.${ldt.minute}.${ldt.second}"
-        var newName = "$name - $created$extension"
+        var newName = "${name}_$created$extension"
         if (fsDao.getGenericChildByName(existing.parentId.v(), newName) != null)
-            newName = "$name - $created - ${fsEntry.id.v()}$extension"
+            newName = "${name}_${created}_${fsEntry.id.v()}$extension"
+        // enough is enough! just try random UUIDs until one is not taken.
+        while (fsDao.getGenericChildByName(existing.parentId.v(), newName) != null)
+            newName = "${name}_${created}_${fsEntry.id.v()}_${CertificateManager.randomUUID()}$extension"
         fsEntry.name.v(newName)
         fsDao.updateName(fsEntry.id.v(), newName)
     }
