@@ -28,7 +28,7 @@ class Visitors(val dao: VisitsDao) {
             val dao = VisitsDao(sqlQueries)
 
             val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
-            if (!sqliteExecutor.checkTablesExist("blogentry", "visits")) {
+            if (!sqliteExecutor.checkTablesExist("visits")) {
                 dao.createTable()
             }
             return Visitors(dao)
