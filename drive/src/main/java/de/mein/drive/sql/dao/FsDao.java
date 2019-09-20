@@ -9,6 +9,7 @@ import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.sql.*;
 import de.mein.sql.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -462,7 +463,7 @@ public class FsDao extends Dao {
     }
 
     /**
-     * searches for all hashes that the {@link de.mein.drive.transfer.TransferManager} is looking for and are already in the share
+     * searches for all hashes that the {@link de.mein.drive.transfer.TManager} is looking for and are already in the share
      *
      * @return
      * @throws SqlQueriesException
@@ -470,9 +471,9 @@ public class FsDao extends Dao {
     public List<String> searchTransfer() throws SqlQueriesException {
         FsFile f = new FsFile();
         DbTransferDetails t = new DbTransferDetails();
-        String query = "select f."+f.getContentHash().k()+" from "+t.getTableName()+" t left join "+f.getTableName()
-                +" f on f."+f.getContentHash().k()+"=t."+t.getHash().k()+" where f."+f.getSynced().k()+"=?";
-        return sqlQueries.loadColumn(f.getContentHash(),String.class, query,ISQLQueries.args(true));
+        String query = "select f." + f.getContentHash().k() + " from " + t.getTableName() + " t left join " + f.getTableName()
+                + " f on f." + f.getContentHash().k() + "=t." + t.getHash().k() + " where f." + f.getSynced().k() + "=?";
+        return sqlQueries.loadColumn(f.getContentHash(), String.class, query, ISQLQueries.args(true));
     }
 
     public void setSynced(Long id, boolean synced) throws SqlQueriesException {
@@ -538,5 +539,12 @@ public class FsDao extends Dao {
     public ISQLResource<GenericFSEntry> all() throws SqlQueriesException {
         FsEntry f = new FsFile();
         return sqlQueries.loadResource(f.getAllAttributes(), GenericFSEntry.class, null, null);
+    }
+
+    private final FsFile dummy = new FsFile();
+
+    public void updateName(long id, @NotNull String name) throws SqlQueriesException {
+        String stmt = "update " + dummy.getTableName() + " set " + dummy.getName().k() + "=? where " + dummy.getId().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.args(name,id));
     }
 }

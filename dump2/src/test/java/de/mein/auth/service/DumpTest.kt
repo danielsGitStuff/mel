@@ -48,7 +48,7 @@ class DumpTest {
         testDir.mkdirs()
         testTarget.mkdirs()
         testSource.mkdirs()
-        TestDirCreator.createFilesTestDir(AFile.instance(testSource), 5)
+        TestDirCreator.createFilesTestDir(AFile.instance(testSource), 0)
         val rTarget = AFile.instance(testTarget)
         val rSource = AFile.instance(testSource)
         r1 = DriveSettings.buildRootDirectory(rTarget)

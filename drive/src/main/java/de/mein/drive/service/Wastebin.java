@@ -298,7 +298,7 @@ public class Wastebin {
 
     /**
      * deletes the file immediately but does not assume its content(hash).
-     * the content hash is determined deferred.
+     * the content hash is determined afterwards.
      * This method might crash in between (eg. if a file has been deleted by now)
      *
      * @param file

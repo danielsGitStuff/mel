@@ -1,5 +1,6 @@
 package de.mein.drive.sql;
 
+import de.mein.Lok;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.sql.Pair;
@@ -41,7 +42,11 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     @JsonIgnore
     private Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
     private Pair<Long> created = new Pair<>(Long.class, CREATED);
-    private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED);
+    private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED).setSetListener(value -> {
+        if (value)
+            Lok.debug(); // todo debug
+        return value;
+    });
     @JsonIgnore
     private Pair<Long> stageSet = new Pair<>(Long.class, STAGESET);
     private Pair<Long> size = new Pair<Long>(Long.class, SIZE);
