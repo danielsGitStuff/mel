@@ -67,7 +67,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 if (entry.title.isNull)
                     return@Replacer entry.text.v()
                 else
-                    return@Replacer "<p class=\"entrytext\">${entry.text.v()}</p>"
+                    return@Replacer "<div class=\"entrytext\">${entry.text.v()}</div>"
             }
                     , Replacer("link") {
                 "index.html?id=${entry.id.v()}"
