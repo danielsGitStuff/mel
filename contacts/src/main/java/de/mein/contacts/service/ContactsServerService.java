@@ -68,16 +68,16 @@ public class ContactsServerService extends ContactsService {
                     settings.setMasterPhoneBookId(phoneBook.getId().v());
                     settings.save();
                     updatePhoneBookJob.getRequest().resolve(null);
-                    updatePhoneBookJob.getPromise().resolve(null);
+                    updatePhoneBookJob.resolve(null);
                     propagateNewVersion(phoneBook.getVersion().v());
                 } else {
                     updatePhoneBookJob.getRequest().reject(new Exception("master version was " + masterPhoneBook.getVersion().v() + " clients version was " + phoneBook.getVersion().v()));
-                    updatePhoneBookJob.getPromise().reject(null);
+                    updatePhoneBookJob.reject(null);
                 }
             } finally {
                 if (updatePhoneBookJob.getRequest().isPending()) {
                     updatePhoneBookJob.getRequest().reject(null);
-                    updatePhoneBookJob.getPromise().reject(null);
+                    updatePhoneBookJob.reject(null);
                 }
             }
         } else if (job instanceof ServiceRequestHandlerJob) {

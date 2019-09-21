@@ -80,7 +80,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                 if (master == null
                         || master.getVersion().notEqualsValue(newVersionDetails.getVersion())) {
                     QueryJob queryJob = new QueryJob();
-                    queryJob.getPromise().done(receivedPhoneBookId -> N.r(() -> {
+                    queryJob.done(receivedPhoneBookId -> N.r(() -> {
                         AndroidContactSettings androidContactSettings = (AndroidContactSettings) settings.getPlatformContactSettings();
                         if (androidContactSettings.getPersistToPhoneBook()) {
                             contactsToAndroidExporter.export(receivedPhoneBookId);
@@ -156,7 +156,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                         }))
                         .fail(result -> transaction.run(() -> {
                             System.err.println("ContactsClientService.workWork");
-                            queryJob.getPromise().reject(null);
+                            queryJob.reject(null);
                             transaction.end();
                         }))))
                 .fail(result -> transaction.end());

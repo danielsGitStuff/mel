@@ -49,7 +49,7 @@ public class ConnectedEnvironment {
             transaction = T.lockingTransaction(T.read(this));
             MeinAuthSocket def = isCurrentlyConnecting(certificateId);
             if (def != null) {
-                return def.getConnectJob().getPromise();
+                return def.getConnectJob();
             }
             {
                 MeinValidationProcess mvp = getValidationProcess(certificateId);
@@ -61,7 +61,7 @@ public class ConnectedEnvironment {
             }
             {
                 ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-                job.getPromise().done(result -> {
+                job.done(result -> {
                     // use a new transaction, because we want connect in parallel.
                     T.lockingTransaction(this)
                             .run(() -> {
@@ -107,13 +107,13 @@ public class ConnectedEnvironment {
             Lok.debug("connect to: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
             MeinAuthSocket def = isCurrentlyConnecting(address, port, portCert);
             if (def != null) {
-                return def.getConnectJob().getPromise();
+                return def.getConnectJob();
             }
             if ((mvp = getValidationProcess(address, port)) != null) {
                 deferred.resolve(mvp);
             } else {
                 ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
-                job.getPromise().done(result -> {
+                job.done(result -> {
                     removeCurrentlyConnecting(address, port, portCert);
                     registerValidationProcess(result);
                     deferred.resolve(result);
@@ -257,11 +257,11 @@ public class ConnectedEnvironment {
         Transaction transaction = T.lockingTransaction(this);
         N.forEachAdvIgnorantly(currentlyConnectingAddresses, (stoppable, index, s, meinAuthSocket) -> {
             if (meinAuthSocket.getConnectJob() != null)
-                meinAuthSocket.getConnectJob().getPromise().reject(new Exception("shutting down"));
+                meinAuthSocket.getConnectJob().reject(new Exception("shutting down"));
         });
         N.forEachAdvIgnorantly(currentlyConnectingCertIds, (stoppable, index, aLong, meinAuthSocket) -> {
             if (meinAuthSocket.getConnectJob() != null)
-                meinAuthSocket.getConnectJob().getPromise().reject(new Exception("shutting down"));
+                meinAuthSocket.getConnectJob().reject(new Exception("shutting down"));
         });
         currentlyConnectingAddresses.clear();
         currentlyConnectingCertIds.clear();
@@ -287,8 +287,8 @@ public class ConnectedEnvironment {
                 }
                 transaction.end();
                 N.oneLine(() -> {
-                    if (connectJob.getPromise().isPending()) {
-                        connectJob.getPromise().reject(new Exception("connection closed"));
+                    if (connectJob.isPending()) {
+                        connectJob.reject(new Exception("connection closed"));
                     }
                 });
             }

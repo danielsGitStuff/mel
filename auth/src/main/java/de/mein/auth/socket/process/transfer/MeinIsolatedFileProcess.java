@@ -108,7 +108,7 @@ public class MeinIsolatedFileProcess extends MeinIsolatedProcess implements Mein
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
-            blockJob.getPromise().resolve(null);
+            blockJob.resolve(null);
         }
     }
 

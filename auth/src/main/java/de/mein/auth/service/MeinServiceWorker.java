@@ -36,8 +36,8 @@ public abstract class MeinServiceWorker extends MeinService {
                         workWork(job);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        if (job.getPromise() != null)
-                            job.getPromise().reject(e);
+                        if (job != null)
+                            job.reject(e);
                     } finally {
                         meinAuthService.getPowerManager().releaseWakeLock(this);
                     }

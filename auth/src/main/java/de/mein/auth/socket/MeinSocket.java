@@ -207,7 +207,7 @@ public class MeinSocket extends DeferredRunnable {
                     byte[] bytes = new byte[BLOCK_SIZE];
                     in.readFully(bytes);
                     BlockReceivedJob blockReceivedJob = new BlockReceivedJob().setBlock(bytes);
-                    blockReceivedJob.getPromise().done(result -> queueLock.unlock());
+                    blockReceivedJob.done(result -> queueLock.unlock());
                     socketWorker.addJob(blockReceivedJob);
                     queueLock.lock();
                 } else {

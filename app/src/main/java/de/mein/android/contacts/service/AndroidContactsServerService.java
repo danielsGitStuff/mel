@@ -157,7 +157,7 @@ public class AndroidContactsServerService extends ContactsServerService {
         } else if (job instanceof AnswerQueryJob) {
             super.workWork(job);
         } else if (job instanceof UpdatePhoneBookJob) {
-            job.getPromise().done(result -> N.r(() -> {
+            job.done(result -> N.r(() -> {
                 UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
                 contactsToAndroidExporter.export(updatePhoneBookJob.getPhoneBook().getId().v());
             })).fail(result -> N.r(() -> {

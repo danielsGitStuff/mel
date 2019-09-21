@@ -43,7 +43,7 @@ public class ConnectWorker extends MeinWorker {
         Objects.requireNonNull(connectJob);
         this.meinAuthService = meinAuthService;
         this.connectJob = connectJob;
-        connectJob.getPromise().always((state, resolved, rejected) -> super.shutDown());
+        connectJob.always((state, resolved, rejected) -> super.shutDown());
         addJob(connectJob);
     }
 
@@ -63,7 +63,7 @@ public class ConnectWorker extends MeinWorker {
     private <T extends MeinIsolatedProcess> DeferredObject<T, Exception, Void> isolate(IsolatedConnectJob<T> originalJob) {
         N runner = new N(e -> {
             e.printStackTrace();
-            originalJob.getPromise().reject(e);
+            originalJob.reject(e);
         });
         runner.runTry(() -> {
             meinAuthSocket = new MeinAuthSocket(meinAuthService, originalJob);
@@ -71,15 +71,15 @@ public class ConnectWorker extends MeinWorker {
             MeinAuthProcess meinAuthProcess = new MeinAuthProcess(meinAuthSocket);
             meinAuthProcess.authenticate(originalJob);
         });
-        return originalJob.getPromise();
+        return originalJob;
     }
 
     private DeferredObject<MeinValidationProcess, Exception, Void> auth(AConnectJob originalJob) {
         ConnectJob dummyJob = new ConnectJob(originalJob.getCertificateId(), originalJob.getAddress(), originalJob.getPort(), originalJob.getPortCert(), false);
-//        DeferredObject<MeinValidationProcess, Exception, Void> deferred = dummyJob.getPromise();
+//        DeferredObject<MeinValidationProcess, Exception, Void> deferred = dummyJob;
         N runner = new N(e -> {
             e.printStackTrace();
-            dummyJob.getPromise().reject(e);
+            dummyJob.reject(e);
         });
         runner.runTry(() -> {
             if (meinAuthSocket == null)
@@ -90,7 +90,7 @@ public class ConnectWorker extends MeinWorker {
             MeinAuthProcess meinAuthProcess = new MeinAuthProcess(meinAuthSocket);
             meinAuthProcess.authenticate(dummyJob);
         });
-        return dummyJob.getPromise();
+        return dummyJob;
     }
 
     /**
@@ -114,7 +114,7 @@ public class ConnectWorker extends MeinWorker {
 //        Lok.debug("MeinAuthSocket.connect(id=" + remoteCertId + " addr=" + address + " port=" + port + " portCert=" + portCert + " reg=" + regOnUnknown + ")");
         meinAuthService.getPowerManager().wakeLock(this);
         if (job instanceof ConnectJob) {
-            DeferredObject result = job.getPromise();
+            DeferredObject result = job;
             N runner = new N(e -> {
                 if (result.isPending())
                     result.reject(e);
@@ -150,7 +150,7 @@ public class ConnectWorker extends MeinWorker {
                                     //connection is no more -> need new socket
                                     // create a new job that is not allowed to register.
                                     ConnectJob secondJob = new ConnectJob(connectJob.getCertificateId(), connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert(), false);
-                                    secondJob.getPromise().done(result1 -> {
+                                    secondJob.done(result1 -> {
                                         result.resolve(result1);
                                         shutDown();
                                     }).fail(result1 -> {
@@ -223,7 +223,7 @@ public class ConnectWorker extends MeinWorker {
         } else if (job instanceof IsolatedConnectJob) {
             connect((IsolatedConnectJob) job);
         }
-        if (this.connectJob.getPromise().isResolved())
+        if (this.connectJob.isResolved())
             shutDown();
 
     }
