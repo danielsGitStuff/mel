@@ -22,7 +22,7 @@ All services come with a client/server role. By design all server services do no
 
 - Contacts synchronization
   - can sync with Androids telephone book
-  - but can also just store it
+  - but also can just store it
 - File synchronization
   - keeps the content of a folder identical on multiple devices
   - comes with conflict solution (if files have been altered differently across devices)
