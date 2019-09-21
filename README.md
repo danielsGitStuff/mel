@@ -38,7 +38,7 @@ All services come with a client/server role. By design all server services do no
  - Find a devices that suits as a server (S) and at least one you want to be mobile (M).
  - Install Mel on both of them
  - Have them connected to the same network
- - make sure that ports 8888 and 8889 are not blocked by any firewall
+ - make sure that ports 8888 and 8889 are not blocked by any firewalls
  - Pair them by going to "Pair" on one device
    - it should now find the other
    - click "Pair"
@@ -78,7 +78,7 @@ So no own crypto is used in this program.
 ## License
 Until I have chosen a proper license (BSD/GNU/Apache...) neither republishing/altering the code nor the binaries is permitted.
 There are parts of this program which are made by others. You may alter or republish these files according to their respective licsenses.
-You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.html.
+You can find all licenses and according modules and usage under `auth/src/main/resources/de/mein/auth/licenses.html`.
 
 ## Current issues
 - does not work on MacOS (won't be addressed: too expensive, no FileWatcher)
