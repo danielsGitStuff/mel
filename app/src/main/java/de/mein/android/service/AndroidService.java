@@ -10,6 +10,7 @@ import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
 
+import de.mein.android.dump.AndroidDumpBootloader;
 import de.mein.auth.MeinAuthAdmin;
 
 import org.jdeferred.Promise;
@@ -352,7 +353,7 @@ public class AndroidService extends Service {
 
         AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
         AndroidPowerManager powerManager = new AndroidPowerManager(meinAuthSettings, (android.os.PowerManager) getSystemService(POWER_SERVICE));
-        meinBoot = new MeinBoot(meinAuthSettings, powerManager, AndroidDriveBootloader.class, AndroidContactsBootloader.class);
+        meinBoot = new MeinBoot(meinAuthSettings, powerManager, AndroidDriveBootloader.class, AndroidContactsBootloader.class, AndroidDumpBootloader.class);
 //        meinBoot = new MeinBoot(meinAuthSettings, powerManager, AndroidDriveBootloader.class);
         meinBoot.addMeinAuthAdmin(admin);
         Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot().done(meinAuthService -> {

@@ -45,12 +45,22 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
         N.r(() -> BashTools.rmRf(AFile.instance(instanceDir)));
     }
 
+    /**
+     * Bootloaders extending this class probably want another ServiceHelper
+     * @param meinAuthService
+     * @return
+     */
+    protected DriveCreateServiceHelper createCreateServiceHelper(MeinAuthService meinAuthService) {
+        return new DriveCreateServiceHelper(meinAuthService);
+
+    }
+
     @Override
     public void createService(Activity activity, MeinAuthService meinAuthService, AndroidServiceGuiController currentController) {
         RemoteDriveServiceChooserGuiController driveCreateGuiController = (RemoteDriveServiceChooserGuiController) currentController;
 
         // create the actual MeinDrive service
-        DriveCreateServiceHelper driveCreateServiceHelper = new DriveCreateServiceHelper(meinAuthService);
+        DriveCreateServiceHelper driveCreateServiceHelper = createCreateServiceHelper(meinAuthService);
         if (driveCreateGuiController.isValid())
             Threadder.runNoTryThread(() -> {
                 String name = driveCreateGuiController.getName();
