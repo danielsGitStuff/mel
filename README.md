@@ -17,6 +17,38 @@ When not:
 - You want your files to be globally available
 - Syncing should always be immediately
 
+## What does it do?
+All services come with a client/server role. By design all server services do not need any further interaction after creation and setup. 
+
+- Contacts synchronization
+  - can sync with Androids telephone book
+  - but can also just store it
+- File synchronization
+  - keeps the content of a folder identical on multiple devices
+  - comes with conflict solution (if files have been altered differently across devices)
+  - supports symlinks on Linux (sort of for Windows too)
+- File Dump
+  - think of it as a one way file synchronisation service
+  - client sends all files of a folder to the server
+  - files deleted on the client are not deleted on the server
+  - folder structure remains
+  - name conflicts are solved automatically by the server by adding dates and IDs
+  
+ ## How to use
+ - Find a devices that suits as a server (S) and at least one you want to be mobile (M).
+ - Install Mel on both of them
+ - Have them connected to the same network
+ - make sure that ports 8888 and 8889 are not blocked by any firewall
+ - Pair them by going to "Pair" on one device
+   - it should now find the other
+   - click "Pair"
+   - now accept the certificates on both devices (make sure they match)
+ - create a server service on S
+ - go to "Access" on S and allow M to talk to the created service.
+ - create the according client service on M
+   - chose S, and S's service as server-service
+   - click "Create Service" 
+
 ## Requirements
 Two devices:
 - Android:
@@ -55,7 +87,7 @@ You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.ht
 
 ## Dev stuff
 ### Modules
-- `app`: Android implementation of `auth`, `drive` and `contacts`. `dump` will follow
+- `app`: Android implementation of `auth`, `drive`, `contacts` and `dump`
 - `auth`: handles pairing, key management, connections, sending/receiving data, service management
 - `authfx`: wraps `auth` into a GUI on PCs so you can click on things
 - `blog`: runs a web server with your blog. 
@@ -63,9 +95,9 @@ You can find all licenses under auth/src/main/resources/de/mein/auth/licenses.ht
 - `contactsfx`: a bit of GUI
 - `drive`: file syncing, all the logical stuff
 - `drivefx`: adds GUI for creating/editing services and conflict solving
-- `dump`: file syncing, in one direction only
-- `dumpfx`: -not yet-
-- `fxbundle`: bundles `authfx`, `contactsfx` and `drivefx`
+- `dump`: file syncing, in one direction only, derivative of `drive`
+- `dumpfx`: a bit of GUI
+- `fxbundle`: bundles `authfx`, `contactsfx`, `drivefx` and `dumpfx`
 - `icons`: icons 'stolen' from KDE Plasma 5 plus some own
 - `json`: json lib created by Douglas Crockford
 - `konsole`: make reading command line arguments a bit easier and stay simple

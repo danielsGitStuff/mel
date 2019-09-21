@@ -1,5 +1,6 @@
 package de.miniserver.blog
 
+import de.mein.Lok
 import de.mein.auth.data.access.CertificateManager
 import de.mein.auth.data.access.DatabaseManager
 import de.mein.execute.SqliteExecutor
@@ -33,7 +34,8 @@ class Blog(val settings: BlogSettings) {
                 settings.save()
                 blog = Blog(settings)
                 blog.start()
-                Thread.currentThread().join()
+                val lock = RWLock().lockWrite().lockWrite()
+                Lok.warn("Lock $lock released. Exiting...")
             } catch (e: Exception) {
                 e.printStackTrace()
             }
