@@ -1,0 +1,98 @@
+//plugins {
+//    id 'java'
+//}
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+version 'current'
+
+//sourceCompatibility =        1.8
+//targetCompatibility = "1.8"
+
+repositories {
+    mavenCentral()
+}
+sourceSets {
+    main.java.srcDirs += 'src/main/kotlin/'
+    test.java.srcDirs += 'src/test/kotlin/'
+}
+dependencies {
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
+    compile project(path: ':konsole')
+    compile project(path: ':auth')
+    compile project(path: ':serverparts')
+
+    testCompile project(path: ':auth')
+    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task copyLicenseHtml(type: Copy) {
+    def f = rootProject.file('auth/src/main/resources/de/mein/auth/licences.html')
+    def t = rootProject.file('miniserver/src/main/resources/de/mein/auth/')
+    from(f)
+    into(t)
+}
+ext {
+    buildVersion = new Date().getTime().toString()
+    buildVariant = "standalone"
+}
+task createProperties(dependsOn: processResources) {
+    doLast {
+        Properties p = new Properties()
+        p['version'] = buildVersion
+        p['variant'] = buildVariant
+        //store in jar
+        new File("$buildDir/resources/main/version.properties").withWriter { w -> p.store(w, null) }
+        // store in build directory
+        new File("$buildDir/version.properties").withWriter { w -> p.store(w, null) }
+        //new File("src/main/resources/version.properties").withWriter {w -> p.store(w,null)}
+    }
+}
+build {
+    dependsOn createProperties
+}
+classes {
+    dependsOn createProperties
+}
+
+task buildBlogJar(type: Jar) {
+    //dependsOn copyLicenseHtml
+    group "meins"
+    description "build a fucking blog jar filled with candies!"
+    baseName = project.name// + '-all'
+    manifest {
+        attributes "version": 1, "Main-Class": "de.miniserver.blog.Blog"
+    }
+    dependsOn jar
+
+
+    List paths = configurations.compile.collect { entry ->
+        println(entry.getAbsolutePath())
+        if (entry.isDirectory())
+            entry
+        else
+            zipTree(entry)
+    }
+    from(paths) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
+    }
+    with jar
+    doLast {
+        //write the version file in the output dir as well
+        File jarFile = new File(jar.outputs.files.getAsPath());
+        File versionTxt = new File("$buildDir/version.properties")
+        File target = new File("$buildDir" + File.separator + "libs" + File.separator + jarFile.getName() + ".properties")
+        String version = versionTxt.getText('UTF-8')
+        target.text = version
+        println("printing version to: " + target.getAbsolutePath())
+    }
+}

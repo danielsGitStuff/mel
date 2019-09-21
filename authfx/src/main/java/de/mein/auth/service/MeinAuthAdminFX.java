@@ -147,7 +147,8 @@ public class MeinAuthAdminFX implements Initializable, MeinAuthAdmin, MeinNotifi
                 btnCreateService.setOnAction(event -> {
                     ContextMenu createServiceMenu = new ContextMenu();
                     createServiceMenu.getItems().clear();
-                    Set<String> names = meinAuthService.getMeinBoot().getBootloaderMap().keySet();
+                    List<String> names = new ArrayList<>(meinAuthService.getMeinBoot().getBootloaderMap().keySet());
+                    Collections.sort(names);
                     for (String name : names) {
 
                         MenuItem menuItem = new MenuItem(name);

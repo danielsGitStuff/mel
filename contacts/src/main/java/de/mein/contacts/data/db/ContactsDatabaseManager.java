@@ -95,7 +95,7 @@ public class ContactsDatabaseManager extends FileRelatedManager {
         // for now delete everything but the master phone book
         PhoneBook master = getFlatMasterPhoneBook();
         if (master != null)
-            sqlQueries.delete(master, master.getId().k() + "<>?", ISQLQueries.whereArgs(master.getId().v()));
+            sqlQueries.delete(master, master.getId().k() + "<>?", ISQLQueries.args(master.getId().v()));
     }
 
     public interface SQLConnectionCreator {

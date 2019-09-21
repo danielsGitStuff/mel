@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
+}
+javafx {
+    version = project.javaFxVersion
+    modules = project.javaFxModules
+}
+sourceSets {
+    main {
+        resources {
+//            srcDir "${project(':dump').projectDir}/src/main/resources"
+        }
+    }
+}
+dependencies {
+    compile project(path: ':dump')
+    compile project(path: ':drivefx')
+    compile project(path: ':authfx')
+
+//    testCompile project(path: ':dump',configuration :'driveTestOutput')
+    testCompile 'junit:junit:4.12'
+}

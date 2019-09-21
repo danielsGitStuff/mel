@@ -26,6 +26,7 @@ repositories {
 sourceSets {
     main {
         resources {
+            srcDir "${project(':dumpfx').projectDir}/src/main/resources"
             srcDir "${project(':drivefx').projectDir}/src/main/resources"
             srcDir "${project(':drive').projectDir}/src/main/resources"
             srcDir "${project(':contactsfx').projectDir}/src/main/resources"
@@ -44,6 +45,7 @@ ext {
 }
 
 dependencies {
+    compile project(':dumpfx')
     compile project(':konsole')
     compile project(':auth')
     compile project(':authfx')

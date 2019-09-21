@@ -58,7 +58,7 @@ public class SqlEnumTest {
     public void loadFirstRow() throws SqlQueriesException {
         TestObject dummy = new TestObject();
         String where = dummy.enumPair.k() + "=?";
-        TestObject read = sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(TestEnum.TWO), TestObject.class);
+        TestObject read = sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(TestEnum.TWO), TestObject.class);
         assertNotNull(read);
         assertEquals(TestEnum.TWO, read.enumPair.v());
     }
@@ -67,7 +67,7 @@ public class SqlEnumTest {
     public void load() throws SqlQueriesException {
         TestObject dummy = new TestObject();
         String where = dummy.enumPair.k() + "=?";
-        List<TestObject> read = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(TestEnum.TWO));
+        List<TestObject> read = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(TestEnum.TWO));
         assertNotNull(read);
         assertEquals(1, read.size());
         assertEquals(TestEnum.TWO, read.get(0).enumPair.v());
@@ -77,9 +77,9 @@ public class SqlEnumTest {
     public void updateOne() throws SqlQueriesException {
         TestObject dummy = new TestObject();
         String updateStmt = "update " + dummy.getTableName() + " set " + dummy.enumPair.k() + "=?";
-        sqlQueries.execute(updateStmt, ISQLQueries.whereArgs(TestEnum.THREE));
+        sqlQueries.execute(updateStmt, ISQLQueries.args(TestEnum.THREE));
         String where = dummy.enumPair.k() + "=?";
-        TestObject read = sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(TestEnum.THREE), TestObject.class);
+        TestObject read = sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(TestEnum.THREE), TestObject.class);
         assertNotNull(read);
         assertEquals(TestEnum.THREE, read.enumPair.v());
     }
@@ -93,7 +93,7 @@ public class SqlEnumTest {
         }
         TestObject dummy = new TestObject();
         String updateStmt = "update " + dummy.getTableName() + " set " + dummy.enumPair.k() + "=? where " + dummy.id.k() + "=?";
-        sqlQueries.execute(updateStmt, ISQLQueries.whereArgs(TestEnum.THREE, 3));
+        sqlQueries.execute(updateStmt, ISQLQueries.args(TestEnum.THREE, 3));
         List<TestObject> read = sqlQueries.load(dummy.getAllAttributes(), dummy, null, null);
         assertNotNull(read);
         read.forEach(testObject -> {
@@ -124,7 +124,7 @@ public class SqlEnumTest {
         Lok.debug("opening database: " + dbFile.getAbsolutePath());
         sqlQueries = new SQLQueries(SQLConnector.createSqliteConnection(dbFile), SqlResultTransformer.sqliteResultSetTransformer());
         String createStatement = "create table test (id integer not null primary key autoincrement,enum text)";
-        sqlQueries.execute(createStatement, ISQLQueries.whereArgs());
+        sqlQueries.execute(createStatement, ISQLQueries.args());
         // insert a test object
         TestObject writeObject = new TestObject();
         writeObject.enumPair.v(TestEnum.TWO);

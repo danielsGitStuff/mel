@@ -92,7 +92,7 @@ constructor(val config: ServerConfig) {
             secretProperties["keyAlias"] = "build key name goes here"
             secretProperties["storeFile"] = "path to the jks store used for signing your apk"
             secretProperties["restartCommand"] = "command that restarts the miniserver application. see readme for more information"
-            val comments = "this is a generated example. please change to values to make your setup secure.\n" +
+            val comments = "this is a generated example. please change the values to make your setup secure.\n" +
                     ""
             secretProperties.store(secretPropFile.bufferedWriter(), comments)
             error("secret properties file not found at: ${secretPropFile.absolutePath}.\n" +
@@ -218,6 +218,7 @@ constructor(val config: ServerConfig) {
         try {
             executorService!!.awaitTermination(5, TimeUnit.SECONDS)
             Lok.info("is down: " + executorService!!.isShutdown)
+            exitProcess(0)
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
@@ -308,6 +309,7 @@ constructor(val config: ServerConfig) {
                 if (konsole.result.preserveLogLinesInDb > 0L) {
                     println("STORING LOG IN DATABASE!")
                     DBLokImpl.setupDBLockImpl(File(workingDirectory, "log.db"), konsole.result.preserveLogLinesInDb)
+                    // todo debug - debug can be disabled here
                     Lok.getImpl().setPrintDebug(false).setup(30, true)
                 }
                 Lok.info("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")

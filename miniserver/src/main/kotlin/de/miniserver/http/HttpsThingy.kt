@@ -6,13 +6,17 @@ import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer
 import de.mein.serverparts.AbstractHttpsThingy
 import de.mein.serverparts.Page
 import de.mein.serverparts.Replacer
+import de.mein.serverparts.visits.Visitors
 import de.miniserver.Deploy
 import de.miniserver.MiniServer
+import de.miniserver.blog.BlogSettings
+import de.miniserver.blog.BlogThingy
 import de.miniserver.data.FileRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 object ContentType {
     const val SVG = "image/svg+xml"
@@ -21,6 +25,16 @@ object ContentType {
 }
 
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port, miniServer.httpCertificateManager.sslContext) {
+    var blogThingy: BlogThingy
+    var visitors: Visitors
+
+    init {
+        val blogDir = File(miniServer.workingDirectory, "blog")
+        val blogSettings = BlogSettings.loadBlogSettings(blogDir)
+        blogThingy = BlogThingy(blogSettings, miniServer.httpCertificateManager.sslContext)
+        visitors = Visitors.fromDbFile(File(miniServer.workingDirectory, "visitors.db"))
+    }
+
     fun pageHello(): Page {
         return Page("/de/miniserver/index.html",
                 Replacer("files") {
@@ -39,7 +53,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     }
 
     fun pageBuild(pw: String): Page {
-        return Page("/de/miniserver/build.html",
+        return Page("/de/miniserver/private/build.html",
                 Replacer("pw", pw),
                 Replacer("time", miniServer.startTime.toString()),
                 Replacer("lok") {
@@ -55,33 +69,29 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
     override fun configureContext(server: HttpsServer) {
 
-
-        server.createContext("/") {
-            if (it.requestURI?.toString() == "/")
-                respondPage(it, pageHello())
-            else {
-                it.close()
-            }
+        createServerContext("/") {
+            visitors.count(it)
+            respondPage(it, pageHello())
         }
-        server.createContext("/licences.html") {
+        createServerContext("/licences.html") {
             respondText(it, "/de/mein/auth/licences.html")
         }
-        server.createContext("/robots.txt") {
+        createServerContext("/robots.txt") {
             respondText(it, "/de/miniserver/robots.txt", contentType = "text/plain; charset=utf-8")
         }
-        server.createContext("/private/loginz.html") {
+        createServerContext("/private/loginz.html") {
             respondText(it, "/de/miniserver/private/loginz.html")
         }
-        server.createContext("/logandroid.html") {
+        createServerContext("/logandroid.html") {
             respondText(it, "/de/miniserver/logandroid.html")
         }
-        server.createContext("/logpc.html") {
+        createServerContext("/logpc.html") {
             respondText(it, "/de/miniserver/logpc.html")
         }
-        server.createContext("/private/impressum.html") {
-            respondText(it, "/de/miniserver/private/impressum.html")
+        createServerContext("/impressum.html") {
+            respondText(it, "/de/miniserver/impressum.html")
         }
-        server.createContext("/svg/") {
+        createServerContext("/svg/") {
             val uri = it.requestURI
             val fileName = uri.path.substring("/svg/".length, uri.path.length)
             if (fileName.endsWith(".svg"))
@@ -89,18 +99,18 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             else
                 respondPage(it, pageHello())
         }
-        server.createContext("/webp/") {
+        createServerContext("/webp/") {
             val uri = it.requestURI
             val fileName = uri.path.substring("/webp/".length, uri.path.length)
             if (fileName.endsWith(".webp"))
-                respondBinary(it,"/de/miniserver/webp/$fileName",contentType = ContentType.WEBP)
+                respondBinary(it, "/de/miniserver/webp/$fileName", contentType = ContentType.WEBP)
             else
                 respondPage(it, pageHello())
         }
-        server.createContext("/favicon.png") {
+        createServerContext("/favicon.png") {
             respondBinary(it, "/de/miniserver/favicon.png")
         }
-        server.createContext("/api/") {
+        createServerContext("/api/") {
             val json = String(it.requestBody.readBytes())
             val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
             Lok.info("launching build")
@@ -113,10 +123,11 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 Lok.info("build denied")
             it.close()
         }
-        server.createContext("/css.css") {
+        createServerContext("/css.css") {
+
             respondText(it, "/de/miniserver/css.css")
         }
-        server.createContext("/private/loggedIn") {
+        createServerContext("/private/loggedIn") {
             if (it.requestMethod == "POST") {
                 val values = readPostValues(it)
                 val pw = values["pw"]
@@ -133,14 +144,16 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                         respondPage(it, pageBuild(pw))
                     }
                     else -> {
-//                        Lok.info("## password did not match")
-                        respondPage(it, pageHello())
+                        //todo debug
+                        Lok.info("## password did not match")
+                        respondText(it, "/de/miniserver/private/loginz.html")
+//                        respondPage(it, pageHello())
                     }
                 }
             } else
                 respondText(it, "/de/miniserver/private/loginz.html")
         }
-        server.createContext("/build.html") {
+        createServerContext("/build.html") {
             val pw = readPostValues(it)["pw"]
             if (pw != null && pw == miniServer.secretProperties["buildPassword"]) {
                 val uri = it.requestURI
@@ -162,34 +175,37 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
             }
         }
 
-
         // add files context
-        server.createContext("/files/") {
+        createServerContext("/files/") {
             val uri = it.requestURI
             val hash = uri.path.substring("/files/".length, uri.path.length)
             Lok.info("serving file: $hash")
-            try {
-                val bytes = miniServer.fileRepository[hash].bytes
-                with(it) {
-                    sendResponseHeaders(200, bytes!!.size.toLong())
-                    responseBody.write(bytes)
-                    responseBody.close()
+            visitors.count(it)
+            GlobalScope.launch {
+                try {
+                    val bytes = miniServer.fileRepository[hash].bytes
+                    with(it) {
+                        sendResponseHeaders(200, bytes!!.size.toLong())
+                        responseBody.write(bytes)
+                        responseBody.close()
+                    }
+                } catch (e: Exception) {
+                    Lok.error("did not find a file for ${hash}")
+                    /**
+                     * does not work yet
+                     */
+                    with(it) {
+                        val response = "file not found".toByteArray()
+                        sendResponseHeaders(404, response.size.toLong())
+                        responseBody.write(response)
+                        responseBody.close()
+                    }
+                } finally {
+                    it.close()
                 }
-            } catch (e: Exception) {
-                Lok.error("did not find a file for ${hash}")
-                /**
-                 * does not work yet
-                 */
-                with(it) {
-                    val response = "file not found".toByteArray()
-                    sendResponseHeaders(404, response.size.toLong())
-                    responseBody.write(response)
-                    responseBody.close()
-                }
-            }finally {
-                it.close()
             }
         }
+        blogThingy.configureContext(server)
     }
 
 

@@ -84,6 +84,19 @@ public class BashToolsTest {
     }
 
     @Test
+    public void getFsBashDetailsModified() throws IOException, InterruptedException {
+        Thread.sleep(1001);
+        write(f2, "NEIN!");
+        FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f2);
+
+        assertNotEquals(f2.lastModified(), fsBashDetails.getCreated());
+        Long diff = f2.lastModified() - fsBashDetails.getCreated();
+        assertTrue(diff >= 0);
+        assertTrue(diff < 2000);
+
+    }
+
+    @Test
     public void rmRf() throws IOException {
         BashTools.rmRf(subsub);
         assertFalse(subsub.exists());

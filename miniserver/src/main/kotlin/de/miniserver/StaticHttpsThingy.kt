@@ -62,11 +62,11 @@ class StaticHttpsThingy(private val port: Int, private val staticServer: StaticS
                 if (contentType != null)
                     responseHeaders.add("Content-Type", contentType)
                 val page: Page
-                page = if (Page.pageRepo[path] == null) {
+                page = if (Page.staticPagesCache[path] == null) {
                     val bytes = javaClass.getResourceAsStream(path).readBytes()
                     Page(path, bytes, cache = cache)
                 } else {
-                    Page.pageRepo[path]!!
+                    Page.staticPagesCache[path]!!
                 }
                 sendResponseHeaders(200, page.bytes.size.toLong())
                 responseBody.write(page.bytes)

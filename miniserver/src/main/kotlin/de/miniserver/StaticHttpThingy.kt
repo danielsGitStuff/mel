@@ -59,7 +59,7 @@ class StaticHttpThingy(private val port: Int) : DeferredRunnable() {
             with(it) {
                 Lok.info("sending https redirect to $remoteAddress")
 //                val content = "???"
-                sendResponseHeaders(301, -1)
+                sendResponseHeaders(302, 0)
 //                responseBody.write(content.toByteArray())
                 responseBody.close()
             }

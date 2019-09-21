@@ -9,7 +9,7 @@ import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootloader;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.data.DriveSettings;
 import de.mein.drive.data.DriveStrings;
@@ -61,7 +61,7 @@ public class IndexerTest {
                     .setTransferDirectory(AFile.instance(rootFile, "transfer"))
                     .setMaxWastebinSize(999999L)
                     .setFastBoot(true);
-            new DriveCreateController(mas).createDriveService(driveSettings, "server");
+            new DriveCreateServiceHelper(mas).createService(driveSettings, "server");
             Thread.sleep(2000);
             mds = (MeinDriveServerService) mas.getMeinServices().iterator().next();
             bootLock.unlockWrite();

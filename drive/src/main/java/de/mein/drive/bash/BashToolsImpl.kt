@@ -9,6 +9,7 @@ import java.io.IOException
 import de.mein.auth.file.AFile
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.attribute.FileTime
 
 /**
  * Created by xor on 13.07.2017.
@@ -30,8 +31,7 @@ abstract class BashToolsImpl {
 
     @Throws(IOException::class, BashToolsException::class)
     open fun stuffModifiedAfter(referenceFile: AFile<*>, directory: AFile<*>, pruneDir: AFile<*>): List<AFile<*>> {
-        val details = BashTools.getFsBashDetails(referenceFile)
-        val time = details.modified
+        val time = referenceFile.lastModified()
         val dir = File(directory.absolutePath)
         val list = mutableListOf<AFile<*>>()
         if (dir.exists())
@@ -71,4 +71,8 @@ abstract class BashToolsImpl {
     abstract fun getContentFsBashDetails(file: AFile<*>): Map<String, FsBashDetails>
 
     abstract fun lnS(file: AFile<*>, target: String)
+    open fun setCreationDate(target: AFile<*>, created: Long) {
+        val path = Paths.get(File(target.absolutePath).toURI())
+        Files.setAttribute(path, "creationTime", FileTime.fromMillis(created))
+    }
 }

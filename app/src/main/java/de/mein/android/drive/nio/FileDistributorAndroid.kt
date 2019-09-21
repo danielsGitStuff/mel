@@ -32,6 +32,7 @@ class FileDistributorAndroid(driveService: MeinDriveService<*>) : FileDistributo
                 // if the target files name contains a "?" "DocumentsContract.renameDocument()" will change that to "_".
                 // as a workaround, the file is copied and then deleted. SAF likely stands for "Stpecial Acces Framewörk"
                 // rather than "Storage Access Framework". Because it is really bad at the latter.
+                // https://issuetracker.google.com/issues/139511261
                 Lok.debug("Here is a reminder that Android's SAF sucks!")
                 copyFile(sourceFile, target, targetPath, fsId)
                 sourceFile.delete()

@@ -1,11 +1,5 @@
 package de.mein.drive.service.sync;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.service.MeinAuthService;
@@ -23,19 +17,19 @@ import de.mein.drive.quota.OutOfSpaceException;
 import de.mein.drive.quota.QuotaManager;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.drive.service.Wastebin;
-import de.mein.drive.sql.DbTransferDetails;
-import de.mein.drive.sql.DriveDatabaseManager;
-import de.mein.drive.sql.FsDirectory;
-import de.mein.drive.sql.FsEntry;
-import de.mein.drive.sql.FsFile;
-import de.mein.drive.sql.Stage;
-import de.mein.drive.sql.StageSet;
+import de.mein.drive.sql.*;
 import de.mein.drive.sql.dao.FileDistTaskDao;
 import de.mein.drive.sql.dao.FsDao;
 import de.mein.drive.sql.dao.StageDao;
 import de.mein.drive.sql.dao.TransferDao;
 import de.mein.drive.transfer.TManager;
 import de.mein.sql.SqlQueriesException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 
 /**
@@ -201,7 +195,7 @@ public abstract class SyncHandler {
                 // and in this case sourceFsFile must not be null.
                 // set what the copy service is expected to find as a source file.
                 // in case it has changed it can abort
-                FsBashDetails bashDetails = new FsBashDetails(sourceFsFile.getModified().v(), sourceFsFile.getiNode().v(), sourceFsFile.isSymlink(), null, sourceFsFile.getName().v()); //BashTools.getFsBashDetails(file);
+                FsBashDetails bashDetails = new FsBashDetails(sourceFsFile.getCreated().v(), sourceFsFile.getModified().v(), sourceFsFile.getiNode().v(), sourceFsFile.isSymlink(), null, sourceFsFile.getName().v()); //BashTools.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
                 distributionTask.setDeleteSource(false);
                 N.forEach(fsFiles, fsFile -> {
@@ -271,42 +265,30 @@ public abstract class SyncHandler {
             N.sqlResource(stageDao.getNotDeletedStagesByStageSet(stageSetId), stages -> {
                 Stage stage = stages.getNext();
                 while (stage != null) {
-                    //todo debug
-                    if (stage.getNamePair().equalsValue("[root]"))
-                        Lok.debug();
                     if (stage.getFsId() == null) {
                         if (stage.getIsDirectory()) {
-//                            if (stage.getFsId() != null) {
-//                                FsDirectory dbDir = fsDao.getDirectoryById(stage.getId());
-//                                dbDir.getVersion().v(localVersion);
-//                                dbDir.getContentHash().v(stage.getContentHash());
-//                                dbDir.getModified().v(stage.getModified());
-//                                dbDir.getSymLink().v(stage.getSymLink());
-//                                fsDao.update(dbDir);
-//                            } else
-                            {
-                                FsDirectory dir = new FsDirectory();
-                                dir.getVersion().v(localVersion);
-                                dir.getContentHash().v(stage.getContentHash());
-                                dir.getName().v(stage.getName());
-                                dir.getModified().v(stage.getModified());
-                                dir.getiNode().v(stage.getiNode());
-                                dir.getSymLink().v(stage.getSymLink());
-                                Long fsParentId = null;
-                                if (stage.getParentId() != null) {
-                                    fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
-                                } else if (stage.getFsParentId() != null)
-                                    fsParentId = stage.getFsParentId();
-                                dir.getParentId().v(fsParentId);
-                                fsDao.insert(dir);
-                                if (stageIdFsIdMap != null) {
-                                    stageIdFsIdMap.put(stage.getId(), dir.getId().v());
-                                }
-
-                                this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), dir);
-
-                                stage.setFsId(dir.getId().v());
+                            FsDirectory dir = new FsDirectory();
+                            dir.getVersion().v(localVersion);
+                            dir.getContentHash().v(stage.getContentHash());
+                            dir.getName().v(stage.getName());
+                            dir.getModified().v(stage.getModified());
+                            dir.getCreated().v(stage.getCreated());
+                            dir.getiNode().v(stage.getiNode());
+                            dir.getSymLink().v(stage.getSymLink());
+                            Long fsParentId = null;
+                            if (stage.getParentId() != null) {
+                                fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
+                            } else if (stage.getFsParentId() != null)
+                                fsParentId = stage.getFsParentId();
+                            dir.getParentId().v(fsParentId);
+                            fsDao.insert(dir);
+                            if (stageIdFsIdMap != null) {
+                                stageIdFsIdMap.put(stage.getId(), dir.getId().v());
                             }
+
+                            this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), dir);
+
+                            stage.setFsId(dir.getId().v());
                         } else {
                             // it is a new file
                             FsFile fsFile = null;
@@ -325,6 +307,7 @@ public abstract class SyncHandler {
                             fsFile.getContentHash().v(stage.getContentHash());
                             fsFile.getVersion().v(localVersion);
                             fsFile.getModified().v(stage.getModified());
+                            fsFile.getCreated().v(stage.getCreated());
                             fsFile.getiNode().v(stage.getiNode());
                             fsFile.getSize().v(stage.getSize());
                             fsFile.getSymLink().v(stage.getSymLink());
@@ -370,12 +353,12 @@ public abstract class SyncHandler {
                                 Lok.debug("//pe, should not be called");
                                 fsEntry.getVersion().v(localVersion);
                             }
-                            // TODO inode & co
                             FsEntry oldeEntry = fsDao.getGenericById(fsEntry.getId().v());
                             // only copy modified & inode if it is not present in the new entry (it came from remote then)
                             if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v() && fsEntry.getModified().isNull()) {
                                 fsEntry.getiNode().v(oldeEntry.getiNode());
                                 fsEntry.getModified().v(oldeEntry.getModified());
+                                fsEntry.getCreated().v(oldeEntry.getCreated());
                             }
                             if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
                                 FsFile oldeFsFile = fsDao.getFile(fsEntry.getId().v());
@@ -439,7 +422,7 @@ public abstract class SyncHandler {
     }
 
 
-    private void createDirs(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException, IOException, InterruptedException {
+    protected void createDirs(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException, IOException, InterruptedException {
         // assume that root directory already exists
         if (fsEntry.getParentId().v() == null)
             return;
@@ -489,6 +472,7 @@ public abstract class SyncHandler {
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f);
         entry.getiNode().v(fsBashDetails.getiNode());
         entry.getModified().v(fsBashDetails.getModified());
+        entry.getCreated().v(fsBashDetails.getCreated());
         fsDao.update(entry);
     }
 

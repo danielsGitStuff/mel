@@ -31,11 +31,11 @@ public class SocketTest {
         //init
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory((MeinBoot.Companion.getDefaultWorkingDir1())).setName("MA1").setGreeting("greeting1").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory((MeinBoot.Companion.getDefaultWorkingDir1())).setName("MA1").setVariant(MeinStrings.update.VARIANT_JAR);
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory((MeinBoot.Companion.getDefaultWorkingDir2())).setName("MA2").setGreeting("greeting2").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory((MeinBoot.Companion.getDefaultWorkingDir2())).setName("MA2").setVariant(MeinStrings.update.VARIANT_JAR);
 
         MeinBoot meinBoot1 = new MeinBoot(json1, new PowerManager(json1));
         MeinBoot meinBoot2 = new MeinBoot(json2, new PowerManager(json2));

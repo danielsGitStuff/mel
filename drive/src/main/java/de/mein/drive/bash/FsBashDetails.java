@@ -6,6 +6,7 @@ import de.mein.core.serialize.SerializableEntity;
  * Created by xor on 8/1/17.
  */
 public class FsBashDetails implements SerializableEntity {
+    private Long created;
     private Long modified;
     private Long iNode;
     private boolean isSymLink;
@@ -19,7 +20,8 @@ public class FsBashDetails implements SerializableEntity {
     }
 
 
-    public FsBashDetails(Long modified, Long iNode, boolean isSymLink, String symLinkTarget, String name) {
+    public FsBashDetails(Long created, Long modified, Long iNode, boolean isSymLink, String symLinkTarget, String name) {
+        this.created = created;
         this.modified = modified;
         this.iNode = iNode;
         this.isSymLink = isSymLink;
@@ -33,6 +35,10 @@ public class FsBashDetails implements SerializableEntity {
 
     public Long getModified() {
         return modified;
+    }
+
+    public Long getCreated() {
+        return created;
     }
 
     public boolean isSymLink() {

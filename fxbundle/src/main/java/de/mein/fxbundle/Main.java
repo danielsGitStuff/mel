@@ -23,6 +23,8 @@ import de.mein.core.serialize.serialize.fieldserializer.collections.PrimitiveCol
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.boot.DriveFXBootloader;
+import de.mein.dump.DumpBootloader;
+import de.mein.dump.DumpFxBootloader;
 import de.mein.sql.*;
 import de.mein.sql.deserialize.PairDeserializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
@@ -71,7 +73,7 @@ public class Main {
         }
 
         if (meinAuthSettings.isHeadless() || !canDisplay) {
-            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class, ContactsBootloader.class);
+            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class, ContactsBootloader.class, DumpBootloader.class);
             meinBoot.boot().done(meinAuthService -> {
                 Lok.debug("Main.main.booted (headless)");
                 lock.unlockWrite();
@@ -79,7 +81,7 @@ public class Main {
                 exc.printStackTrace();
             });
         } else {
-            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootloader.class, ContactsFXBootloader.class);
+            MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveFXBootloader.class, ContactsFXBootloader.class, DumpFxBootloader.class);
             MeinAuthFxLoader fxLoader = new MeinAuthFxLoader();
             meinBoot.addMeinAuthAdmin(fxLoader);
             meinBoot.boot().done(meinAuthService -> {

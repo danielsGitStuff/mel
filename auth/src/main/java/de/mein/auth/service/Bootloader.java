@@ -39,9 +39,9 @@ public abstract class Bootloader<T extends MeinService> {
 
     public abstract String getDescription();
 
-    public final T bootLevel1(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
+    public final T bootLevelShort(MeinAuthService meinAuthService, Service serviceDescription) throws BootException {
         if (bootLevel.compareAndSet(BootLevel.NONE, BootLevel.SHORT)) {
-            meinService = bootLevel1Impl(meinAuthService, serviceDescription);
+            meinService = bootLevelShortImpl(meinAuthService, serviceDescription);
             meinService.setReachedBootLevel(BootLevel.SHORT);
             meinService.onBootLevel1Finished();
             return meinService;
@@ -59,7 +59,7 @@ public abstract class Bootloader<T extends MeinService> {
      * @return
      * @throws BootException
      */
-    public abstract T bootLevel1Impl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException;
+    public abstract T bootLevelShortImpl(MeinAuthService meinAuthService, Service serviceDescription) throws BootException;
 
     public void setBootLoaderDir(File bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;
@@ -75,9 +75,9 @@ public abstract class Bootloader<T extends MeinService> {
 
     }
 
-    public final Promise<Void, BootException, Void> bootLevel2() throws BootException {
+    public final Promise<Void, BootException, Void> bootLevelLong() throws BootException {
         if (bootLevel.compareAndSet(BootLevel.SHORT, BootLevel.LONG)) {
-            Promise<Void, BootException, Void> promise = bootLevel2Impl();
+            Promise<Void, BootException, Void> promise = bootLevelLongImpl();
             if (promise != null)
                 promise.done(nil -> {
                     meinService.setReachedBootLevel(BootLevel.LONG);
@@ -97,7 +97,7 @@ public abstract class Bootloader<T extends MeinService> {
      * @return
      * @throws BootException
      */
-    public Promise<Void, BootException, Void> bootLevel2Impl() throws BootException {
+    public Promise<Void, BootException, Void> bootLevelLongImpl() throws BootException {
         return null;
     }
 

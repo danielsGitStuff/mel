@@ -157,8 +157,8 @@ public class DBLokImpl extends LokImpl {
             String deleteStmt = "delete from " + entry.getTableName() + " where " + entry.order.k() + "<?";
             String updateStmt = "update " + entry.getTableName() + " set " + entry.order.k() + "=" + entry.order.k() + " - ?";
             try {
-                sqlQueries.execute(deleteStmt, ISQLQueries.whereArgs(limit));
-                sqlQueries.execute(updateStmt, ISQLQueries.whereArgs(limit));
+                sqlQueries.execute(deleteStmt, ISQLQueries.args(limit));
+                sqlQueries.execute(updateStmt, ISQLQueries.args(limit));
                 setMaxOrder();
             } catch (SqlQueriesException e) {
                 e.printStackTrace();

@@ -61,7 +61,7 @@ public class SQLQueries extends ISQLQueries {
         String query;
         List<Pair<?>> what = sqlTableObject.getInsertAttributes();
         String fromTable = sqlTableObject.getTableName();
-        query = buildInsertModifyQuery(what, "update", "set", where, fromTable);
+        query = buildInsertModifyQuery(what, where, fromTable);
         out("update().query= " + query);
         try {
             PreparedStatement pstmt = connection.prepareStatement(query);
@@ -145,12 +145,12 @@ public class SQLQueries extends ISQLQueries {
 
 
     @Override
-    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs) throws SqlQueriesException {
-        return load(columns, sqlTableObject, where, whereArgs, null);
+    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> arguments) throws SqlQueriesException {
+        return load(columns, sqlTableObject, where, arguments, null);
     }
 
     @Override
-    public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String tableReference, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
+    public <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String tableReference, String where, List<Object> arguments, String whatElse) throws SqlQueriesException {
         List<T> result = new ArrayList<>();
         out("load()");
         String fromTable = sqlTableObject.getTableName();
@@ -173,8 +173,8 @@ public class SQLQueries extends ISQLQueries {
         }
         try {
             PreparedStatement pstmt = connection.prepareStatement(selectString);
-            if (where != null && whereArgs != null) {
-                insertArguments(pstmt, whereArgs);
+            if ( arguments != null) {
+                insertArguments(pstmt, arguments);
             }
             pstmt.execute();
             ResultSet resultSet = pstmt.getResultSet();
@@ -248,7 +248,7 @@ public class SQLQueries extends ISQLQueries {
     }
 
     @Override
-    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException {
+    public <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> arguments, String whatElse) throws SqlQueriesException {
         List<T> result = new ArrayList<>();
         out("load()");
         String fromTable = sqlTableObject.getTableName();
@@ -265,8 +265,8 @@ public class SQLQueries extends ISQLQueries {
         }
         try {
             PreparedStatement pstmt = connection.prepareStatement(selectString);
-            if (where != null && whereArgs != null) {
-                insertArguments(pstmt, whereArgs);
+            if (arguments != null) {
+                insertArguments(pstmt, arguments);
             }
             pstmt.execute();
             ResultSet resultSet = pstmt.getResultSet();
@@ -294,6 +294,12 @@ public class SQLQueries extends ISQLQueries {
             pstmt.close();
             return result;
         } catch (Exception e) {
+            System.err.println("SqlQieries.load.failed for table     '" + sqlTableObject.getTableName() + "'");
+            System.err.println("SqlQieries.load.failed for select     '" + selectString + "'");
+            System.err.println("SqlQieries.load.failed for where     '" + (where == null ? "null" : where) + "'");
+            System.err.println("SqlQieries.load.failed for whereargs '" + whereArgsToString(arguments) + "'");
+            System.err.println("SqlQieries.load.failed for whatelse  '" + (whatElse == null ? "null" : whatElse) + "'");
+            System.err.println("SqlQieries.load.failed message       '" + e.getMessage() + "'");
             throw new SqlQueriesException(e);
         }
     }
@@ -408,15 +414,22 @@ public class SQLQueries extends ISQLQueries {
             pstmt.close();
         } catch (Exception e) {
             System.err.println("SQLQueries.execute.stmt: " + statement);
-            StringBuilder attrs = new StringBuilder();
-            for (Object arg : whereArgs) {
-                attrs.append(arg == null ? "null" : arg.toString()).append(", ");
-            }
-            System.err.println("SQLQueries.execute.args : " + attrs.toString());
+            System.err.println("SQLQueries.execute.args : " + whereArgsToString(whereArgs));
             throw new SqlQueriesException(e);
         } finally {
             unlockRead();
         }
+    }
+
+    private String whereArgsToString(List<Object> whereArgs) {
+        if (whereArgs == null)
+            return "null";
+        StringBuilder attrs = new StringBuilder("[");
+        for (Object arg : whereArgs) {
+            attrs.append(arg == null ? "null" : arg.toString()).append(", ");
+        }
+        attrs.append("]");
+        return attrs.toString();
     }
 
 

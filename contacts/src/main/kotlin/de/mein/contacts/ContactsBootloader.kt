@@ -158,7 +158,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
     }
 
     @Throws(BootException::class)
-    override fun bootLevel1Impl(meinAuthService: MeinAuthService, serviceDescription: Service): ContactsService {
+    override fun bootLevelShortImpl(meinAuthService: MeinAuthService, serviceDescription: Service): ContactsService {
         val instanceDir = meinAuthService.meinBoot.createServiceInstanceWorkingDir(serviceDescription)
         val jsonFile = File(instanceDir, ContactStrings.SETTINGS_FILE_NAME)
         var contactsSettings: ContactsSettings<*>? = null
@@ -178,7 +178,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
     }
 
     @Throws(BootException::class)
-    override fun bootLevel2Impl(): Promise<Void, BootException, Void>? {
+    override fun bootLevelLongImpl(): Promise<Void, BootException, Void>? {
         return null
     }
 }

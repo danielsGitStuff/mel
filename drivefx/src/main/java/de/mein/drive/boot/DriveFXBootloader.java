@@ -29,7 +29,6 @@ public class DriveFXBootloader extends DriveBootloader implements BootLoaderFX<M
 
     @Override
     public String getEditFXML(MeinDriveService meinService) {
-        meinAuthService.getMeinService(meinService.getUuid()).getServiceInstanceWorkingDirectory();
         return (meinService instanceof MeinDriveServerService) ? "de/mein/drive/editserver.fxml" : "de/mein/drive/editclient.fxml";
     }
 

@@ -18,13 +18,12 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.MeinValidationProcess;
-import de.mein.auth.tools.Eva;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.sql.Hash;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.WaitLock;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.service.MeinDriveClientService;
@@ -497,14 +496,14 @@ public class DriveTest {
         TestDirCreator.createTestDir(testdir1);
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinBoot boot = new MeinBoot(json1, new PowerManager(json1));
         WaitLock waitLock = new WaitLock().lock();
         Promise<MeinAuthService, Exception, Void> promise = boot.boot();
         final MeinAuthService[] mas = new MeinAuthService[1];
         promise.done(result -> N.r(() -> {
             mas[0] = result;
-            Promise<MeinDriveServerService, Exception, Void> driveBootedPromise = new DriveCreateController(result)
+            Promise<MeinDriveServerService, Exception, Void> driveBootedPromise = new DriveCreateServiceHelper(result)
                     .createDriveServerServiceDeferred("server test", testdir1, 0.01f, 30);
             driveBootedPromise.done(result1 -> N.r(() -> {
                 result1.getIndexer().getIndexerStartedDeferred().done(result2 -> N.r(() -> {
@@ -740,7 +739,7 @@ public class DriveTest {
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
 
@@ -800,7 +799,7 @@ public class DriveTest {
                 DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                     lock.lockWrite();
                 };
-                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, false);
+                new DriveCreateServiceHelper(meinAuthService1).createServerService("server service", testdir1, 0.01f, 30, false);
                 lock.lockWrite();
                 Lok.debug("DriveTest.startServer.booted");
             });
@@ -917,7 +916,7 @@ public class DriveTest {
                                                         .setTestdir2(testdir2);
                                                 clientDriveService.setSyncListener(clientSyncListener);
                                             };
-                                            new DriveCreateController(meinAuthService2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, false);
+                                            new DriveCreateServiceHelper(meinAuthService2).createClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, false);
                                         });
                                     }).start()
                             );
@@ -928,7 +927,7 @@ public class DriveTest {
                         });
                     });
                 });
-                new DriveCreateController(meinAuthService1).createDriveServerService("server service", testdir1, 0.01f, 30, false);
+                new DriveCreateServiceHelper(meinAuthService1).createServerService("server service", testdir1, 0.01f, 30, false);
             });
         });
         //lock.lockWrite();
@@ -939,7 +938,7 @@ public class DriveTest {
         MeinAuthSettings settings = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setVariant(MeinStrings.update.VARIANT_JAR);
         settings.setJsonFile(new File(MeinBoot.Companion.getDefaultWorkingDir2(), MeinBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
         return settings;
     }
@@ -947,7 +946,7 @@ public class DriveTest {
     public static MeinAuthSettings createJson1() {
         MeinAuthSettings settings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1").setVariant(MeinStrings.update.VARIANT_JAR);
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setVariant(MeinStrings.update.VARIANT_JAR);
         settings.setJsonFile(new File(MeinBoot.Companion.getDefaultWorkingDir1(), MeinBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
         return settings;
     }

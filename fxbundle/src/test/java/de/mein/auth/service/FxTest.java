@@ -29,7 +29,7 @@ import de.mein.contacts.data.db.dao.ContactsDao;
 import de.mein.contacts.data.db.dao.PhoneBookDao;
 import de.mein.contacts.service.ContactsService;
 import de.mein.drive.DriveBootloader;
-import de.mein.drive.DriveCreateController;
+import de.mein.drive.DriveCreateServiceHelper;
 import de.mein.drive.DriveSyncListener;
 import de.mein.drive.bash.BashTools;
 import de.mein.drive.boot.DriveFXBootloader;
@@ -107,7 +107,7 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -163,7 +163,7 @@ public class FxTest {
         MeinStandAloneAuthFX standAloneAuth1;
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -221,7 +221,7 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("Test Client");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -273,8 +273,8 @@ public class FxTest {
             N.r(() -> {
                 Promise<MeinValidationProcess, Exception, Void> connected = meinAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
-                    DriveCreateController createController = new DriveCreateController(meinAuthService);
-                    createController.createDriveClientService("drive client", testdir, 1L, tmp, 0.1f, 30, false);
+                    DriveCreateServiceHelper createController = new DriveCreateServiceHelper(meinAuthService);
+                    createController.createClientService("drive client", testdir, 1L, tmp, 0.1f, 30, false);
                     Lok.debug("FxTest.connectAcceptingClient");
                 }));
 
@@ -293,7 +293,7 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -343,12 +343,12 @@ public class FxTest {
                 Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
-                DriveCreateController createController = new DriveCreateController(meinAuthService);
+                DriveCreateServiceHelper createController = new DriveCreateServiceHelper(meinAuthService);
                 DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> new Thread(() -> N.r(() -> {
                     FxTest.tmp = driveService.getUuid();
                     connectAcceptingClient();
                 })).start();
-                createController.createDriveServerService("testiServer", testdir, 0.1f, 30, false);
+                createController.createServerService("testiServer", testdir, 0.1f, 30, false);
 //                FxTest.tmp = serverService.getUuid();
 //                connectAcceptingClient();
             });
@@ -368,7 +368,7 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings meinAuthSettings = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("Test Server");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -422,8 +422,8 @@ public class FxTest {
                 Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
-                DriveCreateController createController = new DriveCreateController(meinAuthService);
-                createController.createDriveServerService("testiServer", testdir, 0.1f, 30, false);
+                DriveCreateServiceHelper createController = new DriveCreateServiceHelper(meinAuthService);
+                createController.createServerService("testiServer", testdir, 0.1f, 30, false);
                 // create contacts server too
 
                 ContactsSettings settings = new ContactsSettings();
@@ -483,7 +483,7 @@ public class FxTest {
         MeinAuthSettings json1 = MeinAuthSettings.createDefaultSettings();
         json1.setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinBoot boot1 = new MeinBoot(json1, new PowerManager(json1), DriveBootloader.class);
         boot1.boot().done(mas1 -> N.r(() -> {
 
@@ -491,7 +491,7 @@ public class FxTest {
                     .setPort(8890).setDeliveryPort(8891)
                     .setBrotcastPort(9966) // does not listen! only one listener seems possible
                     .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                    .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                    .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
             MeinBoot boot2 = new MeinBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
             boot2.addMeinAuthAdmin(new MeinAuthFxLoader());
             boot2.boot().done(result -> N.r(() -> {
@@ -529,12 +529,12 @@ public class FxTest {
         MeinAuthSettings json1 = MeinAuthSettings.createDefaultSettings();
         json1.setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinAuthSettings json2 = MeinAuthSettings.createDefaultSettings()
                 .setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
 
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -622,7 +622,7 @@ public class FxTest {
         };
         boot1.boot().done(mas1 -> {
             N.r(() -> {
-                new DriveCreateController(mas1).createDriveServerService("server", rootServer, 0.4f, 200, false);
+                new DriveCreateServiceHelper(mas1).createServerService("server", rootServer, 0.4f, 200, false);
                 mas1.addRegisterHandler(allowRegisterHandler);
                 mas1.addRegisteredHandler((meinAuthService, registered) ->
                         N.forEach(mas1.getDatabaseManager().getAllServices(),
@@ -639,7 +639,7 @@ public class FxTest {
                             client.set(mas2);
                             mas2.addRegisteredHandler((meinAuthService, registered) -> N.r(() -> {
                                 String serverServiceUuid = mas1.getDatabaseManager().getAllServices().iterator().next().getUuid().v();
-                                new DriveCreateController(mas2).createDriveClientService("client", rootClient, 1L, serverServiceUuid, 0.5f, 300, false);
+                                new DriveCreateServiceHelper(mas2).createClientService("client", rootClient, 1L, serverServiceUuid, 0.5f, 300, false);
                                 clientService.set((MeinDriveClientService) mas2.getMeinServices().iterator().next());
                                 clientService.get().setSyncListener(syncListener);
                             }));
@@ -672,12 +672,12 @@ public class FxTest {
         MeinAuthSettings json1 = MeinAuthSettings.createDefaultSettings();
         json1.setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinAuthSettings json2 = MeinAuthSettings.createDefaultSettings()
                 .setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
 
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -770,11 +770,11 @@ public class FxTest {
         N runner = new N(e -> e.printStackTrace());
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
             public void acceptCertificate(IRegisterHandlerListener listener, MeinRequest request, Certificate myCertificate, Certificate certificate) {
@@ -868,11 +868,11 @@ public class FxTest {
 
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1").setGreeting("greeting1");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MeinAuthSettings json2 = new MeinAuthSettings().setPort(8890).setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
                 .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2").setGreeting("greeting2");
+                .setWorkingDirectory(MeinBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
         // we want accept all registration attempts automatically
         IRegisterHandler allowRegisterHandler = new IRegisterHandler() {
             @Override
@@ -944,13 +944,13 @@ public class FxTest {
                                         clientDriveService.setSyncListener(clientSyncListener);
                                         ((MeinDriveClientService) clientDriveService).syncThisClient();
                                     })).start();
-                                    new DriveCreateController(standAloneAuth2).createDriveClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30, false);
+                                    new DriveCreateServiceHelper(standAloneAuth2).createClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30, false);
                                 });
                             });
                         });
                     });
                 })).start();
-                new DriveCreateController(standAloneAuth1).createDriveServerService("server service", testdir1, 0.1f, 30, false);
+                new DriveCreateServiceHelper(standAloneAuth1).createServerService("server service", testdir1, 0.1f, 30, false);
             });
         });
         lock.lockWrite();

@@ -1,8 +1,6 @@
 package de.mein.drive.sql;
 
 import de.mein.Lok;
-import de.mein.auth.tools.Eva;
-import de.mein.auth.tools.N;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.sql.Pair;
@@ -22,6 +20,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private static final String DIR = "dir";
     private static final String INODE = "inode";
     private static final String MODIFIED = "modified";
+    private static final String CREATED = "created";
     private static final String DELETED = "deleted";
     private static final String STAGESET = "stageset";
     private static final String SIZE = "size";
@@ -42,7 +41,12 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private Pair<Long> iNode = new Pair<>(Long.class, INODE);
     @JsonIgnore
     private Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
-    private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED);
+    private Pair<Long> created = new Pair<>(Long.class, CREATED);
+    private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED).setSetListener(value -> {
+        if (value)
+            Lok.debug(); // todo debug
+        return value;
+    });
     @JsonIgnore
     private Pair<Long> stageSet = new Pair<>(Long.class, STAGESET);
     private Pair<Long> size = new Pair<Long>(Long.class, SIZE);
@@ -79,7 +83,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, deleted, stageSet, size, synced, merged, order);
+        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, created, deleted, stageSet, size, synced, merged, order);
         populateAll(id);
     }
 
@@ -92,18 +96,18 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         return this;
     }
 
-//    public Pair<String> getRelativePathPair() {
-//        return relativePath;
-//    }
-//
-//    public String getRelativePath() {
-//        return relativePath.v();
-//    }
-//
-//    public Stage setRelativePath(String relativePath) {
-//        this.relativePath.v(relativePath);
-//        return this;
-//    }
+    public Pair<Long> getCreatedPair() {
+        return created;
+    }
+
+    public Long getCreated() {
+        return created.v();
+    }
+
+    public Stage setCreated(Long created) {
+        this.created.v(created);
+        return this;
+    }
 
     public Boolean isMerged() {
         return merged.v();

@@ -1,9 +1,6 @@
 package de.mein.serverparts
 
-import com.sun.net.httpserver.HttpExchange
-import com.sun.net.httpserver.HttpsConfigurator
-import com.sun.net.httpserver.HttpsParameters
-import com.sun.net.httpserver.HttpsServer
+import com.sun.net.httpserver.*
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
@@ -14,7 +11,6 @@ import java.net.URLDecoder
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
-import java.util.concurrent.ThreadFactory
 import javax.net.ssl.SSLContext
 
 object ContentType {
@@ -30,12 +26,61 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         start()
     }
 
+    fun readGetQuery(query: String?): Map<String, String> {
+        if (query == null)
+            return mutableMapOf()
+        val map = mutableMapOf<String, String>()
+        var isKey = true
+        var key: String? = null
+        query.split("[=&]".toRegex()).forEach {
+            if (isKey)
+                key = it
+            else {
+                map[key!!] = it
+            }
+            isKey = !isKey
+        }
+        return map
+
+    }
+
+    /**
+     * closes HttpExchange when failing or done
+     */
+    fun createServerContext(context: String, runnable: (HttpExchange) -> Unit) {
+        server.createContext(context, HttpHandler {
+            try {
+                runnable.invoke(it)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                respondError(it, e.cause?.toString())
+            } finally {
+                it.close()
+            }
+        })
+    }
+
+    fun respondError(ex: HttpExchange, cause: String?) {
+        try {
+            with(ex) {
+                val page = Page("/de/miniserver/blog/error.html",
+                        Replacer("cause", if (cause != null) cause else "something went wrong"))
+                de.mein.Lok.debug("sending error to $remoteAddress")
+                sendResponseHeaders(400, page.bytes.size.toLong())
+                responseBody.write(page.bytes)
+                responseBody.close()
+            }
+        } finally {
+            ex.close()
+        }
+    }
+
 
     private lateinit var serverSocket: ServerSocket
     private val threadSemaphore = Semaphore(1, true)
     private val threadQueue = LinkedList<MeinThread>()
 
-    private lateinit var server: HttpsServer
+    lateinit var server: HttpsServer
     private val threadFactory = { r: Runnable ->
         var meinThread: MeinThread? = null
 
@@ -55,28 +100,16 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         thread
     }
 
-//            = Executors.newCachedThreadPool(ThreadFactory {
-//        val thread = Thread(it)
-//        thread.name = "a HTTPS-Thread"
-//        thread
-//    })
 
     fun readPostValues(ex: HttpExchange, size: Int = 400): HashMap<String, String> {
         val map = hashMapOf<String, String>()
-        var bytes = ByteArray(size)
-        val read = ex.requestBody.read(bytes)
-        if (read < 0)
-            return map
-        bytes = ByteArray(read) { i -> bytes[i] }
-        val string = String(bytes)
-        var prev: String? = null
-        string.split("&").map { URLDecoder.decode(it) }.forEach {
+        val text = ex.requestBody.reader().readText()
+        text.split("&").map { URLDecoder.decode(it) }.forEach {
             val splitIndex = it.indexOf("=")
             val k = it.substring(0, splitIndex)
             val v = it.substring(splitIndex + 1, it.length)
             map[k] = v
         }
-
         return map
     }
 
@@ -87,11 +120,11 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
             try {
                 if (contentType != null)
                     responseHeaders.add("Content-Type", contentType)
-                page = if (Page.pageRepo[path] == null) {
+                page = if (Page.staticPagesCache[path] == null) {
                     val bytes = this@AbstractHttpsThingy.javaClass.getResourceAsStream(path).readBytes()
                     Page(path, bytes, cache = cache)
                 } else {
-                    Page.pageRepo[path]!!
+                    Page.staticPagesCache[path]!!
                 }
             } catch (e: Exception) {
                 Lok.error("KKKKK")
@@ -141,19 +174,32 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
     abstract fun configureContext(server: HttpsServer)
 
-    fun respondPage(ex: HttpExchange, page: Page?) {
+    fun redirect(httpExchange: HttpExchange, targetUrl: String): Unit {
         try {
-            with(ex) {
-                Lok.debug("sending '${page?.path}' to $remoteAddress")
-                responseHeaders.add("Content-Type", "text/html; charset=UTF-8")
-                sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
-                responseBody.write(page?.bytes ?: "404".toByteArray())
-                responseBody.close()
-                responseHeaders
+            with(httpExchange) {
+                Lok.debug("redirect to $targetUrl")
+                responseHeaders.add("Location", targetUrl)
+                sendResponseHeaders(302, 0)
             }
         } finally {
-            ex.close()
+            httpExchange.close()
         }
+    }
+
+    open fun respondPage(ex: HttpExchange, page: Page?, contentType: String? = "text/html; charset=UTF-8") {
+        if (page != null)
+            try {
+                with(ex) {
+                    Lok.debug("sending '${page?.path}' to $remoteAddress")
+                    if (contentType != null)
+                        responseHeaders.add("Content-Type", contentType)
+                    sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
+                    responseBody.write(page?.bytes ?: "404".toByteArray())
+                    responseBody.close()
+                }
+            } finally {
+                ex.close()
+            }
     }
 
     private fun createServer(): HttpsServer {

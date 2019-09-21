@@ -27,6 +27,8 @@ apply plugin: 'kotlin'
 dependencies {
     //compile project(path: ':konsole')
     compile project(':lok')
+    compile project(':konsole')
+
     compile project(path: ':sql')
     compile project(path: ':serialize')
     testCompile project(path: ':sql')
@@ -38,7 +40,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'org.jdeferred:jdeferred-core:1.2.4'
     compile project(path: ':serialize')
-    testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.20.1'
+    testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
     testCompile project(path: ':serialize', configuration: 'serializeTestOutput')
 //    testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'

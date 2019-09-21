@@ -5,6 +5,8 @@ import de.mein.Lok
 import de.mein.auth.service.MeinAuthService
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess
+import de.mein.auth.tools.CountLock
+import de.mein.auth.tools.CountWaitLock
 import de.mein.auth.tools.N
 import de.mein.auth.tools.lock.T
 import de.mein.drive.data.DriveStrings
@@ -34,7 +36,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
     val isolatedProcessesMap = mutableMapOf<Long, MeinIsolatedFileProcess>()
     val activeTFSRunnables = mutableMapOf<MeinIsolatedFileProcess, TransferFromServiceRunnable>()
 
-    val waitLock = RWLock()
+    val waitLock = CountLock()
 
     init {
         maintenance()
@@ -46,7 +48,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
      * then feed the MeinIsolatedFileProcesses
      */
     fun research() {
-        waitLock.unlockWrite()
+        waitLock.unlock()
     }
 
     fun removeUnnecessaryTransfers() {
@@ -116,7 +118,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             // check if all connections hve been established or failed.
             if (atomicInt.decrementAndGet() == 0) {
                 transaction.end();
-                waitLock.unlockWrite()
+                waitLock.unlock()
             }
         }
         if (atomicInt.get() > 0) {
@@ -155,7 +157,7 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
             val groupedTransferSets = transferDao.twoTransferSets
             if (groupedTransferSets.size == 0) {
                 Lok.debug("waiting until there is stuff to transfer...")
-                waitLock.lockWrite()
+                waitLock.lock()
             } else {
 
                 wastebin.restoreFsFiles()
@@ -226,18 +228,25 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
     }
 
     override fun stop() {
-        super.stop()
-        stopped = true
-        activeTFSRunnables.forEach {
-            it.value.stop()
-            it.key.stop()
-        }
-        isolatedProcessesMap.values.forEach { it.stop() }
+        T.lockingTransaction(this).run {
+            super.stop()
+            stopped = true
+            N.r {
+                activeTFSRunnables.forEach {
+                    it.value.stop()
+                    it.key.stop()
+                }
+                isolatedProcessesMap.values.forEach { it.stop() }
+            }
+        }.end()
     }
 
     fun start() {
-        meinDriveService.execute(this)
-        waitLock.unlockWrite()
+        T.lockingTransaction(this).run {
+            stopped = false
+            meinDriveService.execute(this)
+            waitLock.unlock()
+        }.end()
     }
 
 

@@ -62,7 +62,7 @@ public class PhoneBookDao extends Dao {
     public PhoneBook loadFlatPhoneBook(Long id) throws SqlQueriesException {
         PhoneBook dummy = new PhoneBook();
         String where = dummy.getId().k() + "=?";
-        return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.whereArgs(id), PhoneBook.class);
+        return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(id), PhoneBook.class);
     }
 
     /**
@@ -92,12 +92,12 @@ public class PhoneBookDao extends Dao {
     }
 
     public void updateFlat(PhoneBook phoneBook) throws SqlQueriesException {
-        sqlQueries.update(phoneBook, phoneBook.getId().k() + "=?", ISQLQueries.whereArgs(phoneBook.getId().v()));
+        sqlQueries.update(phoneBook, phoneBook.getId().k() + "=?", ISQLQueries.args(phoneBook.getId().v()));
     }
 
     public void deletePhoneBook(Long id) throws SqlQueriesException {
         Lok.debug("PhoneBookDao.deletePhoneBook.id=" + id);
         PhoneBook phoneBook = new PhoneBook();
-        sqlQueries.delete(phoneBook, phoneBook.getId().k() + "=?", ISQLQueries.whereArgs(id));
+        sqlQueries.delete(phoneBook, phoneBook.getId().k() + "=?", ISQLQueries.args(id));
     }
 }

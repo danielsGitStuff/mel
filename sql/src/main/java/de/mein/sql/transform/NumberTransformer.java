@@ -27,6 +27,12 @@ public enum NumberTransformer {
             return n == null ? null : (long) Long.valueOf(n.longValue());
         }
     },
+    P_BYTE(byte.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : (byte) Byte.valueOf(n.byteValue());
+        }
+    },
     P_SHORT(short.class) {
         @Override
         public Number cast(Number n) {
@@ -37,6 +43,18 @@ public enum NumberTransformer {
         @Override
         public Number cast(Number n) {
             return n == null ? null : (int) Integer.valueOf(n.intValue());
+        }
+    },
+    BYTE(Byte.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : n.byteValue();
+        }
+    },
+    SHORT(Short.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : n.shortValue();
         }
     },
     INT(Integer.class) {

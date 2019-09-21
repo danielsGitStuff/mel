@@ -1,6 +1,8 @@
 package de.mein.sql;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import de.mein.sql.transform.NumberTransformer;
 
@@ -22,34 +24,11 @@ public class Pair<V> {
     private IPairGetListener getListener = null;
     private IPairGetListener hiddenGetListener = null;
     private IPairSetListener<V> setListener = null;
-    private static PairTypeConverter typeConverter = new PairTypeConverter() {
-        @Override
-        public <V> V convert(Class<V> type, Object value) {
-            if (value != null) {
-                V v = null;
-                if (type.equals(value.getClass())) {
-                    v = (V) value;
-                } else if (type.isEnum() && value instanceof String) {
-                    @SuppressWarnings("rawtypes")
-                    Class<Enum> eType = (Class<Enum>) type;
-                    v = (V) Enum.valueOf(eType, (String) value);
-                } else if (Number.class.isAssignableFrom(type)) {
-                    NumberTransformer numberTransformer = NumberTransformer.forType((Class<? extends Number>) type);
-                    v = (V) numberTransformer.cast((Number) value);
-                } else if (type.equals(Boolean.class) && value.getClass().equals(String.class)) {
-                    v = (V) new Boolean(Boolean.parseBoolean((String) value));
-                } else if (type.equals(Boolean.class) && value.getClass().equals(Integer.class)) {
-                    v = (V) new Boolean((((Integer) value) == 1) ? true : false);
-                } else {
-                    logger.warn(".setValueUnsecure().class.mismatch: class is " + type);
-                    logger.warn("delivered class is " + value.getClass());
-                    logger.warn("{key,value} is " + toString());
-                }
-                return v;
-            }
-            return null;
-        }
-    };
+
+
+
+
+    private static PairTypeConverter typeConverter = new PairTypeConverter();
     private IPairSetListener<V> hiddenSetListener;
 
     public static void setTypeConverter(PairTypeConverter typeConverter) {
