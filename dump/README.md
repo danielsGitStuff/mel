@@ -1,4 +1,4 @@
-# Dump Service
+# Mel.DumpService
 ## warning: WIP
 ## Purpose
 Sync files one way. E.g from your phone to your NAS. Files that are deleted from your phone will be kept on the server.

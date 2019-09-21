@@ -1,4 +1,4 @@
-# Konsole
+# Mel.Konsole
 helps you digesting command line arguments.
 ## General use
 Create an instance of `Konsole` via constructor and pass it an instance of `KResult` whereas `KResult` which holds the read values afterwards.

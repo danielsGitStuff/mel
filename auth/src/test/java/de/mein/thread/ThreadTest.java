@@ -85,7 +85,7 @@ public class ThreadTest {
             public void runImpl() {
                 Lok.debug("ThreadTest.run1.lock");
                 int i = 0;
-                while (!Thread.currentThread().isInterrupted())
+                while (!isStopped())
                     i++;
                 Lok.debug("ThreadTest.run1.stopped");
                 threadLock.unlockWrite();
@@ -105,6 +105,7 @@ public class ThreadTest {
 
             @Override
             public void runImpl() {
+                Lok.debug("shutting down 1");
                 meinRunnable1.shutDown();
             }
 

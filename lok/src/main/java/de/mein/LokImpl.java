@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class LokImpl {
 
-    private int maxLineLength = Integer.MAX_VALUE;
+    private int maxLineLength = 600;
     private boolean timeStamp = true;
     private String[] lines = new String[0];
     private long lineCount = 0;

@@ -1,4 +1,5 @@
-# What is it?
+# Mel.serialize
+## What is it?
 A library that serializes Java objects to JSON and back.
 
 ## Why?

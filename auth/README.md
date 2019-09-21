@@ -42,7 +42,7 @@ Therefore the BootLoader is fed with all important information by the MeinAuth f
 This includes the UUID and a working directory where all configs and databases of the service are stored.
 The BootLoader then has to load the config files or databases and return the required MeinService instance.
 That's the basic overview. Booting happens in two stages. Read below. 
-## Booting Services & Message handling
+## Booting Services
 To prevent your phone to drain all of its battery because it is indexing and hashing the content of the utterly big folder that you want it to keep in sync with your PC,
 I have decided that power management is something that we want. 
 As you have just read excessive indexing eats too much battery, especially if you just started the app.
@@ -74,3 +74,7 @@ A custom Bootloader must extend `Bootloader`. `Foo` has to be known to the `Mein
 It must implement `bootLevelShortImpl` which returns an instance of the service. 
 The bootloader has the `bootloaderDir` property which points to a folder that is unique for each `Bootloader`. 
 A custom bootloader can organise the files and databases of the various instances therein if necessary.
+
+## Message handling
+
+

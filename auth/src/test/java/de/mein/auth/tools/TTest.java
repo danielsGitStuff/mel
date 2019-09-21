@@ -4,6 +4,8 @@ import de.mein.Lok;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runners.model.TestTimedOutException;
 
@@ -14,7 +16,7 @@ import java.util.concurrent.Semaphore;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.*;
 
-class TTest {
+public class TTest {
 
     class Dummy {
         Dummy(String string) {
@@ -39,8 +41,8 @@ class TTest {
     private ExecutorService executor = Executors.newCachedThreadPool();
     private WaitLock waitLock;
 
-    @org.junit.jupiter.api.BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         t = null;
         T.reset();
         executor.shutdownNow();
@@ -49,15 +51,15 @@ class TTest {
         triggerFlag = false;
     }
 
-    @org.junit.jupiter.api.AfterEach
-    void tearDown() {
+    @After
+    public void tearDown() {
         Lok.debug("tear down");
         if (t != null)
             t.end();
     }
 
-    @org.junit.jupiter.api.Test
-    void lockIntersection() {
+    @Test
+    public void lockIntersection() {
         t = T.lockingTransaction(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -82,8 +84,8 @@ class TTest {
         Lok.debug("done");
     }
 
-    @org.junit.jupiter.api.Test
-    void lockWhole() {
+    @Test
+    public void lockWhole() {
         t = T.lockingTransaction(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -108,8 +110,8 @@ class TTest {
         Lok.debug("done");
     }
 
-    @org.junit.jupiter.api.Test
-    void lockDifferent() {
+    @Test
+    public void lockDifferent() {
         t = T.lockingTransaction(A, B);
 
         executor.submit(() -> {
@@ -130,8 +132,8 @@ class TTest {
         Lok.debug("done");
     }
 
-    @org.junit.jupiter.api.Test
-    void lockReadThenWrite() {
+    @Test
+    public void lockReadThenWrite() {
         t = T.lockingTransaction(T.read(A, B));
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -151,8 +153,8 @@ class TTest {
         Lok.debug("done");
     }
 
-    @org.junit.jupiter.api.Test
-    void finallyTest() {
+    @Test
+    public void finallyTest() {
         Semaphore semaphore = new Semaphore(1, false);
 //        t = T.lockingTransaction(A, B);
         Thread thread1 = new Thread(() -> {
@@ -199,8 +201,8 @@ class TTest {
     }
 
 
-    @org.junit.jupiter.api.Test
-    void lockThenThreadDies() {
+    @Test
+    public void lockThenThreadDies() {
 //        t = T.lockingTransaction(A, B);
         Thread thread1 = new Thread(() -> {
             Transaction t1 = T.lockingTransaction(A, B);
@@ -242,8 +244,8 @@ class TTest {
         Lok.debug("done");
     }
 
-    @org.junit.jupiter.api.Test
-    void lockWriteThenRead() {
+    @Test
+    public void lockWriteThenRead() {
         t = T.lockingTransaction(A, B);
 
         executor.submit(() -> {
@@ -264,8 +266,8 @@ class TTest {
         Lok.debug("done");
     }
 
-    @org.junit.jupiter.api.Test
-    void lockLater() {
+    @Test
+    public void lockLater() {
         t = T.tNoLock(A, B);
         u = T.lockingTransaction(A, B);
         executor.submit(() -> {
@@ -289,8 +291,8 @@ class TTest {
         Lok.debug("done");
     }
 
-    @org.junit.jupiter.api.Test
-    void accessTwice() {
+    @Test
+    public void accessTwice() {
         t = T.tNoLock(A, B);
         executor.submit(() -> {
             N.oneLine(() -> Thread.sleep(100));
@@ -312,8 +314,8 @@ class TTest {
         assertTrue(triggerFlag);
     }
 
-    @org.junit.jupiter.api.Test
-    void endWhileRun() {
+    @Test
+    public void endWhileRun() {
         t = T.tNoLock(A, B);
         executor.submit(() -> {
             t.run(() -> {
@@ -331,8 +333,10 @@ class TTest {
     }
 
 
-    @Test(timeout = 1000, expected = TestTimedOutException.class)
-    public void lockAll() {
-
-    }
+//    @Test(timeout = 1000, expected = TestTimedOutException.class)
+//    public void lockAll() {
+//    t = T.lockingTransaction(A);
+//    Transaction b = T.lockingTransaction(A);
+//    Lok.debug(b);
+//    }
 }
