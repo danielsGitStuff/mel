@@ -52,7 +52,7 @@ public class DBLokImpl extends LokImpl {
         private Pair<String> msg = new Pair<>(String.class, "msg");
         private Pair<String> mode = new Pair<>(String.class, "mode");
         private Pair<Long> timeStamp = new Pair<>(Long.class, "timestamp");
-        private Pair<Long> order = new Pair<>(Long.class, "ord");
+        Pair<Long> order = new Pair<>(Long.class, "ord");
 
         public DBLokEntry() {
             init();
