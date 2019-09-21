@@ -342,6 +342,7 @@ constructor(val config: ServerConfig) {
                 miniServer = MiniServer(config)
                 miniServer.start()
                 RWLock().lockWrite().lockWrite()
+                Lok.warn("lock released. exiting...")
             } catch (e: Exception) {
                 e.printStackTrace()
             }
