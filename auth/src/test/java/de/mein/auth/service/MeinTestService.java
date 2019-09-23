@@ -6,6 +6,7 @@ import de.mein.auth.data.ServicePayload;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.socket.process.val.Request;
+import org.jdeferred.Promise;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -83,8 +84,9 @@ public class MeinTestService extends MeinServiceWorker {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         Lok.debug("MeinTestService.onShutDown");
+        return null;
     }
 
     @Override

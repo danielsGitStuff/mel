@@ -361,13 +361,14 @@ public abstract class MeinDriveService<S extends SyncHandler> extends MeinServic
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         super.onShutDown();
         if (syncHandler != null)
             syncHandler.onShutDown();
         driveDatabaseManager.shutDown();
         if (indexer != null)
             indexer.shutDown();
+        return null;
     }
 
     @Override

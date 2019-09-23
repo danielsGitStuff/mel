@@ -3,13 +3,12 @@ package de.mein.auth.socket;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.MeinStrings;
-import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.BlockReceivedJob;
-import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.jobs.ReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.CountWaitLock;
 import de.mein.auth.tools.N;
+import org.jdeferred.impl.DeferredObject;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLException;
@@ -17,7 +16,6 @@ import javax.net.ssl.SSLException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -179,12 +177,13 @@ public class MeinSocket extends DeferredRunnable {
 
 
     @Override
-    public void onShutDown() {
+    public DeferredObject<Void, Void, Void> onShutDown() {
         N.r(() -> {
             if (socketWorker != null)
                 socketWorker.shutDown();
         });
         N.s(() -> socket.close());
+        return DeferredRunnable.ResolvedDeferredObject();
     }
 
     StringBuffer msgBuffer = new StringBuffer();

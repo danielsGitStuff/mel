@@ -6,6 +6,7 @@ import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ReceivedJob;
 import de.mein.auth.service.MeinWorker;
+import org.jdeferred.Promise;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,10 +42,10 @@ class SocketWorker extends MeinWorker {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
 //        Lok.debug("SocketWorker.onShutDown, Runnable: " + getRunnableName());
         listener.onClose(100, "shutdown", false);
-        super.onShutDown();
+       return super.onShutDown();
     }
 
 }

@@ -1,9 +1,8 @@
 package de.mein.update;
 
 import de.mein.DeferredRunnable;
-import de.mein.Lok;
-import de.mein.MeinRunnable;
 import de.mein.auth.tools.N;
+import org.jdeferred.Promise;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -29,10 +28,11 @@ public abstract class SimpleSocket extends DeferredRunnable {
 
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         N.s(socket::close);
         N.s(in::close);
         N.s(out::close);
+        return DeferredRunnable.ResolvedDeferredObject();
     }
 
     @Override

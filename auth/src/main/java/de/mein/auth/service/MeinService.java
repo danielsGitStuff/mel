@@ -161,12 +161,12 @@ public abstract class MeinService extends MeinWorker implements IMeinService {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         if (executorService != null) {
             executorService.shutdown();
             executorService = null;
         }
-        super.onShutDown();
+       return super.onShutDown();
     }
 
     /**

@@ -389,7 +389,7 @@ public class DriveTest {
                             Lok.debug(f.getName().v());
                         }
                         // TODO: checks go here
-                        //lock.unlockWrite();
+                        lock.unlockWrite();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

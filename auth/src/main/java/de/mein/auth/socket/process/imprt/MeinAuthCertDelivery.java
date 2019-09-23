@@ -11,8 +11,10 @@ import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.lock.DEV_BIND;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
+import org.jdeferred.impl.DeferredObject;
 
 import javax.net.ServerSocketFactory;
 
@@ -22,7 +24,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.cert.X509Certificate;
-
+import java.util.Map;
 
 
 /**
@@ -55,7 +57,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
             @Override
             public void onMessage(MeinSocket meinSocket, String messageString) {
                 try {
-                   Lok.debug(meinAuthService.getName() + ".MeinAuthCertDelivery.onMessage.got: " + messageString);
+                    Lok.debug(meinAuthService.getName() + ".MeinAuthCertDelivery.onMessage.got: " + messageString);
                     MeinRequest request = (MeinRequest) new SerializableEntityDeserializer().deserialize(messageString);
                     if (request.getServiceUuid().equals(MeinStrings.SERVICE_NAME) && request.getIntent().equals(MeinStrings.msg.GET_CERT)) {
                         X509Certificate x509Certificate = certificateManager.getMyX509Certificate();
@@ -79,17 +81,17 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
 
             @Override
             public void onOpen() {
-               Lok.debug("MeinAuthCertDelivery.onOpen");
+                Lok.debug("MeinAuthCertDelivery.onOpen");
             }
 
             @Override
             public void onError(Exception ex) {
-               Lok.debug("MeinAuthCertDelivery.onError");
+                Lok.debug("MeinAuthCertDelivery.onError");
             }
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
-               Lok.debug("MeinAuthCertDelivery.onClose");
+                Lok.debug("MeinAuthCertDelivery.onClose");
             }
 
             @Override
@@ -111,23 +113,33 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
 
 
     @Override
-    public void onShutDown() {
-        N.r(() -> serverSocket.close());
+    public DeferredObject<Void, Void, Void> onShutDown() {
+        //todo debug
+        N.s(() -> in.close());
+        N.s(() -> out.close());
+        N.r(() -> {
+            serverSocket.close();
+            DEV_BIND.serverSockets.remove(serverSocket);
+        });
+//        N.r(() -> serverSocket.close());
+        return DeferredRunnable.ResolvedDeferredObject();
     }
 
     @Override
     public void runImpl() {
         try {
             serverSocket = serverSocketFactory.createServerSocket();
-            serverSocket.setReuseAddress(true);
+            serverSocket.setReuseAddress(false);
             serverSocket.bind(new InetSocketAddress(port));
+            DEV_BIND.add(serverSocket);
             startedPromise.resolve(null);
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = serverSocket.accept();
+                DEV_BIND.addSocket(socket);
                 in = new DataInputStream(socket.getInputStream());
                 out = new DataOutputStream(socket.getOutputStream());
                 String s = in.readUTF();
-               Lok.debug(meinAuthService.getName() + ".MeinAuthCertDelivery.runTry.got: " + s);
+                Lok.debug(meinAuthService.getName() + ".MeinAuthCertDelivery.runTry.got: " + s);
                 MeinSocket meinSocket = new MeinSocket(meinAuthService, socket);
                 this.listener.onMessage(meinSocket, s);
                 meinSocket.shutDown();
@@ -138,9 +150,13 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
             listener.onClose(42, "don't know shit...", true);
 
         } catch (Exception e) {
-            if (!isStopped())
+            if (!isStopped()) {
                 e.printStackTrace();
-            else
+                Map<ServerSocket, Integer> list = DEV_BIND.serverSockets;
+                Map<Socket, Integer> sockets = DEV_BIND.sockets;
+                Lok.debug();
+                list.forEach((serverSocket1, integer) -> Lok.debug(serverSocket1));
+            } else
                 Lok.debug("MeinAuthCertDelivery.runImpl.interrupted");
         } finally {
             try {

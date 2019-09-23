@@ -4,7 +4,7 @@ import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.sql.FsDirectory;
+import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.IOException;
@@ -98,8 +98,9 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         super.onShutDown();
+        return null;
     }
 
 }

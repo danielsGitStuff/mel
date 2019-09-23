@@ -13,13 +13,12 @@ import java.util.Set;
 
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
-import de.mein.auth.tools.N;
 import de.mein.auth.tools.WatchDogTimer;
 import de.mein.drive.data.PathCollection;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.drive.index.watchdog.UnixReferenceFileHandler;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.sql.FsDirectory;
+import org.jdeferred.Promise;
 
 /**
  * Watches directories on Android. {@link Watcher} is the Android component that delivers events for one folder but not its subfolders.
@@ -53,9 +52,10 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         for (Watcher watcher : watchers.values())
             watcher.stopWatching();
+        return null;
     }
 
     @Override

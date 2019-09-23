@@ -4,6 +4,7 @@ import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.tools.N;
+import org.jdeferred.Promise;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -24,8 +25,9 @@ public class MeinAuthSocketOpener extends DeferredRunnable {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         N.r(() -> serverSocket.close());
+        return DeferredRunnable.ResolvedDeferredObject();
     }
 
     @Override

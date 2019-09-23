@@ -4,7 +4,6 @@ import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.broadcast.MeinAuthBrotCaster;
 import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mein.auth.service.power.PowerManager;
@@ -12,6 +11,8 @@ import de.mein.auth.socket.MeinAuthSocketOpener;
 import de.mein.auth.socket.process.imprt.MeinAuthCertDelivery;
 import de.mein.auth.tools.N;
 
+import de.mein.auth.tools.ShutDownDeferredManager;
+import org.jdeferred.DeferredManager;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
 
@@ -89,11 +90,11 @@ public class MeinAuthWorker extends MeinWorker implements PowerManager.IPowerSta
 
 
     @Override
-    public void onShutDown() {
-        certDelivery.shutDown();
-        brotCaster.shutDown();
-        socketOpener.shutDown();
-        super.onShutDown();
+    public DeferredObject<Void, Void, Void> onShutDown() {
+        return new ShutDownDeferredManager()
+                .when(certDelivery.shutDown(), brotCaster.shutDown(), socketOpener.shutDown()
+                        , super.onShutDown())
+                .digest();
     }
 
 

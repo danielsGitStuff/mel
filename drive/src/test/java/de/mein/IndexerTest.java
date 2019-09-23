@@ -6,6 +6,7 @@ import de.mein.auth.file.DefaultFileConfiguration;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinBoot;
 import de.mein.auth.service.power.PowerManager;
+import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.drive.DriveBootloader;
@@ -23,6 +24,8 @@ import de.mein.sql.RWLock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
 
@@ -87,21 +90,27 @@ public class IndexerTest {
 
         // reboot
 
-        RWLock lock = new RWLock().lockWrite();
+        CountLock lock = new CountLock().lock();
         MeinAuthSettings meinAuthSettings = MeinAuthSettings.createDefaultSettings();
+        AtomicReference<MeinAuthService> meinAuthServiceAtomicReference = new AtomicReference<>();
         MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings), DriveBootloader.class);
         final FsDirectory[] subDir = new FsDirectory[1];
         meinBoot.boot().done(mas -> N.r(() -> {
+            meinAuthServiceAtomicReference.set(mas);
             Thread.sleep(2000);
             mds = (MeinDriveServerService) mas.getMeinServices().iterator().next();
             FsDao fsDao = mds.getDriveDatabaseManager().getFsDao();
             subDir[0] = fsDao.getDirectoryById(2L);
-            lock.unlockWrite();
+            lock.unlock();
         }));
-        lock.lockWrite();
+        lock.lock();
         final String expectedHash = "680c63798b5a1295b1317dab64523c64";
         assertEquals(expectedHash, subDir[0].getContentHash().v());
-
+        meinAuthServiceAtomicReference.get().shutDown().done(result -> {
+            Lok.debug("done here");
+            lock.unlock();
+        });
+        lock.lock();
     }
 
     @After

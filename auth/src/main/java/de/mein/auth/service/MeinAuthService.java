@@ -32,6 +32,7 @@ import de.mein.auth.socket.process.val.MeinServicesPayload;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
+import de.mein.auth.tools.ShutDownDeferredManager;
 import de.mein.auth.tools.WaitLock;
 import de.mein.auth.tools.lock.T;
 import de.mein.auth.tools.lock.Transaction;
@@ -44,6 +45,7 @@ import de.mein.sql.serialize.PairCollectionSerializerFactory;
 import de.mein.sql.serialize.PairSerializerFactory;
 import de.mein.update.Updater;
 
+import org.jdeferred.DeferredManager;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -454,26 +456,32 @@ public class MeinAuthService {
 
     /**
      * shuts down all running services and connections.
+     *
+     * @return
      */
-    public void shutDown() {
-//        DeferredObject<Void,Void,Void> shutDown
+    public Promise<Void, Void, Void> shutDown() {
+        ShutDownDeferredManager shutdownManager = new ShutDownDeferredManager();
         uuidServiceMapSemaphore.lock();
         for (IMeinService service : uuidServiceMap.values()) {
             if (service instanceof MeinService) {
-                N.r(((MeinService) service)::shutDown);
+                N.r(() -> {
+                    MeinService meinService = (MeinService) service;
+                    shutdownManager.when(meinService.shutDown());
+                });
             }
         }
         uuidServiceMapSemaphore.unlock();
         Set<MeinSocket> socks = new HashSet<>(sockets);
         for (MeinSocket socket : socks) {
-            socket.shutDown();
+            shutdownManager.when(socket.shutDown());
         }
         for (MeinAuthAdmin admin : meinAuthAdmins) {
             admin.shutDown();
         }
-        meinAuthWorker.shutDown();
+        shutdownManager.when(meinAuthWorker.shutDown());
         N.r(meinBoot::shutDown);
         databaseManager.shutDown();
+        return shutdownManager.digest();
     }
 
     public void suspend() {

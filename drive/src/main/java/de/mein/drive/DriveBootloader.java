@@ -99,7 +99,6 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
                             DEV_DRIVE_BOOT_LISTENER = null;
                             tmp.driveServiceBooted(meinDriveService);
                         }
-                        meinDriveService.onBootLevel2Finished();
                     }))
                     .fail(ex -> {
                         notification.setText("failed :(")

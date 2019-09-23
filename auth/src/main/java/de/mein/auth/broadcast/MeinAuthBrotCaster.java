@@ -1,16 +1,17 @@
 package de.mein.auth.broadcast;
 
+import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.data.db.Service;
 import de.mein.auth.service.IMeinService;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -143,10 +144,10 @@ public class MeinAuthBrotCaster extends BrotCaster {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         super.onShutDown();
         brotCasterListener = null;
-
+        return DeferredRunnable.ResolvedDeferredObject();
     }
 
     @SuppressWarnings("Duplicates")

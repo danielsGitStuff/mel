@@ -37,6 +37,7 @@ import de.mein.core.serialize.exceptions.JsonDeserializationException;
 import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
 
 
 /**
@@ -228,8 +229,9 @@ public class AndroidContactsServerService extends ContactsServerService {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         super.onShutDown();
         serviceMethods.onShutDown();
+        return null;
     }
 }

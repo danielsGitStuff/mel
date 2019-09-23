@@ -1,12 +1,12 @@
 package de.mein.auth.service;
 
 import de.mein.DeferredRunnable;
-import de.mein.Lok;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.N;
 import de.mein.sql.RWLock;
 
+import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.util.LinkedList;
@@ -79,8 +79,9 @@ public abstract class MeinWorker extends DeferredRunnable {
      * stops the current worker.
      */
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         stop();
+        return DeferredRunnable.ResolvedDeferredObject();
     }
 
     public void stop() {

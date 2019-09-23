@@ -5,6 +5,7 @@ import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.auth.tools.N;
 import de.mein.drive.service.MeinDriveService;
+import org.jdeferred.Promise;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -65,8 +66,9 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
 
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         N.r(() -> watchService.close());
+        return null;
     }
 
     @Override

@@ -10,21 +10,21 @@ import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.socket.ShamefulSelfConnectException;
+import de.mein.auth.tools.ShutDownDeferredManager;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-import de.mein.sql.SqlQueriesException;
+import org.jdeferred.DeferredManager;
+import org.jdeferred.Promise;
+import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -63,11 +63,13 @@ public class MeinCertRetriever extends DeferredRunnable {
     }
 
     @Override
-    public void onShutDown() {
-        certDeliveryClient.shutDown();
+    public Promise<Void, Void, Void> onShutDown() {
+        ShutDownDeferredManager shutDownDeferredManager = new ShutDownDeferredManager();
+        shutDownDeferredManager.when(certDeliveryClient.shutDown());
         for (MeinSocket socket : clientSockets.keySet()) {
-            socket.shutDown();
+            shutDownDeferredManager.when(socket.shutDown());
         }
+        return shutDownDeferredManager.digest();
     }
 
     @Override

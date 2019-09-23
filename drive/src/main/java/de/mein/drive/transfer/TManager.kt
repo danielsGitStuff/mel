@@ -20,6 +20,7 @@ import de.mein.drive.sql.dao.FsDao
 import de.mein.drive.sql.dao.TransferDao
 import de.mein.sql.RWLock
 import kotlinx.coroutines.runBlocking
+import org.jdeferred.Promise
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -28,6 +29,9 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDao, val meinDriveService: MeinDriveService<out SyncHandler>
                , val syncHandler: SyncHandler, val wastebin: Wastebin, val fsDao: FsDao) : DeferredRunnable(), MeinIsolatedProcess.IsolatedProcessListener {
+
+    override fun onShutDown(): Promise<Void, Void, Void> = ResolvedDeferredObject()
+
     companion object {
         private val FILE_REQUEST_LIMIT_PER_CONNECTION: Int = 30
 
@@ -101,9 +105,6 @@ class TManager(val meinAuthService: MeinAuthService, val transferDao: TransferDa
 
     override fun getRunnableName(): String = "TransferManager for ${meinAuthService.name}"
 
-    override fun onShutDown() {
-
-    }
 
     /**
      * dig the database for stuff we have to retrieve.

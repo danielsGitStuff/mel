@@ -3,7 +3,6 @@ package de.mein.drive.index;
 import de.mein.DeferredRunnable;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
-import de.mein.auth.tools.Eva;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.Order;
 import de.mein.core.serialize.serialize.tools.OTimer;
@@ -17,6 +16,7 @@ import de.mein.drive.sql.dao.StageDao;
 import de.mein.sql.Hash;
 import de.mein.sql.RWLock;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,8 +53,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         Lok.debug(getClass().getSimpleName() + "[" + stageSetId + "] for " + serviceName + ".onShutDown");
+        return null;
     }
 
     protected String buildPathFromStage(Stage stage) throws SqlQueriesException {

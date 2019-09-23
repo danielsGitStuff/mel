@@ -229,9 +229,10 @@ public class ConnectWorker extends MeinWorker {
     }
 
     @Override
-    public void shutDown() {
+    public DeferredObject<Void, Void, Void> shutDown() {
         if (meinAuthSocket != null)
             meinAuthSocket.stop();
         super.shutDown();
+        return null;
     }
 }

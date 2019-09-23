@@ -2,13 +2,11 @@ package de.mein.auth.service;
 
 import de.mein.Lok;
 import de.mein.auth.jobs.Job;
-import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.tools.CountdownLock;
+import org.jdeferred.Promise;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 
 /**
  * Created by xor on 9/25/16.
@@ -67,10 +65,11 @@ public abstract class MeinServiceWorker extends MeinService {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         super.onShutDown();
         queueLock.unlockWrite();
         waitLock.unlock();
+        return null;
     }
 
     /**

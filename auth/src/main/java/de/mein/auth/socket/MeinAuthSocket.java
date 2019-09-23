@@ -6,33 +6,23 @@ import de.mein.auth.data.MeinRequest;
 import de.mein.auth.data.db.Certificate;
 import de.mein.auth.jobs.AConnectJob;
 import de.mein.auth.jobs.BlockReceivedJob;
-import de.mein.auth.jobs.ConnectJob;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.socket.process.imprt.MeinCertRetriever;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
 import de.mein.auth.tools.N;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
-import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.Hash;
 import de.mein.sql.SqlQueriesException;
 
-import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLSocket;
 
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -203,8 +193,9 @@ public class MeinAuthSocket extends MeinSocket implements MeinSocket.MeinSocketL
     }
 
     @Override
-    public void onShutDown() {
+    public DeferredObject<Void, Void, Void> onShutDown() {
         super.onShutDown();
+        return null;
     }
 
 

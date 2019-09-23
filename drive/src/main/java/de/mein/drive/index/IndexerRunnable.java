@@ -17,6 +17,7 @@ import de.mein.drive.sql.DriveDatabaseManager;
 import de.mein.drive.sql.FsDirectory;
 import de.mein.sql.ISQLQueries;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,8 +61,8 @@ public class IndexerRunnable extends AbstractIndexer {
     }
 
     @Override
-    public void onShutDown() {
-        indexWatchdogListener.shutDown();
+    public Promise<Void, Void, Void> onShutDown() {
+        return indexWatchdogListener.shutDown();
     }
 
     @Override

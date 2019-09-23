@@ -43,6 +43,7 @@ import de.mein.core.serialize.exceptions.JsonSerializationException;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.Pair;
 import de.mein.sql.SqlQueriesException;
+import org.jdeferred.Promise;
 
 
 /**
@@ -187,9 +188,10 @@ public class AndroidContactsClientService extends ContactsClientService {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         serviceMethods.onShutDown();
         super.onShutDown();
+        return null;
     }
 
     private void updateLocalPhoneBook(Transaction transaction, Long newPhoneBookId) throws IllegalAccessException, IOException, JsonSerializationException {

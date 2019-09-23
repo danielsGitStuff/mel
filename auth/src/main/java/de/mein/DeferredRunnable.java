@@ -1,5 +1,6 @@
 package de.mein;
 
+import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 /**
@@ -13,16 +14,20 @@ public abstract class DeferredRunnable implements MeinRunnable {
     protected Thread thread;
     protected boolean stopped = false;
 
+    public static DeferredObject<Void, Void, Void> ResolvedDeferredObject(){
+      DeferredObject<Void,Void,Void> deferredObject = new DeferredObject<>();
+      deferredObject.resolve(null);
+      return deferredObject;
+    }
+
     /**
      * you must not override this
+     *
+     * @return
      */
-    public  void shutDown() {
-//        String line = "shutting down: " + getClass().getSimpleName();
-//        if (thread != null)
-//            line += "/" + thread.getName();
-//        Lok.debug(line);
+    public Promise<Void, Void, Void> shutDown() {
         stopped = true;
-        onShutDown();
+        return onShutDown();
     }
 
     /**
@@ -30,7 +35,7 @@ public abstract class DeferredRunnable implements MeinRunnable {
      * You may want to shut down other components as well. They should be stopped but might block somewhere.
      * Unblock them here.
      */
-    public abstract void onShutDown();
+    public abstract Promise<Void, Void, Void> onShutDown();
 
     @Override
     public void run() {

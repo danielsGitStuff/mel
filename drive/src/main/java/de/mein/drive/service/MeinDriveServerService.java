@@ -7,7 +7,6 @@ import de.mein.auth.data.cached.CachedInitializer;
 import de.mein.auth.jobs.Job;
 import de.mein.auth.jobs.ServiceRequestHandlerJob;
 import de.mein.auth.service.MeinAuthService;
-import de.mein.auth.service.power.PowerManager;
 import de.mein.auth.socket.process.val.Request;
 import de.mein.auth.tools.N;
 import de.mein.auth.tools.lock.T;
@@ -27,6 +26,7 @@ import de.mein.drive.tasks.SyncRequest;
 import de.mein.sql.ISQLResource;
 import de.mein.sql.SqlQueriesException;
 
+import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
@@ -197,8 +197,9 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         super.onShutDown();
+        return null;
     }
 
     @Override

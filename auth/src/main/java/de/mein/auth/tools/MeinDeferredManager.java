@@ -10,6 +10,7 @@ import org.jdeferred.multiple.OneReject;
 import java.util.Collection;
 
 /**
+ * resolves if when() is called with a zero sized array
  * Created by xor on 5/21/17.
  */
 public class MeinDeferredManager extends DefaultDeferredManager {

@@ -8,6 +8,7 @@ import de.mein.drive.index.IndexListener;
 import de.mein.auth.file.AFile;
 import de.mein.drive.service.MeinDriveService;
 import de.mein.auth.tools.WatchDogTimer;
+import org.jdeferred.Promise;
 
 import java.io.*;
 import java.nio.file.FileSystems;
@@ -111,10 +112,11 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
         watchDogTimer.cancel();
         // dereference cause JavaDoc says so
         watchDogTimer = null;
+        return null;
     }
 
     public WatchDogTimer getWatchDogTimer() {

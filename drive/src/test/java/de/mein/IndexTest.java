@@ -32,30 +32,30 @@ import java.io.IOException;
 import java.security.cert.Certificate;
 
 public class IndexTest {
-    private MeinAuthService mas;
+    protected MeinAuthService mas;
     private Bootloader dbl;
     private AFile testRoot;
     private MeinDriveServerService service;
     private File wd;
     private MeinDriveService mds;
-    private boolean index = true;
+    protected boolean index = true;
 
-    @Test
-    public void withNonSyncedFiles() {
-
-    }
+//    @Test
+//    public void withNonSyncedFiles() {
+//
+//    }
 
     @Before
     public void before() throws Exception {
         AFile.configure(new DefaultFileConfiguration());
         BashTools.init();
-        String uuid = CertificateManager.randomUUID().toString();
-        testRoot = AFile.instance(new File("indextest." + uuid));
-        wd = new File("indexwd" + uuid);
+        testRoot = AFile.instance(new File("indextest"));
+        BashTools.rmRf(testRoot);
+        wd = new File("indexwd");
         if (index) {
             BashTools.rmRf(AFile.instance(wd));
             TestDirCreator.createTestDir(testRoot);
-            MeinAuthSettings settings = MeinAuthSettings.createDefaultSettings().setWorkingDirectory(wd);
+            MeinAuthSettings settings = MeinAuthSettings.createDefaultSettings().setWorkingDirectory(wd).setName("First");
             CountWaitLock lock = new CountWaitLock();
             MeinBoot meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
             Promise<MeinAuthService, Exception, Void> promise = meinBoot.boot();
@@ -63,8 +63,6 @@ public class IndexTest {
                 mas = result;
                 RootDirectory rootDirectory = DriveSettings.buildRootDirectory(testRoot);
                 AFile transferDir = AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR);
-//                ServiceType type = mas.getDatabaseManager().getServiceTypeByName(new DriveBootloader().getName());
-//                Service service = mas.getDatabaseManager().createService(type.getId().v(), "lel");
                 DriveBootloader bl = (DriveBootloader) mas.getMeinBoot().getBootLoader(new DriveBootloader().getName());
                 DriveSettings driveSettings = new DriveSettings()
                         .setRole(DriveStrings.ROLE_SERVER)
@@ -96,21 +94,27 @@ public class IndexTest {
     public void reindex() throws Exception {
         Eva.enable();
         index = false;
-        mas.shutDown();
-        //re index
-        CountWaitLock lock = new CountWaitLock();
-        MeinAuthSettings settings = mas.getSettings();
-        MeinBoot meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
-        meinBoot.boot().done(result -> N.r(() -> {
-            mas = result;
-            MeinDriveServerService driveService = (MeinDriveServerService) mas.getMeinServices().stream().findFirst().get();
-            driveService.startedPromise.done(result1 -> {
-                Lok.debug("reindex done");
-                assertTrue(true);
-                //todo refine
-                lock.unlock();
-            });
+        mas.shutDown().done(nil -> N.r(() -> {
+            //re index
+            CountWaitLock lock = new CountWaitLock();
+            MeinAuthSettings settings = mas.getSettings();
+            MeinBoot meinBoot = new MeinBoot(settings, new PowerManager(settings), DriveBootloader.class);
+            meinBoot.boot().done(result -> N.r(() -> {
+                mas = result;
+                MeinDriveServerService driveService = (MeinDriveServerService) mas.getMeinServices().stream().findFirst().get();
+                driveService.startedPromise.done(result1 -> {
+                    Lok.debug("reindex done");
+                    assertTrue(true);
+                    //todo refine
+                    Lok.debug("shutting down...");
+                    mas.shutDown().done(result2 -> {
+                        Lok.debug("done, shutting down");
+                        lock.unlock();
+                    });
+                });
+            }));
+            lock.lock();
         }));
-        lock.lock();
     }
+
 }

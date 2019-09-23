@@ -7,10 +7,10 @@ import java.io.File;
 import de.mein.Lok;
 import de.mein.auth.file.AFile;
 import de.mein.drive.service.MeinDriveService;
-import de.mein.drive.sql.FsDirectory;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
 import de.mein.auth.tools.WatchDogTimer;
 import de.mein.sql.RWLock;
+import org.jdeferred.Promise;
 
 /**
  * Created by xor on 2/6/17.
@@ -74,8 +74,9 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
     }
 
     @Override
-    public void onShutDown() {
+    public Promise<Void, Void, Void> onShutDown() {
 
+        return null;
     }
 
     @Override
