@@ -118,6 +118,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
         N.s(() -> in.close());
         N.s(() -> out.close());
         N.r(() -> {
+            Lok.debug("unbinding " + port);
             serverSocket.close();
             DEV_BIND.serverSockets.remove(serverSocket);
         });
@@ -129,7 +130,8 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
     public void runImpl() {
         try {
             serverSocket = serverSocketFactory.createServerSocket();
-            serverSocket.setReuseAddress(false);
+            serverSocket.setReuseAddress(true);
+            Lok.debug("binding " + port);
             serverSocket.bind(new InetSocketAddress(port));
             DEV_BIND.add(serverSocket);
             startedPromise.resolve(null);

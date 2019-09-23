@@ -20,6 +20,7 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.ShutDownDeferredManager;
+import de.mein.auth.tools.lock.DEV_BIND;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.sql.Hash;
@@ -46,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Created by xor on 12/12/16.
@@ -387,76 +388,44 @@ public class DriveTest {
         Lok.debug("DriveTest.clientMergeStages.END");
     }
 
-    @Test
-    public void firstTransfer() throws Exception {
-        setup(null, new DriveSyncListener() {
-
-            @Override
-            public void onSyncFailed() {
-
-            }
-
-            @Override
-            public void onTransfersDone() {
-
-            }
-
-            @Override
-            public void onSyncDoneImpl() {
-                try {
-                    if (getCount() == 0) {
-                        DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
-                        List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
-                        for (FsFile f : rootFiles) {
-                            Lok.debug(f.getName().v());
-                        }
-                        // TODO: checks go here
-                        lock.unlockWrite();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }, null);
-        lock.lockWrite();
-        lock.unlockWrite();
-        Lok.debug("DriveTest.firstTransfer.END");
-    }
-
-    //    @Test
-    public void isolation() throws Exception {
-        setup(new DriveSyncListener() {
-            @Override
-            public void onSyncFailed() {
-
-            }
-
-            @Override
-            public void onTransfersDone() {
-
-            }
-
-            @Override
-            public void onSyncDoneImpl() {
-                run(() -> {
-                    Long certId = testStructure.clientDriveService.getDriveSettings().getClientSettings().getServerCertId();
-                    String remoteServiceUuid = testStructure.clientDriveService.getDriveSettings().getClientSettings().getServerServiceUuid();
-                    String ownServiceUuid = testStructure.clientDriveService.getUuid();
-//                 String address, int port, int portCert
-                    Promise<MeinIsolatedFileProcess, Exception, Void> isolated = testStructure.clientDriveService.getIsolatedProcess(MeinIsolatedFileProcess.class, certId, remoteServiceUuid);
-                    isolated.done(meinIsolatedProcess -> {
-                        Lok.debug("DriveTest.onSyncDoneImpl.SUCCESS");
-                    }).fail(result -> {
-                        Lok.debug("DriveTest.onSyncDoneImpl.FAIL");
-                    });
-                });
-
-            }
-        });
-        lock.lockWrite();
-        lock.unlockWrite();
-        Lok.debug("DriveTest.isolation.END");
-    }
+//    @Test
+//    public void isolation() throws Exception {
+//        setup(null,new DriveSyncListener() {
+//            @Override
+//            public void onSyncFailed() {
+//
+//            }
+//
+//            @Override
+//            public void onTransfersDone() {
+//
+//            }
+//
+//            @Override
+//            public void onSyncDoneImpl() {
+//                run(() -> {
+//                    Long certId = testStructure.clientDriveService.getDriveSettings().getClientSettings().getServerCertId();
+//                    String remoteServiceUuid = testStructure.clientDriveService.getDriveSettings().getClientSettings().getServerServiceUuid();
+//                    String ownServiceUuid = testStructure.clientDriveService.getUuid();
+////                 String address, int port, int portCert
+//                    Promise<MeinIsolatedFileProcess, Exception, Void> isolated = testStructure.clientDriveService.getIsolatedProcess(MeinIsolatedFileProcess.class, certId, remoteServiceUuid);
+//                    isolated.done(meinIsolatedProcess -> {
+//                        Lok.debug("DriveTest.onSyncDoneImpl.SUCCESS");
+//                        assertTrue(true);
+//                        lock.unlockWrite();
+//                    }).fail(result -> {
+//                        Lok.debug("DriveTest.onSyncDoneImpl.FAIL");
+//                        fail();
+//                        lock.unlockWrite();
+//                    });
+//                });
+//
+//            }
+//        },null);
+//        lock.lockWrite();
+//        lock.unlockWrite();
+//        Lok.debug("DriveTest.isolation.END");
+//    }
 
 
     //    @Test
@@ -560,7 +529,7 @@ public class DriveTest {
 
     @Test
     public void firstSyncServer2Client() throws Exception {
-        setup(new DriveSyncListener() {
+        setup(null, new DriveSyncListener() {
 
             @Override
             public void onSyncFailed() {
@@ -581,23 +550,24 @@ public class DriveTest {
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
                         }
-                        // TODO: checks go here
-                        //lock.unlockWrite();
+                        // TODO refine, checks go here
+                        lock.unlockWrite();
                     }
                     Lok.debug("DriveTest.onSyncDoneImpl.EEEEEEEEEEE " + getCount());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        });
+        }, null);
         lock.lockWrite();
         lock.unlockWrite();
         Lok.debug("DriveTest.firstSync.END");
     }
 
-    //    @Test
+    //todo refine: this has to use a transfer done listener instead
+//    @Test
     public void firstSyncClient2Server() throws Exception {
-        setup(true, new DriveSyncListener() {
+        setup(null, new DriveSyncListener() {
 
             @Override
             public void onSyncFailed() {
@@ -618,14 +588,15 @@ public class DriveTest {
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
                         }
-                        // TODO: checks go here
+                        // TODO refine, checks go here
+                        Lok.debug("o lala");
                         lock.unlockWrite();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        }, null);
+        }, null, true);
         lock.lockWrite();
         lock.unlockWrite();
         Lok.debug("DriveTest.firstSync.END");
@@ -681,7 +652,8 @@ public class DriveTest {
         Lok.debug("DriveTest.addFile.END");
     }
 
-    //    @Test
+    //todo refine: interactivity
+//    @Test
     public void deleteFile() throws Exception {
         setup(true, new DriveSyncListener() {
 
@@ -826,13 +798,23 @@ public class DriveTest {
 
     }
 
+    private void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot) throws Exception {
+        setup(identicalTestDirs, clientSyncListener, clientMeinBoot, false);
+    }
+
     /**
      * @param identicalTestDirs  does not create a second directory if null
      * @param clientSyncListener
      * @param clientMeinBoot
      */
-    private void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot) throws Exception {
+    private void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot, boolean swapTestDirs) throws Exception {
         //setup working directories & directories with test data
+        if (swapTestDirs) {
+            testdir1.mkdirs();
+            AFile tmp = testdir1;
+            testdir1 = testdir2;
+            testdir2 = tmp;
+        }
         TestDirCreator.createTestDir(testdir1, 1);
         if (identicalTestDirs != null) {
             if (identicalTestDirs)
@@ -840,7 +822,12 @@ public class DriveTest {
             else
                 TestDirCreator.createTestDir(testdir2, " lel");
         }
-
+        // swap back
+        if (swapTestDirs) {
+            AFile tmp = testdir1;
+            testdir1 = testdir2;
+            testdir2 = tmp;
+        }
 
         // configure MeinAuth
         N runner = new N(e -> e.printStackTrace());

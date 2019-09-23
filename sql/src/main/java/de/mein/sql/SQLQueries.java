@@ -44,7 +44,8 @@ public class SQLQueries extends ISQLQueries {
     public SQLQueries(JDBCConnection connection, boolean reentrantLockOnWrite, RWLock lock, SqlResultTransformer resultTransformer) {
         this.sqlConnection = connection;
         this.resultTransformer = resultTransformer;
-        this.reentrantWriteLock = reentrantLockOnWrite ? new ReentrantLock(true) : null;
+        //todo refine, get rid of lock. this is done by T
+//        this.reentrantWriteLock = reentrantLockOnWrite ? new ReentrantLock(true) : null;
         this.connection = sqlConnection.getConnection();
         this.lock = lock;
     }
