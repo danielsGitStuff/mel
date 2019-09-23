@@ -18,6 +18,8 @@ import de.mein.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mein.auth.socket.process.reg.IRegisteredHandler;
 import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.MeinValidationProcess;
+import de.mein.auth.tools.CountLock;
+import de.mein.auth.tools.ShutDownDeferredManager;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.sql.Hash;
@@ -38,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,21 +59,40 @@ public class DriveTest {
     private static N runner = new N(Throwable::printStackTrace);
     private static MeinAuthSettings json2;
     private static MeinAuthSettings json1;
+    private AFile testdir1;
+    private AFile testdir2;
 
     private static void run(N.INoTryRunnable noTryRunnable) {
         runner.runTry(noTryRunnable);
     }
 
     @After
-    public void clean() {
+    public void after() throws IOException {
+        CountLock shutdownLock = new CountLock().lock();
+        ShutDownDeferredManager shut = new ShutDownDeferredManager();
+        N.r(() -> shut.when(meinAuthService1.shutDown()));
+        N.r(() -> shut.when(meinAuthService2.shutDown()));
+        shut.digest().done(result -> shutdownLock.unlock());
+        shutdownLock.lock();
         meinAuthService1 = meinAuthService2 = null;
         lock = null;
+        BashTools.rmRf(MeinBoot.Companion.getDefaultWorkingDir1());
+        BashTools.rmRf(MeinBoot.Companion.getDefaultWorkingDir2());
+        BashTools.rmRf(testdir1);
+        BashTools.rmRf(testdir2);
     }
 
     @Before
-    public void before() {
+    public void before() throws IOException {
         AFile.configure(new DefaultFileConfiguration());
+        BashTools.init();
         lock = new RWLock();
+        testdir1 = AFile.instance("testdir1");
+        testdir2 = AFile.instance("testdir2");
+        BashTools.rmRf(MeinBoot.Companion.getDefaultWorkingDir1());
+        BashTools.rmRf(MeinBoot.Companion.getDefaultWorkingDir2());
+        BashTools.rmRf(testdir1);
+        BashTools.rmRf(testdir2);
     }
 
     //    @Test
@@ -367,7 +389,7 @@ public class DriveTest {
 
     @Test
     public void firstTransfer() throws Exception {
-        setup(new DriveSyncListener() {
+        setup(null, new DriveSyncListener() {
 
             @Override
             public void onSyncFailed() {
@@ -395,7 +417,7 @@ public class DriveTest {
                     e.printStackTrace();
                 }
             }
-        });
+        }, null);
         lock.lockWrite();
         lock.unlockWrite();
         Lok.debug("DriveTest.firstTransfer.END");
@@ -491,7 +513,6 @@ public class DriveTest {
     //    @Test
     public void restartServerAfterChangingFiles() throws Exception {
         CertificateManager.deleteDirectory(new FFile(MeinBoot.Companion.getDefaultWorkingDir1()));
-        AFile testdir1 = AFile.instance("testdir1");
         CertificateManager.deleteDirectory(testdir1);
         TestDirCreator.createTestDir(testdir1);
         MeinAuthSettings json1 = new MeinAuthSettings().setPort(8888).setDeliveryPort(8889)
@@ -725,8 +746,6 @@ public class DriveTest {
 
     private void startServer() throws Exception {
         //setup working directories & directories with test data
-        AFile testdir1 = AFile.instance("testdir1");
-        AFile testdir2 = AFile.instance("testdir2");
         CertificateManager.deleteDirectory(new FFile(MeinBoot.Companion.getDefaultWorkingDir1()));
         //CertificateManager.deleteDirectory(MeinBoot.defaultWorkingDir2);
         CertificateManager.deleteDirectory(testdir1);
@@ -814,12 +833,6 @@ public class DriveTest {
      */
     private void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MeinBoot clientMeinBoot) throws Exception {
         //setup working directories & directories with test data
-        AFile testdir1 = AFile.instance("testdir1");
-        AFile testdir2 = AFile.instance("testdir2");
-        CertificateManager.deleteDirectory(new FFile(MeinBoot.Companion.getDefaultWorkingDir1()));
-        CertificateManager.deleteDirectory(MeinBoot.Companion.getDefaultWorkingDir2());
-        CertificateManager.deleteDirectory(testdir1);
-        CertificateManager.deleteDirectory(testdir2);
         TestDirCreator.createTestDir(testdir1, 1);
         if (identicalTestDirs != null) {
             if (identicalTestDirs)
@@ -885,7 +898,7 @@ public class DriveTest {
         if (clientMeinBoot != null)
             boot2 = clientMeinBoot;
         else
-            boot2 = new MeinBoot(json2,new PowerManager(json2),DriveBootloader.class);
+            boot2 = new MeinBoot(json2, new PowerManager(json2), DriveBootloader.class);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 Lok.debug("DriveFXTest.driveGui.1.booted");

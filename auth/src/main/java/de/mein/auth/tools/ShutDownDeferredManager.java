@@ -30,9 +30,4 @@ public class ShutDownDeferredManager {
         }
         return deferred;
     }
-
-    public ShutDownDeferredManager done(DoneCallback<Void> done) {
-        deferred.done(done);
-        return this;
-    }
 }

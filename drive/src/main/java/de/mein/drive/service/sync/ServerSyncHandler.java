@@ -110,7 +110,6 @@ public class ServerSyncHandler extends SyncHandler {
     }
 
     public void handleCommit(Request request) throws SqlQueriesException {
-        // todo threading issues? check for unlocking DAOs after the connection/socket died.
         Commit commit = (Commit) request.getPayload();
         Transaction transaction = T.lockingTransaction(fsDao);
         try {

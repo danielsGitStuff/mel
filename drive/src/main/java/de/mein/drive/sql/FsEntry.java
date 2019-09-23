@@ -1,6 +1,5 @@
 package de.mein.drive.sql;
 
-import de.mein.Lok;
 import de.mein.core.serialize.JsonIgnore;
 import de.mein.core.serialize.SerializableEntity;
 import de.mein.sql.Pair;
@@ -128,5 +127,20 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     public Pair<Long> getCreated() {
         return created;
+    }
+
+    public FsEntry setModified(Long modified) {
+        this.modified.v(modified);
+        return this;
+    }
+
+    public FsEntry setCreated(Long created) {
+        this.created.v(created);
+        return this;
+    }
+
+    public FsEntry setInode(Long inode) {
+        this.iNode.v(inode);
+        return this;
     }
 }

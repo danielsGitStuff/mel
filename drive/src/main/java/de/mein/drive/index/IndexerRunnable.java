@@ -9,6 +9,7 @@ import de.mein.auth.tools.lock.Transaction;
 import de.mein.core.serialize.serialize.tools.OTimer;
 import de.mein.drive.bash.AutoKlausIterator;
 import de.mein.drive.bash.BashTools;
+import de.mein.drive.bash.FsBashDetails;
 import de.mein.drive.data.DriveStrings;
 import de.mein.drive.data.fs.RootDirectory;
 import de.mein.drive.index.watchdog.IndexWatchdogListener;
@@ -70,10 +71,17 @@ public class IndexerRunnable extends AbstractIndexer {
         try {
             Lok.debug("roaming...");
             // if root directory does not exist: create one
-            FsDirectory fsRoot; //= databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
+            FsDirectory fsRoot;
             if (rootDirectory.getId() == null) {
                 fsRoot = (FsDirectory) new FsDirectory().setName("[root]").setVersion(0L);
                 fsRoot.setOriginalFile(AFile.instance(rootDirectory.getOriginalFile()));
+                // assume that the root dir is empty -> the first indexed stageset will have no delta to the fs table if the root dir is empty.
+                // this will avoid having a conflict if the clients root is empty but the servers is not.
+                FsBashDetails details = BashTools.getFsBashDetails(AFile.instance(rootDirectory.getOriginalFile()));
+                fsRoot.calcContentHash();
+                fsRoot.setModified(details.getModified())
+                        .setCreated(details.getCreated())
+                        .setInode(details.getiNode());
                 fsRoot = (FsDirectory) databaseManager.getFsDao().insert(fsRoot);
                 databaseManager.getDriveSettings().getRootDirectory().setId(fsRoot.getId().v());
                 // save so the root dir won't be created again in case something goes wrong while booting
