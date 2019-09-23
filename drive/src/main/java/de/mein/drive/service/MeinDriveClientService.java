@@ -223,7 +223,6 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
 
     @Override
     public void onBootLevel2Finished() {
-//        startIndexerDonePromise.done(result -> {
         Lok.debug("MeinDriveClientService.onServiceRegistered");
         N.r(() -> {
             Long serverId = driveSettings.getClientSettings().getServerCertId();
@@ -231,7 +230,7 @@ public class MeinDriveClientService extends MeinDriveService<ClientSyncHandler> 
                 meinAuthService.connect(serverId).done(result1 -> addJob(new CommitJob(true)));
             }
         });
-//        });
+        N.r(() -> startedPromise.resolve(this));
     }
 
     public void onInsufficientSpaceAvailable(Long stageSetId) {

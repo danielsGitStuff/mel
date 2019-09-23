@@ -456,6 +456,7 @@ public class MeinAuthService {
      * shuts down all running services and connections.
      */
     public void shutDown() {
+//        DeferredObject<Void,Void,Void> shutDown
         uuidServiceMapSemaphore.lock();
         for (IMeinService service : uuidServiceMap.values()) {
             if (service instanceof MeinService) {

@@ -135,7 +135,7 @@ public class IndexerRunnable extends AbstractIndexer {
             for (IndexListener listener : listeners)
                 listener.done(stageSetId, transaction);
             transaction.end();
-            Lok.debug("done");
+            Lok.debug("indexing done");
             if (initialIndexConflictHelper == null && !startedPromise.isResolved())
                 startedPromise.resolve(this);
         } catch (Exception e) {

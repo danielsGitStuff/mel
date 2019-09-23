@@ -93,7 +93,6 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
                     .done(result -> N.r(() -> {
                         Lok.debug("indexing done for: " + meinDriveService.getDriveSettings().getRootDirectory().getPath());
                         notification.cancel();
-//                        meinDriveService.onBootLevel2Finished();
                         done.resolve(null);
                         if (DEV_DRIVE_BOOT_LISTENER != null) {
                             DEV_DriveBootListener tmp = DEV_DRIVE_BOOT_LISTENER;
@@ -101,10 +100,6 @@ public class DriveBootloader extends Bootloader<MeinDriveService> {
                             tmp.driveServiceBooted(meinDriveService);
                         }
                         meinDriveService.onBootLevel2Finished();
-//                    if (!driveSettings.isServer()){
-//                        MeinDriveClientService meinDriveClientService = (MeinDriveClientService) meinDriveService;
-//                        meinDriveClientService.syncThisClient();
-//                    }
                     }))
                     .fail(ex -> {
                         notification.setText("failed :(")

@@ -49,6 +49,10 @@ public abstract class BashTools {
         instance.rmRf(directory);
     }
 
+    public static void rmRf(File directory) throws IOException {
+        instance.rmRf(AFile.instance(directory));
+    }
+
     public static List<AFile<?>> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
         return instance.stuffModifiedAfter(referenceFile, directory, pruneDir);
     }

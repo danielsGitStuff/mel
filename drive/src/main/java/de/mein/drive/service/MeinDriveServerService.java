@@ -203,13 +203,12 @@ public class MeinDriveServerService extends MeinDriveService<ServerSyncHandler> 
 
     @Override
     public void onBootLevel2Finished() {
-//        startIndexerDonePromise.done(result -> {
         Lok.debug("MeinDriveServerService.onServiceRegistered");
         // connect to every client that we know
         for (ClientData client : this.driveSettings.getServerSettings().getClients()) {
             N.r(() -> meinAuthService.connect(client.getCertId()));
         }
-//        });
+        N.r(() -> startedPromise.resolve(this));
     }
 
 

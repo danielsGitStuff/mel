@@ -25,6 +25,7 @@ import java.util.List;
 public class BashCommandsTest {
     AFile testDir;
     List<String> paths;
+    AFile timeDir;
 
     @Before
     public void before() throws IOException {
@@ -33,6 +34,8 @@ public class BashCommandsTest {
         BashTools.init();
         CertificateManager.deleteDirectory(testDir);
         paths = TestDirCreator.createTestDir(testDir);
+        timeDir = AFile.instance(testDir.getAbsolutePath() + File.separator + "timetest");
+
     }
 
     @Test
@@ -88,8 +91,7 @@ public class BashCommandsTest {
     public void timestamp1() throws InterruptedException {
         Long t1 = testDir.lastModified();
         Thread.sleep(1000);
-        AFile dir = AFile.instance(testDir.getAbsolutePath() + File.separator + "ttttttt");
-        dir.mkdirs();
+        timeDir.mkdirs();
         Long t2 = testDir.lastModified();
         Lok.debug("before: " + t1);
         Lok.debug("after : " + t2);
@@ -98,16 +100,15 @@ public class BashCommandsTest {
 
     @Test
     public void timestamp2() {
-        File dir = new File("ttttttt");
-        dir.mkdirs();
-        Long t1 = dir.lastModified();
+        timeDir.mkdirs();
+        Long t1 = timeDir.lastModified();
         Long tt1 = testDir.lastModified();
 
         File source = new File(testDir.getAbsolutePath());
         File target = new File(source.getAbsolutePath(), "movedTest");
         source.renameTo(target);
 
-        Long t2 = dir.lastModified();
+        Long t2 = timeDir.lastModified();
         Long tt2 = testDir.lastModified();
         Lok.debug("upper dir before: " + t1);
         Lok.debug("upper dir after : " + t2);
@@ -120,5 +121,6 @@ public class BashCommandsTest {
     @After
     public void after() {
         CertificateManager.deleteDirectory(testDir);
+        CertificateManager.deleteDirectory(timeDir);
     }
 }

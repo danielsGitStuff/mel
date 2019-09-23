@@ -11,6 +11,7 @@ import de.mein.auth.service.Bootloader;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.service.MeinService;
 import de.mein.auth.socket.process.transfer.MeinIsolatedProcess;
+import de.mein.auth.tools.N;
 import de.mein.contacts.data.ContactsSettings;
 import de.mein.contacts.data.db.ContactsDatabaseManager;
 import de.mein.core.serialize.exceptions.JsonDeserializationException;
@@ -85,7 +86,7 @@ public abstract class ContactsService extends MeinService {
 
     @Override
     public void onBootLevel1Finished() {
-
+        N.r(() -> startedPromise.resolve(this));
     }
 
     @Override

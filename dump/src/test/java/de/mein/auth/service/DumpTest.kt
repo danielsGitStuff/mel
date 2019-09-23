@@ -125,7 +125,7 @@ class DumpTest {
         }
     }
 
-    @Test
+//    @Test
     fun test() {
         Lok.debug("test")
         Lok.debug("DEADLOCKING HERE")
