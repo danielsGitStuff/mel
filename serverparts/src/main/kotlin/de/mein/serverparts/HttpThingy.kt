@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpServer
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
+import org.jdeferred.Promise
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.*
@@ -13,9 +14,7 @@ import java.util.concurrent.Semaphore
 
 
 class HttpThingy(private val port: Int, val redirectPort: Int?) : DeferredRunnable() {
-    override fun onShutDown() {
-
-    }
+    override fun onShutDown(): Promise<Void, Void, Void>? = null
 
     override fun runImpl() {
         start()

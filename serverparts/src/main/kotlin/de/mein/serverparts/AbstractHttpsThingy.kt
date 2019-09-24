@@ -4,6 +4,7 @@ import com.sun.net.httpserver.*
 import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
+import org.jdeferred.Promise
 
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -18,9 +19,7 @@ object ContentType {
 }
 
 abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLContext) : DeferredRunnable() {
-    override fun onShutDown() {
-
-    }
+    override fun onShutDown(): Promise<Void, Void, Void>? = null
 
     override fun runImpl() {
         start()

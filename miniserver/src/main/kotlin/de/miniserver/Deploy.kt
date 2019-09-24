@@ -56,6 +56,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 //                        Processor(gradle.absolutePath, ":calendar:test"),
 //                        Processor(gradle.absolutePath, ":contacts:test"),
 //                        Processor(gradle.absolutePath, ":drive:test"),
+//                        Processor(gradle.absolutePath, ":dump:test"),
 //                        Processor(gradle.absolutePath, ":konsole:test"),
 //                        Processor(gradle.absolutePath, ":miniserver:test"),
 //                        Processor(gradle.absolutePath, ":serialize:test"),

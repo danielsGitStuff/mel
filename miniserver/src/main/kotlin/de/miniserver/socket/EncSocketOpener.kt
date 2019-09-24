@@ -7,6 +7,7 @@ import de.mein.auth.data.access.CertificateManager
 import de.mein.auth.tools.N
 import de.mein.update.VersionAnswer
 import de.miniserver.MiniServer
+import org.jdeferred.Promise
 
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -19,8 +20,9 @@ class EncSocketOpener(private val certificateManager: CertificateManager, privat
         return javaClass.simpleName
     }
 
-    override fun onShutDown() {
+    override fun onShutDown(): Promise<Void, Void, Void>? {
         N.s { serverSocket?.close() }
+        return null
     }
 
 

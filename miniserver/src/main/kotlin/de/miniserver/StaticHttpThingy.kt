@@ -5,6 +5,7 @@ import de.mein.DeferredRunnable
 import de.mein.Lok
 import de.mein.MeinThread
 import de.miniserver.MiniServer
+import org.jdeferred.Promise
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.*
@@ -14,9 +15,7 @@ import java.util.concurrent.Semaphore
 
 
 class StaticHttpThingy(private val port: Int) : DeferredRunnable() {
-    override fun onShutDown() {
-
-    }
+    override fun onShutDown(): Promise<Void, Void, Void>? = null
 
     override fun runImpl() {
         start()
