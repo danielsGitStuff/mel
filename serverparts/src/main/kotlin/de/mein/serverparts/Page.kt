@@ -40,11 +40,15 @@ class Page {
             replacers.firstOrNull { replacer -> replacer.test(stripped) }?.let {
                 val replacementRegex = "<§=$stripped\\/>".toRegex()
 //                Lok.debug("$stripped ... $replacementRegex")
-                val replacement = it.replace("")
+                var replacement = it.replace("")
                 if (replacement == null)
                     html = html.replace(replacementRegex, "")
-                else
+                else {
+                    //escape double quotes
+                    if (it.escapeQuotes)
+                        replacement = replacement.replace("\"", "&quot;")
                     html = html.replace(replacementRegex, replacement)
+                }
             }
         }
         this.path = path

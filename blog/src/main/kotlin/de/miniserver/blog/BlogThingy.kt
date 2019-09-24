@@ -213,9 +213,9 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
             entry = blogDao.getById(id)
         val mode = if (id == null) "Write new Entry" else "Edit Entry"
         return Page("/de/miniserver/blog/write.html", Replacer("pw", pw),
-                Replacer("user", user),
-                Replacer("id", id?.toString()),
-                Replacer("title", entry?.title?.v()),
+                Replacer("user", user).escapeQuotes(),
+                Replacer("id", id?.toString()).escapeQuotes(),
+                Replacer("title", entry?.title?.v()).escapeQuotes(),
                 Replacer("text", entry?.text?.v()),
                 Replacer("publish", if (entry != null && entry.published.v()) "checked" else ""),
                 Replacer("mode", mode),
