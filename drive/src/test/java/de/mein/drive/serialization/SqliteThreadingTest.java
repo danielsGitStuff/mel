@@ -32,7 +32,7 @@ import java.util.concurrent.Future;
 public class SqliteThreadingTest {
 
 
-    @Test
+//    @Test
     public void thread() throws Exception {
         AFile.configure(new DefaultFileConfiguration());
         AFile testDir = AFile.instance("test");

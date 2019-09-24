@@ -5,6 +5,7 @@ import de.mein.Lok;
 import de.mein.MeinRunnable;
 import de.mein.MeinThread;
 import de.mein.sql.RWLock;
+import org.jdeferred.Promise;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,8 +78,9 @@ public class ThreadTest {
             }
 
             @Override
-            public void onShutDown() {
+            public Promise<Void, Void, Void> onShutDown() {
                 Lok.debug("ThreadTest.onShutDown1");
+                return null;
             }
 
             @Override
@@ -99,8 +101,9 @@ public class ThreadTest {
             }
 
             @Override
-            public void onShutDown() {
+            public Promise<Void, Void, Void> onShutDown() {
                 Lok.debug("ThreadTest.onShutDown2");
+                return null;
             }
 
             @Override

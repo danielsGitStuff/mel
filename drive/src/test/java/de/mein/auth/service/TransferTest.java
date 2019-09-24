@@ -195,8 +195,8 @@ public class TransferTest {
         return clientService.get();
     }
 
-
-    @Test
+//todo refine, this is tested elsewhere
+//    @Test
     public void transfer() throws Exception {
         Lok.debug("lel");
         CountLock doneLock = new CountLock();

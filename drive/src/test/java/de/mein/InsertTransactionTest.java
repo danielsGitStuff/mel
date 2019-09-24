@@ -30,7 +30,7 @@ public class InsertTransactionTest {
         }
     }
 
-    @Test
+//    @Test
     public void transaction() throws Exception {
         File dbFile = new File("performance.db");
         if (dbFile.exists())

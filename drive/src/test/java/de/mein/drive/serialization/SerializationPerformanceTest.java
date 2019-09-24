@@ -18,7 +18,7 @@ import java.io.UnsupportedEncodingException;
  * Created by xor on 10/28/15.
  */
 public class SerializationPerformanceTest {
-    @Test
+//    @Test
     public void testPerformance() throws JsonSerializationException, FileNotFoundException, UnsupportedEncodingException, JsonDeserializationException {
         SerializableEntitySerializer serializer = new SerializableEntitySerializer();
         OTimer timer = new OTimer("serialization!");
@@ -58,7 +58,7 @@ public class SerializationPerformanceTest {
         //Lok.debug(de.mein.json.json);
     }
 
-    @Test
+//    @Test
     public void repeat() throws FileNotFoundException, JsonDeserializationException, JsonSerializationException, UnsupportedEncodingException {
         Lok.debug("SerializationPerformanceTest.repeat");
         testPerformance();
