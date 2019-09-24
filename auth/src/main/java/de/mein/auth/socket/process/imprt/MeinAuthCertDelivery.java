@@ -11,7 +11,6 @@ import de.mein.auth.jobs.BlockReceivedJob;
 import de.mein.auth.service.MeinAuthService;
 import de.mein.auth.socket.MeinSocket;
 import de.mein.auth.tools.N;
-import de.mein.auth.tools.lock.DEV_BIND;
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import org.jdeferred.impl.DeferredObject;
@@ -120,9 +119,7 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
         N.r(() -> {
             Lok.debug("unbinding " + port);
             serverSocket.close();
-            DEV_BIND.serverSockets.remove(serverSocket);
         });
-//        N.r(() -> serverSocket.close());
         return DeferredRunnable.ResolvedDeferredObject();
     }
 
@@ -133,11 +130,9 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
             serverSocket.setReuseAddress(true);
             Lok.debug("binding " + port);
             serverSocket.bind(new InetSocketAddress(port));
-            DEV_BIND.add(serverSocket);
             startedPromise.resolve(null);
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = serverSocket.accept();
-                DEV_BIND.addSocket(socket);
                 in = new DataInputStream(socket.getInputStream());
                 out = new DataOutputStream(socket.getOutputStream());
                 String s = in.readUTF();
@@ -154,10 +149,6 @@ public class MeinAuthCertDelivery extends DeferredRunnable {
         } catch (Exception e) {
             if (!isStopped()) {
                 e.printStackTrace();
-                Map<ServerSocket, Integer> list = DEV_BIND.serverSockets;
-                Map<Socket, Integer> sockets = DEV_BIND.sockets;
-                Lok.debug();
-                list.forEach((serverSocket1, integer) -> Lok.debug(serverSocket1));
             } else
                 Lok.debug("MeinAuthCertDelivery.runImpl.interrupted");
         } finally {

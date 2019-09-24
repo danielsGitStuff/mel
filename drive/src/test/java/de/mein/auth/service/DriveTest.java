@@ -20,7 +20,6 @@ import de.mein.auth.socket.process.transfer.MeinIsolatedFileProcess;
 import de.mein.auth.socket.MeinValidationProcess;
 import de.mein.auth.tools.CountLock;
 import de.mein.auth.tools.ShutDownDeferredManager;
-import de.mein.auth.tools.lock.DEV_BIND;
 import de.mein.drive.DriveBootloader;
 import de.mein.drive.serialization.TestDirCreator;
 import de.mein.sql.Hash;
