@@ -110,7 +110,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 .handle { it, queryMap ->
                     respondText(it, "/de/miniserver/impressum.html")
                 }
-        contextCreator.createContext("svg")
+        contextCreator.createContext("/svg/")
                 .withGET()
                 .handle { it, queryMap ->
                     val uri = it.requestURI
