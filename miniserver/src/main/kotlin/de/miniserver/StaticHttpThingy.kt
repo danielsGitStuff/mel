@@ -1,9 +1,9 @@
 package de.miniserver
 
 import com.sun.net.httpserver.HttpServer
-import de.mein.DeferredRunnable
-import de.mein.Lok
-import de.mein.MeinThread
+import de.mel.DeferredRunnable
+import de.mel.Lok
+import de.mel.MelThread
 import de.miniserver.MiniServer
 import org.jdeferred.Promise
 import java.net.InetSocketAddress
@@ -26,21 +26,21 @@ class StaticHttpThingy(private val port: Int) : DeferredRunnable() {
 
     private lateinit var serverSocket: ServerSocket
     private val threadSemaphore = Semaphore(1, true)
-    private val threadQueue = LinkedList<MeinThread>()
+    private val threadQueue = LinkedList<MelThread>()
 
     private lateinit var server: HttpServer
     private val threadFactory = { r: Runnable ->
-        var meinThread: MeinThread? = null
+        var melThread: MelThread? = null
 
         try {
             threadSemaphore.acquire()
-            meinThread = threadQueue.poll()
+            melThread = threadQueue.poll()
             threadSemaphore.release()
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
 
-        meinThread
+        melThread
     }
     private val executor: Executor = Executors.newFixedThreadPool(2)
 

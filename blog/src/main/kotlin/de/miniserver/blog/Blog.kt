@@ -1,15 +1,15 @@
 package de.miniserver.blog
 
-import de.mein.Lok
-import de.mein.auth.data.access.CertificateManager
-import de.mein.auth.data.access.DatabaseManager
-import de.mein.execute.SqliteExecutor
-import de.mein.konsole.Konsole
-import de.mein.sql.RWLock
-import de.mein.sql.SQLQueries
-import de.mein.sql.SqlQueriesException
-import de.mein.sql.conn.SQLConnector
-import de.mein.sql.transform.SqlResultTransformer
+import de.mel.Lok
+import de.mel.auth.data.access.CertificateManager
+import de.mel.auth.data.access.DatabaseManager
+import de.mel.execute.SqliteExecutor
+import de.mel.konsole.Konsole
+import de.mel.sql.RWLock
+import de.mel.sql.SQLQueries
+import de.mel.sql.SqlQueriesException
+import de.mel.sql.conn.SQLConnector
+import de.mel.sql.transform.SqlResultTransformer
 import java.io.File
 
 class Blog(val settings: BlogSettings) {
@@ -58,7 +58,7 @@ class Blog(val settings: BlogSettings) {
             val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
             if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
                 //find sql file in workingdir
-                val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mein/auth/sql.sql")
+                val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mel/auth/sql.sql")
                 sqliteExecutor.executeStream(resourceStream)
             }
             return sqlQueries

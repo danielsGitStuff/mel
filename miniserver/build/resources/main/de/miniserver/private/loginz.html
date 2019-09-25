@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="shortcut icon" type="image/png" href="/favicon.png"/>
+    <meta charset="UTF-8">
+    <title>Mel</title>
+    <link rel="stylesheet" type="text/css" href="../css.css" media="screen"/>
+    <style>.head {
+        font-size: 4em;
+        position: absolute;
+        top: -1em;
+        text-align: center;
+
+        left: 50%;
+        margin-right: -50%;
+        transform: translate(-50%, 0%)
+    }
+
+    #btn {
+        border-radius: 0em .5em .5em 0em;
+    }
+
+    #pw {
+        border-radius: .5em 0em 0em .5em;
+        outline-width: 0;
+    }
+    </style>
+</head>
+<body>
+
+<form method="post" action="loggedIn" class="centered" id="ff">
+    <span class="head">Me<span style="color:#57bf40;">l</span></span><br>
+    <input id="pw" name="pw" type="password"><button type="submit" id="btn">ok</button>
+</form>
+</body>
+</html>

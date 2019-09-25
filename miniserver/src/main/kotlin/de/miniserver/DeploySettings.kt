@@ -1,6 +1,6 @@
 package de.miniserver
 
-import de.mein.KResult
+import de.mel.KResult
 
 class DeploySettings : KResult {
     var secretFile: String? = null

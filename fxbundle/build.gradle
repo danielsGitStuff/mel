@@ -80,10 +80,10 @@ classes {
 
 task buildFxJar(type: Jar) {
     
-    group "meins"
+    group "mels"
     description "build a fucking jar filled with candies!"
     manifest {
-        attributes "version": 1, "Main-Class": "de.mein.fxbundle.Main", "verrrrsion": org.gradle.internal.jvm.Jvm.current()
+        attributes "version": 1, "Main-Class": "de.mel.fxbundle.Main", "verrrrsion": org.gradle.internal.jvm.Jvm.current()
 
     }
     dependsOn jar

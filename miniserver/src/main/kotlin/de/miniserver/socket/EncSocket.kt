@@ -1,11 +1,11 @@
 package de.miniserver.socket
 
-import de.mein.Lok
-import de.mein.auth.MeinStrings
-import de.mein.auth.tools.N
-import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer
-import de.mein.update.SimpleSocket
-import de.mein.update.VersionAnswer
+import de.mel.Lok
+import de.mel.auth.MelStrings
+import de.mel.auth.tools.N
+import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer
+import de.mel.update.SimpleSocket
+import de.mel.update.VersionAnswer
 
 import java.io.IOException
 import java.net.Socket
@@ -22,7 +22,7 @@ constructor(socket: Socket, private val versionAnswer: VersionAnswer) : SimpleSo
             val jsonAnswer = SerializableEntitySerializer.serialize(versionAnswer)
             while (!Thread.currentThread().isInterrupted) {
                 val s = `in`.readUTF()
-                if (s == MeinStrings.update.QUERY_VERSION) {
+                if (s == MelStrings.update.QUERY_VERSION) {
                     out.writeUTF(jsonAnswer)
                     Lok.debug("version sent to ${socket.inetAddress.hostAddress}")
                 }

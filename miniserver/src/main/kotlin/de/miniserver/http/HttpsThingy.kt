@@ -1,13 +1,13 @@
 package de.miniserver.http
 
 import com.sun.net.httpserver.HttpsServer
-import de.mein.Lok
-import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer
-import de.mein.serverparts.AbstractHttpsThingy
-import de.mein.serverparts.HttpContextCreator
-import de.mein.serverparts.Page
-import de.mein.serverparts.Replacer
-import de.mein.serverparts.visits.Visitors
+import de.mel.Lok
+import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer
+import de.mel.serverparts.AbstractHttpsThingy
+import de.mel.serverparts.HttpContextCreator
+import de.mel.serverparts.Page
+import de.mel.serverparts.Replacer
+import de.mel.serverparts.visits.Visitors
 import de.miniserver.Deploy
 import de.miniserver.MiniServer
 import de.miniserver.blog.BlogSettings
@@ -83,7 +83,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         contextCreator.createContext("/licences.html")
                 .withGET()
                 .handle { it, queryMap ->
-                    respondText(it, "/de/mein/auth/licences.html")
+                    respondText(it, "/de/mel/auth/licences.html")
                 }
         contextCreator.createContext("/robots.txt")
                 .withGET()

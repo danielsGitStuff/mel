@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+<VBox xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="de.mel.drive.gui.DriveFXCreateController">
+    <Label styleClass="lbl-center-section" text="%create.name"/>
+    <TextField styleClass="txt-edit" fx:id="txtName" maxWidth="1.7976931348623157E308" text="%create.exampleName"/>
+    <Label styleClass="lbl-center-section" text="%create.path"/>
+    <HBox>
+        <TextField styleClass="txt-edit" fx:id="txtPath" text="/home/xor/Downloads/mel/" HBox.hgrow="ALWAYS"/>
+        <Button styleClass="btn" fx:id="btnPath" text="%create.btn.path"/>
+    </HBox>
+
+    <Label styleClass="lbl-center-section" text="%create.setup"/>
+    <CheckBox fx:id="cbIgnoreSymLinks" text="%create.ignoreSymLinks" selected="true"/>
+    <TextFlow>
+        <Text fx:id="lblHints" styleClass="text" text="hints go here" visible="false"/>
+    </TextFlow>
+
+
+    <Label styleClass="lbl-center-section" text="%create.chooseRole"/>
+</VBox>

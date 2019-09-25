@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:weightSum="3"
-    tools:context="de.mein.android.drive.DriveConflictsPopupActivity">
+    tools:context="de.mel.android.drive.DriveConflictsPopupActivity">
 
     <TextView
         android:id="@+id/lblSideLeft"

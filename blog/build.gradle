@@ -33,8 +33,8 @@ dependencies {
 }
 
 task copyLicenseHtml(type: Copy) {
-    def f = rootProject.file('auth/src/main/resources/de/mein/auth/licences.html')
-    def t = rootProject.file('miniserver/src/main/resources/de/mein/auth/')
+    def f = rootProject.file('auth/src/main/resources/de/mel/auth/licences.html')
+    def t = rootProject.file('miniserver/src/main/resources/de/mel/auth/')
     from(f)
     into(t)
 }
@@ -63,7 +63,7 @@ classes {
 
 task buildBlogJar(type: Jar) {
     //dependsOn copyLicenseHtml
-    group "meins"
+    group "mels"
     description "build a fucking blog jar filled with candies!"
     baseName = project.name// + '-all'
     manifest {

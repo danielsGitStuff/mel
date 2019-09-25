@@ -2,8 +2,8 @@ package de.miniserver.blog
 
 import com.sun.net.httpserver.BasicAuthenticator
 import com.sun.net.httpserver.HttpExchange
-import de.mein.Lok
-import de.mein.auth.tools.N
+import de.mel.Lok
+import de.mel.auth.tools.N
 
 class BlogAuthenticator(val blogThingy: BlogThingy) {
     companion object {

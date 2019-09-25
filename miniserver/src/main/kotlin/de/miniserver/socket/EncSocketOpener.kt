@@ -1,11 +1,11 @@
 package de.miniserver.socket
 
-import de.mein.DeferredRunnable
-import de.mein.Lok
-import de.mein.MeinRunnable
-import de.mein.auth.data.access.CertificateManager
-import de.mein.auth.tools.N
-import de.mein.update.VersionAnswer
+import de.mel.DeferredRunnable
+import de.mel.Lok
+import de.mel.MelRunnable
+import de.mel.auth.data.access.CertificateManager
+import de.mel.auth.tools.N
+import de.mel.update.VersionAnswer
 import de.miniserver.MiniServer
 import org.jdeferred.Promise
 

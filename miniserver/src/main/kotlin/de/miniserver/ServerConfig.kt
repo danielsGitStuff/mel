@@ -1,8 +1,8 @@
 package de.miniserver
 
-import de.mein.KResult
-import de.mein.auth.data.MeinAuthSettings
-import de.mein.sql.Pair
+import de.mel.KResult
+import de.mel.auth.data.MelAuthSettings
+import de.mel.sql.Pair
 import java.io.File
 import java.util.*
 
@@ -38,8 +38,8 @@ class ServerConfig : KResult {
 
     companion object {
         val DEFAULT_WORKING_DIR = File("server")
-        val DEFAULT_AUTH: Int = MeinAuthSettings.UPDATE_MSG_PORT
-        const val DEFAULT_TRANSFER: Int = MeinAuthSettings.UPDATE_BINARY_PORT
+        val DEFAULT_AUTH: Int = MelAuthSettings.UPDATE_MSG_PORT
+        const val DEFAULT_TRANSFER: Int = MelAuthSettings.UPDATE_BINARY_PORT
         const val DEFAULT_HTTP: Int = 8080
         const val DEFAULT_HTTPS: Int = 8443
     }

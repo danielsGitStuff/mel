@@ -44,7 +44,7 @@ android {
     compileSdkVersion 29
     buildToolsVersion '28.0.3'
     defaultConfig {
-        applicationId "de.mein.mel"
+        applicationId "de.mel.mel"
         minSdkVersion 19
         targetSdkVersion 29
         versionCode 1

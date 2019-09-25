@@ -1,10 +1,10 @@
 package de.miniserver.socket
 
-import de.mein.Lok
-import de.mein.auth.MeinStrings
-import de.mein.auth.socket.MeinSocket
-import de.mein.auth.tools.N
-import de.mein.update.SimpleSocket
+import de.mel.Lok
+import de.mel.auth.MelStrings
+import de.mel.auth.socket.MelSocket
+import de.mel.auth.tools.N
+import de.mel.update.SimpleSocket
 import de.miniserver.data.FileRepository
 import java.io.FileInputStream
 import java.io.IOException
@@ -20,12 +20,12 @@ constructor(socket: Socket, private val fileRepository: FileRepository) : Simple
         var fin: FileInputStream? = null
         try {
             val s = `in`.readUTF()
-            if (s.startsWith(MeinStrings.update.QUERY_FILE)) {
-                val hash = s.substring(MeinStrings.update.QUERY_FILE.length, s.length)
+            if (s.startsWith(MelStrings.update.QUERY_FILE)) {
+                val hash = s.substring(MelStrings.update.QUERY_FILE.length, s.length)
                 val f = fileRepository[hash].file
                 Lok.info("reading file: " + f.absolutePath)
                 fin = FileInputStream(f)
-                val bytes = ByteArray(MeinSocket.BLOCK_SIZE)
+                val bytes = ByteArray(MelSocket.BLOCK_SIZE)
                 var read: Int
                 do {
                     read = fin.read(bytes)

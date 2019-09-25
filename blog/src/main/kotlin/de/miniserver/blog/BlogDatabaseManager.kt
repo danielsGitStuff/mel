@@ -1,12 +1,12 @@
 package de.miniserver.blog
 
-import de.mein.auth.data.access.FileRelatedManager
-import de.mein.execute.SqliteExecutor
-import de.mein.serverparts.visits.VisitsDao
-import de.mein.sql.RWLock
-import de.mein.sql.SQLQueries
-import de.mein.sql.conn.SQLConnector
-import de.mein.sql.transform.SqlResultTransformer
+import de.mel.auth.data.access.FileRelatedManager
+import de.mel.execute.SqliteExecutor
+import de.mel.serverparts.visits.VisitsDao
+import de.mel.sql.RWLock
+import de.mel.sql.SQLQueries
+import de.mel.sql.conn.SQLConnector
+import de.mel.sql.transform.SqlResultTransformer
 import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneOffset

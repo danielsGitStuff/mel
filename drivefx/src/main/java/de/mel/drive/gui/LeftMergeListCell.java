@@ -1,0 +1,55 @@
+package de.mel.drive.gui;
+
+import de.mel.Lok;
+import de.mel.drive.data.conflict.Conflict;
+import de.mel.drive.sql.Stage;
+import javafx.event.ActionEvent;
+import javafx.scene.control.ListView;
+
+/**
+ * Created by xor on 6/22/17.
+ */
+@SuppressWarnings("Duplicates")
+public class LeftMergeListCell extends AbstractMergeListCell {
+    private final ListView<Conflict> rightList;
+    private final ListView<Conflict> mergeList;
+
+    public LeftMergeListCell(ListView<Conflict> mergeList, ListView<Conflict> rightList) {
+        this.mergeList = mergeList;
+        this.rightList = rightList;
+    }
+
+    @Override
+    void handleAction(ActionEvent event) {
+        if (lastSelected != null) {
+            Lok.debug("AbstractMergeListCell.left " + lastSelected);
+            lastSelected.chooseLeft();
+            getListView().refresh();
+            mergeList.refresh();
+            rightList.refresh();
+            //selectSame(getListView(), mergeList, rightList);
+        }
+    }
+
+    @Override
+    void init() {
+
+        button.setText(">>");
+        addChildren(vBox,label,lblHash);
+        addChildren(hbox,indentSpacer, vBox, spacer, button);
+    }
+
+    @Override
+    Stage getConflictSide(Conflict dependsOn) {
+        if (dependsOn.hasLeft())
+            return dependsOn.getLeft();
+        return null;
+    }
+
+    @Override
+    boolean isLeft() {
+        return true;
+    }
+
+
+}

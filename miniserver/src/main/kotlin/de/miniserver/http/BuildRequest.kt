@@ -1,6 +1,6 @@
 package de.miniserver.http
 
-import de.mein.core.serialize.SerializableEntity
+import de.mel.core.serialize.SerializableEntity
 
 class BuildRequest() : SerializableEntity {
     var blog: Boolean? = null

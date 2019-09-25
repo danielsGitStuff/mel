@@ -1,4 +1,4 @@
-import de.mein.Lok;
+import de.mel.Lok;
 import org.junit.Test;
 
 import java.io.File;

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox prefWidth="600" prefHeight="400" xmlns="http://javafx.com/javafx/8.0.121"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="de.mel.auth.service.PairingFX" stylesheets="@mel.css">
+    <GridPane VBox.vgrow="ALWAYS">
+        <Label styleClass="lbl" text="%pairing.unkown" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <ListView styleClass="lst" style="-fx-padding: 0px 3px 0px 0px" fx:id="listAll" GridPane.columnIndex="0"
+                  GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"
+                  GridPane.vgrow="ALWAYS"/>
+        <Label styleClass="lbl" text="%pairing.connected" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <ListView styleClass="lst" style="-fx-padding: 0px 0px 0px 3px" fx:id="listKnown" GridPane.columnIndex="1"
+                  GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"
+                  GridPane.vgrow="ALWAYS"/>
+        <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
+            <Label styleClass="lbl-center-section" text="%pairing.address"/>
+            <TextField styleClass="txt-edit" fx:id="txtAddress" text="192.168.43.1"/>
+            <Label styleClass="lbl-center-section" text="%pairing.port"/>
+            <TextField styleClass="txt-edit" fx:id="txtPort" text="8888"/>
+            <Label styleClass="lbl-center-section" text="%pairing.certport"/>
+            <TextField styleClass="txt-edit" fx:id="txtCertDeliveryPort" text="8889"/>
+        </VBox>
+    </GridPane>
+</VBox>

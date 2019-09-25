@@ -1,18 +1,18 @@
 package de.miniserver
 
-import de.mein.Lok
-import de.mein.LokImpl
-import de.mein.MeinRunnable
-import de.mein.MeinThread
-import de.mein.auth.data.access.CertificateManager
-import de.mein.auth.data.access.DatabaseManager
-import de.mein.execute.SqliteExecutor
-import de.mein.konsole.Konsole
-import de.mein.sql.RWLock
-import de.mein.sql.SQLQueries
-import de.mein.sql.SqlQueriesException
-import de.mein.sql.conn.SQLConnector
-import de.mein.sql.transform.SqlResultTransformer
+import de.mel.Lok
+import de.mel.LokImpl
+import de.mel.MelRunnable
+import de.mel.MelThread
+import de.mel.auth.data.access.CertificateManager
+import de.mel.auth.data.access.DatabaseManager
+import de.mel.execute.SqliteExecutor
+import de.mel.konsole.Konsole
+import de.mel.sql.RWLock
+import de.mel.sql.SQLQueries
+import de.mel.sql.SqlQueriesException
+import de.mel.sql.conn.SQLConnector
+import de.mel.sql.transform.SqlResultTransformer
 import de.miniserver.socket.EncSocketOpener
 import java.io.File
 import java.util.*
@@ -31,24 +31,24 @@ class StaticServer(val config: StaticConfig){
 
 
     private val threadFactory = { r: Runnable ->
-        var meinThread: MeinThread? = null
+        var melThread: MelThread? = null
 
         try {
             StaticServer.threadSemaphore.acquire()
-            meinThread = StaticServer.threadQueue.poll()
+            melThread = StaticServer.threadQueue.poll()
             StaticServer.threadSemaphore.release()
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
-        meinThread
+        melThread
     }
 
-    fun execute(runnable: MeinRunnable) {
+    fun execute(runnable: MelRunnable) {
         try {
             if (executorService == null || executorService != null && (executorService!!.isShutdown || executorService!!.isTerminated))
                 executorService = Executors.newCachedThreadPool(threadFactory)
             StaticServer.threadSemaphore.acquire()
-            StaticServer.threadQueue.add(MeinThread(runnable))
+            StaticServer.threadQueue.add(MelThread(runnable))
             StaticServer.threadSemaphore.release()
             executorService!!.execute(runnable)
         } catch (e: InterruptedException) {
@@ -80,7 +80,7 @@ class StaticServer(val config: StaticConfig){
             val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
             if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
                 //find sql file in workingdir
-                val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mein/auth/sql.sql")
+                val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mel/auth/sql.sql")
                 sqliteExecutor.executeStream(resourceStream)
             }
             return sqlQueries
@@ -124,7 +124,7 @@ class StaticServer(val config: StaticConfig){
     companion object {
         const val DIR_HTML_NAME = "html"
         private val threadSemaphore = Semaphore(1, true)
-        private val threadQueue = LinkedList<MeinThread>()
+        private val threadQueue = LinkedList<MelThread>()
 
 
         @JvmStatic

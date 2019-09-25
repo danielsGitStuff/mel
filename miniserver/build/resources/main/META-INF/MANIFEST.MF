@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Class-Path: sqldroid-1.0.3.jar bcprov-jdk15on-1.54.jar hamcrest-core-1
+ .3.jar sqlite-jdbc-3.18.0.jar streamsupport-1.5.2.jar junit-4.12.jar 
+ slf4j-api-1.7.12.jar hamcrest-all-1.3.jar jdeferred-core-1.2.4.jar
+Main-Class: de.mein.drive.Main
+

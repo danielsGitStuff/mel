@@ -4,9 +4,9 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsConfigurator
 import com.sun.net.httpserver.HttpsParameters
 import com.sun.net.httpserver.HttpsServer
-import de.mein.Lok
-import de.mein.serverparts.Page
-import de.mein.serverparts.Replacer
+import de.mel.Lok
+import de.mel.serverparts.Page
+import de.mel.serverparts.Replacer
 import java.io.File
 import java.net.InetSocketAddress
 import java.util.concurrent.Executors
@@ -58,7 +58,7 @@ class StaticHttpsThingy(private val port: Int, private val staticServer: StaticS
 
         fun respondBinary(ex: HttpExchange, path: String, contentType: String? = null, cache: Boolean = false) {
             with(ex) {
-                de.mein.Lok.debug("sending $path to $remoteAddress")
+                de.mel.Lok.debug("sending $path to $remoteAddress")
                 if (contentType != null)
                     responseHeaders.add("Content-Type", contentType)
                 val page: Page
@@ -78,7 +78,7 @@ class StaticHttpsThingy(private val port: Int, private val staticServer: StaticS
 
         fun respondText(ex: HttpExchange, path: String, contentType: String? = null, vararg replacers: Replacer) {
             with(ex) {
-                de.mein.Lok.debug("sending $path to $remoteAddress")
+                de.mel.Lok.debug("sending $path to $remoteAddress")
                 if (contentType != null) {
                     responseHeaders.add("Content-Type", contentType)
                 }

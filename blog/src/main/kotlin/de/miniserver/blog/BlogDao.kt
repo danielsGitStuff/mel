@@ -1,6 +1,6 @@
 package de.miniserver.blog
 
-import de.mein.sql.*
+import de.mel.sql.*
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 

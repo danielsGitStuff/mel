@@ -1,26 +1,26 @@
 package de.miniserver
 
-import de.mein.Lok
-import de.mein.LokImpl
-import de.mein.MeinRunnable
-import de.mein.MeinThread
-import de.mein.auth.MeinStrings
-import de.mein.auth.data.access.CertificateManager
-import de.mein.auth.data.access.DatabaseManager
-import de.mein.auth.tools.DBLokImpl
-import de.mein.auth.tools.N
-import de.mein.execute.SqliteExecutor
-import de.mein.konsole.Konsole
-import de.mein.sql.Hash
-import de.mein.sql.RWLock
-import de.mein.sql.SQLQueries
-import de.mein.sql.SqlQueriesException
-import de.mein.sql.conn.SQLConnector
-import de.mein.sql.transform.SqlResultTransformer
-import de.mein.update.VersionAnswer
+import de.mel.Lok
+import de.mel.LokImpl
+import de.mel.MelRunnable
+import de.mel.MelThread
+import de.mel.auth.MelStrings
+import de.mel.auth.data.access.CertificateManager
+import de.mel.auth.data.access.DatabaseManager
+import de.mel.auth.tools.DBLokImpl
+import de.mel.auth.tools.N
+import de.mel.execute.SqliteExecutor
+import de.mel.konsole.Konsole
+import de.mel.sql.Hash
+import de.mel.sql.RWLock
+import de.mel.sql.SQLQueries
+import de.mel.sql.SqlQueriesException
+import de.mel.sql.conn.SQLConnector
+import de.mel.sql.transform.SqlResultTransformer
+import de.mel.update.VersionAnswer
 import de.miniserver.data.FileEntry
 import de.miniserver.data.FileRepository
-import de.mein.serverparts.HttpThingy
+import de.mel.serverparts.HttpThingy
 import de.miniserver.http.HttpsThingy
 import de.miniserver.input.InputPipeReader
 import de.miniserver.socket.BinarySocketOpener
@@ -43,16 +43,16 @@ constructor(val config: ServerConfig) {
     val httpCertificateManager: CertificateManager
     private val versionAnswer: VersionAnswer
     private val threadFactory = { r: Runnable ->
-        var meinThread: MeinThread? = null
+        var melThread: MelThread? = null
 
         try {
             threadSemaphore.acquire()
-            meinThread = threadQueue.poll()
+            melThread = threadQueue.poll()
             threadSemaphore.release()
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
-        meinThread
+        melThread
     }
     internal var executorService: ExecutorService? = null
     internal val fileRepository: FileRepository
@@ -112,7 +112,7 @@ constructor(val config: ServerConfig) {
             val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
             if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
                 //find sql file in workingdir
-                val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mein/auth/sql.sql")
+                val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mel/auth/sql.sql")
                 sqliteExecutor.executeStream(resourceStream)
             }
             return sqlQueries
@@ -143,7 +143,7 @@ constructor(val config: ServerConfig) {
         Lok.info("looking for files in ${filesDir.absolutePath}")
         for (f in filesDir.listFiles { f -> f.isFile && (f.name.endsWith(".jar") || f.name.endsWith(".apk")) }!!) {
             val hash: String = Hash.sha256(FileInputStream(f))
-            val propertiesFile = File(filesDir, f.name + MeinStrings.update.INFO_APPENDIX)
+            val propertiesFile = File(filesDir, f.name + MelStrings.update.INFO_APPENDIX)
             val variant: String
             val version: Long?
             if (!propertiesFile.exists())
@@ -163,12 +163,12 @@ constructor(val config: ServerConfig) {
         }
     }
 
-    fun execute(runnable: MeinRunnable) {
+    fun execute(runnable: MelRunnable) {
         try {
             if (executorService == null || executorService != null && (executorService!!.isShutdown || executorService!!.isTerminated))
                 executorService = Executors.newCachedThreadPool(threadFactory)
             threadSemaphore.acquire()
-            threadQueue.add(MeinThread(runnable))
+            threadQueue.add(MelThread(runnable))
             threadSemaphore.release()
             executorService!!.execute(runnable)
         } catch (e: InterruptedException) {
@@ -264,7 +264,7 @@ constructor(val config: ServerConfig) {
         const val DIR_FILES_NAME = "files"
         const val DIR_HTML_NAME = "html"
         private val threadSemaphore = Semaphore(1, true)
-        private val threadQueue = LinkedList<MeinThread>()
+        private val threadQueue = LinkedList<MelThread>()
 
 
         @JvmStatic

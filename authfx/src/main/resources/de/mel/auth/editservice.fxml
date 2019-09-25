@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<VBox stylesheets="@mel.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="de.mel.auth.gui.ServiceSettingsController">
+
+    <children>
+        <Label styleClass="lbl-center-section" text="%service.name"  />
+        <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblName" text="name goes here"/>
+        <Label styleClass="lbl-center-section" text="%service.state"  />
+        <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblState" text="state goes here"/>
+        <Label styleClass="lbl-center-section" text="%service.settings"  />
+
+        <GridPane maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" fx:id="content">
+
+
+
+        </GridPane>
+    </children>
+</VBox>

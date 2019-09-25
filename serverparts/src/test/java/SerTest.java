@@ -1,6 +1,6 @@
-import de.mein.Lok;
-import de.mein.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-import de.mein.update.VersionAnswer;
+import de.mel.Lok;
+import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
+import de.mel.update.VersionAnswer;
 import org.junit.Test;
 
 public class SerTest {

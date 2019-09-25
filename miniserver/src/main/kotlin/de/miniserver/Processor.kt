@@ -1,6 +1,6 @@
 package de.miniserver
 
-import de.mein.Lok
+import de.mel.Lok
 import java.util.stream.Stream
 
 class Processor( vararg command: String) {

@@ -1,13 +1,13 @@
-import de.mein.Lok;
-import de.mein.Versioner;
-import de.mein.auth.MeinStrings;
-import de.mein.auth.data.MeinAuthSettings;
-import de.mein.auth.service.MeinBoot;
-import de.mein.auth.service.power.PowerManager;
-import de.mein.auth.socket.MeinSocket;
-import de.mein.auth.tools.F;
-import de.mein.sql.Hash;
-import de.mein.sql.RWLock;
+import de.mel.Lok;
+import de.mel.Versioner;
+import de.mel.auth.MelStrings;
+import de.mel.auth.data.MelAuthSettings;
+import de.mel.auth.service.MelBoot;
+import de.mel.auth.service.power.PowerManager;
+import de.mel.auth.socket.MelSocket;
+import de.mel.auth.tools.F;
+import de.mel.sql.Hash;
+import de.mel.sql.RWLock;
 import de.miniserver.MiniServer;
 import de.miniserver.ServerConfig;
 import org.junit.After;
@@ -48,14 +48,14 @@ public class Test {
 //        F.rmRf(TEST_DIR);
 //        filesDir = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME);
 //        filesDir.mkdirs();
-//        authDir = new File(TEST_DIR.getAbsolutePath() + File.separator + "meinauth.test");
-//        File binaryFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR + ".jar");
-//        File propertiesFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MeinStrings.update.VARIANT_JAR + ".jar" + MeinStrings.update.INFO_APPENDIX);
+//        authDir = new File(TEST_DIR.getAbsolutePath() + File.separator + "melauth.test");
+//        File binaryFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MelStrings.update.VARIANT_JAR + ".jar");
+//        File propertiesFile = new File(TEST_DIR.getAbsolutePath() + File.separator + MiniServer.DIR_FILES_NAME + File.separator + MelStrings.update.VARIANT_JAR + ".jar" + MelStrings.update.INFO_APPENDIX);
 //        byte[] manyBytes = new byte[10 * 1024 * 1024];
 //        new Random().nextBytes(manyBytes);
 //        Properties properties = new Properties();
 //        properties.setProperty("version", "666");
-//        properties.setProperty("variant", MeinStrings.update.VARIANT_JAR);
+//        properties.setProperty("variant", MelStrings.update.VARIANT_JAR);
 //        properties.store(new FileWriter(propertiesFile), "");
 ////        Files.write(Paths.get(propertiesFile.toURI()), properties..getBytes());
 //        Files.write(Paths.get(binaryFile.toURI()), manyBytes);
@@ -90,14 +90,14 @@ public class Test {
 //    public void retrieveFile() throws Exception {
 //        Lok.debug(hash);
 //        Socket socket = new Socket();
-//        socket.connect(new InetSocketAddress("localhost", MeinAuthSettings.UPDATE_BINARY_PORT));
+//        socket.connect(new InetSocketAddress("localhost", MelAuthSettings.UPDATE_BINARY_PORT));
 //        DataInputStream in = new DataInputStream(socket.getInputStream());
 //        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 //        FileOutputStream fos = new FileOutputStream(receivedTestFile);
-//        out.writeUTF(MeinStrings.update.QUERY_FILE + hash);
+//        out.writeUTF(MelStrings.update.QUERY_FILE + hash);
 //        byte[] bytes;
 //        try {
-//            bytes = new byte[MeinSocket.BLOCK_SIZE];
+//            bytes = new byte[MelSocket.BLOCK_SIZE];
 //            int read;
 //            do {
 //                read = in.read(bytes);
@@ -117,13 +117,13 @@ public class Test {
 //    public void queryAndRetrieve() throws Exception {
 //        RWLock lock = new RWLock();
 //        Lok.devOnLineMatches("Success. I got Update!!!1!", lock::unlockWrite);
-//        MeinAuthSettings meinAuthSettings = MeinAuthSettings.createDefaultSettings().setPort(8913).setBrotcastPort(8914).setDeliveryPort(8915).setBrotcastListenerPort(8916).setUpdateUrl("localhost");
-//        meinAuthSettings.setWorkingDirectory(authDir);
-//        MeinBoot meinBoot = new MeinBoot(meinAuthSettings, new PowerManager(meinAuthSettings));
-//        meinBoot.boot().done(meinAuthService -> {
+//        MelAuthSettings melAuthSettings = MelAuthSettings.createDefaultSettings().setPort(8913).setBrotcastPort(8914).setDeliveryPort(8915).setBrotcastListenerPort(8916).setUpdateUrl("localhost");
+//        melAuthSettings.setWorkingDirectory(authDir);
+//        MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings));
+//        melBoot.boot().done(melAuthService -> {
 //            try {
-//                meinAuthService.getCertificateManager().dev_SetUpdateCertificate(miniServer.getCertificate());
-//                meinAuthService.updateProgram();
+//                melAuthService.getCertificateManager().dev_SetUpdateCertificate(miniServer.getCertificate());
+//                melAuthService.updateProgram();
 //                Lok.debug("");
 //            } catch (UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException | IOException | KeyStoreException | CertificateException e) {
 //                e.printStackTrace();
@@ -136,14 +136,14 @@ public class Test {
 //    public void retrieveFileFail() throws Exception {
 //        Lok.debug(hash);
 //        Socket socket = new Socket();
-//        socket.connect(new InetSocketAddress("localhost", MeinAuthSettings.UPDATE_BINARY_PORT));
+//        socket.connect(new InetSocketAddress("localhost", MelAuthSettings.UPDATE_BINARY_PORT));
 //        DataInputStream in = new DataInputStream(socket.getInputStream());
 //        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 //        FileOutputStream fos = new FileOutputStream(receivedTestFile);
-//        out.writeUTF(MeinStrings.update.QUERY_FILE + "rubbish");
+//        out.writeUTF(MelStrings.update.QUERY_FILE + "rubbish");
 //        byte[] bytes;
 //        try {
-//            bytes = new byte[MeinSocket.BLOCK_SIZE];
+//            bytes = new byte[MelSocket.BLOCK_SIZE];
 //            int read;
 //            do {
 //                read = in.read(bytes);

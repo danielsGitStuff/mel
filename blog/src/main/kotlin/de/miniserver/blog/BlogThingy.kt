@@ -2,10 +2,10 @@ package de.miniserver.blog
 
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsServer
-import de.mein.Lok
-import de.mein.auth.tools.N
-import de.mein.serverparts.*
-import de.mein.serverparts.visits.Visitors
+import de.mel.Lok
+import de.mel.auth.tools.N
+import de.mel.serverparts.*
+import de.mel.serverparts.visits.Visitors
 import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneOffset

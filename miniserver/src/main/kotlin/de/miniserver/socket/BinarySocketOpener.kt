@@ -1,8 +1,8 @@
 package de.miniserver.socket
 
-import de.mein.DeferredRunnable
-import de.mein.Lok
-import de.mein.auth.tools.N
+import de.mel.DeferredRunnable
+import de.mel.Lok
+import de.mel.auth.tools.N
 import de.miniserver.MiniServer
 import de.miniserver.data.FileRepository
 import org.jdeferred.Promise

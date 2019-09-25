@@ -1,6 +1,6 @@
-import de.mein.Lok;
-import de.mein.KResult;
-import de.mein.konsole.Konsole;
+import de.mel.Lok;
+import de.mel.KResult;
+import de.mel.konsole.Konsole;
 import org.junit.Before;
 import org.junit.Test;
 

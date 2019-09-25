@@ -1,8 +1,8 @@
 package de.miniserver.blog
 
-import de.mein.KResult
-import de.mein.auth.data.JsonSettings
-import de.mein.auth.data.access.CertificateManager
+import de.mel.KResult
+import de.mel.auth.data.JsonSettings
+import de.mel.auth.data.access.CertificateManager
 import java.io.File
 
 class BlogSettings : JsonSettings(), KResult {

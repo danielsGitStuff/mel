@@ -9,8 +9,8 @@ app/build
 
 app/src/main/assets/drive.sql
 app/src/main/assets/sql.sql
-/drivefx/meinauth.workingdir.1
-/drivefx/meinauth.workingdir.2
+/drivefx/melauth.workingdir.1
+/drivefx/melauth.workingdir.2
 /drivefx/target
 /authfx/target
 /auth/target

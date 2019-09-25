@@ -57,7 +57,7 @@
                 android:layout_marginVertical="20dp"
                 android:text="@string/intro_3_explanation" />
 
-            <de.mein.android.view.PowerView
+            <de.mel.android.view.PowerView
                 android:id="@+id/powerView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -120,7 +120,7 @@
                 android:id="@+id/lblKnownMA"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Known MeinAuths" />
+                android:text="Known MelAuths" />
 
             <ListView
                 android:id="@+id/knownCertList"

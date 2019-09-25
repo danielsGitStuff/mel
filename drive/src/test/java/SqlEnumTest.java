@@ -1,7 +1,7 @@
-import de.mein.Lok;
-import de.mein.sql.*;
-import de.mein.sql.conn.SQLConnector;
-import de.mein.sql.transform.SqlResultTransformer;
+import de.mel.Lok;
+import de.mel.sql.*;
+import de.mel.sql.conn.SQLConnector;
+import de.mel.sql.transform.SqlResultTransformer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

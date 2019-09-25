@@ -1,6 +1,6 @@
 package de.miniserver.input
 
-import de.mein.Lok
+import de.mel.Lok
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

@@ -1,7 +1,7 @@
 package de.miniserver;
 
-import de.mein.Lok;
-import de.mein.auth.tools.N;
+import de.mel.Lok;
+import de.mel.auth.tools.N;
 
 public class Main{
     public static void main(String[] args) {

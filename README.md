@@ -78,7 +78,7 @@ So no own crypto is used in this program.
 ## License
 Until I have chosen a proper license (BSD/GNU/Apache...) neither republishing/altering the code nor the binaries is permitted.
 There are parts of this program which are made by others. You may alter or republish these files according to their respective licsenses.
-You can find all licenses and according modules and usage under `auth/src/main/resources/de/mein/auth/licenses.html`.
+You can find all licenses and according modules and usage under `auth/src/main/resources/de/mel/auth/licenses.html`.
 
 ## Current issues
 - does not work on MacOS (won't be addressed: too expensive, no FileWatcher)

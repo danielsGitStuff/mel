@@ -77,7 +77,7 @@
             android:text="@string/requestLocationReason" />
     </LinearLayout>
 
-<de.mein.android.view.PowerView
+<de.mel.android.view.PowerView
     android:id="@+id/powerView"
     android:layout_marginTop="20dp"
     android:layout_below="@id/permissionReasonContainer"

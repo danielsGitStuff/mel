@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<?import javafx.scene.layout.VBox?>
+<VBox stylesheets="@mel.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mel.auth.gui.InfoController">
+
+        <Label styleClass="lbl-center-section" text="%info.status"  />
+        <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblStatus" text="status goes here"/>
+        <Label styleClass="lbl-center-section" text="%info.name" />
+        <Label styleClass="lbl" fx:id="lblName" text="name goes here"  />
+        <Label styleClass="lbl-center-section" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%info.interfaces">
+            <padding>
+                <Insets top="5" />
+            </padding>
+        </Label>
+        <GridPane fx:id="table">
+
+        </GridPane>
+
+</VBox>

@@ -1,7 +1,7 @@
 package de.miniserver
 
-import de.mein.Lok
-import de.mein.auth.tools.N
+import de.mel.Lok
+import de.mel.auth.tools.N
 import de.miniserver.http.BuildRequest
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -46,7 +46,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 //put update server certificate in place
                 val updateCertFile = File(File(File(serverDir, "secret"), "socket"), "cert.cert")
                 // holy shit
-                val updateCertTarget = File(File(File(File(File(File(File(File(projectRootDir, "auth"), "src"), "main"), "resources"), "de"), "mein"), "auth"), "update.server.cert")
+                val updateCertTarget = File(File(File(File(File(File(File(File(projectRootDir, "auth"), "src"), "main"), "resources"), "de"), "mel"), "auth"), "update.server.cert")
                 Processor.runProcesses("copy update cert", Processor("cp", updateCertFile.absolutePath, updateCertTarget.absolutePath))
 
                 //todo these tests need fixing: they should fail after a maximum time limit

@@ -1,0 +1,114 @@
+body {
+    color: white;
+    background-color: #161618;
+}
+
+a {
+    color: #57bf40;
+}
+
+.code{
+    /*display: block;*/
+    background-color: darkgrey;
+    color: black;
+    margin: .2em;
+    padding: .2em;
+}
+
+input {
+    color: white;
+    background-color: #545454;
+    box-shadow: none;
+    border: 0;
+    padding: .4em .6em;
+}
+
+button {
+    color: white;
+    border-radius: .5em;
+    background-color: #666666;
+    border: 0;
+    padding: .4em 2em;
+    box-shadow: none;
+}
+
+.filesTable {
+    border: .1em solid #666666;
+    border-radius: 1em;
+}
+
+.filesTable thead {
+    padding-top: 1em;
+    /*background-color: #57bf40;*/
+}
+
+.filesTable th {
+    padding: .8em .8em .4em;
+    text-align: start;
+    border-bottom: .1em solid #666666;
+
+}
+
+.filesTable td {
+    padding: .4em .8em;
+}
+
+.centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%)
+}
+
+/*
+stuff for index.html
+ */
+.intro {
+    font-size: 4em;
+}
+
+.smallIntro {
+    font-size: 2em;
+    margin-bottom: 1em;
+    margin-top: 1em;
+}
+
+.text {
+    font-size: 1.6em;
+    margin-bottom: 1em;
+    margin-top: 1em;
+}
+
+.smallText {
+    font-size: .8em;
+    margin-bottom: .5em;
+    margin-top: .5em;
+}
+
+.back1 {
+    /*background-image: linear-gradient(#161618, #0f0f11);*/
+    width: 100%;
+    padding-top: 2em;
+    padding-bottom: 2em;
+}
+
+.content {
+    width: 70%;
+    padding-top: 2em;
+    padding-bottom: 2em;
+    display: inline-block;
+
+}
+
+.embedImg {
+    margin: 2em 0 2em 0;
+}
+
+.center {
+    text-align: center;
+}
+
+.mel {
+    color: #57bf40;
+}
