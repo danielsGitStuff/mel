@@ -138,7 +138,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         contextCreator.createContext("/api/")
                 .withPOST()
                 .handle { it, queryMap ->
-                    val json = String(it.requestBody.readBytes())
+                    val json = queryMap.requestBody
                     val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
                     Lok.info("launching build")
                     if (buildRequest.pw == miniServer.secretProperties["buildPassword"] && buildRequest.valid)

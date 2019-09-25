@@ -24,10 +24,16 @@ class QueryMap {
 
     val map = mutableMapOf<String, String>()
 
+    /**
+     * the original request body comes here as a String. This is because you can only read it once.
+     */
+    var requestBody: String? = null
+        get
+
 
     fun fillFomPost(ex: HttpExchange): QueryMap {
-        val text = ex.requestBody.reader().readText()
-        text.split("&").map { URLDecoder.decode(it) }.forEach {
+        requestBody = ex.requestBody.reader().readText()
+        requestBody?.split("&")?.map { URLDecoder.decode(it) }?.forEach {
             val splitIndex = it.indexOf("=")
             val k = it.substring(0, splitIndex)
             val v = it.substring(splitIndex + 1, it.length)

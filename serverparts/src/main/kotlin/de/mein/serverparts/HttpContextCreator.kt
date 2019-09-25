@@ -3,6 +3,7 @@ package de.mein.serverparts
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
+import de.mein.auth.tools.N
 
 /**
  *     Creates contexts for an HttpsServer and provides methods for easy access to the provided parameters for GET and POST requests.
@@ -96,10 +97,10 @@ class HttpContextCreator(val server: HttpsServer) {
                 Lok.debug("handling request(${httpExchange.requestMethod}) for ${httpExchange.requestURI}")
                 try {
                     if (httpExchange.requestMethod == "POST") {
-                        queryMap.fillFomPost(httpExchange)
+                        N.oneLine { queryMap.fillFomPost(httpExchange) }
                         result = runRequestHandlers(postHandlers, queryMap, httpExchange)
                     } else if (httpExchange.requestMethod == "GET") {
-                        queryMap.fillFromGet(httpExchange)
+                        N.oneLine { queryMap.fillFromGet(httpExchange) }
                         result = runRequestHandlers(getHandlers, queryMap, httpExchange)
                     } else {
                         Lok.error("unknown request method; ${httpExchange.requestMethod}")
