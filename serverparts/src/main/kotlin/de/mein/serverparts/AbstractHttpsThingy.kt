@@ -43,21 +43,21 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
     }
 
-    /**
-     * closes HttpExchange when failing or done
-     */
-    fun createServerContext(context: String, runnable: (HttpExchange) -> Unit) {
-        server.createContext(context, HttpHandler {
-            try {
-                runnable.invoke(it)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                respondError(it, e.cause?.toString())
-            } finally {
-                it.close()
-            }
-        })
-    }
+//    /**
+//     * closes HttpExchange when failing or done
+//     */
+//    fun createServerContext(context: String, runnable: (HttpExchange) -> Unit) {
+//        server.createContext(context, HttpHandler {
+//            try {
+//                runnable.invoke(it)
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//                respondError(it, e.cause?.toString())
+//            } finally {
+//                it.close()
+//            }
+//        })
+//    }
 
     fun respondError(ex: HttpExchange, cause: String?) {
         try {
@@ -93,7 +93,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
         meinThread
     }
-    open val executor = Executors.newCachedThreadPool {
+    open val executor = Executors.newCachedThreadPool() {
         val thread = Thread(it)
         thread.name = "a HTTPS-Thread"
         thread
@@ -114,7 +114,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
     fun respondBinary(ex: HttpExchange, path: String, contentType: String? = null, cache: Boolean = false) {
         with(ex) {
-            de.mein.Lok.debug("sending $path to $remoteAddress")
+//            de.mein.Lok.debug("sending $path to $remoteAddress")
             var page: Page? = null
             try {
                 if (contentType != null)
@@ -141,7 +141,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
     fun respondText(ex: HttpExchange, path: String, contentType: String? = null, vararg replacers: Replacer) {
         with(ex) {
-            de.mein.Lok.debug("sending $path to $remoteAddress")
+//            de.mein.Lok.debug("sending $path to $remoteAddress")
             var page: Page? = null
             try {
                 if (contentType != null) {
@@ -189,7 +189,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         if (page != null)
             try {
                 with(ex) {
-                    Lok.debug("sending '${page?.path}' to $remoteAddress")
+//                    Lok.debug("sending '${page?.path}' to $remoteAddress")
                     if (contentType != null)
                         responseHeaders.add("Content-Type", contentType)
                     sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())

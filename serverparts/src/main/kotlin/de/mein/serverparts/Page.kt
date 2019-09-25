@@ -31,7 +31,7 @@ class Page {
             this.bytes = staticPagesCache[path]!!.bytes
             return
         }
-        Lok.debug("loading $path")
+//        Lok.debug("loading $path")
         val resourceBytes = javaClass.getResourceAsStream(path).readBytes()
         var html = String(resourceBytes)
         val tags = replaceTagRegex.findAll(html).toList()

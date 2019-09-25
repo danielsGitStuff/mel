@@ -1,6 +1,5 @@
 package de.miniserver.blog
 
-import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
@@ -42,6 +41,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
 
         const val PARAM_ACTION = "action"
         const val PARAM_ID = "id"
+        const val PARAM_MONTH = "m"
         const val PARAM_USER = "user"
         const val PARAM_PW = "pw"
         const val PARAM_TITLE = "title"
@@ -79,55 +79,99 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
     }
 
     override fun respondPage(ex: HttpExchange, page: Page?, contentType: String?) {
-        super.respondPage(ex, page, contentType)
         visitors?.count(ex)
+        super.respondPage(ex, page, contentType)
     }
 
     override fun configureContext(server: HttpsServer) {
         this.server = server
-        val httpContextCreator = HttpContextCreator(server)
-        createServerContext("/$subUrl") {
-            redirect(it, "/$subUrl/index.html")
-        }
-        createServerContext("/$subUrl/") {
+        val contextCreator = HttpContextCreator(server)
+        contextCreator.createContext("/$subUrl").withGET().handle { httpExchange, queryMap ->
             Lok.error("redirect")
-            redirect(it, "/$subUrl/index.html")
+            redirect(httpExchange, "/$subUrl/index.html")
         }
-        createServerContext("/$subUrl/index.html") {
-
-            val query = it.requestURI.query
-            if (query != null) {
-                val queryMap = readGetQuery(query)
-                // a certain entry is requested
-                val id = queryMap["id"]
-                val m = queryMap["m"]
-                if (id != null) {
-                    respondPage(it, pageEntry(it, id.toLong()))
-                } else if (m != null) {
-                    // a certain month requested
+        contextCreator.createContext("/$subUrl/").withGET().handle { httpExchange, queryMap ->
+            Lok.error("redirect")
+            redirect(httpExchange, "/$subUrl/index.html")
+        }
+        contextCreator.createContext("/$subUrl/index.html")
+                .withGET()
+                .expect(PARAM_ID) { id -> id != null }
+                .and(PARAM_MONTH) { month -> month != null }
+                .handle { httpExchange, queryMap ->
                     var year = 0
                     var month = 0
                     run {
-                        val split = m.split(".")
+                        val split = queryMap[PARAM_MONTH]!!.split(".")
                         year = split[0].toInt()
                         month = split[1].toInt()
                     }
                     val startDate = LocalDateTime.of(year, month, 1, 0, 0)
                     val endDate = startDate.with(TemporalAdjusters.lastDayOfMonth()).withHour(23).withSecond(59)
                     val entries = blogDao.pubGetByDateRange(startDate.toEpochSecond(ZoneOffset.UTC), endDate.toEpochSecond(ZoneOffset.UTC))
-                    respondPage(it, pageWithEntries(it.requestURI.toString(), entries))
+                    respondPage(httpExchange, pageWithEntries(httpExchange.requestURI.toString(), entries))
                 }
-            } else {
-                respondPage(it, pageDefault(it.requestURI.toString()))
-//                // this is the default page: count it
-//                visitors?.count(it)
-            }
-        }
-        createServerContext("/$subUrl/login.html") {
-            respondPage(it, pageLogin(it))
-        }
+                .withGET()
+                .expect(PARAM_ID) { id -> id != null }
+                .handle { httpExchange, queryMap ->
+                    respondPage(httpExchange, pageEntry(httpExchange, queryMap[PARAM_ID]!!.toLong()))
+                }
+                .withGET()
+                .handle { httpExchange, queryMap ->
+                    respondPage(httpExchange, pageDefault(httpExchange.requestURI.toString()))
+                }
+//        createServerContext("/$subUrl/index.html") {
+//
+//            val query = it.requestURI.query
+//            if (query != null) {
+//                val queryMap = readGetQuery(query)
+//                // a certain entry is requested
+//                val id = queryMap["id"]
+//                val m = queryMap["m"]
+//                if (id != null) {
+//                    respondPage(it, pageEntry(it, id.toLong()))
+//                } else if (m != null) {
+//                    // a certain month requested
+//                    var year = 0
+//                    var month = 0
+//                    run {
+//                        val split = m.split(".")
+//                        year = split[0].toInt()
+//                        month = split[1].toInt()
+//                    }
+//                    val startDate = LocalDateTime.of(year, month, 1, 0, 0)
+//                    val endDate = startDate.with(TemporalAdjusters.lastDayOfMonth()).withHour(23).withSecond(59)
+//                    val entries = blogDao.pubGetByDateRange(startDate.toEpochSecond(ZoneOffset.UTC), endDate.toEpochSecond(ZoneOffset.UTC))
+//                    respondPage(it, pageWithEntries(it.requestURI.toString(), entries))
+//                }
+//            } else {
+//                respondPage(it, pageDefault(it.requestURI.toString()))
+////                // this is the default page: count it
+////                visitors?.count(it)
+//            }
+//        }
+        contextCreator.createContext("/$subUrl/login.html")
+                .withGET()
+                .handle { httpExchange, queryMap ->
+                    respondPage(httpExchange, pageLogin(httpExchange))
 
-        httpContextCreator.createContext("/$subUrl/write.html")
+                }
+//        createServerContext("/$subUrl/login.html") {
+//            respondPage(it, pageLogin(it))
+//        }
+
+//        createServerContext("/$subUrl/blog.css") {
+//            respondPage(it, Page("/de/miniserver/blog/blog.css"), contentType = null)
+////            respondText(it, "/de/miniserver/blog/blog.css")
+//        }
+
+        contextCreator.createContext("/$subUrl/blog.css")
+                .withGET()
+                .handle { httpExchange, queryMap ->
+                    respondText(httpExchange, "/de/miniserver/blog/blog.css")
+                }
+
+        contextCreator.createContext("/$subUrl/write.html")
                 .withPOST()
                 .expect(PARAM_ACTION, ACTION_SAVE).and(PARAM_ID) { a -> a != null }
                 .handle { httpExchange, queryMap ->
@@ -194,18 +238,9 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 .onError { httpExchange, exception -> respondError(httpExchange, "Ebola?!") }
                 .onNoMatch { httpExchange, queryMap -> respondError(httpExchange, "I just don't know what to do<br> with myself! DADADA!") }
 
-        createServerContext("/$subUrl/blog.css") {
-            respondPage(it, Page("/de/miniserver/blog/blog.css"), contentType = null)
-//            respondText(it, "/de/miniserver/blog/blog.css")
-        }
+
     }
 
-
-    private fun readHeader(requestHeaders: Headers): MutableMap<String, List<String>> {
-        val map = mutableMapOf<String, List<String>>()
-        requestHeaders.forEach { map[it.key] = it.value }
-        return map
-    }
 
     private fun pageWrite(user: String?, pw: String?, id: Long?): Page {
         var entry: BlogEntry? = null

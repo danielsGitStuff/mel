@@ -93,39 +93,46 @@ class HttpContextCreator(val server: HttpsServer) {
              */
             var result: Boolean? = null
             try {
-                if (httpExchange.requestMethod == "POST") {
-                    queryMap.fillFomPost(httpExchange)
-                    result = runRequestHandlers(postHandlers, queryMap, httpExchange)
-                } else if (httpExchange.requestMethod == "GET") {
-                    queryMap.fillFromGet(httpExchange)
-                    result = runRequestHandlers(getHandlers, queryMap, httpExchange)
-                } else {
-                    Lok.error("unknown request method; ${httpExchange.requestMethod}")
-                    result = false
-                }
-            } catch (e: Exception) {
-                // exception, result stays null
-                onExceptionThrown(httpExchange, e)
-            }
-            // no match occured
-            if (result != null && !result) {
-                // no custum function available
-                if (noMatchFunction == null) {
-                    try {
-                        with(httpExchange) {
-                            val text = "I just don't know what to do with myself! DADADA!"
-                            de.mein.Lok.debug("sending error to $remoteAddress")
-                            sendResponseHeaders(400, text.toByteArray().size.toLong())
-                            responseBody.write(text.toByteArray())
-                            responseBody.close()
-                        }
-                    } finally {
-                        httpExchange.close()
+                Lok.debug("handling request(${httpExchange.requestMethod}) for ${httpExchange.requestURI}")
+                try {
+                    if (httpExchange.requestMethod == "POST") {
+                        queryMap.fillFomPost(httpExchange)
+                        result = runRequestHandlers(postHandlers, queryMap, httpExchange)
+                    } else if (httpExchange.requestMethod == "GET") {
+                        queryMap.fillFromGet(httpExchange)
+                        result = runRequestHandlers(getHandlers, queryMap, httpExchange)
+                    } else {
+                        Lok.error("unknown request method; ${httpExchange.requestMethod}")
+                        result = false
                     }
-                } else {
-                    // someone told me to do something, so I do it
-                    noMatchFunction!!.invoke(httpExchange, queryMap)
+                } catch (e: Exception) {
+                    // exception, result stays null
+                    onExceptionThrown(httpExchange, e)
                 }
+                // no match occured
+                if (result != null && !result) {
+                    // no custum function available
+                    if (noMatchFunction == null) {
+                        try {
+                            with(httpExchange) {
+                                val text = "I just don't know what to do with myself! DADADA!"
+                                de.mein.Lok.debug("sending error to $remoteAddress")
+                                sendResponseHeaders(400, text.toByteArray().size.toLong())
+                                responseBody.write(text.toByteArray())
+                                responseBody.close()
+                            }
+                        } finally {
+                            httpExchange.close()
+                        }
+                    } else {
+                        // someone told me to do something, so I do it
+                        noMatchFunction!!.invoke(httpExchange, queryMap)
+
+                    }
+                }
+            } finally {
+                Lok.warn("close ${httpExchange.requestURI}")
+                httpExchange.close()
             }
         }
 
@@ -181,10 +188,10 @@ class HttpContextCreator(val server: HttpsServer) {
     }
 
     fun createContext(path: String): ContextInit {
-        val contextContainer = ContextInit()
+        val contextInit = ContextInit()
         server.createContext(path) { ex ->
-            contextContainer.contextCalled(ex)
+            contextInit.contextCalled(ex)
         }
-        return contextContainer
+        return contextInit
     }
 }

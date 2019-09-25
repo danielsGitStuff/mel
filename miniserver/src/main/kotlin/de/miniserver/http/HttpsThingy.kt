@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpsServer
 import de.mein.Lok
 import de.mein.core.serialize.deserialize.entity.SerializableEntityDeserializer
 import de.mein.serverparts.AbstractHttpsThingy
+import de.mein.serverparts.HttpContextCreator
 import de.mein.serverparts.Page
 import de.mein.serverparts.Replacer
 import de.mein.serverparts.visits.Visitors
@@ -35,6 +36,10 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         visitors = Visitors.fromDbFile(File(miniServer.workingDirectory, "visitors.db"))
     }
 
+    companion object {
+        const val PARAM_PW = "pw"
+    }
+
     fun pageHello(): Page {
         return Page("/de/miniserver/index.html",
                 Replacer("files") {
@@ -54,7 +59,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
     fun pageBuild(pw: String): Page {
         return Page("/de/miniserver/private/build.html",
-                Replacer("pw", pw),
+                Replacer(PARAM_PW, pw),
                 Replacer("time", miniServer.startTime.toString()),
                 Replacer("lok") {
                     val sb = StringBuilder().append("<p>")
@@ -68,143 +73,154 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
     }
 
     override fun configureContext(server: HttpsServer) {
-
-        createServerContext("/") {
-            visitors.count(it)
-            respondPage(it, pageHello())
-        }
-        createServerContext("/licences.html") {
-            respondText(it, "/de/mein/auth/licences.html")
-        }
-        createServerContext("/robots.txt") {
-            respondText(it, "/de/miniserver/robots.txt", contentType = "text/plain; charset=utf-8")
-        }
-        createServerContext("/private/loginz.html") {
-            respondText(it, "/de/miniserver/private/loginz.html")
-        }
-        createServerContext("/logandroid.html") {
-            respondText(it, "/de/miniserver/logandroid.html")
-        }
-        createServerContext("/logpc.html") {
-            respondText(it, "/de/miniserver/logpc.html")
-        }
-        createServerContext("/impressum.html") {
-            respondText(it, "/de/miniserver/impressum.html")
-        }
-        createServerContext("/svg/") {
-            val uri = it.requestURI
-            val fileName = uri.path.substring("/svg/".length, uri.path.length)
-            if (fileName.endsWith(".svg"))
-                respondText(it, "/de/miniserver/svg/$fileName", contentType = ContentType.SVG)
-            else
-                respondPage(it, pageHello())
-        }
-        createServerContext("/webp/") {
-            val uri = it.requestURI
-            val fileName = uri.path.substring("/webp/".length, uri.path.length)
-            if (fileName.endsWith(".webp"))
-                respondBinary(it, "/de/miniserver/webp/$fileName", contentType = ContentType.WEBP)
-            else
-                respondPage(it, pageHello())
-        }
-        createServerContext("/favicon.png") {
-            respondBinary(it, "/de/miniserver/favicon.png")
-        }
-        createServerContext("/api/") {
-            val json = String(it.requestBody.readBytes())
-            val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
-            Lok.info("launching build")
-            if (buildRequest.pw == miniServer.secretProperties["buildPassword"] && buildRequest.valid)
-                GlobalScope.launch {
-                    val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)
-                    deploy.run()
+        val contextCreator = HttpContextCreator(server)
+        contextCreator.createContext("/")
+                .withGET()
+                .handle { it, queryMap ->
+                    visitors.count(it)
+                    respondPage(it, pageHello())
                 }
-            else
-                Lok.info("build denied")
-            it.close()
-        }
-        createServerContext("/css.css") {
-
-            respondText(it, "/de/miniserver/css.css")
-        }
-        createServerContext("/private/loggedIn") {
-            if (it.requestMethod == "POST") {
-                val values = readPostValues(it)
-                val pw = values["pw"]
-//                Lok.info("##  pw: '$pw', pw is '${miniServer.secretProperties["buildPassword"]}'")
-//                val arguments = it.requestURI.path.substring("/private/loggedIn".length).split(" ")
-//                val targetPage = values["target"]
-                when (pw) {
-                    null -> {
-//                        Lok.info("## no password")
+        contextCreator.createContext("/licences.html")
+                .withGET()
+                .handle { it, queryMap ->
+                    respondText(it, "/de/mein/auth/licences.html")
+                }
+        contextCreator.createContext("/robots.txt")
+                .withGET()
+                .handle { it, queryMap ->
+                    respondText(it, "/de/miniserver/robots.txt", contentType = "text/plain; charset=utf-8")
+                }
+        contextCreator.createContext("/private/loginz.html")
+                .withGET()
+                .handle { it, queryMap ->
+                    respondText(it, "/de/miniserver/private/loginz.html")
+                }
+        contextCreator.createContext("/logandroid.html")
+                .withGET()
+                .handle { it, queryMap ->
+                    respondText(it, "/de/miniserver/logandroid.html")
+                }
+        contextCreator.createContext("/logpc.html")
+                .withGET()
+                .handle { it, queryMap ->
+                    respondText(it, "/de/miniserver/logpc.html")
+                }
+        contextCreator.createContext("/impressum.html")
+                .withGET()
+                .handle { it, queryMap ->
+                    respondText(it, "/de/miniserver/impressum.html")
+                }
+        contextCreator.createContext("svg")
+                .withGET()
+                .handle { it, queryMap ->
+                    val uri = it.requestURI
+                    val fileName = uri.path.substring("/svg/".length, uri.path.length)
+                    if (fileName.endsWith(".svg"))
+                        respondText(it, "/de/miniserver/svg/$fileName", contentType = ContentType.SVG)
+                    else
                         respondPage(it, pageHello())
-                    }
-                    miniServer.secretProperties["buildPassword"] -> {
-//                        Lok.info("## build password OK!")
-                        respondPage(it, pageBuild(pw))
-                    }
-                    else -> {
-                        //todo debug
-                        Lok.info("## password did not match")
-                        respondText(it, "/de/miniserver/private/loginz.html")
-//                        respondPage(it, pageHello())
-                    }
                 }
-            } else
-                respondText(it, "/de/miniserver/private/loginz.html")
-        }
-        createServerContext("/build.html") {
-            val pw = readPostValues(it)["pw"]
-            if (pw != null && pw == miniServer.secretProperties["buildPassword"]) {
-                val uri = it.requestURI
-                val command = uri.path.substring("/build.html".length, uri.path.length).trim()
-                when (command) {
-                    "shutDown" -> {
-                        respondText(it, "/de/miniserver/farewell.html")
-                        miniServer.shutdown()
-                    }
-                    "reboot" -> {
-                        respondText(it, "/de/miniserver/farewell.html")
-                        val jarFile = File(miniServer.workingDirectory, "miniserver.jar")
-                        miniServer.reboot(miniServer.workingDirectory, jarFile)
-                    }
+        contextCreator.createContext("/webp/")
+                .withGET()
+                .handle { it, queryMap ->
+                    val uri = it.requestURI
+                    val fileName = uri.path.substring("/webp/".length, uri.path.length)
+                    if (fileName.endsWith(".webp"))
+                        respondBinary(it, "/de/miniserver/webp/$fileName", contentType = ContentType.WEBP)
+                    else
+                        respondPage(it, pageHello())
                 }
-                respondPage(it, pageBuild(pw!!))
-            } else {
-                respondText(it, "/de/miniserver/private/loginz.html")
-            }
-        }
-
+        contextCreator.createContext("/favicon.png")
+                .withGET()
+                .handle { it, queryMap ->
+                    respondBinary(it, "/de/miniserver/favicon.png")
+                }
+        contextCreator.createContext("/api/")
+                .withPOST()
+                .handle { it, queryMap ->
+                    val json = String(it.requestBody.readBytes())
+                    val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
+                    Lok.info("launching build")
+                    if (buildRequest.pw == miniServer.secretProperties["buildPassword"] && buildRequest.valid)
+                        GlobalScope.launch {
+                            val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)
+                            deploy.run()
+                        }
+                    else
+                        Lok.info("build denied")
+                }
+        contextCreator.createContext("/css.css")
+                .withGET()
+                .handle { it, queryMap ->
+                    respondText(it, "/de/miniserver/css.css")
+                }
+        contextCreator.createContext("/private/loggedIn")
+                .withPOST()
+                .expect(PARAM_PW) { pw -> pw == miniServer.secretProperties["buildPassword"] }
+                .handle { it, queryMap -> respondPage(it, pageBuild(queryMap[PARAM_PW]!!)) }
+                .withPOST()
+                .expect(PARAM_PW) { pw -> pw != null }
+                .handle { it, queryMap ->
+                    Lok.info("## password did not match")
+                    redirect(it, "/private/loginz.html")
+                }
+                .withPOST()
+                .handle { it, queryMap -> respondPage(it, pageHello()) }
+                .withGET()
+                .handle { it, queryMap ->
+                    respondText(it, "/de/miniserver/private/loginz.html")
+                }
+        contextCreator.createContext("/build.html")
+                .withPOST()
+                .expect(PARAM_PW) { pw -> pw == miniServer.secretProperties["buildPassword"] }
+                .handle { it, queryMap ->
+                    val uri = it.requestURI
+                    val command = uri.path.substring("/build.html".length, uri.path.length).trim()
+                    when (command) {
+                        "shutDown" -> {
+                            respondText(it, "/de/miniserver/farewell.html")
+                            miniServer.shutdown()
+                        }
+                        "reboot" -> {
+                            respondText(it, "/de/miniserver/farewell.html")
+                            val jarFile = File(miniServer.workingDirectory, "miniserver.jar")
+                            miniServer.reboot(miniServer.workingDirectory, jarFile)
+                        }
+                    }
+                    respondPage(it, pageBuild(queryMap[PARAM_PW]!!))
+                }
         // add files context
-        createServerContext("/files/") {
-            val uri = it.requestURI
-            val hash = uri.path.substring("/files/".length, uri.path.length)
-            Lok.info("serving file: $hash")
-            visitors.count(it)
-            GlobalScope.launch {
-                try {
-                    val bytes = miniServer.fileRepository[hash].bytes
-                    with(it) {
-                        sendResponseHeaders(200, bytes!!.size.toLong())
-                        responseBody.write(bytes)
-                        responseBody.close()
+        contextCreator.createContext("/files/")
+                .withGET()
+                .handle { it, queryMap ->
+                    val uri = it.requestURI
+                    val hash = uri.path.substring("/files/".length, uri.path.length)
+                    Lok.info("serving file: $hash")
+                    visitors.count(it)
+                    GlobalScope.launch {
+                        try {
+                            val bytes = miniServer.fileRepository[hash].bytes
+                            with(it) {
+                                sendResponseHeaders(200, bytes!!.size.toLong())
+                                responseBody.write(bytes)
+                                responseBody.close()
+                            }
+                        } catch (e: Exception) {
+                            Lok.error("did not find a file for ${hash}")
+                            /**
+                             * does not work yet
+                             */
+                            with(it) {
+                                val response = "file not found".toByteArray()
+                                sendResponseHeaders(404, response.size.toLong())
+                                responseBody.write(response)
+                                responseBody.close()
+                            }
+                        } finally {
+                            it.close()
+                        }
                     }
-                } catch (e: Exception) {
-                    Lok.error("did not find a file for ${hash}")
-                    /**
-                     * does not work yet
-                     */
-                    with(it) {
-                        val response = "file not found".toByteArray()
-                        sendResponseHeaders(404, response.size.toLong())
-                        responseBody.write(response)
-                        responseBody.close()
-                    }
-                } finally {
-                    it.close()
                 }
-            }
-        }
         blogThingy.configureContext(server)
     }
 

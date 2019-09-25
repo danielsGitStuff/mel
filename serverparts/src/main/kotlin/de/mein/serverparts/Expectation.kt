@@ -1,6 +1,7 @@
 package de.mein.serverparts
 
 import com.sun.net.httpserver.HttpExchange
+import de.mein.Lok
 
 class Expectation(val requestHandler: HttpContextCreator.RequestHandler, val key: String, val expectFunction: (String?) -> Boolean) {
 
@@ -38,9 +39,13 @@ class Expectation(val requestHandler: HttpContextCreator.RequestHandler, val key
         requestHandler.handleFunction = { httpExchange, queryMap ->
             if (isFulfilled(queryMap)) {
                 try {
+                    Lok.debug("handling ${httpExchange.requestURI} with params $queryMap")
                     handleFunction.invoke(httpExchange, queryMap)
                 } catch (e: Exception) {
                     requestHandler.contextInit.onExceptionThrown(httpExchange, e)
+                } finally {
+                    Lok.debug("closing  ${httpExchange.requestURI} with params $queryMap")
+                    httpExchange.close()
                 }
                 true
             } else
