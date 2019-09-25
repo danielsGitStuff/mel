@@ -195,7 +195,7 @@ dependencies {
     implementation project(':sql')
     implementation project(':auth')
     implementation project(':drive')
-    implementation project(':dump')
+    implementation project(':filedump')
     testImplementation project(':drive')
     implementation project(':contacts')
     implementation 'androidx.core:core:1.2.0-alpha04'
