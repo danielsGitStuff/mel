@@ -47,7 +47,7 @@ class Page {
                     //escape double quotes
                     if (it.escapeQuotes)
                         replacement = replacement.replace("\"", "&quot;")
-                    html = html.replace(replacementRegex, replacement)
+                    html = html.replace(replacementRegex, Regex.escapeReplacement(replacement))
                 }
             }
         }
