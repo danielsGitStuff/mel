@@ -137,6 +137,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
             if (buildRequest.blog!!)
                 processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/blog/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
             processList.add(Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
+            processList.add(Processor("/bin/sh", "-c", "chmod -R 700 \"$serverFilesDir\""))
             Processor.runProcesses("copying", *processList.toTypedArray())
             // delete stop pipe
             miniServer.inputReader?.stop()
