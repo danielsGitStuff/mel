@@ -38,5 +38,6 @@ secret.properties
 /NetBeansSVGConverterProject/nbproject/private/
 /miniserver/server/secret/*
 /miniserver/server/files/*
+/miniserver/server/blog/*
 !/miniserver/server/secret/README.md
 /keystore.properties
