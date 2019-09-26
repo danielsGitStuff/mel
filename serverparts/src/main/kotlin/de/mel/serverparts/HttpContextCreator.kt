@@ -27,6 +27,7 @@ class HttpContextCreator(val server: HttpsServer) {
     class RequestHandler(internal val contextInit: ContextInit) {
         var handleFunction: ((HttpExchange, QueryMap) -> Boolean)? = null
         var isGeneralHandler = true
+        var closeWhenHandled = true
 
         /**
          * checks whether parameters of the request matches a criterion
@@ -63,6 +64,11 @@ class HttpContextCreator(val server: HttpsServer) {
                 return false
             return handleFunction!!.invoke(httpExchange, queryMap)
         }
+
+        fun dontCloseExchange(): RequestHandler {
+            closeWhenHandled = false
+            return this
+        }
     }
 
 
@@ -93,7 +99,6 @@ class HttpContextCreator(val server: HttpsServer) {
              * if an exception is thrown, result is null.
              */
             var result: Boolean? = null
-            try {
                 Lok.debug("handling request(${httpExchange.requestMethod}) for ${httpExchange.requestURI}")
                 try {
                     if (httpExchange.requestMethod == "POST") {
@@ -131,16 +136,20 @@ class HttpContextCreator(val server: HttpsServer) {
 
                     }
                 }
-            } finally {
-                Lok.warn("close ${httpExchange.requestURI}")
-                httpExchange.close()
-            }
         }
 
         private fun runRequestHandlers(requestHandlers: List<RequestHandler>, queryMap: QueryMap, httpExchange: HttpExchange): Boolean {
             for (requestHandler in requestHandlers) {
-                if (requestHandler.onContextCalled(httpExchange, queryMap))
+                try {
+                    if (requestHandler.onContextCalled(httpExchange, queryMap)) {
+                        if (requestHandler.closeWhenHandled)
+                            httpExchange.close()
+                        return true
+                    }
+                }catch (e:Exception){
+                    requestHandler.closeWhenHandled
                     return true
+                }
             }
             return false
         }

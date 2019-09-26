@@ -192,6 +192,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         // add files context
         contextCreator.createContext("/files/")
                 .withGET()
+                .dontCloseExchange()
                 .handle { it, queryMap ->
                     val uri = it.requestURI
                     val hash = uri.path.substring("/files/".length, uri.path.length)
