@@ -1,0 +1,67 @@
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin:  'org.jetbrains.kotlin.jvm'
+
+//apply plugin: 'me.tatarka.retrolambda'
+
+//compileJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}
+
+configurations{
+    driveTestOutput
+}
+sourceSets {
+    main {
+        resources {
+            //srcDir "${project(':auth').projectDir}/src/main/resources"
+        }
+    }
+    test{
+        resources {
+//            srcDir "${project(':drive')}.projectDir/src/main/resources}"
+        }
+    }
+}
+dependencies {
+    driveTestOutput sourceSets.test.output
+    compile project(path: ':auth')
+    testCompile project(path: ':auth')
+    testCompile 'junit:junit:4.12'
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0-RC'
+    //compile 'org.jdeferred:jdeferred-core:1.2.4'
+    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    testCompile group:  'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
+
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
+
+//compileTestJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}
+buildscript {
+    ext.kotlin_version = '1.3.41'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+repositories {
+    mavenCentral()
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}

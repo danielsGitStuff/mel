@@ -1,4 +1,4 @@
-include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':authfx', ':drivefx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts',':blog', ':filedump', ':filedumpfx'
+include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':drivefx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts',':blog', ':filedump', ':filedumpfx'
 //include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':contacts', ':icons', ':konsole', ':lok', ':calendar', ':serverparts', ':messenger'
 
 project(':app').projectDir = new File('app')
@@ -8,7 +8,7 @@ project(':json').projectDir = new File('json')
 project(':serialize').projectDir = new File('serialize')
 project(':sql').projectDir = new File('sql')
 project(':auth').projectDir = new File('auth')
-project(':drive').projectDir = new File('drive')
+project(':filesync').projectDir = new File('filesync')
 project(':contacts').projectDir = new File('contacts')
 project(':icons').projectDir = new File('icons')
 project(':lok').projectDir = new File('lok')

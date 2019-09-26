@@ -17,13 +17,13 @@ javafx {
 sourceSets {
     main {
         resources {
-            srcDir "${project(':drive').projectDir}/src/main/resources"
+            srcDir "${project(':filesync').projectDir}/src/main/resources"
         }
     }
 }
 dependencies {
-    compile project(path: ':drive')
-    testCompile project(path: ':drive',configuration :'driveTestOutput')
+    compile project(path: ':filesync')
+    testCompile project(configuration: 'driveTestOutput', path: ':filesync')
     compile project(path: ':authfx')
     testCompile project(path: ':authfx')
     testCompile 'junit:junit:4.12'

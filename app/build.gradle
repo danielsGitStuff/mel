@@ -194,9 +194,9 @@ dependencies {
     implementation project(':serialize')
     implementation project(':sql')
     implementation project(':auth')
-    implementation project(':drive')
+    implementation project(':filesync')
     implementation project(':filedump')
-    testImplementation project(':drive')
+    testImplementation project(':filesync')
     implementation project(':contacts')
     implementation 'androidx.core:core:1.2.0-alpha04'
     implementation 'androidx.appcompat:appcompat:1.1.0'

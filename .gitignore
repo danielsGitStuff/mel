@@ -4,8 +4,23 @@
 .DS_Store
 /build
 .idea/
-app/build
 
+/app/build
+/blog/build
+/contacts/build
+/contactsfx/build
+/filedump/build
+/filedumpfx/build
+/filesync/build
+/filesyncfx/build
+/fxbundle/build
+/json/build
+/konsole/build
+/lok/build
+/miniserver/build
+/serialize/build
+/serverparts/build
+/sql/build
 
 app/src/main/assets/drive.sql
 app/src/main/assets/sql.sql
