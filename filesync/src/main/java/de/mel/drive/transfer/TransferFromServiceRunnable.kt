@@ -7,7 +7,7 @@ import de.mel.auth.file.AFile
 import de.mel.auth.socket.process.transfer.FileTransferDetail
 import de.mel.auth.socket.process.transfer.FileTransferDetailSet
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess
-import de.mel.auth.tools.lock.T
+import de.mel.auth.tools.lock.P
 import de.mel.drive.data.DriveStrings
 import de.mel.drive.service.MelDriveService
 import de.mel.drive.service.sync.SyncHandler
@@ -125,7 +125,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
                                 transferDao.updateState(dbDetail.id.v(), dbDetail.state.v())
                                 transferDao.updateTransferredBytes(dbDetail.id.v(), ftd.position)
                                 // tell the sync handler we got a file
-                                val transaction = T.lockingTransaction(fsDao)
+                                val transaction = P.confine(fsDao)
                                 try {
                                     driveService.syncHandler.onFileTransferred(target, dbDetail.hash.v(), transaction)
                                 } finally {

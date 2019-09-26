@@ -12,8 +12,8 @@ import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.sql.SqlQueriesException;
 
 import java.util.ArrayList;
@@ -44,9 +44,9 @@ public class ConnectedEnvironment {
         DeferredObject<MelValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         long certificateId = certificate.getId().v();
         // check if already connected via id and address
-        Transaction transaction = null;
+        Warden warden = null;
         try {
-            transaction = T.lockingTransaction(T.read(this));
+            warden = P.confine(P.read(this));
             MelAuthSocket def = isCurrentlyConnecting(certificateId);
             if (def != null) {
                 return def.getConnectJob();
@@ -63,7 +63,7 @@ public class ConnectedEnvironment {
                 ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
                 job.done(result -> {
                     // use a new transaction, because we want connect in parallel.
-                    T.lockingTransaction(this)
+                    P.confine(this)
                             .run(() -> {
                                 removeCurrentlyConnecting(certificateId);
                                 removeCurrentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v());
@@ -71,7 +71,7 @@ public class ConnectedEnvironment {
                             .end();
                     deferred.resolve(result);
                 }).fail(result -> {
-                    T.lockingTransaction(this)
+                    P.confine(this)
                             .run(() -> {
                                 removeCurrentlyConnecting(certificateId);
                                 removeCurrentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v());
@@ -87,8 +87,8 @@ public class ConnectedEnvironment {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (transaction != null) {
-                transaction.end();
+            if (warden != null) {
+                warden.end();
             }
         }
         return deferred;
@@ -100,10 +100,10 @@ public class ConnectedEnvironment {
 
         DeferredObject<MelValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MelValidationProcess mvp;
-        Transaction transaction = null;
+        Warden warden = null;
         // there are two try catch blocks because the connection code might be interrupted and needs to end the transaction under any circumstances
         try {
-            transaction = T.lockingTransaction(this);
+            warden = P.confine(this);
             Lok.debug("connect to: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
             MelAuthSocket def = isCurrentlyConnecting(address, port, portCert);
             if (def != null) {
@@ -127,7 +127,7 @@ public class ConnectedEnvironment {
                 melAuthService.execute(new ConnectWorker(melAuthService, melAuthSocket));
             }
         } finally {
-            transaction.end();
+            warden.end();
         }
         return deferred;
     }
@@ -139,7 +139,7 @@ public class ConnectedEnvironment {
     boolean registerValidationProcess(MelValidationProcess validationProcess) {
         if (validationProcess.isClosed())
             return false;
-        Transaction transaction = T.lockingTransaction(this);
+        Warden warden = P.confine(this);
         try {
             MelValidationProcess existingProcess = idValidateProcessMap.get(validationProcess.getConnectedId());
             if (existingProcess != null) {
@@ -155,7 +155,7 @@ public class ConnectedEnvironment {
         } catch (Exception e) {
             return false;
         } finally {
-            transaction.end();
+            warden.end();
         }
     }
 
@@ -254,7 +254,7 @@ public class ConnectedEnvironment {
 
     public void shutDown() {
         Lok.debug("attempting shutdown");
-        Transaction transaction = T.lockingTransaction(this);
+        Warden warden = P.confine(this);
         N.forEachAdvIgnorantly(currentlyConnectingAddresses, (stoppable, index, s, melAuthSocket) -> {
             if (melAuthSocket.getConnectJob() != null)
                 melAuthSocket.getConnectJob().reject(new Exception("shutting down"));
@@ -265,14 +265,14 @@ public class ConnectedEnvironment {
         });
         currentlyConnectingAddresses.clear();
         currentlyConnectingCertIds.clear();
-        transaction.end();
+        warden.end();
         Lok.debug("success");
     }
 
     public void onSocketClosed(MelAuthSocket melAuthSocket) {
-        Transaction transaction = null;
+        Warden warden = null;
         try {
-            transaction = T.lockingTransaction(this);
+            warden = P.confine(this);
             // find the socket in the connected environment and remove it
             AConnectJob connectJob = melAuthSocket.getConnectJob();
             if (melAuthSocket.isValidated() && melAuthSocket.getProcess() instanceof MelValidationProcess) {
@@ -285,7 +285,7 @@ public class ConnectedEnvironment {
                 } else if (connectJob.getAddress() != null) {
                     N.r(() -> removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
                 }
-                transaction.end();
+                warden.end();
                 N.oneLine(() -> {
                     if (connectJob.isPending()) {
                         connectJob.reject(new Exception("connection closed"));
@@ -294,8 +294,8 @@ public class ConnectedEnvironment {
             }
         } finally {
 
-            if (transaction != null) {
-                transaction.end();
+            if (warden != null) {
+                warden.end();
             }
         }
     }

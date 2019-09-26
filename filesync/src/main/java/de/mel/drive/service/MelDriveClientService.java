@@ -8,10 +8,9 @@ import de.mel.auth.jobs.ServiceRequestHandlerJob;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.data.AvailableHashes;
-import de.mel.drive.data.DriveDetails;
 import de.mel.drive.data.DriveSettings;
 import de.mel.drive.data.DriveStrings;
 import de.mel.drive.data.conflict.Conflict;
@@ -21,10 +20,8 @@ import de.mel.drive.index.InitialIndexConflictHelper;
 import de.mel.drive.jobs.CommitJob;
 import de.mel.drive.jobs.SyncClientJob;
 import de.mel.drive.service.sync.ClientSyncHandler;
-import de.mel.drive.sql.FsDirectory;
 import de.mel.drive.sql.StageSet;
 import de.mel.drive.sql.TransferState;
-import de.mel.drive.sql.dao.StageDao;
 import de.mel.sql.SqlQueriesException;
 
 import org.jdeferred.impl.DeferredObject;
@@ -35,7 +32,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
@@ -106,7 +102,7 @@ public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
             if (driveSettings.getClientSettings().getServerCertId().equals(spottedJob.getPartnerCertificate().getId().v())) {
                 try {
                     // reset the remaining transfers so we can start again
-                    T.lockingTransaction(driveDatabaseManager.getTransferDao())
+                    P.confine(driveDatabaseManager.getTransferDao())
                             .run(() -> driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(driveSettings.getClientSettings().getServerCertId(), driveSettings.getClientSettings().getServerServiceUuid(), TransferState.NOT_STARTED))
                             .end();
                     addJob(new SyncClientJob());
@@ -177,7 +173,7 @@ public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
 
 
             @Override
-            public void done(Long stageSetId, Transaction transaction) {
+            public void done(Long stageSetId, Warden warden) {
                 //addJob(new CommitJob(true));
             }
         };

@@ -6,8 +6,8 @@ import de.mel.auth.data.db.dao.CertificateDao;
 import de.mel.auth.file.AFile;
 import de.mel.auth.file.FFile;
 import de.mel.auth.tools.Cryptor;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.sql.Hash;
 import de.mel.sql.ISQLQueries;
 import de.mel.sql.SqlQueriesException;
@@ -87,7 +87,7 @@ public class CertificateManager extends FileRelatedManager {
         if (keyStoreFile.exists()) {
             boolean deleted = keyStoreFile.delete();
             if (!deleted)
-                Lok.error("CertificateManager().KEYSTORE.NOT.DELETED");
+                Lok.error("CertificateManager().KEYSTORE.NOT.DELETED: "+keyStoreFile.getAbsolutePath());
         }
         keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(null, PASS.toCharArray());
@@ -151,8 +151,8 @@ public class CertificateManager extends FileRelatedManager {
     public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String answerUuidString, String address, Integer port, Integer portCert) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
         AtomicReference<Certificate> certificate = new AtomicReference<>(new Certificate());
         String uuid = getNewUUID();
-        Transaction transaction = T.lockingTransaction(certificateDao);
-        transaction.run(() -> {
+        Warden warden = P.confine(certificateDao);
+        warden.run(() -> {
             UUID answerUuid = null;
             //make sure answeruuid really is an uuid
             if (answerUuidString != null) {
@@ -177,8 +177,8 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        Transaction transaction = T.lockingTransaction(T.read(certificateDao));
-        transaction.run(() -> {
+        Warden warden = P.confine(P.read(certificateDao));
+        warden.run(() -> {
             for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
                 X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
                 storeCertInKeyStore(dbCert.getUuid().v(), cert);
@@ -354,11 +354,11 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public Certificate addAnswerUuid(Long certId, String ownUuid) throws SqlQueriesException {
-        Transaction transaction = T.lockingTransaction(certificateDao);
+        Warden warden = P.confine(certificateDao);
         Certificate partnerCertificate = certificateDao.getTrustedCertificateById(certId);
         partnerCertificate.setAnswerUuid(ownUuid);
         certificateDao.updateCertificate(partnerCertificate);
-        transaction.end();
+        warden.end();
         return partnerCertificate;
     }
 
@@ -399,9 +399,9 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public Certificate getTrustedCertificateByHash(String hash) throws SqlQueriesException {
-        Transaction<Certificate> transaction = T.lockingTransaction(T.read(certificateDao));
-        Certificate certificate = transaction.runResult(() -> certificateDao.getTrustedCertificateByHash(hash)).get();
-        transaction.end();
+        Warden<Certificate> warden = P.confine(P.read(certificateDao));
+        Certificate certificate = warden.runResult(() -> certificateDao.getTrustedCertificateByHash(hash)).get();
+        warden.end();
         return certificate;
     }
 

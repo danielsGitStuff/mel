@@ -2,7 +2,7 @@ package de.mel.drive.index.watchdog;
 
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.data.PathCollection;
 import de.mel.drive.index.IndexListener;
 import de.mel.auth.file.AFile;
@@ -86,7 +86,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     public abstract void watchDirectory(AFile dir) throws IOException;
 
     @Override
-    public void done(Long stageSetId, Transaction transaction) {
+    public void done(Long stageSetId, Warden warden) {
         Lok.debug("IndexWatchdogListener.done");
     }
 

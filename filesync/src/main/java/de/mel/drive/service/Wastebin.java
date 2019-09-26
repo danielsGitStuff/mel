@@ -3,8 +3,8 @@ package de.mel.drive.service;
 import de.mel.Lok;
 import de.mel.auth.file.AFile;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.bash.FsBashDetails;
 import de.mel.drive.data.DriveSettings;
@@ -19,7 +19,6 @@ import de.mel.sql.Hash;
 import de.mel.sql.SqlQueriesException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -244,9 +243,9 @@ public class Wastebin {
     }
 
     private List<String> searchTransfer() throws SqlQueriesException {
-        Transaction<List<String>> transaction = T.lockingTransaction(T.read(wasteDao));
-        List<String> result = transaction.runResult(wasteDao::searchTransfer).get();
-        transaction.end();
+        Warden<List<String>> warden = P.confine(P.read(wasteDao));
+        List<String> result = warden.runResult(wasteDao::searchTransfer).get();
+        warden.end();
         return result;
 //        wasteDao.lockRead();
 //        try {
@@ -262,7 +261,7 @@ public class Wastebin {
 
     public void restoreFsFiles() throws SqlQueriesException, IOException {
         List<String> availableHashes = searchTransfer();
-        Transaction transaction = T.lockingTransaction(fsDao);
+        Warden warden = P.confine(fsDao);
         try {
             for (String hash : availableHashes) {
                 List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
@@ -279,7 +278,7 @@ public class Wastebin {
                 }
             }
         } finally {
-            transaction.end();
+            warden.end();
         }
 
     }

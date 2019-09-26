@@ -4,8 +4,8 @@ import de.mel.Lok;
 import de.mel.auth.file.AFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.bash.FsBashDetails;
 import de.mel.drive.data.DriveSettings;
@@ -147,7 +147,7 @@ public abstract class SyncHandler {
     }
 
     public void onFileTransferFailed(String hash) {
-        Transaction transaction = T.lockingTransaction(T.read(fsDao));
+        Warden warden = P.confine(P.read(fsDao));
         try {
             if (fsDao.desiresHash(hash)) {
                 System.err.println(getClass().getSimpleName() + ".onFileTransferFailed() file with hash " + hash + " is required but failed to transfer");
@@ -155,18 +155,18 @@ public abstract class SyncHandler {
         } catch (SqlQueriesException e) {
             e.printStackTrace();
         } finally {
-            transaction.end();
+            warden.end();
         }
     }
 
     /**
      * @param file        file in working directory
      * @param hash
-     * @param transaction
+     * @param warden
      * @return true if the file is new on the device (not a copy). so it can be transferred to other devices.
      * @throws SqlQueriesException
      */
-    public boolean onFileTransferred(AFile file, String hash, Transaction transaction, FsFile sourceFsFile) throws SqlQueriesException, IOException {
+    public boolean onFileTransferred(AFile file, String hash, Warden warden, FsFile sourceFsFile) throws SqlQueriesException, IOException {
         try {
 
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
@@ -218,21 +218,21 @@ public abstract class SyncHandler {
     }
 
 
-    public void commitStage(Long stageSetId, Transaction transaction) throws OutOfSpaceException {
-        commitStage(stageSetId, transaction, null);
+    public void commitStage(Long stageSetId, Warden warden) throws OutOfSpaceException {
+        commitStage(stageSetId, warden, null);
     }
 
 
     /**
      * @param stageSetId
      */
-    public void commitStage(Long stageSetId, Transaction transaction, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException {
+    public void commitStage(Long stageSetId, Warden warden, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException {
         /**
          * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
          */
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
-        transaction.run(() -> {
+        warden.run(() -> {
             // sop files being moved around
             fileDistributor.stop();
             StageSet stageSet = stageDao.getStageSetById(stageSetId);
@@ -491,7 +491,7 @@ public abstract class SyncHandler {
         transferManager.onShutDown();
     }
 
-    public boolean onFileTransferred(AFile file, String hash, Transaction transaction) throws IOException, SqlQueriesException {
-        return this.onFileTransferred(file, hash, transaction, null);
+    public boolean onFileTransferred(AFile file, String hash, Warden warden) throws IOException, SqlQueriesException {
+        return this.onFileTransferred(file, hash, warden, null);
     }
 }

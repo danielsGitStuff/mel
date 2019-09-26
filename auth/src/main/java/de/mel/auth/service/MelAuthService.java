@@ -34,8 +34,8 @@ import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.ShutDownDeferredManager;
 import de.mel.auth.tools.WaitLock;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mel.sql.SqlQueriesException;
@@ -45,7 +45,6 @@ import de.mel.sql.serialize.PairCollectionSerializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
 import de.mel.update.Updater;
 
-import org.jdeferred.DeferredManager;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
@@ -626,14 +625,14 @@ public class MelAuthService {
     private boolean isConnectedTo(Long certId) {
         AtomicBoolean connected = new AtomicBoolean(false);
         return N.result(() -> {
-            Transaction transaction = null;
+            Warden warden = null;
             try {
-                transaction = T.lockingTransaction(T.read(connectedEnvironment));
+                warden = P.confine(P.read(connectedEnvironment));
                 if (connectedEnvironment.getValidationProcess(certId) != null)
                     connected.set(true);
             } finally {
-                if (transaction != null)
-                    transaction.end();
+                if (warden != null)
+                    warden.end();
             }
             return connected.get();
         }, false);

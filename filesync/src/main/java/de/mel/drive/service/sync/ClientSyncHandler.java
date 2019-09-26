@@ -10,8 +10,8 @@ import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.auth.tools.WaitLock;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.drive.DriveSyncListener;
 import de.mel.drive.data.*;
@@ -52,7 +52,7 @@ public class ClientSyncHandler extends SyncHandler {
         FsDao fsDao = driveDatabaseManager.getFsDao();
         StageDao stageDao = driveDatabaseManager.getStageDao();
         TransferDao transferDao = driveDatabaseManager.getTransferDao();
-        Transaction transaction = T.lockingTransaction(fsDao);
+        Warden warden = P.confine(fsDao);
         N.forEach(hashes, s -> {
             // if is stage from server or is transfer -> flag as available
             N.forEach(stageDao.getUpdateStageSetsFromServer(), stageSet -> {
@@ -61,7 +61,7 @@ public class ClientSyncHandler extends SyncHandler {
             DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
             transferDao.updateAvailableByHashSet(clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), hashes);
         });
-        transaction.end();
+        warden.end();
         transferManager.research();
     }
 
@@ -152,13 +152,13 @@ public class ClientSyncHandler extends SyncHandler {
         StageDao stageDao = driveDatabaseManager.getStageDao();
 //        fsDao.unlockRead();
         //fsDao.lockWrite();
-        Transaction transaction = T.lockingTransaction(T.read(stageDao));
+        Warden warden = P.confine(P.read(stageDao));
         try {
             if (stageDao.stageSetHasContent(stageSetId)) {
                 //all other stages we can find at this point are complete/valid and wait at this point.
                 //todo conflict checking goes here - has to block
                 Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(clientSettings.getServerCertId());
-                connected.done(mvp -> transaction.run(() -> {
+                connected.done(mvp -> warden.run(() -> {
 // load to cached data structure
                     StageSet stageSet = stageDao.getStageSetById(stageSetId);
                     Commit commit = new Commit(melDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE, melDriveService.getUuid());
@@ -166,7 +166,7 @@ public class ClientSyncHandler extends SyncHandler {
                     commit.setBasedOnVersion(stageSet.getBasedOnVersion().v());
                     commit.setIntent(DriveStrings.INTENT_COMMIT);
                     Request committed = mvp.request(clientSettings.getServerServiceUuid(), commit);
-                    committed.done(res -> transaction.run(() -> {
+                    committed.done(res -> warden.run(() -> {
                         CommitAnswer answer = (CommitAnswer) res;
                         for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
                             Long fsId = answer.getStageIdFsIdMap().get(stageId);
@@ -180,11 +180,11 @@ public class ClientSyncHandler extends SyncHandler {
                         }
                         stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
                         stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
-                        commitStage(stageSetId, transaction);
+                        commitStage(stageSetId, warden);
                         researchTransfers();
                         transferManager.research();
-                        transaction.end();
-                    })).fail(result -> transaction.run(() -> {
+                        warden.end();
+                    })).fail(result -> warden.run(() -> {
                         if (result instanceof TooOldVersionException) {
                             Lok.debug("ClientSyncHandler.syncWithServer");
                             N.r(() -> {
@@ -201,15 +201,15 @@ public class ClientSyncHandler extends SyncHandler {
                                 Lok.debug("ClientSyncHandler.syncWithServer");
                             });
                         }
-                        transaction.end();
+                        warden.end();
                     }));
-                    transaction.after(commit::cleanUp);
-                })).fail(result -> transaction.run(() -> {
+                    warden.after(commit::cleanUp);
+                })).fail(result -> warden.run(() -> {
                     // todo server did not commit. it probably had a local change. have to solve it here
                     Exception ex = result;
                     System.err.println("MelDriveClientService.startIndexer.could not connect :( due to: " + ex.getMessage());
                     // fsDao.unlockWrite();
-                    transaction.end();
+                    warden.end();
                     melDriveService.onSyncFailed();
                 }));
             } else {
@@ -230,7 +230,7 @@ public class ClientSyncHandler extends SyncHandler {
      */
     public void execCommitJob(CommitJob commitJob) {
         Lok.debug("ClientSyncHandler.execCommitJob");
-        Transaction transaction = T.lockingTransaction(T.read(fsDao));
+        Warden warden = P.confine(P.read(fsDao));
         try {
             // first wait until every staging stuff is finished.
 
@@ -250,9 +250,9 @@ public class ClientSyncHandler extends SyncHandler {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            transaction.end();
+            warden.end();
         }
-        transaction = T.lockingTransaction(fsDao);
+        warden = P.confine(fsDao);
         try {
             // ReadLock bis hier
             // update from server
@@ -272,7 +272,7 @@ public class ClientSyncHandler extends SyncHandler {
             }
             if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
                 // method should create a new CommitJob with conflict solving details
-                handleConflict(updateSets.get(0), stagedFromFs.get(0), transaction);
+                handleConflict(updateSets.get(0), stagedFromFs.get(0), warden);
 //                setupTransfer();
                 Lok.debug("setupTransfers() was here before");
                 //transferManager.research();
@@ -292,8 +292,8 @@ public class ClientSyncHandler extends SyncHandler {
             } else if (updateSets.size() == 1) {
                 StageSet stageSet = updateSets.get(0);
                 if (stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_SERVER)) {
-                    Transaction finalTransaction = transaction;
-                    N.r(() -> commitStage(stageSet.getId().v(), finalTransaction));
+                    Warden finalWarden = warden;
+                    N.r(() -> commitStage(stageSet.getId().v(), finalWarden));
                     researchTransfers();
                     transferManager.research();
                 }
@@ -308,7 +308,7 @@ public class ClientSyncHandler extends SyncHandler {
             for (StageSet stageSet : updateSets) {
                 if (stageDao.stageSetHasContent(stageSet.getId().v())) {
                     try {
-                        commitStage(stageSet.getId().v(), transaction);
+                        commitStage(stageSet.getId().v(), warden);
                         researchTransfers();
                         hasCommitted = true;
                     } catch (OutOfSpaceException e) {
@@ -328,13 +328,13 @@ public class ClientSyncHandler extends SyncHandler {
             e.printStackTrace();
             melDriveService.onSyncFailed();
         } finally {
-            transaction.end();
+            warden.end();
         }
 
     }
 
-    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction) throws SqlQueriesException {
-        handleConflict(serverStageSet, stagedFromFs, transaction, null);
+    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Warden warden) throws SqlQueriesException {
+        handleConflict(serverStageSet, stagedFromFs, warden, null);
     }
 
 
@@ -345,7 +345,7 @@ public class ClientSyncHandler extends SyncHandler {
      * @param serverStageSet
      * @param stagedFromFs
      */
-    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Transaction transaction, String conflictHelperUuid) throws SqlQueriesException {
+    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Warden warden, String conflictHelperUuid) throws SqlQueriesException {
         String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
         ConflictSolver conflictSolver;
         // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
@@ -375,7 +375,7 @@ public class ClientSyncHandler extends SyncHandler {
                 // todo FsDir hash conflicts
                 conflictSolver.directoryStuff();
                 try {
-                    this.commitStage(serverStageSet.getId().v(), transaction);
+                    this.commitStage(serverStageSet.getId().v(), warden);
                     this.deleteObsolete(conflictSolver);
                 } catch (OutOfSpaceException e) {
                     e.printStackTrace();

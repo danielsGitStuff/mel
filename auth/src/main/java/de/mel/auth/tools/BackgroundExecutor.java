@@ -1,10 +1,8 @@
 package de.mel.auth.tools;
 
-import de.mel.Lok;
 import de.mel.MelRunnable;
 import de.mel.MelThread;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
@@ -57,7 +55,7 @@ public abstract class BackgroundExecutor {
 
     public void execute(MelRunnable runnable) {
         // noinspection Duplicates
-        T.lockingTransaction(this).run(() -> {
+        P.confine(this).run(() -> {
             threadSemaphore.acquire();
             runnable.onStart();
             if (executorService == null || executorService.isShutdown() || executorService.isTerminated())

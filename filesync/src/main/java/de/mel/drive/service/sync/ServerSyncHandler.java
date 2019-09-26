@@ -5,8 +5,8 @@ import de.mel.auth.file.AFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.core.serialize.exceptions.MelJsonException;
 import de.mel.drive.data.*;
 import de.mel.drive.quota.OutOfSpaceException;
@@ -55,7 +55,7 @@ public class ServerSyncHandler extends SyncHandler {
         return true;
     }
 
-    protected void executeCommit(Request request, Commit commit, Transaction transaction) throws SqlQueriesException {
+    protected void executeCommit(Request request, Commit commit, Warden warden) throws SqlQueriesException {
         // stage everything
         StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null, commit.getBasedOnVersion());
         Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
@@ -78,7 +78,7 @@ public class ServerSyncHandler extends SyncHandler {
         Long oldVersion = fsDao.getLatestVersion();
         Map<Long, Long> stageIdFsIdMap = new HashMap<>();
         try {
-            this.commitStage(stageSet.getId().v(), transaction, stageIdFsIdMap);
+            this.commitStage(stageSet.getId().v(), warden, stageIdFsIdMap);
         } catch (OutOfSpaceException e) {
             e.printStackTrace();
             request.reject(e);
@@ -111,21 +111,21 @@ public class ServerSyncHandler extends SyncHandler {
 
     public void handleCommit(Request request) throws SqlQueriesException {
         Commit commit = (Commit) request.getPayload();
-        Transaction transaction = T.lockingTransaction(fsDao);
+        Warden warden = P.confine(fsDao);
         try {
             if (!canCommit(request, commit))
                 return;
-            executeCommit(request, commit, transaction);
+            executeCommit(request, commit, warden);
         } finally {
-            transaction.end();
+            warden.end();
         }
         transferManager.research();
         Lok.debug("MelDriveServerService.handleCommit");
     }
 
     @Override
-    public boolean onFileTransferred(AFile file, String hash, Transaction transaction) throws SqlQueriesException, IOException {
-        boolean isNew = super.onFileTransferred(file, hash, transaction);
+    public boolean onFileTransferred(AFile file, String hash, Warden warden) throws SqlQueriesException, IOException {
+        boolean isNew = super.onFileTransferred(file, hash, warden);
         if (isNew)
             N.r(() -> hashAvailTimer.start());
         return isNew;

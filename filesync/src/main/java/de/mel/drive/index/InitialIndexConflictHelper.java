@@ -1,10 +1,9 @@
 package de.mel.drive.index;
 
-import de.mel.DeferredRunnable;
 import de.mel.Lok;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.tools.Order;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.data.DriveClientSettingsDetails;
 import de.mel.drive.data.DriveStrings;
 import de.mel.drive.service.MelDriveClientService;
@@ -16,7 +15,6 @@ import de.mel.drive.sql.dao.FsDao;
 import de.mel.drive.sql.dao.StageDao;
 import de.mel.sql.RWLock;
 import de.mel.sql.SqlQueriesException;
-import org.jdeferred.impl.DeferredObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -82,12 +80,12 @@ public class InitialIndexConflictHelper {
     }
 
     /**
-     * @param transaction
+     * @param warden
      * @param indexerRunnable
      * @return false if no conflict occured and this can be ignored
      * @throws SqlQueriesException
      */
-    public boolean onDone(Transaction transaction, IndexerRunnable indexerRunnable) throws SqlQueriesException {
+    public boolean onDone(Warden warden, IndexerRunnable indexerRunnable) throws SqlQueriesException {
         this.indexerRunnable = indexerRunnable;
         serverStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
         stageDao.updateStageSet(serverStageSet);
@@ -99,7 +97,7 @@ public class InitialIndexConflictHelper {
         }
         RWLock lock = new RWLock();
         // give it the uuid so it can unlock the wait lock
-        driveClientService.getSyncHandler().handleConflict(serverStageSet, fsStageSet, transaction, uuid);
+        driveClientService.getSyncHandler().handleConflict(serverStageSet, fsStageSet, warden, uuid);
 //        if (conflictSolvers.iterator().hasNext())
 
 //        ConflictSolver conflictSolver = new ConflictSolver(driveClientService.getDriveDatabaseManager(), serverStageSet, fsStageSet);

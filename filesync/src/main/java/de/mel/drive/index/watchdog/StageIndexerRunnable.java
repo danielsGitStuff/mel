@@ -1,8 +1,8 @@
 package de.mel.drive.index.watchdog;
 
 import de.mel.Lok;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.data.DriveStrings;
 import de.mel.drive.data.PathCollection;
 import de.mel.drive.index.AbstractIndexer;
@@ -35,11 +35,11 @@ public class StageIndexerRunnable extends AbstractIndexer {
     public void runImpl() {
         boolean unlocked = false;
         if (pathCollection.getPaths().size() > 0) {
-            Transaction transaction = T.lockingTransaction(T.read(fsDao));
+            Warden warden = P.confine(P.read(fsDao));
             try {
                 initStage(DriveStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener, databaseManager.getDriveSettings().getLastSyncedVersion());
                 examineStage();
-                transaction.end();
+                warden.end();
                 unlocked = true;
                 if (stageSetId != null)
                     stagingDoneListener.onStagingFsEventsDone(stageSetId);
@@ -49,10 +49,10 @@ public class StageIndexerRunnable extends AbstractIndexer {
             } finally {
                 if (!unlocked) {
                     Lok.debug("StageIndexerRunnable[" + stageSetId + "].runImpl.unlocking on " + Thread.currentThread().getName());
-                    transaction.end();
+                    warden.end();
                     Lok.debug("StageIndexerRunnable[" + stageSetId + "].runImpl.unlocked");
                 }
-                transaction.end();
+                warden.end();
             }
         } else {
             Lok.debug("StageIndexerRunnable.runImpl.got.empty.pathcollection");

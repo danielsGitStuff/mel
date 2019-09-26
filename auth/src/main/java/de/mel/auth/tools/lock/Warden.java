@@ -10,14 +10,14 @@ import java.util.List;
  * Holds read locks and normal locks on Objects that you put in T.lockingTransaction().
  */
 @SuppressWarnings("Duplicates")
-public class Transaction<P> {
+public class Warden<Type> {
 
     private Key key;
     private boolean finished = false;
     private boolean permaLocked = false;
     private List<TransactionRunnable> after = new ArrayList<>();
 
-    Transaction(boolean permaLocked) {
+    Warden(boolean permaLocked) {
         this.permaLocked = permaLocked;
     }
 
@@ -28,11 +28,11 @@ public class Transaction<P> {
     /**
      * Ends the transaction. It calls all {@link TransactionRunnable}s and stops holding any locks afterwards.
      */
-    public synchronized Transaction<P> end() {
+    public synchronized Warden<Type> end() {
         if (!finished) {
             finished = true;
             N.forEachIgnorantly(after, TransactionRunnable::run);
-            T.end(this);
+            P.free(this);
         }
         return this;
     }
@@ -47,23 +47,23 @@ public class Transaction<P> {
         return result;
     }
 
-    public <X, Y> Transaction<Y> runResult(TransactionResultRunnableExtended<P, Y> resultRunnable) {
+    public <X, Y> Warden<Y> runResult(TransactionResultRunnableExtended<Type, Y> resultRunnable) {
         if (finished) {
             Lok.error("lockingTransaction already finished!");
             return null;
         }
         if (!permaLocked)
-            T.access(this);
+            P.access(this);
         try {
-            result = resultRunnable.run((P) result);
+            result = resultRunnable.run((Type) result);
         } catch (Exception e) {
             Lok.error("lockingTransaction failed: " + e.toString() + " msg: " + e.getMessage());
             end();
         } finally {
             if (!permaLocked)
-                T.release(this);
+                P.release(this);
         }
-        return (Transaction<Y>) this;
+        return (Warden<Y>) this;
     }
 
     /**
@@ -72,13 +72,13 @@ public class Transaction<P> {
      * @param <Y>
      * @return
      */
-    public <Y> Transaction<Y> runResult(TransactionResultRunnable<Y> resultRunnable) {
+    public <Y> Warden<Y> runResult(TransactionResultRunnable<Y> resultRunnable) {
         if (finished) {
             Lok.error("lockingTransaction already finished!");
             return null;
         }
         if (!permaLocked)
-            T.access(this);
+            P.access(this);
         try {
             result = resultRunnable.run();
         } catch (Exception e) {
@@ -86,9 +86,9 @@ public class Transaction<P> {
             end();
         } finally {
             if (!permaLocked)
-                T.release(this);
+                P.release(this);
         }
-        return (Transaction<Y>) this;
+        return (Warden<Y>) this;
     }
 
     /**
@@ -96,13 +96,13 @@ public class Transaction<P> {
      * @param runnable
      * @return
      */
-    public Transaction run(TransactionRunnable runnable) {
+    public Warden run(TransactionRunnable runnable) {
         if (finished) {
             Lok.error("lockingTransaction already finished!");
             return this;
         }
         if (!permaLocked)
-            T.access(this);
+            P.access(this);
         try {
             runnable.run();
         } catch (Exception e) {
@@ -110,13 +110,13 @@ public class Transaction<P> {
             end();
         } finally {
             if (!permaLocked)
-                T.release(this);
+                P.release(this);
         }
         return this;
     }
 
-    public P get() {
-        return (P) result;
+    public Type get() {
+        return (Type) result;
     }
 
     /**

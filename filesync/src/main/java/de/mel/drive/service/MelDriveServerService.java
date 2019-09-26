@@ -9,8 +9,8 @@ import de.mel.auth.jobs.ServiceRequestHandlerJob;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.drive.data.DriveDetails;
 import de.mel.drive.data.DriveSettings;
@@ -57,7 +57,7 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
         Lok.debug("MelDriveServerService.onSyncReceived");
         SyncRequest task = (SyncRequest) request.getPayload();
         SyncAnswer answer = new SyncAnswer(cacheDirectory, CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE);
-        Transaction transaction = T.lockingTransaction(T.read(driveDatabaseManager.getFsDao()));
+        Warden warden = P.confine(P.read(driveDatabaseManager.getFsDao()));
         try {
             ISQLResource<GenericFSEntry> delta = driveDatabaseManager.getDeltaResource(task.getOldVersion());
             GenericFSEntry next = delta.getNext();
@@ -72,7 +72,7 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            transaction.end();
+            warden.end();
         }
     }
 
@@ -105,7 +105,7 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
                 }
             } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
                 Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
-                T.lockingTransaction(driveDatabaseManager.getTransferDao())
+                P.confine(driveDatabaseManager.getTransferDao())
                         .run(() -> {
                             ClientData clientData = driveSettings.getServerSettings().getClientData(authenticatedJob.getPartnerCertificate().getId().v());
                             driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
@@ -115,7 +115,7 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
             } else if (unknownJob instanceof Job.CertificateSpottedJob) {
                 // reset the remaining transfers so we can try again
                 Job.CertificateSpottedJob spottedJob = (Job.CertificateSpottedJob) unknownJob;
-                T.lockingTransaction(driveDatabaseManager.getTransferDao())
+                P.confine(driveDatabaseManager.getTransferDao())
                         .run(() -> {
                             ClientData clientData = driveSettings.getServerSettings().getClientData(spottedJob.getPartnerCertificate().getId().v());
                             driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
@@ -158,10 +158,10 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
             StageDao stageDao = driveDatabaseManager.getStageDao();
             //fsDao.unlockRead();
             if (stageDao.stageSetHasContent(stageSetId)) {
-                Transaction transaction = T.lockingTransaction(fsDao);
+                Warden warden = P.confine(fsDao);
                 //todo conflict checks
-                N.r(() -> syncHandler.commitStage(stageSetId, transaction));
-                transaction.end();
+                N.r(() -> syncHandler.commitStage(stageSetId, warden));
+                warden.end();
                 Lok.debug("committed stageset " + stageSetId);
                 propagateNewVersion();
             } else {

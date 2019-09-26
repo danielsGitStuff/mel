@@ -5,8 +5,8 @@ import de.mel.auth.data.access.CertificateManager
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.socket.process.`val`.Request
 import de.mel.auth.tools.N
-import de.mel.auth.tools.lock.T
-import de.mel.auth.tools.lock.Transaction
+import de.mel.auth.tools.lock.P
+import de.mel.auth.tools.lock.Warden
 import de.mel.drive.data.Commit
 import de.mel.drive.service.sync.ServerSyncHandler
 import de.mel.drive.sql.DbTransferDetails
@@ -20,11 +20,11 @@ import java.time.ZoneOffset
 class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetService) : ServerSyncHandler(melAuthService, targetService) {
     override fun handleCommit(request: Request<*>?) {
         val commit = request!!.payload as Commit
-        val transaction: Transaction<*> = T.lockingTransaction(fsDao)
+        val warden: Warden<*> = P.confine(fsDao)
         try {
-            executeCommit(request, commit, transaction)
+            executeCommit(request, commit, warden)
         } finally {
-            transaction.end()
+            warden.end()
         }
         transferManager.research()
         Lok.debug("MelDriveServerService.handleCommit")
@@ -32,15 +32,15 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
 
     private var booted = false
 
-    override fun commitStage(stageSetId: Long, transaction: Transaction<*>, stageIdFsIdMap: MutableMap<Long, Long>?) {
+    override fun commitStage(stageSetId: Long, warden: Warden<*>, stageIdFsIdMap: MutableMap<Long, Long>?) {
         val stageSet = stageDao.getStageSetById(stageSetId)
         // just let the first fs commit through, it is the boot index stage set
         if (stageSet.fromFs() && !booted) {
             booted = true
-            super.commitStage(stageSetId, transaction, stageIdFsIdMap)
+            super.commitStage(stageSetId, warden, stageIdFsIdMap)
             return
         }
-        transaction.run {
+        warden.run {
             val localVersion = fsDao.latestVersion + 1
             // put new stuff in place
             N.readSqlResource(stageDao.getNotDeletedStagesByStageSet(stageSetId)) { sqlResource: ISQLResource<Stage>, stage: Stage ->

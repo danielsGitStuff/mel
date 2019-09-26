@@ -27,8 +27,8 @@ import de.mel.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.DriveSyncListener;
 import de.mel.drive.data.DriveDetails;
 import de.mel.drive.data.DriveSettings;
@@ -211,7 +211,7 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
     protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload) {
         //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
         FsDao fsDao = driveDatabaseManager.getFsDao();
-        Transaction transaction = T.lockingTransaction(T.read(fsDao));
+        Warden warden = P.confine(P.read(fsDao));
         try {
 
             FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
@@ -271,7 +271,7 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            transaction.end();
+            warden.end();
         }
     }
 

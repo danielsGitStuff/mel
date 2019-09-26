@@ -1,13 +1,12 @@
 package de.mel.auth.tools;
 
 import de.mel.Lok;
-import de.mel.auth.tools.lock.T;
-import de.mel.auth.tools.lock.Transaction;
+import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock.Warden;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runners.model.TestTimedOutException;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,8 +31,8 @@ public class TTest {
     }
 
     private boolean triggerFlag;
-    private Transaction t;
-    private Transaction u;
+    private Warden t;
+    private Warden u;
     private Dummy A = new Dummy("AAA");
     private Dummy B = new Dummy("BBB");
     private Dummy C = new Dummy("CCC");
@@ -44,7 +43,7 @@ public class TTest {
     @Before
     public void setUp() {
         t = null;
-        T.reset();
+        P.reset();
         executor.shutdownNow();
         executor = Executors.newCachedThreadPool();
         waitLock = new WaitLock();
@@ -60,7 +59,7 @@ public class TTest {
 
     @Test
     public void lockIntersection() {
-        t = T.lockingTransaction(A, B);
+        t = P.confine(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -69,7 +68,7 @@ public class TTest {
         });
         executor.submit(() -> {
             try {
-                T.lockingTransaction(A, C);
+                P.confine(A, C);
                 triggerFlag = true;
                 fail("should not be reached");
                 waitLock.unlock();
@@ -86,7 +85,7 @@ public class TTest {
 
     @Test
     public void lockWhole() {
-        t = T.lockingTransaction(A, B);
+        t = P.confine(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -95,7 +94,7 @@ public class TTest {
         });
         executor.submit(() -> {
             try {
-                T.lockingTransaction(A, B);
+                P.confine(A, B);
                 triggerFlag = true;
                 fail("should not be reached");
             } catch (Exception e) {
@@ -112,7 +111,7 @@ public class TTest {
 
     @Test
     public void lockDifferent() {
-        t = T.lockingTransaction(A, B);
+        t = P.confine(A, B);
 
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -122,7 +121,7 @@ public class TTest {
             triggerFlag = true;
         });
         executor.submit(() -> {
-            T.lockingTransaction(C);
+            P.confine(C);
             Lok.debug("unlocking");
             waitLock.unlock();
         });
@@ -134,7 +133,7 @@ public class TTest {
 
     @Test
     public void lockReadThenWrite() {
-        t = T.lockingTransaction(T.read(A, B));
+        t = P.confine(P.read(A, B));
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -142,7 +141,7 @@ public class TTest {
             waitLock.unlock();
         });
         executor.submit(() -> {
-            T.lockingTransaction(B);
+            P.confine(B);
             Lok.debug("unlocking");
             triggerFlag = true;
             waitLock.unlock();
@@ -158,7 +157,7 @@ public class TTest {
         Semaphore semaphore = new Semaphore(1, false);
 //        t = T.lockingTransaction(A, B);
         Thread thread1 = new Thread(() -> {
-            Transaction t1 = T.lockingTransaction(A, B);
+            Warden t1 = P.confine(A, B);
             t1.run(() -> {
                 Lok.debug("got t1");
                 try {
@@ -180,7 +179,7 @@ public class TTest {
         Thread thread3 = new Thread(() -> {
 //            N.r(() -> Thread.sleep(100));
             Lok.debug("trying to get t3");
-            Transaction t3 = T.lockingTransaction(A, B);
+            Warden t3 = P.confine(A, B);
             Lok.debug("got t3");
             t3.end();
             waitLock.unlock();
@@ -205,7 +204,7 @@ public class TTest {
     public void lockThenThreadDies() {
 //        t = T.lockingTransaction(A, B);
         Thread thread1 = new Thread(() -> {
-            Transaction t1 = T.lockingTransaction(A, B);
+            Warden t1 = P.confine(A, B);
             Lok.debug("got t1");
             Semaphore semaphore = new Semaphore(1, false);
             try {
@@ -224,7 +223,7 @@ public class TTest {
         Thread thread3 = new Thread(() -> {
 //            N.r(() -> Thread.sleep(100));
             Lok.debug("trying to get t3");
-            Transaction t3 = T.lockingTransaction(A, B);
+            Warden t3 = P.confine(A, B);
             Lok.debug("got t3");
             t3.end();
             waitLock.unlock();
@@ -246,7 +245,7 @@ public class TTest {
 
     @Test
     public void lockWriteThenRead() {
-        t = T.lockingTransaction(A, B);
+        t = P.confine(A, B);
 
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -255,7 +254,7 @@ public class TTest {
             waitLock.unlock();
         });
         executor.submit(() -> {
-            T.lockingTransaction(T.read(B));
+            P.confine(P.read(B));
             Lok.debug("unlocking");
             triggerFlag = true;
             waitLock.unlock();
@@ -268,8 +267,8 @@ public class TTest {
 
     @Test
     public void lockLater() {
-        t = T.tNoLock(A, B);
-        u = T.lockingTransaction(A, B);
+        t = P.onProbation(A, B);
+        u = P.confine(A, B);
         executor.submit(() -> {
             // shutdown
             N.r(() -> Thread.sleep(100));
@@ -293,7 +292,7 @@ public class TTest {
 
     @Test
     public void accessTwice() {
-        t = T.tNoLock(A, B);
+        t = P.onProbation(A, B);
         executor.submit(() -> {
             N.oneLine(() -> Thread.sleep(100));
             Lok.debug("evaluating results...");
@@ -316,7 +315,7 @@ public class TTest {
 
     @Test
     public void endWhileRun() {
-        t = T.tNoLock(A, B);
+        t = P.onProbation(A, B);
         executor.submit(() -> {
             t.run(() -> {
                 Lok.debug("sleep");

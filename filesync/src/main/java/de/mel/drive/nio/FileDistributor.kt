@@ -6,6 +6,7 @@ import de.mel.auth.MelNotification
 import de.mel.auth.file.AFile
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.tools.N
+import de.mel.auth.tools.lock.P
 import de.mel.drive.bash.BashTools
 import de.mel.drive.data.DriveStrings
 import de.mel.drive.service.MelDriveService
@@ -13,7 +14,6 @@ import de.mel.drive.sql.FsFile
 import java.io.File
 import java.io.IOException
 import java.util.*
-import java.util.concurrent.atomic.AtomicInteger
 
 @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
 open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) : MelRunnable {
@@ -185,7 +185,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) :
                 moveFile(sourceFile, lastFile, lastPath, lastId)
                 // update synced flag
                 if (lastId != null)
-                    de.mel.auth.tools.lock.T.lockingTransaction(fsDao).run {
+                    P.confine(fsDao).run {
                         val fsFile = updateFs(lastId, lastFile)
                         setCreationDate(lastFile, fsFile.created.v())
                     }.end()
@@ -224,7 +224,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) :
             throw  IOException("file already exists")
         rawCopyFile(source, target)
         if (fsId != null) {
-            de.mel.auth.tools.lock.T.lockingTransaction(fsId).run {
+            P.confine(fsId).run {
                 val fsFile = updateFs(fsId, target)
                 setCreationDate(target, fsFile.created.v())
             }.end()
