@@ -4,6 +4,8 @@
 .DS_Store
 /build
 .idea/
+*.class
+*.jar
 
 /app/build
 /blog/build
@@ -24,9 +26,9 @@
 
 app/src/main/assets/drive.sql
 app/src/main/assets/sql.sql
-/drivefx/melauth.workingdir.1
-/drivefx/melauth.workingdir.2
-/drivefx/target
+/filesyncfx/melauth.workingdir.1
+/filesyncfx/melauth.workingdir.2
+/filesyncfx/target
 /authfx/target
 /auth/target
 /sql/target

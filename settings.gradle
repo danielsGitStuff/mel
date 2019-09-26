@@ -1,4 +1,4 @@
-include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':drivefx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts',':blog', ':filedump', ':filedumpfx'
+include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts',':blog', ':filedump', ':filedumpfx'
 //include ':app', ':json', ':serialize', ':sql', ':auth', ':drive', ':contacts', ':icons', ':konsole', ':lok', ':calendar', ':serverparts', ':messenger'
 
 project(':app').projectDir = new File('app')
@@ -19,7 +19,7 @@ project(':filedumpfx').projectDir = new File('filedumpfx')
 
 project(':miniserver').projectDir = new File('miniserver')
 project(':authfx').projectDir = new File('authfx')
-project(':drivefx').projectDir = new File('drivefx')
+project(':filesyncfx').projectDir = new File('filesyncfx')
 project(':contactsfx').projectDir = new File('contactsfx')
 project(':fxbundle').projectDir = new File('fxbundle')
 project(':blog').projectDir = new File('blog')

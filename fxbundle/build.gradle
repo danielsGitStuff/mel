@@ -27,7 +27,7 @@ sourceSets {
     main {
         resources {
             srcDir "${project(':filedumpfx').projectDir}/src/main/resources"
-            srcDir "${project(':drivefx').projectDir}/src/main/resources"
+            srcDir "${project(':filesyncfx').projectDir}/src/main/resources"
             srcDir "${project(':filesync').projectDir}/src/main/resources"
             srcDir "${project(':contactsfx').projectDir}/src/main/resources"
             srcDir "${project(':contacts').projectDir}/src/main/resources"
@@ -49,7 +49,7 @@ dependencies {
     compile project(':konsole')
     compile project(':auth')
     compile project(':authfx')
-    compile project(path: ':drivefx')
+    compile project(path: ':filesyncfx')
     compile project(path: ':contactsfx')
     testCompile project(configuration: 'driveTestOutput', path: ':filesync')
     testCompile 'junit:junit:4.12'

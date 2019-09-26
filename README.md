@@ -87,17 +87,17 @@ You can find all licenses and according modules and usage under `auth/src/main/r
 
 ## Dev stuff
 ### Modules
-- `app`: Android implementation of `auth`, `drive`, `contacts` and `dump`
+- `app`: Android implementation of `auth`, `filesync`, `contacts` and `filedump`
 - `auth`: handles pairing, key management, connections, sending/receiving data, service management
 - `authfx`: wraps `auth` into a GUI on PCs so you can click on things
 - `blog`: runs a web server with your blog. 
 - `contacts`: stores contacts
 - `contactsfx`: a bit of GUI
-- `drive`: file syncing, all the logical stuff
-- `drivefx`: adds GUI for creating/editing services and conflict solving
-- `dump`: file syncing, in one direction only, derivative of `drive`
-- `dumpfx`: a bit of GUI
-- `fxbundle`: bundles `authfx`, `contactsfx`, `drivefx` and `dumpfx`
+- `filesync`: file syncing, all the logical stuff
+- `filesyncfx`: adds GUI for creating/editing services and conflict solving
+- `filedump`: file syncing, in one direction only, derivative of `filesync`
+- `filedumpfx`: a bit of GUI
+- `fxbundle`: bundles `authfx`, `contactsfx`, `filesyncfx` and `filedumpfx`
 - `icons`: icons 'stolen' from KDE Plasma 5 plus some own
 - `json`: json lib created by Douglas Crockford
 - `konsole`: make reading command line arguments a bit easier and stay simple
