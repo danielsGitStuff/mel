@@ -9,7 +9,7 @@ public abstract class DriveStrings {
     public static final int DB_VERSION = 1;
 
     // communication related stuff
-    public static final String NAME = "MelDrive";
+    public static final String NAME = "File Sync";
     public static final String INTENT_DRIVE_DETAILS = "getDriveDetails"; //
     public static final String INTENT_REG_AS_CLIENT = "regAsClient"; //
     public static final String ROLE_SERVER = "server";

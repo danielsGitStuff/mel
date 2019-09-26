@@ -18,7 +18,7 @@ public class DriveFXBootloader extends DriveBootloader implements BootLoaderFX<M
 
     @Override
     public String getCreateFXML() {
-        return "de/mel/drive/create.embedded.fxml";
+        return "de/mel/filesyncfx/create.embedded.fxml";
     }
 
     @Override
@@ -29,13 +29,13 @@ public class DriveFXBootloader extends DriveBootloader implements BootLoaderFX<M
 
     @Override
     public String getEditFXML(MelDriveService melService) {
-        return (melService instanceof MelDriveServerService) ? "de/mel/drive/editserver.fxml" : "de/mel/drive/editclient.fxml";
+        return (melService instanceof MelDriveServerService) ? "de/mel/filesyncfx/editserver.fxml" : "de/mel/filesyncfx/editclient.fxml";
     }
 
     @Override
     public String getPopupFXML(IMelService melService, MelNotification melNotification) {
         if (melNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED)) {
-            return "de/mel/drive/popupconflict.olde.fxml";
+            return "de/mel/filesyncfx/popupconflict.olde.fxml";
         }
         if (melNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_PROGRESS)
                 || melNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_BOOT)) {
@@ -46,12 +46,12 @@ public class DriveFXBootloader extends DriveBootloader implements BootLoaderFX<M
 
     @Override
     public String getIconURL() {
-        return "de/mel/drive/drive.png";
+        return "de/mel/filesyncfx/drive.png";
     }
 
     @Override
     public ResourceBundle getResourceBundle(Locale locale) {
-        return ResourceBundle.getBundle("de/mel/drive/strings", locale);
+        return ResourceBundle.getBundle("de/mel/filesyncfx/strings", locale);
 
     }
 }
