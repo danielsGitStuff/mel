@@ -87,7 +87,7 @@ public class CertificateManager extends FileRelatedManager {
         if (keyStoreFile.exists()) {
             boolean deleted = keyStoreFile.delete();
             if (!deleted)
-                Lok.error("CertificateManager().KEYSTORE.NOT.DELETED: "+keyStoreFile.getAbsolutePath());
+                Lok.error("CertificateManager().KEYSTORE.NOT.DELETED: " + keyStoreFile.getAbsolutePath());
         }
         keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(null, PASS.toCharArray());
@@ -236,7 +236,7 @@ public class CertificateManager extends FileRelatedManager {
             privateKey = null;
             publicKey = null;
             certificate = null;
-            Lok.error("error loading existing keys");
+            Lok.error("error loading existing keys, cause: " + e.getClass().getSimpleName());
         }
         return false;
     }
