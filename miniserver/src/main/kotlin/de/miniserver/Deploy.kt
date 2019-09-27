@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.security.SecureRandom
 import java.util.*
+import kotlin.system.exitProcess
 
 class Deploy(val miniServer: MiniServer, private val secretFile: File, val buildRequest: BuildRequest) {
     var props: Properties = Properties()
@@ -142,7 +143,8 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
             // delete stop pipe
             miniServer.inputReader?.stop()
             // restart
-            miniServer.reboot(serverDir, miniServerTarget)
+            exitProcess(-1)
+//            miniServer.reboot(serverDir, miniServerTarget)
         }
     }
 
