@@ -79,51 +79,10 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     keyStorePropFile.delete()
             }
             Lok.info("setting up deployed dir ${serverDir.absolutePath}")
-            if (serverDir.exists()) {
-                // move secret dir
-                val secretDir = File(serverDir, "secret")
-                val secretMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
-                if (secretDir.exists()) {
-                    secretDir.renameTo(secretMovedDir)
-                }
-                // move blog dir
-                val blogDir = File(serverDir, "blog")
-                val blogMovedDir = File(projectRootDir, SecureRandom().nextInt().toString())
-                if (blogDir.exists())
-                    blogDir.renameTo(blogMovedDir)
-                // move server.jar
-                val miniServerBackup = File(miniServerDir, "server.backup.jar")
-                var miniBackup = false
-                if (!buildRequest.server!! && miniServerTarget.exists()) {
-                    miniServerTarget.renameTo(miniServerBackup)
-                    miniBackup = true
-                }
-                // move files folder
-                val filesFolder = File(serverDir, "files")
-                val filesBackupFolder = File("files.backup.${Date().time}")
-                if (miniServer.config.keepBinaries) {
-                    filesFolder.renameTo(filesBackupFolder)
-                }
-                serverDir.deleteRecursively()
-                serverDir.mkdirs()
-                // move back secret dir
-                if (secretMovedDir.exists()) {
-                    serverDir.mkdirs()
-                    secretMovedDir.renameTo(secretDir)
-                }
-                // move back server.jar
-                if (miniBackup) {
-                    miniServerBackup.renameTo(miniServerTarget)
-                }
-                // move back blog dir
-                if (blogMovedDir.exists())
-                    blogMovedDir.renameTo(blogDir)
-                if (miniServer.config.keepBinaries) {
-                    filesBackupFolder.renameTo(filesFolder)
-                }
+            val serverFilesDir = File(serverDir,"files")
+            if (!buildRequest.keepBinaries!!){
+                serverFilesDir.deleteRecursively()
             }
-            serverDir.mkdirs()
-            val serverFilesDir = File(serverDir, "files")
             serverFilesDir.mkdirs()
             //copy MiniServer.jar
             val processList = mutableListOf<Processor>()
@@ -143,8 +102,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
             // delete stop pipe
             miniServer.inputReader?.stop()
             // restart
-            exitProcess(-1)
-//            miniServer.reboot(serverDir, miniServerTarget)
+            miniServer.reboot(serverDir, miniServerTarget)
         }
     }
 

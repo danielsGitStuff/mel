@@ -223,6 +223,15 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     }
                 }
         blogThingy.configureContext(server)
+//        val buildRequest = BuildRequest()
+//        buildRequest.apk = false
+//        buildRequest.blog = false
+//        buildRequest.jar = false
+//        buildRequest.pw = "a"
+//        buildRequest.server = false
+//        buildRequest.keepBinaries = true
+//        val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)
+//        deploy.run()
     }
 
 
