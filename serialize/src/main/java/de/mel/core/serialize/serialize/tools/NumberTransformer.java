@@ -5,60 +5,71 @@ import java.util.Map;
 
 /**
  * Used to cast a JavaScript number to the desired Java Number type.
- * 
- * @author xor
  *
+ * @author xor
  */
 public enum NumberTransformer {
-	INT(Integer.class) {
-		@Override
-		public Number cast(Number n) {
-			return n == null ? null : n.intValue();
-		}
-	},
-	LONG(Long.class) {
-		@Override
-		public Number cast(Number n) {
-			return n == null ? null : n.longValue();
-		}
-	},
-	NULL(null) {
-		@Override
-		public Number cast(Number n) {
-			return null;
-		}
-	},
-	DOUBLE(Double.class) {
-		@Override
-		public Number cast(Number n) {
-			return n == null ? null : n.doubleValue();
-		}
-	},
-	FLOAT(Float.class) {
-		@Override
-		public Number cast(Number n) {
-			return n == null ? null : n.floatValue();
-		}
-	};
+    INT(Integer.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : n.intValue();
+        }
+    },
+    LONG(Long.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : n.longValue();
+        }
+    },
+    NULL(null) {
+        @Override
+        public Number cast(Number n) {
+            return null;
+        }
+    },
+    DOUBLE(Double.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : n.doubleValue();
+        }
+    },
+    FLOAT(Float.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : n.floatValue();
+        }
+    },
+    SHORT(Short.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : n.shortValue();
+        }
+    },
+    BYTE(Byte.class) {
+        @Override
+        public Number cast(Number n) {
+            return n == null ? null : n.byteValue();
+        }
+    };
 
-	private final static Map<Class<? extends Number>, NumberTransformer> TRANSFORMER_MAP = new HashMap<>();
+    private final static Map<Class<? extends Number>, NumberTransformer> TRANSFORMER_MAP = new HashMap<>();
 
-	static {
-		for (NumberTransformer tranformer : values()) {
-			TRANSFORMER_MAP.put(tranformer.type, tranformer);
-		}
-	}
+    static {
+        for (NumberTransformer tranformer : values()) {
+            TRANSFORMER_MAP.put(tranformer.type, tranformer);
+        }
+    }
 
-	private final Class<? extends Number> type;
+    private final Class<? extends Number> type;
 
-	NumberTransformer(Class<? extends Number> type) {
-		this.type = type;
-	}
+    NumberTransformer(Class<? extends Number> type) {
+        this.type = type;
+    }
 
-	public abstract Number cast(Number n);
+    public abstract Number cast(Number n);
 
-	public static NumberTransformer forType(Class<? extends Number> type) {
-		final NumberTransformer t = TRANSFORMER_MAP.get(type);
-		return t == null ? NULL : t;
-	}
+    public static NumberTransformer forType(Class<? extends Number> type) {
+        final NumberTransformer t = TRANSFORMER_MAP.get(type);
+        return t == null ? NULL : t;
+    }
 }
