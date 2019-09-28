@@ -17,6 +17,7 @@ public class PrimitiveDeserializer implements FieldDeserializer {
     public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object value) throws IllegalAccessException {
         if (typeClass == null)
             typeClass = field.getType();
+        System.err.println("DEBUG.DES: " + entity.getClass().getSimpleName() + " ,, " + (field == null ? "null" : field.getName()) + " ,, " + typeClass.getSimpleName() + " ,, " + value);
         value = JSON2Primtive(typeClass, value);
         if (field != null)
             field.set(entity, value);
