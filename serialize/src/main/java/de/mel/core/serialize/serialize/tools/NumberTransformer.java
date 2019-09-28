@@ -51,7 +51,7 @@ public enum NumberTransformer {
 
 	private final Class<? extends Number> type;
 
-	private NumberTransformer(Class<? extends Number> type) {
+	NumberTransformer(Class<? extends Number> type) {
 		this.type = type;
 	}
 
