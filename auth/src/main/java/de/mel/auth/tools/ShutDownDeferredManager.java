@@ -24,7 +24,7 @@ public class ShutDownDeferredManager {
     public DeferredObject<Void, Void, Void> digest() {
         // resolve() under any circumstances. "Nach mir die Sintflut!"
         if (promiseList.size() > 0) {
-            manager.when(promiseList.toArray(Promise[]::new)).done(result -> deferred.resolve(null)).fail(result -> deferred.resolve(null));
+            manager.when(promiseList.toArray(new Promise[0])).done(result -> deferred.resolve(null)).fail(result -> deferred.resolve(null));
         } else {
             deferred.resolve(null);
         }

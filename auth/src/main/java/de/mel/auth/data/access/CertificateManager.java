@@ -196,16 +196,22 @@ public class CertificateManager extends FileRelatedManager {
     private byte[] readFile(String fileName) throws IOException {
         String path = createWorkingPath() + fileName;
         File f = new File(path);
-        Lok.debug("trying to read from " + path);
-        BufferedInputStream dis = new BufferedInputStream(new FileInputStream(f));
-        return dis.readAllBytes();
+        DataInputStream dis = new DataInputStream(new FileInputStream(f));
+        byte[] bytes = new byte[(int) f.length()];
+        dis.readFully(bytes);
+        dis.close();
+        return bytes;
     }
 
     private boolean loadKeys() throws IOException, ClassNotFoundException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
         try {
-            BufferedInputStream is = new BufferedInputStream(CertificateManager.class.getClassLoader().getResourceAsStream("/de/mel/auth/update.server.cert"));
-            byte[] bytes = is.readAllBytes();
-            is.close();
+            URL url = getClass().getResource("/de/mel/auth/update.server.cert");
+            File f = new File(url.getFile());
+            DataInputStream dis = new DataInputStream(getClass().getResourceAsStream("/de/mel/auth/update.server.cert"));
+            int length = url.openConnection().getContentLength();
+            byte[] bytes = new byte[length];
+            dis.readFully(bytes);
+            dis.close();
             updateServerCertificate = loadX509CertificateFromBytes(bytes);
             storeCertInKeyStore(UPDATE_SERVER_CERT_NAME, updateServerCertificate);
             updateServerCertificateHash = Hash.sha256(bytes);
