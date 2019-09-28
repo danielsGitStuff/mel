@@ -45,7 +45,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (gradleCache.exists())
                     gradleCache.deleteRecursively()
                 Processor.runProcesses("clean",
-                        Processor("rm", "-rf", projectRootDir.absolutePath + "*/build"),
+                        Processor("rm", "-rf", projectRootDir.absolutePath + "/*/build"),
                         Processor(gradle.absolutePath, "clean"),
                         Processor(gradle.absolutePath, ":app:clean"))
 
