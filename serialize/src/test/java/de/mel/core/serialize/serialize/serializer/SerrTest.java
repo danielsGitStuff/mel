@@ -195,6 +195,7 @@ public class SerrTest {
     public void number() throws JsonSerializationException, JsonDeserializationException {
         SimpleSerializableEntity simpleSerializableEntity = new SimpleSerializableEntity().setNumber(567);
         String json = SerializableEntitySerializer.serialize(simpleSerializableEntity);
+        json = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.SimpleSerializableEntity\",\"number\":\"567\"}";
         SimpleSerializableEntity des = (SimpleSerializableEntity) SerializableEntityDeserializer.deserialize(json);
         assertEquals(simpleSerializableEntity.getNumber(),des.getNumber());
 

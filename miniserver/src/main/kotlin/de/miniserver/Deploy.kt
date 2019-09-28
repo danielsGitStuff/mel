@@ -40,7 +40,12 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 keyProps["storeFile"] = keyStoreFile.absolutePath
                 keyProps.store(keyStorePropFile.outputStream(), "keep me private")
                 //clean
+                //gradle is senile from time to time and might mix up old compiled code with the recent one.
+                val gradleCache = File(projectRootDir, ".gradle")
+                if (gradleCache.exists())
+                    gradleCache.deleteRecursively()
                 Processor.runProcesses("clean",
+                        Processor("rm", "-rf", projectRootDir.absolutePath + "*/build"),
                         Processor(gradle.absolutePath, "clean"),
                         Processor(gradle.absolutePath, ":app:clean"))
 
@@ -65,6 +70,8 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
                 // assemble binaries
                 val processList = mutableListOf<Processor>()
+
+
                 if (buildRequest.jar!!)
                     processList.add(Processor(gradle.absolutePath, ":fxbundle:buildFxJar"))
                 if (buildRequest.apk!!)
@@ -79,8 +86,8 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     keyStorePropFile.delete()
             }
             Lok.info("setting up deployed dir ${serverDir.absolutePath}")
-            val serverFilesDir = File(serverDir,"files")
-            if (!buildRequest.keepBinaries!!){
+            val serverFilesDir = File(serverDir, "files")
+            if (!buildRequest.keepBinaries!!) {
                 serverFilesDir.deleteRecursively()
             }
             serverFilesDir.mkdirs()
