@@ -228,7 +228,7 @@ void bRelease() {
     p['version'] = project.buildVersion
     p['variant'] = "apk-release"
     File parent = new File("$buildDir/outputs/apk/release")
-    println("writing app.properties file to $p{arent.absolutePath}")
+    println("writing app.properties file to ${parent.absolutePath}")
     parent.mkdirs()
     String sign = signed ? "" : "-unsigned"
     new File(parent, "${archivesBaseName}-release${sign}.apk.properties").withWriter { w -> p.store(w, null) }
