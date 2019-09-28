@@ -192,6 +192,15 @@ public class SerrTest {
     }
 
     @Test
+    public void number() throws JsonSerializationException, JsonDeserializationException {
+        SimpleSerializableEntity simpleSerializableEntity = new SimpleSerializableEntity().setNumber(567);
+        String json = SerializableEntitySerializer.serialize(simpleSerializableEntity);
+        SimpleSerializableEntity des = (SimpleSerializableEntity) SerializableEntityDeserializer.deserialize(json);
+        assertEquals(simpleSerializableEntity.getNumber(),des.getNumber());
+
+    }
+
+    @Test
     public void ring() {
         SimpleSerializableEntity root = new SimpleSerializableEntity();
         SimpleSerializableEntity child = new SimpleSerializableEntity();
