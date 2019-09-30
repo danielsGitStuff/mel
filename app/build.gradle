@@ -116,7 +116,9 @@ android {
 //            version "3.10.2"
 //        }
 //    }
-
+    afterEvaluate {
+        packageRelease.finalizedBy(propsFile)
+    }
 }
 
 
@@ -165,6 +167,19 @@ task propertiesFileHack(type: Copy) {
 //    if(taskName.startsWith("assemble"))
 //        taskName = taskName.substring("assemble".length()).toLowerCase()
     println("taskName=$taskName class of buildVersion: ${project.buildVersion.getClass().simpleName}")
+
+}
+
+
+preBuild {
+    println("app.prebuild()")
+    dependsOn copyFiles
+    dependsOn createProperties
+    dependsOn propertiesFileHack
+}
+
+task propsFile() {
+    println("finalize")
     if (taskName == "assemble") {
         bDebug()
         bRelease()
@@ -175,14 +190,7 @@ task propertiesFileHack(type: Copy) {
     }
     println("propertiesFileHack().end")
 }
-
-
-preBuild {
-    println("app.prebuild()")
-    dependsOn copyFiles
-    dependsOn createProperties
-    dependsOn propertiesFileHack
-}
+//build.finalizedBy(finalize)
 
 dependencies {
     //multidex
