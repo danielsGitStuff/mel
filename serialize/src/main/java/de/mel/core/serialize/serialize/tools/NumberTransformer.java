@@ -52,15 +52,7 @@ public enum NumberTransformer {
         }
     };
 
-    private final static Map<Class<? extends Number>, NumberTransformer> TRANSFORMER_MAP = new HashMap<>();
-
-    static {
-        for (NumberTransformer transformer : values()) {
-            //todo debug
-            System.err.println("DEBUG: add " + transformer.type);
-            TRANSFORMER_MAP.put(transformer.type, transformer);
-        }
-    }
+    private static Map<Class<? extends Number>, NumberTransformer> TRANSFORMER_MAP = null;
 
     private final Class<? extends Number> type;
 
@@ -71,7 +63,18 @@ public enum NumberTransformer {
     public abstract Number cast(Number n);
 
     public static NumberTransformer forType(Class<? extends Number> type) {
+        if (TRANSFORMER_MAP == null)
+            init();
         final NumberTransformer t = TRANSFORMER_MAP.get(type);
         return t == null ? NULL : t;
+    }
+
+    private static void init() {
+        TRANSFORMER_MAP = new HashMap<>();
+        for (NumberTransformer transformer : values()) {
+            //todo debug
+            System.err.println("DEBUG: add " + transformer.type);
+            TRANSFORMER_MAP.put(transformer.type, transformer);
+        }
     }
 }
