@@ -99,7 +99,7 @@ android {
             System.err.println("build version class " + buildVersion.getClass().getSimpleName())
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
             buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
-           // proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -179,7 +179,7 @@ preBuild {
 }
 
 task propsFile() {
-    println("finalize $taskName")
+    println("finalize")
     if (taskName == "assemble") {
         bDebug()
         bRelease()
@@ -235,10 +235,7 @@ void bRelease() {
     Properties p = new Properties()
     p['version'] = project.buildVersion
     p['variant'] = "apk-release"
-    File miniserver = new File(rootDir, "miniserver")
-    File serverDir = new File(miniserver, "server")
-    File filesDir = new File(serverDir, "files")
-    File parent = filesDir //new File("$buildDir/outputs/apk/release")
+    File parent = new File("$buildDir/outputs/apk/release")
     parent.mkdirs()
     String sign = signed ? "" : "-unsigned"
     File target = new File(parent, "${archivesBaseName}-release${sign}.apk.properties")
