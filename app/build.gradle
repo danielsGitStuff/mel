@@ -99,7 +99,7 @@ android {
             System.err.println("build version class " + buildVersion.getClass().getSimpleName())
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
             buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+           // proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
