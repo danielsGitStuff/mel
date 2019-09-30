@@ -28,6 +28,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 val secretDir = File(serverDir, "secret")
                 val gradle = File(projectRootDir, "gradlew")
                 val miniServerTarget = File(serverDir, "miniserver.jar")
+                val serverFilesDir = File(serverDir, "files")
                 Lok.info("working dir ${projectRootDir.absolutePath}")
 
                 // pull
@@ -51,6 +52,12 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                             Processor("rm", "-rf", projectRootDir.absolutePath + "/*/build"),
                             Processor(gradle.absolutePath, "clean"),
                             Processor(gradle.absolutePath, ":app:clean"))
+
+                    Lok.info("setting up deployed dir ${serverDir.absolutePath}")
+                    if (!buildRequest.keepBinaries!!) {
+                        serverFilesDir.deleteRecursively()
+                    }
+                    serverFilesDir.mkdirs()
 
                     //put update server certificate in place
                     val updateCertFile = File(File(File(serverDir, "secret"), "socket"), "cert.cert")
@@ -88,12 +95,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     if (keyStorePropFile.exists())
                         keyStorePropFile.delete()
                 }
-                Lok.info("setting up deployed dir ${serverDir.absolutePath}")
-                val serverFilesDir = File(serverDir, "files")
-                if (!buildRequest.keepBinaries!!) {
-                    serverFilesDir.deleteRecursively()
-                }
-                serverFilesDir.mkdirs()
+
                 //copy MiniServer.jar
                 val processList = mutableListOf<Processor>()
                 if (buildRequest.server!!) {
