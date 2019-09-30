@@ -55,8 +55,10 @@ public enum NumberTransformer {
     private final static Map<Class<? extends Number>, NumberTransformer> TRANSFORMER_MAP = new HashMap<>();
 
     static {
-        for (NumberTransformer tranformer : values()) {
-            TRANSFORMER_MAP.put(tranformer.type, tranformer);
+        for (NumberTransformer transformer : values()) {
+            //todo debug
+            System.err.println("DEBUG: add " + transformer.type);
+            TRANSFORMER_MAP.put(transformer.type, transformer);
         }
     }
 
