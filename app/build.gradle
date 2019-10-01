@@ -20,7 +20,8 @@ buildscript {
     }
 }
 // define mel specific stuff here
-def keyPropFile = rootProject.file("keystore.properties")
+// keyStorePropFile MUST be private !!!
+def keyStorePropFile = rootProject.file("keystore.properties")
 ext {
     signed = false
     buildVersion = new Date().getTime().toString()
@@ -40,8 +41,21 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", "${applicationId}")
     }
+    // read apk signing key props here
     signingConfigs {
-
+        def p = new Properties()
+        if (keyStorePropFile.exists()) {
+            p.load(new FileInputStream(keyStorePropFile))
+            release {
+                keyAlias p['keyAlias']
+                keyPassword p['keyPassword']
+                storeFile file(p['storeFile'])
+                storePassword p['storePassword']
+            }
+            signed = true
+        } else {
+            println "could not find key store prop file. cannot sign apk."
+        }
     }
     compileOptions {
         encoding 'UTF-8'
@@ -50,6 +64,8 @@ android {
     }
     buildTypes {
         release {
+            if (keyStorePropFile.exists())
+                signingConfig signingConfigs.release
             manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
             buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
@@ -71,14 +87,18 @@ android {
 task releaseWithProps {
     dependsOn 'assembleRelease'
     doLast {
-        println("RELEASE WITH PROPS")
-        Properties p = new Properties()
-        p['version'] = project.buildVersion
-        p['variant'] = 'apk-release'
-        File output = new File("$buildDir/outputs/apk/release")
-        output.mkdirs()
-        new File(output, "${archivesBaseName}-release.apk.properties")
-                .withWriter { w -> p.store(w, null) }
+        if (signed) {
+            println("RELEASE WITH PROPS")
+            Properties p = new Properties()
+            p['version'] = project.buildVersion
+            p['variant'] = 'apk-release'
+            File output = new File("$buildDir/outputs/apk/release")
+            output.mkdirs()
+            new File(output, "${archivesBaseName}-release.apk.properties")
+                    .withWriter { w -> p.store(w, null) }
+        } else {
+            println "apk not signed, so no prop file is created"
+        }
     }
 }
 
@@ -96,8 +116,9 @@ task copyToAssets(type: Copy) {
 }
 // copy assets ,write the additional prop file and clean if necessary
 preBuild {
+    // return before a ton of tasks crash here
     String taskName = gradle.startParameter.taskNames[0]
-    if ( taskName == null || !taskName.contains(':')) {
+    if (taskName == null || !taskName.contains(':')) {
         println "Not building Mel here..."
         return
     }
