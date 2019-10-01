@@ -29,8 +29,6 @@ public abstract class JsonSettings implements SerializableEntity {
             in.read(bytes);
             in.close();
             String json = new String(bytes);
-            Lok.error("deserializing:");
-            Lok.error(json);
             JsonSettings jsonSettings = (JsonSettings) SerializableEntityDeserializer.deserialize(json);
             jsonSettings.setJsonFile(file);
             jsonSettings.init();

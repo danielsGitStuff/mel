@@ -72,8 +72,6 @@ public enum NumberTransformer {
     private static void init() {
         TRANSFORMER_MAP = new HashMap<>();
         for (NumberTransformer transformer : values()) {
-            //todo debug
-            System.err.println("DEBUG: add " + transformer.type);
             TRANSFORMER_MAP.put(transformer.type, transformer);
         }
     }
