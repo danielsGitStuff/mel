@@ -1,48 +1,34 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
-//apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'kotlin-android-extensions'
 
 allprojects {
     repositories {
         google()
         jcenter()
         mavenCentral()
-//        maven {
-//            url "https://maven.google.com"
-//        }
     }
 }
-
-def keystorePropertiesFile = rootProject.file("keystore.properties")
-
 buildscript {
     repositories {
-        jcenter()
-        mavenCentral()
         google()
+        mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.5.0'
-//        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
-        // NOTE: Do not place your a
-        // pplication dependencies here; they belong
-        // in the individual module build.gradle files
     }
 }
+// define mel specific stuff here
+def keyPropFile = rootProject.file("keystore.properties")
 ext {
     signed = false
     buildVersion = new Date().getTime().toString()
     buildVariant = "apk"
-    taskName = "not yet"
-    TASK_RELEASE = "release"
-    TASK_DEBUG = "debug"
 }
-
 android {
-    compileOptions.encoding = 'UTF-8'
     compileSdkVersion 29
-    buildToolsVersion '28.0.3'
+    buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "de.mel.mel"
         minSdkVersion 19
@@ -55,166 +41,80 @@ android {
         setProperty("archivesBaseName", "${applicationId}")
     }
     signingConfigs {
-        // Create a variable called keystorePropertiesFile, and initialize it to your
-        // keystore.properties file, in the rootProject folder.
 
-        // Initialize a new Properties() object called keystoreProperties.
-        def keystoreProperties = new Properties()
-        if (keystorePropertiesFile.exists()) {
-            println("WE SIGN IT")
-            signed = true
-            keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-            release {
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-                storeFile file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-            }
-        } else {
-            System.err << "NO SIGNING KEYSTORE FILE FOUND"
-//            System.exit(-2)
-        }
-    }
-    buildTypes {
-        debug {
-            println("BUILDTYPE: DEBUG")
-            manifestPlaceholders = [appName: "Mel DEBUG", icon: "ic_debug"]
-            minifyEnabled false
-            if (keystorePropertiesFile.exists())
-                signingConfig signingConfigs.release
-            applicationIdSuffix ".debug"
-            System.err.println("build version       " + buildVersion)
-            System.err.println("build version class " + buildVersion.getClass().getSimpleName())
-            buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
-            buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
-//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-        release {
-            println("BUILDTYPE: RELEASE")
-            manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
-            minifyEnabled false
-            if (keystorePropertiesFile.exists())
-                signingConfig signingConfigs.release
-            System.err.println("build version       " + buildVersion)
-            System.err.println("build version class " + buildVersion.getClass().getSimpleName())
-            buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
-            buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
     }
     compileOptions {
+        encoding 'UTF-8'
         targetCompatibility 1.8
         sourceCompatibility 1.8
     }
-    testOptions {
-        unitTests.returnDefaultValues = true
-    }
-
-    task propsFile() {
-        println("finalize")
-        if (taskName == "assemble") {
-            bDebug()
-            bRelease()
-        } else if (taskName == "assembleDebug") {
-            bDebug()
-        } else if (taskName == "assembleRelease") {
-            bRelease()
+    buildTypes {
+        release {
+            manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
+            buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
+            minifyEnabled false
         }
-        println("propertiesFileHack().end")
+        debug {
+            buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
+            minifyEnabled false
+        }
     }
-
-
+    // write the additional prop file
     afterEvaluate {
-        assembleRelease.finalizedBy(propsFile)
+        assembleRelease.finalizedBy(releaseWithProps)
     }
 }
 
-
-task createProperties() {
+// this writes the prop file miniserver needs
+task releaseWithProps {
+    dependsOn 'assembleRelease'
     doLast {
-//        Properties p = new Properties()
-//        p['version'] = project.buildVersion
-//        p['variant'] = project.buildVariant
-//        //store in jar
-//        println("lll " + projectDir.absolutePath)
-//        File assetFile = new File("${projectDir.absolutePath}${File.separator}src${File.separator}main${File.separator}assets${File.separator}version.properties")
-//        println("writing version asset file: ${assetFile.absolutePath}")
-//        assetFile.withWriter { w -> p.store(w, null) }
-//        // store in build directory
-//        File versionFile = new File("$buildDir/version.properties")
-//        println("writing version file: ${versionFile.absolutePath}")
-//        versionFile.withWriter { w -> p.store(w, null) }
+        println("RELEASE WITH PROPS")
+        Properties p = new Properties()
+        p['version'] = project.buildVersion
+        p['variant'] = 'apk-release'
+        File output = new File("$buildDir/outputs/apk/release")
+        new File(output, "${archivesBaseName}-release.apk.properties")
+                .withWriter { w -> p.store(w, null) }
     }
 }
 
-
-task copyFiles(type: Copy) {
-    def f = rootProject.file('auth/src/main/resources')
-    def f2 = rootProject.file('drive/src/main/resources')
-    def f3 = rootProject.file('contacts/src/main/resources')
-    def t = rootProject.file('app/src/main/assets')
-    from(f)
-    from(f2)
-    from(f3)
-    into(t)
+// life is pointless without those assets
+task copyToAssets(type: Copy) {
+    println "copying assets..."
+    def auth = rootProject.file('auth/src/main/resources')
+    def filesync = rootProject.file('filesync/src/main/resources')
+    def contacts = rootProject.file('contacts/src/main/resources')
+    def assets = rootProject.file('app/src/main/assets')
+    from(auth)
+    from(filesync)
+    from(contacts)
+    into(assets)
 }
-
-task propertiesFileHack(type: Copy) {
-    println("propertiesFileHack()")
-    println("buildVariant: ${gradle.startParameter.taskNames}")
-    Properties p = new Properties()
-    p['version'] = project.buildVersion
-    p['variant'] = project.buildVariant
-    if (gradle.startParameter.taskNames.size() != 1) {
-        println("confused by more than one startTaskName")
-        return null
-    }
-    taskName = gradle.startParameter.taskNames[0]
-    if (taskName.contains(":"))
-        taskName = taskName.substring(taskName.lastIndexOf(":") + 1)
-//    if(taskName.startsWith("assemble"))
-//        taskName = taskName.substring("assemble".length()).toLowerCase()
-    println("taskName=$taskName class of buildVersion: ${project.buildVersion.getClass().simpleName}")
-
-}
-
 
 preBuild {
-    println("app.prebuild()")
-    dependsOn copyFiles
-    dependsOn createProperties
-    dependsOn propertiesFileHack
+    String taskName = gradle.startParameter.taskNames[0]
+    taskName = taskName.split(':').last()
+    println("prebuild() for task $taskName")
+    if (taskName == 'assembleRelease') {
+        println("release() -> clean()")
+        dependsOn 'clean'
+    }
+    dependsOn 'copyToAssets'
 }
 
-//task propsFile() {
-//    println("finalize")
-//    if (taskName == "assemble") {
-//        bDebug()
-//        bRelease()
-//    } else if (taskName == "assembleDebug") {
-//        bDebug()
-//    } else if (taskName == "assembleRelease") {
-//        bRelease()
-//    }
-//    println("propertiesFileHack().end")
-//}
-
-
 dependencies {
-    //multidex
-    implementation 'androidx.multidex:multidex:2.0.1'
-
-
+    // mel stuff
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.multidex:multidex:2.0.1'
-    implementation project(':json')
-    implementation project(':serialize')
-    implementation project(':sql')
     implementation project(':auth')
-    implementation project(':filesync')
-    implementation project(':filedump')
-    testImplementation project(':filesync')
     implementation project(':contacts')
+    implementation project(':filedump')
+    implementation project(':filesync')
+    // external stuff
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.core:core:1.2.0-alpha04'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.google.android.material:material:1.0.0'
@@ -224,42 +124,6 @@ dependencies {
     androidTestImplementation 'androidx.annotation:annotation:1.1.0'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test:rules:1.2.0'
-    testImplementation 'junit:junit:4.12'
-    def work_version = "1.0.0-alpha09"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    //    implementation "android.arch.work:work-runtime:$work_version"
-}
-
-void bDebug() {
-    Properties p = new Properties()
-    p['version'] = project.buildVersion
-    p['variant'] = "apk-debug"
-    File parent = new File("$buildDir/outputs/apk/debug")
-    parent.mkdirs()
-    new File(parent, "${archivesBaseName}-debug.apk.properties").withWriter { w -> p.store(w, null) }
-}
-
-void bRelease() {
-    Properties p = new Properties()
-    p['version'] = project.buildVersion
-    p['variant'] = "apk-release"
-    File parent = new File("$buildDir/outputs/apk/release")
-    parent.mkdirs()
-    String sign = signed ? "" : "-unsigned"
-    File target = new File(parent, "${archivesBaseName}-release${sign}.apk.properties")
-    println("writing app.properties file to ${target.absolutePath}")
-    target.withWriter { w -> p.store(w, null) }
-    println("app.properties.exists: " + target.exists())
-}
-
-
-assemble {
-    println "assemble()"
-}
-
-repositories {
-    mavenCentral()
-    google()
 }
 
 
