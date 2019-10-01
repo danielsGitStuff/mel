@@ -61,12 +61,15 @@ android {
             minifyEnabled false
         }
     }
+    // write the additional prop file
+    afterEvaluate {
+        assembleRelease.finalizedBy(releaseWithProps)
+    }
 }
 
 // this writes the prop file miniserver needs
 task releaseWithProps {
-    println "cleaning..."
-    dependsOn 'clean'
+    dependsOn 'assembleRelease'
     doLast {
         println("RELEASE WITH PROPS")
         Properties p = new Properties()
@@ -101,8 +104,8 @@ preBuild {
     taskName = taskName.split(':').last()
     println("prebuild() for task $taskName")
     if (taskName == 'assembleRelease') {
-        println("release() -> releaseWithProps()")
-        dependsOn 'releaseWithProps'
+        println("release() -> clean()")
+        dependsOn 'clean'
     }
     dependsOn 'copyToAssets'
 }
