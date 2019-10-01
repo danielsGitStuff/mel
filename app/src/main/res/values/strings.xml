@@ -166,5 +166,6 @@
     <string name="settingsPermToastFail">Write permission not granted - won\'t export</string>
     <string name="settingsLokExportToast">Exported to: </string>
     <string name="btnExportDBs">Export DBs</string>
+    <string name="knownInstances">Known Mels</string>
 
 </resources>

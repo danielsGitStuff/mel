@@ -49,7 +49,7 @@
         android:layout_alignParentStart="true"
         android:layout_below="@id/rdgClient"
         android:layout_alignEnd="@id/txtName"
-        android:text="Known MelAuths" />
+        android:text="@string/knownInstances" />
 
     <View android:id="@+id/txtName"
         android:layout_width="0dp"
