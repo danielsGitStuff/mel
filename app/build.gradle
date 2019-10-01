@@ -125,7 +125,7 @@ android {
 
 
     afterEvaluate {
-        packageRelease.finalizedBy(propsFile)
+        assembleRelease.finalizedBy(propsFile)
     }
 }
 
