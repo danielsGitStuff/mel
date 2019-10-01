@@ -61,21 +61,19 @@ android {
             minifyEnabled false
         }
     }
-    // write the additional prop file
-    afterEvaluate {
-        assembleRelease.finalizedBy(releaseWithProps)
-    }
 }
 
 // this writes the prop file miniserver needs
 task releaseWithProps {
-    dependsOn 'assembleRelease'
+    println "cleaning..."
+    dependsOn 'clean'
     doLast {
         println("RELEASE WITH PROPS")
         Properties p = new Properties()
         p['version'] = project.buildVersion
         p['variant'] = 'apk-release'
         File output = new File("$buildDir/outputs/apk/release")
+        output.mkdirs()
         new File(output, "${archivesBaseName}-release.apk.properties")
                 .withWriter { w -> p.store(w, null) }
     }
@@ -93,14 +91,14 @@ task copyToAssets(type: Copy) {
     from(contacts)
     into(assets)
 }
-
+// copy assets ,write the additional prop file and clean if necessary
 preBuild {
     String taskName = gradle.startParameter.taskNames[0]
     taskName = taskName.split(':').last()
     println("prebuild() for task $taskName")
     if (taskName == 'assembleRelease') {
-        println("release() -> clean()")
-        dependsOn 'clean'
+        println("release() -> releaseWithProps()")
+        dependsOn 'releaseWithProps'
     }
     dependsOn 'copyToAssets'
 }
