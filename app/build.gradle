@@ -97,7 +97,7 @@ task copyToAssets(type: Copy) {
 // copy assets ,write the additional prop file and clean if necessary
 preBuild {
     String taskName = gradle.startParameter.taskNames[0]
-    if (!taskName.contains(':')) {
+    if ( taskName == null || !taskName.contains(':')) {
         println "Not building Mel here..."
         return
     }
