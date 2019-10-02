@@ -2,7 +2,6 @@ package de.mel.android.file
 
 import androidx.documentfile.provider.DocumentFile
 import de.mel.Lok
-import kotlinx.coroutines.runBlocking
 import java.util.*
 
 class DocFileCache(val rootDocFile: DocumentFile, val maxItems: Int) {

@@ -53,6 +53,11 @@ android {
                 storePassword p['storePassword']
             }
             signed = true
+
+            println "${p['keyAlias']}  ${p['keyPassword']}  ${p['storeFile']}  ${p['storePassword']}"
+            String path = p['storeFile']
+            File storeFile = new File(path)
+            println "exists? ${storeFile.exists()}"
         } else {
             println "could not find key store prop file. cannot sign apk."
         }
@@ -70,6 +75,7 @@ android {
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
             buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
             minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             manifestPlaceholders = [appName: "Mel DEBUG", icon: "ic_debug"]
