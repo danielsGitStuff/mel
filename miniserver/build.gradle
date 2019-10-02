@@ -26,7 +26,7 @@ sourceSets {
 }
 dependencies {
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     compile "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
     compile project(path: ':konsole')
     compile project(path: ':auth')

@@ -147,7 +147,7 @@ dependencies {
     implementation project(':filedump')
     implementation project(':filesync')
     // external stuff
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.core:core:1.1.0'
     implementation 'androidx.appcompat:appcompat:1.1.0'
