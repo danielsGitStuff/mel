@@ -28,6 +28,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.sql.SQLException;
@@ -66,7 +67,7 @@ public class CertificateManager extends FileRelatedManager {
         return updateServerCertificateHash;
     }
 
-    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SQLException, ClassNotFoundException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
+    public CertificateManager(File workingDirectory, ISQLQueries ISQLQueries, Integer keysize) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException, InvalidKeySpecException {
         super(workingDirectory);
         Lok.debug("CertificateManager.dir: " + workingDirectory.getAbsolutePath());
         if (keysize != null)
@@ -203,7 +204,7 @@ public class CertificateManager extends FileRelatedManager {
         return bytes;
     }
 
-    private boolean loadKeys() throws IOException, ClassNotFoundException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+    private boolean loadKeys() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
         try {
             URL url = getClass().getResource("/de/mel/auth/update.server.cert");
             File f = new File(url.getFile());
@@ -232,7 +233,7 @@ public class CertificateManager extends FileRelatedManager {
             String hash = Hash.sha256(certBytes);
             Lok.debug("loaded own certificate with SHA-256 " + hash);
             return true;
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
             privateKey = null;
             publicKey = null;
             certificate = null;

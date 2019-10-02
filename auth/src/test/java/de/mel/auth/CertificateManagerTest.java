@@ -2,6 +2,7 @@ package de.mel.auth;
 
 import de.mel.Lok;
 import de.mel.auth.data.MelAuthSettings;
+import de.mel.auth.data.access.CertificateCreator;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.access.DatabaseManager;
 import de.mel.auth.data.db.Certificate;
@@ -9,9 +10,7 @@ import de.mel.auth.file.AFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.F;
 import de.mel.sql.SqlQueriesException;
-import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,32 +34,21 @@ import static org.junit.Assert.assertNotNull;
  */
 public class CertificateManagerTest {
     private X509Certificate genCert() throws Exception {
-        X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
-        certGen.setSerialNumber(BigInteger.valueOf(5));
-        certGen.setIssuerDN(new X509Principal("CN=" + "mel.auth.test.junit, OU=None, O=None L=None, C=None"));
-        certGen.setNotBefore(new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30));
-        certGen.setNotAfter(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365 * 10)));
-        certGen.setSubjectDN(new X509Principal("CN=" + "mel.auth.TEST.JUNIT, OU=None, O=None L=None, C=None"));
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(1024);
-        KeyPair keyPair = keyPairGenerator.generateKeyPair(); // public/private key pair that we are creating certificate for
-        PrivateKey privateKey = keyPair.getPrivate();
-        PublicKey publicKey = keyPair.getPublic();
-        certGen.setPublicKey(publicKey);
-        certGen.setSignatureAlgorithm("SHA512WITHRSA");
-        // create Cert
-        X509Certificate certificate = certGen.generateX509Certificate(privateKey);
-        return certificate;
+        KeyPair keyPair = CertificateCreator.generateKeyPair(1024);
+        return CertificateCreator.generateCertificate(keyPair, "lala");
     }
 
 
     private CertificateManager certificateManager;
+    private final File TEST_DIR = new File("cert_test");
 
     @Before
     public void before() throws Exception, SqlQueriesException {
         AFile.configure(new DefaultFileConfiguration());
-        F.rmRf(new File("z_test"));
-        certificateManager = createCertificateManager(new MelAuthSettings().setWorkingDirectory((new File("z_test"))));
+        F.rmRf(TEST_DIR);
+        TEST_DIR.mkdirs();
+        certificateManager = createCertificateManager(new MelAuthSettings().setWorkingDirectory(TEST_DIR));
+        Lok.debug();
     }
 
     public static CertificateManager createCertificateManager(MelAuthSettings melAuthSettings) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
@@ -70,7 +58,7 @@ public class CertificateManagerTest {
 
     @After
     public void after() throws IOException {
-        F.rmRf(new File("z_test"));
+        F.rmRf(TEST_DIR);
     }
 
     @Test
@@ -126,12 +114,12 @@ public class CertificateManagerTest {
 
     @Test
     public void keySerialization() throws Exception, SqlQueriesException {
-        CertificateManager certificateManager = createCertificateManager(new File("testDir"));
+        CertificateManager certificateManager = createCertificateManager(TEST_DIR);
         certificateManager.generateCertificate();
         PrivateKey pk1 = certificateManager.getPrivateKey();
         PublicKey pubk1 = certificateManager.getPublicKey();
         X509Certificate cert1 = certificateManager.getMyX509Certificate();
-        certificateManager = createCertificateManager(new File("testDir"), false);
+        certificateManager = createCertificateManager(TEST_DIR, false);
         PrivateKey pk2 = certificateManager.getPrivateKey();
         PublicKey pubk2 = certificateManager.getPublicKey();
         X509Certificate cert2 = certificateManager.getMyX509Certificate();

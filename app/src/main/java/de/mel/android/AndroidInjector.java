@@ -124,7 +124,7 @@ public class AndroidInjector {
         });
         DriveInjector.setDriveSqlInputStreamInjector(() -> {
             try {
-                return assetManager.open("de/mel/drive/drive.sql");
+                return assetManager.open("de/mel/filesync/filesync.sql");
             } catch (IOException e) {
                 e.printStackTrace();
             }

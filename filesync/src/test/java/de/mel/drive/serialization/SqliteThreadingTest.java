@@ -56,7 +56,7 @@ public class SqliteThreadingTest {
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
             //find sql file in workingdir
-            DriveDatabaseManager.DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> DriveDatabaseManager.class.getResourceAsStream("/de/mel/drive/drive.sql");
+            DriveDatabaseManager.DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> DriveDatabaseManager.class.getResourceAsStream("/de/mel/filesync/filesync.sql");
             sqliteExecutor.executeStream(driveSqlInputStreamInjector.createSqlFileInputStream());
         }
 
