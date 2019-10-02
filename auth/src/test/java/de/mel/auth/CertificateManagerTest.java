@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
@@ -51,7 +52,7 @@ public class CertificateManagerTest {
         Lok.debug();
     }
 
-    public static CertificateManager createCertificateManager(MelAuthSettings melAuthSettings) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
+    public static CertificateManager createCertificateManager(MelAuthSettings melAuthSettings) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException, InvalidKeySpecException {
         DatabaseManager databaseManager = new DatabaseManager(melAuthSettings);
         return new CertificateManager(melAuthSettings.getWorkingDirectory(), databaseManager.getSqlQueries(), 1024);
     }
@@ -99,11 +100,11 @@ public class CertificateManagerTest {
         assertEquals(Arrays.toString(byteCert), Arrays.toString(dbCertificate.getCertificate().v()));
     }
 
-    public static CertificateManager createCertificateManager(File wd) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException {
+    public static CertificateManager createCertificateManager(File wd) throws SQLException, ClassNotFoundException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, SqlQueriesException, OperatorCreationException, InvalidKeySpecException {
         return createCertificateManager(wd, true);
     }
 
-    private static CertificateManager createCertificateManager(File wd, boolean delete) throws SQLException, IOException, ClassNotFoundException, CertificateException, NoSuchAlgorithmException, KeyStoreException, SignatureException, SqlQueriesException, InvalidKeyException, OperatorCreationException {
+    private static CertificateManager createCertificateManager(File wd, boolean delete) throws SQLException, IOException, ClassNotFoundException, CertificateException, NoSuchAlgorithmException, KeyStoreException, SignatureException, SqlQueriesException, InvalidKeyException, OperatorCreationException, InvalidKeySpecException {
         if (delete)
             CertificateManager.deleteDirectory(wd);
         wd.mkdirs();
