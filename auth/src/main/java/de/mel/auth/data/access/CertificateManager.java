@@ -237,8 +237,7 @@ public class CertificateManager extends FileRelatedManager {
             privateKey = null;
             publicKey = null;
             certificate = null;
-            Lok.error("error loading existing keys, cause: " + e.getClass().getSimpleName());
-            e.printStackTrace();
+            Lok.error("could not find or read existing keys");
         }
         return false;
     }

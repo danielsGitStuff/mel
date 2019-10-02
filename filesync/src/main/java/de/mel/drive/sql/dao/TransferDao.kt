@@ -1,20 +1,30 @@
 package de.mel.drive.sql.dao
 
-import de.mel.drive.sql.*
-import org.sqlite.SQLiteErrorCode
-import org.sqlite.SQLiteException
-
 import de.mel.auth.data.db.MissingHash
 import de.mel.auth.tools.N
+import de.mel.drive.sql.*
 import de.mel.drive.tasks.AvailHashEntry
 import de.mel.sql.*
-
-import java.util.ArrayList
+import java.util.*
 
 /**
  * Created by xor on 12/16/16.
  */
 class TransferDao : Dao {
+
+    companion object {
+        /**
+         * this method allows us to remove the dependency to sqlite.
+         * This saves more than a megabyte on Android.
+         */
+        private fun violatesUnique(e: Exception): Boolean {
+            if (e.javaClass.name == "org.sqlite.SQLiteException") {
+                return e.message?.contains("(UNIQUE constraint") ?: false
+            }
+            return false
+        }
+    }
+
     private val dummy = DbTransferDetails()
 
     val oneTransfer: DbTransferDetails?
@@ -79,14 +89,9 @@ class TransferDao : Dao {
             dbTransferDetails.id.v(id)
         } catch (sqlQueriesException: SqlQueriesException) {
             // non unique transfers happen quite often and thats normal. don't fill the logs with that.
-            if (sqlQueriesException.exception is SQLiteException) {
-                val sqLiteException = sqlQueriesException.exception as SQLiteException
-                if (sqLiteException.resultCode != SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
-                    throw sqlQueriesException
-
-            }
+            if (!violatesUnique(sqlQueriesException.exception))
+                throw sqlQueriesException
         }
-
     }
 
     @Throws(SqlQueriesException::class)

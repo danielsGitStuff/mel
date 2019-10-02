@@ -175,7 +175,8 @@ public class FieldAnalyzer {
     public static Object readField(Object object, String fieldName) {
         try {
             Class clazz = object.getClass();
-            Field field = clazz.getField(fieldName);
+            Field field = clazz.getDeclaredField(fieldName);
+            field.setAccessible(true);
             return field.get(object);
         } catch (Exception e) {
             e.printStackTrace();
