@@ -1,24 +1,16 @@
 import java.time.LocalDateTime
+
 plugins {
     id 'application'
+    id 'java'
     id 'org.openjfx.javafxplugin' version '0.0.7'
 }
-apply plugin: 'java'
-//apply plugin: 'gradle-one-jar'
 
 javafx {
     version = project.javaFxVersion
     modules = project.javaFxModules
 }
 
-//compileJava {
-//    sourceCompatibility = '1.8'
-//    targetCompatibility = '1.8'
-//}
-//compileTestJava {
-//    sourceCompatibility = '1.8'
-//    targetCompatibility = '1.8'
-//}
 repositories {
     mavenCentral()
 }
@@ -45,14 +37,14 @@ ext {
 }
 
 dependencies {
-    compile project(':filedumpfx')
-    compile project(':konsole')
-    compile project(':auth')
-    compile project(':authfx')
-    compile project(path: ':filesyncfx')
-    compile project(path: ':contactsfx')
-    testCompile project(configuration: 'driveTestOutput', path: ':filesync')
-    testCompile 'junit:junit:4.12'
+    implementation project(':filedumpfx')
+//    compile project(':konsole')
+//    compile project(':auth')
+//    compile project(':authfx')
+    implementation project(path: ':filesyncfx')
+    implementation project(path: ':contactsfx')
+    testImplementation project(configuration: 'driveTestOutput', path: ':filesync')
+    testImplementation 'junit:junit:4.12'
 }
 
 
@@ -77,9 +69,12 @@ build {
 classes {
     dependsOn createProperties
 }
+application {
+    mainClassName = 'de.mel.fxbundle.Main'
+}
 
 task buildFxJar(type: Jar) {
-    
+
     group "mels"
     description "build a fucking jar filled with candies!"
     manifest {
@@ -89,12 +84,17 @@ task buildFxJar(type: Jar) {
     dependsOn jar
 
     baseName = project.name// + '-all'
-    List paths = configurations.compile.collect { entry ->
-        println(entry.getAbsolutePath())
-        if (entry.isDirectory())
+    println "BUILD FX"
+
+    List paths = configurations.compileClasspath.filter { entry -> entry.exists()}.collect { entry ->
+        println "${entry.exists()} ... $entry.absolutePath"
+        if (entry.isDirectory()) {
+//            println "DIR  $entry"
             entry
-        else
+        } else {
+//            println "FILE $entry"
             zipTree(entry)
+        }
     }
     from(paths) {
         exclude 'META-INF/MANIFEST.MF'

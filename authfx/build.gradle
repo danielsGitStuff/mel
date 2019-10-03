@@ -1,29 +1,20 @@
 plugins {
     id 'application'
+    id 'java-library'
     id 'org.openjfx.javafxplugin' version '0.0.7'
 }
-apply plugin: 'java'
-//apply plugin: 'gradle-one-jar'
 
 javafx {
     version = project.javaFxVersion
     modules = project.javaFxModules
 }
 
-//compileJava {
-//    sourceCompatibility = '1.8'
-//    targetCompatibility = '1.8'
-//}
-//compileTestJava {
-//    sourceCompatibility = '1.8'
-//    targetCompatibility = '1.8'
-//}
 dependencies {
-    compile project(path: ':auth')
+    api project(path: ':auth')
     testCompile project(path: ':auth')
     testCompile 'junit:junit:4.12'
-    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    compile group: 'org.openjfx', name: 'javafx-controls', version: '12.0.1'
-    compile group: 'org.openjfx', name: 'javafx-fxml', version: '12.0.1'
+    api group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    api group: 'org.openjfx', name: 'javafx-controls', version: '12.0.1'
+    api group: 'org.openjfx', name: 'javafx-fxml', version: '12.0.1'
     testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
 }

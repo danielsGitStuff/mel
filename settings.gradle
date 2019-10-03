@@ -1,5 +1,5 @@
-//include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts',':blog', ':filedump', ':filedumpfx'
-include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':contacts', ':filedump', ':konsole', ':lok'
+include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts',':blog', ':filedump', ':filedumpfx'
+//include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':contacts', ':filedump', ':konsole', ':lok'
 
 project(':app').projectDir = new File('app')
 
@@ -14,15 +14,15 @@ project(':contacts').projectDir = new File('contacts')
 project(':lok').projectDir = new File('lok')
 
 project(':filedump').projectDir = new File('filedump')
-//project(':filedumpfx').projectDir = new File('filedumpfx')
+project(':filedumpfx').projectDir = new File('filedumpfx')
 
 
-//project(':miniserver').projectDir = new File('miniserver')
-//project(':authfx').projectDir = new File('authfx')
-//project(':filesyncfx').projectDir = new File('filesyncfx')
-//project(':contactsfx').projectDir = new File('contactsfx')
-//project(':fxbundle').projectDir = new File('fxbundle')
-//project(':blog').projectDir = new File('blog')
+project(':miniserver').projectDir = new File('miniserver')
+project(':authfx').projectDir = new File('authfx')
+project(':filesyncfx').projectDir = new File('filesyncfx')
+project(':contactsfx').projectDir = new File('contactsfx')
+project(':fxbundle').projectDir = new File('fxbundle')
+project(':blog').projectDir = new File('blog')
 
 
 project(':konsole').projectDir = new File('konsole')

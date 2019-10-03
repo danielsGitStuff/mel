@@ -1,35 +1,26 @@
-//plugins {
-//    id 'java'
-//}
 plugins {
-    id 'java'
+    id 'java-library'
     id 'org.jetbrains.kotlin.jvm'
 }
 
 version 'current'
 
-//sourceCompatibility =        1.8
-//targetCompatibility = "1.8"
-
-repositories {
-    mavenCentral()
-}
 sourceSets {
     main.java.srcDirs += 'src/main/kotlin/'
     test.java.srcDirs += 'src/test/kotlin/'
 }
 dependencies {
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
-    compile "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
-    compile project(path: ':konsole')
-    compile project(path: ':auth')
-    compile project(path: ':serverparts')
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
+    api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
+    api "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
+    api project(path: ':konsole')
+    api project(path: ':auth')
+    api project(path: ':serverparts')
 
-    testCompile project(path: ':auth')
-    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation project(path: ':auth')
+    api group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
 
 task copyLicenseHtml(type: Copy) {

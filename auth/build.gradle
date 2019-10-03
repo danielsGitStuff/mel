@@ -11,8 +11,8 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     api 'org.jdeferred:jdeferred-core:1.2.4'
 
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.63'
-    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.63'
+    api 'org.bouncycastle:bcprov-jdk15on:1.63'
+    api group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.63'
     testImplementation project(path: ':sql')
     testImplementation project(path: ':serialize', configuration: 'serializeTestOutput')
     testImplementation 'org.jdeferred:jdeferred-core:1.2.4'

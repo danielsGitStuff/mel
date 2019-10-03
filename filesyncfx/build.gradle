@@ -1,19 +1,15 @@
 plugins {
     id 'application'
+    id 'java-library'
     id 'org.openjfx.javafxplugin' version '0.0.7'
 }
-apply plugin: 'java'
-//apply plugin: 'gradle-one-jar'
 
 javafx {
     version = project.javaFxVersion
     modules = project.javaFxModules
 }
 
-//compileJava {
-//    sourceCompatibility = '1.8'
-//    targetCompatibility = '1.8'
-//}
+
 sourceSets {
     main {
         resources {
@@ -22,14 +18,9 @@ sourceSets {
     }
 }
 dependencies {
-    compile project(path: ':filesync')
-    testCompile project(configuration: 'driveTestOutput', path: ':filesync')
-    compile project(path: ':authfx')
-    testCompile project(path: ':authfx')
-    testCompile 'junit:junit:4.12'
-    //compile 'org.jdeferred:jdeferred-core:1.2.4'
+    api project(path: ':filesync')
+    api project(path: ':authfx')
+    testImplementation project(configuration: 'driveTestOutput', path: ':filesync')
+    testImplementation project(path: ':authfx')
+    testImplementation 'junit:junit:4.12'
 }
-//compileTestJava {
-//    sourceCompatibility = '1.8'
-//    targetCompatibility = '1.8'
-//}
