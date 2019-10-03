@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'java-library'
     id 'org.jetbrains.kotlin.jvm'
 }
 
@@ -11,7 +11,7 @@ sourceSets {
     }
 }
 dependencies {
-    compile project(path: ':filesync')
-    testCompile project(configuration: 'driveTestOutput', path: ':filesync')
-    testCompile 'junit:junit:4.12'
+    api project(path: ':filesync')
+    testImplementation project(configuration: 'driveTestOutput', path: ':filesync')
+    testImplementation 'junit:junit:4.12'
 }

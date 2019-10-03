@@ -44,6 +44,12 @@ android {
     // read apk signing key props here
     signingConfigs {
         def p = new Properties()
+        release {
+            storeFile file('/home/xor/Documents/dev/AndroidStudioProjects/mel/app/app.sign.jks')
+            storePassword '123456'
+            keyPassword '123456'
+            keyAlias = 'buildKey'
+        }
         if (keyStorePropFile.exists()) {
             p.load(new FileInputStream(keyStorePropFile))
             release {
@@ -53,8 +59,6 @@ android {
                 storePassword p['storePassword']
             }
             signed = true
-
-            println "${p['keyAlias']}  ${p['keyPassword']}  ${p['storeFile']}  ${p['storePassword']}"
             String path = p['storeFile']
             File storeFile = new File(path)
             println "exists? ${storeFile.exists()}"
@@ -63,7 +67,7 @@ android {
         }
     }
     compileOptions {
-        encoding 'UTF-8'
+//        encoding 'UTF-8'
         targetCompatibility 1.8
         sourceCompatibility 1.8
     }
@@ -76,6 +80,7 @@ android {
             buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable true
         }
         debug {
             manifestPlaceholders = [appName: "Mel DEBUG", icon: "ic_debug"]
@@ -141,11 +146,9 @@ preBuild {
 
 dependencies {
     // mel stuff
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation project(':auth')
-    implementation project(':contacts')
-    implementation project(':filedump')
-    implementation project(':filesync')
+//    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    api project(':contacts')
+    api project(':filedump')
     // external stuff
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     implementation 'androidx.multidex:multidex:2.0.1'

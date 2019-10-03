@@ -68,6 +68,7 @@ import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.NetworkDiscoveryController;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.N;
+import de.mel.core.serialize.serialize.tools.NumberTransformer;
 
 
 public class MainActivity extends MelActivity implements PowerManager.IPowerStateListener<AndroidPowerManager> {
@@ -178,9 +179,22 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         }
     }
 
+    /**
+     * running this method prevents an {@link IllegalAccessError} in {@link de.mel.core.serialize.serialize.tools.NumberTransformer}s static constructor.<br>
+     * example:<br>
+     * Method 'void de.mel.core.serialize.serialize.tools.NumberTransformer$1.<init>(java.lang.String, int, java.lang.Class)' is inaccessible to class 'de.mel.core.serialize.serialize.tools.NumberTransformer' (declaration of 'de.mel.core.serialize.serialize.tools.NumberTransformer' appears in /data/app/de.mel.mel-95xVO7ZrIio7WFS2VjgjYQ==/base.apk!classes2.dex)
+     */
+    private void runNumberTransformerHack() {
+        Long l = (Long) NumberTransformer.forType(Long.class).cast(2);
+        Lok.debug("unknown hack that works " + l);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Long l = (Long) NumberTransformer.forType(Long.class).cast(1);
+        Lok.debug("unknown hack that works " + l);
+        runNumberTransformerHack();
         //dev();
         Tools.init(this.getApplicationContext());
         runningColor = getResources().getColor(R.color.stateRunning);

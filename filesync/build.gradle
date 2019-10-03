@@ -1,7 +1,7 @@
-apply plugin: 'java'
-apply plugin: 'kotlin'
-apply plugin:  'org.jetbrains.kotlin.jvm'
-
+plugins{
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+}
 
 configurations{
     driveTestOutput
@@ -20,41 +20,23 @@ sourceSets {
 }
 dependencies {
     driveTestOutput sourceSets.test.output
-    compile project(path: ':auth')
-    testCompile project(path: ':auth')
-    testCompile 'junit:junit:4.12'
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0-RC'
-    //compile 'org.jdeferred:jdeferred-core:1.2.4'
-//    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    testCompile group:  'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
+    api project(path: ':auth')
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0-RC'
+    api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
+    testImplementation project(path: ':auth')
+    testImplementation 'junit:junit:4.12'
+    testImplementation group:  'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
 }
 
-compileJava.options.encoding = 'UTF-8'
-compileTestJava.options.encoding = 'UTF-8'
 
-//compileTestJava {
-//    sourceCompatibility = '1.8'
-//    targetCompatibility = '1.8'
+
+//compileKotlin {
+//    kotlinOptions {
+//        jvmTarget = "1.8"
+//    }
 //}
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_V"
-    }
-}
-repositories {
-    mavenCentral()
-}
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
+//compileTestKotlin {
+//    kotlinOptions {
+//        jvmTarget = "1.8"
+//    }
+//}
