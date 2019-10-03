@@ -3,7 +3,7 @@ package de.mel;
 
 
 import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.drive.bash.AutoKlausIterator;
+import de.mel.filesync.bash.AutoKlausIterator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,13 +12,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.file.AFile;
-import de.mel.drive.bash.BashTools;
-import de.mel.drive.serialization.TestDirCreator;
+import de.mel.filesync.bash.BashTools;
+import de.mel.filesync.serialization.TestDirCreator;
 
 import static org.junit.Assert.*;
 

@@ -32,9 +32,9 @@ import de.mel.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.file.AFile;
 import de.mel.auth.service.MelAuthService;
-import de.mel.drive.data.FileSyncDetails;
-import de.mel.drive.data.FileSyncSettings;
-import de.mel.drive.data.FileSyncStrings;
+import de.mel.filesync.data.FileSyncDetails;
+import de.mel.filesync.data.FileSyncSettings;
+import de.mel.filesync.data.FileSyncStrings;
 
 /**
  * Created by xor on 2/25/17.

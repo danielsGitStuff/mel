@@ -3,9 +3,9 @@ package de.mel.dump
 import de.mel.auth.MelNotification
 import de.mel.auth.boot.BootLoaderFX
 import de.mel.auth.service.IMelService
-import de.mel.drive.data.FileSyncStrings.Notifications
-import de.mel.drive.service.MelFileSyncServerService
-import de.mel.drive.service.MelFileSyncService
+import de.mel.filesync.data.FileSyncStrings.Notifications
+import de.mel.filesync.service.MelFileSyncServerService
+import de.mel.filesync.service.MelFileSyncService
 import java.util.*
 
 class DumpFxBootloader : DumpBootloader(), BootLoaderFX<MelFileSyncService<*>> {

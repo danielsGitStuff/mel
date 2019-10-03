@@ -1,8 +1,8 @@
 package de.mel.drive.gui;
 
 import de.mel.Lok;
-import de.mel.drive.data.conflict.Conflict;
-import de.mel.drive.sql.Stage;
+import de.mel.filesync.data.conflict.Conflict;
+import de.mel.filesync.sql.Stage;
 import javafx.event.ActionEvent;
 import javafx.scene.control.ListView;
 

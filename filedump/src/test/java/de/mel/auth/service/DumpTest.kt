@@ -11,11 +11,11 @@ import de.mel.auth.socket.process.reg.IRegisterHandler
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener
 import de.mel.auth.socket.process.reg.IRegisteredHandler
 import de.mel.auth.tools.N
-import de.mel.drive.FileSyncBootloader
-import de.mel.drive.bash.BashTools
-import de.mel.drive.data.FileSyncSettings
-import de.mel.drive.data.fs.RootDirectory
-import de.mel.drive.serialization.TestDirCreator
+import de.mel.filesync.FileSyncBootloader
+import de.mel.filesync.bash.BashTools
+import de.mel.filesync.data.FileSyncSettings
+import de.mel.filesync.data.fs.RootDirectory
+import de.mel.filesync.serialization.TestDirCreator
 import de.mel.dump.DumpBootloader
 import de.mel.dump.DumpCreateServiceHelper
 import org.junit.After

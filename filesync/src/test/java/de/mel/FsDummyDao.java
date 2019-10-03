@@ -1,6 +1,6 @@
 package de.mel;
 
-import de.mel.drive.sql.dao.FsDao;
+import de.mel.filesync.sql.dao.FsDao;
 
 /**
  * Created by xor on 10.11.2017.

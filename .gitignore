@@ -27,7 +27,7 @@
 /app/src/main/assets/de/mel/auth/update.server.cert
 /auth/src/main/resources/de/de/auth/update.server.cert
 
-app/src/main/assets/drive.sql
+app/src/main/assets/filesync.sql
 app/src/main/assets/sql.sql
 /filesyncfx/melauth.workingdir.1
 /filesyncfx/melauth.workingdir.2

@@ -2,9 +2,9 @@ package de.mel.drive.gui;
 
 
 import de.mel.Lok;
-import de.mel.drive.data.conflict.Conflict;
-import de.mel.drive.data.conflict.EmptyRowConflict;
-import de.mel.drive.sql.Stage;
+import de.mel.filesync.data.conflict.Conflict;
+import de.mel.filesync.data.conflict.EmptyRowConflict;
+import de.mel.filesync.sql.Stage;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;

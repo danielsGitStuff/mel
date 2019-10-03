@@ -3,10 +3,10 @@ package de.mel.drive.boot;
 import de.mel.auth.MelNotification;
 import de.mel.auth.boot.BootLoaderFX;
 import de.mel.auth.service.IMelService;
-import de.mel.drive.FileSyncBootloader;
-import de.mel.drive.data.FileSyncStrings;
-import de.mel.drive.service.MelFileSyncServerService;
-import de.mel.drive.service.MelFileSyncService;
+import de.mel.filesync.FileSyncBootloader;
+import de.mel.filesync.data.FileSyncStrings;
+import de.mel.filesync.service.MelFileSyncServerService;
+import de.mel.filesync.service.MelFileSyncService;
 
 import java.util.Locale;
 import java.util.ResourceBundle;

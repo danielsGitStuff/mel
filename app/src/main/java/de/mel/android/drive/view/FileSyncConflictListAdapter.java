@@ -20,8 +20,8 @@ import java.util.List;
 import androidx.appcompat.app.AppCompatActivity;
 
 import de.mel.R;
-import de.mel.drive.data.conflict.Conflict;
-import de.mel.drive.sql.Stage;
+import de.mel.filesync.data.conflict.Conflict;
+import de.mel.filesync.sql.Stage;
 
 
 /**

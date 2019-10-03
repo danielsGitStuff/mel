@@ -12,10 +12,10 @@ import de.mel.android.ConflictsPopupActivity;
 import de.mel.android.Notifier;
 import de.mel.android.drive.view.FileSyncConflictListAdapter;
 import de.mel.android.service.AndroidService;
-import de.mel.drive.data.conflict.Conflict;
-import de.mel.drive.data.conflict.ConflictSolver;
-import de.mel.drive.jobs.CommitJob;
-import de.mel.drive.service.MelFileSyncClientService;
+import de.mel.filesync.data.conflict.Conflict;
+import de.mel.filesync.data.conflict.ConflictSolver;
+import de.mel.filesync.jobs.CommitJob;
+import de.mel.filesync.service.MelFileSyncClientService;
 
 /**
  * Created by xor on 07.08.2017.

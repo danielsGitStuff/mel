@@ -1,16 +1,13 @@
 package de.mel.android.drive.bash
 
 import android.content.Context
-import android.provider.DocumentsContract
 
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStreamReader
 
 import de.mel.Lok
 import de.mel.auth.file.AFile
-import de.mel.drive.bash.*
-import de.mel.drive.bash.BashToolsAndroidJavaImpl
+import de.mel.filesync.bash.*
+import de.mel.filesync.bash.BashToolsAndroidJavaImpl
 
 /**
  * Created by xor on 7/20/17.

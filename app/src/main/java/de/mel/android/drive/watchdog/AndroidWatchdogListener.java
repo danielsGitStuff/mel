@@ -6,8 +6,8 @@ import java.io.File;
 
 import de.mel.Lok;
 import de.mel.auth.file.AFile;
-import de.mel.drive.service.MelFileSyncService;
-import de.mel.drive.index.watchdog.IndexWatchdogListener;
+import de.mel.filesync.service.MelFileSyncService;
+import de.mel.filesync.index.watchdog.IndexWatchdogListener;
 import de.mel.auth.tools.WatchDogTimer;
 import de.mel.sql.RWLock;
 import org.jdeferred.Promise;

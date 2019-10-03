@@ -14,9 +14,9 @@ import de.mel.android.dump.controller.RemoteDumpServiceChooserGuiController
 import de.mel.auth.MelNotification
 import de.mel.auth.service.IMelService
 import de.mel.auth.service.MelAuthService
-import de.mel.drive.FileSyncCreateServiceHelper
-import de.mel.drive.data.FileSyncStrings
-import de.mel.drive.service.MelFileSyncService
+import de.mel.filesync.FileSyncCreateServiceHelper
+import de.mel.filesync.data.FileSyncStrings
+import de.mel.filesync.service.MelFileSyncService
 import de.mel.dump.DumpBootloader
 import de.mel.dump.DumpCreateServiceHelper
 

@@ -1,8 +1,8 @@
 package de.mel.dump
 
-import de.mel.drive.FileSyncBootloader
-import de.mel.drive.data.FileSyncSettings
-import de.mel.drive.service.MelFileSyncService
+import de.mel.filesync.FileSyncBootloader
+import de.mel.filesync.data.FileSyncSettings
+import de.mel.filesync.service.MelFileSyncService
 import java.io.File
 
 open class DumpBootloader : FileSyncBootloader() {

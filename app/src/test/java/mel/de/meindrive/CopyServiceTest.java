@@ -17,7 +17,7 @@ import de.mel.Lok;
 import de.mel.android.service.CopyService;
 import de.mel.auth.file.AFile;
 import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.drive.bash.BashTools;
+import de.mel.filesync.bash.BashTools;
 import de.mel.sql.Hash;
 
 import static org.junit.Assert.*;

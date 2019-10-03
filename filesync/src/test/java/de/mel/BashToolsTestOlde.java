@@ -2,8 +2,8 @@ package de.mel;
 
 import de.mel.auth.file.FFile;
 import de.mel.auth.tools.N;
-import de.mel.drive.bash.BashTools;
-import de.mel.drive.bash.FsBashDetails;
+import de.mel.filesync.bash.BashTools;
+import de.mel.filesync.bash.FsBashDetails;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

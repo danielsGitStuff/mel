@@ -14,10 +14,10 @@ import java.util.Set;
 import de.mel.Lok;
 import de.mel.auth.file.AFile;
 import de.mel.auth.tools.WatchDogTimer;
-import de.mel.drive.data.PathCollection;
-import de.mel.drive.index.watchdog.IndexWatchdogListener;
-import de.mel.drive.index.watchdog.UnixReferenceFileHandler;
-import de.mel.drive.service.MelFileSyncService;
+import de.mel.filesync.data.PathCollection;
+import de.mel.filesync.index.watchdog.IndexWatchdogListener;
+import de.mel.filesync.index.watchdog.UnixReferenceFileHandler;
+import de.mel.filesync.service.MelFileSyncService;
 import org.jdeferred.Promise;
 
 /**

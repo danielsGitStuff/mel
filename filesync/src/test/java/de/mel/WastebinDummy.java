@@ -1,6 +1,6 @@
 package de.mel;
 
-import de.mel.drive.service.Wastebin;
+import de.mel.filesync.service.Wastebin;
 
 /**
  * Created by xor on 10.11.2017.

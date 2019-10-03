@@ -1,6 +1,6 @@
 package de.mel;
 
-import de.mel.drive.sql.FsDirectory;
+import de.mel.filesync.sql.FsDirectory;
 import org.junit.Test;
 
 /**

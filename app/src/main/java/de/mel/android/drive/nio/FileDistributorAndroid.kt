@@ -5,8 +5,8 @@ import android.provider.DocumentsContract
 import de.mel.Lok
 import de.mel.android.file.JFile
 import de.mel.android.service.AndroidService
-import de.mel.drive.nio.FileDistributor
-import de.mel.drive.service.MelFileSyncService
+import de.mel.filesync.nio.FileDistributor
+import de.mel.filesync.service.MelFileSyncService
 
 class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistributor<JFile>(fileSyncService) {
 

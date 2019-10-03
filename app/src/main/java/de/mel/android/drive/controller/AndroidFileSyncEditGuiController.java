@@ -10,8 +10,8 @@ import de.mel.android.MainActivity;
 import de.mel.android.controller.AndroidServiceGuiController;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
-import de.mel.drive.data.FileSyncStrings;
-import de.mel.drive.service.MelFileSyncService;
+import de.mel.filesync.data.FileSyncStrings;
+import de.mel.filesync.service.MelFileSyncService;
 
 /**
  * Created by xor on 8/25/17.

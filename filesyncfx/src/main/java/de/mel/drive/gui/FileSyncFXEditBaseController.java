@@ -2,8 +2,8 @@ package de.mel.drive.gui;
 
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.gui.ServiceSettingsFX;
-import de.mel.drive.data.FileSyncSettings;
-import de.mel.drive.service.MelFileSyncService;
+import de.mel.filesync.data.FileSyncSettings;
+import de.mel.filesync.service.MelFileSyncService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
