@@ -54,7 +54,7 @@ task buildServerJar(type: Jar) {
     dependsOn jar
 
 
-    List paths = configurations.compile.collect { entry ->
+    List paths = configurations.compileClasspath.filter { entry -> entry.exists() }.collect { entry ->
         println(entry.getAbsolutePath())
         if (entry.isDirectory())
             entry
