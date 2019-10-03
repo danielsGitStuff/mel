@@ -49,7 +49,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     if (gradleCache.exists())
                         gradleCache.deleteRecursively()
                     Processor.runProcesses("clean",
-                            Processor("rm", "-rf", projectRootDir.absolutePath + "/*/build"),
+//                            Processor("rm", "-rf", projectRootDir.absolutePath + "/*/build"),
                             Processor(gradle.absolutePath, "clean"),
                             Processor(gradle.absolutePath, ":app:clean"))
 
@@ -71,8 +71,8 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 //                        Processor(gradle.absolutePath, ":auth:test"),
 //                        Processor(gradle.absolutePath, ":calendar:test"),
 //                        Processor(gradle.absolutePath, ":contacts:test"),
-//                        Processor(gradle.absolutePath, ":drive:test"),
-//                        Processor(gradle.absolutePath, ":dump:test"),
+//                        Processor(gradle.absolutePath, ":filesync:test"),
+//                        Processor(gradle.absolutePath, ":filedump:test"),
 //                        Processor(gradle.absolutePath, ":konsole:test"),
 //                        Processor(gradle.absolutePath, ":miniserver:test"),
 //                        Processor(gradle.absolutePath, ":serialize:test"),
@@ -83,13 +83,13 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
 
                     if (buildRequest.jar!!)
-                        processList.add(Processor(gradle.absolutePath, ":fxbundle:buildFxJar"))
+                        processList.add(Processor(gradle.absolutePath, ":fxbundle:bootJar"))
                     if (buildRequest.apk!!)
                         processList.add(Processor(gradle.absolutePath, ":app:assembleRelease"))
                     if (buildRequest.server!!)
-                        processList.add(Processor(gradle.absolutePath, ":miniserver:buildServerJar"))
+                        processList.add(Processor(gradle.absolutePath, ":miniserver:bootJar"))
                     if (buildRequest.blog!!)
-                        processList.add(Processor(gradle.absolutePath, ":blog:buildBlogJar"))
+                        processList.add(Processor(gradle.absolutePath, ":blog:bootJar"))
                     Processor.runProcesses("assemble/build", *processList.toTypedArray())
                 } finally {
                     if (keyStorePropFile.exists())

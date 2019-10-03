@@ -1,7 +1,7 @@
 import java.time.LocalDateTime
 
 plugins {
-    id 'application'
+    id 'org.springframework.boot'
     id 'java'
     id 'org.openjfx.javafxplugin' version '0.0.7'
 }
@@ -38,9 +38,6 @@ ext {
 
 dependencies {
     implementation project(':filedumpfx')
-//    compile project(':konsole')
-//    compile project(':auth')
-//    compile project(':authfx')
     implementation project(':filesyncfx')
     implementation project(':contactsfx')
     testImplementation project(configuration: 'driveTestOutput', path: ':filesync')
@@ -48,68 +45,31 @@ dependencies {
 }
 
 
-task createProperties(dependsOn: processResources) {
+// the next parts build a single jar
+def props = new Properties()
+ext {
+    buildVariant = "fx"
+    buildVersion = new Date().getTime().toString()
+    jarName = "${project.name}-${version}-${buildVariant}.jar"
+}
+task createProperties() {
     doLast {
-        Properties p = new Properties()
-        p['version'] = buildVersion
-        p['variant'] = buildVariant
+        println "createProperties($buildDir)"
+        props['version'] = buildVersion
+        props['variant'] = buildVariant
         //store in jar
-        new File("$buildDir/resources/main/version.properties").withWriter { w -> p.store(w, null) }
-        // store in build directory
-        new File("$buildDir/version.properties").withWriter { w -> p.store(w, null) }
-        //new File("src/main/resources/version.properties").withWriter {w -> p.store(w,null)}
+        File resources = new File(buildDir, "resources")
+        File main = new File(resources, "main")
+        main.mkdirs()
+        new File(main, "version.properties").withWriter { w -> props.store(w, null) }
+        File libs = new File(buildDir, "libs")
+        libs.mkdirs()
+        new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
     }
 }
-
-build {
-    dependsOn createProperties
-}
-
-
-classes {
-    dependsOn createProperties
-}
-application {
+bootJar {
     mainClassName = 'de.mel.fxbundle.Main'
+    archiveFileName = jarName
 }
-
-task buildFxJar(type: Jar) {
-
-    group "mels"
-    description "build a fucking jar filled with candies!"
-    manifest {
-        attributes "version": 1, "Main-Class": "de.mel.fxbundle.Main", "verrrrsion": org.gradle.internal.jvm.Jvm.current()
-
-    }
-    dependsOn jar
-
-    baseName = project.name// + '-all'
-    println "BUILD FX"
-
-    List paths = configurations.compileClasspath.filter { entry -> entry.exists()}.collect { entry ->
-//        println "${entry.exists()} ... $entry.absolutePath"
-        if (entry.isDirectory()) {
-//            println "DIR  $entry"
-            entry
-        } else {
-//            println "FILE $entry"
-            zipTree(entry)
-        }
-    }
-    from(paths) {
-        exclude 'META-INF/MANIFEST.MF'
-        exclude 'META-INF/*.SF'
-        exclude 'META-INF/*.DSA'
-        exclude 'META-INF/*.RSA'
-    }
-    with jar
-    doLast {
-        //write the version file in the output dir as well
-        File jarFile = new File(jar.outputs.files.getAsPath());
-        File versionTxt = new File("$buildDir/version.properties")
-        File target = new File("$buildDir" + File.separator + "libs" + File.separator + jarFile.getName() + ".properties")
-        String version = versionTxt.getText('UTF-8')
-        target.text = version
-        println("printing version to: " + target.getAbsolutePath())
-    }
-}
+processResources.dependsOn(createProperties)
+// buildJarstuff ends here

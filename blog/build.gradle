@@ -38,35 +38,32 @@ task copyLicenseHtml(type: Copy) {
     from(f)
     into(t)
 }
+
 // the next parts build a single jar
 def props = new Properties()
 ext {
-    buildVersion = new Date().getTime().toString()
     buildVariant = "standalone"
+    buildVersion = new Date().getTime().toString()
+    jarName = "${project.name}-${version}-${buildVariant}.jar"
 }
-task createProperties(dependsOn: processResources) {
+task createProperties() {
     doLast {
-        println "createProperties()"
+        println "createProperties($buildDir)"
         props['version'] = buildVersion
         props['variant'] = buildVariant
         //store in jar
-        new File("$buildDir/resources/main/version.properties").withWriter { w -> props.store(w, null) }
+        File resources = new File(buildDir, "resources")
+        File main = new File(resources, "main")
+        main.mkdirs()
+        new File(main, "version.properties").withWriter { w -> props.store(w, null) }
+        File libs = new File(buildDir, "libs")
+        libs.mkdirs()
+        new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
     }
 }
-
-task writeMiniServerPropFile {
-    if (props != null) {
-        println "writeMiniServerPropFile = true"
-        new File("$buildDir/libs/version.properties").withWriter { w -> props.store(w, null) }
-    } else {
-        println "writeMiniServerPropFile = false"
-    }
-
+bootJar {
+    mainClassName = 'de.miniserver.blog.Blog'
+    archiveFileName = jarName
 }
-compileJava {
-    dependsOn createProperties
-}
-classes {
-    dependsOn createProperties
-}
-bootJar.finalizedBy(writeMiniServerPropFile)
+processResources.dependsOn(createProperties)
+// buildJarstuff ends here

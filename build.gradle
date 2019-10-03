@@ -29,7 +29,6 @@ project.ext {
     System.err.println(KOTLIN_V)
     javaFxVersion = "12.0.1"
     javaFxModules = ['javafx.controls', 'javafx.fxml', 'javafx.swing', 'javafx.web']
-//    props = new Properties()
 }
 
 allprojects {
