@@ -1,4 +1,4 @@
-package de.mel.drive.boot;
+package de.mel.filesync.boot;
 
 import de.mel.auth.MelNotification;
 import de.mel.auth.boot.BootLoaderFX;

@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <GridPane xmlns="http://javafx.com/javafx"
           xmlns:fx="http://javafx.com/fxml"
-          fx:controller="de.mel.drive.gui.FileSyncFXConflictSolverControllerList"
+          fx:controller="de.mel.filesync.gui.FileSyncFXConflictSolverControllerList"
           prefHeight="400.0" prefWidth="600.0"
           GridPane.hgrow="ALWAYS"
           GridPane.vgrow="ALWAYS">

@@ -32,7 +32,7 @@ import de.mel.filesync.FileSyncBootloader;
 import de.mel.filesync.FileSyncCreateServiceHelper;
 import de.mel.filesync.FileSyncSyncListener;
 import de.mel.filesync.bash.BashTools;
-import de.mel.drive.boot.FileSyncFXBootloader;
+import de.mel.filesync.boot.FileSyncFXBootloader;
 import de.mel.filesync.serialization.TestDirCreator;
 import de.mel.filesync.service.MelFileSyncClientService;
 import de.mel.filesync.service.MelFileSyncServerService;

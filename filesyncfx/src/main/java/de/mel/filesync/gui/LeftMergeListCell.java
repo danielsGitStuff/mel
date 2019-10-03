@@ -1,4 +1,4 @@
-package de.mel.drive.gui;
+package de.mel.filesync.gui;
 
 import de.mel.Lok;
 import de.mel.filesync.data.conflict.Conflict;
@@ -9,46 +9,46 @@ import javafx.scene.control.ListView;
 /**
  * Created by xor on 6/22/17.
  */
-public class RightMergeListCell extends AbstractMergeListCell {
-
-    private final ListView<Conflict> leftList;
+@SuppressWarnings("Duplicates")
+public class LeftMergeListCell extends AbstractMergeListCell {
+    private final ListView<Conflict> rightList;
     private final ListView<Conflict> mergeList;
 
-    public RightMergeListCell(ListView<Conflict> leftList, ListView<Conflict> mergeList) {
+    public LeftMergeListCell(ListView<Conflict> mergeList, ListView<Conflict> rightList) {
         this.mergeList = mergeList;
-        this.leftList = leftList;
+        this.rightList = rightList;
     }
-
 
     @Override
     void handleAction(ActionEvent event) {
         if (lastSelected != null) {
             Lok.debug("AbstractMergeListCell.left " + lastSelected);
-            lastSelected.chooseRight();
+            lastSelected.chooseLeft();
             getListView().refresh();
             mergeList.refresh();
-            leftList.refresh();
-            //selectSame(getListView(), leftList, mergeList);
+            rightList.refresh();
+            //selectSame(getListView(), mergeList, rightList);
         }
     }
 
     @Override
     void init() {
-        button.setText("<<");
-        addChildren(vBox, label, lblHash);
-        addChildren(hbox, button, spacer, vBox, indentSpacer);
+
+        button.setText(">>");
+        addChildren(vBox,label,lblHash);
+        addChildren(hbox,indentSpacer, vBox, spacer, button);
     }
 
     @Override
     Stage getConflictSide(Conflict dependsOn) {
-        if (dependsOn.hasRight())
-            return dependsOn.getRight();
+        if (dependsOn.hasLeft())
+            return dependsOn.getLeft();
         return null;
     }
 
     @Override
     boolean isLeft() {
-        return false;
+        return true;
     }
 
 

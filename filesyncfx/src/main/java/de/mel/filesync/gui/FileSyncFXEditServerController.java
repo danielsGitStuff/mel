@@ -1,4 +1,4 @@
-package de.mel.drive.gui;
+package de.mel.filesync.gui;
 
 /**
  * Created by xor on 10/27/16.

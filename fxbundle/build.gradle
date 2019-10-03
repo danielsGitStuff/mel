@@ -41,8 +41,8 @@ dependencies {
 //    compile project(':konsole')
 //    compile project(':auth')
 //    compile project(':authfx')
-    implementation project(path: ':filesyncfx')
-    implementation project(path: ':contactsfx')
+    implementation project(':filesyncfx')
+    implementation project(':contactsfx')
     testImplementation project(configuration: 'driveTestOutput', path: ':filesync')
     testImplementation 'junit:junit:4.12'
 }
@@ -87,7 +87,7 @@ task buildFxJar(type: Jar) {
     println "BUILD FX"
 
     List paths = configurations.compileClasspath.filter { entry -> entry.exists()}.collect { entry ->
-        println "${entry.exists()} ... $entry.absolutePath"
+//        println "${entry.exists()} ... $entry.absolutePath"
         if (entry.isDirectory()) {
 //            println "DIR  $entry"
             entry

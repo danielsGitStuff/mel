@@ -1,4 +1,4 @@
-package de.mel.drive.gui;
+package de.mel.filesync.gui;
 
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.gui.ServiceSettingsFX;

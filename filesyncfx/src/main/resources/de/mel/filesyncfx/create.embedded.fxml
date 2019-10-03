@@ -5,7 +5,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 <VBox xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="de.mel.drive.gui.FileSyncFXCreateController">
+      fx:controller="de.mel.filesync.gui.FileSyncFXCreateController">
     <Label styleClass="lbl-center-section" text="%create.name"/>
     <TextField styleClass="txt-edit" fx:id="txtName" maxWidth="1.7976931348623157E308" text="%create.exampleName"/>
     <Label styleClass="lbl-center-section" text="%create.path"/>

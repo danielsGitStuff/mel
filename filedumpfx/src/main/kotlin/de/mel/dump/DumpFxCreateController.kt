@@ -4,7 +4,7 @@ import de.mel.auth.data.db.Certificate
 import de.mel.auth.data.db.ServiceJoinServiceType
 import de.mel.auth.file.AFile
 import de.mel.auth.tools.N
-import de.mel.drive.gui.FileSyncFXCreateController
+import de.mel.filesync.gui.FileSyncFXCreateController
 
 class DumpFxCreateController : FileSyncFXCreateController() {
     override fun createInstance(name: String?, isServer: Boolean, path: String?, useSymLinks: Boolean): Boolean {
