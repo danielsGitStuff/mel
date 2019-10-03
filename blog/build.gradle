@@ -46,6 +46,7 @@ ext {
     buildVersion = new Date().getTime().toString()
     jarName = "${project.name}-${version}-${buildVariant}.jar"
 }
+jar { enabled = true }
 task createProperties() {
     doLast {
         println "createProperties($buildDir)"

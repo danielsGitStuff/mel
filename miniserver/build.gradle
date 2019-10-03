@@ -26,10 +26,9 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
-    implementation project(path: ':konsole')
-    implementation project(path: ':auth')
-    implementation project(path: ':serverparts')
-    implementation project(path: ':blog')
+    implementation project(':konsole')
+    implementation project(':auth')
+    implementation project(':blog')
     implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
 
     testImplementation project(path: ':auth')
