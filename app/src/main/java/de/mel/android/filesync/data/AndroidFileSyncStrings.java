@@ -1,4 +1,4 @@
-package de.mel.android.drive.data;
+package de.mel.android.filesync.data;
 
 /**
  * Created by xor on 08.08.2017.

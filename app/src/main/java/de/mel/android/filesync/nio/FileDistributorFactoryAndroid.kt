@@ -1,4 +1,4 @@
-package de.mel.android.drive.nio
+package de.mel.android.filesync.nio
 
 import de.mel.filesync.nio.FileDistributor
 import de.mel.filesync.nio.FileDistributorFactory

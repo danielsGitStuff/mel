@@ -12,9 +12,9 @@ import java.util.Scanner;
 
 import de.mel.Lok;
 import de.mel.MelInjector;
-import de.mel.android.drive.bash.BashToolsAndroid;
-import de.mel.android.drive.nio.FileDistributorFactoryAndroid;
-import de.mel.android.drive.watchdog.RecursiveWatcher;
+import de.mel.android.filesync.bash.BashToolsAndroid;
+import de.mel.android.filesync.nio.FileDistributorFactoryAndroid;
+import de.mel.android.filesync.watchdog.RecursiveWatcher;
 import de.mel.auth.tools.N;
 import de.mel.contacts.ContactsInjector;
 import de.mel.contacts.data.ContactStrings;

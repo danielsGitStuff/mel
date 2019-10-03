@@ -10,7 +10,7 @@ import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
 
-import de.mel.android.dump.AndroidDumpBootloader;
+import de.mel.android.filedump.AndroidDumpBootloader;
 import de.mel.auth.MelAuthAdmin;
 
 import org.jdeferred.Promise;
@@ -32,7 +32,7 @@ import de.mel.android.AndroidRegHandler;
 import de.mel.android.MainActivity;
 import de.mel.android.Notifier;
 import de.mel.android.contacts.AndroidContactsBootloader;
-import de.mel.android.drive.AndroidFileSyncBootloader;
+import de.mel.android.filesync.AndroidFileSyncBootloader;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.JsonSettings;
 import de.mel.auth.data.MelAuthSettings;

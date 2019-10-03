@@ -1,4 +1,4 @@
-package de.mel.android.drive.controller;
+package de.mel.android.filesync.controller;
 
 import android.view.ViewGroup;
 import android.widget.Button;

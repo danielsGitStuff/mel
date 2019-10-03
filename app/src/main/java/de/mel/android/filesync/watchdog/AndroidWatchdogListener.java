@@ -1,4 +1,4 @@
-package de.mel.android.drive.watchdog;
+package de.mel.android.filesync.watchdog;
 
 import android.os.FileObserver;
 

@@ -1,4 +1,4 @@
-package de.mel.android.dump
+package de.mel.android.filedump
 
 import android.app.Activity
 import android.content.Context
@@ -8,9 +8,9 @@ import de.mel.R
 import de.mel.android.MainActivity
 import de.mel.android.boot.AndroidBootLoader
 import de.mel.android.controller.AndroidServiceGuiController
-import de.mel.android.drive.AndroidFileSyncBootloader
-import de.mel.android.drive.controller.AndroidFileSyncEditGuiController
-import de.mel.android.dump.controller.RemoteDumpServiceChooserGuiController
+import de.mel.android.filesync.AndroidFileSyncBootloader
+import de.mel.android.filesync.controller.AndroidFileSyncEditGuiController
+import de.mel.android.filedump.controller.RemoteDumpServiceChooserGuiController
 import de.mel.auth.MelNotification
 import de.mel.auth.service.IMelService
 import de.mel.auth.service.MelAuthService

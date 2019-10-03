@@ -1,4 +1,4 @@
-package de.mel.android.drive;
+package de.mel.android.filesync;
 
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -10,7 +10,7 @@ import java.util.Map;
 import de.mel.R;
 import de.mel.android.ConflictsPopupActivity;
 import de.mel.android.Notifier;
-import de.mel.android.drive.view.FileSyncConflictListAdapter;
+import de.mel.android.filesync.view.FileSyncConflictListAdapter;
 import de.mel.android.service.AndroidService;
 import de.mel.filesync.data.conflict.Conflict;
 import de.mel.filesync.data.conflict.ConflictSolver;

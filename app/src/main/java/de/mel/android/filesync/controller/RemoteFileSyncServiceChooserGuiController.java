@@ -1,4 +1,4 @@
-package de.mel.android.drive.controller;
+package de.mel.android.filesync.controller;
 
 import android.net.Uri;
 import android.os.Build;
@@ -25,7 +25,7 @@ import de.mel.android.MainActivity;
 import de.mel.android.Notifier;
 import de.mel.android.Tools;
 import de.mel.android.controller.RemoteServiceChooserController;
-import de.mel.android.drive.AndroidFileSyncBootloader;
+import de.mel.android.filesync.AndroidFileSyncBootloader;
 import de.mel.android.file.SAFAccessor;
 import de.mel.android.file.StoragesManager;
 import de.mel.android.file.chooserdialog.DirectoryChooserDialog;

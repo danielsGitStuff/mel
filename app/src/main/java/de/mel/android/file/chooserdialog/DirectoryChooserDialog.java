@@ -25,7 +25,7 @@ import de.mel.android.MelActivity;
 import de.mel.android.MelActivityPayload;
 import de.mel.android.Notifier;
 import de.mel.android.PopupActivity;
-import de.mel.android.drive.data.AndroidFileSyncStrings;
+import de.mel.android.filesync.data.AndroidFileSyncStrings;
 import de.mel.auth.MelNotification;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;

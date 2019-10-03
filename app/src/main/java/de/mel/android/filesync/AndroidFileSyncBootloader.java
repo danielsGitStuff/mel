@@ -1,4 +1,4 @@
-package de.mel.android.drive;
+package de.mel.android.filesync;
 
 import android.Manifest;
 import android.app.Activity;
@@ -16,8 +16,8 @@ import de.mel.android.Notifier;
 import de.mel.android.Tools;
 import de.mel.android.controller.AndroidServiceGuiController;
 import de.mel.android.Threadder;
-import de.mel.android.drive.controller.RemoteFileSyncServiceChooserGuiController;
-import de.mel.android.drive.controller.AndroidFileSyncEditGuiController;
+import de.mel.android.filesync.controller.RemoteFileSyncServiceChooserGuiController;
+import de.mel.android.filesync.controller.AndroidFileSyncEditGuiController;
 import de.mel.auth.MelNotification;
 import de.mel.auth.file.AFile;
 import de.mel.auth.service.IMelService;

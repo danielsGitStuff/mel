@@ -1,4 +1,4 @@
-package de.mel.android.drive.view;
+package de.mel.android.filesync.view;
 
 import android.content.Context;
 import android.graphics.Color;

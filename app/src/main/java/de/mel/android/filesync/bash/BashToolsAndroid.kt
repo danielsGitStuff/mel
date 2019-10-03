@@ -1,4 +1,4 @@
-package de.mel.android.drive.bash
+package de.mel.android.filesync.bash
 
 import android.content.Context
 
