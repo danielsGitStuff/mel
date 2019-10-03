@@ -44,3 +44,4 @@ secret.properties
 /miniserver/server/blog/*
 !/miniserver/server/secret/README.md
 /keystore.properties
+/app/app.sign.jks
