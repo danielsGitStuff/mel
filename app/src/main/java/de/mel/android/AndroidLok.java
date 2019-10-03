@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import android.util.Pair;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import de.mel.Lok;
@@ -57,8 +58,9 @@ public class AndroidLok extends DBLokImpl {
             N.r(() -> {
                 SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
                 if (!sqliteExecutor.checkTableExists("log")) {
-                    InputStream inputStream = assetManager.open("de/mel/auth/log.sql");
-                    sqliteExecutor.executeStream(inputStream);
+                    try(ByteArrayInputStream in = DBLokImpl.getCreateStatementInputStream()){
+                        sqliteExecutor.executeStream(in);
+                    }
                 }
                 lokImpl.setupLogToDb(sqlQueries);
             });

@@ -10,7 +10,8 @@ javafx {
 sourceSets {
     main {
         resources {
-//            srcDir "${project(':dump').projectDir}/src/main/resources"
+            srcDir "${project(':filesyncfx').projectDir}/src/main/resources"
+            srcDir "${project(':filedump').projectDir}/src/main/resources"
         }
     }
 }

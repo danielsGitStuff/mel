@@ -6,7 +6,7 @@ plugins {
 sourceSets {
     main {
         resources {
-//            srcDir "${project(':drive').projectDir}/src/main/resources"
+            srcDir "${project(':filesync').projectDir}/src/main/resources"
         }
     }
 }

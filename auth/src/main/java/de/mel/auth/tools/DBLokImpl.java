@@ -2,15 +2,14 @@ package de.mel.auth.tools;
 
 import de.mel.Lok;
 import de.mel.LokImpl;
-import de.mel.auth.MelAuthAdmin;
 import de.mel.execute.SqliteExecutor;
 import de.mel.sql.*;
 import de.mel.sql.conn.SQLConnector;
 import de.mel.sql.transform.SqlResultTransformer;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,6 +25,17 @@ public class DBLokImpl extends LokImpl {
 //        return limit > 0L;
     }
 
+    public static ByteArrayInputStream getCreateStatementInputStream() {
+        String statement = "drop table if exists \"log\";\n" +
+                "create table \"log\" (\n" +
+                "ord integer,\n" +
+                "msg text,\n" +
+                "mode text,\n" +
+                "timestamp integer default current_timestamp);\n" +
+                "create index logi on log(ord);";
+        return new ByteArrayInputStream(statement.getBytes());
+    }
+
     public static void setupDBLockImpl(File logDb, long preservedLogLines) throws SQLException, ClassNotFoundException, IOException {
         DBLokImpl lokImpl = new DBLokImpl(preservedLogLines);
         Lok.debug("opening database: " + logDb.getAbsolutePath());
@@ -34,9 +44,10 @@ public class DBLokImpl extends LokImpl {
         st.execute();
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTableExists("log")) {
-            InputStream inputStream = MelAuthAdmin.class.getClassLoader().getResourceAsStream("de/mel/auth/log.sql");
-            sqliteExecutor.executeStream(inputStream);
-            inputStream.close();
+
+            try (ByteArrayInputStream in = getCreateStatementInputStream()) {
+                sqliteExecutor.executeStream(in);
+            }
         }
         lokImpl.setupLogToDb(sqlQueries);
         Lok.setLokImpl(lokImpl);

@@ -9,7 +9,6 @@ javafx {
     modules = project.javaFxModules
 }
 
-
 sourceSets {
     main {
         resources {
@@ -17,6 +16,7 @@ sourceSets {
         }
     }
 }
+
 dependencies {
     api project(path: ':filesync')
     api project(path: ':authfx')
