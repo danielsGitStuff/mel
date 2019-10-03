@@ -1,8 +1,8 @@
 package de.mel.drive.quota;
 
 import de.mel.auth.tools.N;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.service.MelFileSyncService;
 import de.mel.drive.service.Wastebin;
 import de.mel.drive.sql.DbTransferDetails;
 import de.mel.drive.sql.FsFile;
@@ -17,15 +17,15 @@ import de.mel.sql.SqlQueriesException;
 
 public class QuotaManager {
     private final ISQLQueries sqlQueries;
-    private final MelDriveService melDriveService;
-    private final DriveSettings driveSettings;
+    private final MelFileSyncService melFileSyncService;
+    private final FileSyncSettings fileSyncSettings;
     private final Wastebin wastebin;
 
-    public QuotaManager(MelDriveService melDriveService) {
-        this.melDriveService = melDriveService;
-        this.driveSettings = melDriveService.getDriveSettings();
-        this.wastebin = melDriveService.getWastebin();
-        this.sqlQueries = melDriveService.getDriveDatabaseManager().getFsDao().getSqlQueries();
+    public QuotaManager(MelFileSyncService melFileSyncService) {
+        this.melFileSyncService = melFileSyncService;
+        this.fileSyncSettings = melFileSyncService.getFileSyncSettings();
+        this.wastebin = melFileSyncService.getWastebin();
+        this.sqlQueries = melFileSyncService.getFileSyncDatabaseManager().getFsDao().getSqlQueries();
     }
 
     public void freeSpaceForStageSet(Long stageSetId) throws SqlQueriesException, OutOfSpaceException {
@@ -72,7 +72,7 @@ public class QuotaManager {
                 0,//synced
                 1,//inplace
                 stageSetId));
-        final Long availableSpace = driveSettings.getRootDirectory().getOriginalFile().getFreeSpace();
+        final Long availableSpace = fileSyncSettings.getRootDirectory().getOriginalFile().getFreeSpace();
         //try to clean up wastebin if that happens
         if (requiredSpace == null) {
             System.err.println("QuotaManager.freeSpaceForStageSet.FIX:THIS!!!");

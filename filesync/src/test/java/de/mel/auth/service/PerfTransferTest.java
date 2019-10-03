@@ -19,8 +19,8 @@ import de.mel.auth.tools.N;
 import de.mel.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mel.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mel.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
-import de.mel.drive.DriveBootloader;
-import de.mel.drive.DriveCreateServiceHelper;
+import de.mel.drive.FileSyncBootloader;
+import de.mel.drive.FileSyncCreateServiceHelper;
 import de.mel.drive.bash.BashTools;
 import de.mel.sql.RWLock;
 import de.mel.sql.deserialize.PairDeserializerFactory;
@@ -65,7 +65,7 @@ public class PerfTransferTest {
         DeferredObject result = new DeferredObject();
         PerfTransferTest perfTransferTest = new PerfTransferTest();
         MelAuthSettings settings = MelAuthSettings.createDefaultSettings();
-        MelBoot boot = new MelBoot(settings, new PowerManager(settings), DriveBootloader.class);
+        MelBoot boot = new MelBoot(settings, new PowerManager(settings), FileSyncBootloader.class);
         boot.addMelAuthAdmin(new MelAuthAdmin() {
             @Override
             public void onProgress(MelNotification notification, int max, int current, boolean indeterminate) {
@@ -161,7 +161,7 @@ public class PerfTransferTest {
         RWLock lock = new RWLock();
         Promise<PerfTransferTest, Void, Void> promise = create();
         promise.done(test -> N.r(() -> {
-            DriveCreateServiceHelper createController = new DriveCreateServiceHelper(test.mas);
+            FileSyncCreateServiceHelper createController = new FileSyncCreateServiceHelper(test.mas);
             createController.createServerService("server", AFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30, false);
             Lok.debug("PerfTransferTest.startSource.done");
         }));
@@ -183,8 +183,8 @@ public class PerfTransferTest {
                     N.r(() -> {
                         List<ServiceJoinServiceType> services = nve.getServices(mvp.getConnectedId());
                         if (services.size() > 0) {
-                            DriveCreateServiceHelper createController = new DriveCreateServiceHelper(test.mas);
-                            DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
+                            FileSyncCreateServiceHelper createController = new FileSyncCreateServiceHelper(test.mas);
+                            FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                                 Lok.debug("PerfTransferTest.startTarget.done");
                             };
                             createController.createClientService("client", AFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30, false);

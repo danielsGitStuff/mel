@@ -2,8 +2,8 @@ package de.mel.drive.gui;
 
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.gui.ServiceSettingsFX;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.service.MelFileSyncService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -11,19 +11,19 @@ import javafx.scene.control.TextField;
 /**
  * Created by xor on 10/27/16.
  */
-public abstract class DriveFXEditBaseController extends ServiceSettingsFX<MelDriveService> {
+public abstract class FileSyncFXEditBaseController extends ServiceSettingsFX<MelFileSyncService> {
 
     @FXML
     protected Label lblRole;
     @FXML
     protected TextField txtPath;
-    protected DriveSettings driveSettings;
+    protected FileSyncSettings fileSyncSettings;
 
     @Override
     public void feed(ServiceJoinServiceType serviceJoinServiceType) {
         super.feed(serviceJoinServiceType);
-        this.driveSettings = service.getDriveSettings();
-        lblRole.setText(driveSettings.getRole());
-        txtPath.setText(driveSettings.getRootDirectory().getPath());
+        this.fileSyncSettings = service.getFileSyncSettings();
+        lblRole.setText(fileSyncSettings.getRole());
+        txtPath.setText(fileSyncSettings.getRootDirectory().getPath());
     }
 }

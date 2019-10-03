@@ -3,10 +3,10 @@ package de.mel.drive.boot;
 import de.mel.auth.MelNotification;
 import de.mel.auth.boot.BootLoaderFX;
 import de.mel.auth.service.IMelService;
-import de.mel.drive.DriveBootloader;
-import de.mel.drive.data.DriveStrings;
-import de.mel.drive.service.MelDriveServerService;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.FileSyncBootloader;
+import de.mel.drive.data.FileSyncStrings;
+import de.mel.drive.service.MelFileSyncServerService;
+import de.mel.drive.service.MelFileSyncService;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -14,7 +14,7 @@ import java.util.ResourceBundle;
 /**
  * Created by xor on 9/21/16.
  */
-public class DriveFXBootloader extends DriveBootloader implements BootLoaderFX<MelDriveService> {
+public class FileSyncFXBootloader extends FileSyncBootloader implements BootLoaderFX<MelFileSyncService> {
 
     @Override
     public String getCreateFXML() {
@@ -28,17 +28,17 @@ public class DriveFXBootloader extends DriveBootloader implements BootLoaderFX<M
 
 
     @Override
-    public String getEditFXML(MelDriveService melService) {
-        return (melService instanceof MelDriveServerService) ? "de/mel/filesyncfx/editserver.fxml" : "de/mel/filesyncfx/editclient.fxml";
+    public String getEditFXML(MelFileSyncService melService) {
+        return (melService instanceof MelFileSyncServerService) ? "de/mel/filesyncfx/editserver.fxml" : "de/mel/filesyncfx/editclient.fxml";
     }
 
     @Override
     public String getPopupFXML(IMelService melService, MelNotification melNotification) {
-        if (melNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED)) {
+        if (melNotification.getIntention().equals(FileSyncStrings.Notifications.INTENTION_CONFLICT_DETECTED)) {
             return "de/mel/filesyncfx/popupconflict.olde.fxml";
         }
-        if (melNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_PROGRESS)
-                || melNotification.getIntention().equals(DriveStrings.Notifications.INTENTION_BOOT)) {
+        if (melNotification.getIntention().equals(FileSyncStrings.Notifications.INTENTION_PROGRESS)
+                || melNotification.getIntention().equals(FileSyncStrings.Notifications.INTENTION_BOOT)) {
             return "de/mel/auth/progress.fxml";
         }
         return null;

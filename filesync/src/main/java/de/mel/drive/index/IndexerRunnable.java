@@ -10,11 +10,11 @@ import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.drive.bash.AutoKlausIterator;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.bash.FsBashDetails;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.data.fs.RootDirectory;
 import de.mel.drive.index.watchdog.IndexWatchdogListener;
 import de.mel.drive.service.sync.SyncHandler;
-import de.mel.drive.sql.DriveDatabaseManager;
+import de.mel.drive.sql.FileSyncDatabaseManager;
 import de.mel.drive.sql.FsDirectory;
 import de.mel.sql.ISQLQueries;
 import de.mel.sql.SqlQueriesException;
@@ -43,13 +43,13 @@ public class IndexerRunnable extends AbstractIndexer {
      * @param listeners
      * @throws SqlQueriesException
      */
-    public IndexerRunnable(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, IndexListener... listeners) throws SqlQueriesException {
+    public IndexerRunnable(FileSyncDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, IndexListener... listeners) throws SqlQueriesException {
         super(databaseManager);
         this.listeners.add(indexWatchdogListener);
         for (IndexListener listener : listeners)
             this.listeners.add(listener);
         this.indexWatchdogListener = indexWatchdogListener;
-        this.rootDirectory = databaseManager.getDriveSettings().getRootDirectory();
+        this.rootDirectory = databaseManager.getFileSyncSettings().getRootDirectory();
     }
 
     public IndexerRunnable setSyncHandler(SyncHandler syncHandler) {
@@ -83,9 +83,9 @@ public class IndexerRunnable extends AbstractIndexer {
                         .setCreated(details.getCreated())
                         .setInode(details.getiNode());
                 fsRoot = (FsDirectory) databaseManager.getFsDao().insert(fsRoot);
-                databaseManager.getDriveSettings().getRootDirectory().setId(fsRoot.getId().v());
+                databaseManager.getFileSyncSettings().getRootDirectory().setId(fsRoot.getId().v());
                 // save so the root dir won't be created again in case something goes wrong while booting
-                databaseManager.getDriveSettings().save();
+                databaseManager.getFileSyncSettings().save();
             } else {
                 fsRoot = databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
                 if (fsRoot.getOriginal() == null) {
@@ -99,7 +99,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
                 OTimer timerFind = new OTimer("bash.find").start();
                 OTimer timerInit = new OTimer("init stageset");
-                try (AutoKlausIterator<AFile<?>> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMelDriveService().getDriveSettings().getTransferDirectory())) {
+                try (AutoKlausIterator<AFile<?>> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory())) {
                     Lok.debug("starting stageset initialization");
 //                    Lok.error("TRANSACTION DISABLED!!!!!");
 //                    Lok.error("TRANSACTION DISABLED!!!!!");
@@ -108,7 +108,7 @@ public class IndexerRunnable extends AbstractIndexer {
 //                    Lok.error("TRANSACTION DISABLED!!!!!");
                     sqlQueries.beginTransaction();
                     timerInit.start();
-                    initStage(DriveStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener, databaseManager.getDriveSettings().getLastSyncedVersion());
+                    initStage(FileSyncStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener, databaseManager.getFileSyncSettings().getLastSyncedVersion());
                 } catch (Exception e) {
                     //todo abort transaction
                     e.printStackTrace();
@@ -160,7 +160,7 @@ public class IndexerRunnable extends AbstractIndexer {
 
     @Override
     public String getRunnableName() {
-        return getClass().getSimpleName() + " for " + databaseManager.getDriveSettings().getRootDirectory().getPath();
+        return getClass().getSimpleName() + " for " + databaseManager.getFileSyncSettings().getRootDirectory().getPath();
     }
 
     public void stop() {

@@ -25,7 +25,7 @@ import de.mel.android.MelActivity;
 import de.mel.android.MelActivityPayload;
 import de.mel.android.Notifier;
 import de.mel.android.PopupActivity;
-import de.mel.android.drive.data.AndroidDriveStrings;
+import de.mel.android.drive.data.AndroidFileSyncStrings;
 import de.mel.auth.MelNotification;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
@@ -99,7 +99,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         btnOk.setOnClickListener(v -> {
             if (currentDir != null) {
                 Intent result = new Intent();
-                result.putExtra(AndroidDriveStrings.DIR_CHOOSER_KEY, currentDir.getAbsolutePath());
+                result.putExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY, currentDir.getAbsolutePath());
                 setResult(RESULT_OK, result);
                 finish();
             } else {
@@ -130,10 +130,10 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         final NWrap.BWrap isRoot = new NWrap.BWrap(true);
         Deferred<AFile, Void, Void> deferred = new DeferredObject<>();
         Intent intent = new Intent(activity, DirectoryChooserDialog.class);
-        FilesActivityPayload payload = new FilesActivityPayload(AndroidDriveStrings.DIR_CHOOSER_KEY, rootDirectories);
+        FilesActivityPayload payload = new FilesActivityPayload(AndroidFileSyncStrings.DIR_CHOOSER_KEY, rootDirectories);
         activity.launchActivityForResult(intent, (resultCode, result) -> {
             if (resultCode == AppCompatActivity.RESULT_OK) {
-                String path = result.getStringExtra(AndroidDriveStrings.DIR_CHOOSER_KEY);
+                String path = result.getStringExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY);
                 deferred.resolve(AFile.instance(path));
             }
         }, payload);

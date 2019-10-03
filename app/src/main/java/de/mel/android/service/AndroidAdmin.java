@@ -18,7 +18,6 @@ import de.mel.auth.MelStrings;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
-import de.mel.drive.data.DriveStrings;
 import de.mel.sql.SqlQueriesException;
 
 /**

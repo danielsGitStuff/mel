@@ -2,17 +2,17 @@ package de.mel.drive.gui;
 
 import de.mel.Lok;
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.service.MelDriveClientService;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.service.MelFileSyncClientService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
 /**
  * Created by xor on 10/26/16.
  */
-public class DriveFXEditClientController extends DriveFXEditBaseController {
+public class FileSyncFXEditClientController extends FileSyncFXEditBaseController {
 
-    protected MelDriveClientService melDriveService;
+    protected MelFileSyncClientService melDriveService;
 
     @FXML
     private Button btnSync;
@@ -25,7 +25,7 @@ public class DriveFXEditClientController extends DriveFXEditBaseController {
 
     @Override
     public void init() {
-        Lok.debug("DriveFXEditClientController.init");
+        Lok.debug("FileSyncFXEditClientController.init");
         btnSync.setOnAction(event -> {
             try {
                 melDriveService.syncThisClient();
@@ -37,17 +37,17 @@ public class DriveFXEditClientController extends DriveFXEditBaseController {
 
     @Override
     public String getTitle() {
-        return "Edit Drive instance";
+        return "Edit File Sync instance";
     }
 
-    public DriveFXEditClientController setDriveSettings(DriveSettings driveSettings) {
-        this.driveSettings = driveSettings;
+    public FileSyncFXEditClientController setDriveSettings(FileSyncSettings fileSyncSettings) {
+        this.fileSyncSettings = fileSyncSettings;
         return this;
     }
 
     @Override
     public void feed(ServiceJoinServiceType serviceJoinServiceType) {
         super.feed(serviceJoinServiceType);
-        this.melDriveService = (MelDriveClientService) super.service;
+        this.melDriveService = (MelFileSyncClientService) super.service;
     }
 }

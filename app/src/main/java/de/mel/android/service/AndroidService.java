@@ -32,7 +32,7 @@ import de.mel.android.AndroidRegHandler;
 import de.mel.android.MainActivity;
 import de.mel.android.Notifier;
 import de.mel.android.contacts.AndroidContactsBootloader;
-import de.mel.android.drive.AndroidDriveBootloader;
+import de.mel.android.drive.AndroidFileSyncBootloader;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.JsonSettings;
 import de.mel.auth.data.MelAuthSettings;
@@ -45,11 +45,10 @@ import de.mel.auth.service.MelBoot;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
-import de.mel.auth.socket.process.reg.IRegisteredHandler;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
-import de.mel.drive.DriveSyncListener;
+import de.mel.drive.FileSyncSyncListener;
 import de.mel.sql.RWLock;
 import de.mel.sql.SqlQueriesException;
 
@@ -299,7 +298,7 @@ public class AndroidService extends Service {
         super.onTrimMemory(level);
     }
 
-    public Promise<MelAuthService, Exception, Void> setup(DriveSyncListener clientSyncListener) throws Exception {
+    public Promise<MelAuthService, Exception, Void> setup(FileSyncSyncListener clientSyncListener) throws Exception {
         android();
 
         //setup working directories & directories with test data
@@ -353,7 +352,7 @@ public class AndroidService extends Service {
 
         AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
         AndroidPowerManager powerManager = new AndroidPowerManager(melAuthSettings, (android.os.PowerManager) getSystemService(POWER_SERVICE));
-        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidDriveBootloader.class, AndroidContactsBootloader.class, AndroidDumpBootloader.class);
+        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class, AndroidContactsBootloader.class, AndroidDumpBootloader.class);
 //        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidDriveBootloader.class);
         melBoot.addMelAuthAdmin(admin);
         Promise<MelAuthService, Exception, Void> promise = melBoot.boot().done(melAuthService -> {

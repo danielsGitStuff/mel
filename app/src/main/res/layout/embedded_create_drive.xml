@@ -138,7 +138,7 @@
                 android:id="@+id/lblServices"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Drive Instances" />
+                android:text="File Sync Instances" />
 
             <ListView
                 android:id="@+id/listDrives"

@@ -4,7 +4,7 @@ package de.mel.drive.index.watchdog;
 import de.mel.Lok;
 import de.mel.auth.file.AFile;
 import de.mel.auth.tools.N;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.service.MelFileSyncService;
 import org.jdeferred.Promise;
 
 import java.io.FileNotFoundException;
@@ -23,18 +23,18 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
             StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE};
 
 
-    public IndexWatchdogListenerPC(MelDriveService melDriveService, String name, WatchService watchService) {
-        super(melDriveService);
+    public IndexWatchdogListenerPC(MelFileSyncService melFileSyncService, String name, WatchService watchService) {
+        super(melFileSyncService);
         this.name = name;
         this.watchService = watchService;
-        this.setStageIndexer(melDriveService.getStageIndexer());
-        this.transferDirectoryPath = melDriveService.getDriveSettings().getTransferDirectory().getAbsolutePath();
-        this.useSymLinks = melDriveService.getDriveSettings().getUseSymLinks();
+        this.setStageIndexer(melFileSyncService.getStageIndexer());
+        this.transferDirectoryPath = melFileSyncService.getFileSyncSettings().getTransferDirectory().getAbsolutePath();
+        this.useSymLinks = melFileSyncService.getFileSyncSettings().getUseSymLinks();
     }
 
     protected void analyze(WatchEvent<?> event, AFile file) {
         try {
-            if (melDriveService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
+            if (melFileSyncService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
                 watchDogTimer.start();
             }else
                 surpressEvent();
@@ -56,7 +56,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
             } else if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE) && file.exists() && file.isDirectory()) {
                 this.watchDirectory(file);
             }
-            Lok.debug("IndexWatchdogListener[" + melDriveService.getDriveSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.getAbsolutePath());
+            Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.getAbsolutePath());
             pathCollection.addPath(file);
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,7 +73,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
 
     @Override
     public String getRunnableName() {
-        return getClass().getSimpleName() + " for " + melDriveService.getRunnableName();
+        return getClass().getSimpleName() + " for " + melFileSyncService.getRunnableName();
     }
 
     @Override

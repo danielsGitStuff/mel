@@ -10,7 +10,7 @@ import de.mel.auth.tools.lock.Warden;
 import de.mel.core.serialize.exceptions.MelJsonException;
 import de.mel.drive.data.*;
 import de.mel.drive.quota.OutOfSpaceException;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.service.MelFileSyncService;
 import de.mel.drive.sql.*;
 import de.mel.drive.tasks.AvailHashEntry;
 import de.mel.drive.tasks.AvailableHashesContainer;
@@ -30,26 +30,26 @@ import java.util.Map;
 public class ServerSyncHandler extends SyncHandler {
     private HashAvailTimer hashAvailTimer = new HashAvailTimer(() -> {
         AvailableHashes hashesAvailable = ServerSyncHandler.this.hashAvailTimer.getHashesAvailableCopy();
-        hashesAvailable.setIntent(DriveStrings.INTENT_HASH_AVAILABLE);
-        N.forEachIgnorantly(driveSettings.getServerSettings().getClients(),
+        hashesAvailable.setIntent(FileSyncStrings.INTENT_HASH_AVAILABLE);
+        N.forEachIgnorantly(fileSyncSettings.getServerSettings().getClients(),
                 clientData -> melAuthService.connect(clientData.getCertId()).done(
                         mvp -> N.r(() -> mvp.message(clientData.getServiceUuid(), hashesAvailable))));
     });
 
-    public ServerSyncHandler(MelAuthService melAuthService, MelDriveService melDriveService) {
-        super(melAuthService, melDriveService);
+    public ServerSyncHandler(MelAuthService melAuthService, MelFileSyncService melFileSyncService) {
+        super(melAuthService, melFileSyncService);
     }
 
     @Override
     protected void setupTransferAvailable(DbTransferDetails details, StageSet stageSet, Stage stage) {
-        if (stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_CLIENT))
+        if (stageSet.getSource().equalsValue(FileSyncStrings.STAGESET_SOURCE_CLIENT))
             details.getAvailable().v(true);
     }
 
     private boolean canCommit(Request request, Commit commit) throws SqlQueriesException {
-        final long olderVersion = driveDatabaseManager.getLatestVersion();
+        final long olderVersion = fileSyncDatabaseManager.getLatestVersion();
         if (commit.getBasedOnVersion() != olderVersion) {
-            request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion() + " vs " + driveDatabaseManager.getLatestVersion(), driveDatabaseManager.getLatestVersion()));
+            request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion() + " vs " + fileSyncDatabaseManager.getLatestVersion(), fileSyncDatabaseManager.getLatestVersion()));
             return false;
         }
         return true;
@@ -57,7 +57,7 @@ public class ServerSyncHandler extends SyncHandler {
 
     protected void executeCommit(Request request, Commit commit, Warden warden) throws SqlQueriesException {
         // stage everything
-        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null, commit.getBasedOnVersion());
+        StageSet stageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null, commit.getBasedOnVersion());
         Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
         Iterator<Stage> iterator = commit.iterator();
         while (iterator.hasNext()) {
@@ -136,8 +136,8 @@ public class ServerSyncHandler extends SyncHandler {
         AvailableHashesContainer availableHashesContainer = (AvailableHashesContainer) request.getPayload();
         Lok.error("NOT:IMPLEMENTED:YET.");
         try {
-            ISQLResource<FsFile> availableHashes = driveDatabaseManager.getTransferDao().getAvailableTransfersFromHashes(availableHashesContainer.iterator());
-            AvailableHashesContainer result = new AvailableHashesContainer(melDriveService.getCacheDirectory(), availableHashesContainer.getCacheId(), DriveSettings.CACHE_LIST_SIZE);
+            ISQLResource<FsFile> availableHashes = fileSyncDatabaseManager.getTransferDao().getAvailableTransfersFromHashes(availableHashesContainer.iterator());
+            AvailableHashesContainer result = new AvailableHashesContainer(melFileSyncService.getCacheDirectory(), availableHashesContainer.getCacheId(), FileSyncSettings.CACHE_LIST_SIZE);
 //            N.sqlResource(availableHashes,sqlResource -> {
 //                FsFile fsFile = sqlResource.getNext();
 //                while (fsFile!= null){

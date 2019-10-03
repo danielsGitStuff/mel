@@ -3,7 +3,7 @@ package de.mel.drive.index.watchdog;
 import de.mel.Lok;
 import de.mel.auth.tools.BackgroundExecutor;
 import de.mel.drive.data.PathCollection;
-import de.mel.drive.sql.DriveDatabaseManager;
+import de.mel.drive.sql.FileSyncDatabaseManager;
 import de.mel.sql.SqlQueriesException;
 
 import java.util.concurrent.ExecutorService;
@@ -35,9 +35,9 @@ public class StageIndexer extends BackgroundExecutor {
         this.stagingDoneListener = stagingDoneListener;
     }
 
-    private final DriveDatabaseManager databaseManager;
+    private final FileSyncDatabaseManager databaseManager;
 
-    public StageIndexer(DriveDatabaseManager databaseManager) {
+    public StageIndexer(FileSyncDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
     }
 

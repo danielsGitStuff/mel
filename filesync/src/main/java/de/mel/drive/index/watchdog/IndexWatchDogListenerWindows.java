@@ -5,15 +5,13 @@ import de.mel.Lok;
 import de.mel.auth.file.AFile;
 import de.mel.auth.tools.N;
 import de.mel.drive.bash.AutoKlausIterator;
-import de.mel.drive.data.DriveSettings;
+import de.mel.drive.data.FileSyncSettings;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.data.PathCollection;
-import de.mel.drive.service.MelDriveService;
-import de.mel.drive.sql.FsDirectory;
+import de.mel.drive.service.MelFileSyncService;
 
 import java.io.File;
 import java.nio.file.*;
-import java.util.Iterator;
 
 /**
  * Created by xor on 12.08.2016.
@@ -23,8 +21,8 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
     private boolean watchesRoot = false;
     private long latestTimeStamp = System.currentTimeMillis();
 
-    public IndexWatchDogListenerWindows(MelDriveService melDriveService, WatchService watchService) {
-        super(melDriveService, "IndexWatchDogListenerWindows", watchService);
+    public IndexWatchDogListenerWindows(MelFileSyncService melFileSyncService, WatchService watchService) {
+        super(melFileSyncService, "IndexWatchDogListenerWindows", watchService);
     }
 
 
@@ -37,8 +35,8 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
         latestTimeStamp =newTimeStamp;
         PathCollection pathCollection = new PathCollection();
         N.r(() -> {
-            DriveSettings driveSettings = melDriveService.getDriveSettings();
-            try (AutoKlausIterator<AFile<?>> paths = BashTools.stuffModifiedAfter(driveSettings.getRootDirectory().getOriginalFile(), driveSettings.getTransferDirectoryFile(), timeStamp)){
+            FileSyncSettings fileSyncSettings = melFileSyncService.getFileSyncSettings();
+            try (AutoKlausIterator<AFile<?>> paths = BashTools.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)){
                 while (paths.hasNext()) {
                     AFile path = paths.next();
                     Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);
@@ -64,7 +62,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
                             AFile file = AFile.instance(absolutePath);
-                            Lok.debug("IndexWatchdogListener[" + melDriveService.getDriveSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
+                            Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
                                 watchDogTimer.start();

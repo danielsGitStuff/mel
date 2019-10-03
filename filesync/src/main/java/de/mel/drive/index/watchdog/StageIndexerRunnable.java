@@ -3,10 +3,10 @@ package de.mel.drive.index.watchdog;
 import de.mel.Lok;
 import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.data.PathCollection;
 import de.mel.drive.index.AbstractIndexer;
-import de.mel.drive.sql.DriveDatabaseManager;
+import de.mel.drive.sql.FileSyncDatabaseManager;
 import de.mel.drive.sql.dao.FsDao;
 
 /**
@@ -19,7 +19,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
     private final IndexWatchdogListener indexWatchdogListener;
     private StageIndexer.StagingDoneListener stagingDoneListener;
 
-    public StageIndexerRunnable(DriveDatabaseManager databaseManager, PathCollection pathCollection, IndexWatchdogListener indexWatchdogListener) {
+    public StageIndexerRunnable(FileSyncDatabaseManager databaseManager, PathCollection pathCollection, IndexWatchdogListener indexWatchdogListener) {
         super(databaseManager);
         this.pathCollection = pathCollection;
         this.indexWatchdogListener = indexWatchdogListener;
@@ -37,7 +37,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
         if (pathCollection.getPaths().size() > 0) {
             Warden warden = P.confine(P.read(fsDao));
             try {
-                initStage(DriveStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener, databaseManager.getDriveSettings().getLastSyncedVersion());
+                initStage(FileSyncStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener, databaseManager.getFileSyncSettings().getLastSyncedVersion());
                 examineStage();
                 warden.end();
                 unlocked = true;

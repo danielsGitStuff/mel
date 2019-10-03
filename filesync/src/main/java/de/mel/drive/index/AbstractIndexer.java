@@ -8,7 +8,7 @@ import de.mel.auth.tools.Order;
 import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.bash.FsBashDetails;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.index.watchdog.IndexWatchdogListener;
 import de.mel.drive.sql.*;
 import de.mel.drive.sql.dao.FsDao;
@@ -27,7 +27,7 @@ import java.util.*;
  */
 @SuppressWarnings("Duplicates")
 public abstract class AbstractIndexer extends DeferredRunnable {
-    protected final DriveDatabaseManager databaseManager;
+    protected final FileSyncDatabaseManager databaseManager;
     protected final StageDao stageDao;
     protected final FsDao fsDao;
     private final String serviceName;
@@ -43,13 +43,13 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         this.initialIndexConflictHelper = initialIndexConflictHelper;
     }
 
-    protected AbstractIndexer(DriveDatabaseManager databaseManager) {
+    protected AbstractIndexer(FileSyncDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
-        fastBooting = databaseManager.getDriveSettings().getFastBoot();
+        fastBooting = databaseManager.getFileSyncSettings().getFastBoot();
         this.stageDao = databaseManager.getStageDao();
         this.fsDao = databaseManager.getFsDao();
-        this.serviceName = databaseManager.getMelDriveService().getRunnableName();
-        this.rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
+        this.serviceName = databaseManager.getMelFileSyncService().getRunnableName();
+        this.rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
     }
 
     @Override
@@ -63,8 +63,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (stage.getFsParentId() != null) {
             FsDirectory fsParent = fsDao.getDirectoryById(stage.getFsParentId());
             if (fsParent.isRoot())
-                return databaseManager.getDriveSettings().getRootDirectory().getPath() + File.separator + stage.getName();
-            res = fsDao.getFileByFsFile(databaseManager.getDriveSettings().getRootDirectory(), fsParent).getAbsolutePath();
+                return databaseManager.getFileSyncSettings().getRootDirectory().getPath() + File.separator + stage.getName();
+            res = fsDao.getFileByFsFile(databaseManager.getFileSyncSettings().getRootDirectory(), fsParent).getAbsolutePath();
             res += File.separator + stage.getName();
         } else if (stage.getParentId() != null) {
             Stage parentStage = stageDao.getStageById(stage.getParentId());
@@ -72,7 +72,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         } else if (stage.getFsId() != null) {
             FsDirectory fs = fsDao.getDirectoryById(stage.getFsId());
             if (fs.isRoot())
-                return databaseManager.getDriveSettings().getRootDirectory().getPath();
+                return databaseManager.getFileSyncSettings().getRootDirectory().getPath();
             Lok.error("this method failed");
             res = "2";
         }
@@ -123,7 +123,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         });
         stageDao.deleteIdenticalToFs(stageSetId);
         Lok.debug("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
-        stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+        stageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
 
         stageDao.updateStageSet(stageSet);
         if (!stageDao.stageSetHasContent(stageSetId)) {
@@ -148,7 +148,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         stageSet = stageDao.createStageSet(stageSetType, null, null, null, basedOnVersion);
         if (initialIndexConflictHelper != null)
             initialIndexConflictHelper.onStart(stageSet);
-        final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
+        final int rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
         this.stageSetId = stageSet.getId().v();
 
         IndexHelper indexHelper = new IndexHelper(databaseManager, stageSetId, order);
@@ -164,7 +164,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
             try {
                 if (BashTools.isSymLink(f)) {
-                    if (!databaseManager.getDriveSettings().getUseSymLinks())
+                    if (!databaseManager.getFileSyncSettings().getUseSymLinks())
                         continue;
                 }
             } catch (Exception e) {
@@ -252,7 +252,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
         // skip if drive ignores symlinks
         if (fsBashDetails.isSymLink()) {
-            if (databaseManager.getDriveSettings().getUseSymLinks()) {
+            if (databaseManager.getFileSyncSettings().getUseSymLinks()) {
                 if (isValidSymLink(stageFile, fsBashDetails)) {
                     stage.setSymLink(fsBashDetails.getSymLinkTarget())
                             .setContentHash("0")
@@ -363,7 +363,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     FsBashDetails subFsBashDetails = bashDetailsMap.get(subFile.getName());
 
                     if (subFsBashDetails.isSymLink()) {
-                        if (databaseManager.getDriveSettings().getUseSymLinks()) {
+                        if (databaseManager.getFileSyncSettings().getUseSymLinks()) {
                             if (isValidSymLink(subFile, subFsBashDetails)) {
                                 subStage.setSymLink(subFsBashDetails.getSymLinkTarget());
                             }
@@ -388,7 +388,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (subDirs != null)
             for (
                     AFile subDir : subDirs) {
-                if (subDir.getAbsolutePath().equals(databaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath()))
+                if (subDir.getAbsolutePath().equals(databaseManager.getFileSyncSettings().getTransferDirectory().getAbsolutePath()))
                     continue;
                 //                Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subDir.getName());
                 Stage subStage = contentMap.get(subDir.getName());
@@ -399,7 +399,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
                 // if symlink, remove everything further down in the db file tree and skip the rest
                 if (subDirDetails.isSymLink()) {
-                    if (!databaseManager.getDriveSettings().getUseSymLinks()) {
+                    if (!databaseManager.getFileSyncSettings().getUseSymLinks()) {
 
 //                            stageDao.deleteStageById(subStage.getId());
                         continue;
@@ -412,7 +412,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     }
                     continue;
                 }
-                if (subDirDetails.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks())
+                if (subDirDetails.isSymLink() && !databaseManager.getFileSyncSettings().getUseSymLinks())
                     continue;
                 // if subDir is on stage or fs we don't have to roam it
 
@@ -482,7 +482,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         if (!fsBashDetails.isSymLink())
             return false;
         final String targetPath = fsBashDetails.getSymLinkTarget();
-        final String rootPath = databaseManager.getDriveSettings().getRootDirectory().getPath();
+        final String rootPath = databaseManager.getFileSyncSettings().getRootDirectory().getPath();
         AFile parent = file.getParentFile();
         final String path = N.result(() -> {
             if (targetPath.startsWith(File.separator))
@@ -563,7 +563,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 //                    Lok.debug();
 //                    stageDao.deleteStageById(stage.getId());
                 } else {
-                    if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
+                    if (stage.isSymLink() && !databaseManager.getFileSyncSettings().getUseSymLinks()) {
 //                        Lok.debug();
 //                        stageDao.deleteStageById(stage.getId());
                     } else {
@@ -571,7 +571,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     }
                 }
             } else {
-                if (stage.isSymLink() && !databaseManager.getDriveSettings().getUseSymLinks()) {
+                if (stage.isSymLink() && !databaseManager.getFileSyncSettings().getUseSymLinks()) {
                     Lok.debug();
 //                    stageDao.deleteStageById(stage.getId());
                 } else {

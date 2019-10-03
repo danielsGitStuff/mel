@@ -5,7 +5,7 @@ import de.mel.core.serialize.SerializableEntity;
 /**
  * Created by xor on 10/26/16.
  */
-public class DriveClientSettingsDetails implements SerializableEntity {
+public class FileSyncClientSettingsDetails implements SerializableEntity {
     private Long serverCertId;
     private String serverServiceUuid;
     /**
@@ -13,18 +13,18 @@ public class DriveClientSettingsDetails implements SerializableEntity {
      */
     private Boolean initFinished = false;
 
-    public DriveClientSettingsDetails setServerCertId(Long serverCertId) {
+    public FileSyncClientSettingsDetails setServerCertId(Long serverCertId) {
         this.serverCertId = serverCertId;
         return this;
     }
 
-    public DriveClientSettingsDetails setServerServiceUuid(String serverServiceUuid) {
+    public FileSyncClientSettingsDetails setServerServiceUuid(String serverServiceUuid) {
         this.serverServiceUuid = serverServiceUuid;
         return this;
     }
 
 
-    public DriveClientSettingsDetails setInitFinished(Boolean initFinished) {
+    public FileSyncClientSettingsDetails setInitFinished(Boolean initFinished) {
         this.initFinished = initFinished;
         return this;
     }

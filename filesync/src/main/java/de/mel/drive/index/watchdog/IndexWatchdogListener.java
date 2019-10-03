@@ -6,7 +6,7 @@ import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.data.PathCollection;
 import de.mel.drive.index.IndexListener;
 import de.mel.auth.file.AFile;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.service.MelFileSyncService;
 import de.mel.auth.tools.WatchDogTimer;
 import org.jdeferred.Promise;
 
@@ -39,13 +39,13 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
             Lok.debug("WatchDog.unix");
             watchdogListener = new IndexWatchdogListenerUnix(melDriveService1, watchService1);
         }
-        watchdogListener.melDriveService = melDriveService1;
-        watchdogListener.melDriveService.execute(watchdogListener);
+        watchdogListener.melFileSyncService = melDriveService1;
+        watchdogListener.melFileSyncService.execute(watchdogListener);
         return watchdogListener;
     };
     protected String name;
     protected WatchDogTimer watchDogTimer = new WatchDogTimer("Indexer",this, 20, 100, 150);
-    protected MelDriveService melDriveService;
+    protected MelFileSyncService melFileSyncService;
     protected PathCollection pathCollection = new PathCollection();
     protected Map<String, Integer> ignoredMap = new ConcurrentHashMap<>();
     protected Semaphore ignoredSemaphore = new Semaphore(1, true);
@@ -55,16 +55,16 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     private boolean hasSupressedEvents = false;
 
 
-    public IndexWatchdogListener(MelDriveService melDriveService) {
-        this.melDriveService = melDriveService;
+    public IndexWatchdogListener(MelFileSyncService melFileSyncService) {
+        this.melFileSyncService = melFileSyncService;
     }
 
     public static void setWatchDogRunner(WatchDogRunner watchDogRunner) {
         IndexWatchdogListener.watchDogRunner = watchDogRunner;
     }
 
-    public static IndexWatchdogListener runInstance(MelDriveService melDriveService) {
-        return IndexWatchdogListener.watchDogRunner.runInstance(melDriveService);
+    public static IndexWatchdogListener runInstance(MelFileSyncService melFileSyncService) {
+        return IndexWatchdogListener.watchDogRunner.runInstance(melFileSyncService);
     }
 
     @Override
@@ -105,7 +105,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
     public void stopIgnore(String path) throws InterruptedException {
         ignoredSemaphore.acquire();
-        Lok.debug("IndexWatchdogListener[" + melDriveService.getDriveSettings().getDriveDetails().getRole()
+        Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getDriveDetails().getRole()
                 + "].stopignore(" + path + ")");
         ignoredMap.remove(path);
         ignoredSemaphore.release();
@@ -131,6 +131,6 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
 
     public interface WatchDogRunner {
-        IndexWatchdogListener runInstance(MelDriveService melDriveService);
+        IndexWatchdogListener runInstance(MelFileSyncService melFileSyncService);
     }
 }

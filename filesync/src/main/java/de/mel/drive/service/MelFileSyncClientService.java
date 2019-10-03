@@ -11,8 +11,8 @@ import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.data.AvailableHashes;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.data.conflict.Conflict;
 import de.mel.drive.data.conflict.ConflictSolver;
 import de.mel.drive.index.IndexListener;
@@ -37,11 +37,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by xor on 10/21/16.
  */
-public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
+public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandler> {
     private MelNotification latestConflictNotification;
 
-    public MelDriveClientService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
-        super(melAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
+    public MelFileSyncClientService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings) {
+        super(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings);
         try {
             conflictHelper = new InitialIndexConflictHelper(this);
         } catch (Exception e) {
@@ -81,7 +81,7 @@ public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
                 Request request = job.getRequest();
 
             } else if (job.isMessage()) {
-                if (job.getIntent().equals(DriveStrings.INTENT_PROPAGATE_NEW_VERSION)) {
+                if (job.getIntent().equals(FileSyncStrings.INTENT_PROPAGATE_NEW_VERSION)) {
 //                    DriveDetails driveDetails = (DriveDetails) job.getPayLoad();
 //                    driveDetails.getLastSyncVersion();
                     try {
@@ -89,7 +89,7 @@ public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                } else if (job.getIntent().equals(DriveStrings.INTENT_HASH_AVAILABLE)) {
+                } else if (job.getIntent().equals(FileSyncStrings.INTENT_HASH_AVAILABLE)) {
                     AvailableHashes availableHashes = (AvailableHashes) job.getPayLoad();
                     syncHandler.updateHashes(availableHashes.getHashes());
                     availableHashes.clear();
@@ -99,11 +99,11 @@ public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
         } else if (unknownJob instanceof Job.CertificateSpottedJob) {
             Job.CertificateSpottedJob spottedJob = (Job.CertificateSpottedJob) unknownJob;
             //check if connected certificate is the server. if so: sync()
-            if (driveSettings.getClientSettings().getServerCertId().equals(spottedJob.getPartnerCertificate().getId().v())) {
+            if (fileSyncSettings.getClientSettings().getServerCertId().equals(spottedJob.getPartnerCertificate().getId().v())) {
                 try {
                     // reset the remaining transfers so we can start again
-                    P.confine(driveDatabaseManager.getTransferDao())
-                            .run(() -> driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(driveSettings.getClientSettings().getServerCertId(), driveSettings.getClientSettings().getServerServiceUuid(), TransferState.NOT_STARTED))
+                    P.confine(fileSyncDatabaseManager.getTransferDao())
+                            .run(() -> fileSyncDatabaseManager.getTransferDao().flagStateForRemainingTransfers(fileSyncSettings.getClientSettings().getServerCertId(), fileSyncSettings.getClientSettings().getServerServiceUuid(), TransferState.NOT_STARTED))
                             .end();
                     addJob(new SyncClientJob());
                 } catch (Exception e) {
@@ -116,7 +116,7 @@ public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
             return true;
         } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
             Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
-            if (authenticatedJob.getPartnerCertificate().getId().v().equals(driveSettings.getClientSettings().getServerCertId())) {
+            if (authenticatedJob.getPartnerCertificate().getId().v().equals(fileSyncSettings.getClientSettings().getServerCertId())) {
                 N.r(() -> addJob(new CommitJob(true)));
             }
             return true;
@@ -189,7 +189,7 @@ public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
         if (latestConflictNotification != null) {
             latestConflictNotification.cancel();
         }
-        latestConflictNotification = new MelNotification(uuid, DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED
+        latestConflictNotification = new MelNotification(uuid, FileSyncStrings.Notifications.INTENTION_CONFLICT_DETECTED
                 , "Conflict detected!"
                 , "Click to solve!").setUserCancelable(false);
         melAuthService.onNotificationFromService(this, latestConflictNotification);
@@ -221,7 +221,7 @@ public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
     public void onBootLevel2Finished() {
         Lok.debug("MelDriveClientService.onServiceRegistered");
         N.r(() -> {
-            Long serverId = driveSettings.getClientSettings().getServerCertId();
+            Long serverId = fileSyncSettings.getClientSettings().getServerCertId();
             if (serverId != null) {
                 melAuthService.connect(serverId).done(result1 -> addJob(new CommitJob(true)));
             }
@@ -230,7 +230,7 @@ public class MelDriveClientService extends MelDriveService<ClientSyncHandler> {
     }
 
     public void onInsufficientSpaceAvailable(Long stageSetId) {
-        MelNotification melNotification = new MelNotification(getUuid(), DriveStrings.Notifications.INTENTION_OUT_OF_SPACE, "Out of (Disk) Space", "could not apply changes(" + stageSetId + ") from server");
+        MelNotification melNotification = new MelNotification(getUuid(), FileSyncStrings.Notifications.INTENTION_OUT_OF_SPACE, "Out of (Disk) Space", "could not apply changes(" + stageSetId + ") from server");
         melAuthService.onNotificationFromService(this, melNotification);
     }
 }

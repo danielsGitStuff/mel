@@ -28,15 +28,15 @@ import de.mel.contacts.data.ContactsSettings;
 import de.mel.contacts.data.db.dao.ContactsDao;
 import de.mel.contacts.data.db.dao.PhoneBookDao;
 import de.mel.contacts.service.ContactsService;
-import de.mel.drive.DriveBootloader;
-import de.mel.drive.DriveCreateServiceHelper;
-import de.mel.drive.DriveSyncListener;
+import de.mel.drive.FileSyncBootloader;
+import de.mel.drive.FileSyncCreateServiceHelper;
+import de.mel.drive.FileSyncSyncListener;
 import de.mel.drive.bash.BashTools;
-import de.mel.drive.boot.DriveFXBootloader;
+import de.mel.drive.boot.FileSyncFXBootloader;
 import de.mel.drive.serialization.TestDirCreator;
-import de.mel.drive.service.MelDriveClientService;
-import de.mel.drive.service.MelDriveServerService;
-import de.mel.drive.sql.DriveDatabaseManager;
+import de.mel.drive.service.MelFileSyncClientService;
+import de.mel.drive.service.MelFileSyncServerService;
+import de.mel.drive.sql.FileSyncDatabaseManager;
 import de.mel.drive.sql.FsFile;
 import de.mel.drive.sql.GenericFSEntry;
 import de.mel.drive.sql.dao.FsDao;
@@ -69,8 +69,8 @@ public class FxTest {
     public void conflict() throws Exception {
         DriveTest driveTest = new DriveTest();
         MelAuthSettings json2 = new DriveTest().createJson2();
-        MelBoot melBoot = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
-        MelBoot restartMelBoot = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
+        MelBoot melBoot = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
+        MelBoot restartMelBoot = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
         driveTest.simpleClientConflictImpl(melBoot, null);
         new WaitLock().lock().lock();
     }
@@ -79,7 +79,7 @@ public class FxTest {
     public void startUpConflicts() throws Exception {
         DriveTest driveTest = new DriveTest();
         MelAuthSettings json2 = new DriveTest().createJson2();
-        MelBoot melBoot = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
+        MelBoot melBoot = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
         driveTest.startUpConflicts(melBoot);
         new WaitLock().lock().lock();
     }
@@ -92,7 +92,7 @@ public class FxTest {
         MelAuthSettings json2 = new DriveTest().createJson2();
 
 
-        MelBoot melBoot = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class, ContactsFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
+        MelBoot melBoot = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class, ContactsFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
 
 //        MelBoot restartMelBoot = new MelBoot(json1, new PowerManager(json1), DriveFXBootloader.class, ContactsFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
         driveTest.complexClientConflictImpl(melBoot, null);
@@ -142,7 +142,7 @@ public class FxTest {
         RWLock lock = new RWLock();
         lock.lockWrite();
         //todo continue gui
-        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), DriveFXBootloader.class)
+        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class)
                 .addMelAuthAdmin(new MelAuthFxLoader());
         boot1.boot().done(result -> {
             result.addRegisterHandler(new RegisterHandlerFX());
@@ -197,7 +197,7 @@ public class FxTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), DriveFXBootloader.class, ContactsFXBootloader.class);
+        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class, ContactsFXBootloader.class);
         boot1.addMelAuthAdmin(new MelAuthFxLoader());
         boot1.boot().done(melAuthService -> {
             melAuthService.addRegisterHandler(new RegisterHandlerFX());
@@ -261,7 +261,7 @@ public class FxTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MelBoot boot1 = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), DriveFXBootloader.class);
+        MelBoot boot1 = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class);
         boot1.addMelAuthAdmin(new MelAuthFxLoader());
         boot1.boot().done(melAuthService -> {
             melAuthService.addRegisterHandler(allowRegisterHandler);
@@ -273,7 +273,7 @@ public class FxTest {
             N.r(() -> {
                 Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect("127.0.0.1", 8888, 8889, true);
                 connected.done(result -> N.r(() -> {
-                    DriveCreateServiceHelper createController = new DriveCreateServiceHelper(melAuthService);
+                    FileSyncCreateServiceHelper createController = new FileSyncCreateServiceHelper(melAuthService);
                     createController.createClientService("drive client", testdir, 1L, tmp, 0.1f, 30, false);
                     Lok.debug("FxTest.connectAcceptingClient");
                 }));
@@ -333,7 +333,7 @@ public class FxTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MelBoot boot1 = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), DriveFXBootloader.class);
+        MelBoot boot1 = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class);
         boot1.addMelAuthAdmin(new MelAuthFxLoader());
         boot1.boot().done(melAuthService -> {
             melAuthService.addRegisterHandler(allowRegisterHandler);
@@ -343,8 +343,8 @@ public class FxTest {
                 Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
-                DriveCreateServiceHelper createController = new DriveCreateServiceHelper(melAuthService);
-                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> new Thread(() -> N.r(() -> {
+                FileSyncCreateServiceHelper createController = new FileSyncCreateServiceHelper(melAuthService);
+                FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> new Thread(() -> N.r(() -> {
                     FxTest.tmp = driveService.getUuid();
                     connectAcceptingClient();
                 })).start();
@@ -412,7 +412,7 @@ public class FxTest {
         };
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MelBoot boot1 = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), DriveFXBootloader.class, ContactsFXBootloader.class);
+        MelBoot boot1 = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class, ContactsFXBootloader.class);
         boot1.addMelAuthAdmin(new MelAuthFxLoader());
         boot1.boot().done(melAuthService -> {
             melAuthService.addRegisterHandler(allowRegisterHandler);
@@ -422,7 +422,7 @@ public class FxTest {
                 Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
-                DriveCreateServiceHelper createController = new DriveCreateServiceHelper(melAuthService);
+                FileSyncCreateServiceHelper createController = new FileSyncCreateServiceHelper(melAuthService);
                 createController.createServerService("testiServer", testdir, 0.1f, 30, false);
                 // create contacts server too
 
@@ -484,7 +484,7 @@ public class FxTest {
         json1.setPort(8888).setDeliveryPort(8889)
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MelBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
-        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), DriveBootloader.class);
+        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
         boot1.boot().done(mas1 -> N.r(() -> {
 
             MelAuthSettings json2 = MelAuthSettings.createDefaultSettings()
@@ -492,7 +492,7 @@ public class FxTest {
                     .setBrotcastPort(9966) // does not listen! only one listener seems possible
                     .setBrotcastListenerPort(6699).setBrotcastPort(9966)
                     .setWorkingDirectory(MelBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
-            MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+            MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class);
             boot2.addMelAuthAdmin(new MelAuthFxLoader());
             boot2.boot().done(result -> N.r(() -> {
                 Lok.debug("NANANA");
@@ -577,15 +577,15 @@ public class FxTest {
         TestDirCreator.createTestDir(rootServer);
         rootClient.mkdirs();
         rootServer.mkdirs();
-        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
-        MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class);
+        MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class);
         json1.setJsonFile(MelAuthSettings.DEFAULT_FILE);
         json1.save();
         json2.setJsonFile(MelAuthSettings.DEFAULT_FILE_2);
         json2.save();
-        AtomicReference<MelDriveClientService> clientService = new AtomicReference<>();
+        AtomicReference<MelFileSyncClientService> clientService = new AtomicReference<>();
         AtomicReference<MelAuthService> client = new AtomicReference<>();
-        DriveSyncListener syncListener = new DriveSyncListener() {
+        FileSyncSyncListener syncListener = new FileSyncSyncListener() {
             @Override
             public void onSyncFailed() {
                 Lok.debug();
@@ -597,7 +597,7 @@ public class FxTest {
                     // wait for FileDistributor
                     Thread.sleep(1000);
                     // change fs table
-                    FsDao fsDao = clientService.get().getDriveDatabaseManager().getFsDao();
+                    FsDao fsDao = clientService.get().getFileSyncDatabaseManager().getFsDao();
                     FsFile alterFs = fsDao.getFsFileByFile(new File(alteredFile.getAbsolutePath()));
                     alterFs.getSynced().v(false);
                     alterFs.getiNode().nul();
@@ -622,7 +622,7 @@ public class FxTest {
         };
         boot1.boot().done(mas1 -> {
             N.r(() -> {
-                new DriveCreateServiceHelper(mas1).createServerService("server", rootServer, 0.4f, 200, false);
+                new FileSyncCreateServiceHelper(mas1).createServerService("server", rootServer, 0.4f, 200, false);
                 mas1.addRegisterHandler(allowRegisterHandler);
                 mas1.addRegisteredHandler((melAuthService, registered) ->
                         N.forEach(mas1.getDatabaseManager().getAllServices(),
@@ -639,8 +639,8 @@ public class FxTest {
                             client.set(mas2);
                             mas2.addRegisteredHandler((melAuthService, registered) -> N.r(() -> {
                                 String serverServiceUuid = mas1.getDatabaseManager().getAllServices().iterator().next().getUuid().v();
-                                new DriveCreateServiceHelper(mas2).createClientService("client", rootClient, 1L, serverServiceUuid, 0.5f, 300, false);
-                                clientService.set((MelDriveClientService) mas2.getMelServices().iterator().next());
+                                new FileSyncCreateServiceHelper(mas2).createClientService("client", rootClient, 1L, serverServiceUuid, 0.5f, 300, false);
+                                clientService.set((MelFileSyncClientService) mas2.getMelServices().iterator().next());
                                 clientService.get().setSyncListener(syncListener);
                             }));
                             mas2.connect("localhost", 8888, 8889, true);
@@ -729,8 +729,8 @@ public class FxTest {
         });*/
         lock.lockWrite();
 
-        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
-        MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class);
+        MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class);
         boot2.addMelAuthAdmin(new MelAuthAdminFX());
         json1.setJsonFile(MelAuthSettings.DEFAULT_FILE);
         json1.save();
@@ -824,8 +824,8 @@ public class FxTest {
         });*/
         lock.lockWrite();
 
-        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
-        MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class);
+        MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class);
         boot1.boot().done(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
@@ -852,7 +852,7 @@ public class FxTest {
     }
 
 
-    public void setup(DriveSyncListener clientSyncListener) throws Exception, SqlQueriesException {
+    public void setup(FileSyncSyncListener clientSyncListener) throws Exception, SqlQueriesException {
         //setup working directories & directories with test data
         AFile testdir1 = AFile.instance(new File("testdir1"));
         AFile testdir2 = AFile.instance(new File("testdir2"));
@@ -915,14 +915,14 @@ public class FxTest {
         };
         lock.lockWrite();
 
-        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), DriveFXBootloader.class);
-        MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
+        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class);
+        MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class);
         boot1.boot().done(standAloneAuth1 -> {
             runner.r(() -> {
                 Lok.debug("FxTest.driveGui.1.booted");
                 standAloneAuth1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = serverService -> new Thread(() -> N.r(() -> {
+                FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = serverService -> new Thread(() -> N.r(() -> {
                     boot2.boot().done(standAloneAuth2 -> {
                         Lok.debug("FxTest.driveGui.2.booted");
                         standAloneAuth2.addRegisterHandler(allowRegisterHandler);
@@ -933,24 +933,24 @@ public class FxTest {
                                 runner.r(() -> {
                                     Lok.debug("FxTest.driveGui.connected");
                                     // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                    DriveBootloader.DEV_DRIVE_BOOT_LISTENER = clientDriveService -> new Thread(() -> N.r(() -> {
+                                    FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = clientDriveService -> new Thread(() -> N.r(() -> {
                                         Lok.debug("FxTest attempting first syncFromServer");
                                         clientSyncListener.testStructure.setMaClient(standAloneAuth2)
                                                 .setMaServer(standAloneAuth1)
-                                                .setClientDriveService((MelDriveClientService) clientDriveService)
-                                                .setServerDriveService((MelDriveServerService) serverService)
+                                                .setClientDriveService((MelFileSyncClientService) clientDriveService)
+                                                .setServerDriveService((MelFileSyncServerService) serverService)
                                                 .setTestdir1(testdir1)
                                                 .setTestdir2(testdir2);
                                         clientDriveService.setSyncListener(clientSyncListener);
-                                        ((MelDriveClientService) clientDriveService).syncThisClient();
+                                        ((MelFileSyncClientService) clientDriveService).syncThisClient();
                                     })).start();
-                                    new DriveCreateServiceHelper(standAloneAuth2).createClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30, false);
+                                    new FileSyncCreateServiceHelper(standAloneAuth2).createClientService("client service", testdir2, 1l, serverService.getUuid(), 0.1f, 30, false);
                                 });
                             });
                         });
                     });
                 })).start();
-                new DriveCreateServiceHelper(standAloneAuth1).createServerService("server service", testdir1, 0.1f, 30, false);
+                new FileSyncCreateServiceHelper(standAloneAuth1).createServerService("server service", testdir1, 0.1f, 30, false);
             });
         });
         lock.lockWrite();
@@ -964,7 +964,7 @@ public class FxTest {
         DriveTest driveTest = new DriveTest();
         MelAuthSettings json1 = new DriveTest().createJson1();
         MelAuthSettings json2 = new DriveTest().createJson2();
-        MelBoot melBoot = new MelBoot(json2, new PowerManager(json2), DriveBootloader.class).addMelAuthAdmin(new MelAuthAdmin() {
+        MelBoot melBoot = new MelBoot(json2, new PowerManager(json2), FileSyncBootloader.class).addMelAuthAdmin(new MelAuthAdmin() {
             @Override
             public void onProgress(MelNotification notification, int max, int current, boolean indeterminate) {
 
@@ -1007,7 +1007,7 @@ public class FxTest {
 
     @Test
     public void addFile() throws Exception {
-        setup(new DriveSyncListener() {
+        setup(new FileSyncSyncListener() {
             private int count = 0;
 
             @Override
@@ -1024,7 +1024,7 @@ public class FxTest {
             public void onSyncDoneImpl() {
                 try {
                     if (count == 0) {
-                        DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
+                        FileSyncDatabaseManager dbManager = testStructure.clientDriveService.getFileSyncDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
@@ -1033,8 +1033,8 @@ public class FxTest {
                         newFile.createNewFile();
                     } else if (count == 1) {
                         Lok.debug("FxTest.onSyncDoneImpl :)");
-                        Map<Long, GenericFSEntry> entries1 = genList2Map(testStructure.serverDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
-                        Map<Long, GenericFSEntry> entries2 = genList2Map(testStructure.clientDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
+                        Map<Long, GenericFSEntry> entries1 = genList2Map(testStructure.serverDriveService.getFileSyncDatabaseManager().getFsDao().getDelta(0));
+                        Map<Long, GenericFSEntry> entries2 = genList2Map(testStructure.clientDriveService.getFileSyncDatabaseManager().getFsDao().getDelta(0));
                         Map<Long, GenericFSEntry> cp1 = new HashMap<>(entries1);
                         cp1.forEach((id, entry) -> {
                             if (entries2.containsKey(id)) {

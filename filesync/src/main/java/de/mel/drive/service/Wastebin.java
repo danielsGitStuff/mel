@@ -7,8 +7,8 @@ import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.bash.FsBashDetails;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.index.Indexer;
 import de.mel.drive.service.sync.SyncHandler;
 import de.mel.drive.sql.*;
@@ -28,25 +28,25 @@ import java.util.List;
  */
 public class Wastebin {
     private final AFile wasteDir;
-    private final MelDriveService melDriveService;
-    private final DriveSettings driveSettings;
+    private final MelFileSyncService melFileSyncService;
+    private final FileSyncSettings fileSyncSettings;
     private final FsDao fsDao;
     private final Indexer indexer;
-    private final DriveDatabaseManager driveDatabaseManager;
+    private final FileSyncDatabaseManager fileSyncDatabaseManager;
     private final WasteDao wasteDao;
     private final StageDao stageDao;
     private final AFile deferredDir;
     private SyncHandler syncHandler;
 
-    public Wastebin(MelDriveService melDriveService) {
-        this.driveDatabaseManager = melDriveService.getDriveDatabaseManager();
-        this.melDriveService = melDriveService;
-        this.fsDao = driveDatabaseManager.getFsDao();
-        this.stageDao = driveDatabaseManager.getStageDao();
-        this.driveSettings = melDriveService.getDriveSettings();
-        this.indexer = melDriveService.getIndexer();
-        this.wasteDao = driveDatabaseManager.getWasteDao();
-        this.wasteDir = AFile.instance(driveSettings.getTransferDirectoryFile(), DriveStrings.WASTEBIN);
+    public Wastebin(MelFileSyncService melFileSyncService) {
+        this.fileSyncDatabaseManager = melFileSyncService.getFileSyncDatabaseManager();
+        this.melFileSyncService = melFileSyncService;
+        this.fsDao = fileSyncDatabaseManager.getFsDao();
+        this.stageDao = fileSyncDatabaseManager.getStageDao();
+        this.fileSyncSettings = melFileSyncService.getFileSyncSettings();
+        this.indexer = melFileSyncService.getIndexer();
+        this.wasteDao = fileSyncDatabaseManager.getWasteDao();
+        this.wasteDir = AFile.instance(fileSyncSettings.getTransferDirectoryFile(), FileSyncStrings.WASTEBIN);
         this.deferredDir = AFile.instance(wasteDir, "deferred");
         wasteDir.mkdirs();
         deferredDir.mkdirs();
@@ -54,11 +54,11 @@ public class Wastebin {
 
     /**
      * will delete everything older than the maximum allowed age or more if max wastebin size is exceeded.<br>
-     * See {@link DriveSettings}
+     * See {@link FileSyncSettings}
      */
     public void maintenance() throws SqlQueriesException {
-        final Long maxAge = driveSettings.getMaxAge();
-        final Long maxSize = driveSettings.getMaxWastebinSize();
+        final Long maxAge = fileSyncSettings.getMaxAge();
+        final Long maxSize = fileSyncSettings.getMaxWastebinSize();
         if (maxSize == null) {
             System.err.println("Wastebin.maintenance.ERROR: DriveSettings.maxwastebinsize not set!");
         }
@@ -118,7 +118,7 @@ public class Wastebin {
     }
 
     private void deleteDirectory(FsDirectory fsDirectory) throws SqlQueriesException, IOException, InterruptedException {
-        AFile f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsDirectory);
+        AFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsDirectory);
         if (f.exists()) {
             indexer.ignorePath(f.getAbsolutePath(), 1);
             if (f.isDirectory()) {
@@ -130,7 +130,7 @@ public class Wastebin {
                 BashTools.rmRf(f);
             }
         }
-        driveDatabaseManager.getFsDao().deleteById(fsDirectory.getId().v());
+        fileSyncDatabaseManager.getFsDao().deleteById(fsDirectory.getId().v());
     }
 
     /**
@@ -154,7 +154,7 @@ public class Wastebin {
 
     public void deleteFsFile(FsFile fsFile) {
         try {
-            AFile f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
+            AFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
             if (f.exists()) {
                 indexer.ignorePath(f.getAbsolutePath(), 1);
                 if (f.isFile()) {
@@ -181,7 +181,7 @@ public class Wastebin {
                     BashTools.rmRf(f);
                 }
             }
-            driveDatabaseManager.getFsDao().deleteById(fsFile.getId().v());
+            fileSyncDatabaseManager.getFsDao().deleteById(fsFile.getId().v());
         } catch (Exception e) {
             System.err.println("Wastebin.deleteFsFile.failed");
             e.printStackTrace();
@@ -271,7 +271,7 @@ public class Wastebin {
                         AFile wasteFile = AFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
                         wasteDao.delete(waste.getId().v());
                         fsDao.setSynced(fsFile.getId().v(), true);
-                        syncHandler.getFileDistributor().moveBlocking(wasteFile, fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v());
+                        syncHandler.getFileDistributor().moveBlocking(wasteFile, fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile), fsFile.getId().v());
                     } else {
                         Lok.error("Wastebin.restoreFsFiles");
                     }

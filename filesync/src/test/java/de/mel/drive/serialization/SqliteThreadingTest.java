@@ -5,10 +5,10 @@ import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.file.AFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.N;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.data.fs.RootDirectory;
-import de.mel.drive.sql.DriveDatabaseManager;
+import de.mel.drive.sql.FileSyncDatabaseManager;
 import de.mel.drive.sql.FsFile;
 import de.mel.drive.sql.Stage;
 import de.mel.drive.sql.StageSet;
@@ -18,7 +18,6 @@ import de.mel.execute.SqliteExecutor;
 import de.mel.sql.*;
 import de.mel.sql.conn.SQLConnector;
 import de.mel.sql.transform.SqlResultTransformer;
-import org.junit.Test;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -43,11 +42,11 @@ public class SqliteThreadingTest {
         root.setOriginalFile(rootFile);
         root.setId(1L);
         root.setPath(rootFile.getAbsolutePath());
-        DriveSettings driveSettings = new DriveSettings().setLastSyncedVersion(0L).setRole(DriveStrings.ROLE_CLIENT)
+        FileSyncSettings fileSyncSettings = new FileSyncSettings().setLastSyncedVersion(0L).setRole(FileSyncStrings.ROLE_CLIENT)
                 .setRootDirectory(root)
                 .setTransferDirectory(AFile.instance(testDir.getPath() + File.separator + "transfer"));
 
-        DriveDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir.getPath(), "test.db")), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
+        FileSyncDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir.getPath(), "test.db")), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
         ISQLQueries sqlQueries = sqlqueriesCreator.createConnection(null, null);
         SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
         st.execute();
@@ -56,12 +55,12 @@ public class SqliteThreadingTest {
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste")) {
             //find sql file in workingdir
-            DriveDatabaseManager.DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> DriveDatabaseManager.class.getResourceAsStream("/de/mel/filesync/filesync.sql");
-            sqliteExecutor.executeStream(driveSqlInputStreamInjector.createSqlFileInputStream());
+            FileSyncDatabaseManager.FileSyncSqlInputStreamInjector fileSyncSqlInputStreamInjector = () -> FileSyncDatabaseManager.class.getResourceAsStream("/de/mel/filesync/filesync.sql");
+            sqliteExecutor.executeStream(fileSyncSqlInputStreamInjector.createSqlFileInputStream());
         }
 
         FsDao fsDao = new FsDao(null, sqlQueries);
-        StageDao stageDao = new StageDao(driveSettings, sqlQueries, fsDao);
+        StageDao stageDao = new StageDao(fileSyncSettings, sqlQueries, fsDao);
 
         StageSet stageSet1 = fillNewStageSet(stageDao, 2000, 3000);
         StageSet stageSet2 = fillNewStageSet(stageDao, 2000, 3000);
@@ -166,7 +165,7 @@ public class SqliteThreadingTest {
     }
 
     private StageSet fillNewStageSet(StageDao stageDao, int from, int to) throws SqlQueriesException {
-        StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_STARTUP_INDEX, null, null, null, 666L);
+        StageSet stageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_STARTUP_INDEX, null, null, null, 666L);
         for (Integer i = from; i < to; i++) {
             Stage stage = new Stage()
                     .setStageSet(stageSet.getId().v())

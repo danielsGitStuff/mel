@@ -3,7 +3,7 @@ package de.mel.drive.gui;
 /**
  * Created by xor on 10/27/16.
  */
-public class DriveFXEditServerController extends DriveFXEditBaseController {
+public class FileSyncFXEditServerController extends FileSyncFXEditBaseController {
     @Override
     public boolean onPrimaryClicked() {
         applyName();

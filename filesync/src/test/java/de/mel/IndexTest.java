@@ -11,15 +11,15 @@ import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.CountWaitLock;
 import de.mel.auth.tools.Eva;
 import de.mel.auth.tools.N;
-import de.mel.drive.DriveBootloader;
-import de.mel.drive.DriveCreateServiceHelper;
+import de.mel.drive.FileSyncBootloader;
+import de.mel.drive.FileSyncCreateServiceHelper;
 import de.mel.drive.bash.BashTools;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.data.fs.RootDirectory;
 import de.mel.drive.serialization.TestDirCreator;
-import de.mel.drive.service.MelDriveServerService;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.service.MelFileSyncServerService;
+import de.mel.drive.service.MelFileSyncService;
 import org.jdeferred.Promise;
 import org.junit.After;
 import org.junit.Before;
@@ -29,15 +29,14 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.cert.Certificate;
 
 public class IndexTest {
     protected MelAuthService mas;
     private Bootloader dbl;
     private AFile testRoot;
-    private MelDriveServerService service;
+    private MelFileSyncServerService service;
     private File wd;
-    private MelDriveService mds;
+    private MelFileSyncService mds;
     protected boolean index = true;
 
 //    @Test
@@ -57,26 +56,26 @@ public class IndexTest {
             TestDirCreator.createTestDir(testRoot);
             MelAuthSettings settings = MelAuthSettings.createDefaultSettings().setWorkingDirectory(wd).setName("First");
             CountWaitLock lock = new CountWaitLock();
-            MelBoot melBoot = new MelBoot(settings, new PowerManager(settings), DriveBootloader.class);
+            MelBoot melBoot = new MelBoot(settings, new PowerManager(settings), FileSyncBootloader.class);
             Promise<MelAuthService, Exception, Void> promise = melBoot.boot();
             promise.done(result -> N.r(() -> {
                 mas = result;
-                RootDirectory rootDirectory = DriveSettings.buildRootDirectory(testRoot);
-                AFile transferDir = AFile.instance(rootDirectory.getOriginalFile(), DriveStrings.TRANSFER_DIR);
-                DriveBootloader bl = (DriveBootloader) mas.getMelBoot().getBootLoader(new DriveBootloader().getName());
-                DriveSettings driveSettings = new DriveSettings()
-                        .setRole(DriveStrings.ROLE_SERVER)
+                RootDirectory rootDirectory = FileSyncSettings.buildRootDirectory(testRoot);
+                AFile transferDir = AFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
+                FileSyncBootloader bl = (FileSyncBootloader) mas.getMelBoot().getBootLoader(new FileSyncBootloader().getName());
+                FileSyncSettings fileSyncSettings = new FileSyncSettings()
+                        .setRole(FileSyncStrings.ROLE_SERVER)
                         .setMaxAge(1000000L)
                         .setRootDirectory(rootDirectory)
                         .setTransferDirectory(transferDir)
                         .setMaxWastebinSize(999999L)
                         .setFastBoot(true);
-                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
+                FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                     mds = driveService;
                     mds.start();
                     mds.getStartedDeferred().done(result1 -> lock.unlock());
                 };
-                new DriveCreateServiceHelper(mas).createService(driveSettings, "server");
+                new FileSyncCreateServiceHelper(mas).createService(fileSyncSettings, "server");
                 lock.unlock();
                 //mas.registerMelService(mds);
             }));
@@ -98,10 +97,10 @@ public class IndexTest {
             //re index
             CountWaitLock lock = new CountWaitLock();
             MelAuthSettings settings = mas.getSettings();
-            MelBoot melBoot = new MelBoot(settings, new PowerManager(settings), DriveBootloader.class);
+            MelBoot melBoot = new MelBoot(settings, new PowerManager(settings), FileSyncBootloader.class);
             melBoot.boot().done(result -> N.r(() -> {
                 mas = result;
-                MelDriveServerService driveService = (MelDriveServerService) mas.getMelServices().stream().findFirst().get();
+                MelFileSyncServerService driveService = (MelFileSyncServerService) mas.getMelServices().stream().findFirst().get();
                 driveService.startedPromise.done(result1 -> {
                     Lok.debug("reindex done");
                     assertTrue(true);

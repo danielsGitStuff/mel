@@ -7,7 +7,6 @@ import android.widget.TextView;
 import de.mel.Lok;
 import de.mel.R;
 import de.mel.android.MainActivity;
-import de.mel.android.MelActivity;
 import de.mel.android.contacts.data.AndroidContactSettings;
 import de.mel.android.controller.AndroidServiceGuiController;
 import de.mel.auth.service.IMelService;
@@ -15,8 +14,6 @@ import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
 import de.mel.contacts.data.ContactStrings;
 import de.mel.contacts.service.ContactsService;
-import de.mel.drive.data.DriveStrings;
-import de.mel.drive.service.MelDriveService;
 
 /**
  * Created by xor on 01.11.2017.

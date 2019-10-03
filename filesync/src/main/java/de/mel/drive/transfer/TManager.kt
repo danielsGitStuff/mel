@@ -8,9 +8,9 @@ import de.mel.auth.socket.process.transfer.MelIsolatedProcess
 import de.mel.auth.tools.CountLock
 import de.mel.auth.tools.N
 import de.mel.auth.tools.lock.P
-import de.mel.drive.data.DriveStrings
+import de.mel.drive.data.FileSyncStrings
 import de.mel.drive.nio.FileDistributionTask
-import de.mel.drive.service.MelDriveService
+import de.mel.drive.service.MelFileSyncService
 import de.mel.drive.service.Wastebin
 import de.mel.drive.service.sync.SyncHandler
 import de.mel.drive.sql.DbTransferDetails
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Creates a TransferFromServiceRunnable per partner that you want to receive files from and manages them.
  */
-class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao, val melDriveService: MelDriveService<out SyncHandler>
+class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao, val melFileSyncService: MelFileSyncService<out SyncHandler>
                , val syncHandler: SyncHandler, val wastebin: Wastebin, val fsDao: FsDao) : DeferredRunnable(), MelIsolatedProcess.IsolatedProcessListener {
 
     override fun onShutDown(): Promise<Void, Void, Void> = ResolvedDeferredObject()
@@ -70,7 +70,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
 
 
         // remove every file that has no transfer entry
-        melDriveService.driveSettings.transferDirectory.listFiles().forEach { file ->
+        melFileSyncService.fileSyncSettings.transferDirectory.listFiles().forEach { file ->
             if (!transferDao.hasHash(file.name))
                 file.delete()
         }
@@ -83,7 +83,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
     fun maintenance() {
         removeUnnecessaryTransfers()
         // clean all copy jobs
-        melDriveService.driveDatabaseManager.fileDistTaskDao.deleteAll()
+        melFileSyncService.fileSyncDatabaseManager.fileDistTaskDao.deleteAll()
         // todo resume downloads
         // open hash objects here and check whether the size on disk matches the files size
     }
@@ -124,7 +124,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
             val transferSets = transferDao.twoTransferSets
             if (transferSets.size > 0) {
                 transferSets.forEach { transferDetails ->
-                    val isolatedPromise = melDriveService.getIsolatedProcess(MelIsolatedFileProcess::class.java, transferDetails.certId.v(), transferDetails.serviceUuid.v())
+                    val isolatedPromise = melFileSyncService.getIsolatedProcess(MelIsolatedFileProcess::class.java, transferDetails.certId.v(), transferDetails.serviceUuid.v())
                     isolatedPromise.done { isolatedFileProcess ->
                         isolatedProcessesMap[isolatedFileProcess.partnerCertificateId] = isolatedFileProcess
                         checkAtom()
@@ -148,7 +148,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
 
 
     override fun runImpl() {
-        val transferDirPath = melDriveService.driveSettings.rootDirectory.path + File.separator + DriveStrings.TRANSFER_DIR
+        val transferDirPath = melFileSyncService.fileSyncSettings.rootDirectory.path + File.separator + FileSyncStrings.TRANSFER_DIR
         val transferDir = File(transferDirPath)
         transferDir.mkdirs()
 
@@ -166,7 +166,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
                         val fsFiles = fsDao.getSyncedFilesByHash(hash)
                         if (fsFiles?.size!! > 0) {
                             val fsFile = fsFiles[0]
-                            val aFile = fsDao.getFileByFsFile(melDriveService.driveSettings.rootDirectory, fsFile)
+                            val aFile = fsDao.getFileByFsFile(melFileSyncService.fileSyncSettings.rootDirectory, fsFile)
                             // the syncHandler moves the file into its places if equired.
                             // if not, the transfer entry is obsolete and can be deleted
                             if (!syncHandler.onFileTransferred(aFile, hash, fsTransaction, fsFile))
@@ -209,7 +209,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
             if (!activeTFSRunnables.containsKey(fileProcess)) {
                 val retrieveRunnable = TransferFromServiceRunnable(this, fileProcess)
                 activeTFSRunnables[fileProcess] = retrieveRunnable
-                melDriveService.execute(retrieveRunnable)
+                melFileSyncService.execute(retrieveRunnable)
             }
         } finally {
             transaction.end()
@@ -243,7 +243,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
     fun start() {
         P.confine(this).run {
             stopped = false
-            melDriveService.execute(this)
+            melFileSyncService.execute(this)
             waitLock.unlock()
         }.end()
     }
@@ -263,7 +263,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
 //                val done = transferDao.countRemaining(partnerCertificateId, partnerServiceUuid)
 //                if (count == done)
                 // this does not have to be precise cause it is for dev purposes only
-                melDriveService.onTransfersDone()
+                melFileSyncService.onTransfersDone()
             }
         } finally {
             transaction.end()

@@ -11,9 +11,9 @@ import de.mel.auth.socket.process.reg.IRegisterHandler
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener
 import de.mel.auth.socket.process.reg.IRegisteredHandler
 import de.mel.auth.tools.N
-import de.mel.drive.DriveBootloader
+import de.mel.drive.FileSyncBootloader
 import de.mel.drive.bash.BashTools
-import de.mel.drive.data.DriveSettings
+import de.mel.drive.data.FileSyncSettings
 import de.mel.drive.data.fs.RootDirectory
 import de.mel.drive.serialization.TestDirCreator
 import de.mel.dump.DumpBootloader
@@ -21,9 +21,7 @@ import de.mel.dump.DumpCreateServiceHelper
 import org.junit.After
 import org.junit.Before
 
-import org.junit.Test
 import java.io.File
-import kotlin.concurrent.thread
 
 class DumpTest {
 
@@ -51,8 +49,8 @@ class DumpTest {
         TestDirCreator.createFilesTestDir(AFile.instance(testSource), 0)
         val rTarget = AFile.instance(testTarget)
         val rSource = AFile.instance(testSource)
-        r1 = DriveSettings.buildRootDirectory(rTarget)
-        r2 = DriveSettings.buildRootDirectory(rSource)
+        r1 = FileSyncSettings.buildRootDirectory(rTarget)
+        r2 = FileSyncSettings.buildRootDirectory(rSource)
         s1 = DriveTest.createJson1()
         s2 = DriveTest.createJson2()
         mb1 = MelBoot(s1!!, PowerManager(s1), DumpBootloader::class.java)
@@ -62,7 +60,7 @@ class DumpTest {
             mas1.addRegisterHandler(createRegisterHandler())
             mas1.addRegisteredHandler(createRegisteredHandler())
 
-            DriveBootloader.DEV_DRIVE_BOOT_LISTENER = DriveBootloader.DEV_DriveBootListener {
+            FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = FileSyncBootloader.DEV_DriveBootListener {
                 N.r {
                     val targetUUID = mas1.databaseManager.allServices.first().uuid.v()
 

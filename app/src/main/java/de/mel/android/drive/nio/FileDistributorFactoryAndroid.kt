@@ -1,10 +1,9 @@
 package de.mel.android.drive.nio
 
-import de.mel.auth.file.AFile
 import de.mel.drive.nio.FileDistributor
 import de.mel.drive.nio.FileDistributorFactory
-import de.mel.drive.service.MelDriveService
+import de.mel.drive.service.MelFileSyncService
 
 class FileDistributorFactoryAndroid : FileDistributorFactory() {
-    override fun createInstance(driveService: MelDriveService<*>): FileDistributor<*> = FileDistributorAndroid(driveService)
+    override fun createInstance(fileSyncService: MelFileSyncService<*>): FileDistributor<*> = FileDistributorAndroid(fileSyncService)
 }

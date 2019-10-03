@@ -13,13 +13,13 @@ import de.mel.auth.tools.WaitLock;
 import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.core.serialize.serialize.tools.OTimer;
-import de.mel.drive.DriveSyncListener;
+import de.mel.drive.FileSyncSyncListener;
 import de.mel.drive.data.*;
 import de.mel.drive.data.conflict.ConflictSolver;
 import de.mel.drive.jobs.CommitJob;
 import de.mel.drive.jobs.SyncClientJob;
 import de.mel.drive.quota.OutOfSpaceException;
-import de.mel.drive.service.MelDriveClientService;
+import de.mel.drive.service.MelFileSyncClientService;
 import de.mel.drive.sql.*;
 import de.mel.drive.sql.dao.FsDao;
 import de.mel.drive.sql.dao.StageDao;
@@ -42,23 +42,23 @@ import java.util.*;
 @SuppressWarnings("Duplicates")
 public class ClientSyncHandler extends SyncHandler {
 
-    private final DriveClientSettingsDetails clientSettings;
-    private DriveSyncListener syncListener;
-    private MelDriveClientService melDriveService;
+    private final FileSyncClientSettingsDetails clientSettings;
+    private FileSyncSyncListener syncListener;
+    private MelFileSyncClientService melDriveService;
     private Map<String, ConflictSolver> conflictSolverMap = new keks<>();
     private Map<Long, Set<ConflictSolver>> relatedSolvers = new HashMap<>();
 
     public void updateHashes(Set<String> hashes) {
-        FsDao fsDao = driveDatabaseManager.getFsDao();
-        StageDao stageDao = driveDatabaseManager.getStageDao();
-        TransferDao transferDao = driveDatabaseManager.getTransferDao();
+        FsDao fsDao = fileSyncDatabaseManager.getFsDao();
+        StageDao stageDao = fileSyncDatabaseManager.getStageDao();
+        TransferDao transferDao = fileSyncDatabaseManager.getTransferDao();
         Warden warden = P.confine(fsDao);
         N.forEach(hashes, s -> {
             // if is stage from server or is transfer -> flag as available
             N.forEach(stageDao.getUpdateStageSetsFromServer(), stageSet -> {
                 stageDao.devUpdateSyncedByHashSet(stageSet.getId().v(), hashes);
             });
-            DriveClientSettingsDetails clientSettings = driveSettings.getClientSettings();
+            FileSyncClientSettingsDetails clientSettings = fileSyncSettings.getClientSettings();
             transferDao.updateAvailableByHashSet(clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), hashes);
         });
         warden.end();
@@ -69,13 +69,13 @@ public class ClientSyncHandler extends SyncHandler {
 
     public void askForAvailableTransfers() {
         try {
-            if (driveSettings.getClientSettings().getServerCertId() == null)
+            if (fileSyncSettings.getClientSettings().getServerCertId() == null)
                 return;
             Lok.debug("asking for new available hashes....");
-            TransferDao transferDao = driveDatabaseManager.getTransferDao();
-            ISQLResource<DbTransferDetails> transfers = transferDao.getNotStartedNotAvailableTransfers(driveSettings.getClientSettings().getServerCertId());
-            AvailableHashesContainer availableHashesTask = new AvailableHashesContainer(melDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE);
-            availableHashesTask.setIntent(DriveStrings.INTENT_ASK_HASHES_AVAILABLE);
+            TransferDao transferDao = fileSyncDatabaseManager.getTransferDao();
+            ISQLResource<DbTransferDetails> transfers = transferDao.getNotStartedNotAvailableTransfers(fileSyncSettings.getClientSettings().getServerCertId());
+            AvailableHashesContainer availableHashesTask = new AvailableHashesContainer(melDriveService.getCacheDirectory(), CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE);
+            availableHashesTask.setIntent(FileSyncStrings.INTENT_ASK_HASHES_AVAILABLE);
             N.readSqlResource(transfers, (sqlResource, transfer) -> {
                 availableHashesTask.add(new AvailHashEntry(transfer.getHash().v()));
             });
@@ -87,10 +87,10 @@ public class ClientSyncHandler extends SyncHandler {
 //            });
 
             if (availableHashesTask.getSize() > 0 && debugFlag) {
-                melAuthService.connect(driveSettings.getClientSettings().getServerCertId())
+                melAuthService.connect(fileSyncSettings.getClientSettings().getServerCertId())
                         .done(mvp -> {
                             N.r(() -> {
-                                mvp.request(driveSettings.getClientSettings().getServerServiceUuid(), availableHashesTask)
+                                mvp.request(fileSyncSettings.getClientSettings().getServerServiceUuid(), availableHashesTask)
                                         .done(result -> N.r(() -> {
                                             debugFlag = false;
                                             Lok.debug("got available hashes.");
@@ -126,15 +126,15 @@ public class ClientSyncHandler extends SyncHandler {
         }
     }
 
-    public void setSyncListener(DriveSyncListener syncListener) {
+    public void setSyncListener(FileSyncSyncListener syncListener) {
         this.syncListener = syncListener;
     }
 
 
-    public ClientSyncHandler(MelAuthService melAuthService, MelDriveClientService melDriveService) {
+    public ClientSyncHandler(MelAuthService melAuthService, MelFileSyncClientService melDriveService) {
         super(melAuthService, melDriveService);
         this.melDriveService = melDriveService;
-        this.clientSettings = melDriveService.getDriveSettings().getClientSettings();
+        this.clientSettings = melDriveService.getFileSyncSettings().getClientSettings();
     }
 
 
@@ -148,8 +148,8 @@ public class ClientSyncHandler extends SyncHandler {
     @SuppressWarnings("unchecked")
     private void syncToServerLocked(Long stageSetId) throws SqlQueriesException, InterruptedException {
         // stage is complete. first lock on FS
-        FsDao fsDao = driveDatabaseManager.getFsDao();
-        StageDao stageDao = driveDatabaseManager.getStageDao();
+        FsDao fsDao = fileSyncDatabaseManager.getFsDao();
+        StageDao stageDao = fileSyncDatabaseManager.getStageDao();
 //        fsDao.unlockRead();
         //fsDao.lockWrite();
         Warden warden = P.confine(P.read(stageDao));
@@ -161,10 +161,10 @@ public class ClientSyncHandler extends SyncHandler {
                 connected.done(mvp -> warden.run(() -> {
 // load to cached data structure
                     StageSet stageSet = stageDao.getStageSetById(stageSetId);
-                    Commit commit = new Commit(melDriveService.getCacheDirectory(), CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE, melDriveService.getUuid());
-                    N.readSqlResource(driveDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
+                    Commit commit = new Commit(melDriveService.getCacheDirectory(), CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE, melDriveService.getUuid());
+                    N.readSqlResource(fileSyncDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
                     commit.setBasedOnVersion(stageSet.getBasedOnVersion().v());
-                    commit.setIntent(DriveStrings.INTENT_COMMIT);
+                    commit.setIntent(FileSyncStrings.INTENT_COMMIT);
                     Request committed = mvp.request(clientSettings.getServerServiceUuid(), commit);
                     committed.done(res -> warden.run(() -> {
                         CommitAnswer answer = (CommitAnswer) res;
@@ -178,8 +178,8 @@ public class ClientSyncHandler extends SyncHandler {
                             }
                             stageDao.update(stage);
                         }
-                        stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
-                        stageSet.setSource(DriveStrings.STAGESET_SOURCE_SERVER);
+                        stageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
+                        stageSet.setSource(FileSyncStrings.STAGESET_SOURCE_SERVER);
                         commitStage(stageSetId, warden);
                         researchTransfers();
                         transferManager.research();
@@ -191,7 +191,7 @@ public class ClientSyncHandler extends SyncHandler {
                                 // check if the new server version is already present
                                 TooOldVersionException tooOldVersionException = (TooOldVersionException) result;
                                 Lok.debug("ClientSyncHandler.syncWithServer.TooOldVersionException");
-                                Long latestVersion = driveDatabaseManager.getLatestVersion();
+                                Long latestVersion = fileSyncDatabaseManager.getLatestVersion();
                                 if (latestVersion < tooOldVersionException.getNewVersion()) {
                                     latestVersion = stageDao.getLatestStageSetVersion();
                                     if (latestVersion == null || latestVersion < tooOldVersionException.getNewVersion()) {
@@ -291,7 +291,7 @@ public class ClientSyncHandler extends SyncHandler {
                 return;
             } else if (updateSets.size() == 1) {
                 StageSet stageSet = updateSets.get(0);
-                if (stageSet.getSource().equalsValue(DriveStrings.STAGESET_SOURCE_SERVER)) {
+                if (stageSet.getSource().equalsValue(FileSyncStrings.STAGESET_SOURCE_SERVER)) {
                     Warden finalWarden = warden;
                     N.r(() -> commitStage(stageSet.getId().v(), finalWarden));
                     researchTransfers();
@@ -358,7 +358,7 @@ public class ClientSyncHandler extends SyncHandler {
                 System.err.println(getClass().getSimpleName() + ".handleConflict(): conflict " + identifier + " was not resolved");
             }
         } else {
-            conflictSolver = new ConflictSolver(driveDatabaseManager, serverStageSet, stagedFromFs);
+            conflictSolver = new ConflictSolver(fileSyncDatabaseManager, serverStageSet, stagedFromFs);
             conflictSolver.beforeStart(serverStageSet);
             iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
@@ -461,7 +461,7 @@ public class ClientSyncHandler extends SyncHandler {
         StageSet rStageSet = stageSets.get(1);
         long basedOnVersion = lStageSet.getBasedOnVersion().v() >= rStageSet.getBasedOnVersion().v() ? lStageSet.getBasedOnVersion().v() : rStageSet.getBasedOnVersion().v();
         Lok.debug("ClientSyncHandler.mergeStageSets L: " + lStageSet.getId().v() + " R: " + rStageSet.getId().v());
-        StageSet mStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, lStageSet.getOriginCertId().v(), lStageSet.getOriginServiceUuid().v()
+        StageSet mStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_MERGED, lStageSet.getOriginCertId().v(), lStageSet.getOriginServiceUuid().v()
                 , basedOnVersion
                 , lStageSet.getVersion().v());
         final Long mStageSetId = mStageSet.getId().v();
@@ -533,7 +533,7 @@ public class ClientSyncHandler extends SyncHandler {
         iterateStageSets(lStageSet, rStageSet, merger, null);
         stageDao.deleteStageSet(rStageSet.getId().v());
         stageDao.deleteStageSet(lStageSet.getId().v());
-        stageDao.updateStageSet(mStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED).setSource(DriveStrings.STAGESET_SOURCE_FS));
+        stageDao.updateStageSet(mStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED).setSource(FileSyncStrings.STAGESET_SOURCE_FS));
         // tell the service which StageSets had been merged
         melDriveService.onStageSetsMerged(lStageSet.getId().v(), rStageSet.getId().v(), mStageSet);
     }
@@ -608,14 +608,14 @@ public class ClientSyncHandler extends SyncHandler {
         Certificate serverCert = melAuthService.getCertificateManager().getTrustedCertificateById(clientSettings.getServerCertId());
         Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(serverCert.getId().v());
         connected.done(mvp -> runner.runTry(() -> {
-            long oldeSyncedVersion = driveDatabaseManager.getDriveSettings().getLastSyncedVersion();
+            long oldeSyncedVersion = fileSyncDatabaseManager.getFileSyncSettings().getLastSyncedVersion();
             //todo version, what calls this?
-            StageSet stageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null, oldeSyncedVersion);
+            StageSet stageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null, oldeSyncedVersion);
             //prepare cached answer
             SyncRequest sentSyncRequest = new SyncRequest()
                     .setOldVersion(oldeSyncedVersion);
 //            sentSyncRequest.setServiceUuid(this.clientSettings.getServerServiceUuid());
-            sentSyncRequest.setIntent(DriveStrings.INTENT_SYNC);
+            sentSyncRequest.setIntent(FileSyncStrings.INTENT_SYNC);
             Request<SyncAnswer> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncRequest);
             request.done(syncAnswer -> runner.runTry(() -> {
                 try {
@@ -783,7 +783,7 @@ public class ClientSyncHandler extends SyncHandler {
             communicationDone.resolve(null);
         }
         communicationDone.done(nul -> {
-            stageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+            stageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
             N.r(() -> stageDao.updateStageSet(stageSet));
             reorderStageSet(stageSet);
             finished.resolve(stageSet.getId().v());

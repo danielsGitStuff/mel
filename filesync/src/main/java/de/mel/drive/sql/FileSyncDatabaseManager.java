@@ -4,9 +4,9 @@ import de.mel.Lok;
 import de.mel.auth.data.access.FileRelatedManager;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
+import de.mel.drive.service.MelFileSyncService;
 import de.mel.drive.sql.dao.*;
 import de.mel.execute.SqliteExecutor;
 import de.mel.sql.*;
@@ -25,13 +25,13 @@ import java.util.List;
  * does everything file (database) related
  * Created by xor on 09.07.2016.
  */
-public class DriveDatabaseManager extends FileRelatedManager {
-    private final MelDriveService melDriveService;
+public class FileSyncDatabaseManager extends FileRelatedManager {
+    private final MelFileSyncService melFileSyncService;
     private final ISQLQueries sqlQueries;
     private final FileDistTaskDao fileDistTaskDao;
     private FsDao fsDao;
     private StageDao stageDao;
-    private final DriveSettings driveSettings;
+    private final FileSyncSettings fileSyncSettings;
     private TransferDao transferDao;
     private WasteDao wasteDao;
 
@@ -53,7 +53,7 @@ public class DriveDatabaseManager extends FileRelatedManager {
     }
 
     public interface SQLConnectionCreator {
-        ISQLQueries createConnection(DriveDatabaseManager driveDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
+        ISQLQueries createConnection(FileSyncDatabaseManager fileSyncDatabaseManager, String uuid) throws SQLException, ClassNotFoundException;
     }
 
     public static SQLConnectionCreator getSqlqueriesCreator() {
@@ -61,12 +61,12 @@ public class DriveDatabaseManager extends FileRelatedManager {
     }
 
     private static SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> {
-        File f = new File(driveDatabaseManager.createWorkingPath() + DriveStrings.DB_FILENAME);
+        File f = new File(driveDatabaseManager.createWorkingPath() + FileSyncStrings.DB_FILENAME);
         return new SQLQueries(SQLConnector.createSqliteConnection(f), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
     };
 
     public static void setSqlqueriesCreator(SQLConnectionCreator sqlqueriesCreator) {
-        DriveDatabaseManager.sqlqueriesCreator = sqlqueriesCreator;
+        FileSyncDatabaseManager.sqlqueriesCreator = sqlqueriesCreator;
     }
 
     public static Connection createSqliteConnection() throws ClassNotFoundException, SQLException {
@@ -74,22 +74,22 @@ public class DriveDatabaseManager extends FileRelatedManager {
         return DriverManager.getConnection("jdbc:sqlite::memory:");
     }
 
-    public interface DriveSqlInputStreamInjector {
+    public interface FileSyncSqlInputStreamInjector {
         InputStream createSqlFileInputStream();
     }
 
-    private static DriveSqlInputStreamInjector driveSqlInputStreamInjector = () -> DriveDatabaseManager.class.getClassLoader().getResourceAsStream("de/mel/filesync/filesync.sql");
+    private static FileSyncSqlInputStreamInjector fileSyncSqlInputStreamInjector = () -> FileSyncDatabaseManager.class.getClassLoader().getResourceAsStream("de/mel/filesync/filesync.sql");
 
-    public static void setDriveSqlInputStreamInjector(DriveSqlInputStreamInjector driveSqlInputStreamInjector) {
-        DriveDatabaseManager.driveSqlInputStreamInjector = driveSqlInputStreamInjector;
+    public static void setFileSyncSqlInputStreamInjector(FileSyncSqlInputStreamInjector fileSyncSqlInputStreamInjector) {
+        FileSyncDatabaseManager.fileSyncSqlInputStreamInjector = fileSyncSqlInputStreamInjector;
     }
 
-    public DriveDatabaseManager(MelDriveService melDriveService, File workingDirectory, DriveSettings driveSettings) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
+    public FileSyncDatabaseManager(MelFileSyncService melFileSyncService, File workingDirectory, FileSyncSettings fileSyncSettings) throws SQLException, ClassNotFoundException, IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException, SqlQueriesException {
         super(workingDirectory);
-        this.melDriveService = melDriveService;
-        this.driveSettings = driveSettings;
+        this.melFileSyncService = melFileSyncService;
+        this.fileSyncSettings = fileSyncSettings;
 
-        sqlQueries = sqlqueriesCreator.createConnection(this, melDriveService.getUuid());
+        sqlQueries = sqlqueriesCreator.createConnection(this, melFileSyncService.getUuid());
         {
             Lok.error("synchronous PRAGMA is turned off!");
             SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
@@ -105,34 +105,34 @@ public class DriveDatabaseManager extends FileRelatedManager {
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste", "filedist")) {
             //find sql file in workingdir
-            sqliteExecutor.executeStream(driveSqlInputStreamInjector.createSqlFileInputStream());
+            sqliteExecutor.executeStream(fileSyncSqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
-        this.driveSettings.getRootDirectory().backup();
+        this.fileSyncSettings.getRootDirectory().backup();
 
 
         fsDao = new FsDao(this, sqlQueries);
-        stageDao = new StageDao(driveSettings, sqlQueries, fsDao);
+        stageDao = new StageDao(fileSyncSettings, sqlQueries, fsDao);
         transferDao = new TransferDao(sqlQueries);
         wasteDao = new WasteDao(sqlQueries);
         fileDistTaskDao = new FileDistTaskDao(sqlQueries);
 
 
-        fsDao.setDriveSettings(this.driveSettings);
+        fsDao.setFileSyncSettings(this.fileSyncSettings);
         transferDao.resetStarted();
         Lok.debug("DriveDatabaseManager.initialised");
     }
 
-    public MelDriveService getMelDriveService() {
-        return melDriveService;
+    public MelFileSyncService getMelFileSyncService() {
+        return melFileSyncService;
     }
 
     public FsDao getFsDao() {
         return fsDao;
     }
 
-    public DriveSettings getDriveSettings() {
-        return driveSettings;
+    public FileSyncSettings getFileSyncSettings() {
+        return fileSyncSettings;
     }
 
 
@@ -142,9 +142,9 @@ public class DriveDatabaseManager extends FileRelatedManager {
 
     public void updateVersion() throws IllegalAccessException, IOException, JsonSerializationException, SqlQueriesException {
         long version = getLatestVersion();
-        Lok.debug("updating settings, set version from " + driveSettings.getLastSyncedVersion() + " to " + version);
-        driveSettings.setLastSyncedVersion(version);
-        driveSettings.save();
+        Lok.debug("updating settings, set version from " + fileSyncSettings.getLastSyncedVersion() + " to " + version);
+        fileSyncSettings.setLastSyncedVersion(version);
+        fileSyncSettings.save();
     }
 
     public TransferDao getTransferDao() {

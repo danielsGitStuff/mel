@@ -3,10 +3,9 @@ package de.mel.drive.index;
 import de.mel.DeferredRunnable;
 import de.mel.auth.file.AFile;
 import de.mel.drive.data.fs.RootDirectory;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.service.MelFileSyncService;
 import de.mel.drive.service.sync.SyncHandler;
-import de.mel.drive.sql.DriveDatabaseManager;
-import de.mel.drive.sql.FsDirectory;
+import de.mel.drive.sql.FileSyncDatabaseManager;
 import de.mel.drive.index.watchdog.IndexWatchdogListener;
 import de.mel.sql.SqlQueriesException;
 
@@ -18,15 +17,15 @@ import java.io.IOException;
  * Created by xor on 10.07.2016.
  */
 public class Indexer {
-    private final MelDriveService melDriveService;
+    private final MelFileSyncService melFileSyncService;
     private IndexerRunnable indexerRunnable;
 
     public IndexerRunnable getIndexerRunnable() {
         return indexerRunnable;
     }
 
-    public Indexer(DriveDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, IndexListener... listeners) throws SqlQueriesException {
-        melDriveService = databaseManager.getMelDriveService();
+    public Indexer(FileSyncDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, IndexListener... listeners) throws SqlQueriesException {
+        melFileSyncService = databaseManager.getMelFileSyncService();
         indexerRunnable = new IndexerRunnable(databaseManager, indexWatchdogListener, listeners);
     }
 
@@ -63,7 +62,7 @@ public class Indexer {
     }
 
     public DeferredObject<DeferredRunnable, Exception, Void> start() {
-        melDriveService.execute(indexerRunnable);
+        melFileSyncService.execute(indexerRunnable);
         return indexerRunnable.getStartedDeferred();
     }
 
@@ -80,7 +79,7 @@ public class Indexer {
 //        if (indexerRunnable.getStartedDeferred().isResolved())
 //            indexerRunnable.setStartedPromise(new DeferredObject<>());
 //        indexerRunnable.getStartedDeferred().done(result -> N.r(melDriveService::onIndexerDone));
-        melDriveService.execute(indexerRunnable);
+        melFileSyncService.execute(indexerRunnable);
     }
 
     public void setConflictHelper(InitialIndexConflictHelper conflictHelper) {

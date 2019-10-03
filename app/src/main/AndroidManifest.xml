@@ -58,7 +58,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".android.drive.DriveConflictsPopupActivity" />
+        <activity android:name=".android.drive.FileSyncConflictsPopupActivity" />
         <activity android:name=".android.file.chooserdialog.DirectoryChooserDialog" />
         <activity android:name=".android.contacts.ContactsConflictsPopupActivity" />
 

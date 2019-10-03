@@ -21,7 +21,7 @@
             <Label text="%edit.name" GridPane.columnIndex="0" GridPane.rowIndex="1" />
             <TextField fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
             <Label fx:id="lblHint" disable="true" text="%edit.hint" wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="2" />
-<!--            <Hyperlink text="Drive on F-Droid" fx:id="link" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.columnIndex="0">https://addres.goes.here</Hyperlink>-->
+<!--            <Hyperlink text="Mel on F-Droid" fx:id="link" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.columnIndex="0">https://addres.goes.here</Hyperlink>-->
 <!--            <columnConstraints>-->
 <!--                <ColumnConstraints />-->
 <!--                <ColumnConstraints />-->

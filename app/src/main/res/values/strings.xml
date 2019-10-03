@@ -7,16 +7,16 @@
 
 
     <string name="coupleNotificationCertTitle">Pairing Attempt!</string>
-    <string name="coupleNotificationCertText">Your Drive instance wants to get to know another one.</string>
+    <string name="coupleNotificationCertText">Your Mel instance wants to get to know another one.</string>
     <string name="slogan">No Clouds included!</string>
-    <string name="permanentNotification">This notification prevents Drive from being shut down.</string>
+    <string name="permanentNotification">This notification prevents Mel from being shut down.</string>
     <string name="btnOk">Ok</string>
     <string name="titleHelp">Help</string>
-    <string name="accessHelp">Left column: all other Drive instances known to you. When clicking on one of them the right column will show all existing services. Ticking the boxes will allow the other instance to talk to this specific Service.</string>
+    <string name="accessHelp">Left column: all other Mel instances known to you. When clicking on one of them the right column will show all existing services. Ticking the boxes will allow the other instance to talk to this specific Service.</string>
     <string name="createServiceHelp">You can create new Services here. Remember: Services are not allowed to \"talk\" to any other instances by default. You can change that in the Access view. Before a service can be created you must grant the required permissions so it can do its job.</string>
     <string name="infoHelp">Shows the current status of the background service and some additional info. You can see all running services and settings in the navigator on the left.</string>
     <string name="logcatHelp">Usually you do not need this. If something goes wrong and you cannot currently debug this is the place to look at.</string>
-    <string name="discoveryHelp">Finds other instances of Drive in the current Wifi. This requires Broadcasting to be working on your network. Broadcast are sent on port 9966.</string>
+    <string name="discoveryHelp">Finds other instances of Mel in the current Wifi. This requires Broadcasting to be working on your network. Broadcast are sent on port 9966.</string>
     <string name="connectedHelp">List of instances that your device already knows and can connect with. Currently connected instances are highlighted.</string>
     <string name="settingsHelp">You can adjust your name and ports here. Your name will appear on other devices once paired. The ports are used to connect (directly - if broadcasting does not work) and Broadcast port is fixed to 9966. When you are done with coupling you may create new Services and allow them to \"talk\" to the other instances. </string>
     <string name="editServiceHelp">Shows things that you can change on this currently running Service.</string>
@@ -50,7 +50,7 @@
     <string name="discoverUnknown">Unknown</string>
     <string name="discoverKnown">Known</string>
     <string name="showIntro" translatable="false">introShown</string>
-    <string name="firstStart">Welcome to Drive. This app can couple with other instances running on your network. When you have done that you may create a Service and grant access to the other instances. You will find a Help button on the top right which explains what all the things are good for.</string>
+    <string name="firstStart">Welcome to Mel. This app can couple with other instances running on your network. When you have done that you may create a Service and grant access to the other instances. You will find a Help button on the top right which explains what all the things are good for.</string>
     <string name="editServiceApply">Apply</string>
     <string name="editServiceName">Name</string>
     <string name="createServiceName">Name</string>

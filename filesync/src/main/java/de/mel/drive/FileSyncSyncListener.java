@@ -2,16 +2,13 @@ package de.mel.drive;
 
 import de.mel.auth.file.AFile;
 import de.mel.auth.service.MelAuthService;
-import de.mel.drive.service.MelDriveClientService;
-import de.mel.drive.service.MelDriveServerService;
-import de.mel.drive.sql.StageSet;
-
-import java.io.File;
+import de.mel.drive.service.MelFileSyncClientService;
+import de.mel.drive.service.MelFileSyncServerService;
 
 /**
  * Created by xor on 11/13/16.
  */
-public abstract class DriveSyncListener {
+public abstract class FileSyncSyncListener {
     public DTestStructure testStructure = new DTestStructure();
     private int count = 0;
 
@@ -26,12 +23,12 @@ public abstract class DriveSyncListener {
 
     public static class DTestStructure {
         public MelAuthService maServer, maClient;
-        public MelDriveClientService clientDriveService;
-        public MelDriveServerService serverDriveService;
+        public MelFileSyncClientService clientDriveService;
+        public MelFileSyncServerService serverDriveService;
         public AFile testdir1;
         public AFile testdir2;
 
-        public DTestStructure setClientDriveService(MelDriveClientService clientDriveService) {
+        public DTestStructure setClientDriveService(MelFileSyncClientService clientDriveService) {
             this.clientDriveService = clientDriveService;
             return this;
         }
@@ -46,7 +43,7 @@ public abstract class DriveSyncListener {
             return this;
         }
 
-        public DTestStructure setServerDriveService(MelDriveServerService serverDriveService) {
+        public DTestStructure setServerDriveService(MelFileSyncServerService serverDriveService) {
             this.serverDriveService = serverDriveService;
             return this;
         }

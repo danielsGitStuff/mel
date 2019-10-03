@@ -25,27 +25,27 @@ import de.mel.android.MainActivity;
 import de.mel.android.Notifier;
 import de.mel.android.Tools;
 import de.mel.android.controller.RemoteServiceChooserController;
-import de.mel.android.drive.AndroidDriveBootloader;
+import de.mel.android.drive.AndroidFileSyncBootloader;
 import de.mel.android.file.SAFAccessor;
 import de.mel.android.file.StoragesManager;
 import de.mel.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.file.AFile;
 import de.mel.auth.service.MelAuthService;
-import de.mel.drive.data.DriveDetails;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncDetails;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
 
 /**
  * Created by xor on 2/25/17.
  */
 
-public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooserController {
+public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChooserController {
 
     private EditText txtPath, txtMaxSize, txtMaxDays;
     private SeekBar maxSizeSeekBar;
     private Button btnPath, btnOptional;
-    private float wastebinRatio = DriveSettings.DEFAULT_WASTEBIN_RATIO;
+    private float wastebinRatio = FileSyncSettings.DEFAULT_WASTEBIN_RATIO;
     private Long totalSpace;
     private Long availableSpace;
     private boolean optionalCollapsed = true;
@@ -79,8 +79,8 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     @Override
     protected void onServiceSelected(Long selectedCertId, ServiceJoinServiceType selectedService) {
         if (selectedService.getAdditionalServicePayload() != null) {
-            DriveDetails driveDetails = (DriveDetails) selectedService.getAdditionalServicePayload();
-            if (driveDetails.usesSymLinks()) {
+            FileSyncDetails fileSyncDetails = (FileSyncDetails) selectedService.getAdditionalServicePayload();
+            if (fileSyncDetails.usesSymLinks()) {
                 showIncompatibleState();
             } else {
                 showNormalState();
@@ -97,7 +97,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         return rootFile;
     }
 
-    public RemoteDriveServiceChooserGuiController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup) {
+    public RemoteFileSyncServiceChooserGuiController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup) {
         super(melAuthService, activity, viewGroup, R.layout.embedded_twice_drive);
     }
 
@@ -122,7 +122,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
     @Override
     protected void initEmbedded() {
         container = rootView.findViewById(R.id.tbl);
-        wastebinRatio = DriveSettings.DEFAULT_WASTEBIN_RATIO;
+        wastebinRatio = FileSyncSettings.DEFAULT_WASTEBIN_RATIO;
         txtPath = rootView.findViewById(R.id.txtPath);
         btnPath = rootView.findViewById(R.id.btnPath);
         txtMaxDays = rootView.findViewById(R.id.txtMaxDays);
@@ -135,7 +135,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
         setPath(createDrivePath());
         btnPath.setOnClickListener(view -> {
             // explain permissions to user first
-            activity.askUserForPermissions(new AndroidDriveBootloader().getPermissions()
+            activity.askUserForPermissions(new AndroidFileSyncBootloader().getPermissions()
                     , permissionsGrantedListener
                     , R.string.permissionRequiredTitle
                     , R.string.permissionDriveWriteMessage
@@ -271,7 +271,7 @@ public class RemoteDriveServiceChooserGuiController extends RemoteServiceChooser
 
     @Override
     protected boolean showService(ServiceJoinServiceType service) {
-        return service.getType().v().equals(DriveStrings.NAME) && service.getAdditionalServicePayload() != null;
+        return service.getType().v().equals(FileSyncStrings.NAME) && service.getAdditionalServicePayload() != null;
     }
 
     private String createDrivePath() {

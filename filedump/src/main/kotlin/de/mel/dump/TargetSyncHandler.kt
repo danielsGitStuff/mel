@@ -65,7 +65,7 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
                         resolveConflict(stage, existing, fsEntry, stageIdFsIdMap)
                     }
                     stageIdFsIdMap?.set(stage.id, fsEntry.id.v())
-                    createDirs(driveDatabaseManager.driveSettings.rootDirectory, fsEntry)
+                    createDirs(fileSyncDatabaseManager.fileSyncSettings.rootDirectory, fsEntry)
                     // transfer if file
                     if (!stage.isDirectory) {
                         // this file porobably has to be transferred
@@ -81,7 +81,7 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
                     }
                 }
             }
-            driveDatabaseManager.updateVersion()
+            fileSyncDatabaseManager.updateVersion()
             stageDao.deleteStageSet(stageSetId)
             transferManager.stop()
             transferManager.removeUnnecessaryTransfers()

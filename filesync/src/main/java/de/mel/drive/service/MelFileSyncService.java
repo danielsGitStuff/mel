@@ -29,16 +29,16 @@ import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
-import de.mel.drive.DriveSyncListener;
-import de.mel.drive.data.DriveDetails;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.FileSyncSyncListener;
+import de.mel.drive.data.FileSyncDetails;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.index.IndexListener;
 import de.mel.drive.index.Indexer;
 import de.mel.drive.index.watchdog.IndexWatchdogListener;
 import de.mel.drive.index.watchdog.StageIndexer;
 import de.mel.drive.service.sync.SyncHandler;
-import de.mel.drive.sql.DriveDatabaseManager;
+import de.mel.drive.sql.FileSyncDatabaseManager;
 import de.mel.drive.sql.FsDirectory;
 import de.mel.drive.sql.FsFile;
 import de.mel.drive.sql.GenericFSEntry;
@@ -52,9 +52,9 @@ import de.mel.sql.SqlQueriesException;
  * does everything file (on disk) related
  * Created by xor on 09.07.2016.
  */
-public abstract class MelDriveService<S extends SyncHandler> extends MelServiceWorker implements PowerManager.IPowerStateListener {
-    protected DriveDatabaseManager driveDatabaseManager;
-    protected DriveSettings driveSettings;
+public abstract class MelFileSyncService<S extends SyncHandler> extends MelServiceWorker implements PowerManager.IPowerStateListener {
+    protected FileSyncDatabaseManager fileSyncDatabaseManager;
+    protected FileSyncSettings fileSyncSettings;
     protected N runner = new N(Throwable::printStackTrace);
     protected Indexer indexer;
     protected StageIndexer stageIndexer;
@@ -62,23 +62,23 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
     protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
     protected InitialIndexConflictHelper conflictHelper;
     private Wastebin wastebin;
-    private DriveSyncListener syncListener;
+    private FileSyncSyncListener syncListener;
 
 
-    public MelDriveService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
+    public MelFileSyncService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings) {
         super(melAuthService, workingDirectory, serviceTypeId, uuid, Bootloader.BootLevel.LONG);
-        this.driveSettings = driveSettings;
+        this.fileSyncSettings = fileSyncSettings;
     }
 
     public S getSyncHandler() {
         return syncHandler;
     }
 
-    private DriveSyncListener getSyncListener() {
+    private FileSyncSyncListener getSyncListener() {
         return syncListener;
     }
 
-    public void setSyncListener(DriveSyncListener syncListener) {
+    public void setSyncListener(FileSyncSyncListener syncListener) {
         this.syncListener = syncListener;
     }
 
@@ -112,7 +112,7 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
     @Override
     public MelNotification createSendingNotification() {
         MelNotification notification = new MelNotification(uuid,
-                DriveStrings.Notifications.INTENTION_PROGRESS
+                FileSyncStrings.Notifications.INTENTION_PROGRESS
                 , "Sending Files", "!")
                 .setProgress(0, 0, true);
         return notification;
@@ -124,8 +124,8 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
         addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(payload.getIntent()));
     }
 
-    public DriveSettings getDriveSettings() {
-        return driveSettings;
+    public FileSyncSettings getFileSyncSettings() {
+        return fileSyncSettings;
     }
 
     @Override
@@ -148,17 +148,17 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
                 ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
                 if (job.isRequest()) {
                     Request request = job.getRequest();
-                    if (request.hasIntent(DriveStrings.INTENT_DRIVE_DETAILS)) {
-                        DriveDetails details = driveDatabaseManager.getDriveSettings().getDriveDetails();
+                    if (request.hasIntent(FileSyncStrings.INTENT_DRIVE_DETAILS)) {
+                        FileSyncDetails details = fileSyncDatabaseManager.getFileSyncSettings().getDriveDetails();
                         request.resolve(details);
-                    } else if (request.hasIntent(DriveStrings.INTENT_DIRECTORY_CONTENT)) {
+                    } else if (request.hasIntent(FileSyncStrings.INTENT_DIRECTORY_CONTENT)) {
                         handleDirectoryContentsRequest(request);
-                    } else if (request.hasIntent(DriveStrings.INTENT_SYNC)) {
+                    } else if (request.hasIntent(FileSyncStrings.INTENT_SYNC)) {
                         onSyncReceived(request);
                     }
                 } else if (job.isMessage()) {
                     Lok.debug(melAuthService.getName() + ".MelDriveService.workWork.msg");
-                    if (job.getIntent() != null && job.getIntent().equals(DriveStrings.INTENT_PLEASE_TRANSFER)) {
+                    if (job.getIntent() != null && job.getIntent().equals(FileSyncStrings.INTENT_PLEASE_TRANSFER)) {
                         Lok.debug("MelDriveService.workWorkWork: transfer please");
                         handleSending(job.getPartnerCertificate().getId().v(), (FileTransferDetailsPayload) job.getPayLoad());
                     }
@@ -176,7 +176,7 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
                 return;
             }
             ServiceRequestHandlerJob requestHandlerJob = (ServiceRequestHandlerJob) job;
-            if (requestHandlerJob.getIntent() == null || !requestHandlerJob.getIntent().equals(DriveStrings.INTENT_REG_AS_CLIENT)) {
+            if (requestHandlerJob.getIntent() == null || !requestHandlerJob.getIntent().equals(FileSyncStrings.INTENT_REG_AS_CLIENT)) {
                 Lok.error(job.getClass().getSimpleName() + " turnend down. required boot level not reached yet.");
                 return;
             }
@@ -210,7 +210,7 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
 
     protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload) {
         //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
-        FsDao fsDao = driveDatabaseManager.getFsDao();
+        FsDao fsDao = fileSyncDatabaseManager.getFsDao();
         Warden warden = P.confine(P.read(fsDao));
         try {
 
@@ -219,14 +219,14 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
                 AFile wasteFile = wastebin.getByHash(detail.getHash());
                 Promise<MelIsolatedFileProcess, Exception, Void> promise = getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
                 promise.done(fileProcess -> runner.runTry(() -> {
-                    List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
+                    List<FsFile> fsFiles = fileSyncDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
                     if (wasteFile != null) {
                         FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());
                         mDetail.openRead();
                         fileProcess.sendFile(mDetail);
                     } else if (fsFiles.size() > 0) {
                         FsFile fsFile = fsFiles.get(0);
-                        AFile file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
+                        AFile file = fsDao.getFileByFsFile(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
                         if (!file.exists()) {
                             file = wastebin.getByHash(detail.getHash());
                         }
@@ -283,8 +283,8 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
         Lok.debug("MelDriveService.handleDirectoryContentsRequest");
         DirectoriesContentTask task = (DirectoriesContentTask) request.getPayload();
         for (Long fsId : task.getIds()) {
-            FsDirectory fsDirectory = driveDatabaseManager.getFsDao().getDirectoryById(fsId);
-            List<GenericFSEntry> content = driveDatabaseManager.getFsDao().getContentByFsDirectory(fsId);
+            FsDirectory fsDirectory = fileSyncDatabaseManager.getFsDao().getDirectoryById(fsId);
+            List<GenericFSEntry> content = fileSyncDatabaseManager.getFsDao().getContentByFsDirectory(fsId);
             for (GenericFSEntry genericFSEntry : content) {
                 if (genericFSEntry.getIsDirectory().v()) {
                     fsDirectory.addSubDirectory((FsDirectory) genericFSEntry.ins());
@@ -307,13 +307,13 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
     protected abstract boolean workWorkWork(Job unknownJob);
 
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
-        this.driveSettings = driveDatabaseManager.getDriveSettings();
-        AFile transferDir = driveSettings.getTransferDirectory();
+        this.fileSyncSettings = fileSyncDatabaseManager.getFileSyncSettings();
+        AFile transferDir = fileSyncSettings.getTransferDirectory();
         transferDir.mkdirs();
-        AFile wasteDir = AFile.instance(driveSettings.getTransferDirectory(), DriveStrings.WASTEBIN);
+        AFile wasteDir = AFile.instance(fileSyncSettings.getTransferDirectory(), FileSyncStrings.WASTEBIN);
         wasteDir.mkdirs();
-        this.stageIndexer = new StageIndexer(driveDatabaseManager);
-        this.indexer = new Indexer(driveDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());
+        this.stageIndexer = new StageIndexer(fileSyncDatabaseManager);
+        this.indexer = new Indexer(fileSyncDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());
         if (conflictHelper != null)
             indexer.setConflictHelper(conflictHelper);
         this.wastebin = new Wastebin(this);
@@ -329,12 +329,12 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
 
     protected abstract S initSyncHandler();
 
-    public DriveDatabaseManager getDriveDatabaseManager() {
-        return driveDatabaseManager;
+    public FileSyncDatabaseManager getFileSyncDatabaseManager() {
+        return fileSyncDatabaseManager;
     }
 
-    public void setDriveDatabaseManager(DriveDatabaseManager driveDatabaseManager) {
-        this.driveDatabaseManager = driveDatabaseManager;
+    public void setFileSyncDatabaseManager(FileSyncDatabaseManager fileSyncDatabaseManager) {
+        this.fileSyncDatabaseManager = fileSyncDatabaseManager;
     }
 
     public Promise<List<FsDirectory>, Exception, Void> requestDirectoriesByIds(Set<Long> fsDirIdsToRetrieve, Long certId, String serviceUuid) throws SqlQueriesException, InterruptedException {
@@ -365,7 +365,7 @@ public abstract class MelDriveService<S extends SyncHandler> extends MelServiceW
         super.onShutDown();
         if (syncHandler != null)
             syncHandler.onShutDown();
-        driveDatabaseManager.shutDown();
+        fileSyncDatabaseManager.shutDown();
         if (indexer != null)
             indexer.shutDown();
         return null;

@@ -17,7 +17,7 @@ import de.mel.auth.tools.WatchDogTimer;
 import de.mel.drive.data.PathCollection;
 import de.mel.drive.index.watchdog.IndexWatchdogListener;
 import de.mel.drive.index.watchdog.UnixReferenceFileHandler;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.service.MelFileSyncService;
 import org.jdeferred.Promise;
 
 /**
@@ -33,22 +33,22 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     private final AFile transferDirectory;
     private final UnixReferenceFileHandler unixReferenceFileHandler;
 
-    public RecursiveWatcher(MelDriveService melDriveService) {
-        super(melDriveService);
-        this.target = melDriveService.getDriveSettings().getRootDirectory().getOriginalFile();
+    public RecursiveWatcher(MelFileSyncService melFileSyncService) {
+        super(melFileSyncService);
+        this.target = melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile();
         watch(target);
-        this.melDriveService = melDriveService;
-        this.setStageIndexer(melDriveService.getStageIndexer());
-        this.transferDirectory = melDriveService.getDriveSettings().getTransferDirectoryFile();
+        this.melFileSyncService = melFileSyncService;
+        this.setStageIndexer(melFileSyncService.getStageIndexer());
+        this.transferDirectory = melFileSyncService.getFileSyncSettings().getTransferDirectoryFile();
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
         this.watchDogTimer = new WatchDogTimer("recursive watcher",this::onTimerStopped, 15, 100, 1000);
-        unixReferenceFileHandler = new UnixReferenceFileHandler(melDriveService.getServiceInstanceWorkingDirectory(), target, melDriveService.getDriveSettings().getTransferDirectory());
+        unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), target, melFileSyncService.getFileSyncSettings().getTransferDirectory());
         unixReferenceFileHandler.onStart();
     }
 
     @Override
     public String getRunnableName() {
-        return getClass().getSimpleName() + " for " + melDriveService.getRunnableName();
+        return getClass().getSimpleName() + " for " + melFileSyncService.getRunnableName();
     }
 
     @Override
@@ -176,7 +176,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
      * @throws InterruptedException
      */
     private void startTimer() throws InterruptedException {
-        if (melDriveService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
+        if (melFileSyncService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
             watchDogTimer.start();
         } else {
             surpressEvent();

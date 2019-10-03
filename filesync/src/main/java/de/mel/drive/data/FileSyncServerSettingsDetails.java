@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * Created by xor on 10/26/16.
  */
-public class DriveServerSettingsDetails implements SerializableEntity {
+public class FileSyncServerSettingsDetails implements SerializableEntity {
 
     private Set<ClientData> clients = new HashSet<>();
     private Set<Long> certIds = new HashSet<>();
@@ -35,7 +35,7 @@ public class DriveServerSettingsDetails implements SerializableEntity {
         return certIds.contains(certId);
     }
 
-    public DriveServerSettingsDetails init() {
+    public FileSyncServerSettingsDetails init() {
         N.forEach(clients, clientData -> clientsMap.put(clientData.getCertId(), clientData));
         return this;
     }

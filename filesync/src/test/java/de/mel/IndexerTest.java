@@ -9,14 +9,14 @@ import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.Eva;
 import de.mel.auth.tools.N;
-import de.mel.drive.DriveBootloader;
-import de.mel.drive.DriveCreateServiceHelper;
+import de.mel.drive.FileSyncBootloader;
+import de.mel.drive.FileSyncCreateServiceHelper;
 import de.mel.drive.bash.BashTools;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.data.fs.RootDirectory;
 import de.mel.drive.serialization.TestDirCreator;
-import de.mel.drive.service.MelDriveServerService;
+import de.mel.drive.service.MelFileSyncServerService;
 import de.mel.drive.sql.FsDirectory;
 import de.mel.drive.sql.FsFile;
 import de.mel.drive.sql.dao.FsDao;
@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
 public class IndexerTest {
     private static AFile rootFile;
     private static MelAuthService mas;
-    private static MelDriveServerService mds;
+    private static MelFileSyncServerService mds;
     private static RootDirectory rootDirectory;
 
     @Before
@@ -54,19 +54,19 @@ public class IndexerTest {
 
         TestDirCreator.createTestDirSimple(rootFile);
         MelAuthSettings melAuthSettings = MelAuthSettings.createDefaultSettings();
-        MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), DriveBootloader.class);
+        MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class);
         melBoot.boot().done(mas -> N.r(() -> {
             IndexerTest.mas = mas;
-            DriveSettings driveSettings = new DriveSettings()
-                    .setRole(DriveStrings.ROLE_SERVER)
+            FileSyncSettings fileSyncSettings = new FileSyncSettings()
+                    .setRole(FileSyncStrings.ROLE_SERVER)
                     .setMaxAge(1000000L)
                     .setRootDirectory(rootDirectory)
                     .setTransferDirectory(AFile.instance(rootFile, "transfer"))
                     .setMaxWastebinSize(999999L)
                     .setFastBoot(true);
-            new DriveCreateServiceHelper(mas).createService(driveSettings, "server");
+            new FileSyncCreateServiceHelper(mas).createService(fileSyncSettings, "server");
             Thread.sleep(2000);
-            mds = (MelDriveServerService) mas.getMelServices().iterator().next();
+            mds = (MelFileSyncServerService) mas.getMelServices().iterator().next();
             bootLock.unlockWrite();
         }));
         bootLock.lockWrite();
@@ -76,7 +76,7 @@ public class IndexerTest {
     public void mixedSyncedWithNonSynced() throws Exception {
         {
             Lok.debug("modifying db");
-            FsDao fsDao = mds.getDriveDatabaseManager().getFsDao();
+            FsDao fsDao = mds.getFileSyncDatabaseManager().getFsDao();
             FsDirectory fsRoot = fsDao.getSubDirectoriesByParentId(null).iterator().next();
             FsDirectory fsSub = fsDao.getSubDirectoryByName(fsRoot.getId().v(), "sub");
             FsFile fsUnSynced = fsDao.getFsFileByName(fsSub.getId().v(), "unsynced3.txt");
@@ -93,13 +93,13 @@ public class IndexerTest {
         CountLock lock = new CountLock().lock();
         MelAuthSettings melAuthSettings = MelAuthSettings.createDefaultSettings();
         AtomicReference<MelAuthService> melAuthServiceAtomicReference = new AtomicReference<>();
-        MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), DriveBootloader.class);
+        MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class);
         final FsDirectory[] subDir = new FsDirectory[1];
         melBoot.boot().done(mas -> N.r(() -> {
             melAuthServiceAtomicReference.set(mas);
             Thread.sleep(2000);
-            mds = (MelDriveServerService) mas.getMelServices().iterator().next();
-            FsDao fsDao = mds.getDriveDatabaseManager().getFsDao();
+            mds = (MelFileSyncServerService) mas.getMelServices().iterator().next();
+            FsDao fsDao = mds.getFileSyncDatabaseManager().getFsDao();
             subDir[0] = fsDao.getDirectoryById(2L);
             lock.unlock();
         }));

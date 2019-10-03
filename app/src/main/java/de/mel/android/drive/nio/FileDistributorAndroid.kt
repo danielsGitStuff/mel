@@ -6,9 +6,9 @@ import de.mel.Lok
 import de.mel.android.file.JFile
 import de.mel.android.service.AndroidService
 import de.mel.drive.nio.FileDistributor
-import de.mel.drive.service.MelDriveService
+import de.mel.drive.service.MelFileSyncService
 
-class FileDistributorAndroid(driveService: MelDriveService<*>) : FileDistributor<JFile>(driveService) {
+class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistributor<JFile>(fileSyncService) {
 
     override fun moveFile(sourceFile: JFile, target: JFile, targetPath: String, fsId: Long?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

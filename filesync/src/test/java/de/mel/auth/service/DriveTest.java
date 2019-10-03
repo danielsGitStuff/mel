@@ -16,21 +16,20 @@ import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.socket.process.reg.IRegisteredHandler;
-import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.ShutDownDeferredManager;
-import de.mel.drive.DriveBootloader;
+import de.mel.drive.FileSyncBootloader;
 import de.mel.drive.serialization.TestDirCreator;
+import de.mel.drive.service.MelFileSyncClientService;
+import de.mel.drive.service.MelFileSyncServerService;
 import de.mel.sql.Hash;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.WaitLock;
-import de.mel.drive.DriveCreateServiceHelper;
-import de.mel.drive.DriveSyncListener;
+import de.mel.drive.FileSyncCreateServiceHelper;
+import de.mel.drive.FileSyncSyncListener;
 import de.mel.drive.bash.BashTools;
-import de.mel.drive.service.MelDriveClientService;
-import de.mel.drive.service.MelDriveServerService;
-import de.mel.drive.sql.DriveDatabaseManager;
+import de.mel.drive.sql.FileSyncDatabaseManager;
 import de.mel.drive.sql.FsFile;
 import de.mel.drive.sql.GenericFSEntry;
 import de.mel.sql.RWLock;
@@ -102,12 +101,12 @@ public class DriveTest {
 
     public void complexClientConflictImpl(MelBoot clientMelBoot, MelBoot restartMelBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
-        final DriveSyncListener syncListener = new DriveSyncListener() {
+        final FileSyncSyncListener syncListener = new FileSyncSyncListener() {
             AFile file2;
             AFile file1;
             String rootPath;
-            MelDriveClientService melDriveClientService;
-            private DriveSyncListener ins = this;
+            MelFileSyncClientService melDriveClientService;
+            private FileSyncSyncListener ins = this;
             int count = 0;
             AtomicInteger failCount = new AtomicInteger(0);
 
@@ -118,10 +117,10 @@ public class DriveTest {
                     N.r(() -> {
                         //if (!file2.exists())
                         Lok.debug("DriveTest.onSyncFailed.creating new file...");
-                        rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
+                        rootPath = ins.testStructure.serverDriveService.getFileSyncSettings().getRootDirectory().getPath();
                         File delFile = new File(rootPath + File.separator + "samedir");
                         BashTools.rmRf(new FFile(delFile));
-                        MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, new PowerManager(json1), DriveBootloader.class);
+                        MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
                         Promise<MelAuthService, Exception, Void> rebooted = melBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             Lok.debug("DriveTest.alles ok");
@@ -144,8 +143,8 @@ public class DriveTest {
                 if (transferCount == 0) {
                     N.r(() -> {
                         melAuthService1.shutDown();
-                        melDriveClientService = (MelDriveClientService) melAuthService2.getMelServices().iterator().next();
-                        rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
+                        melDriveClientService = (MelFileSyncClientService) melAuthService2.getMelServices().iterator().next();
+                        rootPath = ins.testStructure.clientDriveService.getFileSyncSettings().getRootDirectory().getPath();
                         file1 = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
                         file2 = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
                         TestFileCreator.saveFile("same1.client".getBytes(), file1);
@@ -183,12 +182,12 @@ public class DriveTest {
 
     public void simpleTransferFromServerToClient(MelBoot clientMelBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
-        final DriveSyncListener syncListener = new DriveSyncListener() {
+        final FileSyncSyncListener syncListener = new FileSyncSyncListener() {
             public File file2;
             public File file1;
             public String rootPath;
-            public MelDriveClientService melDriveClientService;
-            private DriveSyncListener ins = this;
+            public MelFileSyncClientService melDriveClientService;
+            private FileSyncSyncListener ins = this;
             int count = 0;
 
             @Override
@@ -219,12 +218,12 @@ public class DriveTest {
 
     public void clientConflictImpl(MelBoot clientMelBoot, MelBoot restartMelBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
-        final DriveSyncListener syncListener = new DriveSyncListener() {
+        final FileSyncSyncListener syncListener = new FileSyncSyncListener() {
             AFile file2;
             AFile file1;
             String rootPath;
-            MelDriveClientService melDriveClientService;
-            private DriveSyncListener ins = this;
+            MelFileSyncClientService melDriveClientService;
+            private FileSyncSyncListener ins = this;
             int count = 0;
             int failCount = 0;
 
@@ -235,7 +234,7 @@ public class DriveTest {
                     N.r(() -> {
                         //if (!file2.exists())
                         Lok.debug("DriveTest.onSyncFailed.creating new file...");
-                        rootPath = ins.testStructure.serverDriveService.getDriveSettings().getRootDirectory().getPath();
+                        rootPath = ins.testStructure.serverDriveService.getFileSyncSettings().getRootDirectory().getPath();
                         AFile newFile = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
                         AFile delFile = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
                         AFile f1 = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
@@ -246,7 +245,7 @@ public class DriveTest {
                         Lok.debug("DriveTest.onTransfersDone.hash: " + f1 + " -> " + hash);
                         hash = Hash.md5(newFile.inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
-                        MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, new PowerManager(json1), DriveBootloader.class);
+                        MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
                         Promise<MelAuthService, Exception, Void> rebooted = melBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             Lok.debug("DriveTest.alles ok");
@@ -270,8 +269,8 @@ public class DriveTest {
                 if (transferCount == 0) {
                     N.r(() -> {
                         melAuthService1.shutDown();
-                        melDriveClientService = (MelDriveClientService) melAuthService2.getMelServices().iterator().next();
-                        rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
+                        melDriveClientService = (MelFileSyncClientService) melAuthService2.getMelServices().iterator().next();
+                        rootPath = ins.testStructure.clientDriveService.getFileSyncSettings().getRootDirectory().getPath();
                         file1 = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
                         file2 = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
                         TestFileCreator.saveFile("same1.client".getBytes(), file1);
@@ -304,12 +303,12 @@ public class DriveTest {
 
     public void simpleClientConflictImpl(MelBoot clientMelBoot, MelBoot restartMelBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
-        final DriveSyncListener syncListener = new DriveSyncListener() {
+        final FileSyncSyncListener syncListener = new FileSyncSyncListener() {
             File file2;
             File file1;
             String rootPath;
-            MelDriveClientService melDriveClientService;
-            private DriveSyncListener ins = this;
+            MelFileSyncClientService melDriveClientService;
+            private FileSyncSyncListener ins = this;
             int count = 0;
             int failCount = 0;
 
@@ -430,12 +429,12 @@ public class DriveTest {
     //    @Test
     public void clientMergeStages() throws Exception {
         // start both instances, shutdown server, change something in client directory
-        setup(new DriveSyncListener() {
+        setup(new FileSyncSyncListener() {
             AFile file2;
             AFile file1;
             String rootPath;
-            MelDriveClientService melDriveClientService;
-            private DriveSyncListener ins = this;
+            MelFileSyncClientService melFileSyncClientService;
+            private FileSyncSyncListener ins = this;
             int count = 0;
 
             @Override
@@ -454,8 +453,8 @@ public class DriveTest {
                 if (count == 0) {
                     N.r(() -> {
                         melAuthService1.shutDown();
-                        melDriveClientService = (MelDriveClientService) melAuthService2.getMelServices().iterator().next();
-                        rootPath = ins.testStructure.clientDriveService.getDriveSettings().getRootDirectory().getPath();
+                        melFileSyncClientService = (MelFileSyncClientService) melAuthService2.getMelServices().iterator().next();
+                        rootPath = ins.testStructure.clientDriveService.getFileSyncSettings().getRootDirectory().getPath();
                         file1 = AFile.instance(rootPath + File.separator + "sub1" + File.separator + "newfile.1");
                         file2 = AFile.instance(rootPath + File.separator + "sub1" + File.separator + "newfile.2");
                         if (!file1.exists())
@@ -492,7 +491,7 @@ public class DriveTest {
         final MelAuthService[] mas = new MelAuthService[1];
         promise.done(result -> N.r(() -> {
             mas[0] = result;
-            Promise<MelDriveServerService, Exception, Void> driveBootedPromise = new DriveCreateServiceHelper(result)
+            Promise<MelFileSyncServerService, Exception, Void> driveBootedPromise = new FileSyncCreateServiceHelper(result)
                     .createDriveServerServiceDeferred("server test", testdir1, 0.01f, 30);
             driveBootedPromise.done(result1 -> N.r(() -> {
                 result1.getIndexer().getIndexerStartedDeferred().done(result2 -> N.r(() -> {
@@ -503,8 +502,8 @@ public class DriveTest {
             }));
         }));
         waitLock.lock();
-        MelDriveServerService driveServerService = (MelDriveServerService) mas[0].getMelServices().iterator().next();
-        String rootPath = driveServerService.getDriveSettings().getRootDirectory().getPath();
+        MelFileSyncServerService driveServerService = (MelFileSyncServerService) mas[0].getMelServices().iterator().next();
+        String rootPath = driveServerService.getFileSyncSettings().getRootDirectory().getPath();
         AFile newFile = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
         AFile delFile = AFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
         delFile.delete();
@@ -528,7 +527,7 @@ public class DriveTest {
 
     @Test
     public void firstSyncServer2Client() throws Exception {
-        setup(null, new DriveSyncListener() {
+        setup(null, new FileSyncSyncListener() {
 
             @Override
             public void onSyncFailed() {
@@ -544,7 +543,7 @@ public class DriveTest {
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {
-                        DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
+                        FileSyncDatabaseManager dbManager = testStructure.clientDriveService.getFileSyncDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
@@ -566,7 +565,7 @@ public class DriveTest {
     //todo refine: this has to use a transfer done listener instead
 //    @Test
     public void firstSyncClient2Server() throws Exception {
-        setup(null, new DriveSyncListener() {
+        setup(null, new FileSyncSyncListener() {
 
             @Override
             public void onSyncFailed() {
@@ -582,7 +581,7 @@ public class DriveTest {
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {
-                        DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
+                        FileSyncDatabaseManager dbManager = testStructure.clientDriveService.getFileSyncDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
@@ -603,7 +602,7 @@ public class DriveTest {
 
     //    @Test
     public void addFile() throws Exception {
-        setup(new DriveSyncListener() {
+        setup(new FileSyncSyncListener() {
 
             @Override
             public void onSyncFailed() {
@@ -619,7 +618,7 @@ public class DriveTest {
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {
-                        DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
+                        FileSyncDatabaseManager dbManager = testStructure.clientDriveService.getFileSyncDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
@@ -628,8 +627,8 @@ public class DriveTest {
                         newFile.createNewFile();
                     } else if (getCount() == 1) {
                         Lok.debug("DriveFXTest.onSyncDoneImpl :)");
-                        Map<Long, GenericFSEntry> entries1 = genList2Map(testStructure.serverDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
-                        Map<Long, GenericFSEntry> entries2 = genList2Map(testStructure.clientDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
+                        Map<Long, GenericFSEntry> entries1 = genList2Map(testStructure.serverDriveService.getFileSyncDatabaseManager().getFsDao().getDelta(0));
+                        Map<Long, GenericFSEntry> entries2 = genList2Map(testStructure.clientDriveService.getFileSyncDatabaseManager().getFsDao().getDelta(0));
                         Map<Long, GenericFSEntry> cp1 = new HashMap<>(entries1);
                         cp1.forEach((id, entry) -> {
                             if (entries2.containsKey(id)) {
@@ -654,7 +653,7 @@ public class DriveTest {
     //todo refine: interactivity
 //    @Test
     public void deleteFile() throws Exception {
-        setup(true, new DriveSyncListener() {
+        setup(true, new FileSyncSyncListener() {
 
             @Override
             public void onSyncFailed() {
@@ -670,7 +669,7 @@ public class DriveTest {
             public void onSyncDoneImpl() {
                 try {
                     if (getCount() == 0) {
-                        DriveDatabaseManager dbManager = testStructure.clientDriveService.getDriveDatabaseManager();
+                        FileSyncDatabaseManager dbManager = testStructure.clientDriveService.getFileSyncDatabaseManager();
                         List<FsFile> rootFiles = dbManager.getFsDao().getFilesByFsDirectory(null);
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
@@ -679,8 +678,8 @@ public class DriveTest {
                         deleteFile.delete();
                     } else if (getCount() == 1) {
                         Lok.debug("DriveFXTest.onSyncDoneImpl :)");
-                        Map<Long, GenericFSEntry> entries1 = genList2Map(testStructure.serverDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
-                        Map<Long, GenericFSEntry> entries2 = genList2Map(testStructure.clientDriveService.getDriveDatabaseManager().getFsDao().getDelta(0));
+                        Map<Long, GenericFSEntry> entries1 = genList2Map(testStructure.serverDriveService.getFileSyncDatabaseManager().getFsDao().getDelta(0));
+                        Map<Long, GenericFSEntry> entries2 = genList2Map(testStructure.clientDriveService.getFileSyncDatabaseManager().getFsDao().getDelta(0));
                         Map<Long, GenericFSEntry> cp1 = new HashMap<>(entries1);
                         cp1.forEach((id, entry) -> {
                             if (entries2.containsKey(id)) {
@@ -710,7 +709,7 @@ public class DriveTest {
         return map;
     }
 
-    private void setup(DriveSyncListener clientSyncListener) throws Exception {
+    private void setup(FileSyncSyncListener clientSyncListener) throws Exception {
         setup(false, clientSyncListener, null);
     }
 
@@ -777,7 +776,7 @@ public class DriveTest {
         };
         lock.lockWrite();
 
-        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), DriveBootloader.class);
+        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 Lok.debug("DriveTest.driveGui.booted");
@@ -786,10 +785,10 @@ public class DriveTest {
                 melAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
                 RWLock lock = new RWLock().lockWrite();
-                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
+                FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                     lock.lockWrite();
                 };
-                new DriveCreateServiceHelper(melAuthService1).createServerService("server service", testdir1, 0.01f, 30, false);
+                new FileSyncCreateServiceHelper(melAuthService1).createServerService("server service", testdir1, 0.01f, 30, false);
                 lock.lockWrite();
                 Lok.debug("DriveTest.startServer.booted");
             });
@@ -797,7 +796,7 @@ public class DriveTest {
 
     }
 
-    private void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MelBoot clientMelBoot) throws Exception {
+    private void setup(Boolean identicalTestDirs, FileSyncSyncListener clientSyncListener, MelBoot clientMelBoot) throws Exception {
         setup(identicalTestDirs, clientSyncListener, clientMelBoot, false);
     }
 
@@ -806,7 +805,7 @@ public class DriveTest {
      * @param clientSyncListener
      * @param clientMelBoot
      */
-    private void setup(Boolean identicalTestDirs, DriveSyncListener clientSyncListener, MelBoot clientMelBoot, boolean swapTestDirs) throws Exception {
+    private void setup(Boolean identicalTestDirs, FileSyncSyncListener clientSyncListener, MelBoot clientMelBoot, boolean swapTestDirs) throws Exception {
         //setup working directories & directories with test data
         if (swapTestDirs) {
             testdir1.mkdirs();
@@ -879,12 +878,12 @@ public class DriveTest {
         };
         lock.lockWrite();
 
-        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), DriveBootloader.class);
+        MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
         MelBoot boot2;
         if (clientMelBoot != null)
             boot2 = clientMelBoot;
         else
-            boot2 = new MelBoot(json2, new PowerManager(json2), DriveBootloader.class);
+            boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncBootloader.class);
         boot1.boot().done(ma1 -> {
             runner.runTry(() -> {
                 Lok.debug("DriveFXTest.driveGui.1.booted");
@@ -892,8 +891,8 @@ public class DriveTest {
                 melAuthService1.addRegisterHandler(allowRegisterHandler);
                 melAuthService1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
-                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
-                    MelDriveServerService serverService = (MelDriveServerService) driveService;
+                FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
+                    MelFileSyncServerService serverService = (MelFileSyncServerService) driveService;
                     boot2.boot().done(ma2 -> {
                         Lok.debug("DriveFXTest.driveGui.2.booted");
                         melAuthService2 = ma2;
@@ -905,17 +904,17 @@ public class DriveTest {
                                         runner.runTry(() -> {
                                             Lok.debug("DriveFXTest.driveGui.connected");
                                             // MAs know each other at this point. setup the client Service. it wants some data from the steps before
-                                            DriveBootloader.DEV_DRIVE_BOOT_LISTENER = clientDriveService -> {
+                                            FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = clientDriveService -> {
                                                 Lok.debug("DriveFXTest attempting first syncFromServer");
                                                 clientSyncListener.testStructure.setMaClient(melAuthService2)
                                                         .setMaServer(melAuthService1)
-                                                        .setClientDriveService((MelDriveClientService) clientDriveService)
+                                                        .setClientDriveService((MelFileSyncClientService) clientDriveService)
                                                         .setServerDriveService(serverService)
                                                         .setTestdir1(testdir1)
                                                         .setTestdir2(testdir2);
                                                 clientDriveService.setSyncListener(clientSyncListener);
                                             };
-                                            new DriveCreateServiceHelper(melAuthService2).createClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, false);
+                                            new FileSyncCreateServiceHelper(melAuthService2).createClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, false);
                                         });
                                     }).start()
                             );
@@ -926,7 +925,7 @@ public class DriveTest {
                         });
                     });
                 });
-                new DriveCreateServiceHelper(melAuthService1).createServerService("server service", testdir1, 0.01f, 30, false);
+                new FileSyncCreateServiceHelper(melAuthService1).createServerService("server service", testdir1, 0.01f, 30, false);
             });
         });
         //lock.lockWrite();
@@ -951,7 +950,7 @@ public class DriveTest {
     }
 
     public void startUpConflicts(MelBoot melBoot) throws Exception {
-        setup(false, new DriveSyncListener() {
+        setup(false, new FileSyncSyncListener() {
             @Override
             public void onSyncFailed() {
 

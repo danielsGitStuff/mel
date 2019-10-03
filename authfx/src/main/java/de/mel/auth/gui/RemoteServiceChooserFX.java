@@ -87,7 +87,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
             NetworkEnvironment.FoundServices foundServices = new NetworkEnvironment.FoundServices(listCerts.getItems()::add);
             env.deleteObservers();
             env.addObserver((environment, arg) -> {
-                Lok.debug("DriveFXCreateController.change");
+                Lok.debug("FileSyncFXCreateController.change");
                 N.r(() -> {
                     Collection<ServiceJoinServiceType> services = env.getServices();
                     for (ServiceJoinServiceType service : services) {
@@ -100,7 +100,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
             listCerts.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 listServices.getItems().clear();
                 if (newValue != null) {
-                    Lok.debug("DriveFXCreateController.init");
+                    Lok.debug("FileSyncFXCreateController.init");
                     Certificate certificate = (Certificate) newValue;
                     foundServices.lockRead();
                     for (ServiceJoinServiceType service : foundServices.get(certificate.getId().v())) {

@@ -8,23 +8,23 @@ import de.mel.auth.service.MelAuthService
 import de.mel.auth.tools.N
 import de.mel.auth.tools.lock.P
 import de.mel.drive.bash.BashTools
-import de.mel.drive.data.DriveStrings
-import de.mel.drive.service.MelDriveService
+import de.mel.drive.data.FileSyncStrings
+import de.mel.drive.service.MelFileSyncService
 import de.mel.drive.sql.FsFile
 import java.io.File
 import java.io.IOException
 import java.util.*
 
 @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
-open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) : MelRunnable {
+open class FileDistributor<T : AFile<*>>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
     private var stopped: Boolean = false;
     private var notification: MelNotification? = null
     private var running: Boolean = false
-    val fileDistTaskDao = driveService.driveDatabaseManager.fileDistTaskDao
-    val melAuthService: MelAuthService = driveService.melAuthService
-    val fsDao = driveService.driveDatabaseManager.fsDao
-    val transferDao = driveService.driveDatabaseManager.transferDao
-    val watchDogTimer = driveService.indexer.indexerRunnable.indexWatchdogListener.watchDogTimer
+    val fileDistTaskDao = fileSyncService.fileSyncDatabaseManager.fileDistTaskDao
+    val melAuthService: MelAuthService = fileSyncService.melAuthService
+    val fsDao = fileSyncService.fileSyncDatabaseManager.fsDao
+    val transferDao = fileSyncService.fileSyncDatabaseManager.transferDao
+    val watchDogTimer = fileSyncService.indexer.indexerRunnable.indexWatchdogListener.watchDogTimer
 
     companion object {
 
@@ -34,7 +34,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) :
             set
 
 
-        fun createInstance(driveService: MelDriveService<*>): FileDistributor<*> = factory!!.createInstance(driveService)
+        fun createInstance(fileSyncService: MelFileSyncService<*>): FileDistributor<*> = factory!!.createInstance(fileSyncService)
     }
 
     /**
@@ -73,7 +73,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) :
     fun isRunning() = running
 
     override fun getRunnableName(): String {
-        return "FileDistributor for ${driveService.driveSettings.rootDirectory.originalFile.absolutePath}"
+        return "FileDistributor for ${fileSyncService.fileSyncSettings.rootDirectory.originalFile.absolutePath}"
     }
 
     fun createJob(distributionTask: FileDistributionTask) {
@@ -81,7 +81,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) :
         fileDistTaskDao.insert(distributionTask)
         if (!running && distributionTask.canStart()) {
             stopped = false
-            driveService.execute(this)
+            fileSyncService.execute(this)
         }
     }
 
@@ -89,7 +89,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) :
         fileDistTaskDao.completeJob(distributionTask)
         if (!running && distributionTask.canStart()) {
             stopped = false
-            driveService.execute(this)
+            fileSyncService.execute(this)
         }
     }
 
@@ -128,7 +128,7 @@ open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) :
                 notification = null
             }
             if (hasTransferred)
-                driveService.onSyncDone()
+                fileSyncService.onSyncDone()
         }
     }
 
@@ -141,9 +141,9 @@ open class FileDistributor<T : AFile<*>>(val driveService: MelDriveService<*>) :
         val title = "Moving files"
         val text = "$current/$max files moved or copied"
         if (notification == null) {
-            notification = MelNotification(driveService.uuid, DriveStrings.Notifications.INTENTION_PROGRESS, title, text)
+            notification = MelNotification(fileSyncService.uuid, FileSyncStrings.Notifications.INTENTION_PROGRESS, title, text)
             notification?.setProgress(max, current, false)
-            driveService.melAuthService.onNotificationFromService(driveService, notification)
+            fileSyncService.melAuthService.onNotificationFromService(fileSyncService, notification)
         } else {
             notification?.text = text
             notification?.title = title

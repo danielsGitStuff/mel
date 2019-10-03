@@ -1,6 +1,6 @@
 package de.mel.drive.sql;
 
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.sql.Pair;
 import de.mel.sql.SQLTableObject;
 
@@ -109,7 +109,7 @@ public class StageSet extends SQLTableObject {
     }
 
     public boolean fromFs() {
-        return source.v().equals(DriveStrings.STAGESET_SOURCE_FS);
+        return source.v().equals(FileSyncStrings.STAGESET_SOURCE_FS);
     }
 
     @Override

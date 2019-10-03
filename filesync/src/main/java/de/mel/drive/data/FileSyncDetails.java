@@ -5,14 +5,14 @@ import de.mel.auth.data.ServicePayload;
 /**
  * Created by xor on 10/20/16.
  */
-public class DriveDetails extends ServicePayload {
+public class FileSyncDetails extends ServicePayload {
     private String role;
     private long lastSyncVersion;
     private String serviceUuid;
     private boolean usesSymLinks = false;
     private Long directoryCount;
 
-    public DriveDetails setDirectoryCount(Long directoryCount) {
+    public FileSyncDetails setDirectoryCount(Long directoryCount) {
         this.directoryCount = directoryCount;
         return this;
     }
@@ -21,17 +21,17 @@ public class DriveDetails extends ServicePayload {
         return directoryCount;
     }
 
-    public DriveDetails setLastSyncVersion(long lastSyncVersion) {
+    public FileSyncDetails setLastSyncVersion(long lastSyncVersion) {
         this.lastSyncVersion = lastSyncVersion;
         return this;
     }
 
-    public DriveDetails setRole(String role) {
+    public FileSyncDetails setRole(String role) {
         this.role = role;
         return this;
     }
 
-    public DriveDetails setServiceUuid(String serviceUuid) {
+    public FileSyncDetails setServiceUuid(String serviceUuid) {
         this.serviceUuid = serviceUuid;
         return this;
     }
@@ -48,7 +48,7 @@ public class DriveDetails extends ServicePayload {
         return role;
     }
 
-    public DriveDetails setUsesSymLinks(boolean usesSymLinks) {
+    public FileSyncDetails setUsesSymLinks(boolean usesSymLinks) {
         this.usesSymLinks = usesSymLinks;
         return this;
     }

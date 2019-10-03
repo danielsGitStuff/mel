@@ -19,7 +19,6 @@ import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import de.mel.Lok;
 import de.mel.R;
 import de.mel.drive.data.conflict.Conflict;
 import de.mel.drive.sql.Stage;
@@ -29,7 +28,7 @@ import de.mel.drive.sql.Stage;
  * Created by xor on 8/11/17.
  */
 
-public class DriveConflictListAdapter extends BaseAdapter {
+public class FileSyncConflictListAdapter extends BaseAdapter {
 
     private final ListView listView;
     private final Collection<Conflict> rootConflicts;
@@ -45,23 +44,23 @@ public class DriveConflictListAdapter extends BaseAdapter {
     private final int red = Color.argb(120, 125, 0, 0);
     private final int green = Color.argb(120, 0, 120, 0);
 
-    public DriveConflictListAdapter(ListView listView, AppCompatActivity activity, Collection<Conflict> rootConflicts) {
+    public FileSyncConflictListAdapter(ListView listView, AppCompatActivity activity, Collection<Conflict> rootConflicts) {
         this.activity = activity;
         this.listView = listView;
         this.rootConflicts = rootConflicts;
         this.layoutInflator = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.onUpClickedListener = view -> {
-            if (DriveConflictListAdapter.this.upperConflict != null) {
+            if (FileSyncConflictListAdapter.this.upperConflict != null) {
                 Collection<Conflict> conflicts = null;
-                if (DriveConflictListAdapter.this.upperConflict.getDependsOn() != null)
-                    conflicts = DriveConflictListAdapter.this.upperConflict.getDependsOn().getDependents();
+                if (FileSyncConflictListAdapter.this.upperConflict.getDependsOn() != null)
+                    conflicts = FileSyncConflictListAdapter.this.upperConflict.getDependsOn().getDependents();
                 if (conflicts == null)
                     conflicts = rootConflicts;
-                init(DriveConflictListAdapter.this.upperConflict.getDependsOn(), conflicts);
+                init(FileSyncConflictListAdapter.this.upperConflict.getDependsOn(), conflicts);
             } else {
                 init(null, rootConflicts);
             }
-            DriveConflictListAdapter.this.notifyDataSetChanged();
+            FileSyncConflictListAdapter.this.notifyDataSetChanged();
         };
         init(null, rootConflicts);
     }
@@ -165,7 +164,7 @@ public class DriveConflictListAdapter extends BaseAdapter {
         view.setOnClickListener(vv -> {
             if (conflict.getDependents().size() > 0) {
                 init(conflict, conflict.getDependents());
-                DriveConflictListAdapter.this.notifyDataSetChanged();
+                FileSyncConflictListAdapter.this.notifyDataSetChanged();
             }
         });
         rdLeft.setOnClickListener(vv -> {

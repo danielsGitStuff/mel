@@ -1,6 +1,6 @@
 package de.mel.dump
 
-import de.mel.drive.gui.DriveFXEditClientController
+import de.mel.drive.gui.FileSyncFXEditClientController
 
-class DumpFxEditClientController : DriveFXEditClientController() {
+class DumpFxEditClientController : FileSyncFXEditClientController() {
 }

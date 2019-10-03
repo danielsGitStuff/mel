@@ -18,10 +18,10 @@ import de.mel.android.drive.watchdog.RecursiveWatcher;
 import de.mel.auth.tools.N;
 import de.mel.contacts.ContactsInjector;
 import de.mel.contacts.data.ContactStrings;
-import de.mel.drive.DriveInjector;
+import de.mel.drive.FileSyncInjector;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.bash.BashToolsImpl;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.android.sql.AndroidDBConnection;
 import de.mel.execute.SqliteExecutorInjection;
 import de.mel.android.sql.AndroidSQLQueries;
@@ -99,9 +99,9 @@ public class AndroidInjector {
         MelInjector.setBase64Encoder(bytes -> Base64.encode(bytes, Base64.NO_WRAP));
         MelInjector.setBase64Decoder(string -> Base64.decode(string, Base64.NO_WRAP));
         // drive
-        DriveInjector.setFileDistributorFactory(new FileDistributorFactoryAndroid());
-        DriveInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
-            SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + DriveStrings.DB_FILENAME, null, DriveStrings.DB_VERSION) {
+        FileSyncInjector.setFileDistributorFactory(new FileDistributorFactoryAndroid());
+        FileSyncInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {
+            SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + FileSyncStrings.DB_FILENAME, null, FileSyncStrings.DB_VERSION) {
                 @Override
                 public void onConfigure(SQLiteDatabase db) {
                     Lok.debug("configure sqlite for drive");
@@ -122,7 +122,7 @@ public class AndroidInjector {
             };
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
         });
-        DriveInjector.setDriveSqlInputStreamInjector(() -> {
+        FileSyncInjector.setDriveSqlInputStreamInjector(() -> {
             try {
                 return assetManager.open("de/mel/filesync/filesync.sql");
             } catch (IOException e) {
@@ -138,8 +138,8 @@ public class AndroidInjector {
         bashTools = new BashToolsAndroid(context);
 //        }
         BashTools.setInstance(bashTools);
-        DriveInjector.setWatchDogRunner(RecursiveWatcher::new);
-        DriveInjector.setBinPath("/system/bin/sh");
+        FileSyncInjector.setWatchDogRunner(RecursiveWatcher::new);
+        FileSyncInjector.setBinPath("/system/bin/sh");
 
         //contacts
         ContactsInjector.setSqlConnectionCreator((driveDatabaseManager, uuid) -> {

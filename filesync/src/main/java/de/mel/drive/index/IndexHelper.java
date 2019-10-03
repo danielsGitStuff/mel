@@ -1,15 +1,11 @@
 package de.mel.drive.index;
 
-import de.mel.Lok;
 import de.mel.auth.file.AFile;
-import de.mel.auth.tools.Eva;
-import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.bash.FsBashDetails;
-import de.mel.drive.sql.DriveDatabaseManager;
-import de.mel.drive.sql.FsDirectory;
+import de.mel.drive.sql.FileSyncDatabaseManager;
 import de.mel.drive.sql.FsEntry;
 import de.mel.drive.sql.Stage;
 import de.mel.drive.sql.dao.FsDao;
@@ -17,13 +13,11 @@ import de.mel.drive.sql.dao.StageDao;
 import de.mel.sql.SqlQueriesException;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Stack;
 
 public class IndexHelper {
 
-    private final DriveDatabaseManager databaseManager;
+    private final FileSyncDatabaseManager databaseManager;
     private final long stageSetId;
     private final FsDao fsDao;
     private final StageDao stageDao;
@@ -35,7 +29,7 @@ public class IndexHelper {
     private final OTimer timer2 = new OTimer("helper 2");
 
 
-    public IndexHelper(DriveDatabaseManager databaseManager, long stageSetId, Order order) {
+    public IndexHelper(FileSyncDatabaseManager databaseManager, long stageSetId, Order order) {
         this.databaseManager = databaseManager;
         this.stageSetId = stageSetId;
         this.fsDao = databaseManager.getFsDao();
@@ -59,12 +53,12 @@ public class IndexHelper {
     Stage connectToFs(AFile directory) throws SqlQueriesException {
         // remember: we always deal with directories here. that means that we can ask all DAOs for
         // directories and don't have to deal with files :)
-        final int rootPathLength = databaseManager.getDriveSettings().getRootDirectory().getPath().length();
+        final int rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
         String targetPath = directory.getAbsolutePath();
         if (targetPath.length() < rootPathLength)
             return null;
         // find out where the stacks point to
-        String stackPath = databaseManager.getDriveSettings().getRootDirectory().getOriginalFile().getAbsolutePath();
+        String stackPath = databaseManager.getFileSyncSettings().getRootDirectory().getOriginalFile().getAbsolutePath();
         if (!fileStack.empty())
             stackPath = fileStack.peek().getAbsolutePath();
 
@@ -98,7 +92,7 @@ public class IndexHelper {
         if (fileStack.empty()) {
             parentFs = fsDao.getRootDirectory();
             stageParent = stageDao.getStageByFsId(parentFs.getId().v(), stageSetId);
-            fileStack.push(databaseManager.getDriveSettings().getRootDirectory().getOriginalFile());
+            fileStack.push(databaseManager.getFileSyncSettings().getRootDirectory().getOriginalFile());
             fsEntryStack.push(parentFs);
             stageStack.push(stageParent);
         }
@@ -140,7 +134,7 @@ public class IndexHelper {
     }
 
     void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
-        if (databaseManager.getDriveSettings().getFastBoot()) {
+        if (databaseManager.getFileSyncSettings().getFastBoot()) {
             try {
                 FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
                 if (fsEntry.getModified().equalsValue(fsBashDetails.getModified())

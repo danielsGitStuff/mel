@@ -18,19 +18,18 @@ import de.mel.auth.tools.N;
 import de.mel.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mel.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mel.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
-import de.mel.drive.DriveBootloader;
-import de.mel.drive.DriveCreateServiceHelper;
-import de.mel.drive.DriveSyncListener;
+import de.mel.drive.FileSyncBootloader;
+import de.mel.drive.FileSyncCreateServiceHelper;
+import de.mel.drive.FileSyncSyncListener;
 import de.mel.drive.bash.BashTools;
-import de.mel.drive.service.MelDriveClientService;
-import de.mel.drive.service.MelDriveServerService;
+import de.mel.drive.service.MelFileSyncClientService;
+import de.mel.drive.service.MelFileSyncServerService;
 import de.mel.sql.Hash;
 import de.mel.sql.RWLock;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
 import org.jdeferred.Promise;
 import org.junit.Before;
-import org.junit.Test;
 
 import static org.junit.Assert.*;
 
@@ -50,10 +49,10 @@ public class TransferTest {
     private static final Integer BCL_PORT2 = 6001;
     private File wd1;
     private File wd2;
-    private MelDriveServerService serverService;
+    private MelFileSyncServerService serverService;
     private int PORT_COUNT = 6666;
     private boolean bootedOnce;
-    private MelDriveClientService clientService;
+    private MelFileSyncClientService clientService;
 
     static interface Scopee {
         void run(MelAuthService melAuthService) throws Exception;
@@ -83,7 +82,7 @@ public class TransferTest {
         testDir.mkdirs();
         Lok.debug(testDir.getAbsolutePath() + " /// " + testDir.exists());
         melAuthSettings.save();
-        MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), DriveBootloader.class);
+        MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class);
         melBoot.boot().done(melAuthService -> {
             Lok.debug("Main.main.booted (DEV)");
 
@@ -155,8 +154,8 @@ public class TransferTest {
 
     }
 
-    private MelDriveServerService setupServer(File workingDir) throws Exception {
-        AtomicReference<MelDriveServerService> serverService = new AtomicReference<>();
+    private MelFileSyncServerService setupServer(File workingDir) throws Exception {
+        AtomicReference<MelFileSyncServerService> serverService = new AtomicReference<>();
         CountdownLock bootLock = new CountdownLock(1);
         init(workingDir, melAuthService -> {
             AFile root = AFile.instance(AFile.instance(workingDir), ROOT_DIR_NAME);
@@ -164,30 +163,30 @@ public class TransferTest {
             StringBuilder builder = new StringBuilder("start...");
             N.forLoop(1, 2000, (stoppable, index) -> builder.append(index).append("/"));
             Files.write(path, builder.toString().getBytes());
-            DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
-                serverService.set((MelDriveServerService) driveService);
+            FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
+                serverService.set((MelFileSyncServerService) driveService);
                 SERVER_SERVICE_UUID = serverService.get().getUuid();
                 bootLock.unlock();
             };
-            DriveCreateServiceHelper createController = new DriveCreateServiceHelper(melAuthService);
+            FileSyncCreateServiceHelper createController = new FileSyncCreateServiceHelper(melAuthService);
             createController.createServerService("server", root, .5f, 666, false);
         });
         bootLock.lock();
         return serverService.get();
     }
 
-    private MelDriveClientService setupClient(File workingDir) throws Exception {
-        AtomicReference<MelDriveClientService> clientService = new AtomicReference<>();
+    private MelFileSyncClientService setupClient(File workingDir) throws Exception {
+        AtomicReference<MelFileSyncClientService> clientService = new AtomicReference<>();
         CountLock bootLock = new CountLock();
         init(workingDir, melAuthService -> {
             Promise<MelValidationProcess, Exception, Void> paired = melAuthService.connect("localhost", 6666, 6667, true);
             paired.done(result -> new Thread(() -> N.r(() -> {
                 AFile root = AFile.instance(AFile.instance(workingDir), ROOT_DIR_NAME);
-                DriveBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
-                    clientService.set((MelDriveClientService) driveService);
+                FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
+                    clientService.set((MelFileSyncClientService) driveService);
                     bootLock.unlock();
                 });
-                new DriveCreateServiceHelper(melAuthService).createClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666, false);
+                new FileSyncCreateServiceHelper(melAuthService).createClientService("server", root, 1L, SERVER_SERVICE_UUID, 0.5f, 666, false);
             })
             ).start());
         });
@@ -201,7 +200,7 @@ public class TransferTest {
         Lok.debug("lel");
         CountLock doneLock = new CountLock();
         final int[] transferCount = {0};
-        clientService.setSyncListener(new DriveSyncListener() {
+        clientService.setSyncListener(new FileSyncSyncListener() {
             @Override
             public void onSyncFailed() {
 
@@ -224,8 +223,8 @@ public class TransferTest {
         // check for integrity
         // simply wait until the file moving has finished
         Thread.sleep(500);
-        File rootServer = new File(serverService.getDriveSettings().getRootDirectory().getPath());
-        File rootClient = new File(clientService.getDriveSettings().getRootDirectory().getPath());
+        File rootServer = new File(serverService.getFileSyncSettings().getRootDirectory().getPath());
+        File rootClient = new File(clientService.getFileSyncSettings().getRootDirectory().getPath());
         N.forEach(rootServer.listFiles(File::isFile), file -> {
             String name = file.getName();
             File clientFile = new File(rootClient, name);

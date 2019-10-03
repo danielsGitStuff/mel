@@ -8,14 +8,14 @@ import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.bash.FsBashDetails;
-import de.mel.drive.data.DriveSettings;
+import de.mel.drive.data.FileSyncSettings;
 import de.mel.drive.data.fs.RootDirectory;
 import de.mel.drive.index.Indexer;
 import de.mel.drive.nio.FileDistributionTask;
 import de.mel.drive.nio.FileDistributor;
 import de.mel.drive.quota.OutOfSpaceException;
 import de.mel.drive.quota.QuotaManager;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.service.MelFileSyncService;
 import de.mel.drive.service.Wastebin;
 import de.mel.drive.sql.*;
 import de.mel.drive.sql.dao.FileDistTaskDao;
@@ -37,8 +37,8 @@ import java.util.Stack;
  */
 @SuppressWarnings("ALL")
 public abstract class SyncHandler {
-    protected final DriveSettings driveSettings;
-    protected final MelDriveService melDriveService;
+    protected final FileSyncSettings fileSyncSettings;
+    protected final MelFileSyncService melFileSyncService;
     protected final TManager transferManager;
     protected final MelAuthService melAuthService;
     private final FileDistributor fileDistributor;
@@ -46,7 +46,7 @@ public abstract class SyncHandler {
     protected FsDao fsDao;
     protected StageDao stageDao;
     protected N runner = new N(Throwable::printStackTrace);
-    protected DriveDatabaseManager driveDatabaseManager;
+    protected FileSyncDatabaseManager fileSyncDatabaseManager;
     protected Indexer indexer;
     protected Wastebin wastebin;
     protected QuotaManager quotaManager;
@@ -56,24 +56,24 @@ public abstract class SyncHandler {
     }
 
     public TransferDao getTransferDao() {
-        return melDriveService.getDriveDatabaseManager().getTransferDao();
+        return melFileSyncService.getFileSyncDatabaseManager().getTransferDao();
     }
 
-    public SyncHandler(MelAuthService melAuthService, MelDriveService melDriveService) {
+    public SyncHandler(MelAuthService melAuthService, MelFileSyncService melFileSyncService) {
         this.melAuthService = melAuthService;
-        this.fsDao = melDriveService.getDriveDatabaseManager().getFsDao();
-        this.stageDao = melDriveService.getDriveDatabaseManager().getStageDao();
-        this.fileDistTaskDao = melDriveService.getDriveDatabaseManager().getFileDistTaskDao();
-        this.driveSettings = melDriveService.getDriveSettings();
-        this.melDriveService = melDriveService;
-        this.driveDatabaseManager = melDriveService.getDriveDatabaseManager();
-        this.indexer = melDriveService.getIndexer();
-        this.wastebin = melDriveService.getWastebin();
-        this.transferManager = new TManager(melAuthService, melDriveService.getDriveDatabaseManager().getTransferDao(), melDriveService, this, wastebin, fsDao);
+        this.fsDao = melFileSyncService.getFileSyncDatabaseManager().getFsDao();
+        this.stageDao = melFileSyncService.getFileSyncDatabaseManager().getStageDao();
+        this.fileDistTaskDao = melFileSyncService.getFileSyncDatabaseManager().getFileDistTaskDao();
+        this.fileSyncSettings = melFileSyncService.getFileSyncSettings();
+        this.melFileSyncService = melFileSyncService;
+        this.fileSyncDatabaseManager = melFileSyncService.getFileSyncDatabaseManager();
+        this.indexer = melFileSyncService.getIndexer();
+        this.wastebin = melFileSyncService.getWastebin();
+        this.transferManager = new TManager(melAuthService, melFileSyncService.getFileSyncDatabaseManager().getTransferDao(), melFileSyncService, this, wastebin, fsDao);
 //        this.transferManager = new TransferManager(melAuthService, melDriveService, melDriveService.getDriveDatabaseManager().getTransferDao()
 //                , wastebin, this);
-        this.quotaManager = new QuotaManager(melDriveService);
-        this.fileDistributor = new FileDistributor(melDriveService);
+        this.quotaManager = new QuotaManager(melFileSyncService);
+        this.fileDistributor = new FileDistributor(melFileSyncService);
     }
 
     public FileDistTaskDao getFileDistTaskDao() {
@@ -182,14 +182,14 @@ public abstract class SyncHandler {
             distributionTask.setSourceHash(hash);
 
             // file found in transfer dir
-            if (file.getAbsolutePath().startsWith(driveDatabaseManager.getDriveSettings().getTransferDirectory().getAbsolutePath())) {
+            if (file.getAbsolutePath().startsWith(fileSyncDatabaseManager.getFileSyncSettings().getTransferDirectory().getAbsolutePath())) {
                 // assuming that noone moves or copies files in this directory at runtime. some day someone will do it any, things will break and he will complain.
                 FsBashDetails bashDetails = BashTools.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
                 distributionTask.setDeleteSource(true);
                 if (fsFiles.isEmpty())
                     return false;
-                N.forEach(fsFiles, fsFile -> distributionTask.addTargetFile(fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v()));
+                N.forEach(fsFiles, fsFile -> distributionTask.addTargetFile(fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile), fsFile.getId().v()));
             } else {
                 // this is in CASE: file found in FS-Directory...
                 // and in this case sourceFsFile must not be null.
@@ -200,7 +200,7 @@ public abstract class SyncHandler {
                 distributionTask.setDeleteSource(false);
                 N.forEach(fsFiles, fsFile -> {
                     if (fsFile.getId().notEqualsValue(sourceFsFile.getId().v()))
-                        distributionTask.addTargetFile(fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile), fsFile.getId().v());
+                        distributionTask.addTargetFile(fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile), fsFile.getId().v());
                 });
             }
 
@@ -230,14 +230,14 @@ public abstract class SyncHandler {
         /**
          * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
          */
-        FsDao fsDao = driveDatabaseManager.getFsDao();
-        StageDao stageDao = driveDatabaseManager.getStageDao();
+        FsDao fsDao = fileSyncDatabaseManager.getFsDao();
+        StageDao stageDao = fileSyncDatabaseManager.getStageDao();
         warden.run(() -> {
             // sop files being moved around
             fileDistributor.stop();
             StageSet stageSet = stageDao.getStageSetById(stageSetId);
             // if version not provided by the stageset we will increase the old one
-            Long localVersion = stageSet.getVersion().notNull() ? stageSet.getVersion().v() : driveDatabaseManager.getDriveSettings().getLastSyncedVersion() + 1;
+            Long localVersion = stageSet.getVersion().notNull() ? stageSet.getVersion().v() : fileSyncDatabaseManager.getFileSyncSettings().getLastSyncedVersion() + 1;
             //check if sufficient space is available
             if (!stageSet.fromFs())
                 quotaManager.freeSpaceForStageSet(stageSetId);
@@ -286,7 +286,7 @@ public abstract class SyncHandler {
                                 stageIdFsIdMap.put(stage.getId(), dir.getId().v());
                             }
 
-                            this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), dir);
+                            this.createDirs(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), dir);
 
                             stage.setFsId(dir.getId().v());
                         } else {
@@ -318,7 +318,7 @@ public abstract class SyncHandler {
                             }
                             fsDao.insert(fsFile);
                             if (fsFile.isSymlink()) {
-                                AFile f = fsDao.getFileByFsFile(driveSettings.getRootDirectory(), fsFile);
+                                AFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
                                 BashTools.lnS(f, fsFile.getSymLink().v());
                             } else if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
                                 // this file porobably has to be transferred
@@ -398,13 +398,13 @@ public abstract class SyncHandler {
                                 setupTransferAvailable(details, stageSet, stage);
                                 N.r(() -> transferManager.createTransfer(details));
                             }
-                            this.createDirs(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsEntry);
+                            this.createDirs(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), fsEntry);
                         }
                     }
                     stageDao.update(stage);
                     stage = stages.getNext();
                 }
-                driveDatabaseManager.updateVersion();
+                fileSyncDatabaseManager.updateVersion();
                 stageDao.deleteStageSet(stageSetId);
                 transferManager.stop();
                 transferManager.removeUnnecessaryTransfers();
@@ -426,7 +426,7 @@ public abstract class SyncHandler {
         // assume that root directory already exists
         if (fsEntry.getParentId().v() == null)
             return;
-        FsDao fsDao = driveDatabaseManager.getFsDao();
+        FsDao fsDao = fileSyncDatabaseManager.getFsDao();
         Stack<FsDirectory> stack = new Stack<>();
         FsDirectory dbParent = fsDao.getDirectoryById(fsEntry.getParentId().v());
         while (dbParent != null && dbParent.getParentId().v() != null) {

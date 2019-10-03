@@ -16,7 +16,7 @@
     <string name="createServiceHelp">Hier kannst du neue Dienste erstellen. Denk dran: Diensten ist es üblicherweise erstmal nicht erlabt mit anderen Driveinstanzen zu \"sprechen\". Du kannst es in der Zugriffansicht ändern. Die einzelnen Services benötigen einige Berechtigungen, die du der App erst gestatten musst. Die Serices werden sonst nicht richtig funktionieren.</string>
     <string name="infoHelp">Zeigt den aktuellen Status des Hintergunddienstes und ein paar Zusatzinfos. Im Navigator auf der linken Seite kannst du alle laufenden Dienste und Einstellungen sehen.</string>
     <string name="logcatHelp">Das brauchst du für gewöhnlich nicht. Es sei denn irgendetwas geht schief und du liest gerne Logs.</string>
-    <string name="discoveryHelp">Sucht andere Instanzen von Drive im aktuellen W-Lan. Damit dies funktioniert, muss dein Netzwerk Broadcasting erlauben. Der Broadcast-Port ist 9966. Wenn du verkoppelt bist, kannst du Dienste erstellen und den anderen Instanzen erlauben mit ihnen zu \"reden\".</string>
+    <string name="discoveryHelp">Sucht andere Instanzen von Mel im aktuellen W-Lan. Damit dies funktioniert, muss dein Netzwerk Broadcasting erlauben. Der Broadcast-Port ist 9966. Wenn du verkoppelt bist, kannst du Dienste erstellen und den anderen Instanzen erlauben mit ihnen zu \"reden\".</string>
     <string name="connectedHelp">Liste aller dir bekannten Instanzen. Gerade Verbundene sind hervorgehoben.</string>
     <string name="settingsHelp">Hier kannst du den Namen dieser Instanz und Ports einstellen. Der Name wird auf anderen Geäten angezeigt, sobald diese gekoppelt sind. Die Ports sind für die direkte Verbindung nötig (sollte Broadcast nicht funktionieren). Der Broadcast-Port ist fest: 9966."</string>
 
@@ -50,7 +50,7 @@
     <string name="discoverBtnCouple">Koppeln</string>
     <string name="discoverUnknown">Unbekannt</string>
     <string name="discoverKnown">Bekannt</string>
-    <string name="firstStart">Willkommen zu Drive. Diese App kann sich mit anderen Instanzen in deinem Netzwerk koppeln. Wenn das getan ist, kannst du einen Dienst erstellen und den anderen Drive-Instanzen Zugriff darauf gewähren. Oben rechts befindet sich ein Hilfeknopf, der dir sagt welchen Zweck die verschienden Dinge hier erfüllen.</string>
+    <string name="firstStart">Willkommen zu Mel. Diese App kann sich mit anderen Instanzen in deinem Netzwerk koppeln. Wenn das getan ist, kannst du einen Dienst erstellen und den anderen Mel-Instanzen Zugriff darauf gewähren. Oben rechts befindet sich ein Hilfeknopf, der dir sagt welchen Zweck die verschienden Dinge hier erfüllen.</string>
     <string name="editServiceApply">Übernehmen</string>
     <string name="editServiceName">Name</string>
     <string name="editServiceDrivePath">Pfad</string>

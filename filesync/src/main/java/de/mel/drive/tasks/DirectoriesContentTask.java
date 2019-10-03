@@ -2,7 +2,7 @@ package de.mel.drive.tasks;
 
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.service.Bootloader;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.sql.FsDirectory;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ public class DirectoriesContentTask extends ServicePayload {
     private Set<Long> ids;
 
     public DirectoriesContentTask(){
-        intent =  DriveStrings.INTENT_DIRECTORY_CONTENT;
+        intent =  FileSyncStrings.INTENT_DIRECTORY_CONTENT;
         this.level = Bootloader.BootLevel.LONG;
     }
 

@@ -12,9 +12,9 @@ import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.core.serialize.SerializableEntity;
-import de.mel.drive.data.DriveDetails;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncDetails;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.data.SyncAnswer;
 import de.mel.drive.index.IndexListener;
 import de.mel.drive.service.sync.ServerSyncHandler;
@@ -38,10 +38,10 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Created by xor on 10/21/16.
  */
-public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
+public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandler> {
 
-    public MelDriveServerService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, DriveSettings driveSettings) {
-        super(melAuthService, workingDirectory, serviceTypeId, uuid, driveSettings);
+    public MelFileSyncServerService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings) {
+        super(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings);
     }
 
     @Override
@@ -56,10 +56,10 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
     protected void onSyncReceived(Request request) {
         Lok.debug("MelDriveServerService.onSyncReceived");
         SyncRequest task = (SyncRequest) request.getPayload();
-        SyncAnswer answer = new SyncAnswer(cacheDirectory, CachedInitializer.randomId(), DriveSettings.CACHE_LIST_SIZE);
-        Warden warden = P.confine(P.read(driveDatabaseManager.getFsDao()));
+        SyncAnswer answer = new SyncAnswer(cacheDirectory, CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE);
+        Warden warden = P.confine(P.read(fileSyncDatabaseManager.getFsDao()));
         try {
-            ISQLResource<GenericFSEntry> delta = driveDatabaseManager.getDeltaResource(task.getOldVersion());
+            ISQLResource<GenericFSEntry> delta = fileSyncDatabaseManager.getDeltaResource(task.getOldVersion());
             GenericFSEntry next = delta.getNext();
             while (next != null) {
                 answer.add(next);
@@ -67,7 +67,7 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
             }
             answer.toDisk();
             answer.loadFirstCached();
-            answer.setNewVersion(driveDatabaseManager.getLatestVersion());
+            answer.setNewVersion(fileSyncDatabaseManager.getLatestVersion());
             request.resolve(answer);
         } catch (Exception e) {
             e.printStackTrace();
@@ -85,18 +85,18 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
                 ServiceRequestHandlerJob job = (ServiceRequestHandlerJob) unknownJob;
                 if (job.isRequest()) {
                     Request request = job.getRequest();
-                    if (request.hasIntent(DriveStrings.INTENT_REG_AS_CLIENT)) {
-                        DriveDetails driveDetails = (DriveDetails) request.getPayload();
+                    if (request.hasIntent(FileSyncStrings.INTENT_REG_AS_CLIENT)) {
+                        FileSyncDetails fileSyncDetails = (FileSyncDetails) request.getPayload();
                         Long certId = request.getPartnerCertificate().getId().v();
-                        driveSettings.getServerSettings().addClient(certId, driveDetails.getServiceUuid());
-                        driveSettings.save();
+                        fileSyncSettings.getServerSettings().addClient(certId, fileSyncDetails.getServiceUuid());
+                        fileSyncSettings.save();
                         //propagateNewVersion();
                         request.resolve(null);
                         return true;
-                    } else if (request.hasIntent(DriveStrings.INTENT_COMMIT)) {
+                    } else if (request.hasIntent(FileSyncStrings.INTENT_COMMIT)) {
                         syncHandler.handleCommit(request);
                         return true;
-                    } else if (request.hasIntent(DriveStrings.INTENT_ASK_HASHES_AVAILABLE)) {
+                    } else if (request.hasIntent(FileSyncStrings.INTENT_ASK_HASHES_AVAILABLE)) {
                         syncHandler.handleAvailableHashesRequest(request);
                         return true;
                     }
@@ -105,20 +105,20 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
                 }
             } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
                 Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
-                P.confine(driveDatabaseManager.getTransferDao())
+                P.confine(fileSyncDatabaseManager.getTransferDao())
                         .run(() -> {
-                            ClientData clientData = driveSettings.getServerSettings().getClientData(authenticatedJob.getPartnerCertificate().getId().v());
-                            driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
+                            ClientData clientData = fileSyncSettings.getServerSettings().getClientData(authenticatedJob.getPartnerCertificate().getId().v());
+                            fileSyncDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
                             syncHandler.researchTransfers();
                         })
                         .end();
             } else if (unknownJob instanceof Job.CertificateSpottedJob) {
                 // reset the remaining transfers so we can try again
                 Job.CertificateSpottedJob spottedJob = (Job.CertificateSpottedJob) unknownJob;
-                P.confine(driveDatabaseManager.getTransferDao())
+                P.confine(fileSyncDatabaseManager.getTransferDao())
                         .run(() -> {
-                            ClientData clientData = driveSettings.getServerSettings().getClientData(spottedJob.getPartnerCertificate().getId().v());
-                            driveDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
+                            ClientData clientData = fileSyncSettings.getServerSettings().getClientData(spottedJob.getPartnerCertificate().getId().v());
+                            fileSyncDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
                             syncHandler.researchTransfers();
                         })
                         .end();
@@ -137,10 +137,10 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
 
     private void propagateNewVersion() {
         try {
-            long version = driveDatabaseManager.getLatestVersion();
-            for (ClientData client : driveDatabaseManager.getDriveSettings().getServerSettings().getClients()) {
+            long version = fileSyncDatabaseManager.getLatestVersion();
+            for (ClientData client : fileSyncDatabaseManager.getFileSyncSettings().getServerSettings().getClients()) {
                 melAuthService.connect(client.getCertId()).done(mvp -> N.r(() -> {
-                    mvp.message(client.getServiceUuid(), new DriveDetails().setLastSyncVersion(version).setIntent(DriveStrings.INTENT_PROPAGATE_NEW_VERSION));
+                    mvp.message(client.getServiceUuid(), new FileSyncDetails().setLastSyncVersion(version).setIntent(FileSyncStrings.INTENT_PROPAGATE_NEW_VERSION));
                 }));
             }
         } catch (Exception e) {
@@ -154,8 +154,8 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
         stageIndexer.setStagingDoneListener(stageSetId -> {
             Lok.debug(melAuthService.getName() + " first indexing done!");
             // staging is done. stage data is up to date. time to commit to fs
-            FsDao fsDao = driveDatabaseManager.getFsDao();
-            StageDao stageDao = driveDatabaseManager.getStageDao();
+            FsDao fsDao = fileSyncDatabaseManager.getFsDao();
+            StageDao stageDao = fileSyncDatabaseManager.getStageDao();
             //fsDao.unlockRead();
             if (stageDao.stageSetHasContent(stageSetId)) {
                 Warden warden = P.confine(fsDao);
@@ -186,9 +186,9 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
     @Override
     protected IndexListener createIndexListener() {
         return (stageSetId, transaction) -> N.r(() -> {
-            driveDatabaseManager.updateVersion();
+            fileSyncDatabaseManager.updateVersion();
             if (stageSetId != null) {
-                if (driveDatabaseManager.getMelDriveService() instanceof MelDriveServerService)
+                if (fileSyncDatabaseManager.getMelFileSyncService() instanceof MelFileSyncServerService)
                     syncHandler.commitStage(stageSetId, transaction);
             } else {
                 Lok.debug("MelDriveServerService.done(). StageSet was empty");
@@ -206,7 +206,7 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
     public void onBootLevel2Finished() {
         Lok.debug("MelDriveServerService.onServiceRegistered");
         // connect to every client that we know
-        for (ClientData client : this.driveSettings.getServerSettings().getClients()) {
+        for (ClientData client : this.fileSyncSettings.getServerSettings().getClients()) {
             N.r(() -> melAuthService.connect(client.getCertId()));
         }
         N.r(() -> startedPromise.resolve(this));
@@ -225,9 +225,9 @@ public class MelDriveServerService extends MelDriveService<ServerSyncHandler> {
 
     @Override
     public SerializableEntity addAdditionalServiceInfo() {
-        DriveDetails driveDetails = driveSettings.getDriveDetails();
-        driveDetails.setDirectoryCount(driveDatabaseManager.getFsDao().countDirectories());
-        return driveDetails;
+        FileSyncDetails fileSyncDetails = fileSyncSettings.getDriveDetails();
+        fileSyncDetails.setDirectoryCount(fileSyncDatabaseManager.getFsDao().countDirectories());
+        return fileSyncDetails;
     }
 
 

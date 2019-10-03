@@ -5,7 +5,7 @@ import de.mel.Lok;
 import de.mel.auth.file.AFile;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.RWSemaphore;
-import de.mel.drive.data.DriveSettings;
+import de.mel.drive.data.FileSyncSettings;
 import de.mel.drive.data.fs.RootDirectory;
 import de.mel.drive.sql.*;
 import de.mel.sql.*;
@@ -35,7 +35,7 @@ public class FsDao extends Dao {
         FsEntry bottomFsEntry = getRootDirectory();
         FsEntry lastFsEntry = null;
         do {
-            Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : driveSettings.getRootDirectory().getId();
+            Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : fileSyncSettings.getRootDirectory().getId();
             lastFsEntry = getGenericSubByName(parentId, fileStack.peek().getName());
             if (lastFsEntry != null) {
                 bottomFsEntry = lastFsEntry;
@@ -51,12 +51,12 @@ public class FsDao extends Dao {
         return n;
     }
 
-    private final DriveDatabaseManager driveDatabaseManager;
-    private DriveSettings driveSettings;
+    private final FileSyncDatabaseManager fileSyncDatabaseManager;
+    private FileSyncSettings fileSyncSettings;
 
-    public FsDao(DriveDatabaseManager driveDatabaseManager, ISQLQueries ISQLQueries) {
+    public FsDao(FileSyncDatabaseManager fileSyncDatabaseManager, ISQLQueries ISQLQueries) {
         super(ISQLQueries);
-        this.driveDatabaseManager = driveDatabaseManager;
+        this.fileSyncDatabaseManager = fileSyncDatabaseManager;
     }
 
 
@@ -270,8 +270,8 @@ public class FsDao extends Dao {
             return Long.valueOf(v.toString());
     }
 
-    public void setDriveSettings(DriveSettings driveSettings) {
-        this.driveSettings = driveSettings;
+    public void setFileSyncSettings(FileSyncSettings fileSyncSettings) {
+        this.fileSyncSettings = fileSyncSettings;
     }
 
     public List<GenericFSEntry> getDelta(long version) throws SqlQueriesException {
@@ -307,7 +307,7 @@ public class FsDao extends Dao {
 
     public FsDirectory getFsDirectoryByPath(AFile f) throws SqlQueriesException {
         try {
-            RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
+            RootDirectory rootDirectory = fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory();
             String rootPath = rootDirectory.getPath();
             //todo Exception here
             if (!f.getAbsolutePath().startsWith(rootPath))
@@ -499,7 +499,7 @@ public class FsDao extends Dao {
     }
 
     public FsFile getFsFileByFile(File file) throws SqlQueriesException {
-        RootDirectory rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
+        RootDirectory rootDirectory = fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
         if (file.getAbsolutePath().length() < rootPath.length())

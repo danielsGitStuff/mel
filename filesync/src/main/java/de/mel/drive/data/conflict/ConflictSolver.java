@@ -4,10 +4,9 @@ import de.mel.Lok;
 import de.mel.auth.file.AFile;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.data.fs.RootDirectory;
 import de.mel.drive.index.InitialIndexConflictHelper;
-import de.mel.drive.nio.FileTools;
 import de.mel.drive.service.sync.SyncStageMerger;
 import de.mel.drive.sql.*;
 import de.mel.drive.sql.dao.FsDao;
@@ -45,16 +44,16 @@ public class ConflictSolver extends SyncStageMerger {
     private boolean solving = false;
     private String conflictHelperUuid;
 
-    public ConflictSolver(DriveDatabaseManager driveDatabaseManager, StageSet serverStageSet, StageSet localStageSet) throws SqlQueriesException {
+    public ConflictSolver(FileSyncDatabaseManager fileSyncDatabaseManager, StageSet serverStageSet, StageSet localStageSet) throws SqlQueriesException {
         super(serverStageSet.getId().v(), localStageSet.getId().v());
-        this.rootDirectory = driveDatabaseManager.getDriveSettings().getRootDirectory();
+        this.rootDirectory = fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory();
         this.serverStageSet = serverStageSet;
         this.localStageSet = localStageSet;
-        stageDao = driveDatabaseManager.getStageDao();
-        fsDao = driveDatabaseManager.getFsDao();
+        stageDao = fileSyncDatabaseManager.getStageDao();
+        fsDao = fileSyncDatabaseManager.getFsDao();
         identifier = createIdentifier(serverStageSet.getId().v(), localStageSet.getId().v());
         basedOnVersion = localStageSet.getBasedOnVersion().v() >= serverStageSet.getBasedOnVersion().v() ? localStageSet.getBasedOnVersion().v() : serverStageSet.getBasedOnVersion().v();
-        obsoleteStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_DELETE, serverStageSet.getOriginCertId().v(), serverStageSet.getOriginServiceUuid().v(), serverStageSet.getVersion().v(), basedOnVersion);
+        obsoleteStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, FileSyncStrings.STAGESET_STATUS_DELETE, serverStageSet.getOriginCertId().v(), serverStageSet.getOriginServiceUuid().v(), serverStageSet.getVersion().v(), basedOnVersion);
         obsoleteOrder = new Order();
     }
 
@@ -188,7 +187,7 @@ public class ConflictSolver extends SyncStageMerger {
         oldeObsoleteMap = new HashMap<>();
         this.fsDao = fsDao;
         N.r(() -> {
-            mergeStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v(), remoteStageSet.getVersion().v(), basedOnVersion);
+            mergeStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_MERGED, remoteStageSet.getOriginCertId().v(), remoteStageSet.getOriginServiceUuid().v(), remoteStageSet.getVersion().v(), basedOnVersion);
         });
         // now lets find directories that have been deleted. so we can build nice dependencies between conflicts
         List<Stage> leftDirs = stageDao.getDeletedDirectories(lStageSetId);
@@ -239,7 +238,7 @@ public class ConflictSolver extends SyncStageMerger {
         final long oldeMergedSetId = mergeStageSet.getId().v();
         Map<Long, Long> oldeIdNewIdMapForDirectories = new HashMap<>();
         order = new Order();
-        StageSet targetStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_MERGED, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v(), mergeStageSet.getVersion().v(), basedOnVersion);
+        StageSet targetStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_MERGED, mergeStageSet.getOriginCertId().v(), mergeStageSet.getOriginServiceUuid().v(), mergeStageSet.getVersion().v(), basedOnVersion);
         N.sqlResource(stageDao.getStagesResource(oldeMergedSetId), stageSet -> {
             Stage rightStage = stageSet.getNext();
             while (rightStage != null) {
@@ -296,7 +295,7 @@ public class ConflictSolver extends SyncStageMerger {
     public void cleanup() throws SqlQueriesException {
         //cleanup
         stageDao.deleteStageSet(rStageSetId);
-        mergeStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+        mergeStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
         stageDao.updateStageSet(mergeStageSet);
         stageDao.deleteStageSet(obsoleteStageSet.getId().v());
         if (!stageDao.stageSetHasContent(mergeStageSet.getId().v()))

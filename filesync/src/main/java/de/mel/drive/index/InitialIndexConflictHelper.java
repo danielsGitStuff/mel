@@ -4,9 +4,9 @@ import de.mel.Lok;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.tools.Order;
 import de.mel.auth.tools.lock.Warden;
-import de.mel.drive.data.DriveClientSettingsDetails;
-import de.mel.drive.data.DriveStrings;
-import de.mel.drive.service.MelDriveClientService;
+import de.mel.drive.data.FileSyncClientSettingsDetails;
+import de.mel.drive.data.FileSyncStrings;
+import de.mel.drive.service.MelFileSyncClientService;
 import de.mel.drive.sql.FsEntry;
 import de.mel.drive.sql.GenericFSEntry;
 import de.mel.drive.sql.Stage;
@@ -28,14 +28,14 @@ public class InitialIndexConflictHelper {
     private StageDao stageDao;
     private FsDao fsDao;
     private StageSet serverStageSet;
-    private final MelDriveClientService driveClientService;
+    private final MelFileSyncClientService driveClientService;
     private Order ord;
     private StageSet fsStageSet;
 
     private static Map<String, InitialIndexConflictHelper> instanceMap = new HashMap<>();
     private IndexerRunnable indexerRunnable;
 
-    public InitialIndexConflictHelper(MelDriveClientService driveClientService) {
+    public InitialIndexConflictHelper(MelFileSyncClientService driveClientService) {
         this.driveClientService = driveClientService;
         this.uuid = CertificateManager.randomUUID().toString();
         instanceMap.put(uuid, this);
@@ -51,10 +51,10 @@ public class InitialIndexConflictHelper {
     public void onStart(StageSet fsStageSet) throws SqlQueriesException {
         //setup a fake stageset from server. we put files here that have not yet been synced but there were found unknown files in their places.
         this.fsStageSet = fsStageSet;
-        stageDao = driveClientService.getDriveDatabaseManager().getStageDao();
-        fsDao = driveClientService.getDriveDatabaseManager().getFsDao();
-        DriveClientSettingsDetails clientSettings = driveClientService.getDriveSettings().getClientSettings();
-        serverStageSet = stageDao.createStageSet(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_STAGING, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null,driveClientService.getDriveSettings().getLastSyncedVersion() + 1);
+        stageDao = driveClientService.getFileSyncDatabaseManager().getStageDao();
+        fsDao = driveClientService.getFileSyncDatabaseManager().getFsDao();
+        FileSyncClientSettingsDetails clientSettings = driveClientService.getFileSyncSettings().getClientSettings();
+        serverStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, FileSyncStrings.STAGESET_STATUS_STAGING, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null,driveClientService.getFileSyncSettings().getLastSyncedVersion() + 1);
         serverStageSetId = serverStageSet.getId().v();
         ord = new Order();
     }
@@ -87,7 +87,7 @@ public class InitialIndexConflictHelper {
      */
     public boolean onDone(Warden warden, IndexerRunnable indexerRunnable) throws SqlQueriesException {
         this.indexerRunnable = indexerRunnable;
-        serverStageSet.setStatus(DriveStrings.STAGESET_STATUS_STAGED);
+        serverStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
         stageDao.updateStageSet(serverStageSet);
         //nothing happened, just return
         if (!stageDao.stageSetHasContent(serverStageSetId)) {

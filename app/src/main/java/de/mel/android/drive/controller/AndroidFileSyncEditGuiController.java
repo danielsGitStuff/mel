@@ -7,31 +7,30 @@ import android.widget.TextView;
 
 import de.mel.R;
 import de.mel.android.MainActivity;
-import de.mel.android.MelActivity;
 import de.mel.android.controller.AndroidServiceGuiController;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
-import de.mel.drive.data.DriveStrings;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.data.FileSyncStrings;
+import de.mel.drive.service.MelFileSyncService;
 
 /**
  * Created by xor on 8/25/17.
  */
 
-public class AndroidDriveEditGuiController extends AndroidServiceGuiController {
-    private final MelDriveService runningInstance;
+public class AndroidFileSyncEditGuiController extends AndroidServiceGuiController {
+    private final MelFileSyncService runningInstance;
     private EditText txtPath, txtMaxSize, txtMaxDays;
     private Button btnPath;
     private TextView lblRole;
 
 
-    public AndroidDriveEditGuiController(MelAuthService melAuthService, MainActivity activity, IMelService iMelService, ViewGroup rootView) {
+    public AndroidFileSyncEditGuiController(MelAuthService melAuthService, MainActivity activity, IMelService iMelService, ViewGroup rootView) {
         super(activity, rootView, R.layout.embedded_twice_drive_edit);
-        this.runningInstance = (MelDriveService) iMelService;
-        txtPath.setText(this.runningInstance.getDriveSettings().getRootDirectory().getPath());
+        this.runningInstance = (MelFileSyncService) iMelService;
+        txtPath.setText(this.runningInstance.getFileSyncSettings().getRootDirectory().getPath());
         btnPath.setEnabled(false);
         String role;
-        if (((MelDriveService) iMelService).getDriveSettings().getRole().equals(DriveStrings.ROLE_SERVER))
+        if (((MelFileSyncService) iMelService).getFileSyncSettings().getRole().equals(FileSyncStrings.ROLE_SERVER))
             role = "Role: Server";
         else
             role = "Role: Client";

@@ -6,7 +6,7 @@ import java.io.File;
 
 import de.mel.Lok;
 import de.mel.auth.file.AFile;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.service.MelFileSyncService;
 import de.mel.drive.index.watchdog.IndexWatchdogListener;
 import de.mel.auth.tools.WatchDogTimer;
 import de.mel.sql.RWLock;
@@ -21,11 +21,11 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
     private FileObserver fileObserver;
     private WatchDogTimer watchDogTimer;
 
-    public AndroidWatchdogListener(MelDriveService melDriveService) {
-        super(melDriveService);
-        this.setStageIndexer(melDriveService.getStageIndexer());
+    public AndroidWatchdogListener(MelFileSyncService melFileSyncService) {
+        super(melFileSyncService);
+        this.setStageIndexer(melFileSyncService.getStageIndexer());
         watchDogTimer = new WatchDogTimer("AndroidWatchDogListener",this, 20, 100, 100);
-        watchDirectory(melDriveService.getDriveSettings().getRootDirectory().getOriginalFile());
+        watchDirectory(melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile());
     }
 
     @Override
@@ -39,7 +39,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
                     public void onEvent(int event, String path) {
                         if (path != null)
                             try {
-                                path = melDriveService.getDriveSettings().getRootDirectory().getOriginalFile().getAbsolutePath() + File.separator + path;
+                                path = melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile().getAbsolutePath() + File.separator + path;
                                 AFile file = AFile.instance(path);
                                 analyzeEvent(event, file);
                             } catch (InterruptedException e) {
@@ -65,7 +65,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
             if (!ignoredMap.containsKey(path)) {
                 Lok.debug("AndroidWatchdogListener.analyzeEvent: " + path);
                 pathCollection.addPath(path);
-                if (melDriveService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
+                if (melFileSyncService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
                     watchDogTimer.start();
                 }else
                     surpressEvent();

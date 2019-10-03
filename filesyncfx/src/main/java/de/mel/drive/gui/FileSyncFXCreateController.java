@@ -9,12 +9,12 @@ import de.mel.auth.gui.EmbeddedServiceSettingsFX;
 import de.mel.auth.gui.XCBFix;
 import de.mel.auth.service.MelAuthAdminFX;
 import de.mel.auth.tools.N;
-import de.mel.drive.DriveBootloader;
-import de.mel.drive.DriveCreateServiceHelper;
+import de.mel.drive.FileSyncBootloader;
+import de.mel.drive.FileSyncCreateServiceHelper;
 import de.mel.drive.bash.BashTools;
 import de.mel.drive.bash.BashToolsUnix;
-import de.mel.drive.data.DriveDetails;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncDetails;
+import de.mel.drive.data.FileSyncStrings;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -25,7 +25,7 @@ import java.io.File;
 /**
  * Created by xor on 10/20/16.
  */
-public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
+public class FileSyncFXCreateController extends EmbeddedServiceSettingsFX {
     private final String DEFAULT_PRIMARY_BTN_TEXT = "Create File Share";
     private boolean shareWasChecked = false;
     @FXML
@@ -119,13 +119,13 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
 
     protected boolean createInstance(final String name, final boolean isServer, final String path, final boolean useSymLinks) {
         return N.result(() -> {
-            DriveCreateServiceHelper driveCreateServiceHelper = new DriveCreateServiceHelper(melAuthService);
+            FileSyncCreateServiceHelper fileSyncCreateServiceHelper = new FileSyncCreateServiceHelper(melAuthService);
             if (isServer)
-                driveCreateServiceHelper.createServerService(name, AFile.instance(path), 0.1f, 30, useSymLinks);
+                fileSyncCreateServiceHelper.createServerService(name, AFile.instance(path), 0.1f, 30, useSymLinks);
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                driveCreateServiceHelper.createClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
+                fileSyncCreateServiceHelper.createClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
             }
             return true;
         }, false);
@@ -156,9 +156,9 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     @Override
     public void onServiceSelected(Certificate selectedCertificate, ServiceJoinServiceType selectedService) {
         if (selectedService != null && selectedService.getAdditionalServicePayload() != null) {
-            DriveDetails driveDetails = (DriveDetails) selectedService.getAdditionalServicePayload();
+            FileSyncDetails fileSyncDetails = (FileSyncDetails) selectedService.getAdditionalServicePayload();
             // server dictates whether to user symlinks or not
-            cbIgnoreSymLinks.selectedProperty().setValue(!driveDetails.usesSymLinks());
+            cbIgnoreSymLinks.selectedProperty().setValue(!fileSyncDetails.usesSymLinks());
         }
     }
 
@@ -191,10 +191,10 @@ public class DriveFXCreateController extends EmbeddedServiceSettingsFX {
     @Override
     public void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
         try {
-            if (service.getType().v().equals(new DriveBootloader().getName())) {
+            if (service.getType().v().equals(new FileSyncBootloader().getName())) {
                 if (service.getAdditionalServicePayload() != null) {
-                    DriveDetails driveDetails = (DriveDetails) service.getAdditionalServicePayload();
-                    if (driveDetails.getRole().equals(DriveStrings.ROLE_SERVER)) {
+                    FileSyncDetails fileSyncDetails = (FileSyncDetails) service.getAdditionalServicePayload();
+                    if (fileSyncDetails.getRole().equals(FileSyncStrings.ROLE_SERVER)) {
                         Certificate certificate = melAuthService.getCertificateManager().getCertificateById(certId);
                         foundServices.lockWrite();
                         foundServices.add(certificate, service);

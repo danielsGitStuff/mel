@@ -3,8 +3,8 @@ package de.mel.drive.sql.dao;
 import de.mel.Lok;
 import de.mel.auth.file.AFile;
 import de.mel.auth.tools.Eva;
-import de.mel.drive.data.DriveSettings;
-import de.mel.drive.data.DriveStrings;
+import de.mel.drive.data.FileSyncSettings;
+import de.mel.drive.data.FileSyncStrings;
 import de.mel.drive.data.UnorderedStagePair;
 import de.mel.drive.data.fs.RootDirectory;
 import de.mel.drive.nio.FileTools;
@@ -27,12 +27,12 @@ import java.util.Stack;
 public class
 StageDao extends Dao.LockingDao {
     private final FsDao fsDao;
-    private final DriveSettings driveSettings;
+    private final FileSyncSettings fileSyncSettings;
 
-    public StageDao(DriveSettings driveSettings, ISQLQueries isqlQueries, FsDao fsDao) {
+    public StageDao(FileSyncSettings fileSyncSettings, ISQLQueries isqlQueries, FsDao fsDao) {
         super(isqlQueries);
         this.fsDao = fsDao;
-        this.driveSettings = driveSettings;
+        this.fileSyncSettings = fileSyncSettings;
     }
 
     /**
@@ -42,7 +42,7 @@ StageDao extends Dao.LockingDao {
      * @return relating Stage or null if f is not staged
      */
     public Stage getStageByPath(Long stageSetId, AFile f) throws SqlQueriesException {
-        RootDirectory rootDirectory = driveSettings.getRootDirectory();
+        RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
         if (f.getAbsolutePath().length() < rootPath.length())
@@ -95,13 +95,13 @@ StageDao extends Dao.LockingDao {
     public List<StageSet> getStagedStageSetsFromFS() throws SqlQueriesException {
         StageSet stageSet = new StageSet();
         String where = "(" + stageSet.getSource().k() + "=? or " + stageSet.getSource().k() + "=?) and " + stageSet.getStatus().k() + "=?";
-        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.args(DriveStrings.STAGESET_SOURCE_FS, DriveStrings.STAGESET_SOURCE_MERGED, DriveStrings.STAGESET_STATUS_STAGED));
+        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.args(FileSyncStrings.STAGESET_SOURCE_FS, FileSyncStrings.STAGESET_SOURCE_MERGED, FileSyncStrings.STAGESET_STATUS_STAGED));
     }
 
     public List<StageSet> getUpdateStageSetsFromServer() throws SqlQueriesException {
         StageSet stageSet = new StageSet();
         String where = stageSet.getSource().k() + "=? and " + stageSet.getStatus().k() + "=?";
-        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.args(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
+        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.args(FileSyncStrings.STAGESET_SOURCE_SERVER, FileSyncStrings.STAGESET_STATUS_STAGED));
     }
 
     /**
@@ -129,7 +129,7 @@ StageDao extends Dao.LockingDao {
 
     @Deprecated
     public AFile getFileByStage(Stage stage) throws SqlQueriesException {
-        RootDirectory rootDirectory = driveSettings.getRootDirectory();
+        RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         final Long stageSetId = stage.getStageSet();
         Stack<Stage> stageStack = new Stack<>();
         FsEntry bottomFsEntry = null;
@@ -168,7 +168,7 @@ StageDao extends Dao.LockingDao {
     public void deleteServerStageSets() throws SqlQueriesException {
         StageSet stageSet = new StageSet();
         String where = stageSet.getSource().k() + "=? and " + stageSet.getStatus().k() + "=?";
-        sqlQueries.delete(stageSet, where, ISQLQueries.args(DriveStrings.STAGESET_SOURCE_SERVER, DriveStrings.STAGESET_STATUS_STAGED));
+        sqlQueries.delete(stageSet, where, ISQLQueries.args(FileSyncStrings.STAGESET_SOURCE_SERVER, FileSyncStrings.STAGESET_STATUS_STAGED));
     }
 
     public Stage getNotFlaggedStage(long stageSetId) throws SqlQueriesException {
@@ -201,7 +201,7 @@ StageDao extends Dao.LockingDao {
         String where = stage.getiNodePair().k() + "=? and " + stage.getStageSetPair().k()
                 + "=(select " + set.getId().k() + " from " + set.getTableName() + " where " + set.getSource().k() + "=? order by "
                 + set.getCreated().k() + " desc limit 1)";
-        List<Stage> stages = sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.args(inode, DriveStrings.STAGESET_SOURCE_FS));
+        List<Stage> stages = sqlQueries.load(stage.getAllAttributes(), stage, where, ISQLQueries.args(inode, FileSyncStrings.STAGESET_SOURCE_FS));
         if (stages.size() > 0)
             return stages.get(0);
         return null;
@@ -306,7 +306,7 @@ StageDao extends Dao.LockingDao {
     }
 
     public StageSet createStageSet(String type, Long originCertId, String originServiceUuid, Long version, long basedOnVersion) throws SqlQueriesException {
-        return createStageSet(type, DriveStrings.STAGESET_STATUS_STAGING, originCertId, originServiceUuid, version, basedOnVersion);
+        return createStageSet(type, FileSyncStrings.STAGESET_STATUS_STAGING, originCertId, originServiceUuid, version, basedOnVersion);
     }
 
     public StageSet createStageSet(String type, String status, Long originCertId, String originServiceUuid, Long version, long basedOnVersion) throws SqlQueriesException {

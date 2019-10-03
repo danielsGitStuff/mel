@@ -10,20 +10,20 @@ import java.util.Map;
 import de.mel.R;
 import de.mel.android.ConflictsPopupActivity;
 import de.mel.android.Notifier;
-import de.mel.android.drive.view.DriveConflictListAdapter;
+import de.mel.android.drive.view.FileSyncConflictListAdapter;
 import de.mel.android.service.AndroidService;
 import de.mel.drive.data.conflict.Conflict;
 import de.mel.drive.data.conflict.ConflictSolver;
 import de.mel.drive.jobs.CommitJob;
-import de.mel.drive.service.MelDriveClientService;
+import de.mel.drive.service.MelFileSyncClientService;
 
 /**
  * Created by xor on 07.08.2017.
  */
 
-public class DriveConflictsPopupActivity extends ConflictsPopupActivity<MelDriveClientService> {
+public class FileSyncConflictsPopupActivity extends ConflictsPopupActivity<MelFileSyncClientService> {
     private Map<String, ConflictSolver> conflictSolverMap;
-    private DriveConflictListAdapter listAdapter;
+    private FileSyncConflictListAdapter listAdapter;
     private ConflictSolver conflictSolver;
 
 
@@ -42,7 +42,7 @@ public class DriveConflictsPopupActivity extends ConflictsPopupActivity<MelDrive
             if (conflictSolver.hasConflicts() && !conflictSolver.isSolved()) {
                 this.conflictSolver = conflictSolver;
                 List<Conflict> conflicts = Conflict.getRootConflicts(conflictSolver.getConflicts());
-                listAdapter = new DriveConflictListAdapter(listView, this, conflicts);
+                listAdapter = new FileSyncConflictListAdapter(listView, this, conflicts);
                 runOnUiThread(() -> {
                     listView.setAdapter(listAdapter);
                 });

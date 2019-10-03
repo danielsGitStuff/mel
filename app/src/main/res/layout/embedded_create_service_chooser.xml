@@ -62,7 +62,7 @@
         android:layout_width="wrap_content"
         android:layout_alignStart="@id/txtName"
         android:layout_height="wrap_content"
-        android:text="Drive Instances" />
+        android:text="File Sync Instances" />
     <ListView
         android:id="@+id/knownCertList"
         android:layout_below="@id/lblKnownMA"

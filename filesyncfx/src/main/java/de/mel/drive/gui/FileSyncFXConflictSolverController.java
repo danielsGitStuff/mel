@@ -7,7 +7,7 @@ import de.mel.auth.service.MelAuthService;
 import de.mel.drive.data.conflict.Conflict;
 import de.mel.drive.data.conflict.ConflictSolver;
 import de.mel.drive.jobs.CommitJob;
-import de.mel.drive.service.MelDriveClientService;
+import de.mel.drive.service.MelFileSyncClientService;
 import de.mel.drive.sql.Stage;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
@@ -28,31 +28,31 @@ import java.util.ResourceBundle;
  * Created by xor on 5/30/17.
  */
 @SuppressWarnings("Duplicates")
-public class DriveFXConflictSolverController extends PopupContentFX implements Initializable {
+public class FileSyncFXConflictSolverController extends PopupContentFX implements Initializable {
     @FXML
     private TreeTableView<Conflict> treeTableView;
     @FXML
     private TreeTableColumn<Conflict, String> colMerged, colRight;
     @FXML
     private TreeTableColumn<Conflict, Stage> colLeft;
-    private MelDriveClientService melDriveClientService;
+    private MelFileSyncClientService melFileSyncClientService;
     private ConflictSolver conflictSolver;
 
 
     @Override
     public String onOkCLicked() {
-        Lok.debug("DriveFXConflictSolverController.onOkCLicked");
+        Lok.debug("FileSyncFXConflictSolverController.onOkCLicked");
         conflictSolver.isSolved();
-        melDriveClientService.addJob(new CommitJob());
+        melFileSyncClientService.addJob(new CommitJob());
         return null;
     }
 
     @Override
     public void initImpl(javafx.stage.Stage stage, MelAuthService melAuthService, MelNotification notification) {
-        Lok.debug("DriveFXConflictSolverController.init");
-        this.melDriveClientService = (MelDriveClientService) melAuthService.getMelService(notification.getServiceUuid());
+        Lok.debug("FileSyncFXConflictSolverController.init");
+        this.melFileSyncClientService = (MelFileSyncClientService) melAuthService.getMelService(notification.getServiceUuid());
         this.stage.setTitle(notification.getTitle());
-        for (ConflictSolver conflictSolver : melDriveClientService.getConflictSolverMap().values()) {
+        for (ConflictSolver conflictSolver : melFileSyncClientService.getConflictSolverMap().values()) {
             if (conflictSolver.hasConflicts() && !conflictSolver.isSolved()) {
                 this.conflictSolver = conflictSolver;
                 List<Conflict> rootConflicts = Conflict.getRootConflicts(conflictSolver.getConflicts());
@@ -96,7 +96,7 @@ public class DriveFXConflictSolverController extends PopupContentFX implements I
 
             conflictSolver = (ConflictSolver) notification.getContent();
 
-            Lok.debug("DriveFXConflictSolverController.init.done");
+            Lok.debug("FileSyncFXConflictSolverController.init.done");
         }
     }
 

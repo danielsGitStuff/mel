@@ -16,31 +16,31 @@ import de.mel.android.Notifier;
 import de.mel.android.Tools;
 import de.mel.android.controller.AndroidServiceGuiController;
 import de.mel.android.Threadder;
-import de.mel.android.drive.controller.RemoteDriveServiceChooserGuiController;
-import de.mel.android.drive.controller.AndroidDriveEditGuiController;
+import de.mel.android.drive.controller.RemoteFileSyncServiceChooserGuiController;
+import de.mel.android.drive.controller.AndroidFileSyncEditGuiController;
 import de.mel.auth.MelNotification;
 import de.mel.auth.file.AFile;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.android.boot.AndroidBootLoader;
 import de.mel.auth.tools.N;
-import de.mel.drive.DriveBootloader;
-import de.mel.drive.DriveCreateServiceHelper;
+import de.mel.drive.FileSyncBootloader;
+import de.mel.drive.FileSyncCreateServiceHelper;
 import de.mel.drive.bash.BashTools;
-import de.mel.drive.data.DriveStrings;
-import de.mel.drive.service.MelDriveService;
+import de.mel.drive.data.FileSyncStrings;
+import de.mel.drive.service.MelFileSyncService;
 
 /**
  * Created by xor on 2/25/17.
  */
 
-public class AndroidDriveBootloader extends DriveBootloader implements AndroidBootLoader {
+public class AndroidFileSyncBootloader extends FileSyncBootloader implements AndroidBootLoader {
     private static final int PERMISSION_WRITE = 666;
 
     @Override
-    public void cleanUpDeletedService(MelDriveService melService, String uuid) {
+    public void cleanUpDeletedService(MelFileSyncService melService, String uuid) {
         super.cleanUpDeletedService(melService, uuid);
-        Tools.getApplicationContext().deleteDatabase("service." + uuid + "." + DriveStrings.DB_FILENAME);
+        Tools.getApplicationContext().deleteDatabase("service." + uuid + "." + FileSyncStrings.DB_FILENAME);
         File instanceDir = new File(bootLoaderDir, melService.getUuid());
         N.r(() -> BashTools.rmRf(AFile.instance(instanceDir)));
     }
@@ -50,27 +50,27 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
      * @param melAuthService
      * @return
      */
-    protected DriveCreateServiceHelper createCreateServiceHelper(MelAuthService melAuthService) {
-        return new DriveCreateServiceHelper(melAuthService);
+    protected FileSyncCreateServiceHelper createCreateServiceHelper(MelAuthService melAuthService) {
+        return new FileSyncCreateServiceHelper(melAuthService);
 
     }
 
     @Override
     public void createService(Activity activity, MelAuthService melAuthService, AndroidServiceGuiController currentController) {
-        RemoteDriveServiceChooserGuiController driveCreateGuiController = (RemoteDriveServiceChooserGuiController) currentController;
+        RemoteFileSyncServiceChooserGuiController driveCreateGuiController = (RemoteFileSyncServiceChooserGuiController) currentController;
 
         // create the actual MelDrive service
-        DriveCreateServiceHelper driveCreateServiceHelper = createCreateServiceHelper(melAuthService);
+        FileSyncCreateServiceHelper fileSyncCreateServiceHelper = createCreateServiceHelper(melAuthService);
         if (driveCreateGuiController.isValid())
             Threadder.runNoTryThread(() -> {
                 String name = driveCreateGuiController.getName();
                 AFile rootFile = driveCreateGuiController.getRootFile();
                 if (driveCreateGuiController.isServer()) {
-                    driveCreateServiceHelper.createServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
+                    fileSyncCreateServiceHelper.createServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                 } else {
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedService().getUuid().v();
-                    driveCreateServiceHelper.createClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
+                    fileSyncCreateServiceHelper.createClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                     //promise.done(melDriveClientService -> N.r(() -> melDriveClientService.syncThisClient()));
                 }
             });
@@ -79,9 +79,9 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
     @Override
     public AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MainActivity activity, MelAuthService melAuthService, IMelService runningInstance) {
         if (runningInstance == null) {
-            return new RemoteDriveServiceChooserGuiController(melAuthService, activity, embedded);
+            return new RemoteFileSyncServiceChooserGuiController(melAuthService, activity, embedded);
         } else {
-            return new AndroidDriveEditGuiController(melAuthService, activity, runningInstance, embedded);
+            return new AndroidFileSyncEditGuiController(melAuthService, activity, runningInstance, embedded);
         }
     }
 
@@ -98,8 +98,8 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
     @Override
     public NotificationCompat.Builder createNotificationBuilder(Context context, IMelService melService, MelNotification melNotification) {
         String intention = melNotification.getIntention();
-        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)
-                || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
+        if (intention.equals(FileSyncStrings.Notifications.INTENTION_PROGRESS)
+                || intention.equals(FileSyncStrings.Notifications.INTENTION_BOOT)) {
             return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SILENT);
         }
         return new NotificationCompat.Builder(context, Notifier.CHANNEL_ID_SOUND);
@@ -108,11 +108,11 @@ public class AndroidDriveBootloader extends DriveBootloader implements AndroidBo
     @Override
     public Class createNotificationActivityClass(IMelService melService, MelNotification melNotification) {
         String intention = melNotification.getIntention();
-        if (intention.equals(DriveStrings.Notifications.INTENTION_PROGRESS)
-                || intention.equals(DriveStrings.Notifications.INTENTION_BOOT)) {
+        if (intention.equals(FileSyncStrings.Notifications.INTENTION_PROGRESS)
+                || intention.equals(FileSyncStrings.Notifications.INTENTION_BOOT)) {
             return MainActivity.class;
-        } else if (intention.equals(DriveStrings.Notifications.INTENTION_CONFLICT_DETECTED))
-            return DriveConflictsPopupActivity.class;
+        } else if (intention.equals(FileSyncStrings.Notifications.INTENTION_CONFLICT_DETECTED))
+            return FileSyncConflictsPopupActivity.class;
         return null;
     }
 

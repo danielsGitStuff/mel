@@ -8,8 +8,8 @@ import de.mel.auth.socket.process.transfer.FileTransferDetail
 import de.mel.auth.socket.process.transfer.FileTransferDetailSet
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess
 import de.mel.auth.tools.lock.P
-import de.mel.drive.data.DriveStrings
-import de.mel.drive.service.MelDriveService
+import de.mel.drive.data.FileSyncStrings
+import de.mel.drive.service.MelFileSyncService
 import de.mel.drive.service.sync.SyncHandler
 import de.mel.drive.sql.DbTransferDetails
 import de.mel.drive.sql.TransferState
@@ -24,7 +24,7 @@ import kotlin.random.Random
  */
 class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIsolatedFileProcess) : MelRunnable {
     private var currentDBSet: MutableMap<FileTransferDetail, DbTransferDetails>? = null
-    val driveService: MelDriveService<out SyncHandler> = fileProcess.service as MelDriveService<out SyncHandler>
+    val fileSyncService: MelFileSyncService<out SyncHandler> = fileProcess.service as MelFileSyncService<out SyncHandler>
     private val transferDao = tManager.transferDao
     private val fsDao = tManager.fsDao
     private val partnerCertId = fileProcess.partnerCertificateId
@@ -46,8 +46,8 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
             val text = "${leftovers.bytesTransferred.v() / 1024 / 1024}/${leftovers.bytesTotal.v() / 1024 / 1024} mb"
 
             if (notification == null) {
-                notification = MelNotification(driveService.uuid, DriveStrings.Notifications.INTENTION_PROGRESS, title, text)
-                driveService.melAuthService.onNotificationFromService(driveService, notification)
+                notification = MelNotification(fileSyncService.uuid, FileSyncStrings.Notifications.INTENTION_PROGRESS, title, text)
+                fileSyncService.melAuthService.onNotificationFromService(fileSyncService, notification)
             }
 
             val maxInt: Int = (leftovers.bytesTotal.v() / 1024 / 1024).toInt()
@@ -87,7 +87,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
                     val payload = FileTransferDetailsPayload()
                     currentDBSet = mutableMapOf()
                     val currentDetailSet = FileTransferDetailSet()
-                    currentDetailSet.serviceUuid = driveService.uuid
+                    currentDetailSet.serviceUuid = fileSyncService.uuid
                     payload.fileTransferDetailSet = currentDetailSet;
                     // prepare for retrieving the files and fill the payload so the partner can send us what we want
                     val dbTransfers: MutableList<DbTransferDetails> = transferDao.getNotStartedTransfers(partnerCertId, partnerServiceUuid, 66)
@@ -113,7 +113,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
 
 
                             // find out where to store
-                            val target = AFile.instance(driveService.getDriveSettings().getTransferDirectory(), dbDetail.hash.v())
+                            val target = AFile.instance(fileSyncService.getFileSyncSettings().getTransferDirectory(), dbDetail.hash.v())
                             val transferDetail = FileTransferDetail(target, Random.nextInt(), 0L, dbDetail.size.v())
                             transferDetail.hash = dbDetail.hash.v()
 
@@ -127,7 +127,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
                                 // tell the sync handler we got a file
                                 val transaction = P.confine(fsDao)
                                 try {
-                                    driveService.syncHandler.onFileTransferred(target, dbDetail.hash.v(), transaction)
+                                    fileSyncService.syncHandler.onFileTransferred(target, dbDetail.hash.v(), transaction)
                                 } finally {
                                     transaction.end()
                                 }
@@ -163,9 +163,9 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
                             currentDBSet!!.put(transferDetail, dbDetail)
                             fileProcess.addFilesReceiving(transferDetail)
                         }
-                        val connected = driveService.melAuthService.connect(partnerCertId)
+                        val connected = fileSyncService.melAuthService.connect(partnerCertId)
                         connected.done {
-                            payload.intent = DriveStrings.INTENT_PLEASE_TRANSFER
+                            payload.intent = FileSyncStrings.INTENT_PLEASE_TRANSFER
                             it.message(partnerServiceUuid, payload)
                             waitLock.lockWrite()
                         }.fail {
