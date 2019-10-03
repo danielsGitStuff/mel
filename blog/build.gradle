@@ -8,6 +8,11 @@ version 'current'
 sourceSets {
     main.java.srcDirs += 'src/main/kotlin/'
     test.java.srcDirs += 'src/test/kotlin/'
+    main {
+        resources {
+            srcDir "${project(':auth').projectDir}/src/main/resources"
+        }
+    }
 }
 dependencies {
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
@@ -63,8 +68,11 @@ task buildBlogJar(type: Jar) {
     dependsOn jar
 
 
-    List paths = configurations.compile.collect { entry ->
-        println(entry.getAbsolutePath())
+    List paths = configurations.compileClasspath.filter { e ->
+        if (!e.exists())
+            System.err << "could not find classpath entry ${e.absolutePath}"
+        e.exists()
+    }.collect { entry ->
         if (entry.isDirectory())
             entry
         else
