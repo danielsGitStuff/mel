@@ -1,35 +1,44 @@
-include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts',':blog', ':filedump', ':filedumpfx'
-//include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':contacts', ':filedump', ':konsole', ':lok'
-
+/**
+ * BLOCK I
+ * Block I build everything. Use this with Intellij Idea and comment the other one out.
+ */
+include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts', ':blog', ':filedump', ':filedumpfx'
 project(':app').projectDir = new File('app')
-
-
 project(':json').projectDir = new File('json')
 project(':serialize').projectDir = new File('serialize')
 project(':sql').projectDir = new File('sql')
 project(':auth').projectDir = new File('auth')
 project(':filesync').projectDir = new File('filesync')
 project(':contacts').projectDir = new File('contacts')
-//project(':icons').projectDir = new File('icons')
+project(':icons').projectDir = new File('icons')
 project(':lok').projectDir = new File('lok')
-
 project(':filedump').projectDir = new File('filedump')
 project(':filedumpfx').projectDir = new File('filedumpfx')
-
-
 project(':miniserver').projectDir = new File('miniserver')
 project(':authfx').projectDir = new File('authfx')
 project(':filesyncfx').projectDir = new File('filesyncfx')
 project(':contactsfx').projectDir = new File('contactsfx')
 project(':fxbundle').projectDir = new File('fxbundle')
 project(':blog').projectDir = new File('blog')
-
-
 project(':konsole').projectDir = new File('konsole')
 project(':lok').projectDir = new File('lok')
 
-//include 'konsole'
-//include 'lok'
-//include 'calendar'
-//include 'deploy'
 
+/**
+ * BLOCK II
+ * Block II works for Android Studio. JavaFX projects enabled render it unusable.
+ */
+//include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':contacts',    ':icons', ':konsole', ':lok', ':filedump'
+//project(':app').projectDir = new File('app')
+//project(':json').projectDir = new File('json')
+//project(':serialize').projectDir = new File('serialize')
+//project(':sql').projectDir = new File('sql')
+//project(':auth').projectDir = new File('auth')
+//project(':filesync').projectDir = new File('filesync')
+//project(':contacts').projectDir = new File('contacts')
+//project(':icons').projectDir = new File('icons')
+//project(':lok').projectDir = new File('lok')
+//project(':filedump').projectDir = new File('filedump')
+//project(':fxbundle').projectDir = new File('fxbundle')
+//project(':konsole').projectDir = new File('konsole')
+//project(':lok').projectDir = new File('lok')
