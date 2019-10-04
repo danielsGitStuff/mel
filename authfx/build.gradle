@@ -8,7 +8,10 @@ javafx {
     version = project.javaFxVersion
     modules = project.javaFxModules
 }
-
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 dependencies {
     api project(path: ':auth')
     testCompile project(path: ':auth')

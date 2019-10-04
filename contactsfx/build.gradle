@@ -17,6 +17,10 @@ sourceSets {
         }
     }
 }
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 dependencies {
     api project(path: ':contacts')
     api project(path: ':authfx')
@@ -25,10 +29,3 @@ dependencies {
 //    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
-//sourceCompatibility = "1.8"
-//targetCompatibility = "1.8"
-//
-//compileTestJava {
-//    sourceCompatibility = '1.8'
-//    targetCompatibility = '1.8'
-//}

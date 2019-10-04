@@ -43,7 +43,10 @@ dependencies {
     testImplementation project(configuration: 'driveTestOutput', path: ':filesync')
     testImplementation 'junit:junit:4.12'
 }
-
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 
 // the next parts build a single jar
 def props = new Properties()

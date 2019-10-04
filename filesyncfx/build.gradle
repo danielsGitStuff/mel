@@ -16,7 +16,10 @@ sourceSets {
         }
     }
 }
-
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 dependencies {
     api project(path: ':filesync')
     api project(path: ':authfx')
