@@ -12,6 +12,8 @@ sourceSets {
 }
 dependencies {
     api project(path: ':filesync')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
     testImplementation project(configuration: 'driveTestOutput', path: ':filesync')
     testImplementation 'junit:junit:4.12'
 }

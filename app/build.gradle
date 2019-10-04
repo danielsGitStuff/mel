@@ -156,6 +156,7 @@ preBuild {
 dependencies {
     // mel stuff
 //    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(':auth')
     implementation project(':contacts')
     implementation project(':filedump')
     implementation project(':auth')
