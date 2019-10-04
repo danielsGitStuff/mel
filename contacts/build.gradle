@@ -5,14 +5,14 @@ plugins{
 
 sourceSets {
     main {
-        resources {
-            srcDir "${project(':auth').projectDir}/src/main/resources"
-        }
+//        resources {
+//            srcDir "${project(':auth').projectDir}/src/main/resources"
+//        }
     }
 }
 dependencies {
-    api project(path: ':auth')
-    api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
+    compileOnly project(path: ':auth')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     testImplementation project(path: ':auth')
     testImplementation 'junit:junit:4.12'
 }

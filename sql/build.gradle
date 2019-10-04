@@ -8,3 +8,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
 }
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}

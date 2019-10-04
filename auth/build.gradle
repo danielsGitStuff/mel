@@ -7,7 +7,7 @@ plugins {
 dependencies {
     api project(':lok')
     api project(':konsole')
-    api project(path: ':sql')
+    api project(':sql')
     api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     api 'org.jdeferred:jdeferred-core:1.2.4'
 

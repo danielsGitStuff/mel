@@ -16,7 +16,16 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.0'
+        classpath 'com.android.tools.build:gradle:3.5.1'
+    }
+}
+sourceSets {
+    main {
+        resources {
+            srcDir "${project(':auth').projectDir}/src/main/resources"
+            srcDir "${project(':filesync').projectDir}/src/main/resources"
+            srcDir "${project(':contacts').projectDir}/src/main/resources"
+        }
     }
 }
 // define mel specific stuff here
@@ -147,8 +156,9 @@ preBuild {
 dependencies {
     // mel stuff
 //    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    api project(':contacts')
-    api project(':filedump')
+    implementation project(':contacts')
+    implementation project(':filedump')
+    implementation project(':auth')
     // external stuff
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     implementation 'androidx.multidex:multidex:2.0.1'

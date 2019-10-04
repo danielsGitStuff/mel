@@ -9,7 +9,7 @@ configurations{
 sourceSets {
     main {
         resources {
-            srcDir "${project(':auth').projectDir}/src/main/resources"
+//            srcDir "${project(':auth').projectDir}/src/main/resources"
         }
     }
     test{
@@ -20,9 +20,9 @@ sourceSets {
 }
 dependencies {
     driveTestOutput sourceSets.test.output
-    api project(path: ':auth')
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0-RC'
-    api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
+    compileOnly project(path: ':auth')
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0-RC'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     testImplementation project(path: ':auth')
     testImplementation 'junit:junit:4.12'
     testImplementation group:  'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
