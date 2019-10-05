@@ -28,6 +28,8 @@
 /auth/src/main/resources/de/de/auth/update.server.cert
 
 /*/mel.data
+/*/mel.data2
+
 
 app/src/main/assets/filesync.sql
 app/src/main/assets/sql.sql
