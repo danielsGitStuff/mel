@@ -11,7 +11,7 @@ sourceSets {
     }
 }
 dependencies {
-    compileOnly project(path: ':auth')
+    api project(path: ':auth')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     testImplementation project(path: ':auth')
     testImplementation 'junit:junit:4.12'
