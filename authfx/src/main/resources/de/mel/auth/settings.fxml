@@ -24,7 +24,7 @@
     <Label styleClass="lbl-center-section" text="%settings.log"></Label>
     <HBox prefHeight="100.0" prefWidth="200.0">
         <children>
-            <CheckBox fx:id="cbLogToDB" text="%settings.cbLogToDB"/>
+            <CheckBox fx:id="cbLogToDB" text="%settings.cbLogToDB" disable="true"/>
             <TextField fx:id="txtLogToDB" HBox.hgrow="ALWAYS"/>
         </children>
     </HBox>

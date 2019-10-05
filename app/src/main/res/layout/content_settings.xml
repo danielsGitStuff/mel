@@ -201,12 +201,13 @@
                 android:text="@string/settingsRedirectSysOut" />
 
             <CheckBox
-                android:id="@+id/cbLokToDb"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBaseline="@id/btnExportLok"
-                android:layout_below="@id/cbRedirectSysOut"
-                android:text="@string/settingsLokToDb" />
+                    android:enabled="false"
+                    android:id="@+id/cbLokToDb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@id/btnExportLok"
+                    android:layout_below="@id/cbRedirectSysOut"
+                    android:text="@string/settingsLokToDb"/>
 
             <Button
                 android:id="@+id/btnExportLok"
