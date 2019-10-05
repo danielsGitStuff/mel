@@ -18,171 +18,201 @@
 <input name="pw" value="<§=pw/>" hidden>
 <div>
     <div class="back1 center" style="margin-bottom: 2em; alignment: center">
-        <div class="content ">
+        <div class="contentHead">
             <img src="svg/mel.svg" style="width: 16em; margin: 3em 1em;"><br>
-
-
-            <span class="intro">Wolkenfrei und synchron mit Me<span class="mel">l</span>!</span><br>
-            <span class="smallIntro" style="color: red">Betaversion: Keine Garantie für korrekte Funktion. Java 12 benötigt.</span><br>
-            <span class="smallIntro">...synchronisiert Dateien und Kontakte deines Telefons zu einem anderen. Oder zu einem Computer. Leise und im Hintergrund.</span><br>
+            <span class="intro">Wolkenfrei und synchron mit M<span class="mel">e</span>l!</span><br>
+            <span class="smallIntro">...hält deine Daten auf mehreren PCs und Androiden aktuell.</span><br>
             <a href="#linkDownload">
                 <button id="btnToDownload" class="bigbutton">Download</button>
             </a>
+
             <a href="/blog/">
                 <button class="bigbutton">Zum Blog</button>
             </a>
         </div>
     </div>
     <div class="back1 center" style="alignment: center">
-        <div class="content" style="text-align: start">
-            <h2>Was ist Mel?</h2>
-            <span class="text">
-                Mel hält verschiedene Dinge auf verschiedenen Geräten, übers Netzwerk  synchron.
-            </span><br><br><br>
-            <span class="text">Beispielszenario: Die Fotos vom Handy wollen nicht jedes mal per Hand auf den PC kopiert werden.
-                So sind sie immer parat, wenn sie am PC gebraucht werden. Sollte das Handy verloren gehen, sind sie gesichert.
-            </span><br><br>
-            <span class="text">Du brauchst kein Informatikstudium um Mel zu konfigurieren:
-                Falls du keinen Webserver mit SSL-Zertifikat konfigurieren möchstest, bist du hier richtig.
-            </span><br><br>
-            <span class="text">Zur Zeit kann Mel Dateiordner und Kontakte synchronisieren.</span><br>
+        <div class="content text" style="text-align: start">
+            <h2>Was macht Mel?</h2>
+            <span class="">Eine Möglichkeit Dateien und Kontakte über meherere Androidgeräte und PCs synchron zu halten.</span><br><br>
+            Falls die die Fotos von deinem Telefon regelmäßig sichern möchtest, hast du mehrere Optionen:
+            <ul>
+                <li>Kabel rein, Dateien kopieren.</li>
+                <li>Kabel rein, Script starten.</li>
+                <li>W-Lan, rumtatschen und kopieren.</li>
+                <li>W-Lan, Samba, Script starten.</li>
+                <li>W-Lan, Owncloudish software</li>
+                <li>W-Lan, Mel</li>
+            </ul>
+            Kabel sind vermutlich keine Option, Scripte sind schwer zu verstehen und zu benutzen, wenn man sie nicht
+            versteht.
+            <br><br>
+            <a href="https://owncloud.org">Owncloud</a> kann all dies, ist nicht-trivial zu installieren und danach zu
+            konfigurieren. Es kommt mit Apache Webserver, einem sehr komplexen Stück Software und PHP.In der
+            Vergangenheit sind PHP-Zeugs und nicht aktualisierte Versionen davon sind Wegbereiter vieler lustiger Hacks
+            gewesen.
+            <br><br>
+            Mel kommt als einfache ausführbare Datei. Braucht keine Accounts. Wer schonmal Bluetoothgeräte gekoppelt
+            hat, kann auch Mels koppeln.
+            <br><br>
+            Kurz: der Konfigurationsaufwand ist runter, die Schritte schon bekannt und Sicherheit gibt es obendrauf.
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content text" style="text-align: start">
+            <h2>Was macht Mel genau?</h2>
+            Mel kann sowohl als Server als auch als Client auftreten. Als Server, braucht es nach der Konfiguration
+            keine weitere Interaktion mit dem Gerät.
+            Dienste erstellen, Geräte koppeln, Berechtigungen setzen, Strom dranmachen, weglegen, aber merken wo es
+            liegt. <br>
+            Die Clients sind zum mitnehmen. Ist der Strom dran und haben sie W-Lan, verbinden sie sich mit dem Server
+            und beginnen ihr Werk.<br><br>
+            Hier eine Liste aller "Dienstleistungen", die Mel zu bieten hat.
+            <ul>
+                <li>File Sync
+                    <ul>
+                        <li>Hält Ordner über die Geräte synchron.</li>
+                        <li>Konflikte können auf den Clients gelöst werden.</li>
+                    </ul>
+                </li>
+                <li>File Dump
+                    <ul>
+                        <li>Kopiert die Dateien aller Geräte einmalig zum Server.</li>
+                        <li>Macht aus dem Bilderordner von drei Telefonen einen.</li>
+                        <li>Konfliktfrei.</li>
+                    </ul>
+                </li>
+                <li>Contacts
+                    <ul>
+                        <li>Hält die Telefonbücher über die Geräte synchron.</li>
+                        <li>Kann auf Android ins Telefonbuch synchronisieren. Auf dem PC nur in die Datenbank. Immerhin.
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content text" style="text-align: start">
+            <h2 style="text-align: start">Wie steht es um die Sicherheit?</h2>
+            <ul style="align-content: center">
+                <li>Nur verschlüsselte Übertragungen
+                    <ul>
+                        <li>Die Grundlage: <a
+                                href="https://de.wikipedia.org/wiki/Transport_Layer_Security">TLS/SSL</a></li>
+                        <li>Unverschlüsselte Kommunikation ist nicht implementiert.</li>
+                    </ul>
+                </li>
+                <li>Vertraue niemandem
+                    <ul>
+                        <li>Mel kommuniziert mit nichts und niemandem, dem du es nicht explizit erlaubt hast</li>
+                        <li>Die Erlaubnis gibst du wie bei Bluetooth.</li>
+                    </ul>
+                </li>
+                <li>Privatssphäre
+                    <ul>
+                        <li>Kommuniziert nur im LAN</li>
+                        <li>Keine Werbung, Aktivitätsanalyse etc.</li>
+                        <li>Keine Abhängigkeiten zu <a href="https://de.wikipedia.org/wiki/Google_Play_Dienste">Google
+                            Play Diensten</a></li>
+                    </ul>
+                </li>
+                <li>Simplizität
+                    <ul>
+                        <li>Es gibt zB. keine Möglichkeit die Schlüssellängen herunterzusetzen.</li>
+                        <li>Es kann keine zu einfaches Passwort gesetzt werden. Es gibt keine.</li>
+                        <li>Es läuft kein Webserver und kein PHP-Kram mit.</li>
+                    </ul>
+                </li>
+            </ul>
+            Um die Schlüsselerzeugung kümmert sich <a href="https://www.bouncycastle.org/">Bouncy Castle</a>. Die
+            Kryptografie damit erledigt entweder die <a href="https://de.wikipedia.org/wiki/Java_Virtual_Machine">Java
+            Virtual Machine</a>,
+            oder <a href="https://www.android.com/">Android</a>, das höchstwahrscheinlich auf deinem Telefon läuft.
+            In beiden Fällen läuft Mel in einer Virtuellen Maschine, die nochmal extraschwierig macht Sicherheitslücken
+            in Software auszunutzen.<br>
+            Bleiben also nur noch Logikfehler ;)
+
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content text" style="text-align: start">
+            <h2 style="text-align: start">Wie steht es um Privatsspähre?</h2>
+            Keine Cloud (Modewort für "anderer Leute Computer"), keine Telemetrie, Analysen oder sonstiges Zeug. Mel
+            telefoniert
+            höchstens zum Updateserver, falls du auf den Aktualisierenbutton drückst.
+            Innerhalb des Netzwerks werden ebenfalls keine identifizierenden Informationen an Unbekannte versendet.
             <div style="text-align: center; margin-top: 4em">
                 <img src="/svg/schema.svg" style="width: 32em">
             </div>
         </div>
     </div>
 
-    <div class="back1 center" style="alignment: center">
-        <div class="content" style="text-align: start">
-            <h2 style="text-align: start">Warum Mel?</h2>
-            <span class="text">
-                <ul style="align-content: center">
-                    <li>Nur verschlüsselte Übertragungen
-                        <ul>
-                            <li>Die Grundlage: <a
-                                    href="https://de.wikipedia.org/wiki/Transport_Layer_Security">TLS/SSL</a></li>
-                            <li>Unverschlüsselte Kommunikation ist nicht implementiert.</li>
-                        </ul>
-                    </li>
-                    <li>Vertraue niemandem
-                        <ul>
-                            <li>Mel kommuniziert mit nichts und niemandem, dem du es nicht explizit erlaubt hast</li>
-                            <li>Die Erlaubnis gibst du wie bei Bluetooth.</li>
-                        </ul>
-                    </li>
-                    <li>Privatssphäre
-                        <ul>
-                            <li>Kommuniziert nur im LAN</li>
-                            <li>Keine Werbung, Aktivitätsanalyse etc.</li>
-                            <li>Keine Abhängigkeiten zu <a href="https://de.wikipedia.org/wiki/Google_Play_Dienste">Google Play Diensten</a></li>
-                        </ul>
-                    </li>
-                    <li>Schont den Akku
-                        <ul>
-                            <li>Mel synchronisiert nur, wenn dein Gerät gerade am Strom hängt</li>
-                            <li>Falls dir das egal ist, kannst du es entsprechend einstellen</li>
-                        </ul>
-                    </li>
-                    <li>Updates
-                        <ul>
-                            <li>Mel kommt mit integrierter Updatefunktion</li>
-                            <li>Funktioniert nur auf Knopfdruck</li>
-                        </ul>
-                    </li>
-                    <li>1-Klick-Lösung
-                        <ul>
-                            <li>Kein herumkonfigurieren irgendwelcher Umgebungen.</li>
-                        </ul>
-                    </li>
-                </ul>
-
-            </span><br><br><br>
-        </div>
-    </div>
 
     <div class="back1 center" style="alignment: center">
-        <div class="content" style="text-align: start">
+        <div class="content text" style="text-align: start">
             <h2>Vorraussetzungen</h2>
-            <span class="text">
-                <ul>
-                    <li>Einen stationäres Gerät (als Server)
-                        <ul>
+            <ul>
+                <li>Einen stationäres Gerät (als Server)
+                    <ul>
                         <li>entweder ein Androidtelefon ab Android 4.4.4 (KitKat), dauerhaft am Netzteil</li>
-                            <li>oder einen PC mit Java 11*<br>
-                        </ul>
-                    </li>
-                    <li>
-                        mindestens ein Anderes
-                        <ul>
+                        <li>oder einen PC mit Java 11*<br>
+                    </ul>
+                </li>
+                <li>
+                    mindestens ein Anderes
+                    <ul>
                         <li>entweder ein Androidtelefon ab Android 4.4.4 (KitKat)</li>
-                            <li>oder einen PC mit Java 11*<br>
-                        </ul>
-                    </li>
-                     <li>
-                        ein gemelsames Netzwerk
-                        <ul>
-                        <li>Die Geärte müssen im selben Netzwerk miteinander kommunizieren können</li>
-                            <li>Synchronisation unterwegs kommt stäter<br>
-                        </ul>
-                    </li>
-                </ul>
-           <span style="font-size: .7em">*Windows 7+ oder Linux. MacOS nicht unterstützt.</span></li>
-            </span>
+                        <li>oder einen PC mit Java 11*<br>
+                    </ul>
+                </li>
+                <li>
+                    ein gemeinsames Netzwerk
+                    <ul>
+                        <li>Die Geräte müssen im selben Netzwerk miteinander kommunizieren können</li>
+                        <li>Synchronisation unterwegs kommt später<br>
+                    </ul>
+                </li>
+            </ul>
+            <span style="font-size: .7em">*Windows 7+ oder Linux. MacOS nicht unterstützt.</span></li>
         </div>
     </div>
 
     <div class="back1 center" style="alignment: center">
-        <div class="content" style="text-align: start">
+        <div class="content text" style="text-align: start">
             <h2>Wie fange ich an?</h2>
-            <span class="text">
-                Zuerst brauchst du ein Gerät, das in deinem Netzwerk ist und ständig läuft.
-                Beispielsweise ein ausgedienter Laptop oder ein altes Androidtelefon am Netzteil.
-                Dieses Gerät solltest du an Ort und Stelle laufen lassen. Nach der Einrichtung
-                brauchst nicht mehr weiter damit hantieren.</span><br><br>
-            <span class="text"><a href="#linkDownload">Hier</a> kannst du dir das Programm runterladen.
-                Die "Apk"-Variante ist für Androidtelefone (zur Zeit ab Android 4.4.4 alias KitKat).
-                Die "Jar"-Variante benötigst du für einen PC/Laptop.</span><br><br>
+            Zuerst brauchst du ein Gerät, das in deinem Netzwerk ist und ständig läuft.
+            Beispielsweise ein ausgedienter Laptop oder ein altes Androidtelefon am Netzteil.
+            Dieses Gerät solltest du an Ort und Stelle laufen lassen. Nach der Einrichtung
+            brauchst nicht mehr weiter damit hantieren.<br><br>
+            <a href="#linkDownload">Hier</a> kannst du dir das Programm runterladen.
+            Die "Apk"-Variante ist für Androidtelefone (zur Zeit ab Android 4.4.4 alias KitKat).
+            Die "Jar"-Variante benötigst du für einen PC/Laptop.<br><br>
             Hinweis: um es auf dem PC zu starten, benötigst du Java8. Gebe "java -jar fxbundle-1.0.jar" ins Termninal
             ein.<br><br>
-            <span class="text">Wie du es installieren und konfigurieren kannst siehst du
-               <a href="logandroid.html">hier, für Android</a> oder <a
-                        href="logpc.html">hier, für den PC.</a>
-            </span><br>
-        </div>
-    </div>
-
-    <div class="back1 center" style="alignment: center">
-        <div class="content" style="text-align: start">
-            <h2 style="text-align: start">Was ist mit der Sicherheit?</h2>
-            <span class="text">
-            Mel baut grundsätzlich nur verschlüsselte Verbindungen auf. Es nutzt SSL aus der Java-Runtime. Für die Schlüsselgenerierung kommt <a
-                    href="https://www.bouncycastle.org/">Bouncy Castle</a>.
-            Denn eine alte Programmiererweisheit lautet: mach keine eigene Krypto!</span>
-        </div>
-    </div>
-
-    <div class="back1 center" style="alignment: center">
-        <div class="content" style="text-align: start">
-            <h2 style="text-align: start">Privatssphäre?</h2>
-            <span class="text">
-                Keine Cloud (Modewort für "anderer Leute Computer"), keine Analysen und sinnloses Zeug. Mel telefoniert höchstens zum Updateserver, falls du auf den Aktualisierenbutton drückst.
-                Innerhalb des Netzwerks werden ebenfalls keine identifizierenden Informationen an Unbekannte versendet.
-            </span>
-        </div>
-    </div>
-
-    <div class="back1 center" style="alignment: center">
-        <div class="content">
-            <h2>Ist es Open-Source?</h2>
-            <span class="text"> Zu finden auf <a
-                    href="https://github.com/danielsGitStuff/mel">GitHub</a>.</span>
+            Wie du es installieren und konfigurieren kannst siehst du
+            <a href="logandroid.html">hier, für Android</a> oder <a
+                href="logpc.html">hier, für den PC.</a>
+            <br>
         </div>
     </div>
 
     <div class="back1 center">
-        <div class="content" style="text-align: start">
-            <a style="color: unset" id="linkDownload"><h1>Download</h1></a>
-            <span class="text">Folgende Dateien sind vorhanden (Dateiname + SHA-256):</span><br><br>
+        <div class="content text">
+            <h2>Ist es Open-Source?</h2>
+            Zu finden auf <a href="https://github.com/danielsGitStuff/mel">GitHub</a>.
+        </div>
+    </div>
+
+    <div class="back1 center">
+        <div class="content text" style="text-align: start">
+            <a style="color: unset" id="linkDownload"><h2>Download</h2></a>
+            <span style="color: red">Betaversion: Keine Garantie für korrekte Funktion.</span> (Korrektheit kann
+            übrigens niemand garantieren;)<br><br>
+            <span>Folgende Dateien sind vorhanden (Dateiname + SHA-256):</span><br><br>
             <table class="filesTable">
                 <thead>
                 <tr>
@@ -199,9 +229,11 @@
             </table>
             <br>
             <br>
-            Die .apk-Datei ist f&uuml;r Android. Lade sie herunter und installiere sie.<br>
-            Die .jar-Datei f&uuml;r PCs und Laptops mit Java 11.<br>
-            Die Jar-Datei wird wie alle jars im Terminal gestartet: java -jar fxbundle-1.0.jar
+            <small>
+                Die .apk-Datei ist f&uuml;r Android. Lade sie herunter und installiere sie.<br>
+                Die .jar-Datei f&uuml;r PCs und Laptops mit Java 11.<br>
+                Die Jar-Datei wird wie alle jars im Terminal gestartet: java -jar fxbundle-1.0-fx.jar
+            </small>
         </div>
     </div>
 </div>
