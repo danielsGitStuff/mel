@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -18,7 +19,7 @@ public class ServiceSettingsController extends AuthSettingsFX {
     private Label lblName, lblState;
 
     @FXML
-    private GridPane content;
+    private VBox content;
 
     private ServiceSettingsFX contentController;
 
@@ -56,7 +57,8 @@ public class ServiceSettingsController extends AuthSettingsFX {
     }
 
     public void setContent(Pane pane, ServiceSettingsFX contentController) {
-        content.add(pane, 0, 0);
+        content.getChildren().clear();
+        content.getChildren().add(pane);
         this.contentController = contentController;
     }
 

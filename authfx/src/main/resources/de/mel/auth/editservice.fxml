@@ -13,10 +13,10 @@
         <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblState" text="state goes here"/>
         <Label styleClass="lbl-center-section" text="%service.settings"  />
 
-        <GridPane maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" fx:id="content">
+        <VBox maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" fx:id="content">
 
 
 
-        </GridPane>
+        </VBox>
     </children>
 </VBox>

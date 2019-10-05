@@ -13,7 +13,7 @@ class DumpFxBootloader : DumpBootloader(), BootLoaderFX<MelFileSyncService<*>> {
 
     override fun embedCreateFXML(): Boolean = true
 
-    override fun getEditFXML(melService: MelFileSyncService<*>?): String = if (melService is MelFileSyncServerService) "de/mel/filesync/editserver.fxml" else "de/mel/filesync/editclient.fxml"
+    override fun getEditFXML(melService: MelFileSyncService<*>?): String = if (melService is MelFileSyncServerService) "de/mel/filesyncfx/editserver.fxml" else "de/mel/filesyncfx/editclient.fxml"
 
 
     override fun getPopupFXML(melService: IMelService?, melNotification: MelNotification): String? {

@@ -1,5 +1,6 @@
-package de.mel;
+package de.mel.fxbundle;
 
+import de.mel.Lok;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.konsole.Konsole;
 

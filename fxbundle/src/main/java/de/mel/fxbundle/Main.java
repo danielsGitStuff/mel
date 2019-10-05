@@ -1,6 +1,5 @@
 package de.mel.fxbundle;
 
-import de.mel.AuthKonsoleReader;
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
@@ -75,9 +74,7 @@ public class Main {
             melBoot.boot().done(melAuthService -> {
                 Lok.debug("Main.main.booted (headless)");
                 lock.unlockWrite();
-            }).fail(exc -> {
-                exc.printStackTrace();
-            });
+            }).fail(Throwable::printStackTrace);
         } else {
             MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class, ContactsFXBootloader.class, DumpFxBootloader.class);
             MelAuthFxLoader fxLoader = new MelAuthFxLoader();
@@ -88,9 +85,7 @@ public class Main {
                 melAuthService.addRegisterHandler(registerHandlerFX);
                 Lok.debug("Main.main.booted");
                 lock.unlockWrite();
-            }).fail(exc -> {
-                exc.printStackTrace();
-            });
+            }).fail(Throwable::printStackTrace);
         }
         lock.lockWrite();
         lock.lockWrite();
