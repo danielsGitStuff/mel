@@ -7,8 +7,8 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="de.mel.auth.gui.notification.NotificationCenter"
-      prefHeight="400.0" prefWidth="600.0">
-    <ListView styleClass="lst" fx:id="list" VBox.vgrow="ALWAYS"/>
+      prefHeight="400.0" prefWidth="600.0" styleClass="contentPanel">
+    <ListView fx:id="list" VBox.vgrow="ALWAYS"/>
     <HBox>
         <Button fx:id="btnClose" text="%close" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
     </HBox>

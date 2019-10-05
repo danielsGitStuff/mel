@@ -116,7 +116,7 @@
             </Label>
         </top>
         <center>
-            <AnchorPane fx:id="paneContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+            <AnchorPane styleClass="contentPanel" fx:id="paneContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                         BorderPane.alignment="CENTER">
 
             </AnchorPane>
