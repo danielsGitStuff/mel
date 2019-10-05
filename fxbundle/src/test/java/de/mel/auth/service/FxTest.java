@@ -88,6 +88,7 @@ public class FxTest {
     public void complexConflict() throws Exception {
         Eva.enable();
         DriveTest driveTest = new DriveTest();
+        driveTest.before();
         MelAuthSettings json1 = new DriveTest().createJson1();
         MelAuthSettings json2 = new DriveTest().createJson2();
 
