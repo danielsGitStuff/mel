@@ -43,9 +43,9 @@ task copyLicenseHtml(type: Copy) {
 def props = new Properties()
 ext {
     buildVariant = "standalone"
-    jarName = "${project.name}-${version}-${buildVariant}.jar"
+    jarName = "${project.name}-${buildVariant}.jar"
 }
-jar { enabled = false }
+jar { enabled = true }
 task createProperties() {
     doLast {
         println "createProperties($buildDir)"

@@ -84,12 +84,14 @@ constructor(val config: ServerConfig) {
         secretPropFile = File(secretDir, "secret.properties")
         if (!secretPropFile.exists()) {
             // create a default secret properties file and exit
-            secretProperties["password"] = "type something secure here"
-            secretProperties["buildPassword"] = "type something secure here"
-            secretProperties["projectRootDir"] = "absolute path to project root directory goes here"
+            secretProperties["# this is for signing the apk file"] = ""
             secretProperties["storePassword"] = "type something secure here"
             secretProperties["keyPassword"] = "type something secure here"
             secretProperties["keyAlias"] = "build key name goes here"
+            secretProperties["# this is for the rest"] = ""
+            secretProperties["password"] = "type something secure here"
+            secretProperties["buildPassword"] = "type something secure here"
+            secretProperties["projectRootDir"] = "absolute path to project root directory goes here"
             secretProperties["storeFile"] = "path to the jks store used for signing your apk"
             secretProperties["restartCommand"] = "command that restarts the miniserver application. see readme for more information"
             val comments = "this is a generated example. please change the values to make your setup secure.\n" +
@@ -147,14 +149,14 @@ constructor(val config: ServerConfig) {
 
         //looking for jar, apk and their appropriate version.txt
         Lok.info("looking for files in ${filesDir.absolutePath}")
-        for (f in filesDir.listFiles { f -> f.isFile && (f.name.endsWith(".jar") || f.name.endsWith(".apk")) }!!) {
+        N.forEachIgnorantly(filesDir.listFiles { f -> f.isFile && (f.name.endsWith(".jar") || f.name.endsWith(".apk")) }) { f ->
             val hash: String = Hash.sha256(FileInputStream(f))
             val propertiesFile = File(filesDir, f.name + MelStrings.update.INFO_APPENDIX)
             val variant: String
             val timestamp: Long?
             val commit: String
             if (!propertiesFile.exists())
-                continue
+                return@forEachIgnorantly
             Lok.info("reading binary: " + f.absolutePath)
             Lok.info("reading  props: " + propertiesFile.absolutePath)
             val properties = Properties()

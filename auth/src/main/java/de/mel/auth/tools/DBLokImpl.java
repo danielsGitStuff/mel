@@ -21,7 +21,7 @@ public class DBLokImpl extends LokImpl {
      * @return
      */
     protected boolean store() {
-        return true;
+        return false;
     }
 
     public static ByteArrayInputStream getCreateStatementInputStream() {

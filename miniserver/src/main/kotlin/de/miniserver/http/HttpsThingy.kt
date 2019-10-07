@@ -16,6 +16,9 @@ import de.miniserver.data.FileRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 object ContentType {
@@ -44,11 +47,15 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 Replacer("files") {
                     val s = StringBuilder()
                     miniServer.fileRepository.hashFileMap.values.forEach { fileEntry ->
+                        val ldt = LocalDateTime.ofEpochSecond(fileEntry.timestamp / 1000, 0, ZoneOffset.UTC)
+                        val formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd|hh:mm:ss")
+                        val date = ldt.format(formatter)
                         s.append("<tr>")
                         s.append("<td><a href=\"files/${fileEntry.hash}\" download=\"${fileEntry.file.name}\">${fileEntry.file.name}</a></td>") //name
                         s.append("<td>${fileEntry.variant}</td>") //variant
                         s.append("<td>${String.format("%.2f", fileEntry.size.toFloat() / 1024 / 1024)} mb</td>") //size
-                        s.append("<td>${Date(fileEntry.timestamp)})</td>") //build date
+                        s.append("<td>$date</td>") //build date
+                        s.append("<td>${fileEntry.commit}</td>")
                         s.append("<td>${fileEntry.hash}</td>")//hash
                         s.append("</tr>")
                     }

@@ -4,7 +4,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 
-version '1.88'
+version '0'
 
 //sourceCompatibility =        1.8
 //targetCompatibility = "1.8"
@@ -27,7 +27,6 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
     implementation project(':konsole')
-    implementation project(':auth')
     implementation project(':blog')
     implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
 
@@ -47,7 +46,7 @@ task copyLicenseHtml(type: Copy) {
 def props = new Properties()
 ext {
     buildVariant = "standalone"
-    jarName = "${project.name}-${version}-${buildVariant}.jar"
+    jarName = "${project.name}-${buildVariant}.jar"
 }
 task createProperties(dependsOn: copyLicenseHtml) {
     doLast {
