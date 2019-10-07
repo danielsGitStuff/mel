@@ -14,14 +14,20 @@ public class Versioner {
             Properties properties = new Properties();
             InputStream in = getClass().getResourceAsStream("/version.properties");
             properties.load(in);
-            version = Long.valueOf(properties.getProperty("version"));
+            timestamp = Long.valueOf(properties.getProperty("version"));
             variant = properties.getProperty("variant");
+            commit = properties.getProperty("commit");
         }
     };
 
     public static abstract class BuildReader {
         protected String variant;
-        protected Long version;
+        protected Long timestamp;
+        protected String commit;
+
+        public String getCommit() {
+            return commit;
+        }
 
         public abstract void readProperties() throws IOException;
 
@@ -31,15 +37,15 @@ public class Versioner {
             return variant;
         }
 
-        public Long getVersion() throws IOException {
-            if (version == null)
+        public Long getTimestamp() throws IOException {
+            if (timestamp == null)
                 readProperties();
-            return version;
+            return timestamp;
         }
     }
 
     public static Long getBuildVersion() throws IOException {
-        return buildReader.getVersion();
+        return buildReader.getTimestamp();
     }
 
     public static String getBuildVariant() throws IOException {

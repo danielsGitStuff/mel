@@ -151,7 +151,8 @@ constructor(val config: ServerConfig) {
             val hash: String = Hash.sha256(FileInputStream(f))
             val propertiesFile = File(filesDir, f.name + MelStrings.update.INFO_APPENDIX)
             val variant: String
-            val version: Long?
+            val timestamp: Long?
+            val commit: String
             if (!propertiesFile.exists())
                 continue
             Lok.info("reading binary: " + f.absolutePath)
@@ -160,12 +161,13 @@ constructor(val config: ServerConfig) {
             properties.load(FileInputStream(propertiesFile))
 
             variant = properties.getProperty("variant")
-            version = properties.getProperty("version").toLong()
+            timestamp = properties.getProperty("timestamp").toLong()
+            commit = properties.getProperty("commit")
             val size = f.length()
 
-            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, version = version, size = size)
+            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, timestamp = timestamp, size = size, commit = commit)
             fileRepository += fileEntry
-            versionAnswer.addEntry(hash, variant, version, f.length())
+            versionAnswer.addEntry(hash, variant, timestamp, f.length())
         }
     }
 

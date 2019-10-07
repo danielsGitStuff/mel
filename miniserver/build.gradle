@@ -47,13 +47,13 @@ task copyLicenseHtml(type: Copy) {
 def props = new Properties()
 ext {
     buildVariant = "standalone"
-    buildVersion = new Date().getTime().toString()
     jarName = "${project.name}-${version}-${buildVariant}.jar"
 }
 task createProperties(dependsOn: copyLicenseHtml) {
     doLast {
         println "createProperties($buildDir)"
-        props['version'] = buildVersion
+        props['timestamp'] = new Date().getTime().toString()
+        props['commit'] = "${COMMIT}".toString()
         props['variant'] = buildVariant
         //store in jar
         File resources = new File(buildDir, "resources")

@@ -37,7 +37,6 @@ public class AndroidLok extends DBLokImpl {
                     Lok.debug("configure sqlite for log");
                     super.onConfigure(db);
                     db.disableWriteAheadLogging();
-                    db.setForeignKeyConstraintsEnabled(true);
                 }
 
                 @Override
@@ -117,5 +116,8 @@ public class AndroidLok extends DBLokImpl {
         }
     }
 
-
+    @Override
+    protected boolean store() {
+        return false;
+    }
 }

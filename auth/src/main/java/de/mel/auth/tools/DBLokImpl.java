@@ -21,8 +21,7 @@ public class DBLokImpl extends LokImpl {
      * @return
      */
     protected boolean store() {
-        return false;
-//        return limit > 0L;
+        return true;
     }
 
     public static ByteArrayInputStream getCreateStatementInputStream() {
@@ -44,7 +43,6 @@ public class DBLokImpl extends LokImpl {
         st.execute();
         SqliteExecutor sqliteExecutor = new SqliteExecutor(sqlQueries.getSQLConnection());
         if (!sqliteExecutor.checkTableExists("log")) {
-
             try (ByteArrayInputStream in = getCreateStatementInputStream()) {
                 sqliteExecutor.executeStream(in);
             }

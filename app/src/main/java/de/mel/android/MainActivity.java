@@ -68,7 +68,6 @@ import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.NetworkDiscoveryController;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.N;
-import de.mel.core.serialize.serialize.tools.NumberTransformer;
 
 
 public class MainActivity extends MelActivity implements PowerManager.IPowerStateListener<AndroidPowerManager> {
@@ -191,8 +190,9 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
 
             @Override
             public void readProperties() throws IOException {
-                version = Long.parseLong(BuildConfig.BUILD_VERSION);
+                timestamp = Long.parseLong(BuildConfig.BUILD_TIMESTAMP);
                 variant = BuildConfig.BUILD_VARIANT;
+                commit = BuildConfig.BUILD_COMMIT;
             }
         });
         AndroidLok.setupDbLok(this);
