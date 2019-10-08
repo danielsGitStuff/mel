@@ -168,7 +168,7 @@ constructor(val config: ServerConfig) {
 
             val fileEntry = FileEntry(hash = hash, file = f, variant = variant, timestamp = timestamp, size = size, commit = commit)
             fileRepository += fileEntry
-            versionAnswer.addEntry(hash, variant, timestamp, f.length())
+            versionAnswer.addEntry(hash, variant, commit, timestamp, f.length())
         }
     }
 

@@ -19,7 +19,6 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
@@ -103,7 +102,7 @@ public class SettingsController extends GuiController {
         btnAbout.setOnClickListener(v -> N.r(() -> {
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(activity);
             String variant = activity.getString(R.string.variant);
-            Date versionDate = new Date(Versioner.getBuildVersion());
+            Date versionDate = new Date(Versioner.getTimestamp());
             String text = activity.getString(R.string.version);
             text += versionDate.toString() + "\n";
             text += variant + Versioner.getBuildVariant();

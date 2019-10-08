@@ -44,7 +44,11 @@ public class Versioner {
         }
     }
 
-    public static Long getBuildVersion() throws IOException {
+    public static String getCommit() throws IOException {
+        return buildReader.getCommit();
+    }
+
+    public static Long getTimestamp() throws IOException {
         return buildReader.getTimestamp();
     }
 

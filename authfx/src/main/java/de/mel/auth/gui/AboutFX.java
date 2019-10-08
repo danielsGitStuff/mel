@@ -12,10 +12,8 @@ import de.mel.update.UpdateHandler;
 import de.mel.update.Updater;
 import de.mel.update.VersionAnswer;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Region;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
@@ -77,7 +75,7 @@ public class AboutFX extends AuthSettingsFX {
         }
 
         try {
-            Date veriosnDate = new Date(Versioner.getBuildVersion());
+            Date veriosnDate = new Date(Versioner.getTimestamp());
             lblVersion.setText(veriosnDate.toString());
             lblVariant.setText(Versioner.getBuildVariant());
         } catch (Exception e) {
@@ -127,8 +125,8 @@ public class AboutFX extends AuthSettingsFX {
                 public void onUpdateAvailable(Updater updater, VersionAnswer.VersionEntry ve) {
                     Lok.debug("available");
                     N.r(() -> {
-                        Long currentVersion = Versioner.getBuildVersion();
-                        Lok.debug("update available from " + currentVersion + " to " + ve.getVersion() + ", hash " + ve.getHash());
+                        Long currentVersion = Versioner.getTimestamp();
+                        Lok.debug("update available from " + currentVersion + " to " + ve.getTimestamp() + ", hash " + ve.getHash());
                         AboutFX.this.updater = updater;
                         versionEntry.set(ve);
                         btnUpdate.setDisable(false);

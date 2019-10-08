@@ -2,7 +2,6 @@ package de.mel.auth.data.db;
 
 import de.mel.Versioner;
 import de.mel.auth.service.BootException;
-import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.SerializableEntity;
 
@@ -28,7 +27,7 @@ public class ServiceError implements SerializableEntity {
     }
 
     public ServiceError(BootException e) {
-        N.oneLine(() -> version = Versioner.getBuildVersion());
+        N.oneLine(() -> version = Versioner.getTimestamp());
         N.oneLine(() -> variant = Versioner.getBuildVariant());
         if (e.getCause() != null)
             exceptionClass = e.getCause().getClass().getSimpleName();

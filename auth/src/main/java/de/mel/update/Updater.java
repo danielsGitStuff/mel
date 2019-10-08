@@ -4,7 +4,6 @@ import de.mel.Lok;
 import de.mel.Versioner;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.access.CertificateManager;
-import de.mel.auth.file.AFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
 
@@ -52,10 +51,11 @@ public class Updater {
 
     void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
         try {
-            Long currentVersion = Versioner.getBuildVersion();
-            Lok.debug("current version: " + currentVersion);
-            Lok.debug("latest version : " + versionEntry.getVersion());
-            if (currentVersion >= versionEntry.getVersion()) {
+            String currentCommit = Versioner.getCommit();
+            Long timestamp = Versioner.getTimestamp();
+            Lok.debug("current: commit=" + currentCommit + " timestamp=" + timestamp);
+            Lok.debug("latest : commit=" + versionEntry.getCommit() + " timestamp=" + versionEntry.getTimestamp());
+            if (timestamp >= versionEntry.getTimestamp()) {
                 Lok.debug("no update necessary :)");
                 N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onNoUpdateAvailable(this));
                 return;
