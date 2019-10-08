@@ -1,4 +1,4 @@
-import de.web.miniserver.MiniServer;
+import de.mel.web.miniserver.MiniServer;
 
 import java.io.*;
 

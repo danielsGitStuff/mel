@@ -63,7 +63,7 @@ task createProperties() {
     }
 }
 bootJar {
-    mainClassName = 'de.web.blog.Blog'
+    mainClassName = 'de.mel.web.blog.Blog'
     archiveFileName = jarName
 }
 processResources.dependsOn(createProperties)
