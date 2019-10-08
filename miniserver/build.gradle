@@ -65,7 +65,7 @@ task createProperties(dependsOn: copyLicenseHtml) {
     }
 }
 bootJar {
-    mainClassName = 'de.miniserver.Main'
+    mainClassName = 'de.web.miniserver.Main'
     archiveFileName = jarName
 }
 processResources.dependsOn(createProperties)

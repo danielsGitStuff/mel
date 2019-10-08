@@ -1,30 +1,6 @@
-import de.mel.Lok;
-import de.mel.Versioner;
-import de.mel.auth.MelStrings;
-import de.mel.auth.data.MelAuthSettings;
-import de.mel.auth.service.MelBoot;
-import de.mel.auth.service.power.PowerManager;
-import de.mel.auth.socket.MelSocket;
-import de.mel.auth.tools.F;
-import de.mel.sql.Hash;
-import de.mel.sql.RWLock;
-import de.miniserver.MiniServer;
-import de.miniserver.ServerConfig;
-import org.junit.After;
-import org.junit.Before;
+import de.web.miniserver.MiniServer;
 
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.Properties;
-import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
