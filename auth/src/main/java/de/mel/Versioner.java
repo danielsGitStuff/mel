@@ -14,19 +14,19 @@ public class Versioner {
             Properties properties = new Properties();
             InputStream in = getClass().getResourceAsStream("/version.properties");
             properties.load(in);
-            timestamp = Long.valueOf(properties.getProperty("version"));
+            timestamp = Long.valueOf(properties.getProperty("timestamp"));
             variant = properties.getProperty("variant");
-            commit = properties.getProperty("commit");
+            version = properties.getProperty("version");
         }
     };
 
     public static abstract class BuildReader {
         protected String variant;
         protected Long timestamp;
-        protected String commit;
+        protected String version;
 
-        public String getCommit() {
-            return commit;
+        public String getVersion() {
+            return version;
         }
 
         public abstract void readProperties() throws IOException;
@@ -44,8 +44,8 @@ public class Versioner {
         }
     }
 
-    public static String getCommit() throws IOException {
-        return buildReader.getCommit();
+    public static String getVersion() throws IOException {
+        return buildReader.getVersion();
     }
 
     public static Long getTimestamp() throws IOException {

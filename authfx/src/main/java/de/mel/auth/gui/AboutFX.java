@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AboutFX extends AuthSettingsFX {
@@ -33,7 +35,7 @@ public class AboutFX extends AuthSettingsFX {
     @FXML
     private WebView webView;
     @FXML
-    private Label lblVersion, lblVariant;
+    private Label lblVersion, lblVariant, lblTimestamp;
 
     @FXML
     private Button btnCheckUpdate, btnUpdate;
@@ -75,9 +77,10 @@ public class AboutFX extends AuthSettingsFX {
         }
 
         try {
-            Date veriosnDate = new Date(Versioner.getTimestamp());
-            lblVersion.setText(veriosnDate.toString());
+            Date timestamp = new Date(Versioner.getTimestamp());
+            lblTimestamp.setText(timestamp.toString());
             lblVariant.setText(Versioner.getBuildVariant());
+            lblVersion.setText(Versioner.getVersion());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -88,7 +91,7 @@ public class AboutFX extends AuthSettingsFX {
                 currentJarFile = new File(CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation().toURI());
                 if (!currentJarFile.getAbsolutePath().endsWith(".jar")) {
                     Lok.error("Seems I am not a jar. I won't update myself then ;)");
-                    FxApp.showErrorDialog(getString("about.alert.title"),getString("about.err.notAJar"));
+                    FxApp.showErrorDialog(getString("about.alert.title"), getString("about.err.notAJar"));
                     return;
                 }
                 Lok.debug("current path is " + currentJarFile.getAbsolutePath());
@@ -142,7 +145,7 @@ public class AboutFX extends AuthSettingsFX {
                 @Override
                 public void onNoUpdateAvailable(Updater updater) {
                     Lok.debug("no new version available");
-                    FxApp.showInfoDialog(getString("about.alert.title"),getString("about.alert.noNewVersion"));
+                    FxApp.showInfoDialog(getString("about.alert.title"), getString("about.alert.noNewVersion"));
                 }
             });
 

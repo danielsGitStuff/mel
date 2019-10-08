@@ -192,7 +192,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             public void readProperties() throws IOException {
                 timestamp = Long.parseLong(BuildConfig.BUILD_TIMESTAMP);
                 variant = BuildConfig.BUILD_VARIANT;
-                commit = BuildConfig.BUILD_COMMIT;
+                version = BuildConfig.BUILD_VERSION;
             }
         });
         AndroidLok.setupDbLok(this);

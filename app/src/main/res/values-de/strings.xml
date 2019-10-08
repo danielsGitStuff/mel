@@ -167,5 +167,6 @@
     <string name="settingsLokExportToast">Gepseichert unter: </string>
     <string name="btnExportDBs">Export DBs</string>
     <string name="knownInstances">Bekannte Mels</string>
+    <string name="timestamp">Erbaungszeitstempel</string>
 
 </resources>

@@ -9,12 +9,18 @@
 <VBox maxHeight="1.7976931348623157E308" prefHeight="400.0" prefWidth="600.0" stylesheets="@mel.css"
       xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="de.mel.auth.gui.AboutFX">
-    <Label styleClass="lbl-center-section" text="%about.version"/>
-    <Label fx:id="lblVersion" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
-           text="%about.couldNotRead"/>
     <Label styleClass="lbl-center-section" text="%about.variant"/>
     <Label fx:id="lblVariant" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
            text="%about.couldNotRead"/>
+
+    <Label styleClass="lbl-center-section" text="%about.timestamp"/>
+    <Label fx:id="lblTimestamp" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
+           text="%about.couldNotRead"/>
+
+    <Label styleClass="lbl-center-section" text="%about.version"/>
+    <Label fx:id="lblVersion" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
+           text="%about.couldNotRead"/>
+
     <Label fx:id="lblUpdate" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308"
            styleClass="lbl-center-section" text="%about.update"/>
     <HBox>

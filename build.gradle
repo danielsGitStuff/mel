@@ -9,7 +9,7 @@ buildscript {
             commandLine 'git', 'rev-parse', 'HEAD'
             standardOutput = out
         }
-        out.toString().trim()
+        out.toString().take(7).trim()
     }.call()
     println "commit=${ext.COMMIT}"
     repositories {

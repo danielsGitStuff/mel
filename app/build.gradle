@@ -90,7 +90,7 @@ android {
             manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
             buildConfigField("String", "BUILD_TIMESTAMP", "\"${timestamp}\"")
-            buildConfigField("String","BUILD_COMMIT","\"${COMMIT}\"")
+            buildConfigField("String","BUILD_VERSION","\"${COMMIT}\"")
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             debuggable true
@@ -100,7 +100,7 @@ android {
             applicationIdSuffix ".debug"
             buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
             buildConfigField("String", "BUILD_TIMESTAMP", "\"${timestamp}\"")
-            buildConfigField("String","BUILD_COMMIT","\"${COMMIT}\"")
+            buildConfigField("String","BUILD_VERSION","\"${COMMIT}\"")
             minifyEnabled false
         }
     }
@@ -119,7 +119,7 @@ task releaseWithProps {
             println("RELEASE WITH PROPS")
             Properties p = new Properties()
             p['timestamp'] = new Date().getTime().toString()
-            p['commit'] = "${COMMIT}".toString()
+            p['version'] = "${COMMIT}".toString()
             p['variant'] = 'apk-release'
             File output = new File("$buildDir/outputs/apk/release")
             output.mkdirs()

@@ -167,5 +167,6 @@
     <string name="settingsLokExportToast">Exported to: </string>
     <string name="btnExportDBs">Export DBs</string>
     <string name="knownInstances">Known Mels</string>
+    <string name="timestamp">Timestamp</string>
 
 </resources>

@@ -10,31 +10,13 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.Toast;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Date;
-
+import android.widget.*;
 import androidx.core.content.FileProvider;
-
 import de.mel.BuildConfig;
 import de.mel.Lok;
 import de.mel.R;
 import de.mel.Versioner;
-import de.mel.android.AndroidLok;
-import de.mel.android.MainActivity;
-import de.mel.android.Notifier;
-import de.mel.android.PreferenceStrings;
-import de.mel.android.Threadder;
-import de.mel.android.Tools;
+import de.mel.android.*;
 import de.mel.android.service.AndroidPowerManager;
 import de.mel.android.service.AndroidService;
 import de.mel.android.service.CopyService;
@@ -44,6 +26,12 @@ import de.mel.auth.tools.N;
 import de.mel.update.UpdateHandler;
 import de.mel.update.Updater;
 import de.mel.update.VersionAnswer;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Date;
 
 /**
  * Created by xor on 9/19/17.
@@ -103,9 +91,10 @@ public class SettingsController extends GuiController {
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(activity);
             String variant = activity.getString(R.string.variant);
             Date versionDate = new Date(Versioner.getTimestamp());
-            String text = activity.getString(R.string.version);
-            text += versionDate.toString() + "\n";
-            text += variant + Versioner.getBuildVariant();
+            String text = activity.getString(R.string.variant);
+            text += ": " + Versioner.getBuildVariant() + "\n"
+                    + activity.getString(R.string.timestamp) + ": " + Versioner.getTimestamp().toString() + "\n"
+                    + activity.getString(R.string.version) + ": " + Versioner.getVersion();
             builder.setMessage(text)
                     .setTitle(R.string.titleAbout)
                     .setPositiveButton(R.string.btnOk, null);

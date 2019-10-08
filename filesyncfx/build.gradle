@@ -20,6 +20,7 @@ compileJava {
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
 }
+jar { enabled = true }
 dependencies {
     api project(path: ':filesync')
     api project(path: ':authfx')

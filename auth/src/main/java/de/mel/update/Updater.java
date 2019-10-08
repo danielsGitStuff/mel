@@ -51,7 +51,7 @@ public class Updater {
 
     void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
         try {
-            String currentCommit = Versioner.getCommit();
+            String currentCommit = Versioner.getVersion();
             Long timestamp = Versioner.getTimestamp();
             Lok.debug("current: commit=" + currentCommit + " timestamp=" + timestamp);
             Lok.debug("latest : commit=" + versionEntry.getCommit() + " timestamp=" + versionEntry.getTimestamp());
