@@ -1,3 +1,4 @@
+eval `keychain --eval --agents ssh ~/.ssh/id_github`
 git pull
 ./gradlew clean
 ./gradlew :miniserver:bootJar
