@@ -8,7 +8,7 @@ import java.util.Map;
 public class VersionAnswer implements SerializableEntity {
 
     public void addEntry(String hash, String variant, String commit, Long version, Long length) {
-        entries.put(variant, new VersionEntry().setHash(hash).setTimestamp(version).setLength(length)).setCommit(commit);
+        entries.put(variant, new VersionEntry().setHash(hash).setTimestamp(version).setLength(length).setCommit(commit));
     }
 
     public String getHash(String variant) {
