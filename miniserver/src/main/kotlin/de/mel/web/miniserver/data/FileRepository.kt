@@ -29,7 +29,12 @@ class FileEntry(val hash: String, val file: File, val variant: String, val commi
 class FileRepository {
 
 
-    internal val hashFileMap = hashMapOf<String, FileEntry>()//HashMap<String, File>()
+    internal val hashFileMap = hashMapOf<String, FileEntry>()
+    lateinit var sortedFileEntries: List<FileEntry>
+
+    fun sort() {
+        sortedFileEntries = hashFileMap.values.sortedBy { fileEntry -> fileEntry.variant }
+    }
 
     @Throws(FileNotFoundException::class)
     operator fun get(hash: String): FileEntry {

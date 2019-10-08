@@ -170,6 +170,7 @@ constructor(val config: ServerConfig) {
             fileRepository += fileEntry
             versionAnswer.addEntry(hash, variant, commit, timestamp, f.length())
         }
+        fileRepository.sort()
     }
 
     fun execute(runnable: MelRunnable) {

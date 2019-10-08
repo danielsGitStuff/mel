@@ -45,7 +45,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         return Page("/de/mel/web/miniserver/index.html",
                 Replacer("files") {
                     val s = StringBuilder()
-                    miniServer.fileRepository.hashFileMap.values.forEach { fileEntry ->
+                    miniServer.fileRepository.sortedFileEntries.forEach { fileEntry ->
                         val ldt = LocalDateTime.ofEpochSecond(fileEntry.timestamp / 1000, 0, ZoneOffset.UTC)
                         val formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd|hh:mm:ss")
                         val date = ldt.format(formatter)
