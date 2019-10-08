@@ -6,5 +6,5 @@ git pull
 ./gradlew :miniserver:buildServerJar
 #./gradlew :fxbundle:buildFxJar
 #./gradlew :app:assembleRelease
-cp miniserver/build/libs/miniserver-0.jar miniserver/server/miniserver.jar
+cp miniserver/build/libs/miniserver-standalone.jar miniserver/server/miniserver.jar
 systemctl --user restart miniserver.service
