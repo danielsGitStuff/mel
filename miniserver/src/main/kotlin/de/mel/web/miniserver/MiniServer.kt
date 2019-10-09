@@ -309,6 +309,7 @@ constructor(val config: ServerConfig) {
                             result.preserveLogLinesInDb = 1000L
                         }
                     }
+                    .optional("-debug", "prints debug information") { result, _ -> result.printDebug = true }
 
             var workingDirectory: File? = null
             try {
@@ -322,6 +323,8 @@ constructor(val config: ServerConfig) {
                     // todo debug - debug can be disabled here
                     Lok.getImpl().setPrintDebug(false).setup(30, true)
                 }
+                if (konsole.result.printDebug)
+                    Lok.getImpl().setPrintDebug(true)
                 Lok.info("attempting to create output.log at: ${outFile.absoluteFile.absolutePath}")
                 if (outFile.exists())
                     outFile.delete()

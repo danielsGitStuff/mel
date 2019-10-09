@@ -25,6 +25,7 @@ class ServerConfig : KResult {
     var restartCommand = mutableListOf<String>()
     var keepBinaries: Boolean = false
     var preserveLogLinesInDb = 2000L
+    var printDebug = false
 
 
     fun getFiles(): Map<String, Pair<String>> {

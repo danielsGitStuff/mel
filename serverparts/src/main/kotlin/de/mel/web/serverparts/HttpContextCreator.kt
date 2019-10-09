@@ -147,6 +147,7 @@ class HttpContextCreator(val server: HttpsServer) {
                         return true
                     }
                 }catch (e:Exception){
+                    Lok.error("request handling failed for ")
                     requestHandler.closeWhenHandled
                     return true
                 }

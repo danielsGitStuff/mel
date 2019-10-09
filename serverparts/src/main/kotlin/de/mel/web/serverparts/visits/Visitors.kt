@@ -1,6 +1,8 @@
 package de.mel.web.serverparts.visits
 
 import com.sun.net.httpserver.HttpExchange
+import de.mel.Lok
+import de.mel.auth.tools.N
 import de.mel.execute.SqliteExecutor
 import de.mel.sql.RWLock
 import de.mel.sql.SQLQueries
@@ -13,12 +15,15 @@ class Visitors private constructor(private val dao: VisitsDao) {
 
     fun count(ex: HttpExchange) {
         if (ex.requestMethod == "GET") {
-            val now = LocalDateTime.now()
-            // day = 20190324
-            val day = "${now.year}${if (now.monthValue > 9) "${now.monthValue}" else "0${now.monthValue}"}${if (now.dayOfMonth > 9) "${now.dayOfMonth}" else "0${now.dayOfMonth}"}".toInt()
-            val src = ex.remoteAddress.toString()
-            val target = ex.requestURI.toString()
-            dao.increase(day, src, target)
+            N.oneLine {
+                val now = LocalDateTime.now()
+                // day = 20190324
+                val day = "${now.year}${if (now.monthValue > 9) "${now.monthValue}" else "0${now.monthValue}"}${if (now.dayOfMonth > 9) "${now.dayOfMonth}" else "0${now.dayOfMonth}"}".toInt()
+                val src = ex.remoteAddress.toString()
+                val target = ex.requestURI.toString()
+                Lok.debug("visit from ${ex.remoteAddress.hostString}")
+                dao.increase(day, src, target)
+            }
         }
     }
 

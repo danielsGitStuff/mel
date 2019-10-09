@@ -162,13 +162,13 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     }
 
     fun start() {
-        Lok.debug("binding https to           : $port")
+        Lok.info("binding https to           : $port")
         server = createServer()
-        Lok.debug("successfully bound https to: $port")
+        Lok.info("successfully bound https to: $port")
         configureContext(server)
         server.executor = executor
         server.start()
-        Lok.debug("http is up")
+        Lok.info("https is up")
     }
 
     abstract fun configureContext(server: HttpsServer)
