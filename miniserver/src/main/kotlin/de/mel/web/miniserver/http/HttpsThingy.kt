@@ -54,7 +54,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                         s.append("<td>${fileEntry.variant}</td>") //variant
                         s.append("<td>${String.format("%.2f", fileEntry.size.toFloat() / 1024 / 1024)} mb</td>") //size
                         s.append("<td>$date</td>") //build date
-                        s.append("<td>${fileEntry.commit.take(7)}</td>")
+                        s.append("<td>${fileEntry.version.take(7)}</td>")
                         s.append("<td>${fileEntry.hash}</td>")//hash
                         s.append("</tr>")
                     }

@@ -153,7 +153,7 @@ constructor(val config: ServerConfig) {
             val propertiesFile = File(filesDir, f.name + MelStrings.update.INFO_APPENDIX)
             val variant: String
             val timestamp: Long?
-            val commit: String
+            val version: String
             if (!propertiesFile.exists())
                 return@forEachIgnorantly
             Lok.info("reading binary: " + f.absolutePath)
@@ -163,12 +163,12 @@ constructor(val config: ServerConfig) {
 
             variant = properties.getProperty("variant")
             timestamp = properties.getProperty("timestamp").toLong()
-            commit = properties.getProperty("commit")
+            version = properties.getProperty("version")
             val size = f.length()
 
-            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, timestamp = timestamp, size = size, commit = commit)
+            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, timestamp = timestamp, size = size, version = version)
             fileRepository += fileEntry
-            versionAnswer.addEntry(hash, variant, commit, timestamp, f.length())
+            versionAnswer.addEntry(hash, variant, version, timestamp, f.length())
         }
         fileRepository.sort()
     }
