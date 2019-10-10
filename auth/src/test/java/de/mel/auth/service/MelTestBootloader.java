@@ -2,6 +2,7 @@ package de.mel.auth.service;
 
 import de.mel.Lok;
 import de.mel.auth.data.db.Service;
+import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.sql.SqlQueriesException;
 
 import java.io.File;
@@ -40,6 +41,11 @@ public class MelTestBootloader extends Bootloader<MelTestService> {
     @Override
     public void cleanUpDeletedService(MelTestService melService, String uuid) {
 
+    }
+
+    @Override
+    public boolean isCompatiblePartner(ServiceJoinServiceType service) {
+        return true;
     }
 
 

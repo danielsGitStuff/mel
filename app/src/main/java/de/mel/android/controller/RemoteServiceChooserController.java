@@ -21,6 +21,7 @@ import de.mel.android.view.ServicesListAdapter;
 import de.mel.auth.data.NetworkEnvironment;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.ServiceJoinServiceType;
+import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
 
@@ -31,6 +32,7 @@ import de.mel.auth.tools.N;
 public abstract class RemoteServiceChooserController extends AndroidServiceGuiController {
 
 
+    private final Bootloader bootloader;
     protected CreateServiceController createServiceController;
 
     protected abstract void initEmbedded();
@@ -45,9 +47,10 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
     private ViewGroup chooserContent;
     private TextView lblKnownMA, lblServices;
 
-    public RemoteServiceChooserController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup, int embeddedResource) {
+    public RemoteServiceChooserController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup, int embeddedResource, Bootloader bootloader) {
         super(activity, viewGroup, R.layout.embedded_create_service_chooser);
         this.melAuthService = melAuthService;
+        this.bootloader = bootloader;
         chooserContent = rootView.findViewById(R.id.chooserContent);
         View root = View.inflate(activity, embeddedResource, chooserContent);
         initEmbedded();
@@ -92,14 +95,13 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
 
     }
 
-    protected abstract boolean showService(ServiceJoinServiceType service);
 
     private void showServices(Long selectedCertId) {
         List<ServiceJoinServiceType> services = melAuthService.getNetworkEnvironment().getServices(selectedCertId);
         List<ServiceJoinServiceType> filtered = new ArrayList<>();
         if (services != null) {
             for (ServiceJoinServiceType service : services) {
-                if (showService(service))
+                if (bootloader.isCompatiblePartner(service))
                     filtered.add(service);
             }
         }

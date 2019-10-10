@@ -47,6 +47,7 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
 
     /**
      * Bootloaders extending this class probably want another ServiceHelper
+     *
      * @param melAuthService
      * @return
      */
@@ -79,7 +80,7 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
     @Override
     public AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MainActivity activity, MelAuthService melAuthService, IMelService runningInstance) {
         if (runningInstance == null) {
-            return new RemoteFileSyncServiceChooserGuiController(melAuthService, activity, embedded);
+            return new RemoteFileSyncServiceChooserGuiController(melAuthService, activity, embedded, this);
         } else {
             return new AndroidFileSyncEditGuiController(melAuthService, activity, runningInstance, embedded);
         }

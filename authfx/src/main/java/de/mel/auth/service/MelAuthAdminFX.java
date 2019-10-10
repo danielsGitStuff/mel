@@ -348,7 +348,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
             if (bootLoaderFX.embedCreateFXML()) {
                 loadSettingsFX("de/mel/choose.server.fxml");
                 RemoteServiceChooserFX remoteServiceChooserFX = (RemoteServiceChooserFX) contentController;
-                remoteServiceChooserFX.createFXML(((BootLoaderFX) bootLoader).getCreateFXML(), resourceBundle);
+                remoteServiceChooserFX.createFXML(bootLoader, resourceBundle);
                 lblTitle.setText(contentController.getTitle());
             } else {
                 loadSettingsFX(((BootLoaderFX) bootLoader).getCreateFXML(), resourceBundle);

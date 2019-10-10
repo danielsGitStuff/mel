@@ -17,19 +17,19 @@ public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
     @FXML
     private TextField txtName;
 
-    @Override
-    public void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
-        try {
-            if (service.getType().equalsValue(ContactStrings.NAME)) {
-                Certificate certificate = melAuthService.getCertificateManager().getCertificateById(certId);
-                foundServices.lockWrite();
-                foundServices.add(certificate, service);
-                foundServices.unlockWrite();
-            }
-        } catch (SqlQueriesException e) {
-            e.printStackTrace();
-        }
-    }
+//    @Override
+//    public void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
+//        try {
+//            if (service.getType().equalsValue(ContactStrings.NAME)) {
+//                Certificate certificate = melAuthService.getCertificateManager().getCertificateById(certId);
+//                foundServices.lockWrite();
+//                foundServices.add(certificate, service);
+//                foundServices.unlockWrite();
+//            }
+//        } catch (SqlQueriesException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @Override
     public boolean onPrimaryClicked() {

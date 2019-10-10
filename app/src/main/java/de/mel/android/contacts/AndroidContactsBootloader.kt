@@ -75,7 +75,7 @@ class AndroidContactsBootloader : ContactsBootloader(), AndroidBootLoader<Contac
 
     override fun inflateEmbeddedView(embedded: ViewGroup, activity: MainActivity, melAuthService: MelAuthService, runningInstance: IMelService?): AndroidServiceGuiController {
         return runningInstance?.let { AndroidContactsEditController(melAuthService, activity, it, embedded) }
-                ?: RemoteContactsServiceChooserGuiController(melAuthService, activity, embedded)
+                ?: RemoteContactsServiceChooserGuiController(melAuthService, activity, embedded,this)
     }
 
     override fun getPermissions(): Array<String> {

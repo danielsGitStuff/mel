@@ -188,37 +188,22 @@ public class FileSyncFXCreateController extends EmbeddedServiceSettingsFX {
     }
 
 
-    @Override
-    public void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
-        try {
-            if (service.getType().v().equals(new FileSyncBootloader().getName())) {
-                if (service.getAdditionalServicePayload() != null) {
-                    FileSyncDetails fileSyncDetails = (FileSyncDetails) service.getAdditionalServicePayload();
-                    if (fileSyncDetails.getRole().equals(FileSyncStrings.ROLE_SERVER)) {
-                        Certificate certificate = melAuthService.getCertificateManager().getCertificateById(certId);
-                        foundServices.lockWrite();
-                        foundServices.add(certificate, service);
-                        foundServices.unlockWrite();
-                    }
-                }
-//                Certificate certificate = melAuthService.getCertificateManager().getCertificateById(certId);
-//                Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(certId);
-//                connected.done(mvp -> N.r(() -> {
-//                    Request promise = mvp.request(service.getUuid().v(), new EmptyPayload(DriveStrings.INTENT_DRIVE_DETAILS));
-//                    promise.done(result -> N.r(() -> {
-//                        DriveDetails driveDetails = (DriveDetails) result;
-//                        if (driveDetails.getRole() != null && driveDetails.getRole().equals(DriveStrings.ROLE_SERVER)) {
-//                            //finally found one
-//                            foundServices.lockWrite();
-//                            foundServices.add(certificate, service);
-//                            foundServices.unlockWrite();
-//                        }
-//                    }));
-//                }));
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @Override
+//    public void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service) {
+//        try {
+//            if (service.getType().v().equals(new FileSyncBootloader().getName())) {
+//                if (service.getAdditionalServicePayload() != null) {
+//                    FileSyncDetails fileSyncDetails = (FileSyncDetails) service.getAdditionalServicePayload();
+//                    if (fileSyncDetails.getRole().equals(FileSyncStrings.ROLE_SERVER)) {
+//                        Certificate certificate = melAuthService.getCertificateManager().getCertificateById(certId);
+//                        foundServices.lockWrite();
+//                        foundServices.add(certificate, service);
+//                        foundServices.unlockWrite();
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

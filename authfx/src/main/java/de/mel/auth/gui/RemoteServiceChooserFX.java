@@ -1,13 +1,16 @@
 package de.mel.auth.gui;
 
 import de.mel.Lok;
+import de.mel.auth.boot.BootLoaderFX;
 import de.mel.auth.data.NetworkEnvironment;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.gui.controls.CertListCell;
 import de.mel.auth.gui.controls.ServiceListCell;
+import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.MelAuthAdminFX;
 import de.mel.auth.tools.N;
+import de.mel.auth.tools.lock.P;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
@@ -16,11 +19,15 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import jdk.internal.loader.BootLoader;
 
 import java.net.URL;
 import java.util.*;
 
 public class RemoteServiceChooserFX extends AuthSettingsFX {
+
+    @FXML
+    ListView<ServiceJoinServiceType> listServices;
     private EmbeddedServiceSettingsFX embeddedServiceSettingsFX;
     @FXML
     private VBox container;
@@ -29,8 +36,6 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
     @FXML
     private ListView<Certificate> listCerts;
     @FXML
-    ListView<ServiceJoinServiceType> listServices;
-    @FXML
     private Label lblAvailable;
     @FXML
     private HBox paneAvailable;
@@ -38,6 +43,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
     private ServiceJoinServiceType selectedService;
     private Certificate selectedCertificate;
     private MelAuthAdminFX melAuthAdminFX;
+    protected Bootloader bootloader;
 
     public Certificate getSelectedCertificate() {
         return selectedCertificate;
@@ -74,6 +80,7 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
         embeddedServiceSettingsFX.onRbClientSelected();
     }
 
+
     @Override
     public void init() {
         Lok.debug("RemoteServiceChooserFX.init");
@@ -85,35 +92,26 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
             listCerts.getItems().clear();
             listServices.getItems().clear();
             NetworkEnvironment env = melAuthService.getNetworkEnvironment();
-            NetworkEnvironment.FoundServices foundServices = new NetworkEnvironment.FoundServices(listCerts.getItems()::add);
             env.deleteObservers();
-            env.addObserver((environment, arg) -> {
-                Lok.debug("FileSyncFXCreateController.change");
-                N.r(() -> {
-                    Collection<ServiceJoinServiceType> services = env.getServices();
-                    for (ServiceJoinServiceType service : services) {
-                        Long certId = env.getCertificateId(service);
-                        embeddedServiceSettingsFX.onServiceSpotted(foundServices, certId, service);
-                    }
-                });
-
+            listCerts.getItems().clear();
+            N.forEach(env.getCertificateIds(), certId -> {
+                Certificate cert = melAuthService.getCertificateManager().getCertificateById(certId);
+                listCerts.getItems().add(cert);
             });
+
             listCerts.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 listServices.getItems().clear();
                 if (newValue != null) {
                     Lok.debug("FileSyncFXCreateController.init");
-                    Certificate certificate = (Certificate) newValue;
-                    foundServices.lockRead();
-                    for (ServiceJoinServiceType service : foundServices.get(certificate.getId().v())) {
-                        listServices.getItems().add(service);
+                    for (ServiceJoinServiceType service : env.getServices(newValue.getId().v())) {
+                        if (bootloader.isCompatiblePartner(service))
+                            listServices.getItems().add(service);
                     }
-                    foundServices.unlockRead();
                 }
             });
             listServices.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                ServiceJoinServiceType service = (ServiceJoinServiceType) newValue;
-                this.selectedService = service;
-                this.selectedCertificate = (Certificate) listCerts.getSelectionModel().selectedItemProperty().get();
+                this.selectedService = newValue;
+                this.selectedCertificate = listCerts.getSelectionModel().selectedItemProperty().get();
                 this.embeddedServiceSettingsFX.onServiceSelected(this.selectedCertificate, this.selectedService);
             });
             melAuthService.discoverNetworkEnvironment();
@@ -125,9 +123,11 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
         return embeddedServiceSettingsFX == null ? null : embeddedServiceSettingsFX.getTitle();
     }
 
-    public void createFXML(String fxml, ResourceBundle resourceBundle) {
+    public void createFXML(Bootloader bootloader, ResourceBundle resourceBundle) {
+        this.bootloader = bootloader;
         N.r(() -> {
 //            showBottomButtons();
+            String fxml = ((BootLoaderFX) bootloader).getCreateFXML();
             URL resource = getClass().getClassLoader().getResource(fxml);
             if (resource == null) {
                 Lok.error("could not loadt fxml file from " + fxml);

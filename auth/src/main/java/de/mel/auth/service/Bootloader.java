@@ -3,6 +3,7 @@ package de.mel.auth.service;
 import de.mel.Lok;
 import de.mel.auth.data.db.Service;
 
+import de.mel.auth.data.db.ServiceJoinServiceType;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -103,6 +104,11 @@ public abstract class Bootloader<T extends MelService> {
 
     public abstract void cleanUpDeletedService(T melService, String uuid);
 
+    /**
+     * @param service
+     * @return whether or not an instance of this bootloader's service is capable of dealing with the other one
+     */
+    public abstract boolean isCompatiblePartner(ServiceJoinServiceType service);
 
     public enum BootLevel {
 //        NONE(0), SHORT(1), LONG(2);

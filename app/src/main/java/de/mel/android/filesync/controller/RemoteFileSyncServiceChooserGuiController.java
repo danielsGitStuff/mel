@@ -15,6 +15,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
+import de.mel.auth.service.Bootloader;
 import org.jdeferred.Promise;
 
 import java.io.File;
@@ -97,8 +98,8 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         return rootFile;
     }
 
-    public RemoteFileSyncServiceChooserGuiController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup) {
-        super(melAuthService, activity, viewGroup, R.layout.embedded_twice_drive);
+    public RemoteFileSyncServiceChooserGuiController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup, Bootloader bootloader) {
+        super(melAuthService, activity, viewGroup, R.layout.embedded_twice_drive,bootloader);
     }
 
     private void launchDirChooser() {
@@ -267,11 +268,6 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         availableSpace = dir.getUsableSpace();
         rootFile = AFile.instance(path);
         adjustMaxWasteBinRatio();
-    }
-
-    @Override
-    protected boolean showService(ServiceJoinServiceType service) {
-        return service.getType().v().equals(FileSyncStrings.NAME) && service.getAdditionalServicePayload() != null;
     }
 
     private String createDrivePath() {

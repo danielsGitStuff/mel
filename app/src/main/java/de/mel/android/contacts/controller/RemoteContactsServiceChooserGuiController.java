@@ -7,6 +7,7 @@ import de.mel.R;
 import de.mel.android.MainActivity;
 import de.mel.android.controller.RemoteServiceChooserController;
 import de.mel.auth.data.db.ServiceJoinServiceType;
+import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.MelAuthService;
 import de.mel.contacts.data.ContactStrings;
 
@@ -17,8 +18,8 @@ import de.mel.contacts.data.ContactStrings;
 public class RemoteContactsServiceChooserGuiController extends RemoteServiceChooserController {
     private CheckBox cbStoreToPhoneBook;
 
-    public RemoteContactsServiceChooserGuiController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup) {
-        super(melAuthService, activity, viewGroup, R.layout.embedded_twice_contacts);
+    public RemoteContactsServiceChooserGuiController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup, Bootloader bootloader) {
+        super(melAuthService, activity, viewGroup, R.layout.embedded_twice_contacts, bootloader);
     }
 
 
@@ -27,13 +28,7 @@ public class RemoteContactsServiceChooserGuiController extends RemoteServiceChoo
         cbStoreToPhoneBook = rootView.findViewById(R.id.cbStoreToPhoneBook);
     }
 
-
-    @Override
-    protected boolean showService(ServiceJoinServiceType service) {
-        return service.getType().equalsValue(ContactStrings.NAME);
-    }
-
-       public String getRole() {
+    public String getRole() {
 
         return isServer() ? ContactStrings.ROLE_SERVER : ContactStrings.ROLE_CLIENT;
     }

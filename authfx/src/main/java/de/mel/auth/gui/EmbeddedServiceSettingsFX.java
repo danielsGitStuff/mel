@@ -21,7 +21,6 @@ public abstract class EmbeddedServiceSettingsFX extends AuthSettingsFX {
         return remoteServiceChooserFX.getSelectedCertificate();
     }
 
-    public abstract void onServiceSpotted(NetworkEnvironment.FoundServices foundServices, Long certId, ServiceJoinServiceType service);
 
     public void setRemoteServiceChooserFX(RemoteServiceChooserFX remoteServiceChooserFX) {
         this.remoteServiceChooserFX = remoteServiceChooserFX;

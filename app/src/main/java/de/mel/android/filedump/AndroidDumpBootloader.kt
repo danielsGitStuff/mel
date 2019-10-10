@@ -28,7 +28,7 @@ class AndroidDumpBootloader : DumpBootloader(), AndroidBootLoader<MelFileSyncSer
 
     override fun inflateEmbeddedView(embedded: ViewGroup, activity: MainActivity, melAuthService: MelAuthService, runningInstance: IMelService?): AndroidServiceGuiController {
         return if (runningInstance == null) {
-            RemoteDumpServiceChooserGuiController(melAuthService, activity, embedded)
+            RemoteDumpServiceChooserGuiController(melAuthService, activity, embedded, this)
         } else {
             AndroidFileSyncEditGuiController(melAuthService, activity, runningInstance, embedded)
         }

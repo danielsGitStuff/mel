@@ -4,6 +4,7 @@ import de.mel.DeferredRunnable;
 import de.mel.Lok;
 import de.mel.auth.MelNotification;
 import de.mel.auth.data.db.Service;
+import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.service.BootException;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.MelAuthService;
@@ -36,18 +37,12 @@ import java.sql.SQLException;
 @SuppressWarnings("Duplicates")
 public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
 
-    public static interface DEV_DriveBootListener {
-        void driveServiceBooted(MelFileSyncService driveService);
-    }
-
     public static DEV_DriveBootListener DEV_DRIVE_BOOT_LISTENER;
     private MelFileSyncService melFileSyncService;
     private FileSyncSettings fileSyncSettings;
-
     public FileSyncBootloader() {
         BashTools.init();
     }
-
 
     @Override
     public String getName() {
@@ -116,6 +111,11 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
     public void cleanUpDeletedService(MelFileSyncService melService, String uuid) {
         new File(bootLoaderDir, uuid).delete();
         melAuthService.getPowerManager().removeListener(melService);
+    }
+
+    @Override
+    public boolean isCompatiblePartner(ServiceJoinServiceType service) {
+        return service.getName().equalsValue(FileSyncStrings.NAME) && service.getAdditionalServicePayload() != null;
     }
 
     /**
@@ -192,6 +192,10 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
 
     private DeferredObject<DeferredRunnable, Exception, Void> startIndexer(MelFileSyncService melFileSyncService, FileSyncSettings fileSyncSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         return melFileSyncService.startIndexer();
+    }
+
+    public static interface DEV_DriveBootListener {
+        void driveServiceBooted(MelFileSyncService driveService);
     }
 
 }

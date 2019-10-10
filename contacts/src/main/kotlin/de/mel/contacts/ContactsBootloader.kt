@@ -17,6 +17,7 @@ import java.sql.SQLException
 
 import de.mel.auth.data.JsonSettings
 import de.mel.auth.data.db.Service
+import de.mel.auth.data.db.ServiceJoinServiceType
 import de.mel.auth.service.BootException
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.tools.CountdownLock
@@ -29,6 +30,8 @@ import de.mel.sql.SqlQueriesException
  */
 
 open class ContactsBootloader : Bootloader<ContactsService>() {
+    override fun isCompatiblePartner(service: ServiceJoinServiceType): Boolean = service.name.equalsValue(ContactStrings.NAME)
+
     override fun cleanUpDeletedService(melService: ContactsService?, uuid: String?) {
         File(bootLoaderDir, uuid).delete()
     }
@@ -44,31 +47,6 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
             val jsonFile = File(serviceDir, "contacts.settings.json")
             contactsSettings.setJsonFile(jsonFile).save()
             melBoot.bootServices()
-
-//            contactsService = boot(melAuthService, service, contactsSettings)
-//            if (!contactsSettings.isServer) {
-//                // tell server we are here. if it goes wrong: reverse everything
-//                val waitLock = WaitLock().lock()
-//                val runner = N { e ->
-//                    melAuthService.unregisterMelService(service.uuid.v())
-//                    N.r { melAuthService.databaseManager.deleteService(service.id.v()) }
-//                    Lok.debug("ContactsBootloader.createDbService.service.deleted:something.failed")
-//                    waitLock.unlock()
-//                }
-//                runner.runTry {
-//                    //                    melAuthService.connect(contactsSettings.clientSettings.serverCertId)
-////                            .done { result ->
-////                                val serverServiceUuid = contactsSettings.clientSettings.serviceUuid
-////                                val serviceUuid = service.uuid.v()
-////                                runner.runTry {
-////                                    result.request(serverServiceUuid, ContactStrings.INTENT_REG_AS_CLIENT, ServiceDetails(serviceUuid))
-////                                            .done { result1 -> waitLock.unlock() }.fail { result1 -> runner.abort() }
-////
-////                                }
-////                            }.fail { result -> runner.abort() }
-//                }
-//                waitLock.lock()
-//            }
         } catch (e: IllegalAccessException) {
             throw BootException(this, e)
         } catch (e: JsonSerializationException) {

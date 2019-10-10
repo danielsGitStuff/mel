@@ -136,7 +136,7 @@ public class NetworkEnvironment extends Observable {
         return this;
     }
 
-    public static class FoundServices extends RWLock {
+    public static class FoundServices {
         private final CertAddedListener certAddedListener;
 
         public List<ServiceJoinServiceType> get(Long certId) {
