@@ -9,7 +9,7 @@ import de.mel.filesync.service.MelFileSyncService
 import java.util.*
 
 class DumpFxBootloader : DumpBootloader(), BootLoaderFX<MelFileSyncService<*>> {
-    override fun getCreateFXML(): String =  "de/mel/filedumpfx/create.embedded.fxml"
+    override fun getCreateFXML(): String =  "de/mel/filesyncfx/create.embedded.fxml"
 
     override fun embedCreateFXML(): Boolean = true
 

@@ -17,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
+import java.net.URL;
 import java.util.*;
 
 public class RemoteServiceChooserFX extends AuthSettingsFX {
@@ -127,7 +128,12 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
     public void createFXML(String fxml, ResourceBundle resourceBundle) {
         N.r(() -> {
 //            showBottomButtons();
-            FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(fxml));
+            URL resource = getClass().getClassLoader().getResource(fxml);
+            if (resource == null) {
+                Lok.error("could not loadt fxml file from " + fxml);
+                return;
+            }
+            FXMLLoader lo = new FXMLLoader(resource);
             lo.setResources(resourceBundle);
             Pane pane = lo.load();
             embeddedServiceSettingsFX = lo.getController();

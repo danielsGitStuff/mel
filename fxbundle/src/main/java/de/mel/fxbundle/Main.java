@@ -87,8 +87,7 @@ public class Main {
                 lock.unlockWrite();
             }).fail(Throwable::printStackTrace);
         }
-//        lock.lockWrite();
-//        lock.lockWrite();
+        lock.lockWrite();
         Lok.debug("Main.main.end");
         new WaitLock().lock().lock();
     }
