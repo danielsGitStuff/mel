@@ -97,7 +97,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 //copy MiniServer.jar
                 val processList = mutableListOf<Processor>()
                 if (buildRequest.server!!) {
-                    val miniServerSource = File("${projectRootDir.absolutePath}/miniserver/build/libs/").listFiles().first()
+                    val miniServerSource = File("${projectRootDir.absolutePath}/miniserver/build/libs/").listFiles().filter { it.name.endsWith(".jar") }.first()
                     processList.add(Processor("cp", miniServerSource.absolutePath, miniServerTarget.absolutePath))
                 }
                 if (buildRequest.apk!!)
