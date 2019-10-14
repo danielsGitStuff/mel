@@ -166,13 +166,20 @@ public class MelValidationProcess extends MelProcess {
                 if (cachedForRequesting.containsKey(cacheId)) {
                     CachedInitializer initializer = cachedForRequesting.get(cacheId);
                     initializer.onReceivedPart(cachedPart);
+                    StateMsg stateMsg = cachedStateMessages.get(cacheId);
                     if (initializer.isComplete()) {
+                        // tell partner we are complete here
                         cachedForRequesting.remove(cacheId);
-                        StateMsg stateMsg = cachedStateMessages.get(cacheId);
                         send(new CachedDoneMessage().setCacheId(cacheId));
                         onMessageReceived(stateMsg, melAuthSocket);
                         return false;
                     } else {
+                        // reset the request timeout
+                        if (stateMsg instanceof MelRequest) {
+                            MelRequest request = (MelRequest) stateMsg;
+                            request.startTimeout();
+                        }
+                        // ask for another part
                         send(new CachedRequest().setCacheId(cacheId).setPartNumber(initializer.getNextPartNumber()));
                     }
                 } else {

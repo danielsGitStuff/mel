@@ -1,6 +1,5 @@
 package de.mel.auth.socket;
 
-import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.*;
 import de.mel.auth.data.db.Certificate;
@@ -24,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class MelProcess implements IRequestHandler {
     protected MelAuthSocket melAuthSocket;
     protected Certificate partnerCertificate;
-    protected Map<Long, DeferredObject<SerializableEntity, ResponseException, Void>> requestMap = new ConcurrentHashMap<>();
+    protected Map<Long,MelRequest> requestMap = new ConcurrentHashMap<>();
 
     public MelProcess(MelAuthSocket melAuthSocket) {
         this.melAuthSocket = melAuthSocket;
@@ -34,6 +33,10 @@ public abstract class MelProcess implements IRequestHandler {
 
 
     protected void send(SerializableEntity melMessage) throws JsonSerializationException {
+        if(melMessage instanceof MelRequest){
+            MelRequest request = (MelRequest) melMessage;
+            request.startTimeout();
+        }
         String json = SerializableEntitySerializer.serialize(melMessage);
 //       Lok.debug(melAuthSocket.getMelAuthService().getName() + ".send: " + json);
         melAuthSocket.send(json);
@@ -54,7 +57,9 @@ public abstract class MelProcess implements IRequestHandler {
         }
         if (answerId != null && this.requestMap.containsKey(answerId)) {
             StateMsg msg = (StateMsg) deserialized;
-            DeferredObject<SerializableEntity, ResponseException, Void> deferred = requestMap.remove(answerId);
+            MelRequest request = requestMap.remove(answerId);
+            request.stopTimeout();
+            DeferredObject<SerializableEntity, ResponseException, Void> deferred = request.getAnswerDeferred();
             if (!msg.getState().equals(MelStrings.msg.STATE_OK)) {
                 if (msg.getException() == null)
                     deferred.reject(new ResponseException("state was: " + msg.getState()));
@@ -70,7 +75,7 @@ public abstract class MelProcess implements IRequestHandler {
 
     @Override
     public void queueForResponse(MelRequest request) {
-        requestMap.put(request.getRequestId(), request.getAnswerDeferred());
+        requestMap.put(request.getRequestId(), request);
     }
 
 

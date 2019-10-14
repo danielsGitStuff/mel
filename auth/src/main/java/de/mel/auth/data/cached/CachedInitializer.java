@@ -17,7 +17,7 @@ import java.util.Set;
 
 /**
  * This is the first part of a cached data structure.
- * Extend this class and put place it as {@link ServicePayload} in a {@link de.mel.auth.data.MelRequest}, {@link de.mel.auth.data.MelResponse} or {@link de.mel.auth.data.MelMessage}.
+ * Extend this class and put it as {@link ServicePayload} in a {@link de.mel.auth.data.MelRequest}, {@link de.mel.auth.data.MelResponse} or {@link de.mel.auth.data.MelMessage}.
  * If the structure holds elements 'part' is not null.
  *
  * @param <P> Type of the {@link CachedPart}s contained in this instance.

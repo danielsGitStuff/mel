@@ -4,6 +4,8 @@ import de.mel.Lok
 import de.mel.auth.MelStrings.msg
 import de.mel.auth.data.db.Certificate
 import de.mel.auth.socket.MelSocket
+import de.mel.auth.tools.N
+import de.mel.auth.tools.WatchDogTimer
 import de.mel.core.serialize.JsonIgnore
 import de.mel.core.serialize.SerializableEntity
 import org.jdeferred.impl.DeferredObject
@@ -31,6 +33,10 @@ class MelRequest() : MelMessage() {
         private set
     var certificate: Certificate? = null
         private set
+
+    val timer = WatchDogTimer("request killer", {
+        N.r { answerDeferred.reject(ResponseException("request timed out")) }
+    }, 30, 100, 1000)
     /**
      * see @[MelSocket]
      */
@@ -114,6 +120,14 @@ class MelRequest() : MelMessage() {
     fun setMode(mode: String?) {
         Lok.debug("")
         this.mode = mode
+    }
+
+    fun startTimeout() {
+        timer.start();
+    }
+
+    fun stopTimeout() {
+        timer.stop();
     }
 
 }
