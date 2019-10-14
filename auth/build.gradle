@@ -8,6 +8,7 @@ dependencies {
     api project(':lok')
     api project(':konsole')
     api project(':sql')
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
     api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     api 'org.jdeferred:jdeferred-core:1.2.4'
 

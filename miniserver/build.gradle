@@ -23,7 +23,7 @@ sourceSets {
     }
 }
 dependencies {
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
     implementation project(':konsole')
