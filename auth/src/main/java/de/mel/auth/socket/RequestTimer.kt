@@ -7,11 +7,12 @@ import de.mel.sql.RWLock
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.AtomicBoolean
 
+/**
+ * this is a replacement for WatchDogTimers in a MelRequest. (when finally everything is ported to kotlin)
+ */
 class RequestTimer(val request: MelRequest) {
     private var job: Job? = null
-    val repetitions = 5
-    var repCounter = 0
-    val delay = 1000L
+    private val repetitions = 30
     var done = AtomicBoolean(false)
 
     suspend fun doTimerThings(): Unit = withContext(Dispatchers.Default) {
